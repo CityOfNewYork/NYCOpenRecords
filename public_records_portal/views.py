@@ -69,7 +69,7 @@ def create_user():
 @app.before_request
 def csrf_protect():
     if request.method == "POST":
-        token = session.pop("_csrf_token", None)
+        token = session['_csrf_token']
         if not token or token != request.form.get('_csrf_token'):
             return access_denied(403)
 
@@ -684,6 +684,8 @@ def add_a_resource(resource):
         else:
             app.logger.info("\n\nThere was an issue with the upload: %s" % resource_id)
             template = "manage_request_%s_less_js.html" % req['audience']
+            if resource_id == "File too large":
+                errors['file_too_large'] = resource_id
             return show_request(request_id=req['request_id'],
                                 template=template, errors=errors,
                                 form=req, file=request.files['record'])
@@ -1220,7 +1222,6 @@ def about():
 def logout():
     logout_user()
     session.regenerate()
-    #session.clear()
     session.pop("_csrf_token", None)
     session.pop('username', None)
     session.pop('_id', None)

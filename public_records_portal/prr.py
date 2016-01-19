@@ -15,7 +15,7 @@ import urllib
 from StringIO import StringIO
 import os
 import json
-
+import subprocess
 import bleach
 from flask import request, render_template, make_response, send_file
 from xhtml2pdf import pisa
@@ -148,20 +148,22 @@ inside add_resource method''')
             app.logger.info('''
 
 everything else...''')
-            document = None
+            documents = None
             try:
-                document = request.files['record']
+                documents = request.files.getlist('record')
             except:
                 app.logger.info('''
 
 No file passed in''')
-            return upload_record(
+
+            return upload_multiple_records(
                     request_id=fields['request_id'],
-                    document=document,
-                    request_body=None,
+                    documents=documents,
+                    request_body=request_body,
                     description=fields['record_description'],
                     user_id=current_user_id,
                     privacy=fields['record_privacy'],
+                    department_name = department_name,
             )
     elif 'qa' in resource:
         return ask_a_question(request_id=fields['request_id'],
@@ -702,6 +704,17 @@ def generate_denial_page(document):
     run.font.size = Pt(10)
     return document
 
+def upload_multiple_records(request_id, description, user_id, request_body, documents=None, privacy=True, department_name=None):
+    # for document in documents:
+    #     upload_record(request_id, description, user_id, request_body, document, privacy, department_name)
+
+    documents_size = 0
+    for document in documents:
+        documents_size += len(document.read())
+        document.seek(0)
+    if documents_size > 10000000:
+        return "File too large"
+    return upload_record(request_id, description, user_id, request_body, documents, privacy, department_name)
 
 ### @export "upload_record"
 def upload_record(
@@ -709,8 +722,9 @@ def upload_record(
         description,
         user_id,
         request_body,
-        document=None,
+        documents=None,
         privacy=True,
+        department_name = None,
 ):
     """ Creates a record with upload/download attributes """
 
@@ -722,63 +736,53 @@ Begins Upload_record method''')
 
         # doc_id is upload_path
 
-        (doc_id, filename, error) = \
+        for document in documents:
+            (doc_id, filename, error) = \
             upload_helpers.upload_file(document=document,
-                                       request_id=request_id)
+                                       request_id=request_id, privacy=privacy)
+            if error == "file_too_large":
+                return "File too large"
+            elif doc_id == False:
+                return "Extension type '%s' is not allowed." % filename
+            else:
+                # if str(doc_id).isdigit():
+                if str(doc_id) == 'VIRUS_FOUND':
+                    return 'There was a virus found in the document you uploaded.'
+                if doc_id:
+
+                    # record_id = create_record(doc_id = doc_id, request_id = request_id, user_id = user_id, description = description, filename = filename, url = app.config['HOST_URL'] + doc_id)
+
+                    record_id = create_record(
+                            doc_id=None,
+                            request_id=request_id,
+                            user_id=user_id,
+                            description=description,
+                            filename=filename,
+                            url=app.config['HOST_URL'] + doc_id,
+                            privacy=privacy,
+                    )
+                    change_request_status(request_id,
+                                          'A response has been added.')
+                    notification_content['user_id'] = user_id
+                    notification_content['department_name'] = department_name
     except:
-
         # print sys.exc_info()[0]
-
         print traceback.format_exc()
         return 'The upload timed out, please try again.'
-    if doc_id == False:
-        return "Extension type '%s' is not allowed." % filename
+    if "attach_file_q" in request_body:
+        # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
+        notification_content['documents'] = documents
+        generate_prr_emails(request_id=request_id,
+                            notification_type='city_response_added',
+                            notification_content=notification_content)
     else:
-        # if str(doc_id).isdigit():
-        if str(doc_id) == 'VIRUS_FOUND':
-            return 'There was a virus found in the document you uploaded.'
-        if doc_id:
-
-            # record_id = create_record(doc_id = doc_id, request_id = request_id, user_id = user_id, description = description, filename = filename, url = app.config['HOST_URL'] + doc_id)
-
-            record_id = create_record(
-                    doc_id=None,
-                    request_id=request_id,
-                    user_id=user_id,
-                    description=description,
-                    filename=filename,
-                    url=app.config['HOST_URL'] + doc_id,
-                    privacy=privacy,
-            )
-            change_request_status(request_id,
-                                  'A response has been added.')
-
-            # notification_content['additional_information'] = request_body['additional_information']
-
-            # notification_content['user_id'] = user_id
-
-            if request_body is not None:
-                attached_file = app.config['UPLOAD_FOLDER'] + '/' \
-                                + filename
-                notification_content['attached_file'] = attached_file
-                # generate_prr_emails(request_id=request_id,
-                #                     notification_type='Public Notification Template 10'
-                #                     ,
-                #                     text=request_body['additional_information'
-                #                     ], user_id=user_id,
-                #                     attached_file=attached_file)
-            else:
-                attached_file = app.config['UPLOAD_FOLDER'] + '/' \
-                                + filename
-                notification_content['attached_file'] = attached_file
-                # generate_prr_emails(request_id=request_id,
-                #                     notification_type='Public Notification Template 10'
-                #                     , user_id=user_id,
-                #                     attached_file=attached_file)
-            add_staff_participant(request_id=request_id,
-                                  user_id=user_id)
-            return record_id
-    return 'There was an issue with your upload.'
+        generate_prr_emails(request_id=request_id,
+                            notification_type='city_response_added',
+                            notification_content=notification_content)
+    add_staff_participant(request_id=request_id,
+                          user_id=user_id)
+        # return record_id
+    return 1
 
 
 ### @export "add_offline_record"
@@ -941,10 +945,10 @@ Agency chosen: %s''' % agency)
                                 notification_type='confirmation_agency',
                                 notification_content=notification_content)
     if attachment:
-        upload_record(request_id=request_id,
+        upload_multiple_records(request_id=request_id,
                       description=attachment_description,
                       user_id=user_id, request_body=None,
-                      document=attachment)
+                      documents=attachment)
     return (request_id, True)
 
 
@@ -1285,4 +1289,14 @@ def change_privacy_setting(request_id, privacy, field):
 
 def change_record_privacy(record_id, privacy):
     record = get_obj("Record", record_id)
+    app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
+    if privacy == 'False':
+        app.logger.info("Making %s public" % record.filename)
+        subprocess.call(["mv", app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/"])
+        subprocess.call(["rsync", "-avzh", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/"])
+    elif privacy == 'True':
+        app.logger.info("Making %s private" % record.filename)
+        subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/"])
+        subprocess.call(["rsync", "-avzh", "--delete", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/"])
+
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
