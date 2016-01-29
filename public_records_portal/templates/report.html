@@ -95,7 +95,6 @@ rect:hover{
         <br />
 		
 		<script type="text/javascript">
-
 			function draw_barchart(reportPath) {
 				
 				$("#bar_chart").empty();
@@ -108,9 +107,17 @@ rect:hover{
 						right: 75,
 						bottom: 85,
 						left: 85
-						},
-						w = 600 - margin.left - margin.right,
-						h = 350 - margin.top - margin.bottom;
+						};
+						
+						if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+                            var w = $('.navbar').width() - margin.left - margin.right;
+                            
+                        }
+                        else {
+                        	var w = 600 - margin.left - margin.right;
+                        }
+
+						var h = 350 - margin.top - margin.bottom;
 						var padding = 10;
 						
 						var colors = {};
@@ -152,10 +159,13 @@ rect:hover{
 						var commaFormat = d3.format(',');
 						
 						//SVG element
+                                                //alert($('.navbar').width());
 						var svg = d3.select("#bar_chart")
 						.append("svg")
 						.attr("width", w + margin.left + margin.right)
 						.attr("height", h + margin.top + margin.bottom)
+                                                //.attr("viewBox", "0 0 300 100")
+                                                .attr("preserveAspectRatio", "none")
 						.append("g")
 						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 						
@@ -288,6 +298,23 @@ rect:hover{
 				  draw_barchart("/api/report/all/all/" + selected_agency + "/" + selected_staff);
 				}
 			});
+			function doOnOrientationChange()
+  			{
+    				switch(window.orientation)
+    				{
+      					case -90:
+      					case 90:
+        					$("#staff_filter").trigger("change");
+        					$("#agency_filter").trigger("change");
+        					break;
+      					default:
+        					$("#staff_filter").trigger("change");
+        					$("#agency_filter").trigger("change");
+        					break;
+    				}
+  			}
+
+                        window.addEventListener('orientationchange', doOnOrientationChange);
 
 
 		</script>
