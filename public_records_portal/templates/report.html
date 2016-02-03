@@ -95,6 +95,22 @@ rect:hover{
         <br />
 		
 		<script type="text/javascript">
+			function setMobileDimensions() {
+				if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+					if(/Android/i.test(navigator.userAgent) && window.orientation == 90 || window.orientation == -90) {
+						$('.agency-header').width(540);
+						$('.wrapper').width(500);
+						$('.navbar').width(480);
+						('.iw_component').width(540);
+					}
+					else if(/webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && window.orientation == 0 || window.orientation == 180) {
+						$('.agency-header').width(540);
+                                $('.wrapper').width(500);
+                                $('.navbar').width(480);
+                                $('.iw_component').width(540);
+						}
+					}
+			}
 			function draw_barchart(reportPath) {
 				
 				$("#bar_chart").empty();
@@ -107,17 +123,14 @@ rect:hover{
 						right: 75,
 						bottom: 85,
 						left: 85
-						};
-						
+						},
+						//w = 600 - margin.left - margin.right,
+                                                w = $('.navbar').width() - margin.left - margin.right,
+						h = 350 - margin.top - margin.bottom;
 						if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-                            var w = $('.navbar').width() - margin.left - margin.right;
-                            
+                        	w = 310;
+                            setMobileDimensions();
                         }
-                        else {
-                        	var w = 600 - margin.left - margin.right;
-                        }
-
-						var h = 350 - margin.top - margin.bottom;
 						var padding = 10;
 						
 						var colors = {};
@@ -287,6 +300,7 @@ rect:hover{
                 $('#staff_filter option[department_id!=' + selected_agency + ']').hide();
                 $('#staff_filter option[department_id=' + selected_agency + ']').show();
 				draw_barchart("/api/report/all/all/" + selected_agency + "/all");
+                                setMobileDimensions();
 			});
 			$("#staff_filter").change(function() {
                                       selected_agency = $('#agency_filter').val();
@@ -297,6 +311,8 @@ rect:hover{
 				else {
 				  draw_barchart("/api/report/all/all/" + selected_agency + "/" + selected_staff);
 				}
+
+                                setMobileDimensions();
 			});
 			function doOnOrientationChange()
   			{
@@ -306,17 +322,23 @@ rect:hover{
       					case 90:
         					$("#staff_filter").trigger("change");
         					$("#agency_filter").trigger("change");
+                                                $('.agency-header').width(632);
+                                                $('.wrapper').width(598);
+                                                $('.navbar').width(610);
+                                                $('.iw_component').width(632);
         					break;
       					default:
         					$("#staff_filter").trigger("change");
         					$("#agency_filter").trigger("change");
+                                                $('.agency-header').width(568);
+                                                $('.wrapper').width(528);
+                                                $('.navbar').width(528);
+                                                $('.iw_component').width(568);
         					break;
     				}
   			}
 
                         window.addEventListener('orientationchange', doOnOrientationChange);
-
-
 		</script>
 
 	</div>
