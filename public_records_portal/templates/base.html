@@ -65,7 +65,7 @@ This template provides the header, footer, and envelope info for all pages excep
 
 </head>
 
-<body>
+<body onload="setMobileDimensions();">
 {% if current_user.is_authenticated %}
 {% set navigation_bar = [
 
