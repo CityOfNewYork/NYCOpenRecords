@@ -324,5 +324,29 @@
             }
 
         }
+        function doOnOrientationChange()
+                        {
+                                switch(window.orientation)
+                                {
+                                        case -90:
+                                        case 90:
+                                                $("#staff_filter").trigger("change");
+                                                $("#agency_filter").trigger("change");
+                                                $('.agency-header').width(632);
+                                                $('.wrapper').width(598);
+                                                $('.navbar').width(610);
+                                                $('.iw_component').width(632);
+                                                break;
+                                        default:
+                                                $("#staff_filter").trigger("change");
+                                                $("#agency_filter").trigger("change");
+                                                $('.agency-header').width(568);
+                                                $('.wrapper').width(528);
+                                                $('.navbar').width(528);
+                                                $('.iw_component').width(568);
+                                                break;
+                                }
+                        }
+         window.addEventListener('orientationchange', doOnOrientationChange);
     </script>
 {% endblock container %}
