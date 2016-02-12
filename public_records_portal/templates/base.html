@@ -43,6 +43,9 @@ This template provides the header, footer, and envelope info for all pages excep
     <!--[if (gte IE 6)&(lte IE 8)]>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/selectivizr-min.js') }}"></script>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/mobile.js') }}"></script>
+
     <noscript>
         <link rel="stylesheet" href="[fallback css]"/>
     </noscript>
@@ -65,7 +68,7 @@ This template provides the header, footer, and envelope info for all pages excep
 
 </head>
 
-<body>
+<body onload="setMobileDimensions();">
 {% if current_user.is_authenticated %}
 {% set navigation_bar = [
 
