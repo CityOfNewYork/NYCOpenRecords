@@ -169,10 +169,19 @@ No file passed in''')
 
             try:
                 titles = request.form.getlist('title[]')
-                addAsEmailAttachmentList = request.form.getlist('addAsEmailAttachment[]')
             except:
                 app.logger.info('''No titles passed in for each record''')
 
+            addAsEmailAttachmentList = []
+
+            for index, t in list(enumerate(titles)):
+                addAsEmailAttachment = request.form.get('addAsEmailAttachment_' + str(index))
+                if addAsEmailAttachment == 'on':
+                    addAsEmailAttachmentList.append(addAsEmailAttachment)
+                else:
+                    addAsEmailAttachmentList.append(None)
+
+                app.logger.info('addAsEmailAttachment_' + str(index) + ":" + str(addAsEmailAttachment))
 
             if fields['record_privacy'] == 'release_and_public':
                 privacy = RecordPrivacy.RELEASED_AND_PUBLIC
@@ -808,14 +817,18 @@ Begins Upload_record method''')
         print traceback.format_exc()
         return 'The upload timed out, please try again.'
     if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
+        app.logger.info("111111111111111111111111111111111111")
         for addAsEmailAttachment in addAsEmailAttachmentList:
+            app.logger.info("222222222222222222222222222222")
             if addAsEmailAttachment:
+              app.logger.info("3333333333333333333333333333333333")
             # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
               notification_content['documents'] = documents
               generate_prr_emails(request_id=request_id,
                                 notification_type='city_response_added',
                                 notification_content=notification_content)
             else:
+              app.logger.info("444444444444444444444444444444444444444444444")  
               generate_prr_emails(request_id=request_id,
                                 notification_type='city_response_added',
                                 notification_content=notification_content)
