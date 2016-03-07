@@ -816,24 +816,23 @@ Begins Upload_record method''')
         # print sys.exc_info()[0]
         print traceback.format_exc()
         return 'The upload timed out, please try again.'
-    if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
-        app.logger.info("111111111111111111111111111111111111")
-        for addAsEmailAttachment in addAsEmailAttachmentList:
-            app.logger.info("222222222222222222222222222222")
-            if addAsEmailAttachment:
-              app.logger.info("3333333333333333333333333333333333")
+
+    if len(addAsEmailAttachmentList) > 0:
+      notification_content['documents'] = documents  
+      for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
+          if addAsEmailAttachment:
             # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
-              notification_content['documents'] = documents
-              generate_prr_emails(request_id=request_id,
-                                notification_type='city_response_added',
-                                notification_content=notification_content)
-            else:
-              app.logger.info("444444444444444444444444444444444444444444444")  
-              generate_prr_emails(request_id=request_id,
-                                notification_type='city_response_added',
-                                notification_content=notification_content)
-              add_staff_participant(request_id=request_id,
-                              user_id=user_id)
+            notification_content['documents'][index] = documents[index]
+          else:
+            del notification_content['documents'][index]
+
+    if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]: 
+        generate_prr_emails(request_id=request_id,
+                        notification_type='city_response_added',
+                        notification_content=notification_content)
+
+    add_staff_participant(request_id=request_id,
+                            user_id=user_id)
     return 1
 
 
