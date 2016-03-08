@@ -149,10 +149,11 @@
         modalQuestion += '<br><br>' + $('#days_after').val() + " days";
      }
      else {
-        due_date = $('#due_date').val();
-        year = due_date.substring(0,4);
-        month = due_date.substring(5,7);
-        day = due_date.substring(8,10);
+        due_date = $('#datepicker').datepicker('getDate');
+        day = due_date.getDate();
+        month = due_date.getMonth() + 1;
+        year = due_date.getFullYear();
+
         modalQuestion = 'Are you sure you want to set the following due date and send an email to the requester?';
         modalQuestion += '<br><br>' + month + "/" + day + "/" + year;
      }
@@ -316,6 +317,8 @@ $('#close_filenames_list').on('click',function(){
     $('.delete').click();
   });
 
+
+    $( "#datepicker" ).datepicker();
 /*$(document).on('ready', function() {
     $("#record").fileinput({
         maxFileCount: 4,
