@@ -316,6 +316,11 @@ $('#close_filenames_list').on('click',function(){
     $('.delete').click();
   });
 
+    $('#addNoteButton').prop('disabled',true);
+    $('#noteTextarea').keyup(function(){
+        $('#addNoteButton').prop('disabled', this.value == "" ? true : false);
+    })
+
 /*$(document).on('ready', function() {
     $("#record").fileinput({
         maxFileCount: 4,
