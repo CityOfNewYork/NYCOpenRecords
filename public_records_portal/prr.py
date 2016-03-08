@@ -817,22 +817,22 @@ Begins Upload_record method''')
         print traceback.format_exc()
         return 'The upload timed out, please try again.'
 
-    if len(addAsEmailAttachmentList) > 0:
-      notification_content['documents'] = documents  
-      for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
+    if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
+      if len(addAsEmailAttachmentList) > 0:
+        notification_content['documents'] = documents
+        for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
           if addAsEmailAttachment:
             # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
             notification_content['documents'][index] = documents[index]
           else:
-            del notification_content['documents'][index]
+            notification_content['documents'][index] = None
 
-    if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]: 
-        generate_prr_emails(request_id=request_id,
+      generate_prr_emails(request_id=request_id,
                         notification_type='city_response_added',
                         notification_content=notification_content)
 
     add_staff_participant(request_id=request_id,
-                            user_id=user_id)
+                        user_id=user_id)
     return 1
 
 
