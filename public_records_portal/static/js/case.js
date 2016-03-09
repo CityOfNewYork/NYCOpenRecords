@@ -337,6 +337,11 @@ $("#cancel").on('click', function(){
     $('.agency-description').hide();
 });
 
+    $('#addNoteButton').prop('disabled',true);
+    $('#noteTextarea').keyup(function(){
+        $('#addNoteButton').prop('disabled', this.value == "" ? true : false);
+    })
+
     $( "#datepicker" ).datepicker();
 /*$(document).on('ready', function() {
     $("#record").fileinput({
