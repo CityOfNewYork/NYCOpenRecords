@@ -69,11 +69,14 @@
 
 $("#record").on('change', function (e, data) {
   var names = [];
+
   if($("input[name=record]") && $("input[name=record]").get(0) && $("input[name=record]").get(0).files) {
       for (var i = 0; i < $("input[name=record]").get(0).files.length; ++i) {
         names.push($("input[name=record]").get(0).files[i].name);
       }
   }
+        var currentRecordCount = $(".addAsEmail").length;
+
         $.each(names, function (index, file) {
             var node = $('<p>');
                     //.append($('<span/>').text(file));
@@ -90,7 +93,7 @@ $("#record").on('change', function (e, data) {
             node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');
             node.append('</tr>')
             node.append('<tr>')
-            node.append('<input type="checkbox" id="addAsEmailAttachment_' + index + '" name="addAsEmailAttachment_' + index + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
+            node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
             node.append('</tr>')
             if (!index) {
                 node
@@ -98,6 +101,55 @@ $("#record").on('change', function (e, data) {
                     .append(uploadButton.clone(true).data(data));
             }
             node.appendTo("#files");
+
+        if(typeof $("input[name=record]").get(0).files[0] != 'undefined') {
+        /*var file = $("input[name=record]").get(0).files[index];
+        var input = $("<input>")
+               .attr("type", "hidden")
+               .attr("name", "record")
+               .attr("multiple", "true")
+               .attr("id", "record").val(file);
+        $('#submitRecord').append(input);*/
+
+        var formData = new FormData($("#submitRecord")[0]);
+
+        $.ajax({
+          url:'/add_a_record_and_close',
+          type: 'POST',
+          data: formData,
+          async: false,
+          success: function (data) {
+            var release_and_public_record = $('#release_and_public').is(":checked");
+            var release_and_private_record = $('#release_and_private').is(":checked");
+            var private_record = $('#private').is(":checked");
+            var currentFiles = $('#files').innerHTML;
+            //$('#files p').remove();
+            //$('#add_record').load($('li.active a[data-toggle="tab"]').attr('href'));
+            $('#files').replaceWith($('#files').clone(true).val(''));
+
+            $('#submitRecord').each(function(){
+                //console.log( $(this).find("input[name='delete-reason']").val());
+                //this.reset();
+
+                $('#files').innerHTML = currentFiles;
+
+                if(release_and_public_record) {
+                  $('#release_and_public').prop('checked', true);
+                }
+                else if(release_and_private_record) {
+                    $('#release_and_private').prop('checked', true);
+                }
+                else if(private_record) {
+                    $('#private').prop('checked', true);
+                }                                
+            });
+          },
+          cache: false,
+          contentType: false,
+          processData: false
+        });
+        }
+
         })});
 </script>
 {% endblock custom_script_links %}

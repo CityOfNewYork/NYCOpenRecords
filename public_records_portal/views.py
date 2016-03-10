@@ -12,7 +12,7 @@ from flask.ext.mail import Message, Mail
 # from flaskext.browserid import BrowserID
 from public_records_portal import db, models, recaptcha
 from prr import add_resource, update_resource, make_request, close_request
-from db_helpers import authenticate_login, get_user_by_id
+from db_helpers import authenticate_login, get_user_by_id, update_obj
 import os
 import json
 from urlparse import urlparse, urljoin
@@ -653,6 +653,7 @@ def edit_case(request_id):
 @app.route("/add_a_<string:resource>", methods=["GET", "POST"])
 @login_required
 def add_a_resource(resource):
+    import pdb; pdb.set_trace()
     req = request.form
     errors = {}
     if request.method == 'POST':
@@ -668,47 +669,63 @@ def add_a_resource(resource):
                 if req['link_url']:
                     errors['missing_record_description'] = "Please include a name for this record"
 
-        resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
-        if type(resource_id) == int or str(resource_id).isdigit():
-            requestObj = get_obj("Request", req['request_id'])
-            audience = 'city'
-            if current_user.role == 'Portal Administrator':
-                audience = 'city'
-            elif current_user.department_id == requestObj.department_id:
-                app.logger.info("User Dep: %s; Req Dep: %s" % (current_user.department_id, requestObj.department_id))
-                if current_user.role in ['Agency Administrator', 'Agency FOIL Officer']:
-                    app.logger.info("User Role: %s" % current_user.role)
-                    audience = 'city'
+        files = request.files.getlist('record')
+        titles = request.form.getlist('title[]')
+
+        if files:
+            for index,file in enumerate(files):
+                filename = file.filename.replace(" ","_")
+                title = titles[index]
+                #existing_record = models.Record.query.filter(models.Record.request_id == req['request_id']).filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
+                existing_record = models.Record.query.filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
+                app.logger.info("EXISTING_RECORD:" + str(existing_record))
+                if existing_record != None:
+                    update_obj(attribute="description", val=title, obj_type='Record', obj_id=existing_record.id)
+                    resource_id = 1
                 else:
-                    audience = 'helper'
-            else:
-                audience = 'public'
+                    resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
+                    app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
 
-            template = "manage_request_%s_less_js.html" % audience
-            app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
-            if resource == 'record_and_close':
-                return show_request(request_id=req['request_id'],
-                                    template=template, errors=errors,
-                                    form=req, file=request.files['record'])
+                if type(resource_id) == int or str(resource_id).isdigit():
+                    requestObj = get_obj("Request", req['request_id'])
+                    audience = 'city'
+                    if current_user.role == 'Portal Administrator':
+                        audience = 'city'
+                    elif current_user.department_id == requestObj.department_id:
+                        app.logger.info("User Dep: %s; Req Dep: %s" % (current_user.department_id, requestObj.department_id))
+                        if current_user.role in ['Agency Administrator', 'Agency FOIL Officer']:
+                            app.logger.info("User Role: %s" % current_user.role)
+                            audience = 'city'
+                        else:
+                            audience = 'helper'
+                    else:
+                        audience = 'public'
 
-            return show_request(request_id=req['request_id'],
-                                template=template, errors=errors,
-                                form=req)
-        elif resource_id == False:
-            app.logger.info("\n\nThere was an issue with adding resource: %s" % resource)
-            template = "manage_request_%s_less_js.html" % req['audience']
-            return show_request(request_id=req['request_id'],
-                                template=template, errors=errors,
-                                form=req, file=request.files['record'])
-        else:
-            app.logger.info("\n\nThere was an issue with the upload: %s" % resource_id)
-            template = "manage_request_%s_less_js.html" % req['audience']
-            if resource_id == "File too large":
-                errors['file_too_large'] = resource_id
-            return show_request(request_id=req['request_id'],
-                                template=template, errors=errors,
-                                form=req, file=request.files['record'])
-    return render_template('error.html', message="You can only update requests from a request page!")
+                    template = "manage_request_%s_less_js.html" % audience
+                    app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
+                    if resource == 'record_and_close':
+                        return show_request(request_id=req['request_id'],
+                                            template=template, errors=errors,
+                                            form=req, file=request.files['record'])
+
+                    return show_request(request_id=req['request_id'],
+                                        template=template, errors=errors,
+                                        form=req)
+                elif resource_id == False:
+                    app.logger.info("\n\nThere was an issue with adding resource: %s" % resource)
+                    template = "manage_request_%s_less_js.html" % req['audience']
+                    return show_request(request_id=req['request_id'],
+                                        template=template, errors=errors,
+                                        form=req, file=request.files['record'])
+                else:
+                    app.logger.info("\n\nThere was an issue with the upload: %s" % resource_id)
+                    template = "manage_request_%s_less_js.html" % req['audience']
+                    if resource_id == "File too large":
+                        errors['file_too_large'] = resource_id
+                    return show_request(request_id=req['request_id'],
+                                        template=template, errors=errors,
+                                        form=req, file=request.files['record'])
+            return render_template('error.html', message="You can only update requests from a request page!")
 
 
 @app.route("/public_add_a_<string:resource>", methods=["GET", "POST"])

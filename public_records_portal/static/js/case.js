@@ -93,7 +93,13 @@
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
       $(form_id).append($(input));
-      $(form_id).submit();
+
+      if(form_id === '#submitRecord') {
+        $(form_id).submit();
+      }
+      else {
+        $(form_id).submit();
+      }
     }
 
    });
