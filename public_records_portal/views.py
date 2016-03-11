@@ -37,6 +37,7 @@ import operator
 import bleach
 # from flask.ext.session import Session
 from uuid import uuid4
+from werkzeug.utils import secure_filename
 
 cal = Calendar()
 
@@ -660,13 +661,18 @@ def upload_document():
 
     for file in files:
         document_upload_errors = {}
-        doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
-        if doc_id == 'VIRUS_FOUND':
-            document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
-        if errors:
-            document_upload_errors['upload_error'] = errors
+        secure_fname = secure_filename(file.filename)
+        document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + secure_fname
+        if(os.path.exists(document_filepath)):
+            document_upload_errors['duplicate'] = 'There already exists a document of the same name.'
+        else:
+            doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
+            if doc_id == 'VIRUS_FOUND':
+                document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
+            if errors:
+                document_upload_errors['upload_error'] = errors
 
-        upload_errors[filename] = document_upload_errors
+        upload_errors[secure_fname] = document_upload_errors
 
     return jsonify(**{'errors': upload_errors})
 
