@@ -89,6 +89,7 @@
                 node.append('<td class="title">');
                 node.append('<label>Title: <input class="title_text" name="title[]" required></label>');
                 node.append('<div class="alert alert-danger" id="missing_title" style="display:none;">All records require a Title</div>');
+                node.append('<div class="alert alert-danger" id="file_errors" style="display:none;"></div>');
                 node.append('</td>');
                 node.append('<tr>');
                 node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');
@@ -120,11 +121,20 @@
                         data: formData,
                         async: false,
                         success: function (data) {
+                            $('#file_errors').empty();
                             if (typeof (data['errors']) != 'undefined') {
                                 document_upload_errors = data['errors'];
-                                $.each(document_upload_errors, function (index, error) {
-                                    console.log(error);
+                                $.each(document_upload_errors, function (index, errors) {
+                                    $.each(errors, function (index, error) {
+                                      $('#file_errors').append(error);
+                                      $('#file_errors').append("<br>");
+                                      $('#file_errors').show();
+                                    });
                                 });
+                            }
+                            else {
+                                $('#file_errors').empty();
+                                $('#file_errors').hide();
                             }
 
                             var release_and_public_record = $('#release_and_public').is(":checked");
