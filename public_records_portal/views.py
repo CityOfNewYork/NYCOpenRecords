@@ -685,9 +685,8 @@ def add_a_resource(resource):
             if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
                 errors[
                     'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-            if not ((req['record_description'])):
-                if req['link_url']:
-                    errors['missing_record_description'] = "Please include a name for this record"
+            if not ((req['record_description'])) and req['link_url']:
+                errors['missing_record_description'] = "Please include a name for this record"
 
         files = request.files.getlist('record')
         titles = request.form.getlist('title[]')
