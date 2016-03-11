@@ -655,17 +655,18 @@ def edit_case(request_id):
 @login_required
 def upload_document():
     form = request.form
-    document_upload_errors = {}
-    upload_errors = []
+    upload_errors = {}
     files = request.files.getlist('record')
 
     for file in files:
+        document_upload_errors = {}
         doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
         if doc_id == 'VIRUS_FOUND':
             document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
         if errors:
             document_upload_errors['upload_error'] = errors
-        upload_errors.append(document_upload_errors)
+
+        upload_errors[filename] = document_upload_errors
 
     return jsonify(**{'errors': upload_errors})
 
