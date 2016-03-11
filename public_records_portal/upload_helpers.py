@@ -6,28 +6,31 @@
 
 """
 
+import datetime
 import os
 import socket
-import datetime
 
 from werkzeug.utils import secure_filename
 
-from public_records_portal import app
 from models import RecordPrivacy
+from public_records_portal import app
+
+# These are the extensions that can be uploaded:
+ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods',
+                      'odg', 'odf', 'ppt', 'pps', 'xls', 'docx', 'pptx',
+                      'ppsx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'tif',
+                      'tiff', 'bmp', 'avi', 'flv', 'wmv', 'mov', 'mp4', 'mp3',
+                      'wma', 'wav', 'ra', 'mid']
+CLEAN = 204
+INFECTED_AND_REPAIRABLE = 200
+INFECTED_NOT_REPAIRABLE = 201
+INFECTED = 403
 
 
 def should_upload():
-    if app.config['ENVIRONMENT'] != 'LOCAL':
+    if app.config['ENVIRONMENT'] != 'LOCAL' or app.config['UPLOAD_DOCS'] == 'True':
         return True
     return False
-
-
-# These are the extensions that can be uploaded:
-ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods', 
-                      'odg', 'odf', 'ppt', 'pps', 'xls', 'docx', 'pptx', 
-                      'ppsx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'tif', 
-                      'tiff', 'bmp', 'avi', 'flv', 'wmv', 'mov', 'mp4', 'mp3', 
-                      'wma', 'wav', 'ra', 'mid']
 
 
 def upload_multiple_files(documents, request_id):
@@ -73,7 +76,7 @@ def upload_file(document, request_id, privacy=0x1):
 
         if allowed_file(document.filename):
             file_scanned = scan_file(document, file_length)
-            if file_scanned == 0:
+            if file_scanned:
                 upload_file_locally(document, secure_filename(document.filename), privacy)
                 return 1, secure_filename(document.filename), None
             else:
@@ -103,7 +106,7 @@ def scan_file(document, file_length):
 
     # Connect to ICAP Server
     try:
-        sock.connect(app.config['ICAP_SERVER_HOST'], app.config['ICAP_SERVER_PORT'])
+        sock.connect((app.config['ICAP_SERVER_HOST'], int(app.config['ICAP_SERVER_PORT'])))
     except socket.error, msg:
         app.logger.error("Error connection to ICAP Server\n%s\n" % msg[1])
         return False
@@ -111,8 +114,8 @@ def scan_file(document, file_length):
     # Create ICAP Request Header
     filename = document.filename
     request_header = "GET http://%s/%s/%s HTTP/1.1\r\nHost: %s\r\n\r\n" % \
-                     (app.config['ICAP_CLIENT_HOST'], datetime.datetime.now().strftime("%Y%m%D%H%M%S"), filename,
-                      app.config['ICAP_CLIENT_HOST'])
+                     (app.config['ICAP_CLIENT_HOST'], datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+                      secure_filename(filename), app.config['ICAP_CLIENT_HOST'])
 
     # Create ICAP Response Header
     response_header = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"
@@ -144,8 +147,9 @@ def scan_file(document, file_length):
     app.logger.info("Length of File: %s" % len(file_as_bytearray))
 
     # Send file to ICAP Server
-    header_seperator = str(hex(file_length)).split('0x')[-1] + "\r\n"
-    sock.send(header_seperator)
+    header_separator = str(hex(file_length)).split('0x')[-1] + "\r\n"
+    app.logger.info("Header Separator: %s" % header_separator)
+    sock.send(header_separator)
     total_sent = 0
     while total_sent < file_length:
         sent = sock.send(file_as_bytearray[total_sent:])
@@ -153,22 +157,36 @@ def scan_file(document, file_length):
             app.logger.info("Socket connection broken\n")
             return False
         total_sent = total_sent + sent
+        app.logger.info("Size: %s\nTotal Sent: %s\n" % (file_length, total_sent))
 
     sock.send("\r\n0\r\n\r\n")
 
     # Get ICAP Response
-    result = sock.recv()
-
+    result = sock.recv(1024)
+    app.logger.info("ICAP Result: %s" % result)
     # Parse ICAP Response
     if result.startswith(app.config['ICAP_VERSION'], 0):
         results = result.split(" ", 3)
         code = int(results[1])
-        if INFECTED_AND_REPAIRABLE == code:
-            app.logger.info("Infected but Repairable\n")
+        if code == CLEAN:
+            return True
         else:
-            app.logger.info("VIrus Scan Result: %s\n" % results[2])
-            if results[2] == CLEAN:
-
+            if code == INFECTED_AND_REPAIRABLE:
+                app.logger.info("File: %s is infected but repairable")
+                return False
+            if code == INFECTED_NOT_REPAIRABLE:
+                app.logger.info("File: %s is infected and cannot be fixed")
+                return False
+            if code == INFECTED:
+                app.logger.info("File: %s is infected")
+                return False
+            if str(code).startswith("4"):
+                app.logger.info("ICAP Client Error")
+                return False
+            if str(code).startswith("5"):
+                app.logger.info("ICAP Server Error")
+                return False
+    return False
 
 
 def upload_file_locally(document, filename, privacy):

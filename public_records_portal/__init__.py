@@ -107,10 +107,12 @@ envvars = [
     'RECAPTCHA_SITE_KEY',  # Site key for Google ReCaptcha
 
     # ICAP Variables
-    'ICAP_SERVER',
+    'ICAP_SERVER_HOST',
+    'ICAP_SERVER_PORT',
+    'ICAP_CLIENT_HOST',
     'ICAP_SERVICE_NAME',
-    'ICAP_PORT',
-    'ICAP_PROFILE',
+    'ICAP_PROFILE_NAME',
+    'ICAP_VERSION',
     'SHOULD_SCAN_FILES',
     'MAX_FILE_SIZE',
 
