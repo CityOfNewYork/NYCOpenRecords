@@ -140,6 +140,10 @@ def scan_file(document, file_length):
     app.logger.info("Request Header: %s\n" % request_header)
     app.logger.info("Response Header: %s\n" % response_header)
 
+    sock.send(icap_request)
+    sock.send(request_header)
+    sock.send(response_header)
+
     # Convert file to bytearray
     file_to_scan = document.read()
     file_as_bytearray = bytearray(file_to_scan)
