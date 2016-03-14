@@ -199,8 +199,7 @@ No file passed in''')
                     user_id=current_user_id,
                     privacy=privacy,
                     department_name = department_name,
-                    titles=titles
-            )
+                    titles=titles)
     elif 'qa' in resource:
         return ask_a_question(request_id=fields['request_id'],
                               user_id=current_user_id,
@@ -824,12 +823,13 @@ Begins Upload_record method''')
           if addAsEmailAttachment:
             # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
             notification_content['documents'][index] = documents[index]
+            notification_content['index'] = index
+            generate_prr_emails(request_id=request_id,
+                        notification_type='city_response_added',
+                        notification_content=notification_content)
           else:
             notification_content['documents'][index] = None
 
-      generate_prr_emails(request_id=request_id,
-                        notification_type='city_response_added',
-                        notification_content=notification_content)
 
     add_staff_participant(request_id=request_id,
                         user_id=user_id)

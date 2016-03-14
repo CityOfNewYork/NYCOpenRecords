@@ -325,7 +325,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         subject=subject,
                         include_unsubscribe_link=include_unsubscribe_link,
                         cc_everyone=cc_everyone,
-                        attached_files=notification_content['documents'],
+                        attached_files=notification_content['documents'][notification_content['index']],
                         privacy=notification_content['privacy'],
                         )
                     app.logger.info('''E-mail sent successfully!''')
@@ -374,17 +374,16 @@ def send_email(
     message = Message(sender=sender, subject=subject, html=html,
                       body=plaintext, bcc=sender)
     if attached_files:
-        for file in attached_files:
-            if file is not None:
-                file.seek(0)
-                if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
-                    url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + file.filename
-                else:
-                    url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + file.filename
-                content_type = mimetypes.guess_type(url)[0]
-                filename = file.filename
-                message.attach(filename=filename,
-                               content_type=content_type, data=file.read())
+        if attached_files is not None:
+            attached_files.seek(0)
+            if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
+                url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + attached_files.filename
+            else:
+                url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + attached_files.filename
+            content_type = mimetypes.guess_type(url)[0]
+            filename = attached_files.filename
+            message.attach(filename=filename,
+                           content_type=content_type, data=attached_files.read())
 
     # if not include_unscubscribe_link:
     # message.add_filter('subscriptiontrack', 'enable', 0)
