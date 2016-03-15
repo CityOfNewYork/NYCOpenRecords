@@ -120,6 +120,7 @@ def new_request(passed_recaptcha=False, data=None):
             "Civil Service Commission",
             "Conflicts of Interest Board",
             "Design Commission",
+            "Financial Information Services Agency",
             "Department of Design and Construction",
             "Equal Employment Practices Commission",
             "Department of Finance",
@@ -133,7 +134,7 @@ def new_request(passed_recaptcha=False, data=None):
         ],
         'Health': [
             "Office of Chief Medical Examiner",
-            "Health and Hospitals Corporation",
+            # "Health and Hospitals Corporation",
             "Department of Health and Mental Hygiene"
         ],
         'Housing & Development': [
@@ -141,6 +142,7 @@ def new_request(passed_recaptcha=False, data=None):
             "Department of City Planning",
             "New York City Housing Authority",
             "Housing Recovery Operations",
+            "Housing Development Corporation",
             "Landmarks Preservation Commission",
             "Loft Board",
             "Board of Standards and Appeals"
@@ -157,15 +159,16 @@ def new_request(passed_recaptcha=False, data=None):
             "Department of Probation",
             "Office of the Special Narcotics Prosecutor"
         ],
-        'Social services': [
+        'Social Services': [
             "Department for the Aging",
             "Administration for Children's Services",
             "Department of Homeless Services",
             "Department of Housing Preservations and Development",
             "Human Resources Administration",
-            "Department of Youth and Community Development"
+            "Department of Youth and Community Development",
+            "Office of Collective Bargaining"
         ],
-        'Transporation': [
+        'Transportation': [
             "Taxi and Limousine Commission",
             "Department of Transporation"
         ]
