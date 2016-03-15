@@ -146,6 +146,7 @@ def scan_file(document, file_length):
 
     # Convert file to bytearray
     file_to_scan = document.read()
+    document.seek(0)
     file_as_bytearray = bytearray(file_to_scan)
 
     app.logger.info("Length of File: %s" % len(file_as_bytearray))
