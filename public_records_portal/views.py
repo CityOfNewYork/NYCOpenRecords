@@ -12,7 +12,7 @@ from flask.ext.mail import Message, Mail
 # from flaskext.browserid import BrowserID
 from public_records_portal import db, models, recaptcha
 from prr import add_resource, update_resource, make_request, close_request
-from db_helpers import authenticate_login, get_user_by_id
+from db_helpers import authenticate_login, get_user_by_id, update_obj
 import os
 import json
 from urlparse import urlparse, urljoin
@@ -24,6 +24,7 @@ import csv_export
 from filters import *
 import re
 from db_helpers import get_count, get_obj
+from upload_helpers import upload_file
 from sqlalchemy import func, and_, or_, text
 from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm, ContactForm
 import pytz
@@ -36,6 +37,7 @@ import operator
 import bleach
 # from flask.ext.session import Session
 from uuid import uuid4
+from werkzeug.utils import secure_filename
 
 cal = Calendar()
 
@@ -653,6 +655,32 @@ def edit_case(request_id):
     return render_template("edit_case.html", req=req)
 
 
+@app.route("/upload_document", methods=["POST"])
+@login_required
+def upload_document():
+    form = request.form
+    upload_errors = {}
+    files = request.files.getlist('record')
+
+    for file in files:
+        document_upload_errors = {}
+        secure_fname = secure_filename(file.filename)
+        document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + secure_fname
+        if(os.path.exists(document_filepath)):
+            document_upload_errors['duplicate'] = 'There already exists a document of the same name.'
+        else:
+            doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
+            if doc_id == 'VIRUS_FOUND':
+                document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
+            if errors:
+                document_upload_errors['upload_error'] = errors
+
+        upload_errors[secure_fname] = document_upload_errors
+
+    return jsonify(**{'errors': upload_errors})
+
+
+
 @app.route("/add_a_<string:resource>", methods=["GET", "POST"])
 @login_required
 def add_a_resource(resource):
@@ -667,59 +695,66 @@ def add_a_resource(resource):
             if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
                 errors[
                     'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-            if not ((req['record_description'])):
-                if req['link_url']:
-                    errors['missing_record_description'] = "Please include a name for this record"
+            if not ((req['record_description'])) and req['link_url']:
+                errors['missing_record_description'] = "Please include a name for this record"
 
-        resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
-        requestObj = get_obj("Request", req['request_id'])
-        audience = 'city'
-        if current_user.role == 'Portal Administrator':
-            audience = 'city'
-        elif current_user.department_id == requestObj.department_id:
-            app.logger.info("User Dep: %s; Req Dep: %s" % (current_user.department_id, requestObj.department_id))
-            if current_user.role in ['Agency Administrator', 'Agency FOIL Officer']:
-                app.logger.info("User Role: %s" % current_user.role)
-                audience = 'city'
-            else:
-                audience = 'helper'
-        else:
-            audience = 'public'
+        files = request.files.getlist('record')
+        titles = request.form.getlist('title[]')
 
-        if type(resource_id) == int or str(resource_id).isdigit() or req['note_text']:
-            template = "manage_request_%s_less_js.html" % audience
-            app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
-            if resource == 'record_and_close':
-                return show_request(request_id=req['request_id'],
-                                    template=template, errors=errors,
-                                    form=req, file=request.files['record'])
+        if files:
+            for index,file in enumerate(files):
+                filename = file.filename.replace(" ","_")
+                title = titles[index]
+                #existing_record = models.Record.query.filter(models.Record.request_id == req['request_id']).filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
+                existing_record = models.Record.query.filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
+                app.logger.info("EXISTING_RECORD:" + str(existing_record))
+                if existing_record != None:
+                    update_obj(attribute="description", val=title, obj_type='Record', obj_id=existing_record.id)
+                    resource_id = 1
+                else:
+                    resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
+                    app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
 
+                if type(resource_id) == int or str(resource_id).isdigit():
+                    requestObj = get_obj("Request", req['request_id'])
+                    audience = 'city'
+                    if current_user.role == 'Portal Administrator':
+                        audience = 'city'
+                    elif current_user.department_id == requestObj.department_id:
+                        app.logger.info("User Dep: %s; Req Dep: %s" % (current_user.department_id, requestObj.department_id))
+                        if current_user.role in ['Agency Administrator', 'Agency FOIL Officer']:
+                            app.logger.info("User Role: %s" % current_user.role)
+                            audience = 'city'
+                        else:
+                            audience = 'helper'
+                    else:
+                        audience = 'public'
 
-            return show_request(request_id=req['request_id'],
-                                template=template, errors=errors,
-                                form=req)
-        elif resource_id == False:
-            app.logger.info("\n\nThere was an issue with adding resource: %s" % resource)
-            template = "manage_request_%s_less_js.html" % audience
-            if req['note_text'] == u'':
-                return show_request_for_x(audience,request_id=req['request_id'])
-                # return show_request(request_id=req['request_id'],
-                # template=template, errors=errors,
-                # form=req)
-            else:
-                return show_request(request_id=req['request_id'],
-                                template=template, errors=errors,
-                                form=req, file=request.files['record'])
+                    template = "manage_request_%s_less_js.html" % audience
+                    app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
+                    if resource == 'record_and_close':
+                        return show_request(request_id=req['request_id'],
+                                            template=template, errors=errors,
+                                            form=req, file=request.files['record'])
 
-        else:
-            app.logger.info("\n\nThere was an issue with the upload: %s" % resource_id)
-            template = "manage_request_%s_less_js.html" % req['audience']
-            if resource_id == "File too large":
-                errors['file_too_large'] = resource_id
-            return show_request(request_id=req['request_id'],
-                                template=template, errors=errors,
-                                form=req, file=request.files['record'])
-    return render_template('error.html', message="You can only update requests from a request page!")
+                    return show_request(request_id=req['request_id'],
+                                        template=template, errors=errors,
+                                        form=req)
+                elif resource_id == False:
+                    app.logger.info("\n\nThere was an issue with adding resource: %s" % resource)
+                    template = "manage_request_%s_less_js.html" % req['audience']
+                    return show_request(request_id=req['request_id'],
+                                        template=template, errors=errors,
+                                        form=req, file=request.files['record'])
+                else:
+                    app.logger.info("\n\nThere was an issue with the upload: %s" % resource_id)
+                    template = "manage_request_%s_less_js.html" % req['audience']
+                    if resource_id == "File too large":
+                        errors['file_too_large'] = resource_id
+                    return show_request(request_id=req['request_id'],
+                                        template=template, errors=errors,
+                                        form=req, file=request.files['record'])
+            return render_template('error.html', message="You can only update requests from a request page!")
 
 
 @app.route("/public_add_a_<string:resource>", methods=["GET", "POST"])
@@ -933,7 +968,6 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
     departments_selected = []
     if current_user.is_authenticated and current_user.role != 'Portal Administrator':
         departments_selected.append(current_user.current_department.name)
-
     sort_column = "id"
     sort_direction = "asc"
     min_due_date = None
@@ -946,7 +980,8 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
     request_id_search = None
 
     if filters_map:
-        departments_selected = get_filter_value(filters_map=filters_map, filter_name='departments_selected',
+        if not departments_selected:
+            departments_selected = get_filter_value(filters_map=filters_map, filter_name='departments_selected',
                                                     is_list=True) or get_filter_value(filters_map, 'department')
         # departments_selected = bleach.clean(departments_selected);
         app.logger.info("Department Selected: %s" % departments_selected)

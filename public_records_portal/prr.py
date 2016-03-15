@@ -169,10 +169,19 @@ No file passed in''')
 
             try:
                 titles = request.form.getlist('title[]')
-                addAsEmailAttachmentList = request.form.getlist('addAsEmailAttachment[]')
             except:
                 app.logger.info('''No titles passed in for each record''')
 
+            addAsEmailAttachmentList = []
+
+            for index, t in list(enumerate(titles)):
+                addAsEmailAttachment = request.form.get('addAsEmailAttachment_' + str(index))
+                if addAsEmailAttachment == 'on':
+                    addAsEmailAttachmentList.append(addAsEmailAttachment)
+                else:
+                    addAsEmailAttachmentList.append(None)
+
+                app.logger.info('addAsEmailAttachment_' + str(index) + ":" + str(addAsEmailAttachment))
 
             if fields['record_privacy'] == 'release_and_public':
                 privacy = RecordPrivacy.RELEASED_AND_PUBLIC
@@ -190,8 +199,7 @@ No file passed in''')
                     user_id=current_user_id,
                     privacy=privacy,
                     department_name = department_name,
-                    titles=titles
-            )
+                    titles=titles)
     elif 'qa' in resource:
         return ask_a_question(request_id=fields['request_id'],
                               user_id=current_user_id,
@@ -808,20 +816,24 @@ Begins Upload_record method''')
         # print sys.exc_info()[0]
         print traceback.format_exc()
         return 'The upload timed out, please try again.'
+
     if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
-        for addAsEmailAttachment in addAsEmailAttachmentList:
-            if addAsEmailAttachment:
+      if len(addAsEmailAttachmentList) > 0:
+        notification_content['documents'] = documents
+        for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
+          if addAsEmailAttachment:
             # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
-              notification_content['documents'] = documents
-              generate_prr_emails(request_id=request_id,
-                                notification_type='city_response_added',
-                                notification_content=notification_content)
-            else:
-              generate_prr_emails(request_id=request_id,
-                                notification_type='city_response_added',
-                                notification_content=notification_content)
-              add_staff_participant(request_id=request_id,
-                              user_id=user_id)
+            notification_content['documents'][index] = documents[index]
+            notification_content['index'] = index
+            generate_prr_emails(request_id=request_id,
+                        notification_type='city_response_added',
+                        notification_content=notification_content)
+          else:
+            notification_content['documents'][index] = None
+
+
+    add_staff_participant(request_id=request_id,
+                        user_id=user_id)
     return 1
 
 
