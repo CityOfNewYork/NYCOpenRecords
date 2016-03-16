@@ -1457,7 +1457,8 @@ def login():
                 session['username'] = form.username.data
                 redirect_url = get_redirect_target()
                 if 'login' in redirect_url or 'logout' in redirect_url:
-                    return redirect(url_for('display_all_requests'))
+                    # return redirect(url_for('display_all_requests'))
+                    return redirect(url_for('display_all_requests', _scheme='https', _external=True))
                 else:
                     if 'city' not in redirect_url:
                         redirect_url = redirect_url.replace("/request", "/city/request")
