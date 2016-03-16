@@ -704,7 +704,9 @@ def add_a_resource(resource):
         if files:
             for index,file in enumerate(files):
                 filename = file.filename.replace(" ","_")
-                title = titles[index]
+                title = ""
+                if index < len(titles):
+                    title = titles[index]
                 #existing_record = models.Record.query.filter(models.Record.request_id == req['request_id']).filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
                 existing_record = models.Record.query.filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
                 app.logger.info("EXISTING_RECORD:" + str(existing_record))
