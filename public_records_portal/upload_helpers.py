@@ -82,7 +82,7 @@ def upload_file(document, request_id, privacy=0x1):
             else:
                 return None, None, None
         else:
-            return None
+            return None, None, None
     else:
         upload_file_locally(document, secure_filename(document.filename), privacy)
         return 1, secure_filename(document.filename), None
