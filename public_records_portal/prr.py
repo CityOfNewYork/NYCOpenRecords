@@ -823,13 +823,15 @@ Begins Upload_record method''')
         for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
           if addAsEmailAttachment:
             # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
-            notification_content['documents'][index] = documents[index]
-            notification_content['index'] = index
+            if index < len(documents):
+              notification_content['documents'][index] = documents[index]
+              notification_content['index'] = index
             generate_prr_emails(request_id=request_id,
                         notification_type='city_response_added',
                         notification_content=notification_content)
           else:
-            notification_content['documents'][index] = None
+            if (index < len(notification_content['documents'])):
+                notification_content['documents'][index] = None
 
 
     add_staff_participant(request_id=request_id,
