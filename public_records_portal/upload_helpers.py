@@ -77,14 +77,14 @@ def upload_file(document, request_id, privacy=0x1):
         if allowed_file(document.filename):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
-                upload_file_locally(document, secure_filename(document.filename), privacy)
+                upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
                 return 1, secure_filename(document.filename), None
             else:
                 return None, None, None
         else:
             return None, None, None
     else:
-        upload_file_locally(document, secure_filename(document.filename), privacy)
+        upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
         return 1, secure_filename(document.filename), None
 
 
@@ -194,14 +194,21 @@ def scan_file(document, file_length):
     return False
 
 
-def upload_file_locally(document, filename, privacy):
+def upload_file_locally(document, filename, privacy, request_id = None):
     app.logger.info("\n\nuploading file locally")
     app.logger.info("\n\n%s" % (document))
 
     if privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
-        upload_path = os.path.join(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'], filename)
+        upload_directory = os.path.join(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'], request_id)
+        upload_path = os.path.join(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'], request_id, filename)
+        if not os.path.exists(upload_directory):
+            os.makedirs(upload_directory)
     else:
+        upload_directory = os.path.join(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'], request_id)
         upload_path = os.path.join(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'], filename)
+        if not os.path.exists(upload_directory):
+            os.makedirs(upload_directory)
+
     app.logger.info("\n\nupload path: %s" % (upload_path))
 
     document.save(upload_path)
