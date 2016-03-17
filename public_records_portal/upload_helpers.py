@@ -200,12 +200,12 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
     if privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         upload_directory = os.path.join(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'], request_id)
-        upload_path = os.path.join(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'], request_id, filename)
+        upload_path = os.path.join(upload_directory, filename)
         if not os.path.exists(upload_directory):
             os.makedirs(upload_directory)
     else:
         upload_directory = os.path.join(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'], request_id)
-        upload_path = os.path.join(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'], filename)
+        upload_path = os.path.join(upload_directory, filename)
         if not os.path.exists(upload_directory):
             os.makedirs(upload_directory)
 
