@@ -9,6 +9,7 @@
 from flask import flash
 from flask import render_template, redirect, url_for, send_from_directory
 from flask.ext.login import login_user, logout_user, current_user, login_required
+from flask.ext.mail import Message, Mail
 # from flaskext.browserid import BrowserID
 from public_records_portal import db, models, recaptcha
 from prr import add_resource, update_resource, make_request, close_request
@@ -25,7 +26,7 @@ from filters import *
 import re
 from db_helpers import get_count, get_obj
 from sqlalchemy import func, and_, or_, text
-from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm
+from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm, ContactForm
 import pytz
 from requires_roles import requires_roles
 from flask_login import LoginManager
@@ -1690,6 +1691,44 @@ def any_page(page):
         return render_template('%s.html' % (page))
     except:
         return page_not_found(404)
+
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+   form = ContactForm()
+
+   if request.method == 'POST':
+       name = form.name.data
+       email = form.email.data
+       subject = form.subject.data
+       message = form.message.data
+
+       if not (name and email and subject and message):
+           error = "All fields are required"
+           return render_template('contact.html', form=form, error=error)
+       else:
+           app.logger.info("Name: %s\nEmail: %s\nSubject: %s\nMessage: %s\n" % (name, email, subject, message))
+
+           mail = Mail(app)
+
+           app.logger.info("List of Admins: %s" % app.config['LIST_OF_ADMINS'])
+           app.logger.info("Type: %s" % type(app.config['LIST_OF_ADMINS']))
+
+           recipients = app.config['LIST_OF_ADMINS'].split(',')
+           app.logger.info("Recipients: %s" % recipients)
+
+           msg = Message("OpenRecords Contact Form: %s" % form.subject.data, sender=app.config['DEFAULT_MAIL_SENDER'],
+                         recipients=recipients)
+           msg.body = """
+               Date: %s
+               From: %s <%s>
+               Message: %s
+             """ % (datetime.now().strftime("%m/%d/%Y %H:%M"), form.name.data, form.email.data, form.message.data)
+           mail.send(msg)
+           return render_template(('contact.html'), success=True)
+
+   elif request.method == 'GET':
+       return render_template('contact.html', form=form)
 
 
 @app.errorhandler(400)

@@ -220,3 +220,12 @@ class EditUserForm(Form):
     title = StringField('Title', validators=[DataRequired()])
 
     submit = SubmitField('Update')
+
+class ContactForm(Form):
+   name = StringField("Name", validators=[DataRequired()])
+   email = StringField("Email", validators=[DataRequired(), Email()])
+   subject = StringField("Subject", validators=[DataRequired()])
+   message = TextAreaField("Message", validators=[DataRequired()])
+   recaptcha = ReCaptcha(app)
+   submit = SubmitField("Send")
+   
