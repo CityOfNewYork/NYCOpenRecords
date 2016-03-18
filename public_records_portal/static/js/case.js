@@ -157,7 +157,7 @@
   $('#addNoteButton').on('click',function(){
     $('#modalAdditionalInfoTable').show();
     $('#form_id').val('note');
-    var modalQuestion = 'Are you sure you want to add the note below and send an email to the requester?';
+    var modalQuestion = 'Are you sure you want to add the note below?';
     modalQuestion += '<br><br>' + $('#noteTextarea').val();
     $('#modalquestionDiv').html(modalQuestion);
     $('#modalQuestionTable').hide();
