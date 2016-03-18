@@ -86,7 +86,7 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
-        if allowed_file(document):
+        if allowed_file(document, request_id):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
                 upload_file_locally(document, secure_filename(document.filename), privacy)
@@ -224,6 +224,9 @@ def upload_file_locally(document, filename, privacy):
 
 
 ### @export "allowed_file"
-def allowed_file(filename):
+def allowed_file(filename, request_id):
+    secure_fname = secure_filename(filename)
+    document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + request_id + '/' + secure_fname
+    magic.from_file(document_filepath, mime=True)
     mimetype = filename.mimetype
     return mimetype in ALLOWED_MIMETYPES
