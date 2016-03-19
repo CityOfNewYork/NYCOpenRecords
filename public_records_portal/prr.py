@@ -1111,7 +1111,8 @@ def get_responses_chronologically(req):
             else:
                 responses.append(ResponsePresenter(note=note))
     for record in req.records:
-        responses.append(ResponsePresenter(record=record))
+        if record.privacy == False:
+            responses.append(ResponsePresenter(record=record))
     if not responses:
         return responses
     responses.sort(key=lambda x: x.date(), reverse=True)
