@@ -1531,13 +1531,15 @@ def login():
         return bad_request(400)
 
 
-@app.route("/attachments/<string:privacy>/<string:resource>", methods=["GET"])
-def get_attachments(privacy, resource):
+@app.route("/attachments/<string:privacy>/<string:request_id>/<string:resource>", methods=["GET"])
+def get_attachments(privacy, request_id, resource):
     app.logger.info("\n\ngetting attachment file")
     if privacy == 'public':
-        return send_from_directory(app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"], resource, as_attachment=True)
+        directory = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + "/" + request_id
+        return send_from_directory(directory, resource, as_attachment=True)
     if privacy == 'private':
-        return send_from_directory(app.config["UPLOAD_PRIVATE_LOCAL_FOLDER"], resource, as_attachment=True)
+        directory = app.config["UPLOAD_PRIVATE_LOCAL_FOLDER"] + "/" + request_id
+        return send_from_directory(directory, resource, as_attachment=True)
 
 
 @app.route("/pdfs/<string:resource>", methods=["GET"])
