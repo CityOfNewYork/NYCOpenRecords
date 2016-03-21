@@ -708,7 +708,7 @@ def add_a_resource(resource):
                 if index < len(titles):
                     title = titles[index]
                 #existing_record = models.Record.query.filter(models.Record.request_id == req['request_id']).filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
-                existing_record = models.Record.query.filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
+                existing_record = models.Record.query.filter(models.Record.filename == filename).filter(models.Record.request_id == request.form['request_id']).order_by(models.Record.id.desc()).limit(1).first()
                 app.logger.info("EXISTING_RECORD:" + str(existing_record))
                 if existing_record != None:
                     update_obj(attribute="description", val=title, obj_type='Record', obj_id=existing_record.id)
