@@ -1412,7 +1412,7 @@ def change_record_privacy(record_id, request_id, privacy):
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(["rsync", "-avzh", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
-                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
         else:
             subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
@@ -1424,7 +1424,7 @@ def change_record_privacy(record_id, request_id, privacy):
             subprocess.call(
                 ["rsync", "-avzh", "--delete", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename,
                  app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
         else:
             subprocess.call(["rm", "-rf", app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
 
