@@ -825,6 +825,7 @@ Begins Upload_record method''')
                         url=app.config['HOST_URL'] + str(doc_id),
                         privacy=privacy,
                     )
+                    change_record_privacy(record_id, request_id, filename)
                     change_request_status(request_id,
                                           'A response has been added.')
                     notification_content['user_id'] = user_id
