@@ -2,6 +2,7 @@ non_partner_agencies = [
     "Administration for Children's Services",
     "Art Commission",
     "Board of Correction",
+    "Board of Elections",
     "Board of Standards and Appeals",
     "Business Integrity Commission",
     "Civil Service Commission",
