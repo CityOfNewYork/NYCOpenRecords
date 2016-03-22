@@ -9,7 +9,6 @@
 import datetime
 import os
 import socket
-import magic
 
 from werkzeug.utils import secure_filename
 
