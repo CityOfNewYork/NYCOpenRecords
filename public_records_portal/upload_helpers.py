@@ -33,7 +33,6 @@ ALLOWED_MIMETYPES = ['text/plain', 'application/pdf', 'application/msword', 'app
                      'image/jpeg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp', 'video/x-msvideo',
                      'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi', 'video/mp4', 'audio/mpeg',
                      'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia']
-                     #Missing mimetypes: pps, tif, mov, mp4, mp3, ra
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
