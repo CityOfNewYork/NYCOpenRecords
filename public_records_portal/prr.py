@@ -12,6 +12,7 @@
 import csv
 import json
 import os
+import shutil
 import subprocess
 import traceback
 import urllib
@@ -1408,9 +1409,9 @@ def change_record_privacy(record_id, request_id, privacy):
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         import pdb; pdb.set_trace()
         app.logger.info("Making %s public" % record.filename)
-        subprocess.call(["mkdir", "-p", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id])
-        subprocess.call(["mv", app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
-                         app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename])
+        if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
+            os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
+        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
                              "mkdir", "-p",
@@ -1419,22 +1420,15 @@ def change_record_privacy(record_id, request_id, privacy):
                              app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id,
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
-        else:
-            subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
-                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
     elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
         import pdb; pdb.set_trace()
         app.logger.info("Making %s private" % record.filename)
-        subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
-                         app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename])
+        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(
                 ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                  app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
                      'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
-        else:
-            subprocess.call(
-                ["rm", "-rf", app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
