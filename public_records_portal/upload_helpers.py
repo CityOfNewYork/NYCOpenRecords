@@ -31,7 +31,8 @@ ALLOWED_MIMETYPES = ['text/plain', 'application/pdf', 'application/msword', 'app
                      'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      'image/jpeg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp', 'video/x-msvideo',
-                     'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi']
+                     'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi', 'video/mp4', 'audio/mpeg',
+                     'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia']
                      #Missing mimetypes: pps, tif, mov, mp4, mp3, ra
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
@@ -225,7 +226,5 @@ def upload_file_locally(document, filename, privacy):
 
 ### @export "allowed_file"
 def allowed_file(file, request_id):
-    document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + request_id + '/' + file.filename
-    # magic.from_file(document_filepath, mime=True)
     mimetype = file.mimetype
     return mimetype in ALLOWED_MIMETYPES
