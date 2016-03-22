@@ -224,9 +224,8 @@ def upload_file_locally(document, filename, privacy):
 
 
 ### @export "allowed_file"
-def allowed_file(filename, request_id):
-    secure_fname = secure_filename(filename)
-    document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + request_id + '/' + secure_fname
-    magic.from_file(document_filepath, mime=True)
-    mimetype = filename.mimetype
+def allowed_file(file, request_id):
+    document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + request_id + '/' + file.filename
+    # magic.from_file(document_filepath, mime=True)
+    mimetype = file.mimetype
     return mimetype in ALLOWED_MIMETYPES
