@@ -1413,10 +1413,10 @@ def change_record_privacy(record_id, request_id, privacy):
             subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
                              "mkdir", "-p",
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
-            subprocess.call(["rsync", "-avzh", "ssh",
-                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+            subprocess.call(["rsync", "-avzh",
+                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id,
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
-                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
         else:
             subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
@@ -1426,9 +1426,9 @@ def change_record_privacy(record_id, request_id, privacy):
                          app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename])
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(
-                ["rsync", "-avzh", "--delete", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename,
+                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                  app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
         else:
             subprocess.call(
                 ["rm", "-rf", app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
