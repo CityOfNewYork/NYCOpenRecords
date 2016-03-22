@@ -1406,13 +1406,15 @@ def change_record_privacy(record_id, request_id, privacy):
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
     app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
+        import pdb; pdb.set_trace()
         app.logger.info("Making %s public" % record.filename)
+        subprocess.call(["mkdir", "-p", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id])
         subprocess.call(["mv", app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                          app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename])
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
                              "mkdir", "-p",
-                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
             subprocess.call(["rsync", "-avzh",
                              app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id,
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
@@ -1421,6 +1423,7 @@ def change_record_privacy(record_id, request_id, privacy):
             subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/" + record.filename])
     elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
+        import pdb; pdb.set_trace()
         app.logger.info("Making %s private" % record.filename)
         subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                          app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename])
