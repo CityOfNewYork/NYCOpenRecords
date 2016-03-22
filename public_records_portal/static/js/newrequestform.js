@@ -22,6 +22,7 @@ $(function () {
         "Office of Long-Term Planning & Sustainability"
     ]
     var governmentAdministration = [
+        "Board of Election",
         "Business Integrity Commission",
         "City Commission on Human Rights",
         "Civil Service Commission",

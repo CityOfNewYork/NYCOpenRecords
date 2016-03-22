@@ -115,6 +115,7 @@ def new_request(passed_recaptcha=False, data=None):
             "Office of Long-Term Planning & Sustainability"
         ],
         'Government Administration': [
+            "Board of Election",
             "Office of the Actuary",
             "Office of Administrative Trials and Hearings",
             "Business Integrity Commission",
