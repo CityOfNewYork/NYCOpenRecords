@@ -93,7 +93,8 @@ def upload_file(document, request_id, privacy=0x1):
             else:
                 return None, None, None
         else:
-            return None, None, None
+            app.logger.error("File: %s mime type is not allowed." % document.filename)
+            return False, '', "File type is not allowed."
     else:
         upload_file_locally(document, secure_filename(document.filename), privacy)
         return 1, secure_filename(document.filename), None
