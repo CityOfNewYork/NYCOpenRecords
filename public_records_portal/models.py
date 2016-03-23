@@ -495,12 +495,12 @@ class Request(db.Model):
 
     @hybrid_property
     def due_soon(self):
-        two_days = datetime.now() + timedelta(days=2)
-        return and_(self.due_date < two_days, self.due_date > datetime.now(), ~self.closed)
+        two_days = datetime.date(datetime.now()) + timedelta(days=2)
+        return and_(datetime.date(self.due_date) < two_days, datetime.date(self.due_date) > datetime.date(datetime.now()), ~self.closed)
 
     @hybrid_property
     def overdue(self):
-        return and_(self.due_date < datetime.now(), ~self.closed)
+        return and_(datetime.date(self.due_date) < datetime.date(datetime.now()), ~self.closed)
 
     @hybrid_property
     def closed(self):
