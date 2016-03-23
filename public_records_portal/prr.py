@@ -816,7 +816,6 @@ Begins Upload_record method''')
                     if titles:
                         description = titles[titleIndex]
                         titleIndex = titleIndex + 1
-
                     record_id = create_record(
                         doc_id=None,
                         request_id=request_id,
@@ -826,7 +825,7 @@ Begins Upload_record method''')
                         url=app.config['HOST_URL'] + str(doc_id),
                         privacy=privacy,
                     )
-                    change_record_privacy(record_id, request_id, filename)
+                    change_record_privacy(record_id, request_id, privacy)
                     change_request_status(request_id,
                                           'A response has been added.')
                     notification_content['user_id'] = user_id
@@ -1394,11 +1393,11 @@ def change_privacy_setting(request_id, privacy, field):
 
 def change_record_privacy(record_id, request_id, privacy):
     record = get_obj("Record", record_id)
-    if privacy == 'release_and_public':
+    if privacy == 'release_and_public' or privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         privacy = RecordPrivacy.RELEASED_AND_PUBLIC
         release_date = cal.addbusdays(datetime.now(), int(app.config['DAYS_TO_POST']))
-        update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
-    elif privacy == 'release_and_private':
+        update_obj(attribute="release_date", val=release_date, obj_type="Record", obj_id=record.id)
+    elif privacy == 'release_and_private' or privacy == RecordPrivacy.RELEASED_AND_PRIVATE:
         privacy = RecordPrivacy.RELEASED_AND_PRIVATE
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
     else:
@@ -1407,7 +1406,6 @@ def change_record_privacy(record_id, request_id, privacy):
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
     app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
-        import pdb; pdb.set_trace()
         app.logger.info("Making %s public" % record.filename)
         if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
             os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
@@ -1417,18 +1415,17 @@ def change_record_privacy(record_id, request_id, privacy):
                              "mkdir", "-p",
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
             subprocess.call(["rsync", "-avzh",
-                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id,
+                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
-                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
     elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
-        import pdb; pdb.set_trace()
         app.logger.info("Making %s private" % record.filename)
         shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(
-                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
                  app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
