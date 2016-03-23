@@ -21,6 +21,17 @@ ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods',
                       'ppsx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'tif',
                       'tiff', 'bmp', 'avi', 'flv', 'wmv', 'mov', 'mp4', 'mp3',
                       'wma', 'wav', 'ra', 'mid']
+ALLOWED_MIMETYPES = ['text/plain', 'application/pdf', 'application/msword', 'application/rtf', 
+                     'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation',
+                     'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.graphics',
+                     'application/vnd.oasis.opendocument.formula', 'application/vnd.ms-powerpoint',
+                     'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                     'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     'image/jpeg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp', 'video/x-msvideo',
+                     'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi', 'video/mp4', 'audio/mpeg',
+                     'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia']
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
@@ -74,7 +85,7 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
-        if allowed_file(document.filename):
+        if allowed_file(document, request_id):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
                 upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
@@ -82,7 +93,8 @@ def upload_file(document, request_id, privacy=0x1):
             else:
                 return None, None, None
         else:
-            return None, None, None
+            app.logger.error("File: %s mime type is not allowed." % document.filename)
+            return False, '', "File type is not allowed."
     else:
         upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
         return 1, secure_filename(document.filename), None
@@ -219,6 +231,6 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
 
 ### @export "allowed_file"
-def allowed_file(filename):
-    ext = filename.rsplit('.', 1)[1]
-    return ext in ALLOWED_EXTENSIONS
+def allowed_file(file, request_id):
+    mimetype = file.mimetype
+    return mimetype in ALLOWED_MIMETYPES
