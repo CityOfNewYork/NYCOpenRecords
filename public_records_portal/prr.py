@@ -10,18 +10,19 @@
 """
 
 import csv
+import json
+import os
+import shutil
+import subprocess
 import traceback
 import urllib
 from StringIO import StringIO
-import os
-import json
-import subprocess
+
 import bleach
-from public_records_portal import cal
-from flask import request, render_template, make_response, send_file
-from xhtml2pdf import pisa
 from docx import Document
 from docx.shared import Pt, Inches
+from flask import request, render_template, make_response, send_file
+from xhtml2pdf import pisa
 
 import upload_helpers
 from RequestPresenter import RequestPresenter
@@ -112,12 +113,12 @@ def add_resource(resource, request_body, current_user_id=None):
         ]).first().department_id).first()
     if 'extension' in resource:
         return request_extension(
-                fields['request_id'],
-                fields.getlist('extend_reason'),
-                current_user_id,
-                int(fields['days_after']),
-                fields['due_date'],
-                request_body=request_body,
+            fields['request_id'],
+            fields.getlist('extend_reason'),
+            current_user_id,
+            int(fields['days_after']),
+            fields['due_date'],
+            request_body=request_body,
         )
     if 'note' in resource:
         return add_note(request_id=fields['request_id'],
@@ -189,15 +190,15 @@ No file passed in''')
                 privacy = RecordPrivacy.PRIVATE
 
             return upload_multiple_records(
-                    request_id=fields['request_id'],
-                    documents=documents,
-                    addAsEmailAttachmentList = addAsEmailAttachmentList,
-                    request_body=request_body,
-                    description=fields['record_description'],
-                    user_id=current_user_id,
-                    privacy=privacy,
-                    department_name = department_name,
-                    titles=titles)
+                request_id=fields['request_id'],
+                documents=documents,
+                addAsEmailAttachmentList=addAsEmailAttachmentList,
+                request_body=request_body,
+                description=fields['record_description'],
+                user_id=current_user_id,
+                privacy=privacy,
+                department_name=department_name,
+                titles=titles)
     elif 'qa' in resource:
         return ask_a_question(request_id=fields['request_id'],
                               user_id=current_user_id,
@@ -445,15 +446,15 @@ PDF TEMPLATE:''' + template_name)
             user_name = 'First Name Last Name'
 
         html = make_response(render_template(
-                template_name,
-                user_name=user_name,
-                date=date,
-                req=req,
-                department=department,
-                appeals_officer=appeals_officer,
-                appeals_email=appeals_email,
-                staff_alias=staff_alias,
-                staff_signature=staff_signature,
+            template_name,
+            user_name=user_name,
+            date=date,
+            req=req,
+            department=department,
+            appeals_officer=appeals_officer,
+            appeals_email=appeals_email,
+            staff_alias=staff_alias,
+            staff_signature=staff_signature,
         ))
         pdf = StringIO()
         pisaStatus = \
@@ -508,7 +509,7 @@ def add_letter(
         subject = subject % request_id
 
         content = letters_data[text]['content']
-        content = content % ( str(app.config['PUBLIC_APPLICATION_URL'] + 'request/' + request_id), staff.user.alias)
+        content = content % (str(app.config['PUBLIC_APPLICATION_URL'] + 'request/' + request_id), staff.user.alias)
 
         document.add_paragraph(subject)
         document.add_paragraph(content)
@@ -530,7 +531,7 @@ def add_letter(
         subject = subject % request_id
 
         content = letters_data[text]['content']
-        content = content % ( str(app.config['PUBLIC_APPLICATION_URL'] + 'request/' + request_id), staff.user.alias)
+        content = content % (str(app.config['PUBLIC_APPLICATION_URL'] + 'request/' + request_id), staff.user.alias)
 
         document.add_paragraph(subject)
         document.add_paragraph(content)
@@ -567,7 +568,6 @@ def add_letter(
         document.add_paragraph(subject)
         document.add_paragraph(content)
 
-
     letter = StringIO()
     document.save(letter)
     length = letter.tell()
@@ -581,7 +581,8 @@ def generate_denial_page(document):
     paragraph_format = paragraph.paragraph_format
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
-    run = paragraph.add_run("Your Freedom of Information Law (FOIL) request was denied, in whole or in part, for the reason(s) checked below:")
+    run = paragraph.add_run(
+        "Your Freedom of Information Law (FOIL) request was denied, in whole or in part, for the reason(s) checked below:")
     run.bold = True
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
@@ -598,7 +599,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the Freedom of Information Law only requires the disclosure of existing agency records.  It does not require the creation, upon request, of new records.")
+    run = paragraph.add_run(
+        u"\u25A1     the Freedom of Information Law only requires the disclosure of existing agency records.  It does not require the creation, upon request, of new records.")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -638,7 +640,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records are specifically exempted from disclosure by state or federal statute;")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records are specifically exempted from disclosure by state or federal statute;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -646,7 +649,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records, if disclosed would constitute an unwarranted invasion of personal privacy under State law (subdivision two of section eighty-nine of the Public Officers Law;")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records, if disclosed would constitute an unwarranted invasion of personal privacy under State law (subdivision two of section eighty-nine of the Public Officers Law;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -654,7 +658,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records if disclosed would impair present or imminent contract awards or collective bargaining negotiations;")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records if disclosed would impair present or imminent contract awards or collective bargaining negotiations;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -662,7 +667,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records are trade secrets or are submitted to an agency by a commercial enterprise or derived from information obtained from a commercial enterprise and which if disclosed would cause substantial injury to the competitive position of the subject enterprise;")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records are trade secrets or are submitted to an agency by a commercial enterprise or derived from information obtained from a commercial enterprise and which if disclosed would cause substantial injury to the competitive position of the subject enterprise;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -670,7 +676,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records are compiled for law enforcement purposes and which, if disclosed, would: ")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records are compiled for law enforcement purposes and which, if disclosed, would: ")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -678,7 +685,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.75)
-    run = paragraph.add_run(u"i. interfere with law enforcement investigations or judicial proceedings; ii. deprive a person of a right to a fair trial or impartial adjudication; iii. identify a confidential source or disclose confidential information relating to a criminal investigation; or iv. reveal criminal investigative techniques or procedures, except routine techniques and procedures")
+    run = paragraph.add_run(
+        u"i. interfere with law enforcement investigations or judicial proceedings; ii. deprive a person of a right to a fair trial or impartial adjudication; iii. identify a confidential source or disclose confidential information relating to a criminal investigation; or iv. reveal criminal investigative techniques or procedures, except routine techniques and procedures")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -686,7 +694,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records if disclosed could endanger the life or safety of any person;")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records if disclosed could endanger the life or safety of any person;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -694,7 +703,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records are inter-agency or intra-agency materials which are not:")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records are inter-agency or intra-agency materials which are not:")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -702,7 +712,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.75)
-    run = paragraph.add_run(u"i. statistical or factual tabulations or data; or ii. instructions to staff that affect the public; or iii. final agency policy or determinations; or iv. external audits, including but not limited to audits performed by the comptroller and the federal government;")
+    run = paragraph.add_run(
+        u"i. statistical or factual tabulations or data; or ii. instructions to staff that affect the public; or iii. final agency policy or determinations; or iv. external audits, including but not limited to audits performed by the comptroller and the federal government;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -710,7 +721,8 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records are examination questions or answers which are requested prior to the final administration of such questions;")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records are examination questions or answers which are requested prior to the final administration of such questions;")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
@@ -718,14 +730,16 @@ def generate_denial_page(document):
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
     paragraph_format.left_indent = Inches(.5)
-    run = paragraph.add_run(u"\u25A1     the records or portions of records if disclosed, would jeopardize the capacity of an agency or an entity that has shared information with an agency to guarantee the security of its information technology assets, such assets encompassing both electronic information systems and infrastructures.")
+    run = paragraph.add_run(
+        u"\u25A1     the records or portions of records if disclosed, would jeopardize the capacity of an agency or an entity that has shared information with an agency to guarantee the security of its information technology assets, such assets encompassing both electronic information systems and infrastructures.")
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
     paragraph = document.add_paragraph()
     paragraph_format = paragraph.paragraph_format
     paragraph_format.space_after = Pt(2)
     paragraph_format.space_before = Pt(0)
-    run = paragraph.add_run("You may appeal the decision to deny access to material that was redacted in part or withheld in entirety  by contacting the agency's FOIL Appeals Officer within 30 days.")
+    run = paragraph.add_run(
+        "You may appeal the decision to deny access to material that was redacted in part or withheld in entirety  by contacting the agency's FOIL Appeals Officer within 30 days.")
     run.bold = True
     run.font.name = 'Calibri'
     run.font.size = Pt(10)
@@ -738,8 +752,11 @@ def generate_denial_page(document):
     run.font.size = Pt(10)
     return document
 
-def upload_multiple_records(request_id, description, user_id, request_body, documents=None, addAsEmailAttachmentList=None, privacy=RecordPrivacy.PRIVATE, department_name=None, titles=None):
-    #for document in documents:
+
+def upload_multiple_records(request_id, description, user_id, request_body, documents=None,
+                            addAsEmailAttachmentList=None, privacy=RecordPrivacy.PRIVATE, department_name=None,
+                            titles=None):
+    # for document in documents:
     #    upload_record(request_id, titles[titleIndex], user_id, request_body, document, privacy, department_name)
 
 
@@ -749,7 +766,9 @@ def upload_multiple_records(request_id, description, user_id, request_body, docu
         document.seek(0)
     if documents_size > app.config['MAX_FILE_SIZE']:
         return "File too large"
-    return upload_record(request_id, description, user_id, request_body, documents, addAsEmailAttachmentList, privacy, department_name, titles)
+    return upload_record(request_id, description, user_id, request_body, documents, addAsEmailAttachmentList, privacy,
+                         department_name, titles)
+
 
 ### @export "upload_record"
 def upload_record(
@@ -758,9 +777,9 @@ def upload_record(
         user_id,
         request_body,
         documents=None,
-        addAsEmailAttachmentList=None, 
+        addAsEmailAttachmentList=None,
         privacy=RecordPrivacy.PRIVATE,
-        department_name = None,
+        department_name=None,
         titles=None
 ):
     """ Creates a record with upload/download attributes """
@@ -776,7 +795,7 @@ Begins Upload_record method''')
 
         for document in documents:
             (doc_id, filename, error) = \
-            upload_helpers.upload_file(document=document, request_id=request_id, privacy=privacy)
+                upload_helpers.upload_file(document=document, request_id=request_id, privacy=privacy)
             if error == "file_too_large":
                 return "File too large"
             elif error == "file_too_small":
@@ -795,16 +814,16 @@ Begins Upload_record method''')
                     if titles:
                         description = titles[titleIndex]
                         titleIndex = titleIndex + 1
-
                     record_id = create_record(
-                            doc_id=None,
-                            request_id=request_id,
-                            user_id=user_id,
-                            description=description,
-                            filename=filename,
-                            url=app.config['HOST_URL'] + str(doc_id),
-                            privacy=privacy,
+                        doc_id=None,
+                        request_id=request_id,
+                        user_id=user_id,
+                        description=description,
+                        filename=filename,
+                        url=app.config['HOST_URL'] + str(doc_id),
+                        privacy=privacy,
                     )
+                    change_record_privacy(record_id, request_id, privacy)
                     change_request_status(request_id,
                                           'A response has been added.')
                     notification_content['user_id'] = user_id
@@ -816,24 +835,23 @@ Begins Upload_record method''')
         return 'The upload timed out, please try again.'
 
     if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
-      if len(addAsEmailAttachmentList) > 0:
-        notification_content['documents'] = documents
-        for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
-          if addAsEmailAttachment:
-            # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
-            if index < len(documents):
-              notification_content['documents'][index] = documents[index]
-              notification_content['index'] = index
-            generate_prr_emails(request_id=request_id,
-                        notification_type='city_response_added',
-                        notification_content=notification_content)
-          else:
-            if (index < len(notification_content['documents'])):
-                notification_content['documents'][index] = None
-
+        if len(addAsEmailAttachmentList) > 0:
+            notification_content['documents'] = documents
+            for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
+                if addAsEmailAttachment:
+                    # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
+                    if index < len(documents):
+                        notification_content['documents'][index] = documents[index]
+                        notification_content['index'] = index
+                    generate_prr_emails(request_id=request_id,
+                                        notification_type='city_response_added',
+                                        notification_content=notification_content)
+                else:
+                    if (index < len(notification_content['documents'])):
+                        notification_content['documents'][index] = None
 
     add_staff_participant(request_id=request_id,
-                        user_id=user_id)
+                          user_id=user_id)
     return 1
 
 
@@ -953,13 +971,13 @@ Agency chosen: %s''' % agency)
         req = get_obj('Request', id)
 
     request_id = create_request(  # Actually create the Request object
-            id=id,
-            agency=agency,
-            summary=summary,
-            text=text,
-            user_id=user_id,
-            offline_submission_type=offline_submission_type,
-            date_received=date_received,
+        id=id,
+        agency=agency,
+        summary=summary,
+        text=text,
+        user_id=user_id,
+        offline_submission_type=offline_submission_type,
+        date_received=date_received,
     )
 
     # Please don't remove call to assign_owner below
@@ -970,17 +988,17 @@ Agency chosen: %s''' % agency)
     open_request(request_id)  # Set the status of the incoming request to "Open"
     if email or alias or phone:
         subscriber_user_id = create_or_return_user(
-                email=email,
-                alias=alias,
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                fax=fax,
-                address1=street_address_one,
-                address2=street_address_two,
-                city=city,
-                state=state,
-                zipcode=zip,
+            email=email,
+            alias=alias,
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            fax=fax,
+            address1=street_address_one,
+            address2=street_address_two,
+            city=city,
+            state=state,
+            zipcode=zip,
         )
         (subscriber_id, is_new_subscriber) = \
             create_subscriber(request_id=request_id,
@@ -1197,12 +1215,12 @@ def set_directory_fields():
         dictreader = csv.DictReader(csvfile, delimiter=',')
         for row in dictreader:
             create_or_return_user(
-                    email=row['email'].lower(),
-                    alias=row['name'],
-                    phone=row['phone number'],
-                    department=row['department name'],
-                    is_staff=True,
-                    role=row['role'],
+                email=row['email'].lower(),
+                alias=row['name'],
+                phone=row['phone number'],
+                department=row['department name'],
+                is_staff=True,
+                role=row['role'],
             )
 
         # Set liaisons data (who is a PRR liaison for what department)
@@ -1274,19 +1292,21 @@ def close_request(
 ):
     req = get_obj('Request', request_id)
     records = Record.query.filter_by(request_id=request_id).all()
-    errors={}
-    #Goes through all the records associated with a request and checks if they have agency description filled out.
+    errors = {}
+    # Goes through all the records associated with a request and checks if they have agency description filled out.
     for rec in records:
         if req.agency_description == None or req.agency_description == '':
-            #Check if the agency description is filled out
+            # Check if the agency description is filled out
             app.logger.info("Agency Description is not filled out")
             if rec.access != None:
-                #Check if an offline record exists
+                # Check if an offline record exists
                 app.logger.info("Request contains an offline record!")
-                errors['missing_agency_description'] = "You must provide an Agency Description before closing this request since you added offline instructions"
+                errors[
+                    'missing_agency_description'] = "You must provide an Agency Description before closing this request since you added offline instructions"
             if (rec.privacy == 0x1) or (rec.privacy == 0x2):
-                #Check if there are any documents uploaded which are private
-                errors['missing_agency_description_record_privacy'] = "You must provide an Agency Description before closing this request since one or more document is marked as 'Private' or 'Released and Private' "
+                # Check if there are any documents uploaded which are private
+                errors[
+                    'missing_agency_description_record_privacy'] = "You must provide an Agency Description before closing this request since one or more document is marked as 'Private' or 'Released and Private' "
     if errors:
         return errors
     change_request_status(request_id, 'Closed')
@@ -1326,8 +1346,9 @@ def close_request(
          "http://nyc.gov/opendata to find this information" in notification_content['reasons']:
         notification_type = "refer_opendata"
     elif "Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have " \
-         "the records requested. You should direct your request to a different agency." in notification_content['reasons']:
-        notification_type= "refer_other_agency"
+         "the records requested. You should direct your request to a different agency." in notification_content[
+        'reasons']:
+        notification_type = "refer_other_agency"
     elif "Your request under the Freedom of Information Law (FOIL) is being closed because the document or information " \
          "you requested is publicly available." in notification_content['reasons']:
         notification_type = "refer_web_link"
@@ -1344,19 +1365,19 @@ def close_request(
                             notification_content=notification_content)
     add_staff_participant(request_id=request_id, user_id=user_id)
 
-    #Update the time of when the agency description should be released to the public to be 10 days from now
+    # Update the time of when the agency description should be released to the public to be 10 days from now
     updated_due_date = datetime.now() + timedelta(days=10)
-    update_obj(attribute='agency_description_due_date', val=updated_due_date,obj_type='Request', obj_id=req.id)
+    update_obj(attribute='agency_description_due_date', val=updated_due_date, obj_type='Request', obj_id=req.id)
     return None
 
 
 def change_privacy_setting(request_id, privacy, field):
     req = get_obj('Request', request_id)
-    if (req.description_private==True and privacy==u'True') or (req.title_private==True and privacy==u'True'):
+    if (req.description_private == True and privacy == u'True') or (req.title_private == True and privacy == u'True'):
         if req.agency_description == None or req.agency_description == u'':
             return "An Agency Description must be provided if both the description and title are set to private"
     if field == 'title':
-    # Set the title to private
+        # Set the title to private
         update_obj(attribute='title_private', val=privacy,
                    obj_type='Request', obj_id=req.id)
     elif field == 'description':
@@ -1368,13 +1389,13 @@ def change_privacy_setting(request_id, privacy, field):
                    obj_type='Request', obj_id=req.id)
 
 
-def change_record_privacy(record_id, privacy):
+def change_record_privacy(record_id, request_id, privacy):
     record = get_obj("Record", record_id)
-    if privacy == 'release_and_public':
+    if privacy == 'release_and_public' or privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         privacy = RecordPrivacy.RELEASED_AND_PUBLIC
         release_date = cal.addbusdays(datetime.now(), int(app.config['DAYS_TO_POST']))
-        update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
-    elif privacy == 'release_and_private':
+        update_obj(attribute="release_date", val=release_date, obj_type="Record", obj_id=record.id)
+    elif privacy == 'release_and_private' or privacy == RecordPrivacy.RELEASED_AND_PRIVATE:
         privacy = RecordPrivacy.RELEASED_AND_PRIVATE
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
     else:
@@ -1384,25 +1405,30 @@ def change_record_privacy(record_id, privacy):
     app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         app.logger.info("Making %s public" % record.filename)
-        subprocess.call(["mv", app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/"])
+        if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
+            os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
+        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-            subprocess.call(["rsync", "-avzh", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/"])
-        else:
-            subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/"])
+            subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
+                             "mkdir", "-p",
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+            subprocess.call(["rsync", "-avzh",
+                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                             app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
     elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
         app.logger.info("Making %s private" % record.filename)
-        subprocess.call(["mv", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/"])
+        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-            subprocess.call(["rsync", "-avzh", "--delete", "ssh", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + record.filename, app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/"])
-        else:
-            subprocess.call(["rm", "-rf", app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + record.filename])
+            subprocess.call(
+                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                 app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
+
 def edit_agency_description(request_id, agency_description_text):
-    #edit the agency description field of the request
+    # edit the agency description field of the request
     app.logger.info("Modifying agency description of the request")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
-
-
-

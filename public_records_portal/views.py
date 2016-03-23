@@ -709,7 +709,7 @@ def add_a_resource(resource):
                 if index < len(titles):
                     title = titles[index]
                 #existing_record = models.Record.query.filter(models.Record.request_id == req['request_id']).filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
-                existing_record = models.Record.query.filter(models.Record.filename == filename).order_by(models.Record.id.desc()).limit(1).first()
+                existing_record = models.Record.query.filter(models.Record.filename == filename).filter(models.Record.request_id == request.form['request_id']).order_by(models.Record.id.desc()).limit(1).first()
                 app.logger.info("EXISTING_RECORD:" + str(existing_record))
                 if existing_record != None:
                     update_obj(attribute="description", val=title, obj_type='Record', obj_id=existing_record.id)
@@ -1809,7 +1809,7 @@ def switch_record_privacy():
     app.logger.info(
         "Changing Record Privacy for Request %s, Record_Id %s to %s" % (record, request.form['record_id'], privacy))
     if record is not None and privacy is not None:
-        prr.change_record_privacy(record_id=request.form['record_id'], privacy=privacy)
+        prr.change_record_privacy(record_id=request.form['record_id'], request_id=request.form['request_id'], privacy=privacy)
     return redirect(url_for('show_request_for_city', request_id=request.form['request_id']))
 
 
