@@ -1249,7 +1249,8 @@ def close_request(
     elif "Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have " \
          "the records requested. You should direct your request to a different agency." in notification_content['reasons']:
         notification_type= "refer_other_agency"
-    elif "Your request under the Freedom of Information Law (FOIL) is being closed because the records are publily available." in notification_content['reasons']:
+    elif "Your request under the Freedom of Information Law (FOIL) is being closed because the records are publicly " \
+         "available." in notification_content['reasons']:
         notification_type = "refer_web_link"
     else:
         # If request is not one of the fulfilled or referred categories, it is assumed to have been denied
