@@ -49,6 +49,7 @@ python-docx==0.8.5
 python-dotenv==0.1.3
 python-editor==0.4
 python-ldap==2.4.22
+python-magic==0.4.10
 python-mimeparse==0.1.4
 pytz==2015.6
 recaptcha-client==1.0.6
