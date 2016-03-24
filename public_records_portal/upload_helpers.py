@@ -10,6 +10,8 @@ import datetime
 import os
 import socket
 
+import magic
+
 from werkzeug.utils import secure_filename
 
 from models import RecordPrivacy
@@ -85,7 +87,7 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
-        if allowed_file(document, request_id):
+        if allowed_file(document, request_id, privacy):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
                 upload_file_locally(document, secure_filename(document.filename), privacy)
@@ -224,6 +226,8 @@ def upload_file_locally(document, filename, privacy):
 
 
 ### @export "allowed_file"
-def allowed_file(file, request_id):
-    mimetype = file.mimetype
+def allowed_file(file, request_id, privacy=1):
+    mimetypeMagic = magic.Magic(mime=True,uncompress=True)
+    mimetype = mimetypeMagic.from_buffer(file.read())
+    file.seek(0)
     return mimetype in ALLOWED_MIMETYPES
