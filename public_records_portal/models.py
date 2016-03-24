@@ -471,7 +471,7 @@ class Request(db.Model):
         else:
             if cron_job or not current_user.is_anonymous:
                 if self.due_date:
-                    if datetime.now() >= self.due_date:
+                    if datetime.date(datetime.now()) > datetime.date(self.due_date):
                         return 'overdue'
                     elif datetime.now() \
                             + timedelta(days=int(app.config['DAYS_UNTIL_OVERDUE'
