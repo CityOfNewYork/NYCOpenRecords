@@ -1109,7 +1109,7 @@ def get_responses_chronologically(req):
             else:
                 responses.append(ResponsePresenter(note=note))
     for record in req.records:
-        if record.privacy == False:
+        if record.privacy == False or (current_user.is_authenticated):
             responses.append(ResponsePresenter(record=record))
     if not responses:
         return responses
