@@ -7,12 +7,11 @@ Initializes application and all of its environment variables.
 
 """
 
-import logging
 import time
 from datetime import timedelta
-from logging.handlers import TimedRotatingFileHandler
 from os import environ, pardir
 from os.path import abspath, dirname, join
+from logging import getLogger
 
 import pytz
 from business_calendar import Calendar, MO, TU, WE, TH, FR
@@ -145,8 +144,41 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=int(environ['PERMAN
 store = SQLAlchemyStore(db.engine, db.metadata, 'sessions')
 kvsession = KVSessionExtension(store, app)
 
-app.debug = True
-log_filename = environ['LOGFILE_DIRECTORY'] + "openrecords_" + time.strftime("%Y%m%d") + ".log"
-handler = TimedRotatingFileHandler(log_filename, when='D', interval=60)
-handler.setLevel(logging.DEBUG)
-app.logger.addHandler(handler)
+if not app.debug:
+    import logging
+    from logging.handlers import TimedRotatingFileHandler
+    from logging.handlers import SMTPHandler
+    from logging import Formatter
+    mail_handler = SMTPHandler(
+        (app.config['MAIL_SERVER'],app.config['MAIL_PORT']),
+        'openrecords_error@records.nyc.gov',
+        app.config['LIST_OF_ADMINS'],
+        'OpenRecords Application Error')
+    mail_handler.setLevel(logging.ERROR)
+    mail_handler.setFormatter(Formatter('''
+    Message Type:       %(levelname)s
+    Location:           %(pathname)s:%(lineno)d
+    Module:             %(module)s
+    Function:           %(funcName)s
+    Time:               $(asctime)s
+
+    Message:
+
+    %(message)s
+    '''))
+
+    logfile_name = environ['LOGFILE_DIRECTORY'] + \
+                    "openrecords_" + \
+                    time.strftime("%Y%m%d-%H%M%S") + \
+                    ".log"
+    file_handler = TimedRotatingFileHandler(logfile_name, when='m', interval=120)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(Formatter(
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]'
+    ))
+
+    loggers = [app.logger, getLogger('sqlalchemy')]
+    for logger in loggers:
+        logger.addHandler(mail_handler)
+        logger.addHandler(file_handler)
