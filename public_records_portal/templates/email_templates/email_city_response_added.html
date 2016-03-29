@@ -17,13 +17,14 @@
                                 <p>
                                     Click <a href="app.config['PUBLIC_APPLICATION_URL']faq" >here</a> to learn about how the City responds to FOIL requests.
                                 </p>
+                              {#                            ------------------Contact and Request Information----------------#}
                                 <p>
-                                    Request Title: {{ notification_content['text']['request_summary'] }}
+                                    Request Title: {{ notification_content['contact_info']['request_title'] }}
                                     <br/>
-                                    Request Description: {{ notification_content['text']['request_text'] }}
+                                    Request Description: {{ notification_content['contact_info']['request_description'] }}
+                                    <br/>
                                     <br/>
                                     Contact Information:
-                                    <br/>
                                     <div class="row-fluid hide" id="requester_info">
                                         <div class="span8">
                                             <div class="row-fluid">
@@ -48,7 +49,6 @@
 
                                                     <span class="label">Not provided</span>
                                                     {% endif %}
-
                                                 </div>
                                             </div>
                                             <div class="row-fluid">
@@ -63,7 +63,6 @@
 
                                                     <span class="label">Not provided</span>
                                                     {% endif %}
-
                                                 </div>
                                             </div>
                                             <div class="row-fluid">
@@ -78,7 +77,6 @@
 
                                                     <span class="label">Not provided</span>
                                                     {% endif %}
-
                                                 </div>
                                             </div>
                                             <div class="row-fluid">
@@ -117,7 +115,6 @@
 
                                                     <span class="label">{{ notification_content['contact_info']['request_address_state'] }}</span>
                                                     {% endif %}
-
                                                 </div>
                                             </div>
                                             <div class="row-fluid">
@@ -130,6 +127,7 @@
                                             </div>
                                         </div>
                                     </p>
+{#                            ------------------Contact and Request Information----------------#}
                                 </br>
                                 {% if unfollow_link %}
                                     <p>
