@@ -1221,7 +1221,7 @@ def close_request(
     #     notification_content['explanations'].append(explain_action(reason, explanation_type='What'))
     notification_content['user_id'] = user_id
     create_note(request_id, reasons, user_id, privacy=1)
-    if "Your request under the Freedom of Information Law (FOIL) has been reviewed and fulfilled " \
+    if u'Your request under the Freedom of Information Law (FOIL) has been reviewed and fulfilled.' \
         in notification_content['reasons']:
         notification_type = "closed_fulfilled_in_whole"
     elif "Your request under the Freedom of Information Law (FOIL) has been reviewed and fulfilled " \
