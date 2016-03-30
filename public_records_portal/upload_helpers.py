@@ -23,17 +23,38 @@ ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods',
                       'ppsx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'tif',
                       'tiff', 'bmp', 'avi', 'flv', 'wmv', 'mov', 'mp4', 'mp3',
                       'wma', 'wav', 'ra', 'mid']
-ALLOWED_MIMETYPES = ['text/plain', 'application/pdf', 'application/msword', 'application/rtf', 
-                     'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation',
-                     'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.graphics',
-                     'application/vnd.oasis.opendocument.formula', 'application/vnd.ms-powerpoint',
-                     'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                     'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
-                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                     'image/jpeg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp', 'video/x-msvideo',
-                     'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi', 'video/mp4', 'audio/mpeg',
-                     'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia','video/quicktime']
+ALLOWED_MIMETYPES = [
+'Apple Desktop Services Store',
+'RIFF (little-endian) data, AVI, 1280 x 720, 25.00 fps, video: FFMpeg MPEG-4, audio: (6 channels, 48000 Hz)',
+'PC bitmap, Windows 3.x format, 1502 x -996 x 24',
+'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Author: Joel Castillo, Template: Normal.dotm, Last Saved By: Joel Castillo, Revision Number: 2, Name of Creating Application: Microsoft Macintosh Word, Create Time/Date: Fri Jan 29 14:24:00 2016, Last Saved Time/Date: Fri Jan 29 14:24:00 2016, Number of Pages: 1, Number of Words: 5, Number of Characters: 32, Security: 0',
+'Microsoft Word 2007+',
+'Macromedia Flash Video',
+'GIF image data, version 87a, 1502 x 996',
+'JPEG image data, JFIF standard 1.01, aspect ratio, density 144x144, segment length 16, Exif Standard: [TIFF image data, big-endian, direntries=4, xresolution=62, yresolution=70, resolutionunit=2], baseline, precision 8, 1502x996, frames 3',
+'JPEG image data, JFIF standard 1.01, aspect ratio, density 144x144, segment length 16, Exif Standard: [TIFF image data, big-endian, direntries=4, xresolution=62, yresolution=70, resolutionunit=2], baseline, precision 8, 1502x996, frames 3',
+'ISO Media, Apple QuickTime movie, Apple QuickTime (.MOV/QT)',
+'Audio file with ID3 version 2.3.0, contains: MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, JntStereo',
+'ISO Media, MP4 Base Media v1 [IS0 14496-12:2003]',
+'OpenDocument Formula',
+'OpenDocument Drawing',
+'OpenDocument Presentation',
+'OpenDocument Spreadsheet',
+'OpenDocument Text',
+'PDF document, version 1.3',
+'PNG image data, 1502 x 996, 8-bit/color RGB, non-interlaced',
+'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Title: Test Document for OpenRecords Upload, Author: Joel Castillo, Last Saved By: Joel Castillo, Revision Number: 1, Name of Creating Application: Microsoft Macintosh PowerPoint, Total Editing Time: 00:34, Create Time/Date: Fri Jan 29 14:25:19 2016, Last Saved Time/Date: Fri Jan 29 14:27:40 2016, Number of Words: 5',
+'Microsoft PowerPoint 2007+',
+'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Title: Test Document for OpenRecords Upload, Author: Joel Castillo, Last Saved By: Joel Castillo, Revision Number: 1, Name of Creating Application: Microsoft Macintosh PowerPoint, Total Editing Time: 00:24, Create Time/Date: Fri Jan 29 14:25:19 2016, Last Saved Time/Date: Fri Jan 29 14:25:43 2016, Number of Words: 5',
+'Microsoft PowerPoint 2007+',
+'Rich Text Format data, version 1, unknown character set',
+'TIFF image data, big-endian',
+'TIFF image data, big-endian',
+'ASCII text, with CR line terminators',
+'RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 44100 Hz',
+'Microsoft ASF',
+'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Author: Joel Castillo, Last Saved By: Joel Castillo, Name of Creating Application: Microsoft Macintosh Excel, Create Time/Date: Fri Jan 29 14:27:56 2016, Last Saved Time/Date: Fri Jan 29 14:44:43 2016, Security: 0',
+'Microsoft Excel 2007']
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
@@ -234,10 +255,15 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
 ### @export "allowed_file"
 def allowed_file(file, request_id, privacy=1):
-    path = upload_file_locally(file, file.filename, privacy=0, request_id=request_id)
-    mimetypeMagic = magic.Magic(mime=True,uncompress=True)
-    mimetype = mimetypeMagic.from_file(path)
-    # mimetype = mimetypeMagic.from_buffer(file.read())
-    os.remove(path)
+#     path = upload_file_locally(file, file.filename, privacy=privacy, request_id=request_id)
+#     mimetypeMagic = magic.Magic(mime=True,uncompress=True)
+#     mimetype = mimetypeMagic.from_file(path)
+# #     mimetype = mimetypeMagic.from_buffer(file.rea
+#     os.remove(path)
+#     file.seek(0)
+    ms = magic.open(magic.NONE)
+    ms.load()
+    mimetype = ms.buffer(file.read())
+    print(mimetype)
     file.seek(0)
     return mimetype in ALLOWED_MIMETYPES
