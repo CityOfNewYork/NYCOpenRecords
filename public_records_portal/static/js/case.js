@@ -89,10 +89,15 @@
       $('#modalAdditionalInfoTable').show();
       $('#editAgencyDescription').hide();
       additional_information = $('#additional_note').val();
+      email_text = CKEDITOR.instances.email_text.getData();
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
+      var emailInput = $("<input>")
+                .attr("type", "hidden")
+                .attr("name", "email_text").val(email_text);
       $(form_id).append($(input));
+      $(form_id).append($(emailInput));
 
       if(form_id === '#submitRecord') {
         $(form_id).submit();
@@ -140,60 +145,116 @@
     });
 
   $('#rerouteButton').on('click',function(){
-    $('#form_id').val('AcknowledgeNote');
-    var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-    modalQuestion += '<br><br>' + $('#acknowledge_status').val();
-    $('#modalquestionDiv').html(modalQuestion);
-    $('#modalQuestionTable').hide();
+    var formData = new FormData($("#AcknowledgeNote")[0]);
+    if($("#rerouteReason").val()) {
+
+    }
+    else {
+      $.ajax({
+        url: "/email/email_acknowledgement.html",
+        type: 'POST',
+        processData: false,
+        contentType: false,
+        data: formData,
+        success: function(data){
+          $('#form_id').val('AcknowledgeNote');
+          var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
+          modalQuestion += '<br><br>' + $('#acknowledge_status').val();
+          $('#modalquestionDiv').html(modalQuestion);
+          $('#modalQuestionTable').hide();
+          CKEDITOR.replace( 'email_text' );
+          $('#email_text').val(data);
+          $('#emailTextTable').hide();
+          $('#modalquestionDiv').text(modalQuestion);
+          $('#modalQuestionTable').hide();
+        },
+        error: function(data){
+            alert('fail.');
+        }
+      });
+    }
   });
 
   $('#extendButton').on('click',function(){
-    $('#modalAdditionalInfoTable').show();
-    $('#form_id').val('extension');
-    days = $('#days_after').val();
-    var modalQuestion = 'Are you sure you want to request an extension for the number of days below and send an email to the requester?';
 
-    if (days != -1) {
-        modalQuestion += '<br><br>' + $('#days_after').val() + " days";
-     }
-     else {
-        due_date = $('#datepicker').datepicker('getDate');
-        day = due_date.getDate();
-        month = due_date.getMonth() + 1;
-        year = due_date.getFullYear();
+    var formData = new FormData($("#extension")[0]);
 
-        modalQuestion = 'Are you sure you want to set the following due date and send an email to the requester?';
-        modalQuestion += '<br><br>' + month + "/" + day + "/" + year;
-     }
-    $('#modalquestionDiv').html(modalQuestion);
-    $('#modalQuestionTable').hide();
+    $.ajax({
+      url: "/email/email_extension.html",
+      type: 'POST',
+      processData: false,
+      contentType: false,
+      data: formData,
+      success: function(data){
+        $('#modalAdditionalInfoTable').show();
+        $('#form_id').val('extension');
+        days = $('#days_after').val();
+        var modalQuestion = 'Are you sure you want to request an extension for the number of days below and send an email to the requester?';
+
+        if (days != -1) {
+            modalQuestion += '<br><br>' + $('#days_after').val() + " days";
+         }
+        else {
+            due_date = $('#datepicker').datepicker('getDate');
+            day = due_date.getDate();
+            month = due_date.getMonth() + 1;
+            year = due_date.getFullYear();
+
+            modalQuestion = 'Are you sure you want to set the following due date and send an email to the requester?';
+            modalQuestion += '<br><br>' + month + "/" + day + "/" + year;
+         }
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
+        $('#modalquestionDiv').html(modalQuestion);
+        $('#modalQuestionTable').hide();
+      },
+      error: function(data){
+        alert('fail.');
+      }
+    });
   });
 
   $('#closeButton').on('click',function(){
-    var selectedCloseReason = $('#close_reasons option:selected').text();
-    if(selectedCloseReason.indexOf('Denied') >= 0) {
-        $('#deny_explain_why').show();
-    }
-    else {
-        $('#deny_explain_why').hide();
-    }
+  var formData = new FormData($("#closeRequest")[0]);
 
-    $('#modalAdditionalInfoTable').show();
-    $('#close-reminder').show()
-    //$('#modalAdditionalInfoTable').append('<p><b>If you are denying this request please explain why.</b></p>');
-    $('#form_id').val('closeRequest');
-    var modalQuestion = 'Are you sure you want to close the request for the reasons below and send an email to the requester?';
-    var reasons = $('#close_reasons').val();
-    modalQuestion += '<br><br>';
-    var i;
-    for (i = 0 ; i < reasons.length ; i++){
-        modalQuestion += '<br><br>' + reasons[i];
-    }
-    $('#modalquestionDiv').html(modalQuestion);
-    $('#modalQuestionTable').hide();
+    $.ajax({
+      url: "/email/email_closed.html",
+      type: 'POST',
+      processData: false,
+      contentType: false,
+      data: formData,
+      success: function(data){    
+        var selectedCloseReason = $('#close_reasons option:selected').text();
+        if(selectedCloseReason.indexOf('Denied') >= 0) {
+            $('#deny_explain_why').show();
+        }
+        else {
+            $('#deny_explain_why').hide();
+        }
 
+        $('#modalAdditionalInfoTable').show();
+        $('#close-reminder').show()
+        //$('#modalAdditionalInfoTable').append('<p><b>If you are denying this request please explain why.</b></p>');
+        $('#form_id').val('closeRequest');
+        var modalQuestion = 'Are you sure you want to close the request for the reasons below and send an email to the requester?';
+        var reasons = $('#close_reasons').val();
+        modalQuestion += '<br><br>';
+        var i;
+        for (i = 0 ; i < reasons.length ; i++){
+            modalQuestion += '<br><br>' + reasons[i];
+        }
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
+        $('#modalquestionDiv').html(modalQuestion);
+        $('#modalQuestionTable').hide();
+      },
+      error: function(data){
+        alert('fail.');
+      }
+    });
   });
-
 
 $('#editAgencyDescriptionButton').on('click',function(){
     $('.agency-description').show();
@@ -234,12 +295,37 @@ $('#close_filenames_list').on('click',function(){
 });
 
   $('#addRecordButton').on('click',function(){
-    $('#modalAdditionalInfoTable').show();
-    $('#form_id').val('submitRecord');
-    var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
-    modalQuestion += $('#recordSummary').text();
-    $('#modalquestionDiv').text(modalQuestion);
-    $('#modalQuestionTable').hide();
+    var formData = new FormData($("#submitRecord")[0]);
+    $.ajax({
+      url: "/email/email_city_response_added.html",
+      type: 'POST',
+      processData: false,
+      contentType: false,
+      data: formData,
+      success: function(data){
+        $('#modalAdditionalInfoTable').show();
+        $('#form_id').val('submitRecord');
+        var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
+        modalQuestion += $('#recordSummary').text();
+        $('#modalquestionDiv').text(modalQuestion);
+        $('#modalQuestionTable').hide();
+        modalQuestion += "<br>";
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
+        $('#modalquestionDiv').text(modalQuestion);
+        $('#modalQuestionTable').hide();
+      },
+      error: function(data){
+          alert('fail.');
+      }        
+    });
+  });
+
+$('#edit_email').on('click',function(){
+    for (var editorInstance in CKEDITOR.instances) {
+      CKEDITOR.instances[editorInstance].setReadOnly(false);
+    } 
   });
 
   $("[data-toggle='modal']").click(function (e) {

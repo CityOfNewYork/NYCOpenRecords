@@ -125,6 +125,8 @@ def generate_prr_emails(
     #     template = 'system_email_' + notification_type[-2:] + '.html'
     # elif 'Agency Notification Template' in notification_type:
     #     template = 'agency_email_' + notification_type[-2:] + '.html'
+    if "email_text" in notification_content:
+        template = template_prefix + 'email_full.html'
 
     # Handles emails for nonportal agencies
 
