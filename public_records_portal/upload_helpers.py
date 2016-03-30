@@ -33,7 +33,7 @@ ALLOWED_MIMETYPES = ['text/plain', 'application/pdf', 'application/msword', 'app
                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      'image/jpeg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp', 'video/x-msvideo',
                      'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi', 'video/mp4', 'audio/mpeg',
-                     'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia']
+                     'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia','video/quicktime']
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
@@ -234,7 +234,10 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
 ### @export "allowed_file"
 def allowed_file(file, request_id, privacy=1):
+    path = upload_file_locally(file, file.filename, privacy=0, request_id=request_id)
     mimetypeMagic = magic.Magic(mime=True,uncompress=True)
-    mimetype = mimetypeMagic.from_buffer(file.read())
+    mimetype = mimetypeMagic.from_file(path)
+    # mimetype = mimetypeMagic.from_buffer(file.read())
+    os.remove(path)
     file.seek(0)
     return mimetype in ALLOWED_MIMETYPES
