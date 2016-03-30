@@ -307,6 +307,9 @@ def update_resource(resource, request_body):
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
+        generate_prr_emails(request_id=fields['request_id'],
+                            notification_content=notification_content,
+                            notification_type='acknowledgement_agency')
         return fields['request_id']
     elif 'request_text' in resource:
         update_obj(attribute='text', val=fields['request_text'],

@@ -79,6 +79,11 @@
             "Subject": "The request has been Acknowledged",
             "Recipients":["Subscribers","Requester"]
         },
+        "acknowledgement_agency":
+        {
+            "Subject": "The request has been Acknolwedged",
+            "Recipients":["Staff participants"]
+        },
         "confirmation":
         {
             "Subject": "FOIL Request Submitted",
