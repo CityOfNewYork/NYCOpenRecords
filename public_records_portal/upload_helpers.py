@@ -255,12 +255,6 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
 ### @export "allowed_file"
 def allowed_file(file, request_id, privacy=1):
-#     path = upload_file_locally(file, file.filename, privacy=privacy, request_id=request_id)
-#     mimetypeMagic = magic.Magic(mime=True,uncompress=True)
-#     mimetype = mimetypeMagic.from_file(path)
-# #     mimetype = mimetypeMagic.from_buffer(file.rea
-#     os.remove(path)
-#     file.seek(0)
     ms = magic.open(magic.NONE)
     ms.load()
     mimetype = ms.buffer(file.read())
