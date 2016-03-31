@@ -222,7 +222,6 @@ No file passed in''')
                                                             obj_id=participant_id, obj_type='Owner')
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
-            notification_content['email_text'] = request_body['email_text']
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_added'
                                 , notification_content=notification_content)
@@ -231,7 +230,6 @@ No file passed in''')
             user_name = user.alias
             notification_content['user_name'] = user_name
             notification_content['request_id'] = request_body['request_id']
-            notification_content['email_text'] = request_body['email_text']
             notification_content['user_id'] = get_attribute('user_id',
                                                             obj_id=participant_id, obj_type='Owner')
             generate_prr_emails(request_id=fields['request_id'],
@@ -259,7 +257,6 @@ def update_resource(resource, request_body):
                 User.query.filter_by(id=Owner.query.filter_by(id=fields['owner_id'
                 ]).first().user_id).first().alias
             notification_content['owner_reason'] = request_body['owner_reason']
-            notification_content['email_text'] = request_body['email_text']
             notification_content['user_name'] = user_name
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='Request assigned',
@@ -272,7 +269,6 @@ def update_resource(resource, request_body):
             notification_content['user_name'] = user_name
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
-            notification_content['email_text'] = request_body['email_text']
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed',
                                 notification_content=notification_content)
@@ -293,7 +289,6 @@ def update_resource(resource, request_body):
             user_id = req.subscribers[0].user.id
             notification_content['user_id'] = user_id
             notification_content['request_id'] = request_id
-            notification_content['email_text'] = request_body['email_text']
             generate_prr_emails(request_id=request_id, notification_content=notification_content,
                                 notification_type='reopen_request'
                                 )
@@ -387,7 +382,6 @@ def add_note(
         notification_content['user_id'] = user_id
         notification_content['text'] = request_body['note_text']
         notification_content['additional_information'] = request_body['additional_information']
-        notification_content['email_text'] = request_body['email_text']
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
                               user_id=user_id, privacy=privacy)

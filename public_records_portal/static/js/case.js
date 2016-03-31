@@ -89,16 +89,18 @@
       $('#modalAdditionalInfoTable').show();
       $('#editAgencyDescription').hide();
       additional_information = $('#additional_note').val();
-      email_text = CKEDITOR.instances.email_text.getData();
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
-      var emailInput = $("<input>")
+      $(form_id).append($(input));
+      if($('#email_text').is(':visible')) {
+        email_text = CKEDITOR.instances.email_text.getData();
+        var emailInput = $("<input>")
                 .attr("type", "hidden")
                 .attr("name", "email_text").val(email_text);
-      $(form_id).append($(input));
-      $(form_id).append($(emailInput));
-
+        $(form_id).append($(emailInput));
+      }
+      
       if(form_id === '#submitRecord') {
         $(form_id).submit();
       }
@@ -343,6 +345,9 @@ $('#edit_email').on('click',function(){
   });
 
   $('#addNoteButton').on('click',function(){
+    $('#emailTextTable').hide();
+    $('#email_text').hide();
+    $('#edit_email').hide();
     $('#modalAdditionalInfoTable').show();
     $('#form_id').val('note');
     var modalQuestion = 'Are you sure you want to add the note below?';
@@ -361,6 +366,9 @@ $('#edit_email').on('click',function(){
     });
 
   $('#generatePDFButton').on('click',function(event){
+    $('#emailTextTable').hide();
+    $('#email_text').hide();
+    $('#edit_email').hide();
     var selectedTemplate = $('#response_template option:selected').text();
     var modalQuestion = 'Are you sure you want to generate a Word Document for the template below?';
 

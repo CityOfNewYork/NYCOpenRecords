@@ -646,41 +646,6 @@ def show_email(template_name, errors=None, form=None):
    
     if request.form.get('close_reasons') != '' and request.form.get('close_reasons') is not None:
         close_reasons = request.form.get('close_reasons')
-        #close_reasons.append(request.form.get('close_reasons'))
-        if "Your request under the Freedom of Information Law (FOIL) has been reviewed and the documents you requested have " \
-           "been posted on the OpenRecords portal." in close_reasons:
-            notification_type = "closed_fulfilled_in_whole"
-        elif "Your request under the Freedom of Information Law (FOIL) has been reviewed and is granted in part and denied " \
-             "in part because some of the records or portions of records are disclosable and others are exempt form " \
-             "disclosure under FOIL." in close_reasons:
-            notification_type = "closed_fulfilled_in_part"
-        elif "Your request under the Freedom of Information Law (FOIL) has been fulfilled and the documents you requested " \
-             "have been emailed to you." in close_reasons:
-            notification_type = "closed_by_email"
-        elif "Your request under the Freedom of Information Law (FOIL) has been fulfilled and the documents you requested " \
-             "have been faxed to you." in close_reasons:
-            notification_type = "closed_by_fax"
-        elif "Your request under the Freedom of Information Law (FOIL) has been been fulfilled and the documents you " \
-             "requested have been mailed to you. Please allow 7 - 10 days for receipt." in close_reasons:
-            notification_type = "closed_by_mail"
-        elif "Your request under the Freedom of Information Law has been fulfilled and the documents you requested are " \
-             "available to you for pickup." in close_reasons:
-            notification_type = "closed_by_pickup"
-        elif "Your request is for general City information or services. You may search http://nyc.gov/ or call 311 for " \
-             "assistance." in close_reasons:
-            notification_type = "refer_311"
-        elif "Your request is for data that is available through the City's OpenData site. You may visit " \
-             "http://nyc.gov/opendata to find this information" in close_reasons:
-            notification_type = "refer_opendata"
-        elif "Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have " \
-             "the records requested. You should direct your request to a different agency." in close_reasons:
-            notification_type = "refer_other_agency"
-        elif "Your request under the Freedom of Information Law (FOIL) is being closed because the records are publicly " \
-             "available." in close_reasons:
-            notification_type = "refer_web_link"
-        else:
-            # If request is not one of the fulfilled or referred categories, it is assumed to have been denied
-            notification_type = "denied"
 
     department = models.Department.query.filter_by(id=req.department_id).first()
     agency_app_url = app.config['AGENCY_APPLICATION_URL']
