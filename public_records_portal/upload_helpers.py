@@ -255,15 +255,10 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
 ### @export "allowed_file"
 def allowed_file(file, request_id, privacy=1):
-#     path = upload_file_locally(file, file.filename, privacy=privacy, request_id=request_id)
-#     mimetypeMagic = magic.Magic(mime=True,uncompress=True)
-#     mimetype = mimetypeMagic.from_file(path)
-# #     mimetype = mimetypeMagic.from_buffer(file.rea
-#     os.remove(path)
-#     file.seek(0)
+    '''Checks the mimetype of the file to see if its allowed'''
     ms = magic.open(magic.NONE)
     ms.load()
     mimetype = ms.buffer(file.read())
-    print(mimetype)
+    app.logger.info("\n\n" + mimetype)
     file.seek(0)
     return mimetype in ALLOWED_MIMETYPES
