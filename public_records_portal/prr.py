@@ -222,6 +222,8 @@ No file passed in''')
                                                             obj_id=participant_id, obj_type='Owner')
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = request_body['email_text']
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_added'
                                 , notification_content=notification_content)
@@ -230,6 +232,8 @@ No file passed in''')
             user_name = user.alias
             notification_content['user_name'] = user_name
             notification_content['request_id'] = request_body['request_id']
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = request_body['email_text']
             notification_content['user_id'] = get_attribute('user_id',
                                                             obj_id=participant_id, obj_type='Owner')
             generate_prr_emails(request_id=fields['request_id'],
@@ -258,6 +262,8 @@ def update_resource(resource, request_body):
                 ]).first().user_id).first().alias
             notification_content['owner_reason'] = request_body['owner_reason']
             notification_content['user_name'] = user_name
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = request_body['email_text']            
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='Request assigned',
                                 notification_content=notification_content)
@@ -269,6 +275,8 @@ def update_resource(resource, request_body):
             notification_content['user_name'] = user_name
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = request_body['email_text']            
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed',
                                 notification_content=notification_content)
@@ -289,6 +297,8 @@ def update_resource(resource, request_body):
             user_id = req.subscribers[0].user.id
             notification_content['user_id'] = user_id
             notification_content['request_id'] = request_id
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = request_body['email_text']
             generate_prr_emails(request_id=request_id, notification_content=notification_content,
                                 notification_type='reopen_request'
                                 )
@@ -299,7 +309,8 @@ def update_resource(resource, request_body):
                               fields['acknowledge_status'])
         notification_content['additional_information'] = request_body['additional_information']
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
-        notification_content['email_text'] = request_body['email_text']
+        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+            notification_content['email_text'] = request_body['email_text']
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
@@ -349,7 +360,8 @@ def request_extension(
     notification_content['days_after'] = days_after
     notification_content['additional_information'] = extension_reasons
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
-    notification_content['email_text'] = request_body['email_text']
+    if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+        notification_content['email_text'] = request_body['email_text']
 
     print request_body
 
@@ -382,6 +394,8 @@ def add_note(
         notification_content['user_id'] = user_id
         notification_content['text'] = request_body['note_text']
         notification_content['additional_information'] = request_body['additional_information']
+        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+            notification_content['email_text'] = request_body['email_text']        
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
                               user_id=user_id, privacy=privacy)
@@ -831,7 +845,8 @@ Begins Upload_record method''')
                     notification_content['user_id'] = user_id
                     notification_content['department_name'] = department_name
                     notification_content['privacy'] = privacy
-                    notification_content['email_text'] = request_body['email_text']
+                    if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                        notification_content['email_text'] = request_body['email_text']
     except:
         # print sys.exc_info()[0]
         print traceback.format_exc()
@@ -1317,7 +1332,8 @@ def close_request(
     # Create a note to capture closed information:
     if request_body:
         notification_content['additional_information'] = request_body['additional_information']
-        notification_content['email_text'] = request_body['email_text']
+        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+            notification_content['email_text'] = request_body['email_text']
     notification_content['explanations'] = []
     notification_content['reasons'] = reasons
     # for reason in reasons:
