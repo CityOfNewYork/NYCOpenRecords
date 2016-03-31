@@ -93,7 +93,8 @@
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
       $(form_id).append($(input));
-      if($('#email_text').is(':visible')) {
+      
+      if(CKEDITOR.instances.email_text) {
         email_text = CKEDITOR.instances.email_text.getData();
         var emailInput = $("<input>")
                 .attr("type", "hidden")
