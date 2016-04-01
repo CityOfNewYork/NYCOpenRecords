@@ -38,6 +38,7 @@ import bleach
 # from flask.ext.session import Session
 from uuid import uuid4
 from werkzeug.utils import secure_filename
+from nocache import nocache
 
 cal = Calendar()
 
@@ -88,6 +89,7 @@ app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 # Submitting a new request
 @app.route("/new", methods=["GET", "POST"])
+@nocache
 def new_request(passed_recaptcha=False, data=None):
     category = {
         'Business': [
@@ -447,11 +449,13 @@ def new_request(passed_recaptcha=False, data=None):
 
 
 @app.route("/faq")
+@nocache
 def faq():
     return render_template("faq.html")
 
 
 @app.route("/export")
+@nocache
 @login_required
 def to_csv():
     filename = request.form.get('filename', 'records.txt')
@@ -472,6 +476,7 @@ def index():
 
 
 @app.route("/landing")
+@nocache
 def landing():
     return render_template('landing.html')
 
@@ -513,6 +518,7 @@ show_request_for_x.methods = ['GET', 'POST']
 
 
 @app.route("/city/request/<string:request_id>")
+@nocache
 @login_required
 @requires_roles('Portal Administrator', 'Agency Administrator', 'Agency Helpers', 'Agency FOIL Officer')
 def show_request_for_city(request_id, errors=None):
@@ -543,6 +549,7 @@ def show_response(request_id):
 
 
 @app.route("/track", methods=["GET", "POST"])
+@nocache
 def track(request_id=None):
     if request.method == 'POST':
         if not re.match("FOIL-\d{4}-\d{3}-\d{5}", request.form["request_id"]):
@@ -865,6 +872,7 @@ def acknowledge_request(resource, passed_recaptcha=False, data=None):
 # Closing is specific to a case, so this only gets called from a case (that only city staff have a view of)
 
 @app.route("/close", methods=["GET", "POST"])
+@nocache
 @login_required
 def close(request_id=None):
     if request.method == 'POST':
@@ -974,6 +982,7 @@ def is_supported_browser():
 
 
 @app.route("/view_requests", methods=["GET"])
+@nocache
 def display_all_requests():
     return no_backbone_requests()
 
@@ -990,6 +999,7 @@ def no_backbone_requests():
 
 
 @app.route("/requests", methods=["GET"])
+@nocache
 def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-%m-%d', checkbox_value='on'):
     user_id = get_user_id()
 
@@ -1302,6 +1312,7 @@ def get_results_by_filters(departments_selected, is_open, is_closed, due_soon, o
 
 
 @app.route("/tutorial")
+@nocache
 def tutorial_initial():
     user_id = get_user_id()
     app.logger.info("\n\nTutorial accessed by user: %s." % user_id)
@@ -1309,6 +1320,7 @@ def tutorial_initial():
 
 
 @app.route("/tutorial/<string:tutorial_id>")
+@nocache
 def tutorial(tutorial_id):
     user_id = get_user_id()
     tutorial_string_id = tutorial_id.split("_")[0]
@@ -1317,6 +1329,7 @@ def tutorial(tutorial_id):
 
 
 @app.route("/city/tutorial/<string:tutorial_id>")
+@nocache
 def tutorial_agency(tutorial_id):
     if current_user.is_authenticated:
         user_id = get_user_id()
@@ -1328,6 +1341,7 @@ def tutorial_agency(tutorial_id):
 
 
 @app.route("/city/tutorial")
+@nocache
 def tutorial_agency_initial():
     if current_user.is_authenticated:
         user_id = get_user_id()
@@ -1338,6 +1352,7 @@ def tutorial_agency_initial():
 
 
 @app.route("/about")
+@nocache
 def about():
     return render_template('about.html')
 
@@ -1763,6 +1778,7 @@ def get_report_jsons(calendar_filter, report_type, agency_filter, staff_filter):
 
 
 @app.route("/report")
+@nocache
 def report():
     users = models.User.query.all()
     users = models.User.query.order_by(models.User.alias.asc()).all()
@@ -1833,6 +1849,7 @@ def edit_agency_description():
 
 
 @app.route('/contact', methods=['GET', 'POST'])
+@nocache
 def contact():
     form = ContactForm()
 
