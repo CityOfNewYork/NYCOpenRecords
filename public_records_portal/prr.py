@@ -360,7 +360,7 @@ def request_extension(
                             notification_type='extension',
                             notification_content=notification_content)
     for reason in extension_reasons:
-        text = text + reason + '</br>'
+        text = text + bleach.clean(reason) + '</br>'
     add_staff_participant(request_id=request_id, user_id=user_id)
     return add_note(request_id=request_id, text=text, user_id=user_id,
                     extension=True)  # Bypass spam filter because they are logged in.
