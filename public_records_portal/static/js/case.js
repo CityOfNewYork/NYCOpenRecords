@@ -290,6 +290,44 @@ $('#file_upload_filenames').bind('DOMNodeInserted', function(event) {
 
 });
 
+$('.privacy_radio').on('click', function() {
+  if(this.id === "release_and_public") {
+    var $this = $(this);
+    var csrf_token = $this.prev().prev().prev().val();
+    var request_id = $this.prev().prev().val();
+    var record_id = $this.prev().val();
+
+    var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester?';
+    $('#modalquestionDiv').text(modalQuestion);
+    $('#modalQuestionTable').hide();
+    $('#confirm-submit').modal('toggle');
+    
+    $.ajax({
+      url: "/switchRecordPrivacy",
+      type: 'POST',
+      data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
+      success: function(data){
+        console.log("DONE");
+        /*$('#modalAdditionalInfoTable').show();
+        $('#form_id').val('submitRecord');
+        var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester?';
+        modalQuestion += $('#recordSummary').text();
+        modalQuestion += "<br>";
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
+        $('#modalquestionDiv').text(modalQuestion);
+        $('#modalQuestionTable').hide();*/
+      },
+      error: function(data){
+        alert('fail.');
+      }
+    });
+
+    //$('#addRecordButton').click();
+  }
+});
+
 $('#close_filenames_list').on('click',function(){
   $('#file_upload_one').empty();
   $('#file_upload_two').empty();

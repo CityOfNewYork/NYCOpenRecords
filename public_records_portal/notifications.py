@@ -22,6 +22,7 @@ from flask_mail import Mail, Message
 import helpers
 from db_helpers import *
 
+import HTMLParser
 # Set flags:
 
 send_emails = False
