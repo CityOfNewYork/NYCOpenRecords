@@ -48,7 +48,7 @@ admin = Admin(app, name='RecordTrac Admin', url='/admin', index_view=HomeView(na
 
 class AdminView(ModelView):
     def is_accessible(self):
-        return current_user.role in ['Portal Administrator', 'Agency Administrator']
+        return current_user.role in ['Portal Administrator']
 
 class RequestView(AdminView):
     can_create = False
