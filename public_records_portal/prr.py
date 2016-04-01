@@ -1423,27 +1423,27 @@ def change_record_privacy(record_id, request_id, privacy):
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
     app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
-    # if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
-    #     app.logger.info("Making %s public" % record.filename)
-    #     if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
-    #         os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
-    #     shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
-    #     if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-    #         subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
-    #                          "mkdir", "-p",
-    #                          app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
-    #         subprocess.call(["rsync", "-avzh",
-    #                          app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
-    #                          app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
-    #                          app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
-    # elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
-    #     app.logger.info("Making %s private" % record.filename)
-    #     shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
-    #     if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-    #         subprocess.call(
-    #             ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
-    #              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-    #                  'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
+    if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
+        app.logger.info("Making %s public" % record.filename)
+        if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
+            os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
+        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+        if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
+            subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
+                             "mkdir", "-p",
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+            subprocess.call(["rsync", "-avzh",
+                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                             app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
+    elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
+        app.logger.info("Making %s private" % record.filename)
+        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+        if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
+            subprocess.call(
+                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                 app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
