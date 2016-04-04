@@ -57,7 +57,8 @@ ALLOWED_MIMETYPES = [
 'RIFF',
 'Microsoft ASF',
 'Composite Document File V2 Document',
-'Microsoft Excel 2007']
+'Microsoft Excel 2007',
+'Microsoft Excel']
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
