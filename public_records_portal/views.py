@@ -668,12 +668,12 @@ def upload_document():
         secure_fname = secure_filename(file.filename)
         document_filepath_public = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
         document_filepath_private = app.config["UPLOAD_PRIVATE_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
-        doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
         if (os.path.exists(document_filepath_public)):
             document_upload_errors['duplicate'] = 'There already eixsts a document of the same name.'
         elif (os.path.exists(document_filepath_private)):
             document_upload_errors['duplicate'] = 'There already eixsts a document of the same name.'
         else:
+            doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
             if doc_id == 'VIRUS_FOUND':
                 document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
             if errors:
