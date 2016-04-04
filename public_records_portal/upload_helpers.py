@@ -25,15 +25,16 @@ ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods',
                       'wma', 'wav', 'ra', 'mid']
 ALLOWED_MIMETYPES = [
 'Apple Desktop Services Store',
-'RIFF (little-endian) data, AVI, 1280 x 720, 25.00 fps, video: FFMpeg MPEG-4, audio: (6 channels, 48000 Hz)',
-'PC bitmap, Windows 3.x format, 1502 x -996 x 24',
+'RIFF (little-endian) data, AVI',
+'PC bitmap',
 'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Author: Joel Castillo, Template: Normal.dotm, Last Saved By: Joel Castillo, Revision Number: 2, Name of Creating Application: Microsoft Macintosh Word, Create Time/Date: Fri Jan 29 14:24:00 2016, Last Saved Time/Date: Fri Jan 29 14:24:00 2016, Number of Pages: 1, Number of Words: 5, Number of Characters: 32, Security: 0',
 'Microsoft Word 2007+',
 'Macromedia Flash Video',
 'GIF image data, version 87a, 1502 x 996',
-'JPEG image data, JFIF standard 1.01, aspect ratio, density 144x144, segment length 16, Exif Standard: [TIFF image data, big-endian, direntries=4, xresolution=62, yresolution=70, resolutionunit=2], baseline, precision 8, 1502x996, frames 3',
-'JPEG image data, JFIF standard 1.01, aspect ratio, density 144x144, segment length 16, Exif Standard: [TIFF image data, big-endian, direntries=4, xresolution=62, yresolution=70, resolutionunit=2], baseline, precision 8, 1502x996, frames 3',
+'JPEG image data',
+'JPEG image data',
 'ISO Media, Apple QuickTime movie, Apple QuickTime (.MOV/QT)',
+'MPEG',
 'Audio file with ID3 version 2.3.0, contains: MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, JntStereo',
 'ISO Media, MP4 Base Media v1 [IS0 14496-12:2003]',
 'OpenDocument Formula',
@@ -43,17 +44,19 @@ ALLOWED_MIMETYPES = [
 'OpenDocument Text',
 'PDF document, version 1.3',
 'PNG image data, 1502 x 996, 8-bit/color RGB, non-interlaced',
-'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Title: Test Document for OpenRecords Upload, Author: Joel Castillo, Last Saved By: Joel Castillo, Revision Number: 1, Name of Creating Application: Microsoft Macintosh PowerPoint, Total Editing Time: 00:34, Create Time/Date: Fri Jan 29 14:25:19 2016, Last Saved Time/Date: Fri Jan 29 14:27:40 2016, Number of Words: 5',
+'Composite Document File V2 Document',
 'Microsoft PowerPoint 2007+',
-'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Title: Test Document for OpenRecords Upload, Author: Joel Castillo, Last Saved By: Joel Castillo, Revision Number: 1, Name of Creating Application: Microsoft Macintosh PowerPoint, Total Editing Time: 00:24, Create Time/Date: Fri Jan 29 14:25:19 2016, Last Saved Time/Date: Fri Jan 29 14:25:43 2016, Number of Words: 5',
 'Microsoft PowerPoint 2007+',
 'Rich Text Format data, version 1, unknown character set',
 'TIFF image data, big-endian',
 'TIFF image data, big-endian',
+'TIFF',
 'ASCII text, with CR line terminators',
+'ASCII text',
 'RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 44100 Hz',
+'RIFF',
 'Microsoft ASF',
-'Composite Document File V2 Document, Little Endian, Os: MacOS, Version 10.3, Code page: 10000, Author: Joel Castillo, Last Saved By: Joel Castillo, Name of Creating Application: Microsoft Macintosh Excel, Create Time/Date: Fri Jan 29 14:27:56 2016, Last Saved Time/Date: Fri Jan 29 14:44:43 2016, Security: 0',
+'Composite Document File V2 Document',
 'Microsoft Excel 2007']
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
@@ -261,4 +264,7 @@ def allowed_file(file, request_id, privacy=1):
     mimetype = ms.buffer(file.read())
     app.logger.info("\n\n" + mimetype)
     file.seek(0)
-    return mimetype in ALLOWED_MIMETYPES
+    for m in ALLOWED_MIMETYPES:
+        if m in mimetype:
+            return True
+    return False
