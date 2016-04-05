@@ -46,6 +46,7 @@ class RequestPresenter:
         return self.response.id
 
     def display_text(self):
+        app.logger.info("def display_text")
         if self.type == "qa":
             text = "%s - %s" % (self.response.question, self.owner_link)
             if self.response.answer:

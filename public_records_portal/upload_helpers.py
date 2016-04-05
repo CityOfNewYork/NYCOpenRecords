@@ -52,6 +52,7 @@ INFECTED = 403
 
 
 def should_upload():
+    app.logger.info("def should_upload")
     if app.config['ENVIRONMENT'] != 'LOCAL' or app.config['UPLOAD_DOCS'] == 'True':
         return True
     return False
@@ -64,6 +65,7 @@ def upload_multiple_files(documents, request_id):
     :param request_id: FOIL Request ID Number
     :return: None
     """
+    app.logger.info("def upload_multipl_files")
     for document in documents:
         upload_file(document=document, request_id=request_id)
 
@@ -77,6 +79,7 @@ def upload_file(document, request_id, privacy=0x1):
     :param privacy: Privacy value for the uploaded document
     :return: (Boolean, String, String)
     """
+    app.logger.info("def upload_file")
     if not should_upload():
         # Should the file be uploaded
         app.logger.info("Upload functionality has been disabled\n\n")
