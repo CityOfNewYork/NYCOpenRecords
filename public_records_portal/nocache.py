@@ -3,7 +3,11 @@ from functools import wraps, update_wrapper
 from datetime import datetime
 
 def nocache(view):
-    '''Retrieves the http response from the browser and modifies it to remove caching'''
+    """
+    This function takes in the http response from the browser and disables caching.
+    :param view: flask's data of the rendered web page
+    :return: modified response with caching disabled
+    """
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
