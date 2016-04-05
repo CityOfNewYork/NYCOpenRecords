@@ -297,7 +297,7 @@ def update_resource(resource, request_body):
     elif 'acknowledge' in resource:
         change_request_status(fields['request_id'],
                               fields['acknowledge_status'])
-        notification_content['additional_information'] = request_body['additional_information']
+        notification_content['additional_information'] = bleach.clean(request_body['additional_information'],tags=[])
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
