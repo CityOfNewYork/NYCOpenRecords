@@ -388,8 +388,6 @@ def add_note(
         notification_content['text'] = bleach.clean(request_body['note_text'], tags=[])
         notification_content['additional_information'] = request_body['additional_information']
 
-        # checks for the contact information left by the requester
-
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
                               user_id=user_id, privacy=privacy)
@@ -1434,7 +1432,7 @@ def change_record_privacy(record_id, request_id, privacy):
         app.logger.info("Making %s public" % record.filename)
         if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
             os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
-        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
                     app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
@@ -1446,7 +1444,7 @@ def change_record_privacy(record_id, request_id, privacy):
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
     elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
         app.logger.info("Making %s private" % record.filename)
-        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
                     app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(
@@ -1461,7 +1459,6 @@ def edit_agency_description(request_id, agency_description_text):
     #edit the agency description field of the request
     app.logger.info("def edit_agency_description")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
-
 
 def get_contact_info(request_id):
     '''Retrieves the contact information of the user of a request'''
