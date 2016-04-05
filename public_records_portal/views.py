@@ -666,6 +666,7 @@ def upload_document():
     for file in files:
         document_upload_errors = {}
         secure_fname = secure_filename(file.filename)
+        # Searches through public and private folders for any pre-existing documents
         document_filepath_public = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
         document_filepath_private = app.config["UPLOAD_PRIVATE_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
         if (os.path.exists(document_filepath_public)):

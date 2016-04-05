@@ -265,6 +265,7 @@ def allowed_file(file, request_id, privacy=1):
     mimetype = ms.buffer(file.read())
     app.logger.info("\n\n" + mimetype)
     file.seek(0)
+    # loops through the ALLOWED_MIMETYPES list and checks if the file's mimetype is inside.
     for m in ALLOWED_MIMETYPES:
         if m in mimetype:
             return True
