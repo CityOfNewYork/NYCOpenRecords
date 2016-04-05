@@ -222,7 +222,6 @@ No file passed in''')
                                                             obj_id=participant_id, obj_type='Owner')
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
-            notification_content['contact_info'] = get_contact_info(fields['request_id'])
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_added'
                                 , notification_content=notification_content)
@@ -233,7 +232,6 @@ No file passed in''')
             notification_content['request_id'] = request_body['request_id']
             notification_content['user_id'] = get_attribute('user_id',
                                                             obj_id=participant_id, obj_type='Owner')
-            notification_content['contact_info'] = get_contact_info(request_body['request_id'])
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed'
                                 , notification_content=notification_content)
@@ -271,7 +269,6 @@ def update_resource(resource, request_body):
             notification_content['user_name'] = user_name
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
-            notification_content['contact_info'] = get_contact_info(request_body['request_id'])
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed',
                                 notification_content=notification_content)
@@ -292,7 +289,6 @@ def update_resource(resource, request_body):
             user_id = req.subscribers[0].user.id
             notification_content['user_id'] = user_id
             notification_content['request_id'] = request_id
-            notification_content['contact_info'] = get_contact_info(request_id)
             generate_prr_emails(request_id=request_id, notification_content=notification_content,
                                 notification_type='reopen_request'
                                 )
@@ -303,7 +299,6 @@ def update_resource(resource, request_body):
                               fields['acknowledge_status'])
         notification_content['additional_information'] = request_body['additional_information']
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
-        notification_content['contact_info'] = get_contact_info(request_body['request_id'])
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
@@ -353,10 +348,6 @@ def request_extension(
     notification_content['days_after'] = days_after
     notification_content['additional_information'] = extension_reasons
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
-
-    print request_body
-    contact_info = get_contact_info(request_id)
-    notification_content['contact_info'] = contact_info
     if request_body is not None:
         generate_prr_emails(request_id=request_id,
                             notification_type='extension',
@@ -388,9 +379,6 @@ def add_note(
         notification_content['additional_information'] = request_body['additional_information']
 
         # checks for the contact information left by the requester
-
-    contact_info = get_contact_info(request_id)
-    notification_content['contact_info'] = contact_info
 
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
@@ -855,7 +843,6 @@ Begins Upload_record method''')
                     if index < len(documents):
                         notification_content['documents'][index] = documents[index]
                         notification_content['index'] = index
-                        notification_content['contact_info'] = get_contact_info(request_id)
                     generate_prr_emails(request_id=request_id,
                                         notification_type='city_response_added',
                                         notification_content=notification_content)
@@ -889,7 +876,6 @@ def add_offline_record(
     if record_id:
         notification_content['department_name'] = department_name
         change_request_status(request_id, 'A response has been added.')
-        notification_content['contact_info'] = get_contact_info(request_id)
         generate_prr_emails(request_id=request_id,
                             notification_type='city_response_added',
                             notification_content=notification_content)
@@ -918,7 +904,6 @@ def add_link(
         notification_content['url'] = url
         notification_content['description'] = description
         notification_content['department_name'] = department_name
-        notification_content['contact_info'] = get_contact_info(request_id)
         generate_prr_emails(request_id=request_id,
                             notification_type='city_response_added',
                             notification_content=notification_content)
@@ -1156,7 +1141,6 @@ A new owner has been assigned: Owner: %s'''
         notification_content['user_id'] = user_id
         notification_content['user_name'] = user.alias
         notification_content['request_id'] = request_id
-        notification_content['contact_info'] = get_contact_info(request_id)
         generate_prr_emails(request_id=request_id,
                             notification_type='request_assigned',
                             notification_content=notification_content)
@@ -1338,7 +1322,6 @@ def close_request(
     # for reason in reasons:
     #     notification_content['explanations'].append(explain_action(reason, explanation_type='What'))
     notification_content['user_id'] = user_id
-    notification_content['contact_info'] = get_contact_info(request_id)
     create_note(request_id, reasons, user_id, privacy=1)
     if "Your request under the Freedom of Information Law (FOIL) has been reviewed and the documents you requested have " \
        "been posted on the OpenRecords portal." in notification_content['reasons']:
