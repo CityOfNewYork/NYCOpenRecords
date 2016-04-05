@@ -48,7 +48,7 @@ agency_codes = {"City Commission on Human Rights": "228",
 
 
 def add_public_note(request_id, text):
-    app.logger.info("Add Public Note")
+    app.logger.info("def add_public_note(request_id, text):")
     return 1
 
 
@@ -57,6 +57,7 @@ def nonportal_request(request_body):
     # department and the user creating a notification
 
     # query with all the fields
+    app.logger.info("def nonportal_request(request_body):")
     notification_content = {}
     notification_content['department'] = \
         Department.query.filter_by(name=request_body['request_agency'
@@ -105,6 +106,7 @@ def nonportal_request(request_body):
 ### @export "add_resource"
 
 def add_resource(resource, request_body, current_user_id=None):
+    app.logger.info("def add_resource(resource, request_body, current_user_id=None):")
     notification_content = {}
     fields = request_body
     department_name = \
@@ -245,6 +247,7 @@ No file passed in''')
 ### @export "update_resource"
 
 def update_resource(resource, request_body):
+    app.logger.info("def update_resource(resource, request_body):")
     fields = request_body
     notification_content = {}
     if 'owner' in resource:
@@ -337,7 +340,7 @@ def request_extension(
     Uses add_resource from prr.py and takes extension date from field retrived from that function.
     Returns note with new date after adding delta.
     """
-
+    app.logger.info("def request_extension()")
     req = Request.query.get(request_id)
     req.extension(days_after, due_date)
     user = User.query.get(user_id)
@@ -373,6 +376,7 @@ def add_note(
         user_id=None,
         extension=False,
 ):
+    app.logger.info("def add_note")
     fields = request_body
     notification_content = {}
     if request_body:
@@ -423,6 +427,7 @@ def add_pdf(
         passed_spam_filter=False,
         privacy=1,
 ):
+    app.logger.info("def add_pdf")
     if 'template_' in text:
         template_num = text.split('_')[1]
         template_name = 'standard_response_' + template_num + '.html'
@@ -473,6 +478,7 @@ def add_letter(
         request_id,
         text,
         user_id=None):
+    app.logger.info("def add_letter")
     letters_json = open(os.path.join(app.root_path, 'static/json/letters.json'))
     letters_data = json.load(letters_json)
 
@@ -576,6 +582,7 @@ def add_letter(
 
 
 def generate_denial_page(document):
+    app.logger.info("def generate_denial_page")
     document.add_page_break()
     paragraph = document.add_paragraph()
     paragraph_format = paragraph.paragraph_format
@@ -741,7 +748,7 @@ def generate_denial_page(document):
 def upload_multiple_records(request_id, description, user_id, request_body, documents=None, addAsEmailAttachmentList=None, privacy=RecordPrivacy.PRIVATE, department_name=None, titles=None):
     #for document in documents:
     #    upload_record(request_id, titles[titleIndex], user_id, request_body, document, privacy, department_name)
-
+    app.logger.info("def upload_multiple_records")
 
     documents_size = 0
     for document in documents:
@@ -765,9 +772,7 @@ def upload_record(
 ):
     """ Creates a record with upload/download attributes """
 
-    app.logger.info('''
-
-Begins Upload_record method''')
+    app.logger.info("def upload_record")
     notification_content = {}
     titleIndex = 0
     try:
@@ -849,6 +854,7 @@ def add_offline_record(
         privacy=True,
 ):
     """ Creates a record with offline attributes """
+    app.logger.info("def add_offline_record")
     notification_content = {}
     notification_content['description'] = description
     notification_content['department_name'] = department_name
@@ -877,6 +883,7 @@ def add_link(
         privacy=True,
 ):
     """ Creates a record with link attributes """
+    app.logger.info("def add_link")
     notification_content = {}
     record_id = create_record(url=url, request_id=request_id,
                               user_id=user_id, description=description,
@@ -920,7 +927,7 @@ def make_request(
         user_id=None,
 ):
     """ Make the request. At minimum you need to communicate which record(s) you want, probably with some text."""
-
+    app.logger.info("def make_request")
     notification_content = {}
     try:
         is_partner_agency = agency_codes[agency]
@@ -1008,6 +1015,7 @@ Agency chosen: %s''' % agency)
 ### @export "add_subscriber"
 
 def add_subscriber(request_id, email):
+    app.logger.info("def add_subscriber")
     notification_content = {}
     user_id = create_or_return_user(email=email)
     notification_content['user_id'] = create_or_return_user(email=email)
@@ -1030,7 +1038,7 @@ def ask_a_question(
         department_name=None,
 ):
     """ City staff can ask a question about a request they are confused about."""
-
+    app.logger.info("def ask_a_question")
     notification_content = {}
     req = get_obj('Request', request_id)
     qa_id = create_QA(request_id=request_id, question=question,
@@ -1058,7 +1066,7 @@ def answer_a_question(
         passed_spam_filter=False,
 ):
     """ A requester can answer a question city staff asked them about their request."""
-
+    app.logger.info("def answer_a_question")
     if not answer or answer == '' or not passed_spam_filter:
         return False
     else:
@@ -1075,6 +1083,7 @@ def answer_a_question(
 ### @export "open_request"
 
 def open_request(request_id):
+    app.logger.info("def open_request")
     change_request_status(request_id, 'Open')
 
 
@@ -1082,6 +1091,7 @@ def open_request(request_id):
 
 def assign_owner(request_id, reason=None, email=None):
     """ Called any time a new owner is assigned. This will overwrite the current owner."""
+    app.logger.info("def assign_owner")
     notification_content = {}
     req = get_obj('Request', request_id)
     past_owner_id = None
@@ -1129,6 +1139,7 @@ A new owner has been assigned: Owner: %s'''
 ### @export "get_request_data_chronologically"
 
 def get_request_data_chronologically(req):
+    app.logger.info("def get_request_data_chronologically")
     public = False
     if current_user.is_anonymous:
         public = True
@@ -1151,6 +1162,7 @@ def get_request_data_chronologically(req):
 ### @export "get_responses_chronologically"
 
 def get_responses_chronologically(req):
+    app.logger.info("def get_responses_chronologically")
     responses = []
     if not req:
         return responses
@@ -1186,7 +1198,7 @@ def get_responses_chronologically(req):
 
 def set_directory_fields():
     # Set basic user data
-
+    app.logger.info("def set_directory_fields")
     if 'STAFF_URL' in app.config:
 
         # This gets run at regular internals via db_users.py in order to keep the staff user list up to date. Before users are added/updated, ALL users get reset to 'inactive', and then only the ones in the current CSV are set to active.
@@ -1251,6 +1263,7 @@ def set_directory_fields():
 ### @export "set_department_contact"
 
 def set_department_contact(department_name, attribute_name, user_id):
+    app.logger.info("def set_department_contact")
     department = Department.query.filter(Department.name
                                          == department_name).first()
     user_obj = get_user_by_id(user_id)
@@ -1272,6 +1285,7 @@ def close_request(
         user_id=None,
         request_body=None,
 ):
+    app.logger.info("def close_request")
     req = get_obj('Request', request_id)
     records = Record.query.filter_by(request_id=request_id).all()
     errors={}
@@ -1351,6 +1365,7 @@ def close_request(
 
 
 def change_privacy_setting(request_id, privacy, field):
+    app.logger.info("def change_privacy_setting")
     req = get_obj('Request', request_id)
     if (req.description_private==True and privacy==u'True') or (req.title_private==True and privacy==u'True'):
         if req.agency_description == None or req.agency_description == u'':
@@ -1369,6 +1384,7 @@ def change_privacy_setting(request_id, privacy, field):
 
 
 def change_record_privacy(record_id, privacy):
+    app.logger.info("def change_record_privacy")
     record = get_obj("Record", record_id)
     if privacy == 'release_and_public':
         privacy = RecordPrivacy.RELEASED_AND_PUBLIC
@@ -1401,7 +1417,7 @@ def change_record_privacy(record_id, privacy):
 
 def edit_agency_description(request_id, agency_description_text):
     #edit the agency description field of the request
-    app.logger.info("Modifying agency description of the request")
+    app.logger.info("def edit_agency_description")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
 
 

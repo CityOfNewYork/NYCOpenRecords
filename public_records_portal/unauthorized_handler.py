@@ -10,5 +10,6 @@ login_manager.init_app(app)
 
 @login_manager.unauthorized_handler
 def unauthorized():
+    app.logger.info("def unauthorized")
     app.logger.info("\n\nuser is unauthorized.")
     return render_template("alpha.html")

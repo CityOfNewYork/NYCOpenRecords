@@ -39,6 +39,7 @@ def generate_prr_emails(
     ):
     # 'text=None' is used additional information.
     # 'text2=None' is used if there are more variable text passed into email such as with 'close this request' and being offered multiple reasons
+    app.logger.info("def generate_prr_emails")
     if 'user_id' not in notification_content:
         notification_content['user_id']=None
     app.logger.info('''
@@ -305,6 +306,7 @@ def send_prr_email(
     attached_file=None
     ):
 
+    app.logger.info("def send_prr_email")
     app.logger.info('''
 
 Attempting to send an e-mail to %s with subject %s, referencing page %s and template %s'''
@@ -364,7 +366,7 @@ def send_email(
     attached_files=None,
     privacy=None
     ):
-
+    app.logger.info("def send_email")
     mail = Mail(app)
 
     plaintext = ''
@@ -422,6 +424,7 @@ No e-mail was sent, probably because you're in a non-production environment.""")
 
 
 def due_date(date_obj, extended=None, format=True):
+    app.logger.info("def due_date")
     days_to_fulfill = 10
     if extended == True:
         days_to_fulfill = days_to_fulfill + 14
@@ -436,6 +439,7 @@ def due_date(date_obj, extended=None, format=True):
 
 
 def is_overdue(date_obj, extended=None):
+    app.logger.info("def is_overdue")
     current_date = datetime.now()
     due = due_date(date_obj=date_obj, extended=extended, format=False)
     if current_date >= due:
@@ -444,6 +448,7 @@ def is_overdue(date_obj, extended=None):
 
 
 def get_email_info(notification_type):
+    app.logger.info("def get_email_info")
     email_json = open(os.path.join(app.root_path,
                       'static/json/emails.json'))
     json_data = json.load(email_json)
@@ -451,6 +456,7 @@ def get_email_info(notification_type):
 
 
 def notify_due():
+    app.logger.info("def notify_due")
     requests = get_objs('Request')
     email_json = open(os.path.join(app.root_path,
                       'static/json/emails.json'))
@@ -488,6 +494,7 @@ def notify_due():
 
 
 def get_staff_recipients(request):
+    app.logger.info("def get_staff_recipients")
     recipients = []
     owner_email = request.point_person().user.email
     if owner_email:
@@ -512,7 +519,7 @@ def get_staff_recipients(request):
 
 def should_notify(user_email):
     """ Looks up the user in do_not_email.json and returns False if found. """
-
+    app.logger.info("def should_notify")
     do_not_email = open(os.path.join(app.root_path,
                         'static/json/do_not_email.json'))
     json_data = json.load(do_not_email)
@@ -526,7 +533,7 @@ def should_notify(user_email):
 
 def format_date(obj):
     """ Take a datetime object and return it in format Jun 12, 2013 """
-
+    app.logger.info("def format_date")
     if not obj:
         return None
     return helpers.localize(obj).strftime('%b %d, %Y')
