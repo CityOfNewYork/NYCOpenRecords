@@ -222,7 +222,6 @@ No file passed in''')
                                                             obj_id=participant_id, obj_type='Owner')
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
-            notification_content['contact_info'] = get_contact_info(fields['request_id'])
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_added'
                                 , notification_content=notification_content)
@@ -233,7 +232,6 @@ No file passed in''')
             notification_content['request_id'] = request_body['request_id']
             notification_content['user_id'] = get_attribute('user_id',
                                                             obj_id=participant_id, obj_type='Owner')
-            notification_content['contact_info'] = get_contact_info(request_body['request_id'])
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed'
                                 , notification_content=notification_content)
@@ -271,7 +269,6 @@ def update_resource(resource, request_body):
             notification_content['user_name'] = user_name
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
-            notification_content['contact_info'] = get_contact_info(request_body['request_id'])
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed',
                                 notification_content=notification_content)
@@ -292,7 +289,6 @@ def update_resource(resource, request_body):
             user_id = req.subscribers[0].user.id
             notification_content['user_id'] = user_id
             notification_content['request_id'] = request_id
-            notification_content['contact_info'] = get_contact_info(request_id)
             generate_prr_emails(request_id=request_id, notification_content=notification_content,
                                 notification_type='reopen_request'
                                 )
@@ -303,7 +299,6 @@ def update_resource(resource, request_body):
                               fields['acknowledge_status'])
         notification_content['additional_information'] = request_body['additional_information']
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
-        notification_content['contact_info'] = get_contact_info(request_body['request_id'])
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
@@ -356,10 +351,6 @@ def request_extension(
     notification_content['days_after'] = days_after
     notification_content['additional_information'] = extension_reasons
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
-
-    print request_body
-    contact_info = get_contact_info(request_id)
-    notification_content['contact_info'] = contact_info
     if request_body is not None:
         generate_prr_emails(request_id=request_id,
                             notification_type='extension',
@@ -389,11 +380,6 @@ def add_note(
         notification_content['user_id'] = user_id
         notification_content['text'] = request_body['note_text']
         notification_content['additional_information'] = request_body['additional_information']
-
-        # checks for the contact information left by the requester
-
-    contact_info = get_contact_info(request_id)
-    notification_content['contact_info'] = contact_info
 
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
@@ -858,7 +844,6 @@ Begins Upload_record method''')
                     if index < len(documents):
                         notification_content['documents'][index] = documents[index]
                         notification_content['index'] = index
-                        notification_content['contact_info'] = get_contact_info(request_id)
                     generate_prr_emails(request_id=request_id,
                                         notification_type='city_response_added',
                                         notification_content=notification_content)
@@ -892,7 +877,6 @@ def add_offline_record(
     if record_id:
         notification_content['department_name'] = department_name
         change_request_status(request_id, 'A response has been added.')
-        notification_content['contact_info'] = get_contact_info(request_id)
         generate_prr_emails(request_id=request_id,
                             notification_type='city_response_added',
                             notification_content=notification_content)
@@ -921,7 +905,6 @@ def add_link(
         notification_content['url'] = url
         notification_content['description'] = description
         notification_content['department_name'] = department_name
-        notification_content['contact_info'] = get_contact_info(request_id)
         generate_prr_emails(request_id=request_id,
                             notification_type='city_response_added',
                             notification_content=notification_content)
@@ -1159,7 +1142,6 @@ A new owner has been assigned: Owner: %s'''
         notification_content['user_id'] = user_id
         notification_content['user_name'] = user.alias
         notification_content['request_id'] = request_id
-        notification_content['contact_info'] = get_contact_info(request_id)
         generate_prr_emails(request_id=request_id,
                             notification_type='request_assigned',
                             notification_content=notification_content)
@@ -1341,7 +1323,6 @@ def close_request(
     # for reason in reasons:
     #     notification_content['explanations'].append(explain_action(reason, explanation_type='What'))
     notification_content['user_id'] = user_id
-    notification_content['contact_info'] = get_contact_info(request_id)
     create_note(request_id, reasons, user_id, privacy=1)
     if "Your request under the Freedom of Information Law (FOIL) has been reviewed and the documents you requested have " \
        "been posted on the OpenRecords portal." in notification_content['reasons']:
@@ -1426,27 +1407,27 @@ def change_record_privacy(record_id, request_id, privacy):
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
     app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
-    # if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
-    #     app.logger.info("Making %s public" % record.filename)
-    #     if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
-    #         os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
-    #     shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
-    #     if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-    #         subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
-    #                          "mkdir", "-p",
-    #                          app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
-    #         subprocess.call(["rsync", "-avzh",
-    #                          app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
-    #                          app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
-    #                          app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
-    # elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
-    #     app.logger.info("Making %s private" % record.filename)
-    #     shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
-    #     if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-    #         subprocess.call(
-    #             ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
-    #              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-    #                  'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
+    if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
+        app.logger.info("Making %s public" % record.filename)
+        if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
+            os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
+        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+        if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
+            subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
+                             "mkdir", "-p",
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id])
+            subprocess.call(["rsync", "-avzh",
+                             app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                             app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
+                             app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
+    elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
+        app.logger.info("Making %s private" % record.filename)
+        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+        if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
+            subprocess.call(
+                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                 app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
