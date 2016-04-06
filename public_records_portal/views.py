@@ -676,7 +676,7 @@ def upload_document():
         document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
         doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
         if (os.path.exists(document_filepath)):
-            document_upload_errors['duplicate'] = 'There already eixsts a document of the same name.'
+            document_upload_errors['duplicate'] = 'There already exists a document of the same name.'
         else:
             if doc_id == 'VIRUS_FOUND':
                 document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
