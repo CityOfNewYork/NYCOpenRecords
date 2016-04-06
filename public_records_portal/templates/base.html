@@ -153,15 +153,17 @@ This template provides the header, footer, and envelope info for all pages excep
                     </ul>
                 </div>
                 {# loops through the navigation_bar container for the label and definition of each tab#}
-                <ul class="nav nav-pills" style="margin-left:28%">
-                    {% for href, id, caption in navigation_bar %}
-                    <li
-                            {% if id== active_page %} class="active openrecords_nav" {% endif%}>
-                        <a class="openrecords_nav" href="{{ href|e }}">{{ caption|e }}</a></li>
-                    {% endfor %}
-                </ul>
-                <ul class="nav pull-right">
-                </ul>
+                <div class="center-mobile-nav">
+                    <ul class="nav nav-pills">
+                        {% for href, id, caption in navigation_bar %}
+                        <li
+                                {% if id== active_page %} class="active openrecords_nav" {% endif%}>
+                            <a class="openrecords_nav" href="{{ href|e }}">{{ caption|e }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    <ul class="nav pull-right">
+                    </ul>
+                </div>
                 {% else %}
                 <div class="google_translate" style="background-color:white;">
                     <div id="google_translate_element" class="center-mobile"></div>
