@@ -110,7 +110,7 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
-        if allowed_file(document, request_id, privacy):
+        if allowed_file(document):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
                 upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
@@ -256,8 +256,13 @@ def upload_file_locally(document, filename, privacy, request_id = None):
 
 
 ### @export "allowed_file"
-def allowed_file(file, request_id, privacy=1):
-    '''Checks the mimetype of the file to see if its allowed'''
+def allowed_file(file):
+    """
+    Checks if a file is allowed to be submitted into the database.
+    :param file: pass in a file that will be checked for allowed mimetype
+    :return: True if the mimetype is allowed or False if its not allowed
+    """
+
     ms = magic.open(magic.NONE)
     ms.load()
     mimetype = ms.buffer(file.read())

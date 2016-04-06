@@ -30,7 +30,7 @@ from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm, C
 import pytz
 from requires_roles import requires_roles
 from flask_login import LoginManager
-from models import AnonUser
+from models import AnonUser, Record
 from datetime import datetime, timedelta, date
 from business_calendar import Calendar
 import operator
@@ -662,20 +662,16 @@ def upload_document():
     form = request.form
     upload_errors = {}
     files = request.files.getlist('record')
-
     for file in files:
         document_upload_errors = {}
         secure_fname = secure_filename(file.filename)
         # Searches through public and private folders for any pre-existing documents
-        document_filepath_public = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
-        document_filepath_private = app.config["UPLOAD_PRIVATE_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
-        if (os.path.exists(document_filepath_public)):
-            document_upload_errors['duplicate'] = 'There already eixsts a document of the same name.'
-        elif (os.path.exists(document_filepath_private)):
-            document_upload_errors['duplicate'] = 'There already eixsts a document of the same name.'
+        rec = Record.query.filter_by(request_id=form['request_id']).filter_by(filename=secure_fname).first()
+        if (rec != None):
+            document_upload_errors['duplicate'] = 'There already exists a document of the same name'
         else:
             doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
-            if doc_id == 'VIRUS_FOUND':
+            if doc_id == None:
                 document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
             if errors:
                 document_upload_errors['upload_error'] = errors
