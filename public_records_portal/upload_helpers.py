@@ -26,6 +26,7 @@ INFECTED = 403
 
 
 def should_upload():
+    app.logger.info("def should_upload")
     if app.config['ENVIRONMENT'] != 'LOCAL' or app.config['UPLOAD_DOCS'] == 'True':
         return True
     return False
@@ -38,6 +39,7 @@ def upload_multiple_files(documents, request_id):
     :param request_id: FOIL Request ID Number
     :return: None
     """
+    app.logger.info("def upload_multiple_files")
     for document in documents:
         upload_file(document=document, request_id=request_id)
 
@@ -51,6 +53,7 @@ def upload_file(document, request_id, privacy=0x1):
     :param privacy: Privacy value for the uploaded document
     :return: (Boolean, String, String)
     """
+    app.logger.info("def upload_file")
     if not should_upload():
         # Should the file be uploaded
         app.logger.info("Upload functionality has been disabled\n\n")
@@ -93,6 +96,7 @@ def scan_file(document, file_length):
     :param file_length: Size of document to be scanned
     :return: Boolean
     """
+    app.logger.info("def scan_file")
     app.logger.info("Scanning File: %s" % secure_filename(document.filename))
 
     # Create Socket
@@ -193,6 +197,7 @@ def scan_file(document, file_length):
 
 
 def upload_file_locally(document, filename, privacy):
+    app.logger.info("def upload_file_locally")
     app.logger.info("\n\nuploading file locally")
     app.logger.info("\n\n%s" % (document))
 
@@ -208,5 +213,6 @@ def upload_file_locally(document, filename, privacy):
 
 ### @export "allowed_file"
 def allowed_file(filename):
+    app.logger.info("def allowed_file")
     ext = filename.rsplit('.', 1)[1]
     return ext in ALLOWED_EXTENSIONS
