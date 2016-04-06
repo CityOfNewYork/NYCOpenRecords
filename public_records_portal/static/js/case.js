@@ -249,6 +249,7 @@
         }
         CKEDITOR.replace( 'email_text' );
         $('#email_text').val(data);
+        $('#edit_email').show();
         $('#emailTextTable').hide();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
@@ -387,6 +388,7 @@ $('#edit_email').on('click',function(){
     $('#emailTextTable').hide();
     $('#email_text').hide();
     $('#edit_email').hide();
+    $('#cke_email_text').hide();
     $('#modalAdditionalInfoTable').show();
     $('#form_id').val('note');
     var modalQuestion = 'Are you sure you want to add the note below?';
