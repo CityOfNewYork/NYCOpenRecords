@@ -8007,6 +8007,19 @@ a.label:hover,a.label:focus,a.badge:hover,a.badge:focus
 	{
 		display:none
 	}
+	/*Media Query for mobile devices*/
+	/*@media screen*/
+	  /*and (max-width: 400px)*/
+	  /*and (max-height: 700px)*/
+	  /*and (-webkit-device-pixel-ratio: 3) {*/
+		/*.center-mobile{*/
+			/*margin-left:25%;*/
+		/*}*/
+	/*}*/
+	.center-mobile{
+		margin-left:28%;
+	}
+
 }
 
 .agency-header .upper-header-padding
