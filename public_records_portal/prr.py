@@ -1461,7 +1461,11 @@ def edit_agency_description(request_id, agency_description_text):
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
 
 def get_contact_info(request_id):
-    '''Retrieves the contact information of the user of a request'''
+    """
+    Retrieves the contact info of a request
+    :param request_id: The request you want the contact information of
+    :return: Contact information of the requester
+    """
     app.logger.info("Retrieve the contact information here")
     req = Request.query.filter_by(id=request_id).first()
     user = User.query.filter_by(id=req.creator_id).first()
