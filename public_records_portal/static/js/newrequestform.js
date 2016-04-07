@@ -166,11 +166,10 @@ $(function () {
 });
 
 $(function () {
-
     // displays characters remaining, highlights extra characters
     function maxLength(el) {
         if (!('maxLength' in el)) {
-            var max = el.attributes.maxLength;
+            var max = el.attr('maxlength');
             el.onkeypress = function () {
                 if (this.value.length >= max) return false;
             };
@@ -181,35 +180,35 @@ $(function () {
 
     // displays characters remaining, highlights extra characters
     var text_max = 90;
-    $('#summary_count').text(text_max + ' characters remaining');
+    $('#request_summary_counter').text(text_max + ' characters remaining');
 
     $('#request_summary').keyup(function () {
         var text_length = $('#request_summary').val().length;
         var text_remaining = text_max - text_length;
-        $('#summary_count').text(text_remaining + ' characters remaining');
+        $('#request_summary_counter').text(text_remaining + ' characters remaining');
         console.log(text_remaining);
-        if (text_remaining < 0) {
-            document.getElementById("summary_count").style.color = "black";
+        if (text_remaining <= 0) {
+            document.getElementById("request_summary_counter").style.color = "red";
         } else {
-            document.getElementById("summary_count").style.color = "black";
+            document.getElementById("request_summary_counter").style.color = "black";
         }
     });
 
-    maxLength(document.getElementById("request_text"));
+    maxLength($("#request_text"));
 
     // displays characters remaining, highlights extra characters
     var text_max2 = 5000;
-    $('#text_count').text(text_max2 + ' characters remaining');
+    $('#request_description_counter').html(text_max2 + ' characters remaining');
 
     $('#request_text').keyup(function () {
         var text_length = $('#request_text').val().length;
         var text_remaining = text_max2 - text_length;
-        $('#text_count').text(text_remaining + ' characters remaining');
+        $('#request_description_counter').html(text_remaining + ' characters remaining');
         console.log(text_remaining);
-        if (text_remaining < 0) {
-            document.getElementById("text_count").style.color = "black";
+        if (text_remaining <= 0) {
+            document.getElementById("request_description_counter").style.color = "red";
         } else {
-            document.getElementById("text_count").style.color = "black";
+            document.getElementById("request_description_counter").style.color = "black";
         }
     });
 });
