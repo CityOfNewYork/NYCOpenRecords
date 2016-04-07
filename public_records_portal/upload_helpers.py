@@ -87,9 +87,13 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
+
+
         if allowed_file(document, request_id, privacy):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
+                if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+                    return 1, secure_filename(document.filename), "cannot_email_file"
                 upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
                 return 1, secure_filename(document.filename), None
             else:
@@ -99,6 +103,8 @@ def upload_file(document, request_id, privacy=0x1):
             return False, '', "File type is not allowed."
     else:
         upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
+        if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+            return 1, secure_filename(document.filename), "cannot_email_file"
         return 1, secure_filename(document.filename), None
 
 

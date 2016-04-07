@@ -668,10 +668,12 @@ def edit_case(request_id):
 def upload_document():
     form = request.form
     upload_errors = {}
+    upload_warnings = {}
     files = request.files.getlist('record')
 
     for file in files:
         document_upload_errors = {}
+        document_upload_warnings = {}
         secure_fname = secure_filename(file.filename)
         document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
         doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
@@ -681,11 +683,15 @@ def upload_document():
             if doc_id == 'VIRUS_FOUND':
                 document_upload_errors['virus'] = 'The document you uploaded contains a virus.'
             if errors:
-                document_upload_errors['upload_error'] = errors
+                if errors == 'cannot_email_file':
+                    document_upload_warnings[errors] = '%s is too large to email to the requester' % secure_fname
+                else:
+                    document_upload_errors['upload_error'] = errors
 
         upload_errors[secure_fname] = document_upload_errors
+        upload_warnings[secure_fname] = document_upload_warnings
 
-    return jsonify(**{'errors': upload_errors})
+    return jsonify(**{'errors': upload_errors, 'warnings': upload_warnings})
 
 
 
