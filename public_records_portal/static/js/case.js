@@ -79,8 +79,8 @@
 
   $('#submit').on('click',function(event){
     form_id = '#' + $('#form_id').val();
-    $('.agency-description').show();
-    $('.additional-note').show();
+    //$('.agency-description').show();
+    //$('.additional-note').show();
     if(!$('#modalAdditionalInfoTable').is(':visible') || $(form_id) == 'note_pdf') {
         $('#confirm-submit').modal('toggle');
         $(form_id).submit();
@@ -92,6 +92,9 @@
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
+        console.log("submit");
+        console.log(additional_information);
+        console.log(input);
       $(form_id).append($(input));
 
       if(form_id === '#submitRecord') {
@@ -113,10 +116,14 @@
     else {
       $('#modalAdditionalInfoTable').show();
       $('#editAgencyDescription').hide();
-      additional_information = $('#additional_note').val();
+      additional_information = $('#agency-description').val();
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
+
+        console.log("submitagencydescription")
+        console.log(additional_information);
+        console.log(input);
       $(form_id).append($(input));
       $(form_id).submit();
     }
@@ -131,6 +138,9 @@
         var input = $("<input>")
             .attr("type", "hidden")
             .attr("name", "additional_information").val(additional_information);
+        console.log("cancelDescription");
+        console.log(additional_information);
+        console.log(input);
         $(form_id).append($(input));
         $(form_id).submit();
     });
@@ -196,8 +206,10 @@
 
 
 $('#editAgencyDescriptionButton').on('click',function(){
+    $('#submitAgencyDescription').show();
     $('.agency-description').show();
     $('.additional-note').hide();
+    $('#submit').hide();
     var modalQuestion = 'Type in the agency description below';
     modalQuestion += '<br><br>';
     $('#form_id').val('agency_description');
@@ -339,8 +351,10 @@ $('#close_filenames_list').on('click',function(){
   });
 
 $("#cancel").on('click', function(){
+    $('#submit').show();
     $('.additional-note').show();
     $('.agency-description').hide();
+    $('#submitAgencyDescription').hide();
 });
 
     $('#addNoteButton').prop('disabled',true);

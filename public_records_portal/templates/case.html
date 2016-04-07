@@ -147,15 +147,14 @@
                                     <table id="modalAdditionalInfoTable" class="table">
                                         <tr id="additionalInformation">
                                             <th>Additional Information</th>
-                                            <td><textarea id="additional_note" name="additional_note"
+                                            <td><textarea id="agency-description" name="additional_note"
                                                           class="input-xlarge agency-description"
-                                                          style = "display:None;"
+                                                          style = "display:none;"
                                                           placeholder="Additional Information"/>{{ req.agency_description }}</textarea></td>
                                             <td><textarea id="additional_note" name="additional_note"
                                                       class="input-xlarge additional-note"
                                                       placeholder="Additional Information"/></textarea></td>
                                         </tr>
-
                                     </table>
                                     <br/><br/>
                                     <table id="modalAdditionalInfoTableClose" class="table" style="display:none;">
@@ -171,6 +170,7 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">Cancel</button>
                                     <a href="#" id="submit" class="btn btn-success success">Submit</a>
+                                    <a href="#" id="submitAgencyDescription" class="btn btn-success success" style="display:none;">Submit</a>
                                 </div>
                             </div>
                         </div>
