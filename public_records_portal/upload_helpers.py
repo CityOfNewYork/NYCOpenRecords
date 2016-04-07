@@ -261,7 +261,6 @@ def allowed_file(file):
     :param file: pass in a file that will be checked for allowed mimetype
     :return: True if the mimetype is allowed or False if its not allowed
     """
-
     ms = magic.open(magic.NONE)
     ms.load()
     mimetype = ms.buffer(file.read())
@@ -272,3 +271,4 @@ def allowed_file(file):
         if m in mimetype:
             return True
     return False
+    
