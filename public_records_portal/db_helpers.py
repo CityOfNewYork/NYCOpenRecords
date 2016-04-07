@@ -110,7 +110,7 @@ def get_request_by_owner(owner_id):
 
 def get_owners_by_user_id(user_id):
     """ Return the queryset of owners for a particular user. (A user can be associated with multiple owners)."""
-    app.logger.info("def get_owners_by_user")
+    app.logger.info("def get_owners_by_user_id")
     if not user_id:
         return None
     return Owner.query.filter_by(user_id=user_id)
@@ -289,7 +289,7 @@ def authenticate_login(email, password):
     app.logger.info("def authenticate_login")
     if app.config['USE_LDAP'] == 'True':
         app.logger.info("Use LDAP: %s" % app.config['USE_LDAP'])
-        # # Setup the LDAP Options
+        # Setup the LDAP Options
         if app.config['LDAP_USE_TLS']:
             # Sets up TLS for LDAP connection
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT,
@@ -409,12 +409,12 @@ def create_or_return_user(email=None, alias=None, first_name=None, last_name=Non
 
 def create_user(email=None, alias=None, first_name=None, last_name=None, phone=None, fax=None, address1=None, address2=None, city=None, state=None, zipcode=None,
                 department=None, contact_for=None, backup_for=None, password=None, is_staff=None, role=None):
+    app.logger.info("def create_user")
     user = User(email=email, alias=alias, first_name=first_name, last_name=last_name, phone=phone, fax=fax, address1=address1,
                 address2=address2, city=city, state=state,
                 zipcode=zipcode, department=department, contact_for=contact_for,
                 backup_for=backup_for,
                 password=password, is_staff=is_staff, role=role)
-    app.logger.info("def create_user")
     db.session.add(user)
     db.session.commit()
     app.logger.info("\n\nCreated new user, alias: %s id: %s" %
