@@ -40,7 +40,11 @@ class HomeView(AdminIndexView):
         return self.render('admin.html')
 
     def is_accessible(self):
-        return current_user.role in ['Portal Administrator', 'Agency Administrator']
+        """
+        checks if the currently logged in user can access the home tab of the admin page
+        :return: True if the currently logged in user is allowed to access the home tab
+        """
+        return current_user.role in ['Portal Administrator']
 
 # Create Admin
 admin = Admin(app, name='RecordTrac Admin', url='/admin', index_view=HomeView(name='Home'))
@@ -48,7 +52,11 @@ admin = Admin(app, name='RecordTrac Admin', url='/admin', index_view=HomeView(na
 
 class AdminView(ModelView):
     def is_accessible(self):
-        return current_user.role in ['Portal Administrator', 'Agency Administrator']
+        """
+        checks if the currently logged in user can access the admin page
+        :return: True if the currently logged in user is allowed to access the admin page
+        """
+        return current_user.role in ['Portal Administrator']
 
 class RequestView(AdminView):
     can_create = False
