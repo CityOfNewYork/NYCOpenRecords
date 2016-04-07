@@ -98,6 +98,8 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
+
+
         if allowed_file(document):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
