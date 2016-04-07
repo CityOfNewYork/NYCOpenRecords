@@ -96,6 +96,7 @@
       
       if(CKEDITOR.instances.email_text) {
         email_text = CKEDITOR.instances.email_text.getData();
+        email_text = email_text.replace('&lt','<').replace('&gt', '>');
         var emailInput = $("<input>")
                 .attr("type", "hidden")
                 .attr("name", "email_text").val(email_text);
@@ -189,7 +190,7 @@
       contentType: false,
       data: formData,
       success: function(data){
-        $('#modalAdditionalInfoTable').show();
+        //$('#modalAdditionalInfoTable').show();
         $('#form_id').val('extension');
         days = $('#days_after').val();
         var modalQuestion = 'Are you sure you want to request an extension for the number of days below and send an email to the requester?';
@@ -353,7 +354,6 @@ $('#close_filenames_list').on('click',function(){
         $('#modalQuestionTable').hide();
         modalQuestion += "<br>";
         CKEDITOR.replace( 'email_text' );
-        $('#email_text').val(data);
         $('#emailTextTable').hide();
         $('#modalquestionDiv').text(modalQuestion);
         $('#modalQuestionTable').hide();
