@@ -11,52 +11,40 @@ import os
 import socket
 
 import magic
-
 from werkzeug.utils import secure_filename
 
 from models import RecordPrivacy
 from public_records_portal import app
 
-# These are the extensions that can be uploaded:
-ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods',
-                      'odg', 'odf', 'ppt', 'pps', 'xls', 'docx', 'pptx',
-                      'ppsx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'tif',
-                      'tiff', 'bmp', 'avi', 'flv', 'wmv', 'mov', 'mp4', 'mp3',
-                      'wma', 'wav', 'ra', 'mid']
 ALLOWED_MIMETYPES = [
-'Apple Desktop Services Store',
-'RIFF (little-endian) data, AVI',
-'PC bitmap',
-'Microsoft Word 2007+',
-'Macromedia Flash Video',
-'GIF image data',
-'JPEG image data',
-'JPEG image data',
-'ISO Media, Apple QuickTime movie, Apple QuickTime (.MOV/QT)',
-'MPEG',
-'Audio file with ID3 version 2.3.0, contains: MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, JntStereo',
-'ISO Media, MP4 Base Media v1 [IS0 14496-12:2003]',
-'OpenDocument Formula',
-'OpenDocument Drawing',
-'OpenDocument Presentation',
-'OpenDocument Spreadsheet',
-'OpenDocument Text',
-'PDF document, version 1.3',
-'PNG image data, 1502 x 996, 8-bit/color RGB, non-interlaced',
-'Composite Document File V2 Document',
-'Microsoft PowerPoint 2007+',
-'Microsoft PowerPoint 2007+',
-'Rich Text Format data, version 1, unknown character set',
-'TIFF image data, big-endian',
-'TIFF image data, big-endian',
-'TIFF',
-'ASCII text, with CR line terminators',
-'ASCII text',
-'RIFF (little-endian) data, WAVE audio',
-'Microsoft ASF',
-'Composite Document File V2 Document',
-'Microsoft Excel 2007',
-'Microsoft Excel']
+                    'application/octet-stream',
+                    'video/x-msvideo',
+                    'image/x-ms-bmp',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'video/x-flv',
+                    'image/gif',
+                    'image/jpeg',
+                    'video/quicktime',
+                    'audio/mpeg',
+                    'video/mp4',
+                    'application/vnd.oasis.opendocument.formula',
+                    'application/vnd.oasis.opendocument.graphics',
+                    'application/vnd.oasis.opendocument.presentation',
+                    'application/vnd.oasis.opendocument.spreadsheet',
+                    'application/vnd.oasis.opendocument.text',
+                    'application/pdf',
+                    'image/png',
+                    'application/vnd.ms-powerpoint',
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'text/plain',
+                    'text/rtf',
+                    'image/tiff',
+                    'audio/x-wav',
+                    'video/x-ms-asf',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                ]
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
@@ -113,6 +101,8 @@ def upload_file(document, request_id, privacy=0x1):
         if allowed_file(document):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
+                if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+                    return 1, secure_filename(document.filename), "cannot_email_file"
                 upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
                 return 1, secure_filename(document.filename), None
             else:
@@ -122,6 +112,8 @@ def upload_file(document, request_id, privacy=0x1):
             return False, '', "File type is not allowed."
     else:
         upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
+        if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+            return 1, secure_filename(document.filename), "cannot_email_file"
         return 1, secure_filename(document.filename), None
 
 
@@ -231,7 +223,7 @@ def scan_file(document, file_length):
     return False
 
 
-def upload_file_locally(document, filename, privacy, request_id = None):
+def upload_file_locally(document, filename, privacy, request_id=None):
     app.logger.info("\n\nuploading file locally")
     app.logger.info("\n\n%s" % (document))
 
@@ -261,14 +253,10 @@ def allowed_file(file):
     :param file: pass in a file that will be checked for allowed mimetype
     :return: True if the mimetype is allowed or False if its not allowed
     """
-    ms = magic.open(magic.NONE)
-    ms.load()
-    mimetype = ms.buffer(file.read())
-    app.logger.info("\n\nMimetype: " + mimetype)
+    mimetype = magic.detect_from_content(file.read()).mime_type
+    app.logger.info("\n\nMimetype: %s" % mimetype)
     file.seek(0)
     # Loops through the ALLOWED_MIMETYPES list and checks if the file's mimetype is inside
-    for m in ALLOWED_MIMETYPES:
-        if m in mimetype:
-            return True
+    if mimetype in ALLOWED_MIMETYPES:
+        return True
     return False
-    
