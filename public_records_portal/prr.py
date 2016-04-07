@@ -114,7 +114,7 @@ def add_resource(resource, request_body, current_user_id=None):
     if 'extension' in resource:
         return request_extension(
             fields['request_id'],
-            fields.getlist('extend_reason'),
+            fields.getlist('additional_information'),
             current_user_id,
             int(fields['days_after']),
             fields['due_date'],
