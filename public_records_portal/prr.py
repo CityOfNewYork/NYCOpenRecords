@@ -122,7 +122,7 @@ def add_resource(resource, request_body, current_user_id=None):
         )
     if 'note' in resource:
         return add_note(request_id=fields['request_id'],
-                        text=fields['note_text'],
+                        text=bleach.clean(fields['note_text'],tags=[]),
                         user_id=current_user_id,
                         privacy=fields['note_privacy'],
                         request_body=request_body)
@@ -307,7 +307,7 @@ def update_resource(resource, request_body):
         update_obj(attribute='text', val=fields['request_text'],
                    obj_type='Request', obj_id=fields['request_id'])
     elif 'note_text' in resource:
-        update_obj(attribute='text', val=fields['note_text'],
+        update_obj(attribute='text', val=bleach.clean(fields['note_text'],tags=[]),
                    obj_type='Note', obj_id=fields['response_id'])
     elif 'note_delete' in resource:
 
@@ -378,7 +378,7 @@ def add_note(
     notification_content = {}
     if request_body:
         notification_content['user_id'] = user_id
-        notification_content['text'] = request_body['note_text']
+        notification_content['text'] = bleach.clean(request_body['note_text'],tags=[])
         notification_content['additional_information'] = request_body['additional_information']
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
