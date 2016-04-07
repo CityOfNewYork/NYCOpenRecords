@@ -883,7 +883,7 @@ def close(request_id=None):
             reasons = request.form['close_reason']
         elif 'close_reasons' in request.form:
             for close_reason in request.form.getlist('close_reasons'):
-                reasons.append(close_reason)
+                reasons.append(bleach.clean(close_reason))
         errors = close_request(request_id=request_id, reasons=reasons, user_id=get_user_id(), request_body=request.form)
         if errors:
             requestObj = get_obj("Request", request.form['request_id'])
