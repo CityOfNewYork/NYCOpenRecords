@@ -176,7 +176,7 @@ $(function () {
         }
     }
 
-    var request_summary_max_length = $('#request_text').attr('maxlength');
+    var request_summary_max_length = $('#request_summary').attr('maxlength');
 
     // displays characters remaining
     $('#request_summary_counter').text(request_summary_max_length + ' characters remaining');
