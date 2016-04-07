@@ -22,6 +22,7 @@ from flask_mail import Mail, Message
 import helpers
 from db_helpers import *
 
+import HTMLParser
 # Set flags:
 
 send_emails = False
@@ -48,83 +49,8 @@ def generate_prr_emails(
     agency_app_url = app.config['AGENCY_APPLICATION_URL']
     public_app_url = app.config['PUBLIC_APPLICATION_URL']
     template = template_prefix + 'email_%s.html' % (notification_type)
-    # making a new request
-    #
-    # if notification_type == 'Request made':
-    #     template = 'emtemplate_new_request.html'
-    #
-    # elif notification_type == 'Question asked':
-    # # asking a question
-    #
-    #     template = 'emtemplate_question_asked.html'
-    # elif notification_type == 'Question answered':
-    #
-    # # respond to question
-    #
-    #     template = 'emtemplate_question_answered.html'
-    # elif notification_type == 'City response added':
-    #     template = 'emtemplate_city_response_added.html'
-    # elif notification_type == 'Public note added':
-    #
-    # # adding a note
-    #
-    #     template = 'emtemplate_public_note_added.html'
-    # elif notification_type == 'Request assigned':
-    #
-    # # Changing Assignee
-    #
-    #     template = 'emtemplate_request_assigned.html'
-    # elif notification_type == 'Request closed':
-    #
-    # # Closing a request
-    #
-    #     template = 'emtemplate_request_closed.html'
-    # elif notification_type == 'Staff participant added':
-    #
-    # # Adding a helper
-    #     # user = User.query.get(user_id)
-    #     # user_name = user.alias
-    #
-    #     text = text['owner_reason']
-    #     template = 'emtemplate_helper_added.html'
-    # elif notification_type == 'Helper removed':
-    #
-    # # Removing a helper
-    #
-    #     template = 'emtemplate_helper_removed.html'
-    # elif notification_type == 'Acknowledge request':
-    #
-    # # Acknowledging a Request
-    #
-    #     template = 'emtemplate_acknowledge_request.html'
-    # elif notification_type == 'Reopen request':
-    #
-    # # Reopening a request
-    #
-    #     template = 'emtemplate_reopen_request.html'
-    # elif notification_type == 'Nonportal agency':
-    #
-    # # Nonportal request for agency user
-    #
-    #     template = 'email_nonportal_agency.html'
-    # elif notification_type == 'Nonportal requester':
-    #
-    # # Nonportal request for requster
-    #
-    #     template = 'emtemplate_nonportal_requester.html'
-    # elif notification_type == 'Extend request':
-    #
-    # # Extending a request
-    #
-    #     if 'days_after' in notification_content:
-    #         if notification_content['days_after'] is not None:
-    #             days_after = notification_content['days_after']
-    #             additional_information = notification_content['additional_information']
-    #     template = 'emtemplate_extend_request.html'
-    # elif 'Public Notification Template' in notification_type:
-    #     template = 'system_email_' + notification_type[-2:] + '.html'
-    # elif 'Agency Notification Template' in notification_type:
-    #     template = 'agency_email_' + notification_type[-2:] + '.html'
+    if "email_text" in notification_content:
+        template = template_prefix + 'email_full.html'
 
     # Handles emails for nonportal agencies
 

@@ -634,6 +634,33 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
                                datetime=datetime.now())
 
 
+@app.route("/email/<string:template_name>", methods=["GET", "POST"])
+def show_email(template_name, errors=None, form=None):
+    request_id = request.form.get('request_id')
+    acknowledge_status = request.form.get('acknowledge_status')
+    due_date = request.form.get('due_date')
+    due_date_str = None
+    days_after = None
+    close_reasons = None
+    if request.form.get('days_after') != '' and request.form.get('days_after') is not None:
+        days_after = int(request.form.get('days_after'))
+    req = get_obj("Request", request_id)
+
+    if due_date == '' or due_date is None:
+        if days_after is not None:
+            due_date = cal.addbusdays(req.due_date, days_after)
+            due_date_str = str(req.due_date).split(' ')[0]
+   
+    if request.form.get('close_reasons') != '' and request.form.get('close_reasons') is not None:
+        close_reasons = request.form.get('close_reasons')
+
+    department = models.Department.query.filter_by(id=req.department_id).first()
+    agency_app_url = app.config['AGENCY_APPLICATION_URL']
+    public_app_url = app.config['PUBLIC_APPLICATION_URL']
+    page = '%scity/request/%s' % (agency_app_url, request_id)
+    unfollow_link = '%sunfollow/%s/' % (public_app_url, request_id)
+    return render_template('edit_templates/' + template_name, department=department, page=page, unfollow_link=unfollow_link, acknowledge_status=acknowledge_status, due_date=due_date_str, close_reasons=close_reasons)
+
 # @app.route("/api/staff")
 # def staff_to_json():
 #     users = models.User.query.filter(models.User.is_staff == True).all()
@@ -676,7 +703,7 @@ def upload_document():
         document_filepath = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + '/' + form['request_id'] + '/' + secure_fname
         doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
         if (os.path.exists(document_filepath)):
-            document_upload_errors['duplicate'] = 'There already eixsts a document of the same name.'
+            document_upload_errors['duplicate'] = 'There already exists a document of the same name.'
         else:
             if doc_id == 'VIRUS_FOUND':
                 document_upload_errors['virus'] = 'The document you uploaded contains a virus.'

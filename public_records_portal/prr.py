@@ -25,6 +25,7 @@ from flask import request, render_template, make_response, send_file
 from xhtml2pdf import pisa
 
 import upload_helpers
+
 from RequestPresenter import RequestPresenter
 from ResponsePresenter import ResponsePresenter
 from db_helpers import find_request, create_request, get_obj, \
@@ -36,6 +37,7 @@ from models import *
 from notifications import generate_prr_emails
 from public_records_portal import db_helpers
 from requires_roles import requires_roles
+from markupsafe import Markup
 
 agency_codes = {"City Commission on Human Rights": "228",
                 "Department of Education": "040",
@@ -222,6 +224,8 @@ No file passed in''')
                                                             obj_id=participant_id, obj_type='Owner')
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = Markup(request_body['email_text']).unescape()
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_added'
                                 , notification_content=notification_content)
@@ -230,6 +234,8 @@ No file passed in''')
             user_name = user.alias
             notification_content['user_name'] = user_name
             notification_content['request_id'] = request_body['request_id']
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = Markup(request_body['email_text']).unescape()
             notification_content['user_id'] = get_attribute('user_id',
                                                             obj_id=participant_id, obj_type='Owner')
             generate_prr_emails(request_id=fields['request_id'],
@@ -258,6 +264,8 @@ def update_resource(resource, request_body):
                 ]).first().user_id).first().alias
             notification_content['owner_reason'] = request_body['owner_reason']
             notification_content['user_name'] = user_name
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = Markup(request_body['email_text']).unescape()           
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='Request assigned',
                                 notification_content=notification_content)
@@ -269,6 +277,8 @@ def update_resource(resource, request_body):
             notification_content['user_name'] = user_name
             notification_content['request_body'] = request_body
             notification_content['request_id'] = request_body['request_id']
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = Markup(request_body['email_text']).unescape()            
             generate_prr_emails(request_id=fields['request_id'],
                                 notification_type='helper_removed',
                                 notification_content=notification_content)
@@ -289,6 +299,8 @@ def update_resource(resource, request_body):
             user_id = req.subscribers[0].user.id
             notification_content['user_id'] = user_id
             notification_content['request_id'] = request_id
+            if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                notification_content['email_text'] = Markup(request_body['email_text']).unescape()
             generate_prr_emails(request_id=request_id, notification_content=notification_content,
                                 notification_type='reopen_request'
                                 )
@@ -299,6 +311,8 @@ def update_resource(resource, request_body):
                               fields['acknowledge_status'])
         notification_content['additional_information'] = bleach.clean(request_body['additional_information'],tags=[])
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
+        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+            notification_content['email_text'] = Markup(request_body['email_text']).unescape()
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
@@ -348,6 +362,8 @@ def request_extension(
     notification_content['days_after'] = days_after
     notification_content['additional_information'] = extension_reasons
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
+    if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+        notification_content['email_text'] = Markup(request_body['email_text']).unescape()
 
     print request_body
 
@@ -380,6 +396,8 @@ def add_note(
         notification_content['user_id'] = user_id
         notification_content['text'] = bleach.clean(request_body['note_text'],tags=[])
         notification_content['additional_information'] = request_body['additional_information']
+        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+            notification_content['email_text'] = Markup(request_body['email_text']).unescape()        
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
                               user_id=user_id, privacy=privacy)
@@ -829,6 +847,8 @@ Begins Upload_record method''')
                     notification_content['user_id'] = user_id
                     notification_content['department_name'] = department_name
                     notification_content['privacy'] = privacy
+                    if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+                        notification_content['email_text'] = Markup(request_body['email_text']).unescape()
     except:
         # print sys.exc_info()[0]
         print traceback.format_exc()
@@ -842,7 +862,7 @@ Begins Upload_record method''')
                     # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
                     if index < len(documents):
                         notification_content['documents'][index] = documents[index]
-                        notification_content['index'] = index
+                        notification_content['index'] = index  
                     generate_prr_emails(request_id=request_id,
                                         notification_type='city_response_added',
                                         notification_content=notification_content)
@@ -1314,6 +1334,8 @@ def close_request(
     # Create a note to capture closed information:
     if request_body:
         notification_content['additional_information'] = request_body['additional_information']
+        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
+            notification_content['email_text'] = Markup(request_body['email_text']).unescape()
     notification_content['explanations'] = []
     notification_content['reasons'] = reasons
     # for reason in reasons:
@@ -1402,7 +1424,7 @@ def change_record_privacy(record_id, request_id, privacy):
         privacy = RecordPrivacy.PRIVATE
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
-    app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
+    '''app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         app.logger.info("Making %s public" % record.filename)
         if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
@@ -1423,7 +1445,7 @@ def change_record_privacy(record_id, request_id, privacy):
             subprocess.call(
                 ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
                  app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])'''
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
