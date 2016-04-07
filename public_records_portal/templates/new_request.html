@@ -101,6 +101,9 @@
                                         href="/request/{{ errors['duplicate_request'] }}">{{ errors['duplicate_request'] }}</a>
                                 </div>
                             {% endif %}
+                            <div id='request_summary_length_error' class="alert alert-danger" style="display: none;">
+                                The title of your reqeust must be less than 90 characters.
+                            </div>
                             {{ form.request_summary(class="input-block-level", rows="2", maxlength="90", id="request_summary", placeholder="Please provide a short summary of your request" ) }}
                             <div class="small" id="request_summary_counter">5000 characters remaining</div>
 
@@ -134,7 +137,9 @@
                                     {{ errors['summary_length'] }}
                                 </div>
                             {% endif %}
-
+                            <div id='request_description_length_error' class="alert alert-danger" style="display: none;">
+                                The length of your request description must be less than 5000 characters.
+                            </div>
                             {{ form.request_text(class="input-block-level",rows="6",id="request_text",maxlength="5000",
                                 placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.") }}
                             <div class="small" id="request_description_counter">5000 characters remaining</div>
