@@ -255,7 +255,6 @@ def upload_file_locally(document, filename, privacy, request_id = None):
     return upload_path
 
 
-### @export "allowed_file"
 def allowed_file(file):
     """
     Checks if a file is allowed to be submitted into the database.
@@ -266,9 +265,9 @@ def allowed_file(file):
     ms = magic.open(magic.NONE)
     ms.load()
     mimetype = ms.buffer(file.read())
-    app.logger.info("\n\n" + mimetype)
+    app.logger.info("\n\nMimetype: " + mimetype)
     file.seek(0)
-    # loops through the ALLOWED_MIMETYPES list and checks if the file's mimetype is inside.
+    # Loops through the ALLOWED_MIMETYPES list and checks if the file's mimetype is inside
     for m in ALLOWED_MIMETYPES:
         if m in mimetype:
             return True
