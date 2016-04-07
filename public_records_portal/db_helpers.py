@@ -31,7 +31,6 @@ id_generator = id_counter()
 currentRequestId = id_generator.next()
 
 
-# @export "get_subscriber"
 def get_subscriber(request_id, user_id=None):
     # Returns the subscriber for a given request by user ID
     app.logger.info("def get_subscriber")
@@ -43,13 +42,11 @@ def get_subscriber(request_id, user_id=None):
     return None
 
 
-# @export "get_count"
 def get_count(obj_type):
     app.logger.info("def get_count")
     return db.session.query(func.count(eval(obj_type).id)).scalar()
 
 
-# @export "get_obj"
 def get_obj(obj_type, obj_id):
     """ Query the database for an object via its class/type (defined in models.py) and ID and return the object. """
     app.logger.info("def get_obj")
@@ -58,7 +55,6 @@ def get_obj(obj_type, obj_id):
     return eval(obj_type).query.get(obj_id)
 
 
-# @export "get_objs"
 def get_objs(obj_type):
     """ Query the database for all objects of a certain class/type (defined in models.py) and return queryset. """
     # There has to be a better way of doing this
@@ -80,7 +76,6 @@ def get_objs(obj_type):
     return None
 
 
-# @export "get_avg_response_time"
 def get_avg_response_time(department):
     app.logger.info("def get_avg_response_time")
     app.logger.info(
@@ -105,7 +100,6 @@ def get_avg_response_time(department):
     return None
 
 
-# @export "get_request_by_owner"
 def get_request_by_owner(owner_id):
     """ Return the request that a particular owner belongs to """
     app.logger.info("def get_request_by_owner")
@@ -114,7 +108,6 @@ def get_request_by_owner(owner_id):
     return Owner.query.get(owner_id).request
 
 
-# @export "get_owners_by_user_id"
 def get_owners_by_user_id(user_id):
     """ Return the queryset of owners for a particular user. (A user can be associated with multiple owners)."""
     app.logger.info("def get_owners_by_user")
@@ -132,7 +125,6 @@ def get_contact_by_dept(dept):
     return None
 
 
-### @export "get_backup_by_dept"
 def get_backup_by_dept(dept):
     """ Return the backup for a given department. """
     app.logger.info("def get_backup_by_dept")
@@ -142,10 +134,6 @@ def get_backup_by_dept(dept):
     return None
 
 
-### @export "put_obj"
-
-
-# @export "put_obj"
 def put_obj(obj):
     """ Add and commit the object to the database. Return true if successful. """
     app.logger.info("def put_obj")
@@ -157,7 +145,6 @@ def put_obj(obj):
     return False
 
 
-# @export "get_attribute"
 def get_attribute(attribute, obj_id=None, obj_type=None, obj=None):
     """ Obtain the object by obj_id and obj_type if obj is not provided, and return the specified attribute for that object. """
     app.logger.info("def get_attribute")
@@ -171,7 +158,6 @@ def get_attribute(attribute, obj_id=None, obj_type=None, obj=None):
     return None
 
 
-# @export "update_obj"
 def update_obj(attribute, val, obj_type=None, obj_id=None, obj=None):
     """ Obtain the object by obj_id and obj_type if obj is not provided, and update the specified attribute for that object. Return true if successful. """
     app.logger.info("def update_obj")
@@ -191,7 +177,6 @@ def update_obj(attribute, val, obj_type=None, obj_id=None, obj=None):
     return False
 
 
-# @export "create_QA"
 def create_QA(request_id, question, user_id):
     """ Create a QA object and return the ID. """
     app.logger.info("def create_QA")
@@ -201,7 +186,6 @@ def create_QA(request_id, question, user_id):
     return qa.id
 
 
-# @export "create_request"
 def create_request(id=id, agency=None, summary=None, text=None, user_id=None,
                    offline_submission_type=None,
                    date_received=None):
@@ -216,7 +200,6 @@ def create_request(id=id, agency=None, summary=None, text=None, user_id=None,
     return req.id
 
 
-# @export "create_subscriber"
 def create_subscriber(request_id, user_id):
     """ Create a Subscriber object and return the ID. """
     app.logger.info("def create_subscriber")
@@ -230,7 +213,6 @@ def create_subscriber(request_id, user_id):
     return subscriber.id, False
 
 
-# @export "create_note"
 def create_note(request_id, text, user_id, privacy):
     """ Create a Note object and return the ID. """
     app.logger.info("def create_note")
@@ -246,7 +228,6 @@ def create_note(request_id, text, user_id, privacy):
         return None
 
 
-# @export "create_record"
 def create_record(request_id, user_id, description, doc_id=None, filename=None,
                   access=None, url=None, privacy=True):
     app.logger.info("def create_record")
@@ -269,7 +250,6 @@ def remove_obj(obj_type, obj_id):
     db.session.commit()
 
 
-# @export "create_answer"
 def create_answer(qa_id, subscriber_id, answer):
     app.logger.info("def create_answer")
     qa = get_obj("QA", qa_id)
@@ -285,20 +265,17 @@ def create_answer(qa_id, subscriber_id, answer):
 
 # Following three functions are for integration with Mozilla Persona
 
-# @export "get_user"
 def get_user(kwargs):
     app.logger.info("def get_user")
     return User.query.filter(User.email == kwargs.get('email')).filter(
         User.is_staff == True).first()
 
 
-# @export "get_user_by_id"
 def get_user_by_id(id):
     app.logger.info("def get_user_by_id")
     return User.query.get(id)
 
 
-### @export "authenticate_login"
 def authenticate_login(email, password):
     """
 
@@ -366,6 +343,7 @@ def authenticate_login(email, password):
             return user
         return None
 
+
 def create_or_return_user(email=None, alias=None, first_name=None, last_name=None, phone=None, fax=None, address1=None, address2=None, city=None, state=None,
                           zipcode=None, department=None, contact_for=None, backup_for=None, not_id=False, is_staff=None,
                           password=None, role=None):
@@ -429,7 +407,6 @@ def create_or_return_user(email=None, alias=None, first_name=None, last_name=Non
         return user.id
 
 
-# @export "create_user"
 def create_user(email=None, alias=None, first_name=None, last_name=None, phone=None, fax=None, address1=None, address2=None, city=None, state=None, zipcode=None,
                 department=None, contact_for=None, backup_for=None, password=None, is_staff=None, role=None):
     user = User(email=email, alias=alias, first_name=first_name, last_name=last_name, phone=phone, fax=fax, address1=address1,
@@ -445,7 +422,6 @@ def create_user(email=None, alias=None, first_name=None, last_name=None, phone=N
     return user
 
 
-# @export "update_user"
 def update_user(user, alias=None, first_name=None, last_name=None, phone=None, fax=None, address1=None, address2=None, city=None, state=None, zipcode=None,
                 department=None, contact_for=None, backup_for=None, is_staff=None, role=None):
     app.logger.info("def update_user")
@@ -496,7 +472,6 @@ def update_user(user, alias=None, first_name=None, last_name=None, phone=None, f
     return user
 
 
-# @export "create_owner"
 def create_owner(request_id, reason, email=None, user_id=None):
     """ Adds a staff member to the request without assigning them as current owner. (i.e. "participant")
     Useful for multidepartmental requests."""
@@ -510,7 +485,6 @@ def create_owner(request_id, reason, email=None, user_id=None):
     return participant.id
 
 
-# @export "change_request_status"
 def change_request_status(request_id, status):
     app.logger.info("def change_request_status")
     req = get_obj("Request", request_id)
@@ -531,7 +505,6 @@ def change_request_status(request_id, status):
     db.session.commit()
 
 
-# @export "find_request"
 def find_request(text):
     app.logger.info("def find_request")
     req = Request.query.filter_by(summary=text).first()
@@ -540,7 +513,6 @@ def find_request(text):
     return None
 
 
-# @export "add_staff_participant"
 def add_staff_participant(request_id, is_point_person=False, email=None,
                           user_id=None, reason=None):
     """ Creates an owner for the request if it doesn't exist, and returns the owner ID and True if a new one was created. Returns the owner ID and False if existing."""
@@ -578,7 +550,6 @@ def add_staff_participant(request_id, is_point_person=False, email=None,
     return participant.id, is_new
 
 
-# @export "remove_staff_participant"
 def remove_staff_participant(owner_id, reason=None):
     app.logger.info("def remove_staff_participant")
     participant = Owner.query.get(owner_id)
@@ -593,7 +564,6 @@ def remove_staff_participant(owner_id, reason=None):
     return owner_id
 
 
-# @export "update_subscriber"
 def update_subscriber(request_id, alias, phone):
     """ Update a subscriber for a given request with the name and phone number provided. """
     app.logger.info("def update_subscriber")
@@ -608,7 +578,6 @@ def update_subscriber(request_id, alias, phone):
             request_id, alias, phone))
 
 
-### @export "set_random_password"
 def set_random_password(email):
     app.logger.info("def set_random_password")
     user = User.query.filter(User.email == func.lower(email)).first()
