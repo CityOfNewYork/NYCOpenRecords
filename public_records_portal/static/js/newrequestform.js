@@ -150,15 +150,10 @@ $(function () {
 
         $jsontwo.empty();
         vals.sort();
+        vals.splice(0, 0, "");
         for (var i = 0; i < vals.length; i++) {
-            if (vals[i]==($("#agency option:selected").text())){
-                $jsontwo.append("repeat agency");
-                return;
-            }
-            else {
-                $jsontwo.value = vals[i];
-                $jsontwo.append("<option value=\"" + vals[i] + "\">" + vals[i] + "</option>");
-            }
+            $jsontwo.value = vals[i];
+            $jsontwo.append("<option value=\"" + vals[i] + "\">" + vals[i] + "</option>");
         }
         ;
     });
