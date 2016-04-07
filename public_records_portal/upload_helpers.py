@@ -23,17 +23,40 @@ ALLOWED_EXTENSIONS = ['txt', 'pdf', 'doc', 'rtf', 'odt', 'odp', 'ods',
                       'ppsx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'tif',
                       'tiff', 'bmp', 'avi', 'flv', 'wmv', 'mov', 'mp4', 'mp3',
                       'wma', 'wav', 'ra', 'mid']
-ALLOWED_MIMETYPES = ['text/plain', 'application/pdf', 'application/msword', 'application/rtf', 
-                     'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation',
-                     'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.graphics',
-                     'application/vnd.oasis.opendocument.formula', 'application/vnd.ms-powerpoint',
-                     'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                     'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
-                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                     'image/jpeg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp', 'video/x-msvideo',
-                     'video/x-flv', 'video/x-ms-wmv', 'audio/x-ms-wma', 'audio/x-wav', 'audio/midi', 'video/mp4', 'audio/mpeg',
-                     'application/vnd.ms-powerpoint','image/tiff','application/vnd.rn-realmedia']
+ALLOWED_MIMETYPES = [
+'Apple Desktop Services Store',
+'RIFF (little-endian) data, AVI',
+'PC bitmap',
+'Microsoft Word 2007+',
+'Macromedia Flash Video',
+'GIF image data',
+'JPEG image data',
+'JPEG image data',
+'ISO Media, Apple QuickTime movie, Apple QuickTime (.MOV/QT)',
+'MPEG',
+'Audio file with ID3 version 2.3.0, contains: MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, JntStereo',
+'ISO Media, MP4 Base Media v1 [IS0 14496-12:2003]',
+'OpenDocument Formula',
+'OpenDocument Drawing',
+'OpenDocument Presentation',
+'OpenDocument Spreadsheet',
+'OpenDocument Text',
+'PDF document, version 1.3',
+'PNG image data, 1502 x 996, 8-bit/color RGB, non-interlaced',
+'Composite Document File V2 Document',
+'Microsoft PowerPoint 2007+',
+'Microsoft PowerPoint 2007+',
+'Rich Text Format data, version 1, unknown character set',
+'TIFF image data, big-endian',
+'TIFF image data, big-endian',
+'TIFF',
+'ASCII text, with CR line terminators',
+'ASCII text',
+'RIFF (little-endian) data, WAVE audio',
+'Microsoft ASF',
+'Composite Document File V2 Document',
+'Microsoft Excel 2007',
+'Microsoft Excel']
 CLEAN = 204
 INFECTED_AND_REPAIRABLE = 200
 INFECTED_NOT_REPAIRABLE = 201
@@ -87,7 +110,7 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s is too large" % document.filename)
             return False, '', "file_too_large"
 
-        if allowed_file(document, request_id, privacy):
+        if allowed_file(document):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
                 upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
@@ -232,9 +255,20 @@ def upload_file_locally(document, filename, privacy, request_id = None):
     return upload_path
 
 
-### @export "allowed_file"
-def allowed_file(file, request_id, privacy=1):
-    mimetypeMagic = magic.Magic(mime=True,uncompress=True)
-    mimetype = mimetypeMagic.from_buffer(file.read())
+def allowed_file(file):
+    """
+    Checks if a file is allowed to be submitted into the database.
+    :param file: pass in a file that will be checked for allowed mimetype
+    :return: True if the mimetype is allowed or False if its not allowed
+    """
+    ms = magic.open(magic.NONE)
+    ms.load()
+    mimetype = ms.buffer(file.read())
+    app.logger.info("\n\nMimetype: " + mimetype)
     file.seek(0)
-    return mimetype in ALLOWED_MIMETYPES
+    # Loops through the ALLOWED_MIMETYPES list and checks if the file's mimetype is inside
+    for m in ALLOWED_MIMETYPES:
+        if m in mimetype:
+            return True
+    return False
+    
