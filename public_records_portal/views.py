@@ -61,6 +61,7 @@ zip_reg_ex = re.compile('^[0-9]{5}(?:-[0-9]{4})?$')
 
 @app.before_first_request
 def create_user():
+    app.logger.info("def create_user")
     db.create_all()
 
 #@app.before_request
@@ -69,12 +70,14 @@ def create_user():
 
 @app.before_request
 def csrf_protect():
+    app.logger.info("def csrf_protect")
     if request.method == "POST":
         token = session.pop("_csrf_token", None)
         if not token or token != request.form.get('_csrf_token'):
             return access_denied(403)
 
 def generate_csrf_token():
+    app.logger.info("def generate_csrf_token")
     if '_csrf_token' not in session:
         session['_csrf_token'] = str(uuid4())
         app.logger.info('CSRF Token: %s' % session['_csrf_token'])
@@ -84,6 +87,7 @@ app.jinja_env.globals['csrf_token'] = generate_csrf_token
 # Submitting a new request
 @app.route("/new", methods=["GET", "POST"])
 def new_request(passed_recaptcha=False, data=None):
+    app.logger.info("def new_request")
     category = {
         'Business': [
             "Department of Consumer Affairs",
@@ -443,12 +447,14 @@ def new_request(passed_recaptcha=False, data=None):
 
 @app.route("/faq")
 def faq():
+    app.logger.info("def faq")
     return render_template("faq.html")
 
 
 @app.route("/export")
 @login_required
 def to_csv():
+    app.logger.info("def to_csv")
     filename = request.form.get('filename', 'records.txt')
     return Response(csv_export.export(),
                     mimetype='text/plain',
@@ -459,6 +465,7 @@ def to_csv():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    app.logger.info("def index")
     if current_user.is_anonymous == False:
         return redirect(url_for('display_all_requests'))
     else:
@@ -468,11 +475,13 @@ def index():
 
 @app.route("/landing")
 def landing():
+    app.logger.info("def landing")
     return render_template('landing.html')
 
 
 @login_manager.unauthorized_handler
 def unauthorized():
+    app.logger.info("def unauthorized")
     app.logger.info("\n\nuser is unauthorized.")
     return render_template("alpha.html")
 
@@ -483,6 +492,7 @@ def unauthorized():
 
 
 def explain_all_actions():
+    app.logger.info("def explain_all_actions")
     action_json = open(os.path.join(app.root_path, 'static/json/actions.json'))
     json_data = json.load(action_json)
     actions = []
@@ -496,6 +506,7 @@ def explain_all_actions():
 
 @app.route("/<string:audience>/request/<string:request_id>")
 def show_request_for_x(audience, request_id):
+    app.logger.info("def show_request_for_x")
     proper_request_id = re.match("FOIL-\d{4}-\d{3}-\d{5}", request_id)
     if proper_request_id:
         if "city" in audience:
@@ -511,6 +522,7 @@ show_request_for_x.methods = ['GET', 'POST']
 @login_required
 @requires_roles('Portal Administrator', 'Agency Administrator', 'Agency FOIL Personnel', 'Agency Helpers')
 def show_request_for_city(request_id):
+    app.logger.info("def show_request_for_city")
     req = get_obj("Request", request_id)
     app.logger.info("Current User Role: %s" % current_user.role)
     if current_user.role == 'Portal Administrator':
@@ -531,6 +543,7 @@ def show_request_for_city(request_id):
 
 @app.route("/response/<string:request_id>")
 def show_response(request_id):
+    app.logger.info("def show_response")
     req = get_obj("Request", request_id)
     if not req:
         return render_template('error.html', message="A request with ID %s does not exist." % request_id)
@@ -539,6 +552,7 @@ def show_response(request_id):
 
 @app.route("/track", methods=["GET", "POST"])
 def track(request_id=None):
+    app.logger.info("def track")
     if request.method == 'POST':
         if not re.match("FOIL-\d{4}-\d{3}-\d{5}", request.form["request_id"]):
             request_id = request.form['request_id']
@@ -557,6 +571,7 @@ def track(request_id=None):
 
 @app.route("/unfollow/<string:request_id>/<string:email>")
 def unfollow(request_id, email):
+    app.logger.info("def unfollow")
     success = False
     user_id = create_or_return_user(email.lower())
     subscriber = get_subscriber(request_id=request_id, user_id=user_id)
@@ -571,6 +586,7 @@ def unfollow(request_id, email):
 
 @app.route("/request/<string:request_id>")
 def show_request(request_id, template="manage_request_public.html", errors=None, form=None, file=None):
+    app.logger.info("def show_request")
     req = get_obj("Request", request_id)
     if not req:
         return page_not_found(494)
@@ -632,6 +648,7 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
 
 @app.route("/api/departments")
 def departments_to_json():
+    app.logger.info("def departments_to_json")
     departments = models.Department.query.all()
     agency_data = []
     for d in departments:
@@ -646,6 +663,7 @@ def docs():
 @app.route("/edit/request/<string:request_id>")
 @login_required
 def edit_case(request_id):
+    app.logger.info("def edit_case")
     req = get_obj("Request", request_id)
     return render_template("edit_case.html", req=req)
 
@@ -653,6 +671,7 @@ def edit_case(request_id):
 @app.route("/add_a_<string:resource>", methods=["GET", "POST"])
 @login_required
 def add_a_resource(resource):
+    app.logger.info("def add_a_resource")
     req = request.form
     errors = {}
     if request.method == 'POST':
@@ -697,6 +716,7 @@ def add_a_resource(resource):
 
 @app.route("/public_add_a_<string:resource>", methods=["GET", "POST"])
 def public_add_a_resource(resource, passed_recaptcha=False, data=None):
+    app.logger.info("def public_add_a_resource")
     if (data or request.method == 'POST') and ('note' in resource or 'subscriber' in resource):
         if not data:
             data = request.form.copy()
@@ -717,6 +737,7 @@ def public_add_a_resource(resource, passed_recaptcha=False, data=None):
 
 @app.route("/update_a_<string:resource>", methods=["GET", "POST"])
 def update_a_resource(resource, passed_recaptcha=False, data=None):
+    app.logger.info("def update_a_resource")
     if (data or request.method == 'POST'):
         req = request.form
         if not data:
@@ -737,6 +758,7 @@ def update_a_resource(resource, passed_recaptcha=False, data=None):
 
 @app.route("/acknowledge_request", methods=["GET", "POST"])
 def acknowledge_request(resource, passed_recaptcha=False, data=None):
+    app.logger.info("def acknowledge_request")
     if (data or request.method == 'POST'):
         if not data:
             data = request.form.copy()
@@ -756,6 +778,7 @@ def acknowledge_request(resource, passed_recaptcha=False, data=None):
 @app.route("/close", methods=["GET", "POST"])
 @login_required
 def close(request_id=None):
+    app.logger.info("def close")
     if request.method == 'POST':
         template = 'closed.html'
         request_id = request.form['request_id']
@@ -771,6 +794,7 @@ def close(request_id=None):
 
 
 def filter_agency(departments_selected, results):
+    app.logger.info("def filter_agency")
     if departments_selected and 'All departments' not in departments_selected:
         app.logger.info("\n\nagency filters:%s." % departments_selected)
         department_ids = []
@@ -788,6 +812,7 @@ def filter_agency(departments_selected, results):
 
 
 def filter_search_term(search_input, results):
+    app.logger.info("def filter_search_term")
     if search_input:
         app.logger.info("Searching for '%s'." % search_input)
         search_terms = search_input.strip().split(
@@ -804,6 +829,7 @@ def filter_search_term(search_input, results):
 
 
 def filter_request_id(request_id_search, results):
+    app.logger.info("def filter_request_id")
     if request_id_search:
         app.logger.info("Searching for matching request_id '%s'." % filter_request_id)
         request_id_search = request_id_search.strip()  # Get rid of leading and trailing spaces
@@ -813,6 +839,7 @@ def filter_request_id(request_id_search, results):
 
 
 def get_filter_value(filters_map, filter_name, is_list=False, is_boolean=False):
+    app.logger.info("def get_filter_value")
     if filter_name in filters_map:
         val = filters_map[filter_name]
         if filter_name == 'agency' and val:
@@ -827,6 +854,7 @@ def get_filter_value(filters_map, filter_name, is_list=False, is_boolean=False):
 
 
 def is_supported_browser():
+    app.logger.info("def is_supported_browser")
     browser = request.user_agent.browser
     version = request.user_agent.version and int(request.user_agent.version.split('.')[0])
     platform = request.user_agent.platform
@@ -849,22 +877,26 @@ def is_supported_browser():
 
 @app.route("/view_requests", methods=["GET"])
 def display_all_requests():
+    app.logger.info("def display_all_requests")
     return no_backbone_requests()
 
 
 @app.route("/view_requests_backbone")
 def backbone_requests():
+    app.logger.info("def backbone_requests")
     return render_template("all_requests.html", departments=db.session.query(models.Department).all(),
                            total_requests_count=get_count("Request"))
 
 
 @app.route("/view_requests_no_backbone")
 def no_backbone_requests():
+    app.logger.info("def no_backbone_requests")
     return fetch_requests()
 
 
 @app.route("/requests", methods=["GET"])
 def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-%m-%d', checkbox_value='on'):
+    app.logger.info("def fetch_requests")
     user_id = get_user_id()
 
     # Sets the search parameters. They are a dictionary that either came in through:
@@ -1028,6 +1060,7 @@ def json_requests():
     Supports limit, search, and page parameters and returns json with an object that
     has a list of results in the 'objects' field.
     """
+    app.logger.info("def json_requests")
     objects, num_results, more_results, start_index, end_index = fetch_requests(output_results_only=True,
                                                                                 filters_map=request.args,
                                                                                 date_format='%m/%d/%Y',
@@ -1044,6 +1077,7 @@ def json_requests():
 
 
 def prepare_request_fields(results):
+    app.logger.info("def prepare_requests_fields")
     return map(lambda r: {
         "id": r.id, \
         "summary": helpers.clean_text(r.summary), \
@@ -1061,6 +1095,7 @@ def prepare_request_fields(results):
 
 
 def filter_department(departments_selected, results):
+    app.logger.info("def filter_department")
     if departments_selected and 'All Agencies' not in departments_selected:
         app.logger.info("\n\nagency filters:%s." % departments_selected)
         department_ids = []
@@ -1081,6 +1116,7 @@ def get_results_by_filters(departments_selected, is_open, is_closed, due_soon, o
                            sort_column, sort_direction, search_term, min_due_date, max_due_date, min_date_received,
                            max_date_received, requester_name, page_number, user_id, date_format, checkbox_value,
                            request_id_search):
+    app.logger.info("def get_results_by_filters")
     # Initialize query
     results = db.session.query(models.Request)
 
@@ -1176,6 +1212,7 @@ def get_results_by_filters(departments_selected, is_open, is_closed, due_soon, o
 
 @app.route("/tutorial")
 def tutorial_initial():
+    app.logger.info("def tutorial_intial")
     user_id = get_user_id()
     app.logger.info("\n\nTutorial accessed by user: %s." % user_id)
     return render_template('tutorial_01.html')
@@ -1183,6 +1220,7 @@ def tutorial_initial():
 
 @app.route("/tutorial/<string:tutorial_id>")
 def tutorial(tutorial_id):
+    app.logger.info("def tutorial")
     user_id = get_user_id()
     tutorial_string_id = tutorial_id.split("_")[0]
     app.logger.info("\n\nTutorial accessed by user: %s." % user_id)
@@ -1191,6 +1229,7 @@ def tutorial(tutorial_id):
 
 @app.route("/city/tutorial/<string:tutorial_id>")
 def tutorial_agency(tutorial_id):
+    app.logger.info("def tutorial_agency")
     if current_user.is_authenticated:
         user_id = get_user_id()
         tutorial_string_id = tutorial_id.split("_")[0]
@@ -1202,6 +1241,7 @@ def tutorial_agency(tutorial_id):
 
 @app.route("/city/tutorial")
 def tutorial_agency_initial():
+    app.logger.info("def tutorial_agency_initial")
     if current_user.is_authenticated:
         user_id = get_user_id()
         app.logger.info("\n\nTutorial accessed by user: %s." % user_id)
@@ -1212,6 +1252,7 @@ def tutorial_agency_initial():
 
 @app.route("/about")
 def about():
+    app.logger.info("def about")
     return render_template('about.html')
 
 
@@ -1223,6 +1264,7 @@ def about():
 @app.route("/logout")
 @login_required
 def logout():
+    app.logger.info("def logout")
     logout_user()
     session.regenerate()
     #session.clear()
@@ -1238,6 +1280,7 @@ def logout():
 
 
 def get_user_id():
+    app.logger.info("def get_user_id")
     if current_user.is_authenticated:
         return current_user.id
     return None
@@ -1248,6 +1291,7 @@ def get_user_id():
 
 @app.route("/is_public_record", methods=["POST"])
 def is_public_record():
+    app.logger.info("def is_public_record")
     request_text = request.form['request_text']
     not_records_filepath = os.path.join(app.root_path, 'static/json/notcityrecords.json')
     not_records_json = open(not_records_filepath)
@@ -1263,6 +1307,7 @@ def is_public_record():
 
 def get_redirect_target():
     """ Taken from http://flask.pocoo.org/snippets/62/ """
+    app.logger.info("def get_redirect_target")
     for target in request.values.get('next'), request.referrer:
         if not target:
             continue
@@ -1272,6 +1317,7 @@ def get_redirect_target():
 
 def is_safe_url(target):
     """ Taken from http://flask.pocoo.org/snippets/62/ """
+    app.logger.info("def is_safe_url")
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
@@ -1280,6 +1326,7 @@ def is_safe_url(target):
 
 @app.route("/recaptcha_<string:templatetype>", methods=["GET", "POST"])
 def recaptcha_templatetype(templatetype):
+    app.logger.info("def recaptcha_templatetype")
     if request.method == 'POST':
         template = "recaptcha_" + templatetype + ".html"
         response = captcha.submit(
@@ -1306,6 +1353,7 @@ def recaptcha_templatetype(templatetype):
 def well_known_status():
     '''
     '''
+    app.logger.info("def well_known_status")
     response = {
         'status': 'ok',
         'updated': int(time()),
@@ -1340,6 +1388,7 @@ def well_known_status():
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    app.logger.info("def register")
     form = LoginForm()
     errors = []
     if request.method == 'POST':
@@ -1354,6 +1403,7 @@ def register():
 @app.route("/edit_user_info", methods=['GET', 'POST'])
 @login_required
 def edit_user_info():
+    app.logger.info("def edit_user_info")
     form = EditUserForm(request.form, obj=current_user)
     errors = []
     if request.method == 'POST':
@@ -1366,6 +1416,7 @@ def edit_user_info():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    app.logger.info("def login")
     form = LoginForm()
     errors = []
     if request.method == 'POST':
@@ -1410,21 +1461,20 @@ def login():
 
 @app.route("/attachments/<string:resource>", methods=["GET"])
 def get_attachments(resource):
-    app.logger.info("\n\ngetting attachment file")
-
+    app.logger.info("def get_attachments")
     return send_from_directory(app.config["UPLOAD_FOLDER"], resource, as_attachment=True)
 
 
 @app.route("/pdfs/<string:resource>", methods=["GET"])
 def get_pdfs(resource):
-    app.logger.info("\n\ngetting pdf file")
+    app.logger.info("def get_pdfs")
     return send_from_directory(app.config["PDF_FOLDER"], resource, as_attachment=True)
 
 
 @app.route("/api/report/<string:calendar_filter>/<string:report_type>/<string:agency_filter>/<string:staff_filter>",
            methods=["GET"])
 def get_report_jsons(calendar_filter, report_type, agency_filter, staff_filter):
-    app.logger.info("\n\ngenerating report data")
+    app.logger.info("def get_report_jsons")
 
     if not report_type:
         response = {
@@ -1634,6 +1684,7 @@ def get_report_jsons(calendar_filter, report_type, agency_filter, staff_filter):
 
 @app.route("/report")
 def report():
+    app.logger.info("def report")
     users = models.User.query.all()
     users = models.User.query.order_by(models.User.alias.asc()).all()
     departments_all = models.Department.query.all()
@@ -1651,6 +1702,7 @@ def report():
 
 @app.route("/submit", methods=["POST"])
 def submit():
+    app.logger.info("def submit")
     if recaptcha.verify():
         pass
     else:
@@ -1659,6 +1711,7 @@ def submit():
 
 @app.route("/changeprivacy", methods=["POST", "GET"])
 def change_privacy():
+    app.logger.info("def change_privacy")
     req = get_obj("Request", request.form['request_id'])
     privacy = request.form['privacy setting']
     field = request.form['fieldtype']
@@ -1670,6 +1723,7 @@ def change_privacy():
 
 @app.route("/switchRecordPrivacy", methods=["POST", "GET"])
 def switch_record_privacy():
+    app.logger.info("def switch_record_privacy")
     record = get_obj("Record", request.form['record_id'])
     privacy = request.form['privacy_setting']
     app.logger.info(
@@ -1682,12 +1736,14 @@ def switch_record_privacy():
 
 @app.route("/changecategory", methods=["POST", "GET"])
 def change_category():
+    app.logger.info("def change_category")
     category = request.form['category']
     return redirect(render_template('new_request.html'))
 
 
 @app.route("/<page>")
 def any_page(page):
+    app.logger.info("def any_page")
     try:
         return render_template('%s.html' % (page))
     except:
@@ -1696,8 +1752,8 @@ def any_page(page):
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
+   app.logger.info("def contact")
    form = ContactForm()
-
    if request.method == 'POST':
        name = form.name.data
        email = form.email.data
@@ -1734,44 +1790,53 @@ def contact():
 
 @app.errorhandler(400)
 def bad_request(e):
+    app.logger.info("def bad_request")
     return render_template("400.html"), 400
 
 
 @app.errorhandler(401)
 def unauthorized(e):
+    app.logger.info("def unauthorized")
     return render_template("401.html"), 401
 
 
 @app.errorhandler(403)
 def access_denied(e):
+    app.logger.info("def access_denied")
     return redirect(url_for('login'))
 
 
 @app.errorhandler(404)
 def page_not_found(e):
+    app.logger.info("def page_not_found")
     return render_template("404.html"), 404
 
 
 @app.errorhandler(405)
 def method_not_allowed(e):
+    app.logger.info("def method_not_allowed")
     return render_template("405.html"), 405
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
+    app.logger.info("def internal_server_error")
     return render_template("500.html"), 500
 
 
 @app.errorhandler(501)
 def unexplained_error(e):
+    app.logger.info("def unexplained_error")
     return render_template("501.html"), 501
 
 
 @app.errorhandler(502)
 def bad_gateway(e):
+    app.logger.info("def bad_gateway")
     render_template("500.html"), 502
 
 
 @app.errorhandler(503)
 def service_unavailable(e):
+    app.logger.info("def service_unavailable")
     render_template("500.html"), 503
