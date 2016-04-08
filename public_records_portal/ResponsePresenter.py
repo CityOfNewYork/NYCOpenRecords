@@ -70,7 +70,7 @@ class ResponsePresenter:
         return get_attribute(attribute="email", obj_id=self.response.uid, obj_type="User")
 
     def display_text(self):
-        app.logger.info*("display_text(self)")
+        app.logger.info("display_text(self)")
         app.logger.info("Type: %s\nPrivacy: %s\nID: %s\n" % (
             self.type, str(self.response.privacy), self.response.request_id))
         app.logger.info("Current User Anonymous: %s" %
