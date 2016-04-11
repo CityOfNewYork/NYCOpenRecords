@@ -321,18 +321,8 @@
         }
     });
 
-    $("#requesterEditButton").on('click', function() {
-        var requester_alias = $('#requester_alias').text();
-        var requester_email = $('#requester_email').text();
-        var requester_phone = $('#requester_phone').text();
-        var requester_fax = $('#requester_fax').text();
-        var requester_address_line_one = $('#requester_address_line_one').text();
-        var requester_address_line_two = $('#requester_address_line_two').text();
-        var requester_address_city = $('#requester_address_city').text();
-        var requester_address_state = $('#requester_address_state').text();
-        var requester_address_zip = $('#requester_address_zip').text();
-
-        $('#requester_alias').html("<input type='text' class='title_text' name='requester_alias' value='" + requester_alias + "' />");
+    $('#requesterEditButton').on('click', function() {
+            
     });
 
     $(".start").on('click', function () {

@@ -228,8 +228,6 @@ class EditUserForm(Form):
     submit = SubmitField('Update')
 
 
-
-
 class ContactForm(Form):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
