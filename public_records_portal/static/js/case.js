@@ -81,7 +81,7 @@
     form_id = '#' + $('#form_id').val();
     $('.agency-description').show();
     $('.additional-note').show();
-    if(!$('#modalAdditionalInfoTable').is(':visible') || $(form_id) == 'note_pdf') {
+    if((!$('#modalAdditionalInfoTable').is(':visible') && !$('#edit_email').is(':visible')) || $(form_id) == 'note_pdf') {
         $('#confirm-submit').modal('toggle');
         $(form_id).submit();
     }
@@ -97,6 +97,7 @@
       if(CKEDITOR.instances.email_text) {
         email_text = CKEDITOR.instances.email_text.getData();
         email_text = email_text.replace('&lt','<').replace('&gt', '>');
+        console.log(email_text);
         var emailInput = $("<input>")
                 .attr("type", "hidden")
                 .attr("name", "email_text").val(email_text);
@@ -210,6 +211,7 @@
         CKEDITOR.replace( 'email_text' );
         $('#email_text').val(data);
         $('#emailTextTable').hide();
+        $('#edit_email').show();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
       },
@@ -354,6 +356,7 @@ $('#close_filenames_list').on('click',function(){
         $('#modalQuestionTable').hide();
         modalQuestion += "<br>";
         CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
         $('#emailTextTable').hide();
         $('#modalquestionDiv').text(modalQuestion);
         $('#modalQuestionTable').hide();
