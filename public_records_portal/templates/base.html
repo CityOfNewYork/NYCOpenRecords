@@ -165,19 +165,33 @@ This template provides the header, footer, and envelope info for all pages excep
                     </ul>
                 </div>
                 {% else %}
+            <div id ="translate-non-mobile">
                 <div class="google_translate" style="background-color:white;">
                     <div id="google_translate_element" class="center-mobile"></div>
                     <script type="text/javascript">
-                        function googleTranslateElementInit() {
+                        console.log(window.screen.availWidth);
+                        if (window.screen.availWidth < 767){
+                            console.log("window screen width < 767");
+                            function googleTranslateElementInit() {
                             new google.translate.TranslateElement({
                                 pageLanguage: 'en',
-                            }, 'google_translate_element');
+                                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL}, 'google_translate_element');
+                            }
+                        }
+                        else{
+                            console.log("window screen width > 767")
+                            function googleTranslateElementInit() {
+                            new google.translate.TranslateElement({
+                                pageLanguage: 'en',
+                                layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+                            }
                         }
                     </script>
                     <script type="text/javascript"
                             src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
                     </script>
                 </div>
+            </div>
                 <div class="center-mobile-nav">
                     <ul class="nav nav-pills">
                         {% for href, id, caption in navigation_bar %}
