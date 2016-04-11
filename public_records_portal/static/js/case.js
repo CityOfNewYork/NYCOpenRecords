@@ -97,6 +97,7 @@
       if(CKEDITOR.instances.email_text) {
         email_text = CKEDITOR.instances.email_text.getData();
         email_text = email_text.replace('&lt','<').replace('&gt', '>');
+        email_text = email_text.replace('&#34;','"');
         console.log(email_text);
         var emailInput = $("<input>")
                 .attr("type", "hidden")

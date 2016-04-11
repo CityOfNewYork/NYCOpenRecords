@@ -25,6 +25,8 @@ from db_helpers import *
 import HTMLParser
 # Set flags:
 
+import re
+
 send_emails = False
 test = '[TEST] '
 template_prefix = 'email_templates/'
@@ -295,7 +297,8 @@ def send_email(
 
     plaintext = ''
     html = body
-
+    html = re.sub('&lt;','<', html);
+    html = re.sub('&gt;','>', html);
     sender = app.config['DEFAULT_MAIL_SENDER']
     message = Message(sender=sender, subject=subject, html=html,
                       body=plaintext, bcc=sender)
