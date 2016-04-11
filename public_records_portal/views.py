@@ -1511,6 +1511,22 @@ def edit_user_info():
     return render_template("edit_user.html", form=form, errors=errors)
 
 
+@app.route("/edit_requester_info", methods=['GET', 'POST'])
+@login_required
+def edit_requester_info():
+    alias = request.form['edit_requester_alias']
+    email = request.form['edit_requester_email']
+    phone = request.form['edit_requester_phone']
+    fax = request.form['edit_requester_fax']
+    address_line_one = request.form['edit_requester_address_line_one']
+    address_line_two = request.form['edit_requester_address_line_two']
+    address_city = request.form['edit_requester_address_city']
+    address_state = request.form['edit_requester_address_state']
+    address_zipcode = request.form['edit_requester_address_zipcode']
+    print alias
+    return redirect(url_for('show_request_for_x', audience='new', request_id=request_id))
+
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
