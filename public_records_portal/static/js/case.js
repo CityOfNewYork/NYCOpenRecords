@@ -92,9 +92,6 @@
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
-        console.log("submit");
-        console.log(additional_information);
-        console.log(input);
       $(form_id).append($(input));
 
       if(form_id === '#submitRecord') {
@@ -120,10 +117,6 @@
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
-
-        console.log("submitagencydescription")
-        console.log(additional_information);
-        console.log(input);
       $(form_id).append($(input));
       $(form_id).submit();
     }
@@ -138,9 +131,6 @@
         var input = $("<input>")
             .attr("type", "hidden")
             .attr("name", "additional_information").val(additional_information);
-        console.log("cancelDescription");
-        console.log(additional_information);
-        console.log(input);
         $(form_id).append($(input));
         $(form_id).submit();
     });
