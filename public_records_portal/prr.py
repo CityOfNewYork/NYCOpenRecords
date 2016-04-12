@@ -348,9 +348,6 @@ def request_extension(
     notification_content['days_after'] = days_after
     notification_content['additional_information'] = extension_reasons
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
-
-    print request_body
-
     if request_body is not None:
         generate_prr_emails(request_id=request_id,
                             notification_type='extension',
@@ -380,6 +377,9 @@ def add_note(
         notification_content['user_id'] = user_id
         notification_content['text'] = bleach.clean(request_body['note_text'],tags=[])
         notification_content['additional_information'] = request_body['additional_information']
+
+        # checks for the contact information left by the requester
+
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
                               user_id=user_id, privacy=privacy)
@@ -970,22 +970,6 @@ Agency chosen: %s''' % agency)
              + agency_codes[agency] + '-' + '%05d' % currentRequestId
         req = get_obj('Request', id)
 
-    request_id = create_request(  # Actually create the Request object
-        id=id,
-        agency=agency,
-        summary=summary,
-        text=text,
-        user_id=user_id,
-        offline_submission_type=offline_submission_type,
-        date_received=date_received,
-    )
-
-    # Please don't remove call to assign_owner below
-
-    new_owner_id = assign_owner(request_id=request_id,
-                                reason=assigned_to_reason,
-                                email=assigned_to_email)  # Assign someone to the request
-    open_request(request_id)  # Set the status of the incoming request to "Open"
     if email or alias or phone:
         subscriber_user_id = create_or_return_user(
             email=email,
@@ -1000,6 +984,24 @@ Agency chosen: %s''' % agency)
             state=state,
             zipcode=zip,
         )
+    request_id = create_request(  # Actually create the Request object
+        id=id,
+        agency=agency,
+        summary=summary,
+        text=text,
+        user_id=subscriber_user_id,
+        offline_submission_type=offline_submission_type,
+        date_received=date_received,
+    )
+
+    # Please don't remove call to assign_owner below
+
+    new_owner_id = assign_owner(request_id=request_id,
+                                reason=assigned_to_reason,
+                                email=assigned_to_email)  # Assign someone to the request
+    open_request(request_id)  # Set the status of the incoming request to "Open"
+
+    if subscriber_user_id:
         (subscriber_id, is_new_subscriber) = \
             create_subscriber(request_id=request_id,
                               user_id=subscriber_user_id)
@@ -1007,6 +1009,7 @@ Agency chosen: %s''' % agency)
         notification_content['summary'] = summary
         notification_content['department_name'] = agency
         notification_content['due_date'] = str(Request.query.filter_by(id=id).first().due_date).split(' ')[0]
+        notification_content['contact_info'] = get_contact_info(request_id)
         if subscriber_id:
             generate_prr_emails(request_id,
                                 notification_type='confirmation',
@@ -1432,3 +1435,29 @@ def edit_agency_description(request_id, agency_description_text):
     # edit the agency description field of the request
     app.logger.info("Modifying agency description of the request")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
+
+def get_contact_info(request_id):
+    '''Retrieves the contact information of the user of a request'''
+    app.logger.info("Retrieve the contact information here")
+    req = Request.query.filter_by(id=request_id).first()
+    user = User.query.filter_by(id=req.creator_id).first()
+    if user:
+        contact_info = {
+            'alias': user.alias,
+            'request_role': user.role,
+            'request_email': user.email,
+            'request_phone': user.phone,
+            'request_fax': user.fax,
+            'request_address_street_one': user.address1,
+            'request_address_street_two': user.address2,
+            'request_address_city': user.city,
+            'request_address_state': user.state,
+            'request_address_zip': user.zipcode,
+            'request_description' : req.text,
+            'request_title' : req.summary
+        }
+        return contact_info
+    else:
+        app.logger.info("No user found for the following request: " + request_id)
+        return None
+
