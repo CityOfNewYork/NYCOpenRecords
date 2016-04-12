@@ -79,14 +79,16 @@
 
   $('#submit').on('click',function(event){
     form_id = '#' + $('#form_id').val();
-    $('.agency-description').show();
-    $('.additional-note').show();
+    $('#modalAdditionalInfoTable').hide();
+    $('#emailTextTable').show();
+    $('#edit_email').show();
+    $('#email_text').show();
     if((!$('#modalAdditionalInfoTable').is(':visible') && !$('#edit_email').is(':visible')) || $(form_id) == 'note_pdf') {
         $('#confirm-submit').modal('toggle');
         $(form_id).submit();
     }
     else {
-      $('#modalAdditionalInfoTable').show();
+      $('#modalAdditionalInfoTable').hide();
       $('#editAgencyDescription').hide();
       additional_information = $('#additional_note').val();
       var input = $("<input>")
@@ -240,7 +242,7 @@
             $('#deny_explain_why').hide();
         }
 
-        $('#modalAdditionalInfoTable').show();
+        $('#modalAdditionalInfoTable').hide();
         $('#close-reminder').show()
         //$('#modalAdditionalInfoTable').append('<p><b>If you are denying this request please explain why.</b></p>');
         $('#form_id').val('closeRequest');
@@ -265,8 +267,11 @@
   });
 
 $('#editAgencyDescriptionButton').on('click',function(){
+    $('#modalAdditionalInfoTable').show();
     $('.agency-description').show();
-    $('.additional-note').hide();
+    $('#emailTextTable').hide();
+    $('#edit_email').hide();
+    $('#email_text').hide();
     var modalQuestion = 'Type in the agency description below';
     modalQuestion += '<br><br>';
     $('#form_id').val('agency_description');
@@ -349,7 +354,7 @@ $('#close_filenames_list').on('click',function(){
       contentType: false,
       data: formData,
       success: function(data){
-        $('#modalAdditionalInfoTable').show();
+        $('#modalAdditionalInfoTable').hide();
         $('#form_id').val('submitRecord');
         var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
         modalQuestion += $('#recordSummary').text();
@@ -393,7 +398,7 @@ $('#edit_email').on('click',function(){
     $('#email_text').hide();
     $('#edit_email').hide();
     $('#cke_email_text').hide();
-    $('#modalAdditionalInfoTable').show();
+    $('#modalAdditionalInfoTable').hide();
     $('#form_id').val('note');
     var modalQuestion = 'Are you sure you want to add the note below?';
     modalQuestion += '<br><br>' + $('#noteTextarea').val();
@@ -479,7 +484,10 @@ $('#edit_email').on('click',function(){
 
 $("#cancel").on('click', function(){
     $('.additional-note').show();
-    $('.agency-description').hide();
+    $('#modalAdditionalInfoTable').hide();
+    $('#emailTextTable').show();
+    $('#edit_email').show();
+    $('#email_text').show();
 });
 
     $('#addNoteButton').prop('disabled',true);

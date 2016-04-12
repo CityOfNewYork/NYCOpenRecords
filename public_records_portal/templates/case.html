@@ -149,7 +149,18 @@
                                             <div><b><button id="edit_email" class="btn btn-default" type="button">Edit Email</button></b><br></div>
                                                 <textarea name="email_text" id="email_text" rows="10" cols="80" disabled>This is my textarea to be replaced with CKEditor.</textarea>
                                         </tr>
-                                    </table>                              
+                                    </table>
+                                    <table id="modalAdditionalInfoTable" class="table">
+                                        <tr id="additionalInformation">
+                                            <th>Additional Information</th>
+                                            <td><textarea id="additional_note" name="additional_note"
+                                                          class="input-xlarge agency-description"
+                                                          style = "display:None;"
+                                                          placeholder="Additional Information"/>{{ req.agency_description }}</textarea></td>
+                                        </tr>
+
+                                    </table>
+
                                     <br/><br/>
                                 </div>
                                 <div class="modal-footer">
