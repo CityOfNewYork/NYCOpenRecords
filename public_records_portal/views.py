@@ -1045,8 +1045,7 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
     request_id_search = None
 
     if filters_map:
-        if not departments_selected:
-            departments_selected = get_filter_value(filters_map=filters_map, filter_name='departments_selected',
+        departments_selected = get_filter_value(filters_map=filters_map, filter_name='departments_selected',
                                                     is_list=True) or get_filter_value(filters_map, 'department')
         # departments_selected = bleach.clean(departments_selected);
         app.logger.info("Department Selected: %s" % departments_selected)
