@@ -1510,6 +1510,42 @@ def edit_user_info():
     return render_template("edit_user.html", form=form, errors=errors)
 
 
+@app.route("/edit_requester_info", methods=['GET', 'POST'])
+@login_required
+def edit_requester_info():
+
+    errors = {}
+    alias = strip_html(request.form['edit_requester_alias'])
+    email = strip_html(request.form['edit_requester_email'])
+    phone = strip_html(request.form['edit_requester_phone'])
+    fax = strip_html(request.form['edit_requester_fax'])
+    address_line_one = strip_html(request.form['edit_requester_address_line_one'])
+    address_line_two = strip_html(request.form['edit_requester_address_line_two'])
+    address_city = strip_html(request.form['edit_requester_address_city'])
+    address_state = strip_html(request.form['edit_requester_address_state'])
+    address_zipcode = strip_html(request.form['edit_requester_address_zipcode'])
+    request_id = strip_html(request.form['request_id'])
+
+    zip_reg_ex = re.compile('^[0-9]{5}(?:-[0-9]{4})?$')
+    email_valid = (email != '')
+    phone_valid = (phone != '' and len(phone) > 10)
+    fax_valid = (fax != '' and len(fax) > 10)
+    street_valid = (address_line_one != '')
+    city_valid = (address_city != '')
+    state_valid = (address_state != '')
+    zip_valid = (
+        address_zipcode != '' and zip_reg_ex.match(address_zipcode))
+    address_valid = (
+        street_valid and city_valid and state_valid and zip_valid)
+
+    if not (email_valid or phone_valid or fax_valid or address_valid):
+        flash("The contact information you entered is not valid")
+        return redirect(url_for('show_request_for_x', audience='city', request_id=request_id))
+    else:
+        prr.edit_requester_info(request_id, alias, email, phone, fax, address_line_one, address_line_two, address_city, address_state, address_zipcode)
+        return redirect(url_for('show_request_for_x', audience='city', request_id=request_id))
+
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -1526,7 +1562,6 @@ def login():
                 session['username'] = form.username.data
                 redirect_url = get_redirect_target()
                 if 'login' in redirect_url or 'logout' in redirect_url:
-                    # return redirect(url_for('display_all_requests'))
                     return redirect(url_for('display_all_requests', _scheme='https', _external=True))
                 else:
                     if 'city' not in redirect_url:
@@ -1891,6 +1926,22 @@ def contact():
     elif request.method == 'GET':
         return render_template('contact.html', form=form)
 
+def strip_html(html_str):
+    """
+    a wrapper for bleach.clean() that strips ALL tags from the input
+    :param html_str: string that needs to be stripped
+    :return: a bleached string
+    """
+    tags = []
+    attr = {}
+    styles = []
+    strip = True
+
+    return bleach.clean(html_str,
+                        tags=tags,
+                        attributes=attr,
+                        styles=styles,
+                        strip=strip)
 
 @app.route("/<page>")
 def any_page(page):
