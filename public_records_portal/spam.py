@@ -13,6 +13,7 @@ from public_records_portal import app
 
 
 def check_for_spam():
+    app.logger.info("def check_for_spam")
     if current_user.is_authenticated:  # Spam filter is currently implemented to prevent bot spamming, so if someone is logged in they have already verified they are human
         return False
     if app.config[
@@ -24,6 +25,7 @@ def check_for_spam():
 
 
 def is_spam(comment, user_ip, user_agent):
+    app.logger.info("def is_spam")
     if check_for_spam():
         app.logger.info("\n\nAttempting to check for spam...")
         key = app.config['AKISMET_KEY']
@@ -41,6 +43,7 @@ def is_spam(comment, user_ip, user_agent):
 
 
 def is_working_akismet_key(key, blog):
+    app.logger.info("def is_working_akismet_key")
     key = app.config['AKISMET_KEY']
     blog = app.config['APPLICATION_URL']
     return akismet.verify_key(key=key, blog=blog)

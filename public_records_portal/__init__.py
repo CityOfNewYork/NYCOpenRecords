@@ -164,7 +164,7 @@ if not app.debug:
     Location:           %(pathname)s:%(lineno)d
     Module:             %(module)s
     Function:           %(funcName)s
-    Time:               $(asctime)s
+    Time:               %(asctime)s
 
     Message:
 
