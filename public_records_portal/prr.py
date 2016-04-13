@@ -1490,4 +1490,4 @@ def edit_requester_info(request_id, alias, email, phone, fax, address_one, addre
     update_obj(attribute="address2", val=address_two, obj_type="User", obj_id=request.requester().user_id)
     update_obj(attribute="city", val=address_city, obj_type="User", obj_id=request.requester().user_id)
     update_obj(attribute="state", val=address_state, obj_type="User", obj_id=request.requester().user_id)
-    update_obj(attribute="zip", val=address_zip, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="zipcode", val=address_zip, obj_type="User", obj_id=request.requester().user_id)
