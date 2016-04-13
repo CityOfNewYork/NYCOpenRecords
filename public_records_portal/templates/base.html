@@ -169,9 +169,7 @@ This template provides the header, footer, and envelope info for all pages excep
                 <div class="google_translate" style="background-color:white;">
                     <div id="google_translate_element" class="center-mobile"></div>
                     <script type="text/javascript">
-                        console.log(window.screen.availWidth);
-                        if (window.screen.availWidth < 767){
-                            console.log("window screen width < 767");
+                        if (window.screen.availWidth < 973){
                             function googleTranslateElementInit() {
                             new google.translate.TranslateElement({
                                 pageLanguage: 'en',
@@ -179,7 +177,6 @@ This template provides the header, footer, and envelope info for all pages excep
                             }
                         }
                         else{
-                            console.log("window screen width > 767")
                             function googleTranslateElementInit() {
                             new google.translate.TranslateElement({
                                 pageLanguage: 'en',
