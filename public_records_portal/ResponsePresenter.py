@@ -16,6 +16,23 @@ import upload_helpers
 from models import RecordPrivacy
 from public_records_portal import app
 
+def strip_html(html_str):
+    """
+    a wrapper for bleach.clean() that strips ALL tags from the input
+    :param html_str: string that needs to be stripped
+    :return: a bleached string
+    """
+    tags = []
+    attr = {}
+    styles = []
+    strip = True
+
+    return bleach.clean(html_str,
+                        tags=tags,
+                        attributes=attr,
+                        styles=styles,
+                        strip=strip)
+
 
 class ResponsePresenter:
 
@@ -80,17 +97,17 @@ class ResponsePresenter:
             if current_user.role not in ['Agency Helpers'] and current_user.role is not None:
                 if self.response.privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
                     return "How to Access Record: <br />%s <form method='post' action='/switchRecordPrivacy'><input name=_csrf_token type=hidden value='%s'><input type='hidden' name='request_id' value='%s'/><input type='hidden' name='record_id' value='%s'/><input class='radio inline' type='radio' name='privacy_setting' value='release_and_public' type='submit' onclick='action=this.form.submit();' checked> Release and Public</input><input class='radio inline' type='radio' name='privacy_setting' value='release_and_private' type='submit' onclick='action=this.form.submit();'> Release and Private</input><input class='radio inline' type='radio' name='privacy_setting' value='private' type='submit' onclick='action=this.form.submit();'> Private</input></form>" % (
-                        bleach.clean(self.response.access), session[
+                        strip_html(self.response.access), session[
                             '_csrf_token'], self.response.request_id,
                         self.response.id)
                 elif self.response.privacy == RecordPrivacy.RELEASED_AND_PRIVATE:
                     return "How to Access Record: <br />%s <form method='post' action='/switchRecordPrivacy'><input name=_csrf_token type=hidden value='%s'><input type='hidden' name='request_id' value='%s'/><input type='hidden' name='record_id' value='%s'/><input class='radio inline' type='radio' name='privacy_setting' value='release_and_public' type='submit' onclick='action=this.form.submit();'> Release and Public</input><input class='radio inline' type='radio' name='privacy_setting' value='release_and_private' type='submit' onclick='action=this.form.submit();' checked> Release and Private</input><input class='radio inline' type='radio' name='privacy_setting' value='private' type='submit' onclick='action=this.form.submit();'> Private</input></form>" % (
-                        bleach.clean(self.response.access), session[
+                        strip_html(self.response.access), session[
                             '_csrf_token'], self.response.request_id,
                         self.response.id)
                 else:
                     return "How to Access Record: <br />%s <form method='post' action='/switchRecordPrivacy'><input name=_csrf_token type=hidden value='%s'><input type='hidden' name='request_id' value='%s'/><input type='hidden' name='record_id' value='%s'/><input class='radio inline' type='radio' name='privacy_setting' value='release_and_public' type='submit' onclick='action=this.form.submit();'> Release and Public</input><input class='radio inline' type='radio' name='privacy_setting' value='release_and_private' type='submit' onclick='action=this.form.submit();'> Release and Private</input><input class='radio inline' type='radio' name='privacy_setting' value='private' type='submit' onclick='action=this.form.submit();' checked> Private</input></form>" % (
-                        bleach.clean(self.response.access), session[
+                        strip_html(self.response.access), session[
                             '_csrf_token'], self.response.request_id,
                         self.response.id)
             elif current_user.role in ['Agency Helpers']:
