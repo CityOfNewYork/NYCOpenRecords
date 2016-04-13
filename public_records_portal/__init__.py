@@ -105,14 +105,15 @@ envvars = [
     'RECAPTCHA_SITE_KEY',  # Site key for Google ReCaptcha
 
     # ICAP Variables
-    'ICAP_SERVER_HOST',
-    'ICAP_SERVER_PORT',
-    'ICAP_CLIENT_HOST',
-    'ICAP_SERVICE_NAME',
-    'ICAP_PROFILE_NAME',
-    'ICAP_VERSION',
-    'SHOULD_SCAN_FILES',
-    'MAX_FILE_SIZE',
+    'ICAP_SERVER_HOST', # ICAP Server Hostname
+    'ICAP_SERVER_PORT', # ICAP Server Port
+    'ICAP_CLIENT_HOST', # ICAP Client Hostname
+    'ICAP_SERVICE_NAME', # ICAP Service
+    'ICAP_PROFILE_NAME', # ICAP Profile
+    'ICAP_VERSION', # ICAP Protocol Version used
+    'SHOULD_SCAN_FILES', # Should files be scanned using ICAP
+    'MAX_FILE_SIZE', # Maximum file size for upload
+    'MAX_EMAIL_ATTACHMENT_SIZE', # Maximum file size for email attachments
 
     # LDAP
     'USE_LDAP',  # Determines if LDAP or Flask-Login is used
@@ -123,7 +124,7 @@ envvars = [
     'LDAP_SA_BIND_DN',  # Bind DN for the LDAP Service Account
     'LDAP_SA_PASSWORD',  # Password for the LDAP Service Account
     'LDAP_BASE_DN',  # Base DN for searching for users
-    'PERMANENT_SESSION_LIFETIME',
+    'PERMANENT_SESSION_LIFETIME', # How long should a session last
 
 ]
 
