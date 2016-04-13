@@ -1514,17 +1514,18 @@ def edit_user_info():
 @app.route("/edit_requester_info", methods=['GET', 'POST'])
 @login_required
 def edit_requester_info():
-    alias = request.form['edit_requester_alias']
-    email = request.form['edit_requester_email']
-    phone = request.form['edit_requester_phone']
-    fax = request.form['edit_requester_fax']
-    address_line_one = request.form['edit_requester_address_line_one']
-    address_line_two = request.form['edit_requester_address_line_two']
-    address_city = request.form['edit_requester_address_city']
-    address_state = request.form['edit_requester_address_state']
-    address_zipcode = request.form['edit_requester_address_zipcode']
-    print alias
-    return redirect(url_for('show_request_for_x', audience='new', request_id=request_id))
+    alias = strip_html(request.form['edit_requester_alias'])
+    email = strip_html(request.form['edit_requester_email'])
+    phone = strip_html(request.form['edit_requester_phone'])
+    fax = strip_html(request.form['edit_requester_fax'])
+    address_line_one = strip_html(request.form['edit_requester_address_line_one'])
+    address_line_two = strip_html(request.form['edit_requester_address_line_two'])
+    address_city = strip_html(request.form['edit_requester_address_city'])
+    address_state = strip_html(request.form['edit_requester_address_state'])
+    address_zipcode = strip_html(request.form['edit_requester_address_zipcode'])
+    request_id = strip_html(request.form['request_id'])
+    prr.edit_requester_info(request_id, alias, email, phone, fax, address_line_one, address_line_two, address_city, address_state, address_zipcode)
+    return redirect(url_for('show_request_for_x', audience='city', request_id=request_id))
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -1543,7 +1544,6 @@ def login():
                 session['username'] = form.username.data
                 redirect_url = get_redirect_target()
                 if 'login' in redirect_url or 'logout' in redirect_url:
-                    # return redirect(url_for('display_all_requests'))
                     return redirect(url_for('display_all_requests', _scheme='https', _external=True))
                 else:
                     if 'city' not in redirect_url:
@@ -1908,6 +1908,22 @@ def contact():
     elif request.method == 'GET':
         return render_template('contact.html', form=form)
 
+def strip_html(html_str):
+    """
+    a wrapper for bleach.clean() that strips ALL tags from the input
+    :param html_str: string that needs to be stripped
+    :return: a bleached string
+    """
+    tags = []
+    attr = {}
+    styles = []
+    strip = True
+
+    return bleach.clean(html_str,
+                        tags=tags,
+                        attributes=attr,
+                        styles=styles,
+                        strip=strip)
 
 @app.route("/<page>")
 def any_page(page):
