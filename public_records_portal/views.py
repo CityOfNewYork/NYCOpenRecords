@@ -1508,6 +1508,8 @@ def edit_user_info():
 @app.route("/edit_requester_info", methods=['GET', 'POST'])
 @login_required
 def edit_requester_info():
+
+    errors = {}
     alias = strip_html(request.form['edit_requester_alias'])
     email = strip_html(request.form['edit_requester_email'])
     phone = strip_html(request.form['edit_requester_phone'])
@@ -1518,8 +1520,25 @@ def edit_requester_info():
     address_state = strip_html(request.form['edit_requester_address_state'])
     address_zipcode = strip_html(request.form['edit_requester_address_zipcode'])
     request_id = strip_html(request.form['request_id'])
-    prr.edit_requester_info(request_id, alias, email, phone, fax, address_line_one, address_line_two, address_city, address_state, address_zipcode)
-    return redirect(url_for('show_request_for_x', audience='city', request_id=request_id))
+
+    zip_reg_ex = re.compile('^[0-9]{5}(?:-[0-9]{4})?$')
+    email_valid = (email != '')
+    phone_valid = (phone != '' and len(phone) > 10)
+    fax_valid = (fax != '' and len(fax) > 10)
+    street_valid = (address_line_one != '')
+    city_valid = (address_city != '')
+    state_valid = (address_state != '')
+    zip_valid = (
+        address_zipcode != '' and zip_reg_ex.match(address_zipcode))
+    address_valid = (
+        street_valid and city_valid and state_valid and zip_valid)
+
+    if not (email_valid or phone_valid or fax_valid or address_valid):
+        flash("The contact information you entered is not valid")
+        return redirect(url_for('show_request_for_x', audience='city', request_id=request_id))
+    else:
+        prr.edit_requester_info(request_id, alias, email, phone, fax, address_line_one, address_line_two, address_city, address_state, address_zipcode)
+        return redirect(url_for('show_request_for_x', audience='city', request_id=request_id))
 
 
 @app.route("/login", methods=['GET', 'POST'])
