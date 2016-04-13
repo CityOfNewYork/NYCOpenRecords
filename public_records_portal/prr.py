@@ -577,6 +577,7 @@ def add_letter(
         document.add_paragraph(subject)
         document.add_paragraph(content)
 
+
     letter = StringIO()
     document.save(letter)
     length = letter.tell()
@@ -857,6 +858,7 @@ def upload_record(
                 else:
                     if (index < len(notification_content['documents'])):
                         notification_content['documents'][index] = None
+
 
     add_staff_participant(request_id=request_id,
                           user_id=user_id)
@@ -1454,6 +1456,7 @@ def edit_agency_description(request_id, agency_description_text):
     #edit the agency description field of the request
     app.logger.info("def edit_agency_description")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
+
 
 def get_contact_info(request_id):
     '''Retrieves the contact information of the user of a request'''
