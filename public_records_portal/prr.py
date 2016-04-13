@@ -122,7 +122,7 @@ def add_resource(resource, request_body, current_user_id=None):
         )
     if 'note' in resource:
         return add_note(request_id=fields['request_id'],
-                        text=bleach.clean(fields['note_text'],tags=[]),
+                        text=bleach.clean(fields['note_text'], tags=[]),
                         user_id=current_user_id,
                         privacy=fields['note_privacy'],
                         request_body=request_body)
@@ -297,7 +297,7 @@ def update_resource(resource, request_body):
     elif 'acknowledge' in resource:
         change_request_status(fields['request_id'],
                               fields['acknowledge_status'])
-        notification_content['additional_information'] = bleach.clean(request_body['additional_information'],tags=[])
+        notification_content['additional_information'] = bleach.clean(request_body['additional_information'], tags=[])
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
@@ -307,7 +307,7 @@ def update_resource(resource, request_body):
         update_obj(attribute='text', val=fields['request_text'],
                    obj_type='Request', obj_id=fields['request_id'])
     elif 'note_text' in resource:
-        update_obj(attribute='text', val=bleach.clean(fields['note_text'],tags=[]),
+        update_obj(attribute='text', val=bleach.clean(fields['note_text'], tags=[]),
                    obj_type='Note', obj_id=fields['response_id'])
     elif 'note_delete' in resource:
 
@@ -378,7 +378,7 @@ def add_note(
     notification_content = {}
     if request_body:
         notification_content['user_id'] = user_id
-        notification_content['text'] = bleach.clean(request_body['note_text'],tags=[])
+        notification_content['text'] = bleach.clean(request_body['note_text'], tags=[])
         notification_content['additional_information'] = request_body['additional_information']
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
@@ -1407,7 +1407,8 @@ def change_record_privacy(record_id, request_id, privacy):
         app.logger.info("Making %s public" % record.filename)
         if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
             os.mkdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id)
-        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+        shutil.move(app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+                    app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(["ssh", app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'],
                              "mkdir", "-p",
@@ -1418,7 +1419,8 @@ def change_record_privacy(record_id, request_id, privacy):
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
     elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
         app.logger.info("Making %s private" % record.filename)
-        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename, app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+                    app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
         if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
             subprocess.call(
                 ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
@@ -1432,3 +1434,33 @@ def edit_agency_description(request_id, agency_description_text):
     # edit the agency description field of the request
     app.logger.info("Modifying agency description of the request")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
+
+
+def edit_requester_info(request_id, alias, email, phone, fax, address_one, address_two, address_city, address_state,
+                        address_zip):
+    '''
+    Updates the contact information for a requester based on a specific request.
+    :param request_id: Request where the update is occurring
+    :param alias: Updated alias for the requester
+    :param email: Updated email for the requester
+    :param phone: Updated phone number for the requester
+    :param fax: Updated fax number for the requester
+    :param address_one: Updated address (line one) for the requester
+    :param address_two: Updated address (line two) for the requester
+    :param address_city: Updated city for the requester
+    :param address_state: Updated state for the requester
+    :param address_zip: Updated zip code for the requester
+    :return: N/A
+    '''
+
+    request = get_obj("Request", obj_id=request_id)
+
+    update_obj(attribute="alias", val=alias, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="email", val=email, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="phone", val=phone, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="fax", val=fax, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="address1", val=address_one, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="address2", val=address_two, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="city", val=address_city, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="state", val=address_state, obj_type="User", obj_id=request.requester().user_id)
+    update_obj(attribute="zip", val=address_zip, obj_type="User", obj_id=request.requester().user_id)

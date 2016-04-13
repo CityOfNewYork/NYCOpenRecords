@@ -98,7 +98,7 @@
 </div>
 
 <!-- Modal for Edit button -->
-<div class="modal fade" id="edit_requester_info" tabindex="-1" role="dialog" aria- labelledby="edit_requester_info"
+<div class="modal fade" id="edit_requester_info" tabindex="-1" role="dialog" aria-labelledby="edit_requester_info"
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -106,28 +106,31 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title" id="myModalLabel">Edit Skill</h4>
             </div>
-            <form method="post" action="/edit_requester_info">
+            <form method="post" id="edit_requester_info" action="/edit_requester_info" enctype="multipart/form-data">
                 <input type="hidden" name="request_id" value="{{ req.id }}"/>
-                <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
+                <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="span8">
                         <div class="row-fluid">
                             <div class="span6">Requester's Name:</div>
                             <div class="span6">
-                                <input type="text" id='edit_requester_alias' name='edit_requester_alias' value="{{ alias or "" }}">
+                                <input type="text" id='edit_requester_alias' name='edit_requester_alias'
+                                       value="{{ alias or "" }}">
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's Email:</div>
                             <div class="span6">
-                                <input type="text" id="edit_requester_email" value="{{ email or "" }}">
+                                <input type="text" id="edit_requester_email" name="edit_requester_email"
+                                       value="{{ email or "" }}">
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's Phone Number:</div>
                             <div class="span6">
                                 {% if phone %}
-                                    <input type="text" id='edit_requester_phone' name='edit_requester_phone' value="{{ phone or "" }}">
+                                    <input type="text" id='edit_requester_phone' name='edit_requester_phone'
+                                           value="{{ phone or "" }}">
                                 {% else %}
                                     <input type="text" id='edit_requester_phone' name='edit_requester_phone' value="">
                                 {% endif %}
@@ -137,44 +140,51 @@
                             <div class="span6">Requester's Fax Number:</div>
                             <div class="span6">
                                 {% if fax %}
-                                    <input type="text" id='edit_requester_fax' name='edit_requester_fax' value="{{ fax or "" }}">
+                                    <input type="text" id='edit_requester_fax' name='edit_requester_fax'
+                                           value="{{ fax or "" }}">
                                 {% else %}
-                                    <input type="text" id='edit_requester_fax' name='edit_requester_fax' value="" >
+                                    <input type="text" id='edit_requester_fax' name='edit_requester_fax' value="">
                                 {% endif %}
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's Street Address (line 1):</div>
                             <div class="span6">
-                                <input type="text" id='edit_requester_address_line_one' name='edit_requester_address_line_one' value="{{ address1 or "" }}">
+                                <input type="text" id='edit_requester_address_line_one'
+                                       name='edit_requester_address_line_one' value="{{ address1 or "" }}">
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's Street Address (line 2):</div>
                             <div class="span6">
-                                 <input type="text" id='edit_requester_address_line_two' name='edit_requester_address_line_two' value="{{ address2 or "" }}">
+                                <input type="text" id='edit_requester_address_line_two'
+                                       name='edit_requester_address_line_two' value="{{ address2 or "" }}">
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's City:</div>
                             <div class="span6">
-                                <input type="text" id='edit_requester_address_city' name='edit_requester_address_city' value="{{ city or "" }}">
+                                <input type="text" id='edit_requester_address_city' name='edit_requester_address_city'
+                                       value="{{ city or "" }}">
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's State:</div>
                             <div class="span6">
                                 {% if not address1 or not city or not zipcode %}
-                                    <input type="text" id='edit_requester_address_state' name='edit_requester_address_state' value="">
+                                    <input type="text" id='edit_requester_address_state'
+                                           name='edit_requester_address_state' value="">
                                 {% else %}
-                                    <input type="text" id='edit_requester_address_state' name='edit_requester_address_state' value="{{ state }}">
+                                    <input type="text" id='edit_requester_address_state'
+                                           name='edit_requester_address_state' value="{{ state }}">
                                 {% endif %}
                             </div>
                         </div>
                         <div class="row-fluid">
                             <div class="span6">Requester's Zipcode:</div>
                             <div class="span6">
-                                <input type="text" id='edit_requester_address_zipcode' name='edit_requester_address_zipcode' value="{{ zipcode or "" }}"</span>
+                                <input type="text" id='edit_requester_address_zipcode'
+                                       name='edit_requester_address_zipcode' value="{{ zipcode or "" }}"</span>
                             </div>
                         </div>
                     </div>
