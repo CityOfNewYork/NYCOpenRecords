@@ -8002,14 +8002,16 @@ a.label:hover,a.label:focus,a.badge:hover,a.badge:focus
 	padding:0 0 0 10px
 }
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 973px) {
 	.agency-header .upper-header-black-title
 	{
 		display:none
 	}
 	.center-mobile-nav{
-		margin-right:24%;
+		width: 50%;
+    	margin: 0 auto;
 		text-align:center;
+		background-color: blue;
 	}
 	.center-mobile{
 		margin-left:5%;
