@@ -79,10 +79,6 @@
 
   $('#submit').on('click',function(event){
     form_id = '#' + $('#form_id').val();
-    $('#modalAdditionalInfoTable').hide();
-    $('#emailTextTable').show();
-    $('#edit_email').show();
-    $('#email_text').show();
     if((!$('#modalAdditionalInfoTable').is(':visible') && !$('#edit_email').is(':visible')) || $(form_id) == 'note_pdf') {
         $('#confirm-submit').modal('toggle');
         $(form_id).submit();
@@ -124,9 +120,8 @@
         $(form_id).submit();
     }
     else {
-      $('#modalAdditionalInfoTable').show();
-      $('#editAgencyDescription').hide();
       additional_information = $('#additional_note').val();
+
       var input = $("<input>")
                .attr("type", "hidden")
                .attr("name", "additional_information").val(additional_information);
@@ -194,7 +189,6 @@
       contentType: false,
       data: formData,
       success: function(data){
-        //$('#modalAdditionalInfoTable').show();
         $('#form_id').val('extension');
         days = $('#days_after').val();
         var modalQuestion = 'Are you sure you want to request an extension for the number of days below and send an email to the requester?';
@@ -212,9 +206,6 @@
             modalQuestion += '<br><br>' + month + "/" + day + "/" + year;
          }
         CKEDITOR.replace( 'email_text' );
-        $('#email_text').val(data);
-        $('#emailTextTable').hide();
-        $('#edit_email').show();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
       },
@@ -267,11 +258,7 @@
   });
 
 $('#editAgencyDescriptionButton').on('click',function(){
-    $('#modalAdditionalInfoTable').show();
-    $('.agency-description').show();
-    $('#emailTextTable').hide();
-    $('#edit_email').hide();
-    $('#email_text').hide();
+    $("#edit-agency-description").toggle();
     var modalQuestion = 'Type in the agency description below';
     modalQuestion += '<br><br>';
     $('#form_id').val('agency_description');
