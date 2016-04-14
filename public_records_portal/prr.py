@@ -301,10 +301,13 @@ def update_resource(resource, request_body):
         except IndexError:
             app.logger.error('No Subscribers')
     elif 'acknowledge' in resource:
+        req = get_obj('Request', fields['request_id'])
         change_request_status(fields['request_id'],
                               fields['acknowledge_status'])
         notification_content['additional_information'] = bleach.clean(request_body['additional_information'], tags=[])
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
+        notification_content['request_id'] = request_body['request_id']
+        notification_content['request_title'] = req.summary
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
