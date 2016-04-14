@@ -8026,6 +8026,9 @@ a.label:hover,a.label:focus,a.badge:hover,a.badge:focus
 	{
 		display:none
 	}
+	.hide-mobile{
+		display:none
+	}
 }
 
 .agency-header .upper-header-search
