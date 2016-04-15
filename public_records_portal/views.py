@@ -38,6 +38,8 @@ import bleach
 # from flask.ext.session import Session
 from uuid import uuid4
 from werkzeug.utils import secure_filename
+from notifications import generate_prr_emails
+from markupsafe import Markup
 
 cal = Calendar()
 
@@ -720,11 +722,19 @@ def add_a_resource(resource):
             return add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
         # Field validation for adding a recored
         elif resource == 'record_and_close':
-            if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
-                errors[
-                    'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-            if not ((req['record_description'])) and req['link_url']:
-                errors['missing_record_description'] = "Please include a name for this record"
+            if "email_text" in req:
+                notification_content = {}
+                notification_content['email_text'] = Markup(req['email_text']).unescape()
+                generate_prr_emails(request_id=req['request_id'],
+                            notification_content=notification_content,
+                            notification_type='city_response_added')
+            else:
+                if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
+                    errors[
+                        'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
+                if not ((req['record_description'])) and req['link_url']:
+                    errors['missing_record_description'] = "Please include a name for this record"
+                
 
         files = request.files.getlist('record')
         titles = request.form.getlist('title[]')

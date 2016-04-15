@@ -79,6 +79,9 @@
 
   $('#submit').on('click',function(event){
     form_id = '#' + $('#form_id').val();
+    if (form_id === "#") {
+      form_id="#submitRecord";
+    }
     if((!$('#modalAdditionalInfoTable').is(':visible') && !$('#edit_email').is(':visible')) || $(form_id) == 'note_pdf') {
         $('#confirm-submit').modal('toggle');
         $(form_id).submit();
@@ -305,16 +308,29 @@ $('.privacy_radio').on('click', function() {
       data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
       success: function(data){
         console.log("DONE");
+        $.ajax({
+        url: "/email/email_city_response_added.html",
+        type: 'POST',
+        data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
+        success: function(data){
+          CKEDITOR.replace( 'email_text' );
+          $('#email_text').val(data);
+          $('#modalquestionDiv').text(modalQuestion);
+          $('#modalQuestionTable').hide();
+        },
+        error: function(data) {
+          alert('fail.');
+        }});
         /*$('#modalAdditionalInfoTable').show();
         $('#form_id').val('submitRecord');
         var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester?';
         modalQuestion += $('#recordSummary').text();
-        modalQuestion += "<br>";
-        CKEDITOR.replace( 'email_text' );
-        $('#email_text').val(data);
-        $('#emailTextTable').hide();
-        $('#modalquestionDiv').text(modalQuestion);
-        $('#modalQuestionTable').hide();*/
+        modalQuestion += "<br>";*/
+        //CKEDITOR.replace( 'email_text' );
+        //$('#email_text').val(data);
+        //$('#emailTextTable').hide();
+        //$('#modalquestionDiv').text(modalQuestion);
+        //$('#modalQuestionTable').hide();
       },
       error: function(data){
         alert('fail.');
