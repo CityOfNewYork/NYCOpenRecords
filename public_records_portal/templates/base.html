@@ -153,37 +153,51 @@ This template provides the header, footer, and envelope info for all pages excep
                     </ul>
                 </div>
                 {# loops through the navigation_bar container for the label and definition of each tab#}
-                <ul class="nav nav-pills">
-                    {% for href, id, caption in navigation_bar %}
-                    <li
-                            {% if id== active_page %} class="active openrecords_nav" {% endif%}>
-                        <a class="openrecords_nav" href="{{ href|e }}">{{ caption|e }}</a></li>
-                    {% endfor %}
-                </ul>
-                <ul class="nav pull-right">
-                </ul>
+                <div class="center-mobile-nav">
+                    <ul class="nav nav-pills">
+                        {% for href, id, caption in navigation_bar %}
+                        <li
+                                {% if id== active_page %} class="active openrecords_nav" {% endif%}>
+                            <a class="openrecords_nav" href="{{ href|e }}">{{ caption|e }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    <ul class="nav pull-right">
+                    </ul>
+                </div>
                 {% else %}
-                <div class="google_translate">
-                    <div id="google_translate_element"></div>
+            <div id ="translate-non-mobile">
+                <div class="google_translate" style="background-color:white;">
+                    <div id="google_translate_element" class="center-mobile"></div>
                     <script type="text/javascript">
-                        function googleTranslateElementInit() {
+                        if (window.screen.width > 973){
+                            function googleTranslateElementInit() {
                             new google.translate.TranslateElement({
                                 pageLanguage: 'en',
-                                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-                            }, 'google_translate_element');
+                                layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+                            }
+                        }
+                        else{
+                            function googleTranslateElementInit() {
+                            new google.translate.TranslateElement({
+                                pageLanguage: 'en',
+                                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL}, 'google_translate_element');
+                            }
                         }
                     </script>
                     <script type="text/javascript"
                             src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
                     </script>
                 </div>
-                <ul class="nav nav-pills">
-                    {% for href, id, caption in navigation_bar %}
-                    <li
-                            {% if id== active_page %} class="active openrecords_nav" {% endif%}>
-                        <a class="openrecords_nav" href="{{ href|e }}">{{ caption|e }}</a></li>
-                    {% endfor %}
-                </ul>
+            </div>
+                <div class="center-mobile-nav">
+                    <ul class="nav nav-pills">
+                        {% for href, id, caption in navigation_bar %}
+                        <li
+                                {% if id== active_page %} class="active openrecords_nav" {% endif%}>
+                            <a class="openrecords_nav" href="{{ href|e }}">{{ caption|e }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
                 <ul class="nav pull-right">
                 </ul>
                 {% endif %}
