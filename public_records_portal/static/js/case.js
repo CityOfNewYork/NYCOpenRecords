@@ -216,6 +216,8 @@
             modalQuestion += '<br><br>' + month + "/" + day + "/" + year;
          }
         CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
       },
