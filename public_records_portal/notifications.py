@@ -257,6 +257,27 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         privacy=notification_content['privacy'],
                         )
                     app.logger.info('''E-mail sent successfully!''')
+                elif "released_filename" in notification_content:
+                    released_filename = None
+                    if "attach_single_email_attachment" in notification_content:
+                        released_filename = notification_content['released_filename']
+
+                    send_email(
+                        body=render_template(
+                            template,
+                            unfollow_link=unfollow_link,
+                            page=page,
+                            request_id=request_id,
+                            notification_content=notification_content
+                            ),
+                        recipients=recipients,
+                        subject=subject,
+                        include_unsubscribe_link=include_unsubscribe_link,
+                        cc_everyone=cc_everyone,
+                        privacy=notification_content['privacy'],
+                        released_filename=released_filename
+                        )
+                    app.logger.info('''E-mail sent successfully!''')                   
                 else:
                     send_email(
                         body=render_template(
@@ -290,7 +311,8 @@ def send_email(
     include_unsubscribe_link=True,
     cc_everyone=False,
     attached_files=None,
-    privacy=None
+    privacy=None,
+    released_filename=None
     ):
 
     mail = Mail(app)
@@ -313,6 +335,13 @@ def send_email(
             filename = attached_files.filename
             message.attach(filename=filename,
                            content_type=content_type, data=attached_files.read())
+    if released_filename:
+        url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + released_filename
+        content_type = mimetypes.guess_type(url)[0]
+        filename = released_filename
+        attached_file = open(url, 'r')
+        message.attach(filename=filename,
+                           content_type=content_type, data=attached_file.read())       
 
     # if not include_unscubscribe_link:
     # message.add_filter('subscriptiontrack', 'enable', 0)

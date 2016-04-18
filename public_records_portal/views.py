@@ -30,7 +30,7 @@ from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm, C
 import pytz
 from requires_roles import requires_roles
 from flask_login import LoginManager
-from models import AnonUser
+from models import AnonUser, RecordPrivacy
 from datetime import datetime, timedelta, date
 from business_calendar import Calendar
 import operator
@@ -725,6 +725,14 @@ def add_a_resource(resource):
             if "email_text" in req:
                 notification_content = {}
                 notification_content['email_text'] = Markup(req['email_text']).unescape()
+                released_filename = re.split(':', Markup(req['email_text']).unescape())
+                released_filename = str(released_filename[len(released_filename) - 1]).replace('</p>','')
+                app.logger.info("RELEASED:" + released_filename)
+                #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
+                notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
+                notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                if "attach_single_email_attachment" in req:
+                    notification_content['attach_single_email_attachment'] = "true"
                 generate_prr_emails(request_id=req['request_id'],
                             notification_content=notification_content,
                             notification_type='city_response_added')

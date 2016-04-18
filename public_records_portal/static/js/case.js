@@ -103,6 +103,13 @@
         var emailInput = $("<input>")
                 .attr("type", "hidden")
                 .attr("name", "email_text").val(email_text);
+        
+        if($('#addSingleEmailAttachment').is(':checked')) {
+          var attachSingleEmailAttachment = $("<input>")
+          .attr("type", "hidden")
+          .attr("name", "attach_single_email_attachment").val("true");
+          $(form_id).append(attachSingleEmailAttachment);
+        }
         $(form_id).append($(emailInput));
       }
       
@@ -120,7 +127,7 @@
     form_id = '#' + $('#form_id').val();
     if(!$('#modalAdditionalInfoTable').is(':visible') || $(form_id) == 'note_pdf') {
         $('#confirm-submit').modal('toggle');
-        $(form_id).submit();
+        $(form_id).submit( );
     }
     else {
       additional_information = $('#additional_note').val();
@@ -296,8 +303,12 @@ $('.privacy_radio').on('click', function() {
     var csrf_token = $this.prev().prev().prev().val();
     var request_id = $this.prev().prev().val();
     var record_id = $this.prev().val();
+    var filePath = $this.parent().prev().children();
+    var filePathArray = filePath[0].toString().split('/');
+    var fileName = filePathArray[filePathArray.length-1];
 
-    var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester?';
+    var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester? ' + fileName;
+
     $('#modalquestionDiv').text(modalQuestion);
     $('#modalQuestionTable').hide();
     $('#confirm-submit').modal('toggle');
@@ -314,6 +325,9 @@ $('.privacy_radio').on('click', function() {
         data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
         success: function(data){
           CKEDITOR.replace( 'email_text' );
+          if(fileName) {
+            data = data + ' filename:' + fileName;
+          }
           $('#email_text').val(data);
           $('#modalquestionDiv').text(modalQuestion);
           $('#modalQuestionTable').hide();
