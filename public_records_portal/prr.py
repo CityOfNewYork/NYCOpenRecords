@@ -116,10 +116,19 @@ def add_resource(resource, request_body, current_user_id=None):
     department_name = \
         Department.query.filter_by(id=Request.query.filter_by(id=fields['request_id'
         ]).first().department_id).first()
+
     if 'extension' in resource:
+        extend_reasons = None
+        additional_information_list = fields.getlist('additional_information')
+
+        if additional_information_list[0] is None or str(additional_information_list[0]) == "None":
+            extend_reasons = fields.getlist('extend_reason')
+        else:
+            extend_reasons = fields.getlist('additional_information')
+
         return request_extension(
             fields['request_id'],
-            fields.getlist('additional_information'),
+            extend_reasons,
             current_user_id,
             int(fields['days_after']),
             fields['due_date'],
