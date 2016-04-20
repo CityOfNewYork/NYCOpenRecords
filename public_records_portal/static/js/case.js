@@ -373,6 +373,10 @@ $('#close_filenames_list').on('click',function(){
       contentType: false,
       data: formData,
       success: function(data){
+        if($('#release_and_public').is(':checked')) {
+          $('#addSingleEmailAttachment').hide();
+          $('#addAsEmailAttachment_label').hide();
+        }
         $('#modalAdditionalInfoTable').hide();
         $('#form_id').val('submitRecord');
         var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';

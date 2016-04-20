@@ -726,14 +726,13 @@ def add_a_resource(resource):
                 notification_content = {}
                 notification_content['email_text'] = Markup(req['email_text']).unescape()
                 released_filename = re.split(':', Markup(req['email_text']).unescape())
-                released_filename = str(released_filename).replace(u'\xa0', u' ')
-                released_filename = str(released_filename[len(released_filename) - 1]).replace('</p>','')
+                released_filename = released_filename[len(released_filename) - 1].replace(u'</p>',u'')
                 app.logger.info("RELEASED:" + released_filename)
                 #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
                 notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
                 if "attach_single_email_attachment" in req:
-                    notification_content['attach_single_email_attachment'] = "true"
+                    notification_content['attach_single_email_attachment'] = "true"  
                 generate_prr_emails(request_id=req['request_id'],
                             notification_content=notification_content,
                             notification_type='city_response_added')
