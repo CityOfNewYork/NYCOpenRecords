@@ -581,7 +581,6 @@ def add_letter(
         document.add_paragraph(subject)
         document.add_paragraph(content)
 
-
     letter = StringIO()
     document.save(letter)
     length = letter.tell()
