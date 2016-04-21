@@ -317,7 +317,7 @@ $('.privacy_radio').on('click', function() {
     $('#confirm-submit').modal('toggle');
     
     $.ajax({
-      url: "/switchRecordPrivacy",
+      url: 'https://' + window.location.hostname + "/switchRecordPrivacy",
       type: 'POST',
       data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
       success: function(data){
@@ -336,7 +336,7 @@ $('.privacy_radio').on('click', function() {
           $('#modalQuestionTable').hide();
         },
         error: function(data) {
-          alert('fail.');
+          alert('Email Error');
         }});
         /*$('#modalAdditionalInfoTable').show();
         $('#form_id').val('submitRecord');
@@ -350,7 +350,7 @@ $('.privacy_radio').on('click', function() {
         //$('#modalQuestionTable').hide();
       },
       error: function(data){
-        alert('fail.');
+        alert(console.trace());
       }
     });
 
