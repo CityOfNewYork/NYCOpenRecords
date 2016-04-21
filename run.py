@@ -4,4 +4,4 @@ from os.path import isdir
 if isdir('.certs'):
     app.run(debug=True, port=8080, ssl_context=('.certs/openrecords.crt', '.certs/openrecords.key'))
 else:
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, port=8080, ssl_context='ad-hoc')
