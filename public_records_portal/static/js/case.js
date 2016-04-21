@@ -407,8 +407,8 @@ $('#edit_email').on('click',function(){
       var titleTexts = $('.title_text');
       $('.title_text').each(function()  {
         if($(this).val() === '') {
-          $('#missing_title').show();
-          $('#missing_title').focus();
+          $('#missing_title').focus()
+          $('#missing_title').show();;
           e.preventDefault();
           e.stopPropagation();
         }
@@ -417,6 +417,8 @@ $('#edit_email').on('click',function(){
   });
 
   $('#addNoteButton').on('click',function(){
+    $('#addSingleEmailAttachment').hide();
+    $('#addAsEmailAttachment_label').hide();    
     $('#emailTextTable').hide();
     $('#email_text').hide();
     $('#edit_email').hide();
