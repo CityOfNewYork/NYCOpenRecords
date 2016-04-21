@@ -769,9 +769,9 @@ def add_a_resource(resource):
                 notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
                 if "attach_single_email_attachment" in req:
                     notification_content['attach_single_email_attachment'] = "true"
-                generate_prr_emails(request_id=req['request_id'],
-                            notification_content=notification_content,
-                            notification_type='city_response_added')
+                # generate_prr_emails(request_id=req['request_id'],
+                #             notification_content=notification_content,
+                #             notification_type='city_response_added')
             else:
                 if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
                     errors[

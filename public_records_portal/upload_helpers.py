@@ -116,6 +116,8 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s mime type is not allowed." % document.filename)
             return False, '', "File type is not allowed."
     else:
+        file_length = len(document.read())
+        document.seek(0)
         upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
         if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
             return 1, secure_filename(document.filename), "cannot_email_file"
