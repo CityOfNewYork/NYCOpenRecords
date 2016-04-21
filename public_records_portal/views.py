@@ -31,6 +31,7 @@ import pytz
 from requires_roles import requires_roles
 from flask_login import LoginManager
 from models import AnonUser, Record
+from models import AnonUser, RecordPrivacy
 from datetime import datetime, timedelta, date
 from business_calendar import Calendar
 import operator
@@ -40,6 +41,8 @@ from uuid import uuid4
 from werkzeug.utils import secure_filename
 from nocache import nocache
 from utils import strip_html
+from notifications import generate_prr_emails
+from markupsafe import Markup
 
 cal = Calendar()
 
@@ -651,6 +654,33 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
                                datetime=datetime.now())
 
 
+@app.route("/email/<string:template_name>", methods=["GET", "POST"])
+def show_email(template_name, errors=None, form=None):
+    request_id = request.form.get('request_id')
+    acknowledge_status = request.form.get('acknowledge_status')
+    due_date = request.form.get('due_date')
+    due_date_str = None
+    days_after = None
+    close_reasons = None
+    if request.form.get('days_after') != '' and request.form.get('days_after') is not None:
+        days_after = int(request.form.get('days_after'))
+    req = get_obj("Request", request_id)
+
+    if due_date == '' or due_date is None:
+        if days_after is not None:
+            due_date = cal.addbusdays(req.due_date, days_after)
+            due_date_str = str(req.due_date).split(' ')[0]
+
+    if request.form.get('close_reasons') != '' and request.form.get('close_reasons') is not None:
+        close_reasons = request.form.get('close_reasons')
+
+    department = models.Department.query.filter_by(id=req.department_id).first()
+    agency_app_url = app.config['AGENCY_APPLICATION_URL']
+    public_app_url = app.config['PUBLIC_APPLICATION_URL']
+    page = '%scity/request/%s' % (agency_app_url, request_id)
+    unfollow_link = '%sunfollow/%s/' % (public_app_url, request_id)
+    return render_template('edit_templates/' + template_name, department=department, page=page, unfollow_link=unfollow_link, acknowledge_status=acknowledge_status, due_date=due_date_str, close_reasons=close_reasons)
+
 # @app.route("/api/staff")
 # def staff_to_json():
 #     users = models.User.query.filter(models.User.is_staff == True).all()
@@ -728,11 +758,27 @@ def add_a_resource(resource):
             return add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
         # Field validation for adding a recored
         elif resource == 'record_and_close':
-            if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
-                errors[
-                    'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-            if not ((req['record_description'])) and req['link_url']:
-                errors['missing_record_description'] = "Please include a name for this record"
+            if "email_text" in req:
+                notification_content = {}
+                notification_content['email_text'] = Markup(req['email_text']).unescape()
+                released_filename = re.split(':', Markup(req['email_text']).unescape())
+                released_filename = released_filename[len(released_filename) - 1].replace(u'</p>',u'')
+                app.logger.info("RELEASED:" + released_filename)
+                #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
+                notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
+                notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                if "attach_single_email_attachment" in req:
+                    notification_content['attach_single_email_attachment'] = "true"
+                generate_prr_emails(request_id=req['request_id'],
+                            notification_content=notification_content,
+                            notification_type='city_response_added')
+            else:
+                if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
+                    errors[
+                        'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
+                if not ((req['record_description'])) and req['link_url']:
+                    errors['missing_record_description'] = "Please include a name for this record"
+
 
         files = request.files.getlist('record')
         titles = request.form.getlist('title[]')

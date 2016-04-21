@@ -1,3 +1,4 @@
+
 <!-- This template houses the baseline case information (request, documents, status, etc.) only. -->
 
 {% extends "base.html" %}
@@ -91,7 +92,7 @@
                                         <button type="submit"
                                                 class="btn btn-default btn-level"
                                                 data-toggle="modal"
-                                                data-target="#confirm-submit"
+                                                data-target="#edit_agency_description"
                                                 id="editAgencyDescriptionButton">Edit Agency Description
                                         </button>
                                     </div>
@@ -125,6 +126,7 @@
                     </form>
 
 
+
                     <div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -144,29 +146,17 @@
                                         </tr>
                                     </table>
 
-                                    <table id="modalAdditionalInfoTable" class="table">
-                                        <tr id="additionalInformation">
-                                            <th>Additional Information</th>
-                                            <td><textarea id="additional_note" name="additional_note"
-                                                          class="input-xlarge agency-description"
-                                                          style = "display:None;"
-                                                          placeholder="Additional Information"/>{{ req.agency_description }}</textarea></td>
-                                            <td><textarea id="additional_note" name="additional_note"
-                                                      class="input-xlarge additional-note"
-                                                      placeholder="Additional Information"/></textarea></td>
+                                    <table id="emailTextTable" class="table">
+                                        <tr>
+                                           <label class="radio inline" for="privacy setting-0">
+                                           <input class="addAsEmail" type="checkbox" id="addSingleEmailAttachment" name="addSingleEmailAttachment" style
+="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;">Add to email</input>
+                                    </label>
+                                            <div><b><button id="edit_email" class="btn btn-default" type="button">Edit Email</button></b><br></div>
+                                                <textarea name="email_text" id="email_text" rows="10" cols="80" disabled>This is my textarea to be replaced with CKEditor.</textarea>
                                         </tr>
-
                                     </table>
                                     <br/><br/>
-                                    <table id="modalAdditionalInfoTableClose" class="table" style="display:none;">
-                                        <p id="deny_explain_why" style="display:none;"><b>If you are denying this request please explain why.</b></p>
-                                        <tr>
-                                            <th>Additional Information for Closing</th>
-                                            <td><textarea id="additional_note" name="additional_note"
-                                                          class="input-xlarge"
-                                                          placeholder="Additional Information"/></textarea></td>
-                                        </tr>
-                                    </table>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">Cancel</button>
@@ -176,6 +166,35 @@
                         </div>
                     </div>
 
+                    <div class="modal fade" id="edit_agency_description" tabindex="-1" role="dialog" aria-labelledby="edit_agency_description"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    <h4 class="modal-title" id="myModalLabel">Agency Description</h4>
+                                </div>
+                                <form method="post" id="edit_agency_description">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}"/>
+                                    <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
+                                    <div class="modal-body">
+                                        <table id="modalAdditionalInfoTable" class="table">
+                                        <tr id="additionalInformation">
+                                            <th>Type out agency desscription here</th>
+                                            <td><textarea id="additional_note" name="additional_note"
+                                                          class="input-xlarge agency-description"
+                                                          placeholder="Additional Information"/>{{ req.agency_description }}</textarea></td>
+                                        </tr>
+                                    </table>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">Cancel</button>
+                                        <a href="#" id="submitAgencyDescription" class="btn btn-success success">Submit</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Add a public note form -->
                     {% if not current_user.is_authenticated or audience == 'public' %}

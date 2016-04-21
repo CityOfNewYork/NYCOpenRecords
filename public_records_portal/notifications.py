@@ -22,7 +22,10 @@ from flask_mail import Mail, Message
 import helpers
 from db_helpers import *
 
+import HTMLParser
 # Set flags:
+
+import re
 
 send_emails = False
 test = '[TEST] '
@@ -49,83 +52,8 @@ def generate_prr_emails(
     agency_app_url = app.config['AGENCY_APPLICATION_URL']
     public_app_url = app.config['PUBLIC_APPLICATION_URL']
     template = template_prefix + 'email_%s.html' % (notification_type)
-    # making a new request
-    #
-    # if notification_type == 'Request made':
-    #     template = 'emtemplate_new_request.html'
-    #
-    # elif notification_type == 'Question asked':
-    # # asking a question
-    #
-    #     template = 'emtemplate_question_asked.html'
-    # elif notification_type == 'Question answered':
-    #
-    # # respond to question
-    #
-    #     template = 'emtemplate_question_answered.html'
-    # elif notification_type == 'City response added':
-    #     template = 'emtemplate_city_response_added.html'
-    # elif notification_type == 'Public note added':
-    #
-    # # adding a note
-    #
-    #     template = 'emtemplate_public_note_added.html'
-    # elif notification_type == 'Request assigned':
-    #
-    # # Changing Assignee
-    #
-    #     template = 'emtemplate_request_assigned.html'
-    # elif notification_type == 'Request closed':
-    #
-    # # Closing a request
-    #
-    #     template = 'emtemplate_request_closed.html'
-    # elif notification_type == 'Staff participant added':
-    #
-    # # Adding a helper
-    #     # user = User.query.get(user_id)
-    #     # user_name = user.alias
-    #
-    #     text = text['owner_reason']
-    #     template = 'emtemplate_helper_added.html'
-    # elif notification_type == 'Helper removed':
-    #
-    # # Removing a helper
-    #
-    #     template = 'emtemplate_helper_removed.html'
-    # elif notification_type == 'Acknowledge request':
-    #
-    # # Acknowledging a Request
-    #
-    #     template = 'emtemplate_acknowledge_request.html'
-    # elif notification_type == 'Reopen request':
-    #
-    # # Reopening a request
-    #
-    #     template = 'emtemplate_reopen_request.html'
-    # elif notification_type == 'Nonportal agency':
-    #
-    # # Nonportal request for agency user
-    #
-    #     template = 'email_nonportal_agency.html'
-    # elif notification_type == 'Nonportal requester':
-    #
-    # # Nonportal request for requster
-    #
-    #     template = 'emtemplate_nonportal_requester.html'
-    # elif notification_type == 'Extend request':
-    #
-    # # Extending a request
-    #
-    #     if 'days_after' in notification_content:
-    #         if notification_content['days_after'] is not None:
-    #             days_after = notification_content['days_after']
-    #             additional_information = notification_content['additional_information']
-    #     template = 'emtemplate_extend_request.html'
-    # elif 'Public Notification Template' in notification_type:
-    #     template = 'system_email_' + notification_type[-2:] + '.html'
-    # elif 'Agency Notification Template' in notification_type:
-    #     template = 'agency_email_' + notification_type[-2:] + '.html'
+    if "email_text" in notification_content:
+        template = template_prefix + 'email_full.html'
 
     # Handles emails for nonportal agencies
 
@@ -331,6 +259,27 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         privacy=notification_content['privacy'],
                         )
                     app.logger.info('''E-mail sent successfully!''')
+                elif "released_filename" in notification_content:
+                    released_filename = None
+                    if "attach_single_email_attachment" in notification_content:
+                        released_filename = notification_content['released_filename']
+
+                    send_email(
+                        body=render_template(
+                            template,
+                            unfollow_link=unfollow_link,
+                            page=page,
+                            request_id=request_id,
+                            notification_content=notification_content
+                            ),
+                        recipients=recipients,
+                        subject=subject,
+                        include_unsubscribe_link=include_unsubscribe_link,
+                        cc_everyone=cc_everyone,
+                        privacy=notification_content['privacy'],
+                        released_filename=released_filename
+                        )
+                    app.logger.info('''E-mail sent successfully!''')                   
                 else:
                     send_email(
                         body=render_template(
@@ -364,14 +313,16 @@ def send_email(
     include_unsubscribe_link=True,
     cc_everyone=False,
     attached_files=None,
-    privacy=None
+    privacy=None,
+    released_filename=None
     ):
     app.logger.info("def send_email")
     mail = Mail(app)
 
     plaintext = ''
     html = body
-
+    html = re.sub('&lt;','<', html);
+    html = re.sub('&gt;','>', html);
     sender = app.config['DEFAULT_MAIL_SENDER']
     message = Message(sender=sender, subject=subject, html=html,
                       body=plaintext, bcc=sender)
@@ -386,6 +337,13 @@ def send_email(
             filename = attached_files.filename
             message.attach(filename=filename,
                            content_type=content_type, data=attached_files.read())
+    if released_filename:
+        url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + released_filename
+        content_type = mimetypes.guess_type(url)[0]
+        filename = released_filename
+        attached_file = open(url, 'r')
+        message.attach(filename=filename,
+                           content_type=content_type, data=attached_file.read())       
 
     # if not include_unscubscribe_link:
     # message.add_filter('subscriptiontrack', 'enable', 0)

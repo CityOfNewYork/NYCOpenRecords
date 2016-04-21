@@ -77,49 +77,67 @@
         $('#question_text').html($('#questionTextarea').val());
     });
 
-    $('#submit').on('click', function (event) {
-        form_id = '#' + $('#form_id').val();
-        $('.agency-description').show();
-        $('.additional-note').show();
-        if (!$('#modalAdditionalInfoTable').is(':visible') || $(form_id) == 'note_pdf') {
-            $('#confirm-submit').modal('toggle');
-            $(form_id).submit();
-        }
-        else {
-            $('#modalAdditionalInfoTable').show();
-            $('#editAgencyDescription').hide();
-            additional_information = $('#additional_note').val();
-            var input = $("<input>")
+  $('#submit').on('click',function(event){
+    form_id = '#' + $('#form_id').val();
+    if (form_id === "#") {
+      form_id="#submitRecord";
+    }
+    if((!$('#modalAdditionalInfoTable').is(':visible') && !$('#edit_email').is(':visible')) || $(form_id) == 'note_pdf') {
+        $('#confirm-submit').modal('toggle');
+        $(form_id).submit();
+    }
+    else {
+      $('#modalAdditionalInfoTable').hide();
+      $('#editAgencyDescription').hide();
+      additional_information = $('#additional_note').val();
+      var input = $("<input>")
+               .attr("type", "hidden")
+               .attr("name", "additional_information").val(additional_information);
+      $(form_id).append($(input));
+      
+      if(CKEDITOR.instances.email_text) {
+        email_text = CKEDITOR.instances.email_text.getData();
+        email_text = email_text.replace('&lt','<').replace('&gt', '>');
+        email_text = email_text.replace('&#34;','"');
+        console.log(email_text);
+        var emailInput = $("<input>")
                 .attr("type", "hidden")
-                .attr("name", "additional_information").val(additional_information);
-            $(form_id).append($(input));
-
-            if (form_id === '#submitRecord') {
-                $(form_id).submit();
-            }
-            else {
-                $(form_id).submit();
-            }
+                .attr("name", "email_text").val(email_text);
+        
+        if($('#addSingleEmailAttachment').is(':checked')) {
+          var attachSingleEmailAttachment = $("<input>")
+          .attr("type", "hidden")
+          .attr("name", "attach_single_email_attachment").val("true");
+          $(form_id).append(attachSingleEmailAttachment);
         }
+        $(form_id).append($(emailInput));
+      }
+      
+      if(form_id === '#submitRecord') {
+        $(form_id).submit();
+      }
+      else {
+        $(form_id).submit();
+      }
+    }
 
     });
 
-    $('#submitAgencyDescription').on('click', function (event) {
-        form_id = '#' + $('#form_id').val();
-        if (!$('#modalAdditionalInfoTable').is(':visible') || $(form_id) == 'note_pdf') {
-            $('#confirm-submit').modal('toggle');
-            $(form_id).submit();
-        }
-        else {
-            $('#modalAdditionalInfoTable').show();
-            $('#editAgencyDescription').hide();
-            additional_information = $('#additional_note').val();
-            var input = $("<input>")
-                .attr("type", "hidden")
-                .attr("name", "additional_information").val(additional_information);
-            $(form_id).append($(input));
-            $(form_id).submit();
-        }
+  $('#submitAgencyDescription').on('click',function(event){
+    form_id = '#' + $('#form_id').val();
+    if(!$('#modalAdditionalInfoTable').is(':visible') || $(form_id) == 'note_pdf') {
+        $('#confirm-submit').modal('toggle');
+        $(form_id).submit( );
+    }
+    else {
+      additional_information = $('#additional_note').val();
+
+      var input = $("<input>")
+               .attr("type", "hidden")
+               .attr("name", "additional_information").val(additional_information);
+      $(form_id).append($(input));
+      $(form_id).submit();
+    }
 
     });
 
@@ -139,23 +157,55 @@
         $('#close-reminder').hide();
     });
 
-    $('#rerouteButton').on('click', function () {
-        $('#form_id').val('AcknowledgeNote');
-        var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-        modalQuestion += '<br><br>' + $('#acknowledge_status').val();
-        $('#modalquestionDiv').html(modalQuestion);
-        $('#modalQuestionTable').hide();
-    });
+  $('#rerouteButton').on('click',function(){
+    var formData = new FormData($("#AcknowledgeNote")[0]);
+    if($("#rerouteReason").val()) {
 
-    $('#extendButton').on('click', function () {
-        $('#modalAdditionalInfoTable').show();
+    }
+    else {
+      $.ajax({
+        url: "/email/email_acknowledgement.html",
+        type: 'POST',
+        processData: false,
+        contentType: false,
+        data: formData,
+        success: function(data){
+          $('#form_id').val('AcknowledgeNote');
+          var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
+          modalQuestion += '<br><br>' + $('#acknowledge_status').val();
+          $('#modalquestionDiv').html(modalQuestion);
+          $('#modalQuestionTable').hide();
+          CKEDITOR.replace( 'email_text' );
+          $('#email_text').val(data);
+          $('#emailTextTable').hide();
+          $('#modalquestionDiv').text(modalQuestion);
+          $('#modalQuestionTable').hide();
+        },
+        error: function(data){
+            alert('fail.');
+        }
+      });
+    }
+  });
+
+  $('#extendButton').on('click',function(){
+
+    var formData = new FormData($("#extension")[0]);
+
+    $.ajax({
+      url: "/email/email_extension.html",
+      type: 'POST',
+      processData: false,
+      contentType: false,
+      data: formData,
+      success: function(data){
         $('#form_id').val('extension');
         days = $('#days_after').val();
         var modalQuestion = 'Are you sure you want to request an extension for the number of days below and send an email to the requester?';
 
         if (days != -1) {
             modalQuestion += '<br><br>' + $('#days_after').val() + " days";
-        }
+         }
         else {
             due_date = $('#datepicker').datepicker('getDate');
             day = due_date.getDate();
@@ -164,21 +214,38 @@
 
             modalQuestion = 'Are you sure you want to set the following due date and send an email to the requester?';
             modalQuestion += '<br><br>' + month + "/" + day + "/" + year;
-        }
+         }
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
+      },
+      error: function(data){
+        alert('fail.');
+      }
     });
+  });
 
-    $('#closeButton').on('click', function () {
+  $('#closeButton').on('click',function(){
+  var formData = new FormData($("#closeRequest")[0]);
+
+    $.ajax({
+      url: "/email/email_closed.html",
+      type: 'POST',
+      processData: false,
+      contentType: false,
+      data: formData,
+      success: function(data){    
         var selectedCloseReason = $('#close_reasons option:selected').text();
-        if (selectedCloseReason.indexOf('Denied') >= 0) {
+        if(selectedCloseReason.indexOf('Denied') >= 0) {
             $('#deny_explain_why').show();
         }
         else {
             $('#deny_explain_why').hide();
         }
 
-        $('#modalAdditionalInfoTable').show();
+        $('#modalAdditionalInfoTable').hide();
         $('#close-reminder').show()
         //$('#modalAdditionalInfoTable').append('<p><b>If you are denying this request please explain why.</b></p>');
         $('#form_id').val('closeRequest');
@@ -186,24 +253,30 @@
         var reasons = $('#close_reasons').val();
         modalQuestion += '<br><br>';
         var i;
-        for (i = 0; i < reasons.length; i++) {
+        for (i = 0 ; i < reasons.length ; i++){
             modalQuestion += '<br><br>' + reasons[i];
         }
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#edit_email').show();
+        $('#emailTextTable').hide();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
-
+      },
+      error: function(data){
+        alert('fail.');
+      }
     });
+  });
 
-
-    $('#editAgencyDescriptionButton').on('click', function () {
-        $('.agency-description').show();
-        $('.additional-note').hide();
-        var modalQuestion = 'Type in the agency description below';
-        modalQuestion += '<br><br>';
-        $('#form_id').val('agency_description');
-        $('#modalquestionDiv').html(modalQuestion);
-        $('#modalQuestionTable').hide();
-    });
+$('#editAgencyDescriptionButton').on('click',function(){
+    $("#edit-agency-description").toggle();
+    var modalQuestion = 'Type in the agency description below';
+    modalQuestion += '<br><br>';
+    $('#form_id').val('agency_description');
+    $('#modalquestionDiv').html(modalQuestion);
+    $('#modalQuestionTable').hide();
+});
 
     $('#file_upload_filenames').bind('DOMNodeInserted', function (event) {
         var names = [];
@@ -227,21 +300,108 @@
 
     });
 
-    $('#close_filenames_list').on('click', function () {
-        $('#file_upload_one').empty();
-        $('#file_upload_two').empty();
-        $('#file_upload_three').empty();
-        $('#file_upload_four').empty();
+$('.privacy_radio').on('click', function() {
+  if(this.id === "release_and_public") {
+    var $this = $(this);
+    var csrf_token = $this.prev().prev().prev().val();
+    var request_id = $this.prev().prev().val();
+    var record_id = $this.prev().val();
+    var filePath = $this.parent().prev().children();
+    var filePathArray = filePath[0].toString().split('/');
+    var fileName = filePathArray[filePathArray.length-1];
+
+    var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester? ' + fileName;
+
+    $('#modalquestionDiv').text(modalQuestion);
+    $('#modalQuestionTable').hide();
+    $('#confirm-submit').modal('toggle');
+    
+    $.ajax({
+      url: "/switchRecordPrivacy",
+      type: 'POST',
+      data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
+      success: function(data){
+        console.log("DONE");
+        $.ajax({
+        url: "/email/email_city_response_added.html",
+        type: 'POST',
+        data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
+        success: function(data){
+          CKEDITOR.replace( 'email_text' );
+          if(fileName) {
+            data = data + ' filename:' + fileName;
+          }
+          $('#email_text').val(data);
+          $('#modalquestionDiv').text(modalQuestion);
+          $('#modalQuestionTable').hide();
+        },
+        error: function(data) {
+          alert('fail.');
+        }});
+        /*$('#modalAdditionalInfoTable').show();
+        $('#form_id').val('submitRecord');
+        var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester?';
+        modalQuestion += $('#recordSummary').text();
+        modalQuestion += "<br>";*/
+        //CKEDITOR.replace( 'email_text' );
+        //$('#email_text').val(data);
+        //$('#emailTextTable').hide();
+        //$('#modalquestionDiv').text(modalQuestion);
+        //$('#modalQuestionTable').hide();
+      },
+      error: function(data){
+        alert('fail.');
+      }
     });
 
-    $('#addRecordButton').on('click', function () {
-        $('#modalAdditionalInfoTable').show();
+    //$('#addRecordButton').click();
+  }
+});
+
+$('#close_filenames_list').on('click',function(){
+  $('#file_upload_one').empty();
+  $('#file_upload_two').empty();
+  $('#file_upload_three').empty();
+  $('#file_upload_four').empty();
+});
+
+  $('#addRecordButton').on('click',function(){
+    var formData = new FormData($("#submitRecord")[0]);
+    $.ajax({
+      url: "/email/email_city_response_added.html",
+      type: 'POST',
+      processData: false,
+      contentType: false,
+      data: formData,
+      success: function(data){
+        if($('#release_and_public').is(':checked')) {
+          $('#addSingleEmailAttachment').hide();
+          $('#addAsEmailAttachment_label').hide();
+        }
+        $('#modalAdditionalInfoTable').hide();
         $('#form_id').val('submitRecord');
         var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
         modalQuestion += $('#recordSummary').text();
         $('#modalquestionDiv').text(modalQuestion);
         $('#modalQuestionTable').hide();
+        modalQuestion += "<br>";
+        CKEDITOR.replace( 'email_text' );
+        $('#email_text').val(data);
+        $('#emailTextTable').hide();
+        $('#modalquestionDiv').text(modalQuestion);
+        $('#modalQuestionTable').hide();
+      },
+      error: function(data){
+          alert('fail.');
+      }        
     });
+  });
+
+$('#edit_email').on('click',function(){
+    for (var editorInstance in CKEDITOR.instances) {
+      CKEDITOR.instances[editorInstance].setReadOnly(false);
+    } 
+  });
 
     $("[data-toggle='modal']").click(function (e) {
         if (this.id === "addRecordButton") {
@@ -257,14 +417,18 @@
         }
     });
 
-    $('#addNoteButton').on('click', function () {
-        $('#modalAdditionalInfoTable').show();
-        $('#form_id').val('note');
-        var modalQuestion = 'Are you sure you want to add the note below?';
-        modalQuestion += '<br><br>' + $('#noteTextarea').val();
-        $('#modalquestionDiv').html(modalQuestion);
-        $('#modalQuestionTable').hide();
-    });
+  $('#addNoteButton').on('click',function(){
+    $('#emailTextTable').hide();
+    $('#email_text').hide();
+    $('#edit_email').hide();
+    $('#cke_email_text').hide();
+    $('#modalAdditionalInfoTable').hide();
+    $('#form_id').val('note');
+    var modalQuestion = 'Are you sure you want to add the note below?';
+    modalQuestion += '<br><br>' + $('#noteTextarea').val();
+    $('#modalquestionDiv').html(modalQuestion);
+    $('#modalQuestionTable').hide();
+  });
 
     $('#addPublicNoteButton').on('click', function () {
         $('#modalAdditionalInfoTable').hide();
@@ -275,9 +439,12 @@
         $('#modalQuestionTable').hide();
     });
 
-    $('#generatePDFButton').on('click', function (event) {
-        var selectedTemplate = $('#response_template option:selected').text();
-        var modalQuestion = 'Are you sure you want to generate a Word Document for the template below?';
+  $('#generatePDFButton').on('click',function(event){
+    $('#emailTextTable').hide();
+    $('#email_text').hide();
+    $('#edit_email').hide();
+    var selectedTemplate = $('#response_template option:selected').text();
+    var modalQuestion = 'Are you sure you want to generate a Word Document for the template below?';
 
         if (selectedTemplate === '') {
             $('#missing_pdf_template').removeClass('hidden');
@@ -346,10 +513,13 @@
         $('.delete').click();
     });
 
-    $("#cancel").on('click', function () {
-        $('.additional-note').show();
-        $('.agency-description').hide();
-    });
+$("#cancel").on('click', function(){
+    $('.additional-note').show();
+    $('#modalAdditionalInfoTable').hide();
+    $('#emailTextTable').show();
+    $('#edit_email').show();
+    $('#email_text').show();
+});
 
     $('#addNoteButton').prop('disabled', true);
     $('#noteTextarea').keyup(function () {
