@@ -176,7 +176,7 @@ No file passed in''')
             addAsEmailAttachmentList = []
 
             for index, t in list(enumerate(titles)):
-                addAsEmailAttachment = request.form.get('addAsEmailAttachment_' + str(index))
+                addAsEmailAttachment = request.form.get('addAsEmailAttachment_' + str(index+1))
                 if addAsEmailAttachment == 'on':
                     addAsEmailAttachmentList.append(addAsEmailAttachment)
                 else:
