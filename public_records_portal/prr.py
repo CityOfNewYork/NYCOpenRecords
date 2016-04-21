@@ -395,9 +395,6 @@ def add_note(
     if request_body:
         notification_content['user_id'] = user_id
         notification_content['text'] = request_body['note_text']
-        notification_content['additional_information'] = request_body['additional_information']
-        if request.form.get('email_text') is not None and request.form.get('email_text') != '':
-            notification_content['email_text'] = Markup(request_body['email_text']).unescape()        
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
                               user_id=user_id, privacy=privacy)

@@ -172,7 +172,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                    <h4 class="modal-title" id="myModalLabel">Edit Skill</h4>
+                                    <h4 class="modal-title" id="myModalLabel">Agency Description</h4>
                                 </div>
                                 <form method="post" id="edit_agency_description">
                                     <input type="hidden" name="request_id" value="{{ req.id }}"/>
@@ -180,7 +180,7 @@
                                     <div class="modal-body">
                                         <table id="modalAdditionalInfoTable" class="table">
                                         <tr id="additionalInformation">
-                                            <th>Additional Information</th>
+                                            <th>Type out agency desscription here</th>
                                             <td><textarea id="additional_note" name="additional_note"
                                                           class="input-xlarge agency-description"
                                                           placeholder="Additional Information"/>{{ req.agency_description }}</textarea></td>
