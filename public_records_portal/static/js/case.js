@@ -301,11 +301,17 @@ $('#editAgencyDescriptionButton').on('click',function(){
     });
 
 $('.privacy_radio').on('click', function() {
-  if(this.id === "release_and_public") {
+  if(this.id === "release_and_public" || this.id === "release_and_private") {
+    var privacy_setting = this.id.toString();
     var $this = $(this);
     var csrf_token = $this.prev().prev().prev().val();
     var request_id = $this.prev().prev().val();
     var record_id = $this.prev().val();
+    if (privacy_setting === "release_and_private") {
+      csrf_token = $this.prev().prev().prev().prev().val();
+      request_id = $this.prev().prev().prev().val();
+      record_id = $this.prev().prev().val();
+    }
     var filePath = $this.parent().prev().children();
     var filePathArray = filePath[0].toString().split('/');
     var fileName = filePathArray[filePathArray.length-1];
@@ -317,15 +323,15 @@ $('.privacy_radio').on('click', function() {
     $('#confirm-submit').modal('toggle');
     
     $.ajax({
-      url: 'https://' + window.location.hostname + "/switchRecordPrivacy",
+      url: "/switchRecordPrivacy",
       type: 'POST',
-      data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
+      data: {_csrf_token:csrf_token, privacy_setting: privacy_setting, request_id: request_id, record_id: record_id},
       success: function(data){
         console.log("DONE");
         $.ajax({
         url: "/email/email_city_response_added.html",
         type: 'POST',
-        data: {_csrf_token:csrf_token, privacy_setting: 'release_and_public', request_id: request_id, record_id: record_id},
+        data: {_csrf_token:csrf_token, privacy_setting: privacy_setting, request_id: request_id, record_id: record_id},
         success: function(data){
           CKEDITOR.replace( 'email_text' );
           if(fileName) {
@@ -336,7 +342,7 @@ $('.privacy_radio').on('click', function() {
           $('#modalQuestionTable').hide();
         },
         error: function(data) {
-          alert('Email Error');
+          alert('fail.');
         }});
         /*$('#modalAdditionalInfoTable').show();
         $('#form_id').val('submitRecord');
@@ -350,7 +356,7 @@ $('.privacy_radio').on('click', function() {
         //$('#modalQuestionTable').hide();
       },
       error: function(data){
-        alert(console.trace());
+        alert('fail.');
       }
     });
 
