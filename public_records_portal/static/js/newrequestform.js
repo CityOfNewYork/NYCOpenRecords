@@ -183,11 +183,8 @@ $(function () {
         console.log(text_remaining);
         if (text_remaining <= 0) {
             document.getElementById("request_summary_counter").style.color = "red";
-            $("#request_summary_length_error").show();
         } else {
             document.getElementById("request_summary_counter").style.color = "black";
-            $("#request_summary_length_error").hide();
-
         }
     });
 
@@ -202,10 +199,8 @@ $(function () {
         $('#request_description_counter').html(text_remaining + ' characters remaining');
         if (text_remaining <= 0) {
             document.getElementById("request_description_counter").style.color = "red";
-            $("#request_description_length_error").show();
         } else {
             document.getElementById("request_description_counter").style.color = "black";
-            $("#request_description_length_error").hide();
         }
     });
 });
