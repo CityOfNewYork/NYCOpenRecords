@@ -322,15 +322,23 @@ def update_resource(resource, request_body):
         except IndexError:
             app.logger.error('No Subscribers')
     elif 'acknowledge' in resource:
+        req = get_obj('Request', fields['request_id'])
         change_request_status(fields['request_id'],
                               fields['acknowledge_status'])
         notification_content['additional_information'] = bleach.clean(request_body['additional_information'], tags=[])
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
+        notification_content['request_id'] = fields['request_id']
+        notification_content['request_title'] = req.summary
         if request.form.get('email_text') is not None and request.form.get('email_text') != '':
             notification_content['email_text'] = Markup(request_body['email_text']).unescape()
         generate_prr_emails(request_id=fields['request_id'],
                             notification_content=notification_content,
                             notification_type='acknowledgement')
+        # Delete email_text from notification_content so it defaults to email template
+        del notification_content['email_text']
+        generate_prr_emails(request_id=fields['request_id'],
+                            notification_content=notification_content,
+                            notification_type='acknowledgement_agency')
         return fields['request_id']
     elif 'request_text' in resource:
         update_obj(attribute='text', val=fields['request_text'],
