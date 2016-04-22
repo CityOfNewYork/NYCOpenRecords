@@ -141,6 +141,7 @@ $(function () {
                 vals = transportation;
                 break;
             default:
+                vals = [];
                 vals = business.concat(cultureAndRecreation, education, environment, governmentAdministration,
                     health, housingAndDevelopment, publicSafety, socialServices, transportation);
                 break;
@@ -150,8 +151,14 @@ $(function () {
 
         $jsontwo.empty();
         vals.sort();
-        vals.splice(0, 0, "");
+        if (vals[0] === "") {
+        } else {
+            vals.splice(0, 0, "");
+        }
         for (var i = 0; i < vals.length; i++) {
+            if (vals[i] == vals[i-1]) {
+                continue;
+            }
             $jsontwo.value = vals[i];
             $jsontwo.append("<option value=\"" + vals[i] + "\">" + vals[i] + "</option>");
         }
