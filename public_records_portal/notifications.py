@@ -20,6 +20,7 @@ from flask import render_template
 from flask_mail import Mail, Message
 
 import helpers
+import datetime
 from db_helpers import *
 
 import HTMLParser
@@ -144,17 +145,26 @@ Subscriber %s unsubscribed, no notification sent.'''
                 page = '%sfeedback/request/%s' % (public_app_url,
                         request_id)
 
-        if recipient_type in ['Staff owner', 'Requester', 'Subscriber',
+        if recipient_type in ['Staff owner', 'Requester', 'Subscribers',
                               'Staff participant']:
+            #Store the email content
+            #Request id, recipient, subjects, date sent, content
+            #Create email store object here
+
             if user_id:
                 recipient = get_attribute(attribute='email',
                         obj_id=user_id, obj_type='User')
+                try:
+                    create_email(request_id=request_id,recipient=user_id,subject=email_subject,time_sent=datetime.now(),email_content=notification_content)
+                except Exception, e:
 
+                    app.logger.error("Unable to store email object \n%s" % e)
                 # if recipient_type != "Subscriber" or get_attribute(attribute="")
 
                 if recipient:
                     if unfollow_link:
                         unfollow_link = unfollow_link + recipient
+
                     send_prr_email(
                         page=page,
                         recipients=[recipient],

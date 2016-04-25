@@ -13,6 +13,7 @@ import re
 from datetime import datetime, timedelta
 
 from flask.ext.login import current_user
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -50,7 +51,6 @@ class AnonUser:
     @property
     def role(self):
         return None
-
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -360,8 +360,10 @@ class Request(db.Model):
         self.extended = True
         if days_after != None and days_after != -1:
             self.due_date = cal.addbusdays(self.due_date, days_after)
+            return self.due_date
         elif custom_due_date != None and custom_due_date != '':
             self.due_date = custom_due_date
+            return self.due_date
 
     def point_person(self):
         for o in self.owners:
@@ -623,7 +625,6 @@ class Owner(db.Model):
     def __repr__(self):
         return '<Owner %r>' % self.id
 
-
 class Subscriber(db.Model):
     # A person subscribed to a request, who may or may not have created the request, and may or may not own a part of the request.
 
@@ -714,6 +715,8 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(
         'user.id'))  # The user who wrote the note. Right now only stored for city staff - otherwise it's an anonymous/ 'requester' note.
     privacy = db.Column(db.Integer, default=0x01)
+    due_date = db.Column(db.DateTime, default=None)
+    days_after = db.Column(db.Integer, default=None)
 
     def __init__(
             self,
@@ -721,12 +724,16 @@ class Note(db.Model):
             text,
             user_id,
             privacy=0x01,
+            due_date=None,
+            days_after=None
     ):
         self.text = text
         self.request_id = request_id
         self.user_id = user_id
         self.date_created = datetime.now().isoformat()
         self.privacy = privacy
+        self.due_date = due_date
+        self.days_after = days_after
 
     def __repr__(self):
         return '<Note %r>' % self.text
@@ -747,3 +754,31 @@ class Visualization(db.Model):
 
     def __repr__(self):
         return '<Visualization %r>' % self.type_viz
+
+class Email(db.Model):
+    __tablename__ = 'email_notification'
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(20), db.ForeignKey(
+        'request.id'
+    ), nullable=False)
+    recipient = db.Column(db.Integer(), db.ForeignKey(
+        'user.id'
+    ), nullable=False)
+    subject = db.Column(db.String(5000), nullable=False)
+    time_sent = db.Column(db.DateTime, nullable=False)
+    email_content = db.Column(JSON, nullable=False)
+
+    def __init__(
+        self,
+        request_id,
+        recipient,
+        subject,
+        time_sent,
+        email_content
+    ):
+
+        self.request_id = request_id
+        self.recipient = recipient
+        self.subject = subject
+        self.time_sent = time_sent
+        self.email_content = email_content

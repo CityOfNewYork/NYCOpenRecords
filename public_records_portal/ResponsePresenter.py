@@ -19,7 +19,7 @@ from public_records_portal import app
 
 class ResponsePresenter:
 
-    def __init__(self, record=None, note=None):
+    def __init__(self, record=None, note=None, req=None):
         if record:
             self.response = record
             self.update_url = "update_a_record_delete"
@@ -172,7 +172,8 @@ class ResponsePresenter:
                     return None
 
         elif self.type == "extension":
-            text = self.response.text.strip("Request extended:")
+            # text = "Request extended on: " + str(self.response.date_created)
+            text = ("Request extended for %s days. The request is now due on " % self.response.days_after) + datetime.datetime.strftime(self.response.due_date, '%m/%d/%Y')
             return text
 
     def get_icon(self):
