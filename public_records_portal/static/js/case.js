@@ -390,7 +390,6 @@ $('#close_filenames_list').on('click',function(){
         modalQuestion += $('#recordSummary').text();
         $('#modalquestionDiv').text(modalQuestion);
         $('#modalQuestionTable').hide();
-        modalQuestion += "<br>";
         CKEDITOR.replace( 'email_text' );
         $('#email_text').val(data);
         $('#emailTextTable').hide();
