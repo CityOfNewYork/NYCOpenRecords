@@ -258,7 +258,7 @@
         }
         CKEDITOR.replace( 'email_text' );
         $('#email_text').val(data);
-        $('#edit_email').show();
+        document.getElementById("edit_email").style.visibility="visible";
         $('#emailTextTable').hide();
         $('#modalquestionDiv').html(modalQuestion);
         $('#modalQuestionTable').hide();
@@ -425,7 +425,7 @@ $('#edit_email').on('click',function(){
   $('#addNoteButton').on('click',function(){
     $('#emailTextTable').hide();
     $('#email_text').hide();
-    $('#edit_email').hide();
+    document.getElementById("edit_email").style.visibility="hidden";
     $('#cke_email_text').hide();
     $('#modalAdditionalInfoTable').hide();
     $('#form_id').val('note');
@@ -447,7 +447,7 @@ $('#edit_email').on('click',function(){
   $('#generatePDFButton').on('click',function(event){
     $('#emailTextTable').hide();
     $('#email_text').hide();
-    $('#edit_email').hide();
+    $('#edit_email').style.visibility="hidden";
     var selectedTemplate = $('#response_template option:selected').text();
     var modalQuestion = 'Are you sure you want to generate a Word Document for the template below?';
 
@@ -522,7 +522,8 @@ $("#cancel").on('click', function(){
     $('.additional-note').show();
     $('#modalAdditionalInfoTable').hide();
     $('#emailTextTable').show();
-    $('#edit_email').show();
+    document.getElementById("edit_email").style.visibility="visible";
+    // $('#edit_email').show();
     $('#email_text').show();
 });
 
