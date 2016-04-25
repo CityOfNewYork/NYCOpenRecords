@@ -116,10 +116,12 @@ def generate_prr_emails(
 
     for recipient_type in recipient_types:
         # Skip anyone that has unsubscribed
-        if user_id and (recipient_type == 'Requester' or recipient_type
-                        == 'Subscriber'):
+        if (recipient_type == 'Requester' or recipient_type
+                        == 'Subscribers'):
             subscriber = get_subscriber(request_id=request_id,
                     user_id=user_id)
+            if not user_id:
+                user_id = subscriber.user_id
             should_notify = get_attribute(attribute='should_notify',
                     obj=subscriber)
             if not should_notify:
