@@ -87,7 +87,7 @@
         $(form_id).submit();
     }
     else {
-      $('#modalAdditionalInfoTable').hide();
+      // $('#modalAdditionalInfoTable').hide();
       $('#editAgencyDescription').hide();
       additional_information = $('#additional_note').val();
       var input = $("<input>")
@@ -245,7 +245,7 @@
             $('#deny_explain_why').hide();
         }
 
-        $('#modalAdditionalInfoTable').hide();
+        // $('#modalAdditionalInfoTable').hide();
         $('#close-reminder').show()
         //$('#modalAdditionalInfoTable').append('<p><b>If you are denying this request please explain why.</b></p>');
         $('#form_id').val('closeRequest');
@@ -384,7 +384,7 @@ $('#close_filenames_list').on('click',function(){
           $('#addSingleEmailAttachment').hide();
           $('#addAsEmailAttachment_label').hide();
         }
-        $('#modalAdditionalInfoTable').hide();
+        // $('#modalAdditionalInfoTable').hide();
         $('#form_id').val('submitRecord');
         var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
         modalQuestion += $('#recordSummary').text();
@@ -427,7 +427,7 @@ $('#edit_email').on('click',function(){
     $('#email_text').hide();
     document.getElementById("edit_email").style.visibility="hidden";
     $('#cke_email_text').hide();
-    $('#modalAdditionalInfoTable').hide();
+    // $('#modalAdditionalInfoTable').hide();
     $('#form_id').val('note');
     var modalQuestion = 'Are you sure you want to add the note below?';
     modalQuestion += '<br><br>' + $('#noteTextarea').val();
@@ -466,7 +466,7 @@ $('#edit_email').on('click',function(){
             $('#generatePDFButton').attr('data-toggle', 'modal');
             $('#generatePDFButton').attr('data-target', '#confirm-submit');
 
-            $('#modalAdditionalInfoTable').hide();
+            // $('#modalAdditionalInfoTable').hide();
             $('#form_id').val('note_pdf');
             modalQuestion += '<br><br>' + selectedTemplate;
             $('#modalquestionDiv').html(modalQuestion);
@@ -520,7 +520,6 @@ $('#edit_email').on('click',function(){
 
 $("#cancel").on('click', function(){
     $('.additional-note').show();
-    $('#modalAdditionalInfoTable').hide();
     $('#emailTextTable').show();
     document.getElementById("edit_email").style.visibility="visible";
     // $('#edit_email').show();
