@@ -77,7 +77,7 @@
         "acknowledgement":
         {
             "Subject": "The request has been Acknowledged",
-            "Recipients":["Subscribers","Requester"]
+            "Recipients":["Subscribers"]
         },
         "acknowledgement_agency":
         {
