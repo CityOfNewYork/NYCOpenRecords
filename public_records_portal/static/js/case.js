@@ -172,7 +172,7 @@
         success: function(data){
           $('#form_id').val('AcknowledgeNote');
           var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-          modalQuestion += '<br><br>' + $('#acknowledge_status').val();
+          modalQuestion += '' + $('#acknowledge_status').val();
           $('#modalquestionDiv').html(modalQuestion);
           $('#modalQuestionTable').hide();
           CKEDITOR.replace( 'email_text' );
