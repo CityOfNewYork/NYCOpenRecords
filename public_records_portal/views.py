@@ -1143,10 +1143,12 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
         overdue = bleach.clean(overdue);
         app.logger.info(overdue)
         mine_as_poc = get_filter_value(filters_map=filters_map, filter_name='mine_as_poc', is_boolean=True)
-        mine_as_poc = bleach.clean(mine_as_poc);
+        if mine_as_poc:
+            mine_as_poc = bleach.clean(mine_as_poc);
         app.logger.info(mine_as_poc)
         mine_as_helper = get_filter_value(filters_map=filters_map, filter_name='mine_as_helper', is_boolean=True)
-        mine_as_helper = bleach.clean(mine_as_helper);
+        if mine_as_helper:
+            mine_as_helper = bleach.clean(mine_as_helper);
         app.logger.info(mine_as_helper)
         sort_column = get_filter_value(filters_map, 'sort_column') or 'id'
         sort_column = bleach.clean(sort_column);
@@ -1185,7 +1187,7 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
             request_id_search = None
 
     # Set initial checkboxes for mine_as_poc and mine_as_helper when redirected from login page
-    if request.referrer and "requests" not in request.referrer:
+    if request.referrer and 'login' in request.referrer or 'city' in request.referrer:
         if current_user.is_authenticated and (
                         current_user.role in ['Portal Administrator',
                                               'Agency Administrator'] or current_user.is_admin()):
