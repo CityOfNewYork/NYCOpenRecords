@@ -522,7 +522,7 @@ $("#cancel").on('click', function(){
     $('.additional-note').show();
     $('#emailTextTable').show();
     document.getElementById("edit_email").style.visibility="visible";
-    $('#edit_email').hide();
+    // $('#edit_email').hide();
     $('#modalAdditionalInfoTable').hide();
     // $('#edit_email').show();
     $('#email_text').hide();
