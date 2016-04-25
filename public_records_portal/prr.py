@@ -121,17 +121,17 @@ def add_resource(resource, request_body, current_user_id=None):
         ]).first().department_id).first()
 
     if 'extension' in resource:
-        extend_reasons = None
-        additional_information_list = fields.getlist('additional_information')
+        # extend_reasons = None
+        # additional_information_list = fields.getlist('additional_information')
+        #
+        # if additional_information_list[0] is None or str(additional_information_list[0]) == "None":
+        #     extend_reasons = fields.getlist('extend_reason')
+        # else:
+        #     extend_reasons = fields.getlist('additional_information')
+        #
+        # for index, reason in enumerate(extend_reasons):
+        #     extend_reasons[index] = strip_html(reason)
 
-        if additional_information_list[0] is None or str(additional_information_list[0]) == "None":
-            extend_reasons = fields.getlist('extend_reason')
-        else:
-            extend_reasons = fields.getlist('additional_information')
-
-        for index, reason in enumerate(extend_reasons):
-            extend_reasons[index] = strip_html(reason)
-            
         return request_extension(
             request_id=fields['request_id'],
             user_id=current_user_id,
