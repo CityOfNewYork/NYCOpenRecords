@@ -5,6 +5,7 @@
 
 ....Implements commonly used functions for handling data
 """
+import bleach
 
 def strip_html(html_str):
     """

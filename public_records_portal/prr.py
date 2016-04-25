@@ -41,6 +41,7 @@ from notifications import generate_prr_emails
 from public_records_portal import db_helpers
 from requires_roles import requires_roles
 from markupsafe import Markup
+from utils import strip_html
 
 agency_codes = {"City Commission on Human Rights": "228",
                 "Department of Education": "040",
@@ -128,6 +129,9 @@ def add_resource(resource, request_body, current_user_id=None):
         else:
             extend_reasons = fields.getlist('additional_information')
 
+        for index, reason in enumerate(extend_reasons):
+            extend_reasons[index] = strip_html(reason)
+            
         return request_extension(
             request_id=fields['request_id'],
             user_id=current_user_id,
