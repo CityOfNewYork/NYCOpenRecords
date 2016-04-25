@@ -129,11 +129,9 @@ def add_resource(resource, request_body, current_user_id=None):
             extend_reasons = fields.getlist('additional_information')
 
         return request_extension(
-            fields['request_id'],
-            extend_reasons,
-            current_user_id,
-            int(fields['days_after']),
-            fields['due_date'],
+            request_id=fields['request_id'],
+            user_id=current_user_id,
+            days_after=int(fields['days_after']),
             request_body=request_body,
         )
     if 'note' in resource:
@@ -364,10 +362,9 @@ def update_resource(resource, request_body):
                 'Agency FOIL Officer')
 def request_extension(
         request_id,
-        extension_reasons,
         user_id,
+        extension_reasons=None,
         days_after=None,
-        due_date=None,
         request_body=None,
 ):
     """
@@ -377,13 +374,13 @@ def request_extension(
     """
     app.logger.info("def request_extension()")
     req = Request.query.get(request_id)
-    req.extension(days_after, due_date)
+    due_date = req.due_date
+    req.extension(days_after)
     user = User.query.get(user_id)
     user_name = user.alias
     text = 'Request extended:'
     notification_content = {}
     notification_content['days_after'] = days_after
-    notification_content['additional_information'] = extension_reasons
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
     if request.form.get('email_text') is not None and request.form.get('email_text') != '':
         notification_content['email_text'] = Markup(request_body['email_text']).unescape()
@@ -398,11 +395,11 @@ def request_extension(
         generate_prr_emails(request_id=request_id,
                             notification_type='extension',
                             notification_content=notification_content)
-    for reason in extension_reasons:
-        text = text + bleach.clean(reason) + '</br>'
+    # for reason in extension_reasons:
+    #     text = text + bleach.clean(reason) + '</br>'
     add_staff_participant(request_id=request_id, user_id=user_id)
     return add_note(request_id=request_id, text=text, user_id=user_id,
-                    extension=True)  # Bypass spam filter because they are logged in.
+                    extension=True, days_after=days_after, due_date=due_date)  # Bypass spam filter because they are logged in.
 
 
 def add_note(
@@ -412,6 +409,8 @@ def add_note(
         request_body=None,
         user_id=None,
         extension=False,
+        days_after=None,
+        due_date=None
 ):
     app.logger.info("def add_note")
     fields = request_body
@@ -421,7 +420,7 @@ def add_note(
         notification_content['text'] = bleach.clean(request_body['note_text'], tags=[])
     if text and text != '':
         note_id = create_note(request_id=request_id, text=text,
-                              user_id=user_id, privacy=privacy)
+                              user_id=user_id, privacy=privacy, days_after=days_after, due_date=due_date)
         if extension:
             return note_id
         if note_id:
@@ -1237,7 +1236,7 @@ def get_responses_chronologically(req):
                                                                    'Agency Helpers']):
                 pass
             else:
-                responses.append(ResponsePresenter(note=note))
+                responses.append(ResponsePresenter(note=note, req=req))
     for record in req.records:
         if current_user.is_authenticated:
             responses.append(ResponsePresenter(record=record))

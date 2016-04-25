@@ -178,6 +178,12 @@ def update_obj(attribute, val, obj_type=None, obj_id=None, obj=None):
             return False
     return False
 
+def create_email(request_id,recipient,subject,time_sent,email_content):
+    '''Create an Email object'''
+    email = Email(request_id=request_id,recipient=recipient,subject=subject,time_sent=time_sent,email_content=email_content)
+    db.session.add(email)
+    db.session.commit()
+    return email.id
 
 # @export "create_QA"
 def create_QA(request_id, question, user_id):
@@ -216,11 +222,11 @@ def create_subscriber(request_id, user_id):
 
 
 # @export "create_note"
-def create_note(request_id, text, user_id, privacy):
+def create_note(request_id, text, user_id, privacy, days_after=None,due_date=None):
     """ Create a Note object and return the ID. """
     try:
         note = Note(request_id=request_id, text=text, user_id=user_id,
-                    privacy=privacy)
+                    privacy=privacy, days_after=days_after,due_date=due_date)
         put_obj(note)
         return note.id
     except Exception, e:
