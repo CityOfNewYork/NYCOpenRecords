@@ -13,7 +13,7 @@ departments = ["City Commission on Human Rights", "Department of Education",
                "Department of Records and Information Services", "Office of the Mayor",
                "Mayor's Office of Contract Services", "Mayor's Office of Media and Entertainment",
                "Office of Administrative Trials and Hearings", "Office of the Chief Medical Examiner",
-               "Office of Emergency Management"]
+               "NYC Emergency Management"]
 
 people = ["cpuiptuser000131@mailinator.com", "cpuiptuser000209@mailinator.com", "cpuiptuser000245@mailinator.com",
           "cpuiptuser000269@mailinator.com", "cpuiptuser000335@mailinator.com", "cpuiptuser000341@mailinator.com",

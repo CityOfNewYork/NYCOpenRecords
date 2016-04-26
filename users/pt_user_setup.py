@@ -59,7 +59,7 @@ partner_agencies = [
     "Mayor's Office of Media and Entertainment",
     "Office of Administrative Trials and Hearings",
     "Office of the Chief Medical Examiner",
-    "Office of Emergency Management",
+    "NYC Emergency Management",
     "Office of the Mayor",
 ]
 
