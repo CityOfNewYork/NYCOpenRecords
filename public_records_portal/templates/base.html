@@ -138,9 +138,15 @@ This template provides the header, footer, and envelope info for all pages excep
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </a>
+{#        {% if current_user.is_authenticed %}#}
+{#            <a class="brand" href="/view_requests"><img id="logo_nav"#}
+{#                                           src="{{ url_for('static', filename='images/logo.png') }}"#}
+{#                                           alt="{{ config['AGENCY_NAME'] }} logo"/></a>#}
+{#        {% else %}#}
             <a class="brand" href="/"><img id="logo_nav"
                                            src="{{ url_for('static', filename='images/logo.png') }}"
                                            alt="{{ config['AGENCY_NAME'] }} logo"/></a>
+{#        {% endif %}#}
 
             <div class="nav-collapse navbar-responsive-collapse collapse"
                  style="height: 0px;">

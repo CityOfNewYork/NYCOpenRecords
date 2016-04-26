@@ -50,7 +50,7 @@ agency_codes = {"City Commission on Human Rights": "228",
                 "Office of the Mayor": "002",
                 "Office of Administrative Trials and Hearings": "820",
                 "Office of the Chief Medical Examiner": "816",
-                "NYC Emergency Management": "017",
+                "Office of Emergency Management": "017",
                 None: "000"}
 
 
