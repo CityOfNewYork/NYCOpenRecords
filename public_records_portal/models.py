@@ -771,7 +771,7 @@ class Email(db.Model):
     def __init__(
         self,
         request_id,
-        recipient=None,
+        recipient,
         subject=None,
         time_sent=None,
         email_content=None

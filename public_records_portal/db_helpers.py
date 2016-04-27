@@ -178,8 +178,11 @@ def update_obj(attribute, val, obj_type=None, obj_id=None, obj=None):
             return False
     return False
 
-def create_email(request_id,recipient,subject,time_sent,email_content):
+def create_email(request_id,recipient,subject,time_sent,email_content=None):
     '''Create an Email object'''
+    #Deleting any files part of the notification_content because they are no jsonable
+    if email_content['documents']:
+        del email_content['documents']
     email = Email(request_id=request_id,recipient=recipient,subject=subject,time_sent=time_sent,email_content=email_content)
     db.session.add(email)
     db.session.commit()

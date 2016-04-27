@@ -889,6 +889,7 @@ def upload_record(
                     if index < len(documents):
                         notification_content['documents'][index] = documents[index]
                         notification_content['index'] = index
+                    del notification_content['user_id']
                     generate_prr_emails(request_id=request_id,
                                         notification_type='city_response_added',
                                         notification_content=notification_content)
