@@ -119,7 +119,7 @@ def add_resource(resource, request_body, current_user_id=None):
     department_name = \
         Department.query.filter_by(id=Request.query.filter_by(id=fields['request_id'
         ]).first().department_id).first()
-
+    department_name = department_name.name
     if 'extension' in resource:
         # extend_reasons = None
         # additional_information_list = fields.getlist('additional_information')

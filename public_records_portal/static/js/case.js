@@ -78,6 +78,7 @@
     });
 
   $('#submit').on('click',function(event){
+    $('#privacy').hide();
     form_id = '#' + $('#form_id').val();
     if (form_id === "#") {
       form_id="#submitRecord";
@@ -112,13 +113,29 @@
         }
         $(form_id).append($(emailInput));
       }
-      
+
+        if($('#release_and_public').is(':checked')){
+            // privacyInput = $('#release_and_public').val();
+            privacyInput = "release_and_public";
+        }
+        else if($('#release_and_private').is(':checked')){
+            privacyInput = "release_and_private";
+        }
+        else{
+            privacyInput = "private";
+        }
+
+        var privacy = $("<input>").attr("type","hidden").attr("name","record_privacy").val(privacyInput);
+
       if(form_id === '#submitRecord') {
-        $(form_id).submit();
+          $(form_id).append($(privacy));
+          $(form_id).submit();
       }
       else {
+        $(form_id).append($(privacy));
         $(form_id).submit();
       }
+
     }
 
     });
@@ -372,6 +389,7 @@ $('#close_filenames_list').on('click',function(){
 });
 
   $('#addRecordButton').on('click',function(){
+    $('#privacy').show();
     var formData = new FormData($("#submitRecord")[0]);
     $.ajax({
       url: "/email/email_city_response_added.html",
@@ -519,6 +537,7 @@ $('#edit_email').on('click',function(){
     });
 
 $("#cancel").on('click', function(){
+    $('#privacy').hide();
     $('.additional-note').show();
     $('#emailTextTable').show();
     document.getElementById("edit_email").style.visibility="visible";

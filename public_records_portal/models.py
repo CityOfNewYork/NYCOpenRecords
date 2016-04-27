@@ -771,10 +771,10 @@ class Email(db.Model):
     def __init__(
         self,
         request_id,
-        recipient,
-        subject,
-        time_sent,
-        email_content
+        recipient=None,
+        subject=None,
+        time_sent=None,
+        email_content=None
     ):
 
         self.request_id = request_id
