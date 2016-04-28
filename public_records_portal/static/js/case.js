@@ -1,5 +1,9 @@
 (function () {
 
+
+    // Changes the height of the modal to a protion of the screen's size
+    $('.modal-content').css('height',$( window ).height()*0.8);
+
     $('#load-more-qa').on('click', function () {
         $.getJSON('/api/request/2', function (data) {
             var html = '';
@@ -563,7 +567,4 @@ $("#cancel").on('click', function(){
      });*/
 })($);
 
-// Changes the height of the modal to a protion of the screen's size
-$('#confirm-submit').on('show.bs.modal', function () {
-    $('.modal-content').css('height',$( window ).height()*0.8);
-});
+
