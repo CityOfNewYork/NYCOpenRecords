@@ -173,7 +173,10 @@ class ResponsePresenter:
 
         elif self.type == "extension":
             # text = "Request extended on: " + str(self.response.date_created)
-            text = ("Request extended for %s days. The request is now due on " % self.response.days_after) + datetime.datetime.strftime(self.response.due_date, '%m/%d/%Y')
+            if self.response.days_after is not None and self.response.due_date is not None:
+                text = ("Request extended for %s days. The request is now due on " % self.response.days_after) + datetime.datetime.strftime(self.response.due_date, '%m/%d/%Y')
+            else:
+                text = "Request extended on: " + str(self.response.date_created)
             return text
 
     def get_icon(self):
