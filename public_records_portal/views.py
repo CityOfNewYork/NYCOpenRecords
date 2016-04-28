@@ -278,9 +278,9 @@ def new_request(passed_recaptcha=False, data=None):
                 errors['invalid_date'] = "Please use the datepicker to select a date."
 
             if not (request_first_name and request_first_name.strip()):
-                errors['missing_first_name'] = "Please enter the your first name"
+                errors['missing_first_name'] = "Please enter your first name"
             if not (request_last_name and request_last_name.strip()):
-                errors['missing_last_name'] = "Please enter the your last name"
+                errors['missing_last_name'] = "Please enter your last name"
             if 'missing_first_name' not in errors and 'missing_last_name' not in errors:
                 alias = request_first_name + " " + request_last_name
 
@@ -391,9 +391,9 @@ def new_request(passed_recaptcha=False, data=None):
 
             # Check first name and last name
             if not (request_first_name and request_first_name.strip()):
-                errors['missing_first_name'] = "Please enter the your first name"
+                errors['missing_first_name'] = "Please enter your first name"
             if not (request_last_name and request_last_name.strip()):
-                errors['missing_last_name'] = "Please enter the your last name"
+                errors['missing_last_name'] = "Please enter your last name"
             if 'missing_first_name' not in errors and 'missing_last_name' not in errors:
                 alias = request_first_name + " " + request_last_name
 
