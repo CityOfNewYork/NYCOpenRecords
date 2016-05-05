@@ -116,12 +116,16 @@ def upload_file(document, request_id, privacy=0x1):
             app.logger.error("File: %s mime type is not allowed." % document.filename)
             return False, '', "File type is not allowed."
     else:
-        file_length = len(document.read())
-        document.seek(0)
-        upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
-        if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
-            return 1, secure_filename(document.filename), "cannot_email_file"
-        return 1, secure_filename(document.filename), None
+        if allowed_file(document):
+            file_length = len(document.read())
+            document.seek(0)
+            upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
+            if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+                return 1, secure_filename(document.filename), "cannot_email_file"
+            return 1, secure_filename(document.filename), None
+        else:
+            app.logger.error("File: %s mime type is not allowed." % document.filename)
+            return False, '', "File type is not allowed."
 
 
 def scan_file(document, file_length):
@@ -260,10 +264,13 @@ def allowed_file(file):
     :param file: pass in a file that will be checked for allowed mimetype
     :return: True if the mimetype is allowed or False if its not allowed
     """
-    mimetype = magic.detect_from_content(file.read()).mime_type
-    app.logger.info("\n\nMimetype: %s" % mimetype)
+    if app.config['MAGIC_FILE'] != '':
+        f = magic.Magic(magic_file=app.config['MAGIC_FILE'], mime=True)
+    else:
+        f = magic.Magic(mime=True)
+    mimetype = f.from_buffer(file.read())
     file.seek(0)
-    # Loops through the ALLOWED_MIMETYPES list and checks if the file's mimetype is inside
-    if mimetype in ALLOWED_MIMETYPES:
-        return True
-    return False
+    app.logger.info("\n\nMimetype: " + mimetype)
+    for m in ALLOWED_MIMETYPES:
+        if m in mimetype:
+            return True

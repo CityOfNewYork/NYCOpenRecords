@@ -60,6 +60,7 @@ def set_env(key, default=None):
 set_env(key='TIMEZONE', default=pytz.timezone(str(get_localzone())))
 
 # Set rest of the variables that don't have defaults:
+
 envvars = [
     # Application Settings
     'AGENCY_NAME',  # City Government Name
@@ -112,6 +113,7 @@ envvars = [
     'ICAP_PROFILE_NAME', # ICAP Profile
     'ICAP_VERSION', # ICAP Protocol Version used
     'SHOULD_SCAN_FILES', # Should files be scanned using ICAP
+    'MAGIC_FILE', #
     'MAX_FILE_SIZE', # Maximum file size for upload
     'MAX_EMAIL_ATTACHMENT_SIZE', # Maximum file size for email attachments
 
@@ -127,7 +129,6 @@ envvars = [
     'PERMANENT_SESSION_LIFETIME', # How long should a session last
 
 ]
-
 for envvar in envvars:
     set_env(key=envvar)
 
