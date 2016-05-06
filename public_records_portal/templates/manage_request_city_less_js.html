@@ -71,7 +71,7 @@
         $("#record").on('change', function (e, data) {
             $('#file_errors').empty();
             $('#file_errors').hide();
-            
+
             var names = [];
 
             if ($("input[name=record]") && $("input[name=record]").get(0) && $("input[name=record]").get(0).files) {
@@ -93,14 +93,14 @@
                 node.append('<td class="title">');
                 node.append('<label>Title: <input class="title_text" name="title[]" required></label>');
                 node.append('<div class="alert alert-danger" id="missing_title" style="display:none;">All records require a Title</div>');
-{#                node.append('<div class="alert alert-warning id="cannot_email_file" style="display: none;">This file is too large to email to the requester</div>');#}
+                {#                node.append('<div class="alert alert-warning id="cannot_email_file" style="display: none;">This file is too large to email to the requester</div>');#}
                 node.append('</td>');
                 node.append('<tr>');
-{#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
+                {#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
                 node.append('</tr>')
-                node.append('<tr>')
-                node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
-                node.append('</tr>')
+{#                node.append('<tr>')#}
+{#                node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');#}
+{#                node.append('</tr>')#}
                 if (!index) {
                     node
                             .append('<br>')
@@ -124,32 +124,39 @@
                         type: 'POST',
                         data: formData,
                         async: false,
+                        xhr: function () {  // Custom XMLHttpRequest
+                            var myXhr = $.ajaxSettings.xhr();
+                            if (myXhr.upload) { // Check if upload property exists
+                                myXhr.upload.addEventListener('progress', progressHandlingFunction, false); // For handling the progress of the upload
+                            }
+                            return myXhr;
+                        },
                         success: function (data) {
                             var errorsCount = 0;
                             if (typeof (data['errors']) != 'undefined') {
                                 document_upload_errors = data['errors'];
                                 $.each(document_upload_errors, function (document_name, errors) {
                                     $.each(errors, function (index, error) {
-                                      $('div[name="' + document_name.replace(/_/g," ") + '"]' ).text(error);
-                                      $('div[name="' + document_name.replace(/_/g," ") + '"]' ).show();
-                                      $('#file_errors').text(document_name + ": " + error);
-                                      $('#file_errors').show();
-                                      if(errors === '') {
-                                      }
-                                      else {
-                                        $('div[name="' + document_name.replace(/_/g," ") + '"]' ).parent().remove();
-                                        //$("input[name=record]").get(0).files[0].remove();
-                                        //$('button[name="' + document_name.replace(/_/g," ") + '"]' ).click();
-                                      }
+                                        $('div[name="' + document_name.replace(/_/g, " ") + '"]').text(error);
+                                        $('div[name="' + document_name.replace(/_/g, " ") + '"]').show();
+                                        $('#file_errors').text(document_name + ": " + error);
+                                        $('#file_errors').show();
+                                        if (errors === '') {
+                                        }
+                                        else {
+                                            $('div[name="' + document_name.replace(/_/g, " ") + '"]').parent().remove();
+                                            //$("input[name=record]").get(0).files[0].remove();
+                                            //$('button[name="' + document_name.replace(/_/g," ") + '"]' ).click();
+                                        }
                                     });
 
                                 });
                                 document_upload_warnings = data['warnings'];
                                 $.each(document_upload_warnings, function (document_name, warnings) {
                                     $.each(warnings, function (index, warning) {
-                                      $('div[name="' + document_name.replace(/_/g," ") + '"]' ).text(warning);
-                                      $('div[name="' + document_name.replace(/_/g," ") + '"]' ).show();
-                                      $('#addAsEmailAttachment_1').hide();
+                                        $('div[name="' + document_name.replace(/_/g, " ") + '"]').text(warning);
+                                        $('div[name="' + document_name.replace(/_/g, " ") + '"]').show();
+                                        $('#addAsEmailAttachment_1').hide();
                                     });
 
                                 });
@@ -188,5 +195,10 @@
 
             })
         });
+        function progressHandlingFunction(e) {
+            if (e.lengthComputable) {
+                $('progress').attr({value: e.loaded, max: e.total});
+            }
+        }
     </script>
 {% endblock custom_script_links %}

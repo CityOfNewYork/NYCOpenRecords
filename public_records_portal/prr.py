@@ -815,7 +815,7 @@ def upload_multiple_records(request_id, description, user_id, request_body, docu
                          department_name, titles)
 
 
-### @export "upload_record"
+
 def upload_record(
         request_id,
         description,
@@ -880,7 +880,6 @@ def upload_record(
         return 'The upload timed out, please try again.'
 
     if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
-        import pdb; pdb.set_trace()
         if len(addAsEmailAttachmentList) > 0:
             notification_content['documents'] = documents
             for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
