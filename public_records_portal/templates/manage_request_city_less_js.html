@@ -151,15 +151,6 @@
                                     });
 
                                 });
-                                document_upload_warnings = data['warnings'];
-                                $.each(document_upload_warnings, function (document_name, warnings) {
-                                    $.each(warnings, function (index, warning) {
-                                        $('div[name="' + document_name.replace(/_/g, " ") + '"]').text(warning);
-                                        $('div[name="' + document_name.replace(/_/g, " ") + '"]').show();
-                                        $('#addAsEmailAttachment_1').hide();
-                                    });
-
-                                });
                             }
 
                             var release_and_public_record = $('#release_and_public').is(":checked");
