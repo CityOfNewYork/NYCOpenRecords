@@ -64,12 +64,6 @@ app.config['SESSION_COOKIE_SECURE'] = True
 zip_reg_ex = re.compile('^[0-9]{5}(?:-[0-9]{4})?$')
 
 
-@app.before_first_request
-def create_user():
-    app.logger.info("def create_user()")
-    db.create_all()
-
-
 # @app.before_request
 # def make_session_permanent():
 #    app.permanent_session_lifetime = timedelta(minutes=180)
@@ -769,7 +763,7 @@ def add_a_resource(resource):
                 notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
                 if "attach_single_email_attachment" in req:
                     notification_content['attach_single_email_attachment'] = "true"
-                if "addAsEmailAttachment_1" not in req:
+                if "addAsEmailAttachment_1" not in req and req['record_privacy'] != 'private':
                     generate_prr_emails(request_id=req['request_id'],
                                 notification_content=notification_content,
                                 notification_type='city_response_added')

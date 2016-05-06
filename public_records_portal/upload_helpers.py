@@ -17,7 +17,6 @@ from models import RecordPrivacy
 from public_records_portal import app
 
 ALLOWED_MIMETYPES = [
-                    'application/octet-stream',
                     'video/x-msvideo',
                     'image/x-ms-bmp',
                     'application/msword',

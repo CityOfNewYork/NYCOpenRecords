@@ -805,7 +805,6 @@ def upload_multiple_records(request_id, description, user_id, request_body, docu
     # for document in documents:
     #    upload_record(request_id, titles[titleIndex], user_id, request_body, document, privacy, department_name)
     app.logger.info("def upload_multiple_records")
-
     documents_size = 0
     for document in documents:
         documents_size += len(document.read())
@@ -881,6 +880,7 @@ def upload_record(
         return 'The upload timed out, please try again.'
 
     if privacy in [RecordPrivacy.RELEASED_AND_PUBLIC, RecordPrivacy.RELEASED_AND_PRIVATE]:
+        import pdb; pdb.set_trace()
         if len(addAsEmailAttachmentList) > 0:
             notification_content['documents'] = documents
             for index, addAsEmailAttachment in enumerate(addAsEmailAttachmentList):
@@ -888,6 +888,10 @@ def upload_record(
                     # attached_file = app.config['UPLOAD_FOLDER'] + '/' + filename
                     if index < len(documents):
                         notification_content['documents'][index] = documents[index]
+                        document_size = documents[index].read()
+                        documents[index].seek(0)
+                        if document_size > app.config['MAX_EMAIL_ATTACHMENT_SIZE']:
+                            return 1
                         notification_content['index'] = index
                     del notification_content['user_id']
                     generate_prr_emails(request_id=request_id,
