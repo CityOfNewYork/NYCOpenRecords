@@ -1469,7 +1469,7 @@ def change_record_privacy(record_id, request_id, privacy):
         privacy = RecordPrivacy.PRIVATE
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
-    '''app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
+    app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         app.logger.info("Making %s public" % record.filename)
         if not os.path.isdir(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id):
@@ -1492,7 +1492,7 @@ def change_record_privacy(record_id, request_id, privacy):
             subprocess.call(
                 ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
                  app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])'''
+                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 

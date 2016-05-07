@@ -756,7 +756,7 @@ def add_a_resource(resource):
                 notification_content = {}
                 notification_content['email_text'] = Markup(req['email_text']).unescape()
                 released_filename = re.split(':', Markup(req['email_text']).unescape())
-                released_filename = released_filename[len(released_filename) - 1].replace(u'</p>',u'')
+                released_filename = released_filename[len(released_filename) - 1].replace(u'</p>', u'')
                 app.logger.info("RELEASED:" + released_filename)
                 #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
