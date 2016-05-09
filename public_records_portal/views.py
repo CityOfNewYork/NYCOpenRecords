@@ -1692,10 +1692,10 @@ def login():
 @app.route("/attachments/<string:privacy>/<string:request_id>/<string:resource>", methods=["GET"])
 def get_attachments(privacy, request_id, resource):
     app.logger.info("def get_attachments(privacy, request_id, resource):")
-    if privacy == 'public':
+    if privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         directory = app.config["UPLOAD_PUBLIC_LOCAL_FOLDER"] + "/" + request_id
         return send_from_directory(directory, resource, as_attachment=True)
-    if privacy == 'private':
+    if privacy in RecordPrivacy.RELEASED_AND_PRIVATE or RecordPrivacy.PRIVATE:
         directory = app.config["UPLOAD_PRIVATE_LOCAL_FOLDER"] + "/" + request_id
         return send_from_directory(directory, resource, as_attachment=True)
 
