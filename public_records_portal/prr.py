@@ -1458,6 +1458,7 @@ def change_privacy_setting(request_id, privacy, field):
 def change_record_privacy(record_id, request_id, privacy):
     app.logger.info("def change_record_privacy")
     record = get_obj("Record", record_id)
+    previous_privacy = record.privacy
     if privacy == 'release_and_public' or privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         privacy = RecordPrivacy.RELEASED_AND_PUBLIC
         release_date = cal.addbusdays(datetime.now(), int(app.config['DAYS_TO_POST']))
@@ -1468,7 +1469,6 @@ def change_record_privacy(record_id, request_id, privacy):
     else:
         privacy = RecordPrivacy.PRIVATE
         update_obj(attribute="release_date", val=None, obj_type="Record", obj_id=record.id)
-    update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
     app.logger.info('Syncing privacy changes to %s' % app.config['PUBLIC_SERVER_HOSTNAME'])
     if record.filename and privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         app.logger.info("Making %s public" % record.filename)
@@ -1484,15 +1484,16 @@ def change_record_privacy(record_id, request_id, privacy):
                              app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
-    elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE) and record.privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
-        app.logger.info("Making %s private" % record.filename)
-        shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
-                    app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
-        if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
-            subprocess.call(
-                ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
-                 app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
-                     'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
+    elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
+        if previous_privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
+            app.logger.info("Making %s private" % record.filename)
+            shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
+                        app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
+            if app.config['PUBLIC_SERVER_HOSTNAME'] is not None:
+                subprocess.call(
+                    ["rsync", "-avzh", "--delete", app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
+                     app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' + app.config[
+                         'UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
 
     update_obj(attribute="privacy", val=privacy, obj_type="Record", obj_id=record.id)
 
