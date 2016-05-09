@@ -1484,7 +1484,7 @@ def change_record_privacy(record_id, request_id, privacy):
                              app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/",
                              app.config['PUBLIC_SERVER_USER'] + '@' + app.config['PUBLIC_SERVER_HOSTNAME'] + ':' +
                              app.config['UPLOAD_PUBLIC_REMOTE_FOLDER'] + "/" + request_id + "/"])
-    elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE):
+    elif record.filename and (privacy == RecordPrivacy.RELEASED_AND_PRIVATE or privacy == RecordPrivacy.PRIVATE) and record.privacy == RecordPrivacy.RELEASED_AND_PUBLIC:
         app.logger.info("Making %s private" % record.filename)
         shutil.move(app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename,
                     app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + record.filename)
