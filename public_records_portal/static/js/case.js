@@ -146,10 +146,12 @@
 
             if (form_id === '#submitRecord') {
                 $(form_id).append($(privacy));
+                sessionStorage.clear();
                 $(form_id).submit();
             }
             else {
                 $(form_id).append($(privacy));
+                sessionStorage.clear();
                 $(form_id).submit();
             }
 
