@@ -39,7 +39,7 @@
                 <!-- Request Details -->
                 <div class="row-fluid">
                     <h3 class="control-widget">
-                        <span class="muted">
+                        <span class="muted" id="request_id">
                            {{req.id}}
                         </span>
                         {% if req %}
@@ -169,7 +169,7 @@
                                                 Private
                                             </div>
                                         </div>
-                                    </div>a
+                                    </div>
 				    {% else %}
 					<input type="hidden" id="private" name="record_privacy" value="private">
 				    {% endif %}
@@ -191,7 +191,7 @@
                                     <br/><br/> 
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">Cancel</button>
+                                    <a href="/city/request/{{ req.id }}" class="btn btn-default">Cancel</a>
                                     <a href="#" id="submit" class="btn btn-success success">Submit</a>
                                 </div>
                             </div>
@@ -220,7 +220,7 @@
                                     </table>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">Cancel</button>
+                                        <a href="/city/request/{{ req.id }}" class="btn btn-default">Cancel</a>
                                         <a href="#" id="submitAgencyDescription" class="btn btn-success success">Submit</a>
                                     </div>
                                 </form>
@@ -472,7 +472,12 @@
 <script type="text/javascript"
         src="{{ url_for('static', filename='js/plugins/jquery.ellipsis.js') }}"></script>
 
-
+<script type="text/javascript">
+function reload_page()
+{
+    window.location.href = "http://www.google.com";
+}
+</script>
 {% endblock custom_script_links %}
 
 
