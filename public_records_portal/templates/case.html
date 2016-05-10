@@ -145,6 +145,7 @@
                                             <input type="hidden" id="form_id" value=""/>
                                         </tr>
                                     </table>
+                                    {% if current_user.role != 'Agency Helpers' %}
                                     <div class="control-group" id="privacy" style="display:None;">
                                         <div class="controls">
                                             <p>Privacy Options:</p>
@@ -168,20 +169,26 @@
                                                 Private
                                             </div>
                                         </div>
-                                    </div>
-
+                                    </div>a
+				    {% else %}
+					<input type="hidden" id="private" name="record_privacy" value="private">
+				    {% endif %}
                                     <table id="emailTextTable" class="table">
                                         <tr>
                                            <label class="radio inline" for="privacy setting-0">
 {#                                           <input class="addAsEmail" type="checkbox" id="addSingleEmailAttachment" name="addSingleEmailAttachment" style#}
 {#="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;">Add to email</input>#}
                                     </label>
+					{% if current_user.role != 'Agency Helpers' %}
                                             <div><b><button id="edit_email" class="btn btn-default" type="button">Edit Email</button></b><br></div>
                                                 <textarea name="email_text" id="email_text" rows="10" cols="80" disabled style="display:None;">This is my textarea to be replaced with CKEditor.</textarea>
+                                        {% else %}
+<textarea name="email_text" id="email_text" rows="10" cols="80" style='display: none;'>This is my textarea to be replaced with CKEditor.</textarea>
+{% endif %}
                                         </tr>
 
                                     </table>
-                                    <br/><br/>
+                                    <br/><br/> 
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel">Cancel</button>
