@@ -299,13 +299,13 @@
                                     {% if req.title_private %}
                                     <label class="radio inline" for="privacy setting-0">
                                         <input type="radio" name="privacy setting" id="privacy setting-0" value="False"
-                                               type="submit">
+                                               type="submit" onclick="this.form.submit()">
                                         {# Value set to False means public#}
                                         Public
                                     </label>
                                     <label class="radio inline" for="privacy setting-1">
                                         <input type="radio" name="privacy setting" id="privacy setting-1" value="True"
-                                               type="submit" checked>
+                                               type="submit" onclick="this.form.submit()" checked>
                                         {# Value set to True means private#}
                                         Private
                                     </label>
@@ -313,13 +313,13 @@
                                     {% elif req.title_private==False %}
                                     <label class="radio inline" for="privacy setting-0">
                                         <input type="radio" name="privacy setting" id="privacy setting-0" value="False"
-                                               type="submit" checked>
+                                               type="submit" onclick="this.form.submit()" checked>
                                         {# Value set to False means public#}
                                         Public
                                     </label>
                                     <label class="radio inline" for="privacy setting-1">
                                         <input type="radio" name="privacy setting" id="privacy setting-1" value="True"
-                                               type="submit">
+                                               type="submit" onclick="this.form.submit()">
                                         {# Value set to True means private#}
                                         Private
                                     </label>

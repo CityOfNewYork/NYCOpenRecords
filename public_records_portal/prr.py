@@ -1441,7 +1441,7 @@ def change_privacy_setting(request_id, privacy, field):
     req = get_obj('Request', request_id)
     if (req.description_private == True and privacy == u'True') or (req.title_private == True and privacy == u'True'):
         if req.agency_description == None or req.agency_description == u'':
-            return "An Agency Description must be provided if both the description and title are set to private"
+            return "An Agency Description must be provided if the title is set to private"
     if field == 'title':
         # Set the title to private
         update_obj(attribute='title_private', val=privacy,
