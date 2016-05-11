@@ -1107,8 +1107,10 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
     request_id_search = None
 
     if filters_map:
-        departments_selected = get_filter_value(filters_map=filters_map, filter_name='departments_selected',
+        departments_selected_filter = get_filter_value(filters_map=filters_map, filter_name='departments_selected',
                                                     is_list=True) or get_filter_value(filters_map, 'department')
+        if departments_selected_filter is not None:
+            departments_selected = departments_selected_filter
         # departments_selected = bleach.clean(departments_selected);
         app.logger.info("Department Selected: %s" % departments_selected)
         is_open = get_filter_value(filters_map=filters_map, filter_name='is_open', is_boolean=True)
@@ -1210,8 +1212,6 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
             end_index = num_results
 
     results = results.limit(limit).offset(offset).all()
-    if current_user.role in ['Agency FOIL Officer', 'Agency Helpers']:
-        results[:] = [result for result in results if current_user.department_id == result.department_id]
     requests = prepare_request_fields(results=results)
 
     if output_results_only == True:  # Used by json_requests()
