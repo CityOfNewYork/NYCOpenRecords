@@ -193,10 +193,6 @@ def new_request(passed_recaptcha=False, data=None):
             request_summary = strip_html(request_summary)
             request_text = form.request_text.data
             request_text = strip_html(request_text)
-            request_attachment_description = form.request_attachment_description.data
-            request_attachment_description = strip_html(request_attachment_description)
-            request_attachment = form.request_attachment.data
-            request_attachment = strip_html(request_attachment)
             request_format = form.request_format.data
             request_format = strip_html(request_format)
             request_date = form.request_date.data
@@ -239,18 +235,6 @@ def new_request(passed_recaptcha=False, data=None):
                 errors['missing_description'] = 'You must enter a description for this request'
             elif len(request_summary) > 5000:
                 errors['description_length'] = 'The request description must be less than 5000 characters'
-
-            # Check Attachment
-            try:
-                request_attachment = request.files['request_attachment']
-            except:
-                app.logger.info("\n\nNo file passed in")
-
-            if request_attachment_description and not (request_attachment):
-                errors['missing_attachment'] = 'Please select a file to upload as attachment.'
-
-            if not (request_text and request_text.strip()):
-                errors['missing_attachment_description'] = 'Please fill out the request description.'
 
             # Check Format
             if not (request_format and request_format.strip()):
@@ -308,8 +292,8 @@ def new_request(passed_recaptcha=False, data=None):
                     agency=request_agency,
                     summary=request_summary,
                     text=request_text,
-                    attachment=request_attachment,
-                    attachment_description=request_attachment_description,
+                    attachment=None,
+                    attachment_description=None,
                     offline_submission_type=request_format,
                     date_received=request_date,
                     first_name=request_first_name,
@@ -671,7 +655,10 @@ def show_email(template_name, errors=None, form=None):
     department = models.Department.query.filter_by(id=req.department_id).first()
     agency_app_url = app.config['AGENCY_APPLICATION_URL']
     public_app_url = app.config['PUBLIC_APPLICATION_URL']
-    page = '%scity/request/%s' % (agency_app_url, request_id)
+    if "agency" in template_name:
+        page = '%scity/request/%s' % (agency_app_url, request_id)
+    else:
+        page= '%srequest/%s' % (public_app_url, request_id)
     unfollow_link = '%sunfollow/%s/' % (public_app_url, request_id)
     return render_template('edit_templates/' + template_name, department=department, page=page, unfollow_link=unfollow_link, acknowledge_status=acknowledge_status, due_date=due_date_str, close_reasons=close_reasons)
 
