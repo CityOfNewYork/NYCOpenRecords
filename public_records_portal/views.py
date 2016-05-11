@@ -1210,7 +1210,10 @@ def fetch_requests(output_results_only=False, filters_map=None, date_format='%Y-
             end_index = num_results
 
     results = results.limit(limit).offset(offset).all()
+    if current_user.role in ['Agency FOIL Officer', 'Agency Helpers']:
+        results[:] = [result for result in results if current_user.department_id == result.department_id]
     requests = prepare_request_fields(results=results)
+
     if output_results_only == True:  # Used by json_requests()
         return requests, num_results, more_results, start_index, end_index
 
