@@ -124,13 +124,6 @@
 
                     var formData = new FormData($("#submitRecord")[0]);
 
-                    function wait(ms){
-                        var start = new Date().getTime();
-                        var end = start;
-                        while(end<start + ms){
-                            end = new Date().getTime();
-                        }
-                    }
 
                     $.ajax({
                         url: '/upload_document',
@@ -145,7 +138,6 @@
                             return myXhr;
                         },
                         success: function (data) {
-                            wait(10000);
                             var errorsCount = 0;
                             if (typeof (data['errors']) != 'undefined') {
                                 document_upload_errors = data['errors'];

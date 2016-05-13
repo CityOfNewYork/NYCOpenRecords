@@ -429,9 +429,11 @@
         $('#file_upload_four').empty();
     });
 
+
     $('#addRecordButton').on('click', function () {
         $('#privacy').show();
         var formData = new FormData($("#submitRecord")[0]);
+        $('#submit').hide();
         $.ajax({
             url: "/email/email_city_response_added.html",
             type: 'POST',
@@ -439,10 +441,7 @@
             contentType: false,
             data: formData,
             success: function (data) {
-                if ($('#release_and_public').is(':checked')) {
-                    $('#addSingleEmailAttachment').hide();
-                    $('#addAsEmailAttachment_label').hide();
-                }
+                $('#submit').show();
                 $('#modalAdditionalInfoTable').hide();
                 $('#form_id').val('submitRecord');
                 var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
@@ -454,6 +453,8 @@
                 $('#emailTextTable').hide();
                 $('#modalquestionDiv').text(modalQuestion);
                 $('#modalQuestionTable').hide();
+
+                // setTimeout(wait, 5000);
             },
             error: function (data) {
                 alert('fail.');
