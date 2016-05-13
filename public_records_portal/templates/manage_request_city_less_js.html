@@ -101,7 +101,7 @@
                 node.append('<div class="alert alert-warning id="cannot_email_file" style="display: none;">This file is too large to email to the requester</div>');
                 node.append('</td>');
                 node.append('<tr>');
-                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');
+{#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
                 node.append('</tr>')
                 node.append('<tr>')
                 node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
@@ -148,6 +148,7 @@
                                         $('#file_errors').text(document_name + ": " + error);
                                         $('#file_errors').show();
                                         if (errors === '') {
+
                                         }
                                         else {
                                             $('div[name="' + document_name.replace(/_/g, " ") + '"]').parent().remove();
@@ -157,6 +158,14 @@
                                     });
 
                                 });
+{#                                document_upload_warnings = data['warnings'];#}
+{#                                $.each(document_upload_warnings, function (document_name, warnings) {#}
+{#                                    $.each(warnings, function (index, warning) {#}
+{#                                      $('div[name="' + document_name.replace(/_/g," ") + '"]' ).text(warning);#}
+{#                                      $('div[name="' + document_name.replace(/_/g," ") + '"]' ).show();#}
+{#                                        $('#')#}
+{#                                    });#}
+{#                                });#}
                             }
 
                             var release_and_public_record = $('#release_and_public').is(":checked");
