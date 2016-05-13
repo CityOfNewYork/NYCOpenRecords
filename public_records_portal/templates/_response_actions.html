@@ -693,28 +693,28 @@
                                         <option value="30">30 business days</option>
                                         <option value="60">60 business days</option>
                                         <option value="90">90 business days</option>
-{#                                        <option value="-1">Custom Due Date</option>#}
+                                        <option value="-1">Custom Due Date</option>
                                     </select>
                                 </div>
                             </div>
-{#                            <div class="control-group" style="display:none;"#}
-{#                                 id="custom_due_date">#}
-{#                                <label class="control-label">Custom Due Date<!-- <span#}
-{#                                        rel="tooltip" data-toggle="tooltip"#}
-{#                                        data-placement="right" title=""#}
-{#                                        data-original-title="{{ 'Request an extension'| explain_action }}">#}
-{#                                <small><i class="icon-info-sign"></i></small>#}
-{#                                </span> --></label>#}
-{##}
-{#                                <div class="controls">#}
-{#                                    <input type="text" id="datepicker"#}
-{#                                           name="due_date"#}
-{#                                           value="{{ min_due_date }}"#}
-{#                                    >#}
-{#                                </div>#}
+                            <div class="control-group" style="display:none;"
+                                 id="custom_due_date">
+                                <label class="control-label">Custom Due Date<!-- <span
+                                        rel="tooltip" data-toggle="tooltip"
+                                        data-placement="right" title=""
+                                        data-original-title="{{ 'Request an extension'| explain_action }}">
+                                <small><i class="icon-info-sign"></i></small>
+                                </span> --></label>
+
+                                <div class="controls">
+                                    <input type="text" id="datepicker"
+                                           name="due_date"
+                                           value="{{ min_due_date }}"
+                                    >
+                                </div>
 {#                                <p>Date: <input type="text" id="datepicker">12345</p>#}
-{##}
-{#                            </div>#}
+
+                            </div>
                             <div class="control-group">
                                 <div class="controls">
                                     <button id="extendButton" data-toggle="modal"

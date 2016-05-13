@@ -379,7 +379,10 @@ def request_extension(
     app.logger.info("def request_extension()")
     req = Request.query.get(request_id)
     due_date = req.due_date
-    req.extension(days_after)
+    if days_after == -1:
+        req.extension(days_after=None, custom_due_date=request_body['due_date'])
+    else:
+        req.extension(days_after)
     user = User.query.get(user_id)
     user_name = user.alias
     text = 'Request extended:'
