@@ -1,5 +1,8 @@
 (function () {
 
+    // if ($('#record').record('active') > 0){
+    //     alert("Actively uploading"):
+    // }
 
     // Changes the height of the modal to a protion of the screen's size
     $('.modal-content').css('height', $(window).height() * 0.8);

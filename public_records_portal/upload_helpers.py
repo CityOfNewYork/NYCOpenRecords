@@ -64,7 +64,7 @@ def upload_multiple_files(documents, request_id):
     :param request_id: FOIL Request ID Number
     :return: None
     """
-    app.logger.info("def upload_multipl_files")
+    app.logger.info("def upload_multiple_files")
     for document in documents:
         upload_file(document=document, request_id=request_id)
 

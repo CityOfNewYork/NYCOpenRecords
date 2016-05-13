@@ -69,8 +69,13 @@
                 });
 
         $("#record").on('change', function (e, data) {
+
+
+
             $('#file_errors').empty();
             $('#file_errors').hide();
+
+
 
             var names = [];
 
@@ -93,14 +98,14 @@
                 node.append('<td class="title">');
                 node.append('<label>Title: <input class="title_text" name="title[]" required></label>');
                 node.append('<div class="alert alert-danger" id="missing_title" style="display:none;">All records require a Title</div>');
-                {#                node.append('<div class="alert alert-warning id="cannot_email_file" style="display: none;">This file is too large to email to the requester</div>');#}
+                node.append('<div class="alert alert-warning id="cannot_email_file" style="display: none;">This file is too large to email to the requester</div>');
                 node.append('</td>');
                 node.append('<tr>');
-                {#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
+                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');
                 node.append('</tr>')
-{#                node.append('<tr>')#}
-{#                node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');#}
-{#                node.append('</tr>')#}
+                node.append('<tr>')
+                node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
+                node.append('</tr>')
                 if (!index) {
                     node
                             .append('<br>')
@@ -119,6 +124,14 @@
 
                     var formData = new FormData($("#submitRecord")[0]);
 
+                    function wait(ms){
+                        var start = new Date().getTime();
+                        var end = start;
+                        while(end<start + ms){
+                            end = new Date().getTime();
+                        }
+                    }
+
                     $.ajax({
                         url: '/upload_document',
                         type: 'POST',
@@ -132,6 +145,7 @@
                             return myXhr;
                         },
                         success: function (data) {
+                            wait(10000);
                             var errorsCount = 0;
                             if (typeof (data['errors']) != 'undefined') {
                                 document_upload_errors = data['errors'];
@@ -156,7 +170,10 @@
                             var release_and_public_record = $('#release_and_public').is(":checked");
                             var release_and_private_record = $('#release_and_private').is(":checked");
                             var private_record = $('#private').is(":checked");
+{#                            return false;#}
                             var currentFiles = $('#files').innerHTML;
+{#                            return true;#}
+{#                            control.disabled="enabled";#}
                             //$('#files p').remove();
                             //$('#add_record').load($('li.active a[data-toggle="tab"]').attr('href'));
                             $('#files').replaceWith($('#files').clone(true).val(''));
@@ -166,7 +183,6 @@
                                 //this.reset();
 
                                 $('#files').innerHTML = currentFiles;
-
                                 if (release_and_public_record) {
                                     $('#release_and_public').prop('checked', true);
                                 }
