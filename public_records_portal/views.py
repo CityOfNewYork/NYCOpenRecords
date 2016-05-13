@@ -647,7 +647,7 @@ def show_email(template_name, errors=None, form=None):
     if due_date == '' or due_date is None:
         if days_after is not None:
             due_date = cal.addbusdays(req.due_date, days_after)
-            due_date_str = str(req.due_date).split(' ')[0]
+            due_date_str = str(due_date).split(' ')[0]
 
     if request.form.get('close_reasons') != '' and request.form.get('close_reasons') is not None:
         close_reasons = request.form.get('close_reasons')
