@@ -263,6 +263,8 @@ def allowed_file(file):
     :param file: pass in a file that will be checked for allowed mimetype
     :return: True if the mimetype is allowed or False if its not allowed
     """
+    if file.filename == u'':
+        return True
     if app.config['MAGIC_FILE'] != '':
         f = magic.Magic(magic_file=app.config['MAGIC_FILE'], mime=True)
     else:

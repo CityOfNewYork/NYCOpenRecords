@@ -211,7 +211,7 @@
                 success: function (data) {
                     $('#form_id').val('AcknowledgeNote');
                     var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-                    modalQuestion += '' + $('#acknowledge_status').val();
+                    modalQuestion += ' ' + $('#acknowledge_status').val();
                     $('#modalquestionDiv').html(modalQuestion);
                     $('#modalQuestionTable').hide();
                     CKEDITOR.replace('email_text');
@@ -340,6 +340,7 @@
     });
 
     $('.privacy_radio').on('click', function () {
+        console.log("Changing privacy");
         if (this.id === "release_and_public" || this.id === "release_and_private") {
             var privacy_setting = this.id.toString();
             var $this = $(this);

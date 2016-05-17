@@ -273,8 +273,8 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                     app.logger.info('''E-mail sent successfully!''')
                 elif "released_filename" in notification_content:
                     released_filename = None
-                    if "attach_single_email_attachment" in notification_content:
-                        released_filename = notification_content['released_filename']
+                    # if "attach_single_email_attachment" in notification_content:
+                    released_filename = notification_content['released_filename']
 
                     send_email(
                         body=render_template(
@@ -376,8 +376,8 @@ def send_email(
     if send_emails:
         app.logger.info('''
 
- Attempting to send e-mail with body: %s, subject: %s, to %s'''
-                        % (body, subject, recipients))
+ Attempting to send e-mail with subject: %s, to %s'''
+                        % (subject, recipients))
         try:
             mail.send(message)
             return True
