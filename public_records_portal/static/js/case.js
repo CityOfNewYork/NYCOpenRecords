@@ -469,6 +469,7 @@
         }
     });
 
+    //Check if all the required fields are filled out.
     $("[data-toggle='modal']").click(function (e) {
         if (this.id === "addRecordButton") {
             var titleTexts = $('.title_text');
@@ -480,6 +481,9 @@
                     e.stopPropagation();
                 }
             });
+            if ($('#recordSummary').val() === ''  && $('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() == '') {
+                alert("missing field");
+            }
         }
     });
 

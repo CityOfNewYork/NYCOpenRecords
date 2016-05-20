@@ -497,12 +497,12 @@ def explain_all_actions():
 
 
 @app.route("/<string:audience>/request/<string:request_id>")
-def show_request_for_x(audience, request_id):
+def show_request_for_x(audience, request_id, errors=None):
     app.logger.info("def show_request_for_x(audience, request_id):")
     proper_request_id = re.match("FOIL-\d{4}-\d{3}-\d{5}", request_id)
     if proper_request_id:
         if "city" in audience:
-            return show_request_for_city(request_id=request_id)
+            return show_request_for_city(request_id=request_id, errors=errors)
         return show_request(request_id=request_id, template="manage_request_%s.html" % (audience))
     return bad_request(400)
 
@@ -739,6 +739,12 @@ def add_a_resource(resource):
             return add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
         # Field validation for adding a recored
         elif resource == 'record_and_close':
+            #Error checking for link, url, record access
+            if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
+                errors[
+                    'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
+            if not ((req['record_description'])) and req['link_url']:
+                errors['missing_record_description'] = "Please include a name for this record"
             if "email_text" in req:
                 notification_content = {}
                 notification_content['email_text'] = Markup(req['email_text']).unescape()
@@ -754,14 +760,9 @@ def add_a_resource(resource):
                     generate_prr_emails(request_id=req['request_id'],
                                 notification_content=notification_content,
                                 notification_type='city_response_added')
-            else:
-                if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
-                    errors[
-                        'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-                if not ((req['record_description'])) and req['link_url']:
-                    errors['missing_record_description'] = "Please include a name for this record"
 
 
+        # if request.files['record'].filename != u'':
         files = request.files.getlist('record')
         titles = request.form.getlist('title[]')
 
@@ -778,8 +779,12 @@ def add_a_resource(resource):
                     update_obj(attribute="description", val=title, obj_type='Record', obj_id=existing_record.id)
                     resource_id = 1
                 else:
-                    resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
-                    app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
+                    #Test that an actual file was uploaded by looking for the filename
+                    if file.filename == u'':
+                        resource_id = 2
+                    else:
+                        resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
+                        app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
 
                 if type(resource_id) == int or str(resource_id).isdigit():
                     requestObj = get_obj("Request", req['request_id'])
@@ -797,8 +802,12 @@ def add_a_resource(resource):
                         audience = 'public'
 
                     template = "manage_request_%s_less_js.html" % audience
-                    app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
+                    if resource_id != 2:
+                        app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
+                    else:
+                        app.logger.info("\n\nUnable to add resource because of the following errors: %s " % (errors))
                     if resource == 'record_and_close':
+                        redirect(url_for('show_request_for_x', audience='city', request_id=req['request_id']))
                         return show_request(request_id=req['request_id'],
                                             template=template, errors=errors,
                                             form=req, file=request.files['record'])
