@@ -275,3 +275,5 @@ def allowed_file(file):
     for m in ALLOWED_MIMETYPES:
         if m in mimetype:
             return True
+    #returns false if the file's mimetype doesn't match any of the allowed mimtypes
+    return False

@@ -418,8 +418,10 @@
                   action="/add_a_record_and_close" autocomplete="on"
                   enctype="multipart/form-data">
                 <input type="hidden" name="audience" value="city"/>
-                <input type="hidden" name="switchprivacy" value="switchprivacy"/>
                 <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
+                <div class="alert alert-danger" id="missing_field" style="Display:None;">
+                    <p>You must upload a record, provide a link to a record, or indicate how the record can be accessed</p>
+                </div>
                 {% if "missing_record_description" in errors %}
                     <div class="alert alert-danger" id="missing_record_description">
                         {{ errors['missing_record_description'] }}</div>

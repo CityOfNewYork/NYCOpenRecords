@@ -350,7 +350,10 @@ def send_email(
             message.attach(filename=filename,
                            content_type=content_type, data=attached_files.read())
     if released_filename:
-        url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + released_filename
+        if privacy == 3:
+            url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + released_filename
+        else:
+            url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + released_filename
         content_type = mimetypes.guess_type(url)[0]
         filename = released_filename
         attached_file = open(url, 'r')

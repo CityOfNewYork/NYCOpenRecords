@@ -740,11 +740,11 @@ def add_a_resource(resource):
         # Field validation for adding a recored
         elif resource == 'record_and_close':
             #Error checking for link, url, record access
-            if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
-                errors[
-                    'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-            if not ((req['record_description'])) and req['link_url']:
-                errors['missing_record_description'] = "Please include a name for this record"
+            # if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
+            #     errors[
+            #         'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
+            # if not ((req['record_description'])) and req['link_url']:
+            #     errors['missing_record_description'] = "Please include a name for this record"
             if "email_text" in req:
                 notification_content = {}
                 notification_content['email_text'] = Markup(req['email_text']).unescape()
@@ -754,6 +754,8 @@ def add_a_resource(resource):
                 #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
                 notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                rec = Record.query.filter_by(filename=released_filename.strip('\r\n')).first()
+                notification_content['privacy'] = rec.privacy
                 if "attach_single_email_attachment" in req:
                     notification_content['attach_single_email_attachment'] = "true"
                 if "addAsEmailAttachment_1" not in req and req['record_privacy'] != 'private':
@@ -807,7 +809,6 @@ def add_a_resource(resource):
                     else:
                         app.logger.info("\n\nUnable to add resource because of the following errors: %s " % (errors))
                     if resource == 'record_and_close':
-                        redirect(url_for('show_request_for_x', audience='city', request_id=req['request_id']))
                         return show_request(request_id=req['request_id'],
                                             template=template, errors=errors,
                                             form=req, file=request.files['record'])

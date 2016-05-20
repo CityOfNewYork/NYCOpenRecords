@@ -181,7 +181,7 @@ def update_obj(attribute, val, obj_type=None, obj_id=None, obj=None):
 def create_email(request_id,recipient,subject,time_sent,email_content=None):
     '''Create an Email object'''
     #Deleting any files part of the notification_content because they are no jsonable
-    if email_content['documents']:
+    if 'documents' in email_content:
         email_content_strip = email_content.copy()
         del email_content_strip['documents']
         email = Email(request_id=request_id, recipient=recipient, subject=subject, time_sent=time_sent,

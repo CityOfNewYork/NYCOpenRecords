@@ -1,5 +1,4 @@
 (function () {
-
     // if ($('#record').record('active') > 0){
     //     alert("Actively uploading"):
     // }
@@ -481,9 +480,12 @@
                     e.stopPropagation();
                 }
             });
-            if ($('#recordSummary').val() === ''  && $('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() == '') {
-                alert("missing field");
-            }
+            // if ($('#recordSummary').val() === ''  && $('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() == '') {
+            //     $('#missing_field').show();
+            //     $('#missing_field').focus();
+            //     e.preventDefault();
+            //     e.stopPropagation();
+            // }
         }
     });
 

@@ -126,7 +126,6 @@
                     </form>
 
 
-
                     <div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -188,11 +187,13 @@
                                         </tr>
 
                                     </table>
-                                    <br/><br/> 
+                                    <br/><br/>
+
+
                                 </div>
                                 <div class="modal-footer">
                                     <a href="/city/request/{{ req.id }}" class="btn btn-default">Cancel</a>
-                                    <a href="/city/request/{{ req.id }}" id="submit" class="btn btn-success success">Submit</a>
+                                    <a href="#" id="submit" class="btn btn-success success">Submit</a>
                                 </div>
                             </div>
                         </div>
@@ -473,6 +474,7 @@
         src="{{ url_for('static', filename='js/plugins/jquery.ellipsis.js') }}"></script>
 
 <script type="text/javascript">
+
 function reload_page()
 {
     window.location.href = "http://www.google.com";
