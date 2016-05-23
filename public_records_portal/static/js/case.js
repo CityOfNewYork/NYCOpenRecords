@@ -480,12 +480,27 @@
                     e.stopPropagation();
                 }
             });
-            // if ($('#recordSummary').val() === ''  && $('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() == '') {
-            //     $('#missing_field').show();
-            //     $('#missing_field').focus();
-            //     e.preventDefault();
-            //     e.stopPropagation();
-            // }
+            if ($('.title_text').val() == null)
+            {
+                if ($('#recordSummary').val() == '' && $('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() == '') {
+                    $('#missing_field').show();
+                    $('#missing_field').focus();
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                else if ($('#recordSummary').val() == ''){
+                    $('#missing_record_name').show();
+                    $('#missing_record_name').focus();
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                else if ($('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() ==''){
+                    $('#missing_access').show();
+                    $('#missing_access').focus();
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
         }
     });
 

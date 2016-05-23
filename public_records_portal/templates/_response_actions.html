@@ -127,6 +127,9 @@
                         <div class="control-group">
                             <label class="control-label" for="recordSummary">Provide a name for a link to a
                                 record</label>
+                            asd<div class="alert alert-danger" id ="missing_record_name" style="Display:None;">
+                                <p>Please include a name for this record</p>
+                            </div>
 
                             {% if form %}
                                 <div class="controls">
@@ -161,7 +164,9 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <div class="alert alert-danger" id ="missing_access" style="Display:None;">
+                                    <p>Provide a URL to access the record or indicate how you can access the record offline.</p>
+                                </div>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                         <input type="text" name="link_url" value="{{ form['link_url'] }}"
@@ -180,7 +185,9 @@
                                     <small><i class="icon-info-sign"></i>
                                     </small>
                             </span> --></label>
-
+                                <div class="alert alert-danger" id ="missing_access" style="Display:None;">
+                                    <p>Provide a URL to access the record or indicate how you can access the record offline.</p>
+                                </div>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                         <input type="text" name="link_url"
@@ -212,6 +219,9 @@
                                                       name="record_access"
                                                       placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'">{{ form['record_access'] }}</textarea>
                                     </div>
+{#                                    <div class="alert alert-danger" id ="missing_access" style="Display:None;">#}
+{#                                        <p>Provide a URL to access the record or indicate how you can access the record offline.</p>#}
+{#                                    </div>#}
                                 </div>
                             {% else %}
                                 <label class="control-label">Or indicate how the
@@ -233,6 +243,7 @@
                                                       placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"></textarea>
                                     </div>
                                 </div>
+
                             {% endif %}
                         </div>
                         <!-- privacy -->
@@ -422,6 +433,9 @@
                 <div class="alert alert-danger" id="missing_field" style="Display:None;">
                     <p>You must upload a record, provide a link to a record, or indicate how the record can be accessed</p>
                 </div>
+{#                <div class="alert alert-danger" id ="missing_record_name" style="Display:None;">#}
+{#                    <p>Please include a name for this record</p>#}
+{#                </div>#}
                 {% if "missing_record_description" in errors %}
                     <div class="alert alert-danger" id="missing_record_description">
                         {{ errors['missing_record_description'] }}</div>
@@ -485,8 +499,11 @@
                         </div>
                         <!-- name of record -->
                         <div class="control-group">
-                            <label class="control-label" for="recordSummary">Provide a name for a link to a record</label>
 
+                            <label class="control-label" for="recordSummary">Provide a name for a link to a record</label>
+                            <div class="alert alert-danger" id ="missing_record_name" style="Display:None;">
+                                <p>Please include a name for this record</p>
+                            </div>
                             {% if form %}
                                 <div class="controls">
                                                 <textarea class="input-xxlarge"
@@ -520,6 +537,9 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
+                            <div class="alert alert-danger" id ="missing_access" style="Display:None;">
+                                <p>Provide a URL to access the record or indicate how you can access the record offline.</p>
+                            </div>
 
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
@@ -539,7 +559,9 @@
                                     <small><i class="icon-info-sign"></i>
                                     </small>
                             </span> --></label>
-
+                            <div class="alert alert-danger" id ="missing_access" style="Display:None;">
+                                <p>Provide a URL to access the record or indicate how you can access the record offline.</p>
+                            </div>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                         <input type="text" name="link_url"

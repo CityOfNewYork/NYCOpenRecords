@@ -740,6 +740,7 @@ def add_a_resource(resource):
         # Field validation for adding a recored
         elif resource == 'record_and_close':
             #Error checking for link, url, record access
+            #Moved validation to front-end
             # if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
             #     errors[
             #         'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
@@ -755,7 +756,8 @@ def add_a_resource(resource):
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
                 notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
                 rec = Record.query.filter_by(filename=released_filename.strip('\r\n')).first()
-                notification_content['privacy'] = rec.privacy
+                if rec:
+                    notification_content['privacy'] = rec.privacy
                 if "attach_single_email_attachment" in req:
                     notification_content['attach_single_email_attachment'] = "true"
                 if "addAsEmailAttachment_1" not in req and req['record_privacy'] != 'private':
@@ -782,7 +784,7 @@ def add_a_resource(resource):
                     resource_id = 1
                 else:
                     #Test that an actual file was uploaded by looking for the filename
-                    if file.filename == u'':
+                    if file.filename == u'' and req['record_description'] == u'' and req['link_url'] == u'' and req['record_access'] == u'':
                         resource_id = 2
                     else:
                         resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
@@ -809,13 +811,8 @@ def add_a_resource(resource):
                     else:
                         app.logger.info("\n\nUnable to add resource because of the following errors: %s " % (errors))
                     if resource == 'record_and_close':
-                        return show_request(request_id=req['request_id'],
-                                            template=template, errors=errors,
-                                            form=req, file=request.files['record'])
-
-                    return show_request(request_id=req['request_id'],
-                                        template=template, errors=errors,
-                                        form=req)
+                        return redirect(url_for('show_request_for_x', audience=audience, request_id=req['request_id']))
+                    return redirect(url_for('show_request_for_x', audience=audience, request_id=req['request_id']))
                 elif resource_id == False:
                     app.logger.info("\n\nThere was an issue with adding resource: %s" % resource)
                     template = "manage_request_%s_less_js.html" % req['audience']
