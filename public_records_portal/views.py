@@ -860,7 +860,6 @@ def add_a_resource(resource):
                     return show_request(request_id=req['request_id'],
                                         template=template, errors=errors,
                                         form=req, file=request.files['record'])
-
                 return show_request(request_id=req['request_id'],
                                     template=template, errors=errors,
                                     form=req)
