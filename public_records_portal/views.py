@@ -713,7 +713,12 @@ def upload_document():
         else:
             doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
             if not doc_id:
-                document_upload_errors['virus'] = 'We didn\'t recognize the type of %s' % secure_fname
+                if errors == 'file_too_large':
+                    errors = 'File too large'
+                elif errors == ' file_too_small':
+                    errors = 'File too small'
+                else:
+                    document_upload_errors['virus'] = 'We didn\'t recognize the type of %s' % secure_fname
             if errors:
                 if errors == 'cannot_email_file':
                     document_upload_warnings[errors] = '%s is too large to email to the requester' % secure_fname

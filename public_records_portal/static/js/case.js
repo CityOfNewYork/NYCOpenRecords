@@ -106,7 +106,6 @@
                 email_text = CKEDITOR.instances.email_text.getData();
                 email_text = email_text.replace('&lt', '<').replace('&gt', '>');
                 email_text = email_text.replace('&#34;', '"');
-                console.log(email_text);
                 var emailInput = $("<input>")
                     .attr("type", "hidden")
                     .attr("name", "email_text").val(email_text);
@@ -339,7 +338,6 @@
     });
 
     $('.privacy_radio').on('click', function () {
-        console.log("Changing privacy");
         if (this.id === "release_and_public" || this.id === "release_and_private") {
             var privacy_setting = this.id.toString();
             var $this = $(this);
@@ -371,7 +369,6 @@
                     record_id: record_id
                 },
                 success: function (data) {
-                    console.log("DONE");
                     if ($('#release_and_public[name="privacy_setting"]').attr('checked', 'checked')) {
                         switch_privacy = "release_and_public";
                     } else if ($('#release_and_private[name="privacy_setting"]').attr('checked', 'checked')) {

@@ -69,26 +69,23 @@
                 });
 
         $("#record").on('change', function (e, data) {
-
-
-
             $('#file_errors').empty();
             $('#file_errors').hide();
 
-
-
             var names = [];
-
+            var sizes = [];
+            var max_email_size = {{ config['MAX_EMAIL_ATTACHMENT_SIZE'] }}
             if ($("input[name=record]") && $("input[name=record]").get(0) && $("input[name=record]").get(0).files) {
                 for (var i = 0; i < $("input[name=record]").get(0).files.length; ++i) {
                     names.push($("input[name=record]").get(0).files[i].name);
+                    sizes.push($("input[name=record]").get(0).files[i].size);
                 }
+
             }
             var currentRecordCount = $(".addAsEmail").length;
 
             $.each(names, function (index, file) {
                 var node = $('<p>');
-                //.append($('<span/>').text(file));
                 node.append('<tr class="template-upload fade">');
                 node.append('<td>');
                 node.append('<p class="name">' + file + '</p>');
@@ -104,7 +101,12 @@
 {#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
                 node.append('</tr>')
                 node.append('<tr>')
-                node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
+                if (sizes[index] < max_email_size){
+                    node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
+                }
+                else{
+                    node.append('<p>No option to attach to email because the file is too large</p>');
+                }
                 node.append('</tr>')
                 if (!index) {
                     node
@@ -123,7 +125,6 @@
                      $('#submitRecord').append(input);*/
 
                     var formData = new FormData($("#submitRecord")[0]);
-
 
                     $.ajax({
                         url: '/upload_document',
@@ -180,8 +181,6 @@
                             $('#files').replaceWith($('#files').clone(true).val(''));
 
                             $('#submitRecord').each(function () {
-                                //console.log( $(this).find("input[name='delete-reason']").val());
-                                //this.reset();
 
                                 $('#files').innerHTML = currentFiles;
                                 if (release_and_public_record) {

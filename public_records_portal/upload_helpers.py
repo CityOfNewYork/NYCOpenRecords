@@ -97,9 +97,9 @@ def upload_file(document, request_id, privacy=0x1):
             return False, '', "file_too_small"
 
         if file_length > int(app.config['MAX_FILE_SIZE']):
-            app.logger.error("File: %s is too large" % document.filename)
+            app.logger.error("File: %s is  too large" % document.filename)
             return False, '', "file_too_large"
-
+        #Checks that the file is wit
 
 
         if allowed_file(document):
@@ -276,3 +276,4 @@ def allowed_file(file):
         if m in mimetype:
             return True
     #returns false if the file's mimetype doesn't match any of the allowed mimtypes
+    return False
