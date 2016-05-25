@@ -68,6 +68,42 @@
                     });
                 });
 
+        //Checks if there is input in the "name for a link to a record" field and hides the add file box
+        $('#recordSummary').on('input',function(){
+           $("#upload_record").hide();
+        });
+        $('#recordSummary').keyup(function(){
+            if (!this.value){
+                $("#upload_record").show();
+            }
+        });
+
+        //Checks if there is input in the "provide url for a link" field and
+        // hides the add file box and disables the offline access field
+        $('#inputUrl').keyup(function(){
+            if (!this.value){
+                document.getElementById("offlineDoc_textarea").disabled=false;
+                $("#upload_record").show();
+            }
+        });
+        $('#inputUrl').on('input',function(){
+            $("#upload_record").hide();
+            document.getElementById("offlineDoc_textarea").disabled=true;
+        });
+
+        //Checks if there is input in the "name for a link to a record" field and hides the add file box and
+        // hides the url for link field
+        $('#offlineDoc_textarea').on('input',function(){
+            $("#upload_record").hide();
+            document.getElementById("inputUrl").disabled=true;
+        });
+        $('#offlineDoc_textarea').keyup(function(){
+            if (!this.value){
+                document.getElementById("inputUrl").disabled=false;
+                $("#upload_record").show();
+            }
+        });
+
         $("#record").on('change', function (e, data) {
             $('#file_errors').empty();
             $('#file_errors').hide();
@@ -83,6 +119,10 @@
 
             }
             var currentRecordCount = $(".addAsEmail").length;
+
+            document.getElementById("recordSummary").disabled=true;
+            document.getElementById("inputUrl").disabled=true;
+            document.getElementById("offlineDoc_textarea").disabled=true;
 
             $.each(names, function (index, file) {
                 var node = $('<p>');

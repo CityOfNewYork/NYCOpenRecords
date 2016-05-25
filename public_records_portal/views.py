@@ -766,6 +766,7 @@ def add_a_resource(resource):
                 if "attach_single_email_attachment" in req:
                     notification_content['attach_single_email_attachment'] = "true"
                 if "addAsEmailAttachment_1" not in req and req['record_privacy'] != 'private':
+                    del notification_content['released_filename']
                     generate_prr_emails(request_id=req['request_id'],
                                 notification_content=notification_content,
                                 notification_type='city_response_added')

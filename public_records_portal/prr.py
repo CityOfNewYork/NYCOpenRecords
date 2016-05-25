@@ -931,9 +931,9 @@ def add_offline_record(
     if record_id:
         notification_content['department_name'] = department_name
         change_request_status(request_id, 'A response has been added.')
-        generate_prr_emails(request_id=request_id,
-                            notification_type='city_response_added',
-                            notification_content=notification_content)
+        # generate_prr_emails(request_id=request_id,
+        #                     notification_type='city_response_added',
+        #                     notification_content=notification_content)
         add_staff_participant(request_id=request_id, user_id=user_id)
         return record_id
     return False
@@ -960,9 +960,9 @@ def add_link(
         notification_content['url'] = url
         notification_content['description'] = description
         notification_content['department_name'] = department_name
-        generate_prr_emails(request_id=request_id,
-                            notification_type='city_response_added',
-                            notification_content=notification_content)
+        # generate_prr_emails(request_id=request_id,
+        #                     notification_type='city_response_added',
+        #                     notification_content=notification_content)
         add_staff_participant(request_id=request_id, user_id=user_id)
         return record_id
     return False

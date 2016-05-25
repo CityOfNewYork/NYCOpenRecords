@@ -18,6 +18,18 @@
         });
     });
 
+    //Checks which privacy option was selected
+    $('#private').change(function(){
+        if(this.checked){
+            $('#email_table').hide();
+        }
+    });
+    $('#release_and_public, #release_and_private').change(function(){
+        if(this.checked){
+            $('#email_table').show();
+        }
+    });
+
     function qa_to_html(qa) {
         return '<h3>' + qa.date_created + '</h3>';
     }
@@ -428,6 +440,7 @@
 
 
     $('#addRecordButton').on('click', function () {
+        $('#email_table').hide();
         $('#privacy').show();
         var formData = new FormData($("#submitRecord")[0]);
         $('#submit').hide();
@@ -500,6 +513,9 @@
             }
         }
     });
+
+    //Check if a record is uploaded as a file and disable record input methods
+    //
 
     $('#addNoteButton').on('click', function () {
         $('#emailTextTable').hide();
@@ -622,6 +638,7 @@
      allowedFileExtensions: ["txt", "pdf", "doc", "rtf", "odt", "odp", "ods", "odg","odf","ppt", "pps", "xls", "docx", "pptx", "ppsx", "xlsx","jpg","jpeg","png","gif","tif","tiff","bmp","avi","flv","wmv","mov","mp4","mp3","wma","wav","ra","mid"]
      });
      });*/
+
 })($);
 
 

@@ -153,19 +153,19 @@
                                                 <input type="radio" id="release_and_public" name="record_privacy"
                                                        value="release_and_public">
                                                 {# Value set to False means release and public#}
-                                                Release and Public
+                                                Release and Public (E-mails the record to the requester and displays the record on the request page)
                                             </div>
                                             <div class="row-fluid" style="padding-bottom: 1px; margin-bottom: 1px;">
                                                 <label class="radio" for="release_and_private"/>
                                                 <input type="radio" id="release_and_private" name="record_privacy"
                                                        value="release_and_private">
-                                                Release and Private
+                                                Release and Private (E-mails the record to the requester the record but hides it on the request page)
                                             </div>
                                             <div class="row-fluid" style="padding-bottom: 1px; margin-bottom: 1px;">
                                                 <label class="radio" for="private"/>
                                                 <input type="radio" id="private" name="record_privacy" value="private"
                                                        checked="checked">
-                                                Private
+                                                Private (No e-mail will be sent and the record cannot be accessed by the public)
                                             </div>
                                         </div>
                                     </div>
@@ -174,7 +174,7 @@
 				    {% endif %}
                                     <table id="emailTextTable" class="table">
                                         <tr>
-                                           <label class="radio inline" for="privacy setting-0">
+                                           <label class="radio inline" id="email_table" for="privacy setting-0">
                                            <input class="addAsEmail" type="checkbox" id="addSingleEmailAttachment" name="addSingleEmailAttachment" style
 ="display:None;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;"></input>
                                     </label>
