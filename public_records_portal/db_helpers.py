@@ -331,7 +331,7 @@ def authenticate_login(email, password):
             app.logger.error("Failed to bind to LDAP: %s", e)
             return None
 
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email.lower()).first()
         if user and (user.is_staff or user.is_admin()):
             # check if user exists in LDAP
             user_dn = ctx.search_s(app.config['LDAP_BASE_DN'], ldap.SCOPE_SUBTREE,
@@ -351,7 +351,7 @@ def authenticate_login(email, password):
                 return None
         return None
     else:
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email.lower()).first()
         if user and (user.is_staff or user.is_admin()):
             if user.check_password(password):
                 return user
