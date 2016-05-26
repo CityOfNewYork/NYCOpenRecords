@@ -207,16 +207,29 @@ No file passed in''')
             else:
                 privacy = RecordPrivacy.PRIVATE
 
-            return upload_multiple_records(
-                request_id=fields['request_id'],
-                documents=documents,
-                addAsEmailAttachmentList=addAsEmailAttachmentList,
-                request_body=request_body,
-                description=fields['record_description'],
-                user_id=current_user_id,
-                privacy=privacy,
-                department_name=department_name,
-                titles=titles)
+            if 'record_description' not in fields:
+                return upload_multiple_records(
+                    request_id=fields['request_id'],
+                    documents=documents,
+                    addAsEmailAttachmentList=addAsEmailAttachmentList,
+                    request_body=request_body,
+                    description='',
+                    user_id=current_user_id,
+                    privacy=privacy,
+                    department_name=department_name,
+                    titles=titles)
+            else:
+                return upload_multiple_records(
+                    request_id=fields['request_id'],
+                    documents=documents,
+                    addAsEmailAttachmentList=addAsEmailAttachmentList,
+                    request_body=request_body,
+                    description=fields['record_description'],
+                    user_id=current_user_id,
+                    privacy=privacy,
+                    department_name=department_name,
+                    titles=titles)
+
     elif 'qa' in resource:
         return ask_a_question(request_id=fields['request_id'],
                               user_id=current_user_id,
