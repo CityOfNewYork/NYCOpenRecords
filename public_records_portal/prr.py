@@ -1434,7 +1434,7 @@ def close_request(
     add_staff_participant(request_id=request_id, user_id=user_id)
 
     # Update the time of when the agency description should be released to the public to be 10 days from now
-    updated_due_date = cal.addbusdays(datetime.now(), offset=app.config['DAYS_TO_POST'])
+    updated_due_date = cal.addbusdays(datetime.now(), offset=int(app.config['DAYS_TO_POST']))
     update_obj(attribute='agency_description_due_date', val=updated_due_date, obj_type='Request', obj_id=req.id)
     return None
 
