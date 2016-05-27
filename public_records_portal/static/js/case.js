@@ -21,12 +21,14 @@
     //Checks which privacy option was selected
     $('#private').change(function(){
         if(this.checked){
-            $('#email_table').hide();
+            document.getElementById("email_table").style.visibility="hidden";
+            //$('#email_table').style.visibility="hidden";
+
         }
     });
     $('#release_and_public, #release_and_private').change(function(){
         if(this.checked){
-            $('#email_table').show();
+            document.getElementById("email_table").style.visibility="visible";
         }
     });
 
@@ -440,9 +442,10 @@
 
 
     $('#addRecordButton').on('click', function () {
-        $('#email_table').hide();
+        document.getElementById("email_table").style.visibility="hidden";
         $('#privacy').show();
         var formData = new FormData($("#submitRecord")[0]);
+        $('.email_table').hide();
         $('#submit').hide();
         $.ajax({
             url: "/email/email_city_response_added.html",
@@ -463,7 +466,6 @@
                 $('#emailTextTable').hide();
                 $('#modalquestionDiv').text(modalQuestion);
                 $('#modalQuestionTable').hide();
-
                 // setTimeout(wait, 5000);
             },
             error: function (data) {

@@ -99,8 +99,6 @@ def upload_file(document, request_id, privacy=0x1):
         if file_length > int(app.config['MAX_FILE_SIZE']):
             app.logger.error("File: %s is  too large" % document.filename)
             return False, '', "file_too_large"
-        #Checks that the file is wit
-
 
         if allowed_file(document):
             file_scanned = scan_file(document, file_length)
@@ -263,8 +261,7 @@ def allowed_file(file):
     :param file: pass in a file that will be checked for allowed mimetype
     :return: True if the mimetype is allowed or False if its not allowed
     """
-    if file.filename == u'':
-        return True
+
     if app.config['MAGIC_FILE'] != '':
         f = magic.Magic(magic_file=app.config['MAGIC_FILE'], mime=True)
     else:

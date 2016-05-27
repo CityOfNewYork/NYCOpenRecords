@@ -174,9 +174,10 @@
 				    {% endif %}
                                     <table id="emailTextTable" class="table">
                                         <tr>
-                                           <label class="radio inline" id="email_table" for="privacy setting-0">
+                                           <label class="radio inline" for="privacy setting-0">
+                                            <div id="email_table">
                                            <input class="addAsEmail" type="checkbox" id="addSingleEmailAttachment" name="addSingleEmailAttachment" style
-="display:None;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;"></input>
+="display:None;width:1em;margin-bottom:0.4em;"><label for="addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;">
                                     </label>
 					{% if current_user.role != 'Agency Helpers' %}
                                             <div><b><button id="edit_email" class="btn btn-default" type="button">Edit Email</button></b><br></div>
@@ -184,6 +185,9 @@
                                         {% else %}
 <textarea name="email_text" id="email_text" rows="10" cols="80" style='display: none;'>This is my textarea to be replaced with CKEditor.</textarea>
 {% endif %}
+                                            </div>
+                                           </label>
+
                                         </tr>
 
                                     </table>

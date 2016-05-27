@@ -792,6 +792,7 @@ def add_a_resource(resource):
                     #Test that an actual file was uploaded by looking for the filename
                     if file.filename == u'' and req['record_description'] == u'' and req['link_url'] == u'' and req['record_access'] == u'':
                         resource_id = 2
+                        # '2' indicates that there was no file was uploaded and no link or access method was provided.
                     else:
                         resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
                         app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
