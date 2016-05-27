@@ -1,8 +1,4 @@
 (function () {
-    // if ($('#record').record('active') > 0){
-    //     alert("Actively uploading"):
-    // }
-
     // Changes the height of the modal to a protion of the screen's size
     $('.modal-content').css('height', $(window).height() * 0.8);
 
@@ -447,32 +443,39 @@
         var formData = new FormData($("#submitRecord")[0]);
         $('.email_table').hide();
         $('#submit').hide();
-        $.ajax({
-            url: "/email/email_city_response_added.html",
-            type: 'POST',
-            processData: false,
-            contentType: false,
-            data: formData,
-            success: function (data) {
-                $('#submit').show();
-                $('#modalAdditionalInfoTable').hide();
-                $('#form_id').val('submitRecord');
-                var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
-                modalQuestion += $('#recordSummary').text();
-                $('#modalquestionDiv').text(modalQuestion);
-                $('#modalQuestionTable').hide();
-                CKEDITOR.replace('email_text');
-                $('#email_text').val(data);
-                $('#emailTextTable').hide();
-                $('#modalquestionDiv').text(modalQuestion);
-                $('#modalQuestionTable').hide();
-                // setTimeout(wait, 5000);
-            },
-            error: function (data) {
-                alert('fail.');
-            }
-        });
+        var isSubmitting = false;
+        if (!isSubmitting) {
+            isSubmitting = true;
+            $.ajax({
+                url: "/email/email_city_response_added.html",
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (data) {
+                    $('#submit').show();
+                    $('#modalAdditionalInfoTable').hide();
+                    $('#form_id').val('submitRecord');
+                    var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
+                    modalQuestion += $('#recordSummary').text();
+                    $('#modalquestionDiv').text(modalQuestion);
+                    $('#modalQuestionTable').hide();
+                    CKEDITOR.replace('email_text');
+                    $('#email_text').val(data);
+                    $('#emailTextTable').hide();
+                    $('#modalquestionDiv').text(modalQuestion);
+                    $('#modalQuestionTable').hide();
+                    // setTimeout(wait, 5000);
+
+                },
+                complete: function() { isSubmitting = false; },
+                error: function (data) {
+                    alert('fail.');
+                }
+            });
+        }
     });
+
 
     $('#edit_email').on('click', function () {
         for (var editorInstance in CKEDITOR.instances) {

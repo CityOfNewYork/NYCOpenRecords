@@ -138,16 +138,15 @@
                                                           name="record_description"
                                                           type="text"
                                                           id="recordSummary"
-                                                          placeholder="Add a short explanation of the record"
                                                           required/>{{ form['record_description'] }}</textarea>
                                 </div>
+
                             {% else %}
                                 <div class="controls">
                                     <textarea class="input-xxlarge"
                                               name="record_description"
                                               type="text"
                                               id="recordSummary"
-                                              placeholder="Add a short explanation of the record"
                                               required/></textarea>
                                 </div>
                             {% endif %}
@@ -212,13 +211,12 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <p><small>"How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"</small></p>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                             <textarea class="input-xxlarge"
                                                       id="offlineDoc_textarea"
-                                                      name="record_access"
-                                                      placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'">{{ form['record_access'] }}</textarea>
+                                                      name="record_access"></textarea>
                                     </div>
 {#                                    <div class="alert alert-danger" id ="missing_access" style="Display:None;">#}
 {#                                        <p>Provide a URL to access the record or indicate how you can access the record offline.</p>#}
@@ -235,13 +233,12 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <p><small>"How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"</small></p>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                             <textarea class="input-xxlarge"
                                                       id="offlineDoc_textarea"
-                                                      name="record_access"
-                                                      placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"></textarea>
+                                                      name="record_access"></textarea>
                                     </div>
                                 </div>
 
@@ -502,6 +499,7 @@
                         <div class="control-group">
 
                             <label class="control-label" for="recordSummary">Provide a name for a link to a record</label>
+                            <p><small>"Add a short explanation of the record"</small></p>
                             <div class="alert alert-danger" id ="missing_record_name" style="Display:None;">
                                 <p>Please include a name for this record</p>
                             </div>
@@ -511,7 +509,6 @@
                                                           name="record_description"
                                                           type="text"
                                                           id="recordSummary"
-                                                          placeholder="Add a short explanation of the record"
                                                           required/>{{ form['record_description'] }}</textarea>
                                 </div>
                             {% else %}
@@ -520,7 +517,6 @@
                                               name="record_description"
                                               type="text"
                                               id="recordSummary"
-                                              placeholder="Add a short explanation of the record"
                                               required/></textarea>
                                 </div>
                             {% endif %}
@@ -586,13 +582,12 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <p><small>"How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk' "</small></p>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                             <textarea class="input-xxlarge"
                                                       id="offlineDoc_textarea"
-                                                      name="record_access"
-                                                      placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'">{{ form['record_access'] }}</textarea>
+                                                      name="record_access"></textarea>
                                     </div>
                                 </div>
                             {% else %}
@@ -606,13 +601,12 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <p><small>"How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk' "</small></p>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                             <textarea class="input-xxlarge"
                                                       id="offlineDoc_textarea"
-                                                      name="record_access"
-                                                      placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"></textarea>
+                                                      name="record_access"></textarea>
                                     </div>
                                 </div>
                             {% endif %}
