@@ -120,10 +120,11 @@
             }
             var currentRecordCount = $(".addAsEmail").length;
 
+
+
             $.each(names, function (index, file) {
 
-                var node = $('<p id=' + sizes[index] + ' style="display:none;">');
-
+                var node = $('<p>');
                 node.append('<tr class="template-upload fade">');
                 node.append('<td>');
                 node.append('<p class="name">' + file + '</p>');
@@ -151,7 +152,7 @@
                             .append('<br>')
                             .append(uploadButton.clone(true).data(data));
                 }
-                $("'"+'#'+ sizes[index] + "'").show();
+{#                $("'"+'#'+ sizes[index] + "'").show();#}
                 node.appendTo("#files");
 
                 if (typeof $("input[name=record]").get(0).files[0] != 'undefined') {
@@ -179,8 +180,10 @@
                                 return myXhr;
                             },
                             success: function (data) {
-{#                                $(document).getElementById(file).show();#}
-                                $(sizes[index]).show();
+                                //This will disable the other add record methods if a record is successfully uploaded
+                                document.getElementById("recordSummary").disabled=true;
+                                document.getElementById("inputUrl").disabled=true;
+                                document.getElementById("offlineDoc_textarea").disabled=true;
                                 var errorsCount = 0;
                                 if (typeof (data['errors']) != 'undefined') {
                                     document_upload_errors = data['errors'];
@@ -209,12 +212,8 @@
                                     {#                                        $('#')#}
                                     {#                                    });#}
                                     {#                                });#}
-                                } else {
-                                    $(document).getElementById(file).show();
-                                    document.getElementById("recordSummary").disabled=true;
-                                    document.getElementById("inputUrl").disabled=true;
-                                    document.getElementById("offlineDoc_textarea").disabled=true;
                                 }
+
 
                                 var release_and_public_record = $('#release_and_public').is(":checked");
                                 var release_and_private_record = $('#release_and_private').is(":checked");
