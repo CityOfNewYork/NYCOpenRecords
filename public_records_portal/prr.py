@@ -378,11 +378,11 @@ def request_extension(
     """
     app.logger.info("def request_extension()")
     req = Request.query.get(request_id)
-    due_date = req.due_date
+    # If days_after is -1 then a custom due date is set.
     if days_after == -1:
-        req.extension(days_after=None, custom_due_date=request_body['due_date'])
+        due_date=req.extension(days_after=None, custom_due_date=request_body['due_date'])
     else:
-        req.extension(days_after)
+        due_date=req.extension(days_after)
     user = User.query.get(user_id)
     user_name = user.alias
     text = 'Request extended:'
@@ -391,8 +391,6 @@ def request_extension(
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
     if request.form.get('email_text') is not None and request.form.get('email_text') != '':
         notification_content['email_text'] = Markup(request_body['email_text']).unescape()
-
-    print request_body
 
     if request_body is not None:
         generate_prr_emails(request_id=request_id,
@@ -405,8 +403,12 @@ def request_extension(
     # for reason in extension_reasons:
     #     text = text + bleach.clean(reason) + '</br>'
     add_staff_participant(request_id=request_id, user_id=user_id)
-    return add_note(request_id=request_id, text=text, user_id=user_id,
-                    extension=True, days_after=days_after, due_date=due_date)  # Bypass spam filter because they are logged in.
+    if days_after == -1:
+        return add_note(request_id=request_id, text=text, user_id=user_id,
+                        extension=True, days_after=days_after, due_date=request_body['due_date'])  # Bypass spam filter because they are logged in.
+    else:
+        return add_note(request_id=request_id, text=text, user_id=user_id,
+                        extension=True, days_after=days_after, due_date=due_date)
 
 
 def add_note(
