@@ -269,8 +269,7 @@ def allowed_file(file):
     mimetype = f.from_buffer(file.read())
     file.seek(0)
     app.logger.info("\n\nMimetype: " + mimetype)
-    for m in ALLOWED_MIMETYPES:
-        if m in mimetype:
-            return True
+    if mimetype in ALLOWED_MIMETYPES:
+        return True
     #returns false if the file's mimetype doesn't match any of the allowed mimtypes
-    return False
+    return True
