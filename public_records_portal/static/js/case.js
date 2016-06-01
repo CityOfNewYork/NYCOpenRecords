@@ -1,6 +1,5 @@
 (function () {
 
-
     // Changes the height of the modal to a protion of the screen's size
     $('.modal-content').css('height', $(window).height() * 0.8);
 
@@ -224,8 +223,7 @@
         }
     });
 
-    $('#extendButton').on('click', function () {
-
+    $('#extendButton').on('click', function (e) {
         var formData = new FormData($("#extension")[0]);
         $.ajax({
             url: "/email/email_extension.html",
@@ -588,7 +586,24 @@
     $('#addNoteButton').prop('disabled', true);
     $('#noteTextarea').keyup(function () {
         $('#addNoteButton').prop('disabled', this.value == "" ? true : false);
-    })
+    });
+    //$('#extendButton').one('change', true);
+
+    $('#days_after').on('change',function(){
+        if ($('#days_after').val() == -1){
+            $('#datepicker').on('change',function(){
+                if ($('#datepicker').val() != ""){
+                   $('#extendButton').prop('disabled', false);
+                }
+                else{
+                    $('#extendButton').prop('disabled', true);
+                }
+            });
+        }
+        else {
+            $('#extendButton').prop('disabled', false);
+        }
+    });
 
     $("#datepicker").datepicker();
     /*$(document).on('ready', function() {
