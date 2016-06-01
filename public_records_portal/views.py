@@ -853,7 +853,8 @@ def add_a_resource(resource):
                     return show_request(request_id=req['request_id'],
                                         template=template, errors=errors,
                                         form=req, file=request.files['record'])
-
+                elif resource == 'extension':
+                    return redirect(url_for('show_request_for_x', audience=audience, request_id=req['request_id']))
                 return show_request(request_id=req['request_id'],
                                     template=template, errors=errors,
                                     form=req)
