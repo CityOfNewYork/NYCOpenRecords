@@ -11,6 +11,13 @@
                                 Your request has been submitted to the {{ notification_content['department_name'] }}. You will receive an acknowledgment within 5 business days.
                                 </p>
                                 <p>
+                                    <b>Request Title:</b> {{ notification_content['contact_info']['request_title'] }}
+                                    <br/>
+                                    <b>Request Description:</b> {{ notification_content['contact_info']['request_description'] }}
+                                    <br/>
+                                    <br/>
+                                </p>
+                                <p>
                                     You can view the request and take any necessary action at the following webpage:
                                     <a href='{{ page }}'>{{ page }}</a>.
                                 </p>

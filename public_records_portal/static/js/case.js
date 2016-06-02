@@ -503,7 +503,7 @@
     $('#generatePDFButton').on('click', function (event) {
         $('#emailTextTable').hide();
         $('#email_text').hide();
-        $('#edit_email').style.visibility = "hidden";
+        document.getElementById('edit_email').style.visibility="hidden";
         var selectedTemplate = $('#response_template option:selected').text();
         var modalQuestion = 'Are you sure you want to generate a Word Document for the template below?';
 
