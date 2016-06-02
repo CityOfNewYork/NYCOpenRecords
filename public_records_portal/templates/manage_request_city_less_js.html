@@ -185,6 +185,7 @@
                                     node.append('<tr class="template-upload fade">');
                                     node.append('<td>');
                                     node.append('<p class="name">' + file + '</p>');
+                                    node.append('<input type=hidden name=filename id="' + file + '" value="' + file+ '" />');
                                     node.append('<div class="alert alert-warning" style="display:none;" name="' + file + '"</div>');
                                     node.append('<strong class="error text-danger"></strong>');
                                     node.append('</td>');
@@ -197,12 +198,13 @@
                     {#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
                                     node.append('</tr>')
                                     node.append('<tr>')
-                                    if (sizes[index] < max_email_size){
-                                        node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');
-                                    }
-                                    else{
-                                        node.append('<p>No option to attach to email because the file is too large</p>');
-                                    }
+{#                                    if (sizes[index] < max_email_size){#}
+{#                                        node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');#}
+{##}
+{#                                    }#}
+{#                                    else{#}
+{#                                        node.append('<p>No option to attach to email because the file is too large</p>');#}
+{#                                    }#}
                                     node.append('</tr>')
                     {#                $("'"+'#'+ sizes[index] + "'").show();#}
                                     node.appendTo("#files");

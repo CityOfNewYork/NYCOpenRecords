@@ -631,9 +631,9 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
                                department=department, assigned_user=assigned_user, helpers=helpers, audience=audience,
                                datetime=datetime.now())
 
-
 @app.route("/email/<string:template_name>", methods=["GET", "POST"])
 def show_email(template_name, errors=None, form=None):
+    fields = form
     request_id = request.form.get('request_id')
     acknowledge_status = request.form.get('acknowledge_status')
     due_date = request.form.get('due_date')

@@ -443,39 +443,36 @@
         var formData = new FormData($("#submitRecord")[0]);
         $('.email_table').hide();
         $('#submit').hide();
-        var isSubmitting = false;
-        if (!isSubmitting) {
-            isSubmitting = true;
-            $.ajax({
-                url: "/email/email_city_response_added.html",
-                type: 'POST',
-                processData: false,
-                contentType: false,
-                data: formData,
-                success: function (data) {
-                    $('#submit').show();
-                    $('#modalAdditionalInfoTable').hide();
-                    $('#form_id').val('submitRecord');
-                    var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
-                    modalQuestion += $('#recordSummary').text();
-                    $('#modalquestionDiv').text(modalQuestion);
-                    $('#modalQuestionTable').hide();
-                    CKEDITOR.replace('email_text');
-                    $('#email_text').val(data);
-                    $('#emailTextTable').hide();
-                    $('#modalquestionDiv').text(modalQuestion);
-                    $('#modalQuestionTable').hide();
-                    // setTimeout(wait, 5000);
+        var files = document.getElementsByName('filename');
 
-                },
-                complete: function() { isSubmitting = false; },
-                error: function (data) {
-                    alert('fail.');
-                }
-            });
-        }
+        $.ajax({
+            url: "/email/email_city_response_added.html",
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (data) {
+                $('#submit').show();
+                $('#modalAdditionalInfoTable').hide();
+                $('#form_id').val('submitRecord');
+                var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
+                modalQuestion += $('#recordSummary').text();
+                $('#modalquestionDiv').text(modalQuestion);
+                $('#modalQuestionTable').hide();
+                CKEDITOR.replace('email_text');
+                $('#email_text').val(data);
+                $('#emailTextTable').hide();
+                $('#modalquestionDiv').text(modalQuestion);
+                $('#modalQuestionTable').hide();
+                // setTimeout(wait, 5000);
+
+            },
+            complete: function() { isSubmitting = false; },
+            error: function (data) {
+                alert('fail.');
+            }
+        });
     });
-
 
     $('#edit_email').on('click', function () {
         for (var editorInstance in CKEDITOR.instances) {
