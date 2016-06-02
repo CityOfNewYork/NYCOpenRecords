@@ -43,8 +43,7 @@ from nocache import nocache
 from utils import strip_html
 from notifications import generate_prr_emails
 from markupsafe import Markup
-
-cal = Calendar()
+from public_records_portal import cal
 
 # Initialize login
 app.logger.info("\n\nInitialize login.")
@@ -644,10 +643,16 @@ def show_email(template_name, errors=None, form=None):
         days_after = int(request.form.get('days_after'))
     req = get_obj("Request", request_id)
 
+
+
     if due_date == '' or due_date is None:
         if days_after is not None:
             due_date = cal.addbusdays(req.due_date, days_after)
-            due_date_str = str(req.due_date).split(' ')[0]
+            due_date_split = str(due_date).split(' ')[0]
+            due_date_split = str(due_date_split).split('-')
+            due_date_str = due_date_split[1] + '/' + due_date_split[2] + '/' + due_date_split[0]
+    elif days_after == -1:
+        due_date_str = due_date
 
     if request.form.get('close_reasons') != '' and request.form.get('close_reasons') is not None:
         close_reasons = request.form.get('close_reasons')
@@ -848,7 +853,8 @@ def add_a_resource(resource):
                     return show_request(request_id=req['request_id'],
                                         template=template, errors=errors,
                                         form=req, file=request.files['record'])
-
+                elif resource == 'extension':
+                    return redirect(url_for('show_request_for_x', audience=audience, request_id=req['request_id']))
                 return show_request(request_id=req['request_id'],
                                     template=template, errors=errors,
                                     form=req)

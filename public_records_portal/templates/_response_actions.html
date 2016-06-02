@@ -688,7 +688,7 @@
 
                                 <div class="controls">
                                     <select id="days_after" name="days_after">
-                                        <option value="0">None selected</option>
+                                        <option value="0" selected="selected" disabled="disabled">None selected</option>
                                         <option value="20">20 business days</option>
                                         <option value="30">30 business days</option>
                                         <option value="60">60 business days</option>
@@ -720,7 +720,8 @@
                                     <button id="extendButton" data-toggle="modal"
                                             data-target="#confirm-submit"
                                             type="submit"
-                                            class="btn btn-default btn-block">Extend
+                                            class="btn btn-default btn-block"
+                                            disabled>Extend
                                         this request
                                     </button>
 
