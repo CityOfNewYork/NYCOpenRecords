@@ -30,7 +30,7 @@ from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm, C
 import pytz
 from requires_roles import requires_roles
 from flask_login import LoginManager
-from models import AnonUser, Record
+from models import AnonUser, Record, Request
 from models import AnonUser, RecordPrivacy
 from datetime import datetime, timedelta, date
 from business_calendar import Calendar
@@ -738,6 +738,7 @@ def add_a_resource(resource):
     app.logger.info("def add_a_resource(resource):")
     req = request.form
     errors = {}
+    # return redirect(url_for('show_request_for_x', audience='city', request_id=req['request_id']))
     if request.method == 'POST':
         print "Resource is a", resource
         if resource == 'letter':
@@ -777,6 +778,15 @@ def add_a_resource(resource):
         titles = request.form.getlist('title[]')
 
         if files:
+            if 'filename_privacy' in req:
+                filename = req['filename_privacy']
+                request_obj = models.Request.query.filter_by(id=req['request_id'])
+                notification_content['documents'] = filename
+                notification_content['request_id'] = req['request_id']
+                generate_prr_emails(request_id=req['request_id'],notification_type='city_response_added',
+                                    notification_content=notification_content)
+
+
             for index,file in enumerate(files):
                 filename = file.filename.replace(" ","_")
                 title = ""

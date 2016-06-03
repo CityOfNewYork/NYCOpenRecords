@@ -96,6 +96,7 @@
     $('#submit').on('click', function (event) {
         $('#privacy').hide();
         form_id = '#' + $('#form_id').val();
+        $('#submitRecord').append($('#file_names'));
         if (form_id === "#") {
             form_id = "#submitRecord";
         }
@@ -380,10 +381,16 @@
                 },
                 success: function (data) {
                     if ($('#release_and_public[name="privacy_setting"]').attr('checked', 'checked')) {
+                        $('#submitRecord').append($('#addEmailAttachment'));
+                        //alert("public");
                         switch_privacy = "release_and_public";
                     } else if ($('#release_and_private[name="privacy_setting"]').attr('checked', 'checked')) {
+                        $('#submitRecord').append($('#addEmailAttachment'));
+                        alert("release and private");
                         switch_privacy = "release_and_private";
                     } else {
+                        $('#submitRecord').append($('#addEmailAttachment'));
+                        alert("private");
                         switch_privacy = "private";
                     }
                     sessionStorage.setItem("switch_privacy", switch_privacy);
@@ -404,6 +411,10 @@
                             $('#email_text').val(data);
                             $('#modalquestionDiv').text(modalQuestion);
                             $('#modalQuestionTable').hide();
+                            var files = $("<input>")
+                                .attr("type", "hidden")
+                                .attr("name", "filename_privacy").val(fileName);
+                            $('#submitRecord').append(files);
                         },
                         error: function (data) {
                             alert('fail.');
@@ -444,7 +455,6 @@
         $('.email_table').hide();
         $('#submit').hide();
         var files = document.getElementsByName('filename');
-
         $.ajax({
             url: "/email/email_city_response_added.html",
             type: 'POST',
@@ -452,22 +462,37 @@
             contentType: false,
             data: formData,
             success: function (data) {
+                submitForm = '#submitRecord';
                 $('#submit').show();
                 $('#modalAdditionalInfoTable').hide();
                 $('#form_id').val('submitRecord');
-                var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
-                modalQuestion += $('#recordSummary').text();
-                $('#modalquestionDiv').text(modalQuestion);
+                var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?' ;
+                modalQuestion +=  $('#recordSummary').text() + '<br>';
+                var filelist = '';
+                $('#submitRecord').append('<input type="hidden" name="files" id="filelist">');
+                //$('#addAsEmailAttachment_1').click(function(i){
+                //        $("#addAsEmailAttachment_1").disable();
+                //});
+                for (var i = 0; i < files.length; i++){
+                    //modalQuestion +=  '<br>' + files[i].value + '<br>';
+                    $('#file_names').append('<br>' + files[i].value + '<br>');
+                    $('#file_names').append('<input type="checkbox" name="addAsEmailAttachment_' + (i+1) + '" id="addAsEmailAttachment_' + (i+1) + '" value="on" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label style="display: inline-block;">Add to email');
+                    //modalQuestion += '<input type="hidden" value=files[i].value name="files">';
+                }
+                document.getElementById('filelist').value=(filelist);
+
                 $('#modalQuestionTable').hide();
                 CKEDITOR.replace('email_text');
                 $('#email_text').val(data);
                 $('#emailTextTable').hide();
-                $('#modalquestionDiv').text(modalQuestion);
+                $('#modalquestionDiv').html(modalQuestion);
+
+                //$('#modalquestionDiv.')
                 $('#modalQuestionTable').hide();
                 // setTimeout(wait, 5000);
 
             },
-            complete: function() { isSubmitting = false; },
+            complete: function() {},
             error: function (data) {
                 alert('fail.');
             }

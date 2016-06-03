@@ -134,9 +134,13 @@
                                     Confirmation
                                 </div>
                                 <div class="modal-body" style="max-height: 80%">
-                                    <div id="modalquestionDiv">Are you sure you want to make the following question
+                                <form name="input_doc" style="" id="modalquestionDiv"
+                                      method="post"
+                                      action="/add_a_record_and_close" autocomplete="on"
+                                      enctype="multipart/form-data">
+                                    Are you sure you want to make the following question
                                         public and send an email to the requester?
-                                    </div>
+                                </form>
                                     <table id="modalQuestionTable" class="table">
                                         <tr>
                                             <th>Question</th>
@@ -181,6 +185,7 @@
                                     </label>
 					{% if current_user.role != 'Agency Helpers' %}
                                             <div><b><button id="edit_email" class="btn btn-default" type="button">Edit Email</button></b><br></div>
+                                                <div id="file_names"></div>
                                                 <textarea name="email_text" id="email_text" rows="10" cols="80" disabled style="display:None;">This is my textarea to be replaced with CKEditor.</textarea>
                                         {% else %}
 <textarea name="email_text" id="email_text" rows="10" cols="80" style='display: none;'>This is my textarea to be replaced with CKEditor.</textarea>
