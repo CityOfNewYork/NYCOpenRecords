@@ -760,7 +760,8 @@ def add_a_resource(resource):
                 app.logger.info("RELEASED:" + released_filename)
                 #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
-                notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                # notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                # notification_content['privacy'] = req['record_privacy']
                 rec = Record.query.filter_by(filename=released_filename.strip('\r\n')).first()
                 if rec:
                     notification_content['privacy'] = rec.privacy
@@ -778,13 +779,20 @@ def add_a_resource(resource):
         titles = request.form.getlist('title[]')
 
         if files:
-            if 'filename_privacy' in req:
-                filename = req['filename_privacy']
+            notification_content['request_id'] = req['request_id']
+            if 'filename_privacy' in req and 'addAsEmailAttachment_1' in req:
+                if 'filename_privacy' in req:
+                    filename = req['filename_privacy']
+                    notification_content['documents'] = filename
                 request_obj = models.Request.query.filter_by(id=req['request_id'])
-                notification_content['documents'] = filename
-                notification_content['request_id'] = req['request_id']
+                # notification_content['request_id'] = req['request_id']
+                notification_content['addAsEmailAttachment_1'] = req['addAsEmailAttachment_1']
                 generate_prr_emails(request_id=req['request_id'],notification_type='city_response_added',
                                     notification_content=notification_content)
+            else:
+                if files[0].filename==u'':
+                    generate_prr_emails(request_id=req['request_id'],notification_type='city_response_added',
+                                        notification_content=notification_content)
 
 
             for index,file in enumerate(files):
