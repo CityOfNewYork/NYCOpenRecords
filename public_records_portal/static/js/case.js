@@ -349,6 +349,7 @@
     });
 
     $('.privacy_radio').on('click', function () {
+        document.getElementById("email_table").style.visibility="hidden";
         if (this.id === "release_and_public" || this.id === "release_and_private") {
             var privacy_setting = this.id.toString();
             var $this = $(this);
@@ -363,12 +364,11 @@
             var filePath = $this.parent().prev().children();
             var filePathArray = filePath[0].toString().split('/');
             var fileName = filePathArray[filePathArray.length - 1];
-
             var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester? ' + fileName;
-
             $('#modalquestionDiv').text(modalQuestion);
             $('#modalQuestionTable').hide();
             $('#confirm-submit').modal('toggle');
+            $('#privacy').show();
 
             $.ajax({
                 url: "/switchRecordPrivacy",
@@ -411,10 +411,17 @@
                             $('#email_text').val(data);
                             $('#modalquestionDiv').text(modalQuestion);
                             $('#modalQuestionTable').hide();
+                            $('#modalquestionDiv').append('<br>');
+                            $('#modalquestionDiv').append('<input type="checkbox" name="addAsEmailAttachment_1" id="addAsEmailAttachment_1" value="on" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label style="display: inline-block;">Add to email');
                             var files = $("<input>")
                                 .attr("type", "hidden")
                                 .attr("name", "filename_privacy").val(fileName);
+                            var switchrecord = $("<input>")
+                                .attr("type", "hidden")
+                                .attr("name", "switchrecord").val(true);
                             $('#submitRecord').append(files);
+                            $('#submitRecord').append(switchrecord);
+                            // $('#submitRecord').append($('#addAsEmailAttachment_1'));
                         },
                         error: function (data) {
                             alert('fail.');
