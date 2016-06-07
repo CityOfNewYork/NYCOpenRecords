@@ -327,7 +327,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         privacy=notification_content['privacy'],
                         released_filename=released_filename
                         )
-                    app.logger.info('''E-mail sent successfully!''')                   
+                    app.logger.info('''E-mail sent successfully!''')
                 else:
                     send_email(
                         body=render_template(
@@ -571,4 +571,3 @@ def format_date(obj):
     if not obj:
         return None
     return helpers.localize(obj).strftime('%b %d, %Y')
-

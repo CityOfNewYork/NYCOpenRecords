@@ -762,6 +762,7 @@ def add_a_resource(resource):
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
                 # notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
                 # notification_content['privacy'] = req['record_privacy']
+                notification_content['request_id'] = str(req['request_id'])
                 rec = Record.query.filter_by(filename=released_filename.strip('\r\n')).first()
                 if rec:
                     notification_content['privacy'] = rec.privacy
