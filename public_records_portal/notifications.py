@@ -254,7 +254,42 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
     if recipients:
         if send_emails:
             try:
-                if "documents" in notification_content:
+                if 'index' not in notification_content:
+                    if 'addAsEmailAttachment_1' in notification_content:
+                        send_email(
+                            body=render_template(
+                                template,
+                                unfollow_link=unfollow_link,
+                                page=page,
+                                request_id=request_id,
+                                notification_content=notification_content
+                                ),
+                            recipients=recipients,
+                            subject=subject,
+                            include_unsubscribe_link=include_unsubscribe_link,
+                            cc_everyone=cc_everyone,
+                            attached_files=notification_content['documents'],
+                            privacy=notification_content['privacy'],
+                            request_id=notification_content['request_id']
+                            )
+                    else:
+                        send_email(
+                            body=render_template(
+                                template,
+                                unfollow_link=unfollow_link,
+                                page=page,
+                                request_id=request_id,
+                                notification_content=notification_content
+                                ),
+                            recipients=recipients,
+                            subject=subject,
+                            include_unsubscribe_link=include_unsubscribe_link,
+                            cc_everyone=cc_everyone,
+                            attached_files=None,
+                            privacy=None,
+                            request_id=notification_content['request_id']
+                            )
+                elif "documents" in notification_content:
                     send_email(
                         body=render_template(
                             template,
@@ -269,12 +304,13 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         cc_everyone=cc_everyone,
                         attached_files=notification_content['documents'][notification_content['index']],
                         privacy=notification_content['privacy'],
+                        request_id=notification_content['request_id'],
                         )
                     app.logger.info('''E-mail sent successfully!''')
                 elif "released_filename" in notification_content:
                     released_filename = None
-                    if "attach_single_email_attachment" in notification_content:
-                        released_filename = notification_content['released_filename']
+                    # if "attach_single_email_attachment" in notification_content:
+                    released_filename = notification_content['released_filename']
 
                     send_email(
                         body=render_template(
@@ -291,7 +327,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         privacy=notification_content['privacy'],
                         released_filename=released_filename
                         )
-                    app.logger.info('''E-mail sent successfully!''')                   
+                    app.logger.info('''E-mail sent successfully!''')
                 else:
                     send_email(
                         body=render_template(
@@ -304,7 +340,8 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         recipients=recipients,
                         subject=subject,
                         include_unsubscribe_link=include_unsubscribe_link,
-                        cc_everyone=cc_everyone
+                        cc_everyone=cc_everyone,
+                        request_id=notification_content['request_id']
                         )
                     app.logger.info('''E-mail sent successfully!''')
             except Exception, e:
@@ -326,7 +363,8 @@ def send_email(
     cc_everyone=False,
     attached_files=None,
     privacy=None,
-    released_filename=None
+    released_filename=None,
+    request_id=None,
     ):
     app.logger.info("def send_email")
     mail = Mail(app)
@@ -338,24 +376,50 @@ def send_email(
     sender = app.config['DEFAULT_MAIL_SENDER']
     message = Message(sender=sender, subject=subject, html=html,
                       body=plaintext, bcc=sender)
-    if attached_files:
-        if attached_files is not None:
-            attached_files.seek(0)
+
+    if attached_files == None:
+        pass
+    elif attached_files:
+        if not hasattr(attached_files, 'filename'):
             if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
-                url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + attached_files.filename
+                url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + attached_files
             else:
-                url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + attached_files.filename
-            content_type = mimetypes.guess_type(url)[0]
-            filename = attached_files.filename
-            message.attach(filename=filename,
-                           content_type=content_type, data=attached_files.read())
-    if released_filename:
-        url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + released_filename
+                url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + attached_files
+            file_to_attach = open(url)
+            content_type=mimetypes.guess_type(url)[0]
+            #attached_files is set to the name of the file
+            message.attach(filename=attached_files, content_type=content_type, data=file_to_attach.read())
+        else:
+            if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
+                url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + request_id + "/" + attached_files.filename
+            else:
+                url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + attached_files.filename
+            # attached_file = open(url,'r')
+            content_type=mimetypes.guess_type(url)[0]
+            #attached_files is set to the name of the file
+            message.attach(filename=attached_files.filename, content_type=content_type, data=attached_files.read())
+    elif released_filename:
+        if privacy == 3:
+            url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + released_filename
+        else:
+            url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + released_filename
         content_type = mimetypes.guess_type(url)[0]
         filename = released_filename
         attached_file = open(url, 'r')
         message.attach(filename=filename,
-                           content_type=content_type, data=attached_file.read())       
+                           content_type=content_type, data=attached_file.read())
+    else:
+        attached_files.seek(0)
+        if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
+            url = app.config['UPLOAD_PRIVATE_LOCAL_FOLDER'] + "/" + attached_files.filename
+        else:
+            url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + attached_files.filename
+        content_type = mimetypes.guess_type(url)[0]
+        filename = attached_files.filename
+        attached_file = open(url,'r')
+        message.attach(filename=filename,
+                       content_type=content_type, data=attached_file.read())
+
 
     # if not include_unscubscribe_link:
     # message.add_filter('subscriptiontrack', 'enable', 0)
@@ -376,8 +440,8 @@ def send_email(
     if send_emails:
         app.logger.info('''
 
- Attempting to send e-mail with body: %s, subject: %s, to %s'''
-                        % (body, subject, recipients))
+ Attempting to send e-mail with subject: %s, to %s'''
+                        % (subject, recipients))
         try:
             mail.send(message)
             return True
@@ -507,4 +571,3 @@ def format_date(obj):
     if not obj:
         return None
     return helpers.localize(obj).strftime('%b %d, %Y')
-

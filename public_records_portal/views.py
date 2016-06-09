@@ -30,7 +30,7 @@ from forms import OfflineRequestForm, NewRequestForm, LoginForm, EditUserForm, C
 import pytz
 from requires_roles import requires_roles
 from flask_login import LoginManager
-from models import AnonUser, Record
+from models import AnonUser, Record, Request
 from models import AnonUser, RecordPrivacy
 from datetime import datetime, timedelta, date
 from business_calendar import Calendar
@@ -496,12 +496,14 @@ def explain_all_actions():
 
 
 @app.route("/<string:audience>/request/<string:request_id>")
-def show_request_for_x(audience, request_id):
+def show_request_for_x(audience, request_id, errors=None):
     app.logger.info("def show_request_for_x(audience, request_id):")
     proper_request_id = re.match("FOIL-\d{4}-\d{3}-\d{5}", request_id)
     if proper_request_id:
         if "city" in audience:
-            return show_request_for_city(request_id=request_id)
+            return show_request_for_city(request_id=request_id, errors=errors)
+        elif "helper" in audience:
+            return show_request(request_id=request_id, template="manage_request_%s_less_js.html" % (audience), errors=errors)
         return show_request(request_id=request_id, template="manage_request_%s.html" % (audience))
     return bad_request(400)
 
@@ -630,9 +632,9 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
                                department=department, assigned_user=assigned_user, helpers=helpers, audience=audience,
                                datetime=datetime.now())
 
-
 @app.route("/email/<string:template_name>", methods=["GET", "POST"])
 def show_email(template_name, errors=None, form=None):
+    fields = form
     request_id = request.form.get('request_id')
     acknowledge_status = request.form.get('acknowledge_status')
     due_date = request.form.get('due_date')
@@ -718,7 +720,12 @@ def upload_document():
         else:
             doc_id, filename, errors = upload_file(file, form['request_id'], 0x1)
             if not doc_id:
-                document_upload_errors['virus'] = 'We didn\'t recognize the type of %s' % secure_fname
+                if errors == 'file_too_large':
+                    errors = 'File too large'
+                elif errors == ' file_too_small':
+                    errors = 'File too small'
+                else:
+                    document_upload_errors['virus'] = 'We didn\'t recognize the type of %s' % secure_fname
             if errors:
                 if errors == 'cannot_email_file':
                     document_upload_warnings[errors] = '%s is too large to email to the requester' % secure_fname
@@ -738,12 +745,29 @@ def add_a_resource(resource):
     app.logger.info("def add_a_resource(resource):")
     req = request.form
     errors = {}
+    # return redirect(url_for('show_request_for_x', audience='city', request_id=req['request_id']))
     if request.method == 'POST':
         print "Resource is a", resource
         if resource == 'letter':
             return add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
         # Field validation for adding a recored
         elif resource == 'record_and_close':
+            #Error checking for link, url, record access
+            #Moved validation to front-end
+            # if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
+            #     errors[
+            #         'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
+            # if not ((req['record_description'])) and req['link_url']:
+            #     errors['missing_record_description'] = "Please include a name for this record"
+            if 'switchrecord' in req and req['switchrecord'] == 'true':
+
+                record = Record.query.filter_by(request_id=req['request_id']).filter_by(filename=req['filename_privacy']).first()
+                app.logger.info(
+                    "Changing Record Privacy for Request %s, Record_Id %s to %s" % (
+                    record.id, req['request_id'], req['record_privacy']))
+                if record is not None and req['record_privacy'] is not None:
+                    prr.change_record_privacy(record_id=record.id,
+                                              request_id=req['request_id'], privacy=req['record_privacy'])
             if "email_text" in req:
                 notification_content = {}
                 notification_content['email_text'] = Markup(req['email_text']).unescape()
@@ -752,25 +776,56 @@ def add_a_resource(resource):
                 app.logger.info("RELEASED:" + released_filename)
                 #app.logger.info("RELEASED:" + str(released_filename[len(released_filename) - 1]).replace('</p>',''));
                 notification_content['released_filename'] = str(req['request_id']) + '/' + released_filename.replace("\r\n","")
-                notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                # notification_content['privacy'] = RecordPrivacy.RELEASED_AND_PUBLIC
+                # notification_content['privacy'] = req['record_privacy']
+                notification_content['request_id'] = str(req['request_id'])
+                rec = Record.query.filter_by(request_id=req['request_id']).filter_by(filename=released_filename.strip('\r\n')).first()
+                if rec:
+                    notification_content['privacy'] = rec.privacy
                 if "attach_single_email_attachment" in req:
                     notification_content['attach_single_email_attachment'] = "true"
                 if "addAsEmailAttachment_1" not in req and req['record_privacy'] != 'private':
-                    generate_prr_emails(request_id=req['request_id'],
-                                notification_content=notification_content,
-                                notification_type='city_response_added')
-            else:
-                if not ((req['link_url']) or (req['record_access']) or (request.files['record'])):
-                    errors[
-                        'missing_record_access'] = "You must upload a record, provide a link to a record, or indicate how the record can be accessed"
-                if not ((req['record_description'])) and req['link_url']:
-                    errors['missing_record_description'] = "Please include a name for this record"
+                    if 'switchrecord' in req:
+                        pass
+                    else:
+                        del notification_content['released_filename']
+                        generate_prr_emails(request_id=req['request_id'],
+                                    notification_content=notification_content,
+                                    notification_type='city_response_added')
 
 
+
+        # if request.files['record'].filename != u'':
         files = request.files.getlist('record')
         titles = request.form.getlist('title[]')
 
+        count = 0
+        if 'addAsEmailAttachment_1' in req:
+            for i in req:
+                if 'addAsEmailAttachment' in i:
+                    count += 1
+            if (count < len(files)):
+                generate_prr_emails(request_id=req['request_id'],notification_content=notification_content,
+                                    notification_type='city_response_added')
         if files:
+            # notification_content = {}
+            notification_content['request_id'] = req['request_id']
+
+            if 'filename_privacy' in req and 'addAsEmailAttachment_1' in req:
+                if 'filename_privacy' in req:
+                    filename = req['filename_privacy']
+                    notification_content['documents'] = filename
+                request_obj = models.Request.query.filter_by(id=req['request_id'])
+                # notification_content['request_id'] = req['request_id']
+                notification_content['addAsEmailAttachment_1'] = req['addAsEmailAttachment_1']
+                generate_prr_emails(request_id=req['request_id'],notification_type='city_response_added',
+                                    notification_content=notification_content)
+            else:
+                if files[0].filename==u'':
+                    generate_prr_emails(request_id=req['request_id'],notification_type='city_response_added',
+                                        notification_content=notification_content)
+
+
             for index,file in enumerate(files):
                 filename = file.filename.replace(" ","_")
                 title = ""
@@ -783,8 +838,13 @@ def add_a_resource(resource):
                     update_obj(attribute="description", val=title, obj_type='Record', obj_id=existing_record.id)
                     resource_id = 1
                 else:
-                    resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
-                    app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
+                    #Test that an actual file was uploaded by looking for the filename
+                    if file.filename == u'' and req['record_description'] == u'' and req['link_url'] == u'' and req['record_access'] == u'':
+                        resource_id = 2
+                        # '2' indicates that there was no file was uploaded and no link or access method was provided.
+                    else:
+                        resource_id = add_resource(resource=resource, request_body=request.form, current_user_id=get_user_id())
+                        app.logger.info("@@@@@@@@@@@@@@@@@@@@@" + str(resource_id))
 
                 if type(resource_id) == int or str(resource_id).isdigit():
                     requestObj = get_obj("Request", req['request_id'])
@@ -802,15 +862,13 @@ def add_a_resource(resource):
                         audience = 'public'
 
                     template = "manage_request_%s_less_js.html" % audience
-                    app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
+                    if resource_id != 2:
+                        app.logger.info("\n\nSuccessfully added resource: %s with id: %s" % (resource, resource_id))
+                    else:
+                        app.logger.info("\n\nUnable to add resource because of the following errors: %s " % (errors))
                     if resource == 'record_and_close':
-                        return show_request(request_id=req['request_id'],
-                                            template=template, errors=errors,
-                                            form=req, file=request.files['record'])
-
-                    return show_request(request_id=req['request_id'],
-                                        template=template, errors=errors,
-                                        form=req)
+                        return redirect(url_for('show_request_for_x', audience=audience, request_id=req['request_id']))
+                    return redirect(url_for('show_request_for_x', audience=audience, request_id=req['request_id']))
                 elif resource_id == False:
                     app.logger.info("\n\nThere was an issue with adding resource: %s" % resource)
                     template = "manage_request_%s_less_js.html" % req['audience']
@@ -1957,14 +2015,18 @@ def change_privacy():
 
 
 @app.route("/switchRecordPrivacy", methods=["POST", "GET"])
-def switch_record_privacy():
+def switch_record_privacy(privacy=None):
     app.logger.info("def switch_record_privacy():")
+    if privacy:
+        privacy = privacy
+    else:
+        privacy = request.form['privacy_setting']
     record = get_obj("Record", request.form['record_id'])
-    privacy = request.form['privacy_setting']
     app.logger.info(
         "Changing Record Privacy for Request %s, Record_Id %s to %s" % (record, request.form['record_id'], privacy))
     if record is not None and privacy is not None:
         prr.change_record_privacy(record_id=request.form['record_id'], request_id=request.form['request_id'], privacy=privacy)
+
     #import pdb; pdb.set_trace();
     return redirect(url_for('show_request_for_city', request_id=request.form['request_id'], _scheme='https', _external=True))
 

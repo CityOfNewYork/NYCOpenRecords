@@ -64,7 +64,7 @@ def upload_multiple_files(documents, request_id):
     :param request_id: FOIL Request ID Number
     :return: None
     """
-    app.logger.info("def upload_multipl_files")
+    app.logger.info("def upload_multiple_files")
     for document in documents:
         upload_file(document=document, request_id=request_id)
 
@@ -97,16 +97,14 @@ def upload_file(document, request_id, privacy=0x1):
             return False, '', "file_too_small"
 
         if file_length > int(app.config['MAX_FILE_SIZE']):
-            app.logger.error("File: %s is too large" % document.filename)
+            app.logger.error("File: %s is  too large" % document.filename)
             return False, '', "file_too_large"
-
-
 
         if allowed_file(document):
             file_scanned = scan_file(document, file_length)
             if file_scanned:
-                if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
-                    return 1, secure_filename(document.filename), "cannot_email_file"
+                # if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+                #     return 1, secure_filename(document.filename), "cannot_email_file"
                 upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
                 return 1, secure_filename(document.filename), None
             else:
@@ -119,8 +117,8 @@ def upload_file(document, request_id, privacy=0x1):
             file_length = len(document.read())
             document.seek(0)
             upload_file_locally(document, secure_filename(document.filename), privacy, request_id=request_id)
-            if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
-                return 1, secure_filename(document.filename), "cannot_email_file"
+            # if file_length > int(app.config['MAX_EMAIL_ATTACHMENT_SIZE']):
+            #     return 1, secure_filename(document.filename), "cannot_email_file"
             return 1, secure_filename(document.filename), None
         else:
             app.logger.error("File: %s mime type is not allowed." % document.filename)
@@ -263,6 +261,7 @@ def allowed_file(file):
     :param file: pass in a file that will be checked for allowed mimetype
     :return: True if the mimetype is allowed or False if its not allowed
     """
+
     if app.config['MAGIC_FILE'] != '':
         f = magic.Magic(magic_file=app.config['MAGIC_FILE'], mime=True)
     else:
@@ -270,6 +269,7 @@ def allowed_file(file):
     mimetype = f.from_buffer(file.read())
     file.seek(0)
     app.logger.info("\n\nMimetype: " + mimetype)
-    for m in ALLOWED_MIMETYPES:
-        if m in mimetype:
-            return True
+    if mimetype in ALLOWED_MIMETYPES:
+        return True
+    #returns false if the file's mimetype doesn't match any of the allowed mimtypes
+    return False

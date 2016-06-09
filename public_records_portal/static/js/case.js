@@ -15,6 +15,20 @@
         });
     });
 
+    //Checks which privacy option was selected
+    $('#private').change(function(){
+        if(this.checked){
+            document.getElementById("email_table").style.visibility="hidden";
+            //$('#email_table').style.visibility="hidden";
+
+        }
+    });
+    $('#release_and_public, #release_and_private').change(function(){
+        if(this.checked){
+            document.getElementById("email_table").style.visibility="visible";
+        }
+    });
+
     function qa_to_html(qa) {
         return '<h3>' + qa.date_created + '</h3>';
     }
@@ -83,6 +97,7 @@
     $('#submit').on('click', function (event) {
         $('#privacy').hide();
         form_id = '#' + $('#form_id').val();
+        $('#submitRecord').append($('#file_names'));
         if (form_id === "#") {
             form_id = "#submitRecord";
         }
@@ -103,7 +118,6 @@
                 email_text = CKEDITOR.instances.email_text.getData();
                 email_text = email_text.replace('&lt', '<').replace('&gt', '>');
                 email_text = email_text.replace('&#34;', '"');
-                console.log(email_text);
                 var emailInput = $("<input>")
                     .attr("type", "hidden")
                     .attr("name", "email_text").val(email_text);
@@ -207,7 +221,7 @@
                 success: function (data) {
                     $('#form_id').val('AcknowledgeNote');
                     var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-                    modalQuestion += '' + $('#acknowledge_status').val();
+                    modalQuestion += ' ' + $('#acknowledge_status').val();
                     $('#modalquestionDiv').html(modalQuestion);
                     $('#modalQuestionTable').hide();
                     CKEDITOR.replace('email_text');
@@ -335,6 +349,7 @@
     });
 
     $('.privacy_radio').on('click', function () {
+        document.getElementById("email_table").style.visibility="hidden";
         if (this.id === "release_and_public" || this.id === "release_and_private") {
             var privacy_setting = this.id.toString();
             var $this = $(this);
@@ -350,63 +365,56 @@
             var filePathArray = filePath[0].toString().split('/');
             var fileName = filePathArray[filePathArray.length - 1];
 
-            var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester? ' + fileName;
-
             $('#modalquestionDiv').text(modalQuestion);
             $('#modalQuestionTable').hide();
             $('#confirm-submit').modal('toggle');
 
+            //ele = this.form.getElementsByClassName('privacy_radio');
+            //x = ele.getElementById("release_and_public");
+            if ($('#release_and_public[name="privacy_setting"]').attr('checked', 'checked')) {
+                var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester? ' + fileName;
+                //alert("public");
+                switch_privacy = "release_and_public";
+                } else if ($('#release_and_private[name="privacy_setting"]').attr('checked', 'checked')) {
+                var modalQuestion = 'Are you sure you want to send an email to the requester about ' + fileName + '?';
+                switch_privacy = "release_and_private";
+            } else {
+                switch_privacy = "private";
+            }
+            addAsEmailAttachment = this.form.getElementsByClassName('addAsEmail');
+            //this.form.getElementsByName()
+            /*checkedPrivacy = this.form.getElementsByClassName('')*/
+            sessionStorage.setItem("switch_privacy", privacy_setting);
             $.ajax({
-                url: "/switchRecordPrivacy",
+                url: "/email/email_city_response_added.html",
                 type: 'POST',
                 data: {
                     _csrf_token: csrf_token,
-                    privacy_setting: privacy_setting,
+                    privacy_setting: switch_privacy,
                     request_id: request_id,
                     record_id: record_id
                 },
                 success: function (data) {
-                    console.log("DONE");
-                    if ($('#release_and_public[name="privacy_setting"]').attr('checked', 'checked')) {
-                        switch_privacy = "release_and_public";
-                    } else if ($('#release_and_private[name="privacy_setting"]').attr('checked', 'checked')) {
-                        switch_privacy = "release_and_private";
-                    } else {
-                        switch_privacy = "private";
+                    CKEDITOR.replace('email_text');
+                    if (fileName) {
+                        data = data + ' filename:' + fileName;
                     }
-                    sessionStorage.setItem("switch_privacy", switch_privacy);
-                    $.ajax({
-                        url: "/email/email_city_response_added.html",
-                        type: 'POST',
-                        data: {
-                            _csrf_token: csrf_token,
-                            privacy_setting: switch_privacy,
-                            request_id: request_id,
-                            record_id: record_id
-                        },
-                        success: function (data) {
-                            CKEDITOR.replace('email_text');
-                            if (fileName) {
-                                data = data + ' filename:' + fileName;
-                            }
-                            $('#email_text').val(data);
-                            $('#modalquestionDiv').text(modalQuestion);
-                            $('#modalQuestionTable').hide();
-                        },
-                        error: function (data) {
-                            alert('fail.');
-                        }
-                    });
-                    /*$('#modalAdditionalInfoTable').show();
-                     $('#form_id').val('submitRecord');
-                     var modalQuestion = 'Are you sure you want to make this record public and send an email to the requester?';
-                     modalQuestion += $('#recordSummary').text();
-                     modalQuestion += "<br>";*/
-                    //CKEDITOR.replace( 'email_text' );
-                    //$('#email_text').val(data);
-                    //$('#emailTextTable').hide();
-                    //$('#modalquestionDiv').text(modalQuestion);
-                    //$('#modalQuestionTable').hide();
+                    $('#email_text').val(data);
+                    if ( switch_privacy === 'release_and_private') {
+                        var modalQuestion = 'Are you sure you want to send an email to the requester about ' + fileName + '?';
+                    }
+                    $('#modalquestionDiv').text(modalQuestion);
+                    $('#modalQuestionTable').hide();
+                    document.getElementById("email_table").style.visibility="visible";
+                    var files = $("<input>")
+                        .attr("type", "hidden")
+                        .attr("name", "filename_privacy").val(fileName);
+                    var switchrecord = $("<input>")
+                        .attr("type", "hidden")
+                        .attr("name", "switchrecord").val(true);
+                    $('#submitRecord').append(files);
+                    $('#submitRecord').append(switchrecord);
+                    $('#submitRecord').append(addAsEmailAttachment);
                 },
                 error: function (data) {
                     alert('fail.');
@@ -424,9 +432,19 @@
         $('#file_upload_four').empty();
     });
 
+
     $('#addRecordButton').on('click', function () {
+        var maxEmailSize = document.getElementById('MAX_EMAIL_ATTACHMENT_SIZE');
+
+        //document.getElementById("email_table").style.visibility="hidden";
         $('#privacy').show();
         var formData = new FormData($("#submitRecord")[0]);
+        //$('#email_table').hide();
+        document.getElementById('email_table').style.visibility="hidden";
+        $('#submit').hide();
+        var files = document.getElementsByName('filename');
+        var allowed_files=$('.allowed_files').map( function(){return $(this).val(); }).get();
+        allowed_files=allowed_files.map(Number);
         $.ajax({
             url: "/email/email_city_response_added.html",
             type: 'POST',
@@ -434,22 +452,36 @@
             contentType: false,
             data: formData,
             success: function (data) {
-                if ($('#release_and_public').is(':checked')) {
-                    $('#addSingleEmailAttachment').hide();
-                    $('#addAsEmailAttachment_label').hide();
-                }
+                submitForm = '#submitRecord';
+                $('#submit').show();
                 $('#modalAdditionalInfoTable').hide();
                 $('#form_id').val('submitRecord');
-                var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?';
-                modalQuestion += $('#recordSummary').text();
-                $('#modalquestionDiv').text(modalQuestion);
+                var modalQuestion = 'Are you sure you want to add this record and send an email to the requester?' ;
+                modalQuestion +=  $('#recordSummary').text() + '<br>';
+                var filelist = '';
+                $('#submitRecord').append('<input type="hidden" name="files" id="filelist">');
+                for (var i = 0; i < files.length; i++){
+                    //modalQuestion +=  '<br>' + files[i].value + '<br>';
+                    $('#file_names').append('<br>' + files[i].value + '<br>');
+                    if (allowed_files.indexOf(i) > -1){
+                        //alert(files[i].size)
+                        $('#file_names').append('<input type="checkbox" name="addAsEmailAttachment_' + (i + 1) + '" id="addAsEmailAttachment_' + (i + 1) + '" value="on" style="display:inline-block;width:1em;margin-bottom:0.4em;"</input><label style="display: inline-block;">Add to email</label>');
+                        //modalQuestion += '<input type="hidden" value=files[i].value name="files">';
+                    }
+                }
+                document.getElementById('filelist').value=(filelist);
+                if ($('#addEmailattachment').attr('checked')){
+                    $('#submitRecord').append('<input type="hidden" name="addAsEmailAttachment_1" value="on">');
+                }
                 $('#modalQuestionTable').hide();
                 CKEDITOR.replace('email_text');
                 $('#email_text').val(data);
                 $('#emailTextTable').hide();
-                $('#modalquestionDiv').text(modalQuestion);
+                $('#modalquestionDiv').html(modalQuestion);
                 $('#modalQuestionTable').hide();
+
             },
+            complete: function() {},
             error: function (data) {
                 alert('fail.');
             }
@@ -462,6 +494,7 @@
         }
     });
 
+    //Check if all the required fields are filled out.
     $("[data-toggle='modal']").click(function (e) {
         if (this.id === "addRecordButton") {
             var titleTexts = $('.title_text');
@@ -473,8 +506,32 @@
                     e.stopPropagation();
                 }
             });
+            if ($('.title_text').val() == null)
+            {
+                if ($('#recordSummary').val() == '' && $('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() == '') {
+                    $('#missing_field').show();
+                    $('#missing_field').focus();
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                else if ($('#recordSummary').val() == ''){
+                    $('#missing_record_name').show();
+                    $('#missing_record_name').focus();
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                else if ($('#inputUrl').val() == '' && $('#offlineDoc_textarea').val() ==''){
+                    $('#missing_access').show();
+                    $('#missing_access').focus();
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
         }
     });
+
+    //Check if a record is uploaded as a file and disable record input methods
+    //
 
     $('#addNoteButton').on('click', function () {
         $('#emailTextTable').hide();
@@ -581,6 +638,7 @@
         $('#modalAdditionalInfoTable').hide();
         // $('#edit_email').show();
         $('#email_text').hide();
+
     });
 
     $('#addNoteButton').prop('disabled', true);
@@ -614,6 +672,7 @@
      allowedFileExtensions: ["txt", "pdf", "doc", "rtf", "odt", "odp", "ods", "odg","odf","ppt", "pps", "xls", "docx", "pptx", "ppsx", "xlsx","jpg","jpeg","png","gif","tif","tiff","bmp","avi","flv","wmv","mov","mp4","mp3","wma","wav","ra","mid"]
      });
      });*/
+
 })($);
 
 

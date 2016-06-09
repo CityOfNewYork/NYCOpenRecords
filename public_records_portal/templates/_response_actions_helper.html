@@ -52,7 +52,7 @@
                 <fieldset>
                     <div class="row-fluid" style="width:98%;">
                         <!-- upload a record -->
-                        <div class="control-group">
+                        <div class="control-group" id="upload_record">
                             <label class="control-label">Upload a record <!-- <span
                                     id="recordTooltip" rel="tooltip"
                                     data-toggle="tooltip"
@@ -67,6 +67,7 @@
                                     <div class="alert alert-danger" id="record_title_alert" style="display:none;">Record
                                         Title Cannot Be Longer Than 140 Characters
                                     </div>
+                                    <div class="alert alert-danger" id="file_errors" style="display:none;"></div>
                                                <span class="btn btn-primary fileinput-button">
                                                <i class="glyphicon glyphicon-plus"></i>
                                                <span>Add files...</span>
@@ -84,7 +85,9 @@
                                     <!-- The container for the uploaded files -->
                                    <p>If you need to remove files please refresh the page.</p>
                                     <div id="files" class="files"></div>
-                                    <p>Size of file is limited to 15 Mb</p>
+                                    <p>Size of file is limited to 500 MB</p>
+                                    <p>Size of email attachments is limited to 10 MB</p>
+
                                 </div>
                             </div>
 
@@ -93,14 +96,16 @@
                         <div class="control-group">
                             <label class="control-label" for="recordSummary">Provide a name for a link to a
                                 record</label>
-
+                            <p><small>"Add a short explanation of the record"</small></p>
+                            <div class="alert alert-danger" id ="missing_record_name" style="Display:None;">
+                                <p>Please include a name for this record</p>
+                            </div>
                             {% if form %}
                                 <div class="controls">
                                                 <textarea class="input-xxlarge"
                                                           name="record_description"
                                                           type="text"
                                                           id="recordSummary"
-                                                          placeholder="Add a short explanation of the record"
                                                           required/>{{ form['record_description'] }}</textarea>
                                 </div>
                             {% else %}
@@ -109,7 +114,6 @@
                                               name="record_description"
                                               type="text"
                                               id="recordSummary"
-                                              placeholder="Add a short explanation of the record"
                                               required/></textarea>
                                 </div>
                             {% endif %}
@@ -127,7 +131,9 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <div class="alert alert-danger" id ="missing_access" style="Display:None;">
+                                    <p>Provide a URL to access the record or indicate how you can access the record offline.</p>
+                                </div>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                         <input type="text" name="link_url" value="{{ form['link_url'] }}"
@@ -146,7 +152,9 @@
                                     <small><i class="icon-info-sign"></i>
                                     </small>
                             </span> --></label>
-
+                                <div class="alert alert-danger" id ="missing_access" style="Display:None;">
+                                    <p>Provide a URL to access the record or indicate how you can access the record offline.</p>
+                                </div>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                         <input type="text" name="link_url"
@@ -170,13 +178,12 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <p><small>"How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"</small></p>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                             <textarea class="input-xxlarge"
                                                       id="offlineDoc_textarea"
-                                                      name="record_access"
-                                                      placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'">{{ form['record_access'] }}</textarea>
+                                                      name="record_access"></textarea>
                                     </div>
                                 </div>
                             {% else %}
@@ -190,13 +197,12 @@
                                         <small><i class="icon-info-sign"></i>
                                         </small>
                                     </span> --></label>
-
+                                <p><small>"How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"</small></p>
                                 <div class="row-fluid" style="width:98%;">
                                     <div class="controls">
                                             <textarea class="input-xxlarge"
                                                       id="offlineDoc_textarea"
-                                                      name="record_access"
-                                                      placeholder="How can the requester get this record? Ex. 'Sent via mail on a CD', 'Print out awaiting requester at City Clerk desk'"></textarea>
+                                                      name="record_access"></textarea>
                                     </div>
                                 </div>
                             {% endif %}

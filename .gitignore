@@ -148,6 +148,7 @@ runserver2.txt
 *.csr
 *.crt
 *.key
+.certs/*
 users/liasons_all-agencies.csv
 users/liasons.xlsx
 logs/

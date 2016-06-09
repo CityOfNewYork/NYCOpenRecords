@@ -30,6 +30,8 @@
         {% block banner %}{{ super() }}{% endblock banner %}
     </div>
 </div>
+
+<input type="hidden" name="MAX_EMAIL_ATTACHMENT_SIZE" id="MAX_EMAIL_ATTACHMENT_SIZE" value="{{ config['MAX_EMAIL_ATTACHMENT_SIZE'] }}">
 <div class="row-fluid">
     <div class="span9">
         {% block well %}
@@ -126,7 +128,6 @@
                     </form>
 
 
-
                     <div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -135,9 +136,13 @@
                                     Confirmation
                                 </div>
                                 <div class="modal-body" style="max-height: 80%">
-                                    <div id="modalquestionDiv">Are you sure you want to make the following question
+                                <form name="input_doc" style="" id="modalquestionDiv"
+                                      method="post"
+                                      action="/add_a_record_and_close" autocomplete="on"
+                                      enctype="multipart/form-data">
+                                    Are you sure you want to make the following question
                                         public and send an email to the requester?
-                                    </div>
+                                </form>
                                     <table id="modalQuestionTable" class="table">
                                         <tr>
                                             <th>Question</th>
@@ -154,19 +159,19 @@
                                                 <input type="radio" id="release_and_public" name="record_privacy"
                                                        value="release_and_public">
                                                 {# Value set to False means release and public#}
-                                                Release and Public
+                                                Release and Public (E-mails the record to the requester and displays the record on the request page)
                                             </div>
                                             <div class="row-fluid" style="padding-bottom: 1px; margin-bottom: 1px;">
                                                 <label class="radio" for="release_and_private"/>
                                                 <input type="radio" id="release_and_private" name="record_privacy"
                                                        value="release_and_private">
-                                                Release and Private
+                                                Release and Private (E-mails the record to the requester but hides it on the request page)
                                             </div>
                                             <div class="row-fluid" style="padding-bottom: 1px; margin-bottom: 1px;">
                                                 <label class="radio" for="private"/>
                                                 <input type="radio" id="private" name="record_privacy" value="private"
                                                        checked="checked">
-                                                Private
+                                                Private (No e-mail will be sent and the record cannot be accessed by the public)
                                             </div>
                                         </div>
                                     </div>
@@ -175,20 +180,26 @@
 				    {% endif %}
                                     <table id="emailTextTable" class="table">
                                         <tr>
-                                           <label class="radio inline" for="privacy setting-0">
-{#                                           <input class="addAsEmail" type="checkbox" id="addSingleEmailAttachment" name="addSingleEmailAttachment" style#}
-{#="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;">Add to email</input>#}
+                                            <div id="email_table">
+                                           <input class="addAsEmail" type="checkbox" id="addSingleEmailAttachment" name="addSingleEmailAttachment" style
+="display:None;width:1em;margin-bottom:0.4em;"><label for="addAsEmailAttachment[]" id="addAsEmailAttachment_label" style="display: inline-block;">
                                     </label>
-					{% if current_user.role != 'Agency Helpers' %}
+{#					{% if current_user.role != 'Agency Helpers' %}#}
                                             <div><b><button id="edit_email" class="btn btn-default" type="button">Edit Email</button></b><br></div>
+                                                <div id="file_names"></div>
                                                 <textarea name="email_text" id="email_text" rows="10" cols="80" disabled style="display:None;">This is my textarea to be replaced with CKEditor.</textarea>
-                                        {% else %}
-<textarea name="email_text" id="email_text" rows="10" cols="80" style='display: none;'>This is my textarea to be replaced with CKEditor.</textarea>
-{% endif %}
+{#                                        {% else %}#}
+{#<textarea name="email_text" id="email_text" rows="10" cols="80" style='display: none;'>This is my textarea to be replaced with CKEditor.</textarea>#}
+{#{% endif %}#}
+                                            </div>
+                                           </label>
+
                                         </tr>
 
                                     </table>
-                                    <br/><br/> 
+                                    <br/><br/>
+
+
                                 </div>
                                 <div class="modal-footer">
                                     <a href="/city/request/{{ req.id }}" class="btn btn-default">Cancel</a>
@@ -212,10 +223,10 @@
                                     <div class="modal-body">
                                         <table id="modalAdditionalInfoTable" class="table">
                                         <tr id="additionalInformation">
-                                            <th>Type out agency desscription here</th>
+                                            <th>Type out agency description here</th>
                                             <td><textarea id="additional_note" name="additional_note"
                                                           class="input-xlarge agency-description"
-                                                          placeholder="Additional Information"/>{{ req.agency_description }}</textarea></td>
+                                                          placeholder="Additional Information"/>{{ req.agency_description if req.agency_description != None }}</textarea></td>
                                         </tr>
                                     </table>
                                     </div>
@@ -473,11 +484,10 @@
         src="{{ url_for('static', filename='js/plugins/jquery.ellipsis.js') }}"></script>
 
 <script type="text/javascript">
+
 function reload_page()
 {
     window.location.href = "http://www.google.com";
 }
 </script>
 {% endblock custom_script_links %}
-
-

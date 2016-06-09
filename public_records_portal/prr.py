@@ -207,16 +207,29 @@ No file passed in''')
             else:
                 privacy = RecordPrivacy.PRIVATE
 
-            return upload_multiple_records(
-                request_id=fields['request_id'],
-                documents=documents,
-                addAsEmailAttachmentList=addAsEmailAttachmentList,
-                request_body=request_body,
-                description=fields['record_description'],
-                user_id=current_user_id,
-                privacy=privacy,
-                department_name=department_name,
-                titles=titles)
+            if 'record_description' not in fields:
+                return upload_multiple_records(
+                    request_id=fields['request_id'],
+                    documents=documents,
+                    addAsEmailAttachmentList=addAsEmailAttachmentList,
+                    request_body=request_body,
+                    description='',
+                    user_id=current_user_id,
+                    privacy=privacy,
+                    department_name=department_name,
+                    titles=titles)
+            else:
+                return upload_multiple_records(
+                    request_id=fields['request_id'],
+                    documents=documents,
+                    addAsEmailAttachmentList=addAsEmailAttachmentList,
+                    request_body=request_body,
+                    description=fields['record_description'],
+                    user_id=current_user_id,
+                    privacy=privacy,
+                    department_name=department_name,
+                    titles=titles)
+
     elif 'qa' in resource:
         return ask_a_question(request_id=fields['request_id'],
                               user_id=current_user_id,
@@ -874,6 +887,7 @@ def upload_record(
                     change_record_privacy(record_id, request_id, privacy)
                     change_request_status(request_id,
                                           'A response has been added.')
+                    notification_content['request_id'] = request_id
                     notification_content['user_id'] = user_id
                     notification_content['department_name'] = department_name
                     notification_content['privacy'] = privacy
@@ -933,9 +947,9 @@ def add_offline_record(
     if record_id:
         notification_content['department_name'] = department_name
         change_request_status(request_id, 'A response has been added.')
-        generate_prr_emails(request_id=request_id,
-                            notification_type='city_response_added',
-                            notification_content=notification_content)
+        # generate_prr_emails(request_id=request_id,
+        #                     notification_type='city_response_added',
+        #                     notification_content=notification_content)
         add_staff_participant(request_id=request_id, user_id=user_id)
         return record_id
     return False
@@ -962,9 +976,9 @@ def add_link(
         notification_content['url'] = url
         notification_content['description'] = description
         notification_content['department_name'] = department_name
-        generate_prr_emails(request_id=request_id,
-                            notification_type='city_response_added',
-                            notification_content=notification_content)
+        # generate_prr_emails(request_id=request_id,
+        #                     notification_type='city_response_added',
+        #                     notification_content=notification_content)
         add_staff_participant(request_id=request_id, user_id=user_id)
         return record_id
     return False
@@ -1068,6 +1082,7 @@ Agency chosen: %s''' % agency)
         notification_content['department_name'] = agency
         notification_content['due_date'] = str(Request.query.filter_by(id=id).first().due_date).split(' ')[0]
         notification_content['contact_info'] = get_contact_info(request_id)
+        notification_content['request_id'] = request_id
         if subscriber_id:
             generate_prr_emails(request_id,
                                 notification_type='confirmation',
@@ -1388,7 +1403,9 @@ def close_request(
     notification_content['reasons'] = reasons
     # for reason in reasons:
     #     notification_content['explanations'].append(explain_action(reason, explanation_type='What'))
-    notification_content['user_id'] = user_id
+
+    notification_content['user_id'] = req.subscribers[0].user.id
+    notification_content['request_id'] = request_id
     create_note(request_id, reasons, user_id, privacy=1)
     if "Your request under the Freedom of Information Law (FOIL) has been reviewed and the documents you requested have " \
        "been posted on the OpenRecords portal." in notification_content['reasons']:

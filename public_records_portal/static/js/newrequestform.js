@@ -187,7 +187,6 @@ $(function () {
         var text_length = $('#request_summary').val().length;
         var text_remaining = request_summary_max_length - text_length;
         $('#request_summary_counter').text(text_remaining + ' characters remaining');
-        console.log(text_remaining);
         if (text_remaining <= 0) {
             document.getElementById("request_summary_counter").style.color = "red";
         } else {

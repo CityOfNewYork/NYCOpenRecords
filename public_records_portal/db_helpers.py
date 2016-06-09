@@ -181,7 +181,7 @@ def update_obj(attribute, val, obj_type=None, obj_id=None, obj=None):
 def create_email(request_id,recipient,subject,time_sent,email_content=None):
     '''Create an Email object'''
     #Deleting any files part of the notification_content because they are no jsonable
-    if email_content['documents']:
+    if 'documents' in email_content:
         email_content_strip = email_content.copy()
         del email_content_strip['documents']
         email = Email(request_id=request_id, recipient=recipient, subject=subject, time_sent=time_sent,
@@ -517,8 +517,8 @@ def change_request_status(request_id, status):
     date_created = cal.adjust(date_created, FOLLOWING)
     if "days" in status:
             days_to_fulfill = re.findall(r"(\d{2,3}) days",status)[0]
-            app.logger.info("Changing Due Date: %s " % cal.addbusdays(date_created, int(days_to_fulfill)))
-            req.due_date = cal.addbusdays(date_created, int(days_to_fulfill))
+            app.logger.info("Changing Due Date: %s " % cal.addbusdays(req.due_date, int(days_to_fulfill)))
+            req.due_date = cal.addbusdays(req.due_date, int(days_to_fulfill))
     db.session.commit()
 
 
