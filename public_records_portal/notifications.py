@@ -22,7 +22,8 @@ from flask_mail import Mail, Message
 import helpers
 import datetime
 from db_helpers import *
-
+from public_records_portal import models
+from models import Subscriber
 import HTMLParser
 # Set flags:
 
@@ -147,7 +148,7 @@ Subscriber %s unsubscribed, no notification sent.'''
                 page = '%sfeedback/request/%s' % (public_app_url,
                         request_id)
 
-        if recipient_type in ['Staff owner', 'Requester', 'Subscribers',
+        if recipient_type in ['Staff owner', 'Requester',
                               'Staff participant']:
             #Store the email content
             #Request id, recipient, subjects, date sent, content
@@ -181,8 +182,8 @@ Subscriber %s unsubscribed, no notification sent.'''
 
  No user ID provided''')
         elif recipient_type == 'Subscribers':
-            subscribers = get_attribute(attribute='subscribers',
-                    obj_id=request_id, obj_type='Request')
+            subs = Subscriber.query.filter_by(request_id=request_id)
+            subscribers = subs.all()
             for subscriber in subscribers:
                 if subscriber.should_notify == False:
                     app.logger.info('''
@@ -427,12 +428,6 @@ def send_email(
     if cc_everyone:
         pass
     else:
-
-    # message.add_to(recipients[0])
-    # for recipient in recipients:
-    # ....if should_notify(recipeient):
-    # ........message.add_cc(recipient)
-
         for recipient in recipients:
             recipient = recipient.replace('\\', '').replace("'", '')
             message.add_recipient(recipient)
