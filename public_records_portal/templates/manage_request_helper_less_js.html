@@ -194,10 +194,10 @@
                     {#                node.append('<button class="btn btn-danger delete" type="button" onclick="parentNode.remove();" name="' + file + '"><i class="icon-remove icon-white"></i>&nbsp;<span>Cancel</span>&nbsp;</button>');#}
                                     node.append('</tr>')
                                     node.append('<tr>')
-{#                                    if (sizes[index] < max_email_size){#}
+                                    if (sizes[index] < max_email_size){
 {#                                        node.append('<input class="addAsEmail" type="checkbox" id="addAsEmailAttachment_' + (currentRecordCount + index) + '" name="addAsEmailAttachment_' + (currentRecordCount + index) + '" style="display:inline-block;width:1em;margin-bottom:0.4em;"><label for"addAsEmailAttachment[]" style="display: inline-block;">Add to email');#}
-{##}
-{#                                    }#}
+                                        node.append('<input name="allowed_files" class="allowed_files" type="hidden" id="'+(index) + '" value="'+(index)+'">');
+                                    }
 {#                                    else{#}
 {#                                        node.append('<p>No option to attach to email because the file is too large</p>');#}
 {#                                    }#}

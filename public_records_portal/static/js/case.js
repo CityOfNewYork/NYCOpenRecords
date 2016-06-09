@@ -462,12 +462,16 @@
                 $('#submitRecord').append('<input type="hidden" name="files" id="filelist">');
                 for (var i = 0; i < files.length; i++){
                     //modalQuestion +=  '<br>' + files[i].value + '<br>';
-                    $('#file_names').append('<br>' + files[i].value + '<br>');
-                    if (allowed_files.indexOf(i) > -1){
-                        //alert(files[i].size)
-                        $('#file_names').append('<input type="checkbox" name="addAsEmailAttachment_' + (i + 1) + '" id="addAsEmailAttachment_' + (i + 1) + '" value="on" style="display:inline-block;width:1em;margin-bottom:0.4em;"</input><label style="display: inline-block;">Add to email</label>');
-                        //modalQuestion += '<input type="hidden" value=files[i].value name="files">';
+                    // if (files.indexOf(files[i].value) != files.lastIndexOf(files[i].value)) {
+                    if ($('#missing_title').css('display') == 'none') {
+                        $('#file_names').append('<br><div name="files_uploaded" id="' + files[i].value + '">' + files[i].value + '</div>');
+                        if (allowed_files.indexOf(i) > -1) {
+                            //alert(files[i].size)
+                            $('#file_names').append('<input type="checkbox" name="addAsEmailAttachment_' + (i + 1) + '" id="addAsEmailAttachment_' + (i + 1) + '" value="on" style="display:inline-block;width:1em;margin-bottom:0.4em;"</input><label style="display: inline-block;">Add to email</label>');
+                            //modalQuestion += '<input type="hidden" value=files[i].value name="files">';
+                        }
                     }
+                    // }
                 }
                 document.getElementById('filelist').value=(filelist);
                 if ($('#addEmailattachment').attr('checked')){
@@ -504,6 +508,9 @@
                     $('#missing_title').focus();
                     e.preventDefault();
                     e.stopPropagation();
+                }
+                else{
+                    $('#missing_title').hide();
                 }
             });
             if ($('.title_text').val() == null)
