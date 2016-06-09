@@ -402,6 +402,7 @@ def request_extension(
     notification_content = {}
     notification_content['days_after'] = days_after
     notification_content['due_date'] = str(req.due_date).split(' ')[0]
+    notification_content['request_id'] = request_id
     if request.form.get('email_text') is not None and request.form.get('email_text') != '':
         notification_content['email_text'] = Markup(request_body['email_text']).unescape()
 
