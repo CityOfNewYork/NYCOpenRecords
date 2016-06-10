@@ -184,6 +184,11 @@ Subscriber %s unsubscribed, no notification sent.'''
         elif recipient_type == 'Subscribers':
             subs = Subscriber.query.filter_by(request_id=request_id)
             subscribers = subs.all()
+            try:
+                create_email(request_id=request_id, recipient=user_id, subject=email_subject, time_sent=datetime.now(),
+                             email_content=notification_content)
+            except Exception, e:
+                app.logger.error("Unable to store email object \n%s" % e)
             for subscriber in subscribers:
                 if subscriber.should_notify == False:
                     app.logger.info('''
