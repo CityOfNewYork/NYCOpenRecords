@@ -81,6 +81,15 @@ body.wait, body.wait *{
 div{
    cursor: pointer;
 }
+#dimScreen
+{
+    width: 100%;
+    height: 84em;
+    background:rgba(255,255,255,0.5);
+    position: absolute;
+    z-index: 1000;
+
+}
 </style>
 <body>
 {% if current_user.is_authenticated %}
@@ -114,6 +123,12 @@ div{
 {% else %}
 {% set active_page=active_page|default('') -%}
 {% endif %}
+<div id="dimScreen" style="display:none">
+        <div style="position:absolute; top:20%; left:45%;">
+            <p style="text-align: center;">Uploading file(s) please wait...</p>
+            <img src="{{url_for('static', filename='images/ring-alt.gif') }}" alt="Loading Screen" style="margin-left:20%;">
+        </div>
+</div>
 <div class="agency-header">
     <div class="upper-header-black">
         <div class="container">
@@ -140,7 +155,7 @@ div{
         </div>
     </div>
 </div>
-<div class="wrapper">
+<div class="wrapper" style="">
     <div class="navbar">
         <div class="navbar-inner">
             <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
@@ -296,7 +311,8 @@ div{
         src="{{ url_for('static', filename='js/ckeditor.js') }}"></script>
 {% block custom_script_links %}
 {% endblock custom_script_links %}
-<form method=post action="">
+<form method=post action="" style="display:none;">
     <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
+</form>
 </body>
 </html>

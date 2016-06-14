@@ -30,7 +30,6 @@
         {% block banner %}{{ super() }}{% endblock banner %}
     </div>
 </div>
-
 <input type="hidden" name="MAX_EMAIL_ATTACHMENT_SIZE" id="MAX_EMAIL_ATTACHMENT_SIZE" value="{{ config['MAX_EMAIL_ATTACHMENT_SIZE'] }}">
 <div class="row-fluid">
     <div class="span9">
@@ -129,7 +128,7 @@
 
 
                     <div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog"
-                         aria-labelledby="myModalLabel" aria-hidden="true">
+                         aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -210,17 +209,17 @@
                     </div>
 
                     <div class="modal fade" id="edit_agency_description" tabindex="-1" role="dialog" aria-labelledby="edit_agency_description"
-                         aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
+                         aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                        <div class="modal-dialog" data-backdrop="static" data-keyboard="false">
+                            <div class="modal-content" data-backdrop="static" data-keyboard="false">
+                                <div class="modal-header" data-backdrop="static" data-keyboard="false">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                     <h4 class="modal-title" id="myModalLabel">Agency Description</h4>
                                 </div>
                                 <form method="post" id="edit_agency_description">
                                     <input type="hidden" name="request_id" value="{{ req.id }}"/>
                                     <input name="_csrf_token" type=hidden value="{{ csrf_token() }}">
-                                    <div class="modal-body">
+                                    <div class="modal-body" data-backdrop="static" data-keyboard="false">
                                         <table id="modalAdditionalInfoTable" class="table">
                                         <tr id="additionalInformation">
                                             <th>Type out agency description here</th>

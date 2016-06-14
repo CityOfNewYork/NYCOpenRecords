@@ -103,12 +103,13 @@
                 $("#upload_record").show();
             }
         });
-        $("#record").on('click', function(e){
-            $("body").toggleClass("wait");
+        $("#record").on('click', function(){
+
         });
 
         $("#record").on('change', function (e, data) {
-
+            $('#dimScreen').height($(document).height());
+            $('#dimScreen').show();
             $('#file_errors').empty();
             $('#file_errors').hide();
 
@@ -239,7 +240,8 @@
                                         $('#private').prop('checked', true);
                                     }
                                 });
-                                $("body").toggleClass("wait");
+                                    $('#dimScreen').hide();
+
                             },
                             cache: false,
                             contentType: false,

@@ -104,9 +104,10 @@
         });
 
         $("#record").on('change', function (e, data) {
+            $('#dimScreen').height($(document).height());
+            $('#dimScreen').show();
             $('#file_errors').empty();
             $('#file_errors').hide();
-
             var names = [];
             var sizes = [];
             var max_email_size = {{ config['MAX_EMAIL_ATTACHMENT_SIZE'] }}
@@ -235,7 +236,7 @@
                                         $('#private').prop('checked', true);
                                     }
                                 });
-                                $("body").toggleClass("wait");
+                                $('#dimScreen').hide();
                             },
                             cache: false,
                             contentType: false,
