@@ -99,6 +99,9 @@
                 $("#upload_record").show();
             }
         });
+        $("#record").on('click', function(e){
+            $("body").toggleClass("wait");
+        });
 
         $("#record").on('change', function (e, data) {
             $('#file_errors').empty();
@@ -232,6 +235,7 @@
                                         $('#private').prop('checked', true);
                                     }
                                 });
+                                $("body").toggleClass("wait");
                             },
                             cache: false,
                             contentType: false,

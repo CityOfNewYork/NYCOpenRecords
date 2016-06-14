@@ -103,8 +103,12 @@
                 $("#upload_record").show();
             }
         });
+        $("#record").on('click', function(e){
+            $("body").toggleClass("wait");
+        });
 
         $("#record").on('change', function (e, data) {
+
             $('#file_errors').empty();
             $('#file_errors').hide();
 
@@ -134,7 +138,6 @@
                      $('#submitRecord').append(input);*/
 
                     var formData = new FormData($("#submitRecord")[0]);
-
                         $.ajax({
                             url: '/upload_document',
                             type: 'POST',
@@ -236,6 +239,7 @@
                                         $('#private').prop('checked', true);
                                     }
                                 });
+                                $("body").toggleClass("wait");
                             },
                             cache: false,
                             contentType: false,

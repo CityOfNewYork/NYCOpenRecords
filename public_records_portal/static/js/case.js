@@ -434,6 +434,7 @@
 
 
     $('#addRecordButton').on('click', function () {
+        $("body").toggleClass("wait");
         var maxEmailSize = document.getElementById('MAX_EMAIL_ATTACHMENT_SIZE');
 
         //document.getElementById("email_table").style.visibility="hidden";
@@ -452,6 +453,7 @@
             contentType: false,
             data: formData,
             success: function (data) {
+
                 submitForm = '#submitRecord';
                 $('#submit').show();
                 $('#modalAdditionalInfoTable').hide();
@@ -483,6 +485,7 @@
                 $('#emailTextTable').hide();
                 $('#modalquestionDiv').html(modalQuestion);
                 $('#modalQuestionTable').hide();
+                $("body").toggleClass("wait");
 
             },
             complete: function() {},

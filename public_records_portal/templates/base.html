@@ -69,7 +69,19 @@ This template provides the header, footer, and envelope info for all pages excep
             charset="utf-8"></script>
 
 </head>
+<style>
+html,body{
+    height: 100%;
+}
 
+body.wait, body.wait *{
+ cursor: wait !important;
+}
+
+div{
+   cursor: pointer;
+}
+</style>
 <body>
 {% if current_user.is_authenticated %}
 {% set navigation_bar = [
