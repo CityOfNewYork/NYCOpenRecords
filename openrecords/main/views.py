@@ -24,6 +24,6 @@ def view():
 def about():
     '''
     Directs to the about page
-    :return:
+    :return: about.html
     '''
     return render_template('About/about.html')
