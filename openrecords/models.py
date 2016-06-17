@@ -13,13 +13,20 @@ from flask_login import UserMixin, AnonymousUserMixin
 from validate_email import validate_email
 
 class RecordPrivacy:
-    # Privacy of uploaded files
+    """
+    The privacy setting of an uploaded record
+    PRIVATE: The file is uploaded but it cannot be viewed by public users and no email notification is sent out
+    RELEASED_AND_PRIVATE: File is uploaded but cannot be viewed under the request. An email notification is sent out to
+     subscribers.
+    RELEASED_AND_PUBLIC: File is uploaded and can be viewed under the request. An email notification is sent to all
+    subscribers.
+    """
     PRIVATE = 0x1
     RELEASED_AND_PRIVATE = 0x2
     RELEASED_AND_PUBLIC = 0x3
 
 class User(UserMixin, db.Model):
-    # A staff member from the city
+    """User class which can be an agency user or a public user"""
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     alias = db.Column(db.String(100))
@@ -63,13 +70,25 @@ class User(UserMixin, db.Model):
             state=None,
             zipcode=None,
             department=None,
-            contact_for=None,
-            backup_for=None,
-            password=None,
             is_staff=False,
-            staff_signature=False,
             role=None
     ):
+        """
+        :param email: email which the user uses to login and receive email notifications with (required)
+        :param alias: first name and last name combined. Could be removed as a field and just use a property to define
+        :param first_name: First name of user (required)
+        :param last_name: Last name of user (required)
+        :param phone: Phone number of user (optional)
+        :param fax: fax number of user (optional)
+        :param address1: street address of user (optional)
+        :param address2: secondary address of user (optional)
+        :param city: city of user (optional)
+        :param state: state of user (optional)
+        :param zipcode: zipcode of user (optional)
+        :param department: department user belongs in (optional)
+        :param is_staff: boolean which checks if the user is part of the city or not
+        :param role: current roles are: Portal Administrator, Agency Administrator, Agency Foil Officer, Agency Helpers,
+        """
 
         if email and validate_email(email):
             self.email = email
@@ -93,36 +112,29 @@ class User(UserMixin, db.Model):
         self.date_created = datetime.now().isoformat()
         if department and department != '':
             self.department_id = department
-        if contact_for and contact_for != '':
-            self.contact_for = contact_for
-        if backup_for and backup_for != '':
-            self.backup_for = backup_for
         if is_staff:
             self.is_staff = is_staff
-        if staff_signature:
-            self.staff_signature = staff_signature
-        if password:
-            self.set_password(password)
         if role:
             self.set_role(role)
 
+
 class Department(db.Model):
-    # A city agency
+    """
+    A city department
+
+    :param date_created: the date that the department was added to the databaes
+    :param name: the name of the department
+    :param users: list of users within department
+    :param primary_contact_id: the primary contact for this department
+    :param backup_contact_id: the backup contact for this department
+    """
+
     __tablename__ = 'department'
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
-    date_updated = db.Column(db.DateTime)
     name = db.Column(db.String(), unique=True)
     users = relationship('User', foreign_keys=[User.department_id],
                          post_update=True)  # The list of users in this department
-
-    def __init__(self, name):
-        self.name = name
-        self.date_created = datetime.now().isoformat()
-
-    def __repr__(self):
-        return '<Department %r>' % self.name
-
     primary_contact_id = db.Column(Integer, ForeignKey('user.id'))
     backup_contact_id = db.Column(Integer, ForeignKey('user.id'))
     primary_contact = relationship(User,
@@ -136,8 +148,33 @@ class Department(db.Model):
                                   uselist=False,
                                   post_update=True)
 
+    def __init__(self, name):
+        self.name = name
+        self.date_created = datetime.now().isoformat()
+
+    def __repr__(self):
+        return '<Department %r>' % self.name
+
 class Request(db.Model):
-    # A request which details paperwork being requested
+    """
+    A request for a record from the city
+
+    :param date_created: The date the request was created
+    :param due_date: The date that the request is due to have a city response by
+    :param extended: Boolean that checks if the due date has been extended by any number of days
+    :param status_updated: The date the status of a request was updated
+    :param title: The title of the request
+    :param description: The description of the request
+    :param status: The current status of the request
+    :param creator_id: The user_id of the request's creator
+    :param department_id: The id of the department
+    :param offline_submission_type: Indicates whether records should be submitted offline via phone or fax
+    :param prev_status: the status previous to the current status
+    :param description_private: indicates whether request's description should be viewable by the public
+    :param title_private: indicates whether the title of the request should be viewable by the public
+    :param agency_description: the agency description that the agency user adds to the request
+    :param agency_description_due_date: the date that the agency description is due
+    """
 
     __tablename__ = 'request'
     id = db.Column(db.String(100), primary_key=True)
@@ -145,11 +182,9 @@ class Request(db.Model):
     due_date = db.Column(db.DateTime)
     extended = db.Column(db.Boolean,
                          default=False)  # Has the due date been extended?
-    qas = relationship('QA', cascade='all,delete',
-                       order_by='QA.date_created.desc()')  # The list of QA units for this request
     status_updated = db.Column(db.DateTime)
-    summary = db.Column(db.String(90), nullable=False)
-    text = db.Column(db.String(50000),
+    title = db.Column(db.String(90), nullable=False)
+    description = db.Column(db.String(50000),
                      nullable=False)  # The actual request text.
     owners = relationship('Owner', cascade='all, delete',
                           order_by='Owner.date_created.asc()')
@@ -166,7 +201,6 @@ class Request(db.Model):
     department_id = db.Column(db.Integer, ForeignKey('department.id',
                                                      name='fk_department'))
     department = relationship('Department', uselist=False)
-    date_received = db.Column(db.DateTime)
     offline_submission_type = db.Column(db.String())
     prev_status = db.Column(db.String(400))  # The previous status of the request (open, closed, etc.)
     #Adding new privacy option for description field
@@ -207,15 +241,21 @@ class Request(db.Model):
         return '<Request %r>' % self.summary
 
 class Owner(db.Model):
-    # Member of a department's staff assigned to a request
+    """
+    The owner of a request assigned by an agency
+
+    :param user_id: the id of the user who is the owner of the request
+    :param request_id: the id of the request
+    :param reason: the reason that the owner was changed
+    :param date_created: the date that the owner is created
+    :param is_point_person:
+    """
     __tablename__ = 'owner'
     id = db.Column(db.Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship('User', uselist=False)
     request_id = db.Column(db.String(100), db.ForeignKey('request.id'))
     request = relationship('Request', foreign_keys=[request_id])
-    active = db.Column(db.Boolean,
-                       default=True)  # Indicate whether they're still involved in the request or not.
     reason = db.Column(db.String())  # Reason they were assigned
     date_created = db.Column(db.DateTime)
     date_updated = db.Column(db.DateTime)
@@ -239,9 +279,15 @@ class Owner(db.Model):
         return '<Owner %r>' % self.id
 
 class Subscriber(db.Model):
-    #User who is subscribed to a request
+    """
+    A user following a request to receive updates whenever a request is changed
 
-    __tablename__ = 'subscriber'
+    :param should_notify: indicates whether the user should be notified whenever an update is made to a request
+    :param user_id: the id of the user who is subscribing to a request
+    :param request_id: the request that the user is subscribed to
+    :param date_created: the date that the subscriber was made
+    """
+
     __tablename__ = 'subscriber'
     id = db.Column(db.Integer, primary_key=True)
     should_notify = db.Column(db.Boolean,
@@ -249,6 +295,7 @@ class Subscriber(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = relationship('User', uselist=False)
     request_id = db.Column(db.String(100), db.ForeignKey('request.id'))
+    request = relationship('Request', foreign_keys=[request_id])
     date_created = db.Column(db.DateTime)
 
     def __init__(
@@ -264,7 +311,19 @@ class Subscriber(db.Model):
         return '<Subscriber %r>' % self.user_i
 
 class Record(db.Model):
-    # A record that is attached to a particular request. A record can be online (uploaded document, link) or offline.
+    """
+    A document that is uploaded to a request
+    :param date_created: the date that the record document was uploaded
+    :param user_id: the id of the user who uploaded the record
+    :param doc_id: the id of the document that was uploaded as part of the record
+    :param request_id: the request that the record was uploaded under
+    :param description: the description of what the request is
+    :param filename: the name of the file that was uploaded
+    :param url: the filepath to the directory which the file is stored
+    :param download_url: the url where you can download the file
+    :param access: how to access the record if not file is not uploaded
+
+    """
 
     __tablename__ = 'record'
     id = db.Column(db.Integer, primary_key=True)
@@ -314,7 +373,14 @@ def __repr__(self):
     return '<Record %r>' % self.description
 
 class Note(db.Model):
-    # A note on a request.
+    """
+    A note made by a user for other users to see under a request's responses
+
+    :param date_created: the date that the note was created
+    :param text: the text content of the request
+    :param request_id: the request that the note is associated with
+    :param user_id: the user that posted the note
+    """
 
     __tablename__ = 'note'
     id = db.Column(db.Integer, primary_key=True)
@@ -324,9 +390,6 @@ class Note(db.Model):
         'request.id'))  # The request it belongs to.
     user_id = db.Column(db.Integer, db.ForeignKey(
         'user.id'))  # The user who wrote the note. Right now only stored for city staff - otherwise it's an anonymous/ 'requester' note.
-    privacy = db.Column(db.Integer, default=0x01)
-    due_date = db.Column(db.DateTime, default=None)
-    days_after = db.Column(db.Integer, default=None)
 
     def __init__(
             self,
@@ -349,7 +412,16 @@ class Note(db.Model):
         return '<Note %r>' % self.text
 
 class Extension(db.Model):
-    # Extends a request
+    """
+    An extension made to a request
+
+    :param date_created: the date the extension was made
+    :param request_id: the id of the request that the extension was made for
+    :param user_id: the id of the user who made the extension
+    :param due_date: the new date the extension is due
+    :param days_after: the amount of days the request is extended by. set to -1 if a custom due date is set
+    """
+
     __tablename__= 'extension'
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
@@ -375,7 +447,15 @@ def __repr__(self):
     return '<Note %r>' % self.text
 
 class Email(db.Model):
-    # Stores all the emails sent out by the application
+    """
+    Content and header information of an email
+
+    :param request_id: the id of the request that the email was sent out for
+    :param recipient: the recipient of the email
+    :param subject: the subject of the email
+    :param time_sent: when the email was sent
+    :param email_content: a jsonified dictionary containing the text of the email and other fields relevant to the email
+    """
     __tablename__ = 'email_notification'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(20), db.ForeignKey(
