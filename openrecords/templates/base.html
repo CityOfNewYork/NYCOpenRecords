@@ -100,19 +100,6 @@ div{
 }
 </style>
 <body>
-{% if current_user.is_authenticated %}
-{% set navigation_bar = [
-
-('/new', 'new', 'Request a Record'),
-('/view_requests','view_requests','View Requests'),
-('/track','track','Track an Existing Record'),
-('/report','report','Report'),
-('/city/tutorial/01','tutorial','Tutorial'),
-('/faq','faq','FAQ'),
-('/about','about','About'),
-('/contact', 'contact', 'Contact'),
-] -%}
-{% else %}
 {% set navigation_bar = [
 
 ('/new', 'new', 'Request a Record'),
@@ -123,7 +110,6 @@ div{
 ('/about','about','About'),
 ('/contact', 'contact', 'Contact'),
 ] -%}
-{% endif %}
 
 
 {% if current_user.is_authenticated %}

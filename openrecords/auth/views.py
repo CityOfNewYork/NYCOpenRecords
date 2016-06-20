@@ -1,8 +1,16 @@
 from flask import Flask, render_template, session, redirect, url_for, current_app, request, Response
+from flask_login import current_user, login_user
+from urllib import parse
+from urllib.parse import urljoin
 from . import auth
 from .forms import LoginForm
 from .. import app
+from .. utils import authenticate_login
 
+def get_user_id():
+    if current_user.is_authenticated:
+        return current_user.id
+    return None
 
 @auth.route('/login', methods=['GET'])
 def login_form():
@@ -63,3 +71,83 @@ def login():
             return render_template('login.html', form=form)
     else:
         return bad_request(400)
+
+def get_redirect_target():
+    """ Taken from http://flask.pocoo.org/snippets/62/ """
+    app.logger.info("def get_redirect_target():")
+    for target in request.values.get('next'), request.referrer:
+        if not target:
+            continue
+        if is_safe_url(target):
+            return target
+
+
+def is_safe_url(target):
+    """ Taken from http://flask.pocoo.org/snippets/62/ """
+    app.logger.info("def is_safe_url(target):")
+    ref_url = parse(request.host_url)
+    test_url = parse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and \
+           ref_url.netloc == test_url.netloc
+
+@app.route("/<page>")
+def any_page(page):
+    app.logger.info("def any_page(page):")
+    try:
+        return render_template('%s.html' % (page))
+    except:
+        return page_not_found(404)
+
+
+@app.errorhandler(400)
+def bad_request(e):
+    app.logger.info("def bad_request(e):")
+    return render_template("400.html"), 400
+
+
+@app.errorhandler(401)
+def unauthorized(e):
+    app.logger.info("def unauthorized(e):")
+    return render_template("401.html"), 401
+
+
+@app.errorhandler(403)
+def access_denied(e):
+    app.logger.info("def access_denied(e):")
+    return redirect(url_for('login'))
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    app.logger.info("def page_not_found(e):")
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    app.logger.info("def method_not_allowed(e):")
+    return render_template("405.html"), 405
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    app.logger.info("def internal_server_error(e):")
+    return render_template("500.html"), 500
+
+
+@app.errorhandler(501)
+def unexplained_error(e):
+    app.logger.info("def unexplained_error(e):")
+    return render_template("501.html"), 501
+
+
+@app.errorhandler(502)
+def bad_gateway(e):
+    app.logger.info("def bad_gateway(e):")
+    render_template("500.html"), 502
+
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    app.logger.info("def service_unavailable(e):")
+    render_template("500.html"), 503
