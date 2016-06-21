@@ -3,13 +3,13 @@ from . import main
 
 
 @main.route('/', methods=['GET', 'POST'])
-def index():
+def home():
     '''
     Landing page that application directs to upon starting up.
-    :return: index.html
+    :return: home.html
     '''
     print("abc")
-    return render_template('index.html')
+    return render_template('home.html')
 
 @main.route('/view', methods=['GET', 'POST'])
 def view():
@@ -26,4 +26,5 @@ def about():
     Directs to the about page
     :return: about.html
     '''
-    return render_template('About/about.html')
+    return render_template('index.html')
+    # return render_template('/About/about.html')

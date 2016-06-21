@@ -68,7 +68,7 @@ def login():
             redirect_url = get_redirect_target()
             return redirect(redirect_url)
         else:
-            return render_template('login.html', form=form)
+            return render_template('auth/login.html', form=form)
     else:
         return bad_request(400)
 
