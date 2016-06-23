@@ -23,7 +23,7 @@ import helpers
 import datetime
 from db_helpers import *
 from public_records_portal import models
-from models import Subscriber
+from models import Subscriber, User, Request
 import HTMLParser
 # Set flags:
 
@@ -45,6 +45,11 @@ def generate_prr_emails(
     # 'text=None' is used additional information.
     # 'text2=None' is used if there are more variable text passed into email such as with 'close this request' and being offered multiple reasons
     app.logger.info("def generate_prr_emails")
+    req = Request.query.filter_by(id=request_id).first();
+    dept_id = req.department_id
+    user_id = Department.query.filter_by(id=dept_id).first().primary_contact_id
+    foil_officer_email = User.query.filter_by(id=user_id).first().email
+    bcc = [foil_officer_email]
     if 'user_id' not in notification_content:
         notification_content['user_id']=None
     app.logger.info('''
@@ -66,6 +71,7 @@ def generate_prr_emails(
             template=template,
             notification_content=notification_content,
             subject='OpenRecords Portal Request regarding ' + notification_content['text']['request_summary'],
+            bcc=bcc
             )
         return True
     elif 'email_non-portal-agency_requester.html' in template:
@@ -76,6 +82,7 @@ def generate_prr_emails(
             notification_content=notification_content,
             subject='Your request to ' + notification_content['department'].name + ' regarding '
                  + notification_content['text']['request_summary'],
+            bcc=bcc
             )
         return True
 
@@ -175,7 +182,8 @@ Subscriber %s unsubscribed, no notification sent.'''
                         template=template,
                         include_unsubscribe_link=include_unsubscribe_link,
                         unfollow_link=unfollow_link,
-                        notification_content=notification_content
+                        notification_content=notification_content,
+                        bcc=bcc
                         )
             else:
                 app.logger.debug('''
@@ -208,7 +216,8 @@ Subscriber %s unsubscribed, no notification sent.'''
                         template=template,
                         include_unsubscribe_link=include_unsubscribe_link,
                         unfollow_link=unfollow_link,
-                        notification_content=notification_content
+                        notification_content=notification_content,
+                        bcc=bcc
                         )
         elif recipient_type == 'Staff participants':
             recipients = []
@@ -249,7 +258,8 @@ def send_prr_email(
     cc_everyone=False,
     password=None,
     unfollow_link=None,
-    attached_file=None
+    attached_file=None,
+    bcc=None
     ):
 
     app.logger.info("def send_prr_email")
@@ -276,7 +286,8 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                             cc_everyone=cc_everyone,
                             attached_files=notification_content['documents'],
                             privacy=notification_content['privacy'],
-                            request_id=notification_content['request_id']
+                            request_id=notification_content['request_id'],
+                            bcc=bcc
                             )
                     else:
                         send_email(
@@ -293,7 +304,8 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                             cc_everyone=cc_everyone,
                             attached_files=None,
                             privacy=None,
-                            request_id=notification_content['request_id']
+                            request_id=notification_content['request_id'],
+                            bcc=bcc
                             )
                 elif "documents" in notification_content:
                     send_email(
@@ -311,6 +323,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         attached_files=notification_content['documents'][notification_content['index']],
                         privacy=notification_content['privacy'],
                         request_id=notification_content['request_id'],
+                        bcc=bcc
                         )
                     app.logger.info('''E-mail sent successfully!''')
                 elif "released_filename" in notification_content:
@@ -331,7 +344,8 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         include_unsubscribe_link=include_unsubscribe_link,
                         cc_everyone=cc_everyone,
                         privacy=notification_content['privacy'],
-                        released_filename=released_filename
+                        released_filename=released_filename,
+                        bcc=bcc
                         )
                     app.logger.info('''E-mail sent successfully!''')
                 else:
@@ -347,7 +361,8 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         subject=subject,
                         include_unsubscribe_link=include_unsubscribe_link,
                         cc_everyone=cc_everyone,
-                        request_id=notification_content['request_id']
+                        request_id=notification_content['request_id'],
+                        bcc=bcc
                         )
                     app.logger.info('''E-mail sent successfully!''')
             except Exception, e:
@@ -371,6 +386,7 @@ def send_email(
     privacy=None,
     released_filename=None,
     request_id=None,
+    bcc=None
     ):
     app.logger.info("def send_email")
     mail = Mail(app)
@@ -381,7 +397,7 @@ def send_email(
     html = re.sub('&gt;','>', html);
     sender = app.config['DEFAULT_MAIL_SENDER']
     message = Message(sender=sender, subject=subject, html=html,
-                      body=plaintext, bcc=sender)
+                      body=plaintext, bcc=bcc)
 
     if attached_files == None:
         pass
@@ -443,6 +459,7 @@ def send_email(
  Attempting to send e-mail with subject: %s, to %s'''
                         % (subject, recipients))
         try:
+
             mail.send(message)
             return True
         except Exception, e:
