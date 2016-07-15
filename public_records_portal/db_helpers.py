@@ -378,6 +378,7 @@ def create_or_return_user(email=None, alias=None, first_name=None, last_name=Non
         user = User.query.filter(User.email == func.lower(email), User.first_name == first_name, User.last_name == last_name).first()
         if department and type(department) != int and not department.isdigit():
             d = Department.query.filter_by(name=department).first()
+	    user = User.query.filter(User.email == func.lower(email), User.department_id == d.id).first()
             if d:
                 department = d.id
             else:
@@ -534,9 +535,11 @@ def find_request(text):
 def add_staff_participant(request_id, is_point_person=False, email=None,
                           user_id=None, reason=None):
     """ Creates an owner for the request if it doesn't exist, and returns the owner ID and True if a new one was created. Returns the owner ID and False if existing."""
+    # import pdb; pdb.set_trace()
+    department = Department.query.filter_by(id=Request.query.filter_by(id=request_id).first().department_id).first().name
     is_new = True
     if not user_id:
-        user_id = create_or_return_user(email=email)
+        user_id = create_or_return_user(email=email, department=department)
     participant = Owner.query.filter_by(
         request_id=request_id, user_id=user_id, active=True).first()
     if not participant:

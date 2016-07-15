@@ -11,20 +11,18 @@
 
 """
 
+import datetime
 import json
 import mimetypes
-import os
-import urllib
 
+import os
 from flask import render_template
 from flask_mail import Mail, Message
 
 import helpers
-import datetime
 from db_helpers import *
-from public_records_portal import models
 from models import Subscriber, User, Request
-import HTMLParser
+
 # Set flags:
 
 import re
@@ -38,10 +36,10 @@ if app.config['SEND_EMAILS']:
 
 
 def generate_prr_emails(
-    request_id,
-    notification_type,
-    notification_content
-    ):
+        request_id,
+        notification_type,
+        notification_content
+):
     # 'text=None' is used additional information.
     # 'text2=None' is used if there are more variable text passed into email such as with 'close this request' and being offered multiple reasons
     app.logger.info("def generate_prr_emails")
@@ -51,7 +49,7 @@ def generate_prr_emails(
     foil_officer_email = User.query.filter_by(id=user_id).first().email
     bcc = [foil_officer_email]
     if 'user_id' not in notification_content:
-        notification_content['user_id']=None
+        notification_content['user_id'] = None
     app.logger.info('''
                     Generating e-mails for request with ID: %s, notification type: %s, and user ID: %s'''
                     % (request_id, notification_type, notification_content['user_id']))
@@ -72,7 +70,7 @@ def generate_prr_emails(
             notification_content=notification_content,
             subject='OpenRecords Portal Request regarding ' + notification_content['text']['request_summary'],
             bcc=bcc
-            )
+        )
         return True
     elif 'email_non-portal-agency_requester.html' in template:
         send_prr_email(
@@ -81,16 +79,16 @@ def generate_prr_emails(
             template=template,
             notification_content=notification_content,
             subject='Your request to ' + notification_content['department'].name + ' regarding '
-                 + notification_content['text']['request_summary'],
+                    + notification_content['text']['request_summary'],
             bcc=bcc
-            )
+        )
         return True
 
     # Get information on who to send the e-mail to and with what subject line based on the notification type:
 
     email_info = get_email_info(notification_type=notification_type)
     email_subject = 'Public Records Request %s: %s' % (request_id,
-    email_info['Subject'])
+                                                       email_info['Subject'])
     recipient_types = email_info['Recipients']
     include_unsubscribe_link = True
     unfollow_link = None
@@ -125,13 +123,13 @@ def generate_prr_emails(
     for recipient_type in recipient_types:
         # Skip anyone that has unsubscribed
         if (recipient_type == 'Requester' or recipient_type
-                        == 'Subscribers'):
+            == 'Subscribers'):
             subscriber = get_subscriber(request_id=request_id,
-                    user_id=user_id)
+                                        user_id=user_id)
             if not user_id:
                 user_id = subscriber.user_id
             should_notify = get_attribute(attribute='should_notify',
-                    obj=subscriber)
+                                          obj=subscriber)
             if not should_notify:
                 if not subscriber:
                     continue
@@ -150,22 +148,23 @@ Subscriber %s unsubscribed, no notification sent.'''
             include_unsubscribe_link = False  # Gets excluded for city staff
         else:
             unfollow_link = '%sunfollow/%s/' % (public_app_url,
-                    request_id)
+                                                request_id)
             if notification_type == 'Request closed':
                 page = '%sfeedback/request/%s' % (public_app_url,
-                        request_id)
+                                                  request_id)
 
         if recipient_type in ['Staff owner', 'Requester',
                               'Staff participant']:
-            #Store the email content
-            #Request id, recipient, subjects, date sent, content
-            #Create email store object here
+            # Store the email content
+            # Request id, recipient, subjects, date sent, content
+            # Create email store object here
 
             if user_id:
                 recipient = get_attribute(attribute='email',
-                        obj_id=user_id, obj_type='User')
+                                          obj_id=user_id, obj_type='User')
                 try:
-                    create_email(request_id=request_id,recipient=user_id,subject=email_subject,time_sent=datetime.now(),email_content=notification_content)
+                    create_email(request_id=request_id, recipient=user_id, subject=email_subject,
+                                 time_sent=datetime.now(), email_content=notification_content)
                 except Exception, e:
 
                     app.logger.error("Unable to store email object \n%s" % e)
@@ -184,7 +183,7 @@ Subscriber %s unsubscribed, no notification sent.'''
                         unfollow_link=unfollow_link,
                         notification_content=notification_content,
                         bcc=bcc
-                        )
+                    )
             else:
                 app.logger.debug('''
 
@@ -205,7 +204,7 @@ Subscriber %s unsubscribed, no notification sent.'''
                                     % subscriber.id)
                     continue
                 recipient = get_attribute(attribute='email',
-                        obj_id=subscriber.user_id, obj_type='User')
+                                          obj_id=subscriber.user_id, obj_type='User')
                 if recipient:
                     if unfollow_link:
                         unfollow_link = unfollow_link + recipient
@@ -218,15 +217,15 @@ Subscriber %s unsubscribed, no notification sent.'''
                         unfollow_link=unfollow_link,
                         notification_content=notification_content,
                         bcc=bcc
-                        )
+                    )
         elif recipient_type == 'Staff participants':
             recipients = []
             participants = get_attribute(attribute='owners',
-                    obj_id=request_id, obj_type='Request')
+                                         obj_id=request_id, obj_type='Request')
             for participant in participants:
                 if participant.active:  # Only send an e-mail if they are active in the request
                     recipient = get_attribute(attribute='email',
-                            obj_id=participant.user_id, obj_type='User')
+                                              obj_id=participant.user_id, obj_type='User')
                     if recipient:
                         recipients.append(recipient)
             send_prr_email(
@@ -238,7 +237,7 @@ Subscriber %s unsubscribed, no notification sent.'''
                 cc_everyone=False,
                 unfollow_link=unfollow_link,
                 notification_content=notification_content
-                )
+            )
             app.logger.info('''
 
 Recipients: %s''' % recipients)
@@ -248,20 +247,19 @@ Recipients: %s''' % recipients)
 
 
 def send_prr_email(
-    page,
-    recipients,
-    subject,
-    template,
-    notification_content,
-    request_id=None,
-    include_unsubscribe_link=True,
-    cc_everyone=False,
-    password=None,
-    unfollow_link=None,
-    attached_file=None,
-    bcc=None
-    ):
-
+        page,
+        recipients,
+        subject,
+        template,
+        notification_content,
+        request_id=None,
+        include_unsubscribe_link=True,
+        cc_everyone=False,
+        password=None,
+        unfollow_link=None,
+        attached_file=None,
+        bcc=None
+):
     app.logger.info("def send_prr_email")
     app.logger.info('''
 
@@ -279,7 +277,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                                 page=page,
                                 request_id=request_id,
                                 notification_content=notification_content
-                                ),
+                            ),
                             recipients=recipients,
                             subject=subject,
                             include_unsubscribe_link=include_unsubscribe_link,
@@ -288,25 +286,44 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                             privacy=notification_content['privacy'],
                             request_id=notification_content['request_id'],
                             bcc=bcc
-                            )
+                        )
                     else:
-                        send_email(
-                            body=render_template(
-                                template,
-                                unfollow_link=unfollow_link,
-                                page=page,
-                                request_id=request_id,
-                                notification_content=notification_content
+                        if request_id:
+                            send_email(
+                                body=render_template(
+                                    template,
+                                    unfollow_link=unfollow_link,
+                                    page=page,
+                                    request_id=request_id,
+                                    notification_content=notification_content
                                 ),
-                            recipients=recipients,
-                            subject=subject,
-                            include_unsubscribe_link=include_unsubscribe_link,
-                            cc_everyone=cc_everyone,
-                            attached_files=None,
-                            privacy=None,
-                            request_id=notification_content['request_id'],
-                            bcc=bcc
+                                recipients=recipients,
+                                subject=subject,
+                                include_unsubscribe_link=include_unsubscribe_link,
+                                cc_everyone=cc_everyone,
+                                attached_files=None,
+                                privacy=None,
+                                request_id=notification_content['request_id'],
+                                bcc=bcc
                             )
+                        else:
+                            send_email(
+                                body=render_template(
+                                    template,
+                                    unfollow_link=unfollow_link,
+                                    page=page,
+                                    notification_content=notification_content
+                                ),
+                                recipients=recipients,
+                                subject=subject,
+                                include_unsubscribe_link=include_unsubscribe_link,
+                                cc_everyone=cc_everyone,
+                                attached_files=None,
+                                privacy=None,
+                                bcc=bcc
+                            )
+
+
                 elif "documents" in notification_content:
                     send_email(
                         body=render_template(
@@ -315,7 +332,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                             page=page,
                             request_id=request_id,
                             notification_content=notification_content
-                            ),
+                        ),
                         recipients=recipients,
                         subject=subject,
                         include_unsubscribe_link=include_unsubscribe_link,
@@ -324,7 +341,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         privacy=notification_content['privacy'],
                         request_id=notification_content['request_id'],
                         bcc=bcc
-                        )
+                    )
                     app.logger.info('''E-mail sent successfully!''')
                 elif "released_filename" in notification_content:
                     released_filename = None
@@ -338,7 +355,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                             page=page,
                             request_id=request_id,
                             notification_content=notification_content
-                            ),
+                        ),
                         recipients=recipients,
                         subject=subject,
                         include_unsubscribe_link=include_unsubscribe_link,
@@ -346,7 +363,7 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                         privacy=notification_content['privacy'],
                         released_filename=released_filename,
                         bcc=bcc
-                        )
+                    )
                     app.logger.info('''E-mail sent successfully!''')
                 else:
                     send_email(
@@ -356,14 +373,14 @@ Attempting to send an e-mail to %s with subject %s, referencing page %s and temp
                             page=page,
                             request_id=request_id,
                             notification_content=notification_content
-                            ),
+                        ),
                         recipients=recipients,
                         subject=subject,
                         include_unsubscribe_link=include_unsubscribe_link,
                         cc_everyone=cc_everyone,
                         request_id=notification_content['request_id'],
                         bcc=bcc
-                        )
+                    )
                     app.logger.info('''E-mail sent successfully!''')
             except Exception, e:
                 app.logger.info('''
@@ -377,24 +394,24 @@ There was an error sending the e-mail: %s'''
 
 
 def send_email(
-    body,
-    recipients,
-    subject,
-    include_unsubscribe_link=True,
-    cc_everyone=False,
-    attached_files=None,
-    privacy=None,
-    released_filename=None,
-    request_id=None,
-    bcc=None
-    ):
+        body,
+        recipients,
+        subject,
+        include_unsubscribe_link=True,
+        cc_everyone=False,
+        attached_files=None,
+        privacy=None,
+        released_filename=None,
+        request_id=None,
+        bcc=None
+):
     app.logger.info("def send_email")
     mail = Mail(app)
 
     plaintext = ''
     html = body
-    html = re.sub('&lt;','<', html);
-    html = re.sub('&gt;','>', html);
+    html = re.sub('&lt;', '<', html);
+    html = re.sub('&gt;', '>', html);
     sender = app.config['DEFAULT_MAIL_SENDER']
     message = Message(sender=sender, subject=subject, html=html,
                       body=plaintext, bcc=bcc)
@@ -408,8 +425,8 @@ def send_email(
             else:
                 url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + attached_files
             file_to_attach = open(url)
-            content_type=mimetypes.guess_type(url)[0]
-            #attached_files is set to the name of the file
+            content_type = mimetypes.guess_type(url)[0]
+            # attached_files is set to the name of the file
             message.attach(filename=attached_files, content_type=content_type, data=file_to_attach.read())
         else:
             if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
@@ -417,8 +434,8 @@ def send_email(
             else:
                 url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + request_id + "/" + attached_files.filename
             # attached_file = open(url,'r')
-            content_type=mimetypes.guess_type(url)[0]
-            #attached_files is set to the name of the file
+            content_type = mimetypes.guess_type(url)[0]
+            # attached_files is set to the name of the file
             message.attach(filename=attached_files.filename, content_type=content_type, data=attached_files.read())
     elif released_filename:
         if privacy == 3:
@@ -429,7 +446,7 @@ def send_email(
         filename = released_filename
         attached_file = open(url, 'r')
         message.attach(filename=filename,
-                           content_type=content_type, data=attached_file.read())
+                       content_type=content_type, data=attached_file.read())
     else:
         attached_files.seek(0)
         if privacy in [RecordPrivacy.PRIVATE, RecordPrivacy.RELEASED_AND_PRIVATE]:
@@ -438,10 +455,9 @@ def send_email(
             url = app.config['UPLOAD_PUBLIC_LOCAL_FOLDER'] + "/" + attached_files.filename
         content_type = mimetypes.guess_type(url)[0]
         filename = attached_files.filename
-        attached_file = open(url,'r')
+        attached_file = open(url, 'r')
         message.attach(filename=filename,
                        content_type=content_type, data=attached_file.read())
-
 
     # if not include_unscubscribe_link:
     # message.add_filter('subscriptiontrack', 'enable', 0)
@@ -501,7 +517,7 @@ def is_overdue(date_obj, extended=None):
 def get_email_info(notification_type):
     app.logger.info("def get_email_info")
     email_json = open(os.path.join(app.root_path,
-                      'static/json/emails.json'))
+                                   'static/json/emails.json'))
     json_data = json.load(email_json)
     return json_data['Notification types'][notification_type]
 
@@ -510,7 +526,7 @@ def notify_due():
     app.logger.info("def notify_due")
     requests = get_objs('Request')
     email_json = open(os.path.join(app.root_path,
-                      'static/json/emails.json'))
+                                   'static/json/emails.json'))
     json_data = json.load(email_json)
     for req in requests:
         status = req.solid_status
@@ -521,13 +537,13 @@ def notify_due():
             if status == 'due soon':
                 change_request_status(req.id, 'Due soon')
                 email_subject = '%sPublic Records Request %s: %s' \
-                    % (test, req.id, json_data['Notification types'
-                       ]['Request due'])
+                                % (test, req.id, json_data['Notification types'
+                ]['Request due'])
             elif status == 'overdue':
                 change_request_status(req.id, 'Overdue')
                 email_subject = '%sPublic Records Request %s: %s' \
-                    % (test, req.id, json_data['Notification types'
-                       ]['Request overdue']['Subject'])
+                                % (test, req.id, json_data['Notification types'
+                ]['Request overdue']['Subject'])
             else:
                 continue
             recipients = get_staff_recipients(req)
@@ -572,7 +588,7 @@ def should_notify(user_email):
     """ Looks up the user in do_not_email.json and returns False if found. """
     app.logger.info("def should_notify")
     do_not_email = open(os.path.join(app.root_path,
-                        'static/json/do_not_email.json'))
+                                     'static/json/do_not_email.json'))
     json_data = json.load(do_not_email)
     for department in json_data:
         emails = json_data[department]['Emails']

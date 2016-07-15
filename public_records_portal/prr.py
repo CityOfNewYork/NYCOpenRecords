@@ -11,24 +11,21 @@
 
 import csv
 import json
-import os
 import shutil
 import subprocess
 import traceback
 import urllib
 from StringIO import StringIO
-import os
-import json
 
 import bleach
-from public_records_portal import cal
-from flask import request, render_template, make_response, send_file
-from xhtml2pdf import pisa
+import os
 from docx import Document
 from docx.shared import Pt, Inches
+from flask import request, render_template, make_response, send_file
+from markupsafe import Markup
+from xhtml2pdf import pisa
 
 import upload_helpers
-
 from RequestPresenter import RequestPresenter
 from ResponsePresenter import ResponsePresenter
 from db_helpers import find_request, create_request, get_obj, \
@@ -40,8 +37,6 @@ from models import *
 from notifications import generate_prr_emails
 from public_records_portal import db_helpers
 from requires_roles import requires_roles
-from markupsafe import Markup
-from utils import strip_html
 
 agency_codes = {"City Commission on Human Rights": "228",
                 "Department of Education": "040",
@@ -51,6 +46,14 @@ agency_codes = {"City Commission on Human Rights": "228",
                 "Office of Administrative Trials and Hearings": "820",
                 "Office of the Chief Medical Examiner": "816",
                 "NYC Emergency Management": "017",
+                "Equal Employment Practices Commission": "133",
+                "Commission to Combat Police Corruption": "032",
+                "Department for the Aging": "125",
+                "Office of Payroll Administration": "131",
+                "Department of Parks and Recreation": "846",
+                "Business Integrity Commission": "831",
+                "Department of Youth and Community Development": "260",
+                "Department of Sanitation": "827",
                 None: "000"}
 
 
@@ -192,7 +195,7 @@ No file passed in''')
             addAsEmailAttachmentList = []
 
             for index, t in list(enumerate(titles)):
-                addAsEmailAttachment = request.form.get('addAsEmailAttachment_' + str(index+1))
+                addAsEmailAttachment = request.form.get('addAsEmailAttachment_' + str(index + 1))
                 if addAsEmailAttachment == 'on':
                     addAsEmailAttachmentList.append(addAsEmailAttachment)
                 else:
@@ -393,9 +396,9 @@ def request_extension(
     req = Request.query.get(request_id)
     # If days_after is -1 then a custom due date is set.
     if days_after == -1:
-        due_date=req.extension(days_after=None, custom_due_date=request_body['due_date'])
+        due_date = req.extension(days_after=None, custom_due_date=request_body['due_date'])
     else:
-        due_date=req.extension(days_after)
+        due_date = req.extension(days_after)
     user = User.query.get(user_id)
     user_name = user.alias
     text = 'Request extended:'
@@ -419,7 +422,8 @@ def request_extension(
     add_staff_participant(request_id=request_id, user_id=user_id)
     if days_after == -1:
         return add_note(request_id=request_id, text=text, user_id=user_id,
-                        extension=True, days_after=days_after, due_date=request_body['due_date'])  # Bypass spam filter because they are logged in.
+                        extension=True, days_after=days_after,
+                        due_date=request_body['due_date'])  # Bypass spam filter because they are logged in.
     else:
         return add_note(request_id=request_id, text=text, user_id=user_id,
                         extension=True, days_after=days_after, due_date=due_date)
@@ -631,7 +635,6 @@ def add_letter(
         document.add_paragraph(subject)
         document.add_paragraph(content)
 
-
     letter = StringIO()
     document.save(letter)
     length = letter.tell()
@@ -834,7 +837,6 @@ def upload_multiple_records(request_id, description, user_id, request_body, docu
                          department_name, titles)
 
 
-
 def upload_record(
         request_id,
         description,
@@ -919,7 +921,6 @@ def upload_record(
                 else:
                     if (index < len(notification_content['documents'])):
                         notification_content['documents'][index] = None
-
 
     add_staff_participant(request_id=request_id,
                           user_id=user_id)
@@ -1522,7 +1523,7 @@ def change_record_privacy(record_id, request_id, privacy):
 
 
 def edit_agency_description(request_id, agency_description_text):
-    #edit the agency description field of the request
+    # edit the agency description field of the request
     app.logger.info("def edit_agency_description")
     update_obj(attribute='agency_description', val=agency_description_text, obj_type='Request', obj_id=request_id)
 
@@ -1544,13 +1545,14 @@ def get_contact_info(request_id):
             'request_address_city': user.city,
             'request_address_state': user.state,
             'request_address_zip': user.zipcode,
-            'request_description' : req.text,
-            'request_title' : req.summary
+            'request_description': req.text,
+            'request_title': req.summary
         }
         return contact_info
     else:
         app.logger.info("No user found for the following request: " + request_id)
         return None
+
 
 def edit_requester_info(request_id, alias, email, phone, fax, address_one, address_two, address_city, address_state,
                         address_zip):
