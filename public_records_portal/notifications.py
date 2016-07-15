@@ -38,13 +38,17 @@ if app.config['SEND_EMAILS']:
 def generate_prr_emails(
         request_id,
         notification_type,
-        notification_content
+        notification_content,
+        department_id = None
 ):
     # 'text=None' is used additional information.
     # 'text2=None' is used if there are more variable text passed into email such as with 'close this request' and being offered multiple reasons
     app.logger.info("def generate_prr_emails")
-    req = Request.query.filter_by(id=request_id).first();
-    dept_id = req.department_id
+    if request_id:
+        req = Request.query.filter_by(id=request_id).first();
+        dept_id = req.department_id
+    else:
+        dept_id = department_id
     user_id = Department.query.filter_by(id=dept_id).first().primary_contact_id
     foil_officer_email = User.query.filter_by(id=user_id).first().email
     bcc = [foil_officer_email]

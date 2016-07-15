@@ -104,12 +104,14 @@ def nonportal_request(request_body):
     notification_content['contact_info'] = contact_info
     generate_prr_emails(request_id=None,
                         notification_type='non-portal-agency_agency',
-                        notification_content=notification_content)
+                        notification_content=notification_content,
+                        department_id=notification_content['department'].id)
 
     notification_content['recipient'] = request_body['request_email']
     generate_prr_emails(request_id=None,
                         notification_type='non-portal-agency_requester',
-                        notification_content=notification_content)
+                        notification_content=notification_content,
+                        department_id=notification_content['department'].id)
     return 1
 
 
