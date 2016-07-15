@@ -138,6 +138,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
 # Initialize database
 db = SQLAlchemy(app)
 
+
 # Initialiaze ReCapthca
 recaptcha = ReCaptcha(app)
 app.config['SECRET_KEY'] = environ['SECRET_KEY']
