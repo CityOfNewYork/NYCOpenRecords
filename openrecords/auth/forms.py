@@ -3,7 +3,7 @@ from flask_wtf import Form
 from flask_recaptcha import ReCaptcha
 from wtforms import StringField, SelectField, TextAreaField, DateField, \
     BooleanField, PasswordField, SubmitField, FileField
-from wtforms.validators import DataRequired, Length, Email
+from wtforms.validators import DataRequired, Length, Email, EqualTo
 # from wtforms_components import
 
 class LoginForm(Form):

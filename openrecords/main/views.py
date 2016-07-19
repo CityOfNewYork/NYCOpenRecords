@@ -9,7 +9,7 @@ def home():
     :return: home.html
     '''
     print("abc")
-    return render_template('home.html')
+    return render_template('Home/home.html')
 
 @main.route('/view', methods=['GET', 'POST'])
 def view():
@@ -26,5 +26,5 @@ def about():
     Directs to the about page
     :return: about.html
     '''
-    return render_template('index.html')
+    return render_template('about/about.html')
     # return render_template('/About/about.html')
