@@ -1,0 +1,30 @@
+{
+    "security": {
+        "nameIdEncrypted": false,
+        "authnRequestsSigned": true,
+        "logoutRequestSigned": true,
+        "logoutResponseSigned": true,
+        "signMetadata": false,
+        "wantMessagesSigned": false,
+        "wantAssertionsSigned": true,
+        "wantNameIdEncrypted": false
+    },
+    "contactPerson": {
+        "technical": {
+            "givenName": "August Tan",
+            "emailAddress": "atan@records.nyc.gov"
+        },
+        "support": {
+            "givenName": "August Tan",
+            "emailAddress": "atan@records.nyc.gov"
+        }
+    },
+    "organization": {
+        "en-US": {
+            "name": "OpenFOIl - Dev Portal",
+            "displayname": "OpenFOIL - Dev Portal",
+            "url": "http://webdev-imac-003.doitt.nycnet"
+        }
+    }
+}
+
