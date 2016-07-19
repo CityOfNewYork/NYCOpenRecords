@@ -4,9 +4,14 @@ from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from openrecords import create_app, db
 from openrecords.models import User
+from flask.ext.script import Server, Manager
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
+server = Server(host="0.0.0.0", port=9000)
+manager.add_command("runserver", server)
+
+
 migrate = Migrate(app, db)
 
 def make_shell_context():
