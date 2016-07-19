@@ -90,3 +90,6 @@ ENV/
 
 # Jetbrains
 .idea/
+
+# SAML
+saml/certs/
