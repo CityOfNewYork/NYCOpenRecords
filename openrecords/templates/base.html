@@ -1,3 +1,4 @@
+
 {#
 This template provides the header, footer, and envelope info for all pages except signup.
 #}
@@ -86,14 +87,23 @@ div{
     z-index: 1100;
 }
 </style>
-{% block header %}
-{% endblock header %}
+{% include "header.html" %}
+{% include "navbar.html" %}
+{% include "footer.html" %}
+{% block container %}
+
 {% block navbar %}
-{% endblock navbar %}
+{% endblock %}
+
 {% block body %}
-{% endblock body %}
+{% endblock %}
+
 {% block footer %}
-{% endblock footer %}
+{% endblock %}
+
+{% endblock %}
+
+
 <script type="text/javascript"
         src="{{ url_for('static', filename='js/plugins/jquery.placeholder.js') }}"></script>
 <script type="text/javascript"
