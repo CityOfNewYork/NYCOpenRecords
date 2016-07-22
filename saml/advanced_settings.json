@@ -1,5 +1,5 @@
 {
-    "security": {
+     "security": {
         "nameIdEncrypted": false,
         "authnRequestsSigned": true,
         "logoutRequestSigned": true,

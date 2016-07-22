@@ -2,13 +2,13 @@
     "strict": true,
     "debug": true,
     "sp": {
-        "entityId": "http://f2a4c127.ngrok.io/metadata/",
+        "entityId": "http://8ea04355.ngrok.io/metadata/",
         "assertionConsumerService": {
-            "url": "http://f2a4c127.ngrok.io/?acs",
+            "url": "http://8ea04355.ngrok.io/?acs",
             "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
         },
         "singleLogoutService": {
-            "url": "http://f2a4c127.ngrok.io/?sls",
+            "url": "http://8ea04355.ngrok.io/?sls",
             "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         },
         "NameIDFormat": "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress",
