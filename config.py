@@ -18,7 +18,7 @@ class Config:
     SAML_PATH = os.environ.get('SAML_PATH') or os.path.join(os.path.abspath(os.curdir), 'saml')
 
     # Logging
-    LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.abspath(__file__), 'logs')
+    LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.pardir, 'logs')
 
     @staticmethod
     def init_app(app):
