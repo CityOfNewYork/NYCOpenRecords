@@ -3,13 +3,14 @@
 
    :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
 """
-from flask import current_app, request, redirect, session, render_template, make_response
+from flask import request, redirect, session, render_template, make_response
+from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 from app.auth.utils import prepare_flask_request, init_saml_auth
 from . import auth
 
 
-@auth.route('/login', methods=['GET', 'POST'])
+@auth.route('/', methods=['GET', 'POST'])
 def index():
     req = prepare_flask_request(request)
     auth = init_saml_auth(req)
@@ -60,7 +61,7 @@ def index():
             attributes = session['samlUserdata'].items()
 
     return render_template(
-        'auth/login.html',
+        'auth/index.html',
         errors=errors,
         not_auth_warn=not_auth_warn,
         success_slo=success_slo,
@@ -79,7 +80,7 @@ def attrs():
         if len(session['samlUserdata']) > 0:
             attributes = session['samlUserdata'].items()
 
-    return render_template('attrs.html', paint_logout=paint_logout,
+    return render_template('auth/attrs.html', paint_logout=paint_logout,
                            attributes=attributes)
 
 
