@@ -1,6 +1,5 @@
 from openrecords import app
 from openrecords.models import User
-from . import db
 
 
 def authenticate_login(email, password):
@@ -21,12 +20,4 @@ def authenticate_login(email, password):
         if user and (user.is_staff or user.is_admin()):
             if user.check_password(password):
                 return user
-            if user.password == password:  # Hash it
-                user.set_password(password)
-                db.session.add(user)
-                db.session.commit()
-            return user
         return None
-
-
-

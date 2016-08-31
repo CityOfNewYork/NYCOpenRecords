@@ -97,16 +97,3 @@ def metadata():
     else:
         resp = make_response(', '.join(errors), 500)
     return resp
-
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080, debug=True)
-
-
-@app.route("/<page>")
-def any_page(page):
-    app.logger.info("def any_page(page):")
-    try:
-        return render_template('%s.html' % (page))
-    except E as e:
-        return page_not_found(e)

@@ -1,14 +1,15 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from config import config
-from os.path import abspath, dirname, join
-from os import pardir, environ
-from . import main
-from business_calendar import Calendar, MO, TU, WE, TH, FR
-import time, os, logging
+import logging
+import os
+import time
 from logging import Formatter
 from logging.handlers import RotatingFileHandler
+
+from flask import Flask
 from flask_bootstrap import Bootstrap
+from flask_sqlalchemy import SQLAlchemy
+
+from config import config
+from . import main
 
 db = SQLAlchemy()
 bootstrap = Bootstrap()
@@ -37,14 +38,12 @@ def create_app(config_name):
     from .home import home as home_blueprint
     app.register_blueprint(home_blueprint, url_prefix="/home")
 
-    logfile_name = "openrecords_" + \
-                   time.strftime("%Y-%m-%d_%H:%M:%S") + \
-                   ".log"
-    handler = RotatingFileHandler(os.path.join(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log'), logfile_name), maxBytes=10000, backupCount=1)
+    logfile_name = "openrecords_{}.log".format(time.strftime("%Y-%m-%d_%H:%M:%S"))
+    handler = RotatingFileHandler(os.path.join(app.config['LOGFILE_DIRECTORY'], logfile_name), maxBytes=10000,
+                                  backupCount=1)
     handler.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s '
                                    '[in %(pathname)s:%(lineno)d]'))
     handler.setLevel(logging.INFO)
     app.logger.addHandler(handler)
 
     return app
-
