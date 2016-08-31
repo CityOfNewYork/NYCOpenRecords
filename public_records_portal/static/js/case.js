@@ -209,6 +209,10 @@
     $('#rerouteButton').on('click', function () {
         var formData = new FormData($("#AcknowledgeNote")[0]);
         var acknowledge_status = $('#acknowledge_status')[0].selectedIndex;
+        var custom_date = $('#datepicker').val();
+        custom_date = new Date(custom_date);
+        var current_date = new Date(Date.now());
+        var date_difference = (custom_date - current_date) / 86400000;
         if (acknowledge_status == 0){
             acknowledge_url = "/email/email_acknowledgement_20.html";
         }
@@ -244,6 +248,21 @@
         var extension_status = $('#days_after')[0].selectedIndex;
         if (extension_status == 1){
             extension_url = "/email/email_extension_20.html";
+        }
+        else if(extension_status == 5){
+            var custom_date = $('#datepicker').val();
+            custom_date = new Date(custom_date);
+            var current_date = new Date(Date.now());
+            var date_difference = (custom_date - current_date) / 86400000;
+
+            if (date_difference > 20)
+            {
+                extension_url = "/email/email_extension.html"
+            }
+            else
+            {
+                extension_url = "/email/email_extension_20.html"
+            }
         }
         else{
             extension_url = "/email/email_extension.html";
