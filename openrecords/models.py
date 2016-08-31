@@ -41,6 +41,6 @@ class User(UserMixin, db.Model):
     mailing_address = db.Column(JSON)
 
     def __repr__(self): 
-        return '<Role %r>'.(self.guid + self.user_type)
+        return '<Role {0!r}>'.format(self.guid + self.user_type)
 
 
