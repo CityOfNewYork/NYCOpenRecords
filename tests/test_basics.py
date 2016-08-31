@@ -1,6 +1,7 @@
 import unittest
 from flask import current_app
-from openrecords import create_app, db
+from app import create_app, db
+
 
 class BasicsTestCase(unittest.TestCase):
     def setUp(self):

@@ -1,34 +1,48 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'SECRET KEY'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
-    MAIL_SERVER = 'smtp.googlemail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 1111
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') or False
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    FLASKY_MAIL_SUBJECT_PREFIX = '[OpenRecords]'
-    FLASKY_MAIL_SENDER = 'Admin <openrecordsk@doris.com>'
-    FLASKY_ADMIN = os.environ.get('ADMIN')
+    MAIL_SUBJECT_PREFIX = '[TimeClock]'
+    MAIL_SENDER = 'Records Timeclock <RTimeclock@records.nyc.gov>'
+    WTF_CSRF_ENABLED = True
+
+    # SAML Keys
+    SAML_PATH = os.environ.get('SAML_PATH') or os.path.join(os.path.abspath(os.curdir), 'saml')
+
 
     @staticmethod
     def init_app(app):
         pass
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'postgresql://localhost:5432/openrecords_v2_0_dev'
+
 
 class TestingConfig(Config):
     TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'postgresql://localhost:5432/openrecords_v2_0_dev'
+
 
 class ProductionConfig(Config):
-    pass
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'postgresql://localhost:5432/openrecords_v2_0_dev'
 
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
+
     'default': DevelopmentConfig
 }
