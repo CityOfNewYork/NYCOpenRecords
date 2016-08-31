@@ -23,9 +23,9 @@
   {% else %}
     <div class="alert alert-danger" role="alert">You don't have any attributes</div>
   {% endif %}
-  <a href="/?slo" class="btn btn-danger">Logout</a>
+  <a href="/auth/?slo" class="btn btn-danger">Logout</a>
 {% else %}
-  <a href="/?sso2" class="btn btn-primary">Login and access again to this page</a>
+  <a href="/auth/?sso2" class="btn btn-primary">Login and access again to this page</a>
 {% endif %}
 
 {% endblock %}
