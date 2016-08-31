@@ -1,6 +1,6 @@
 from openrecords import app
-from . import db
 from openrecords.models import User
+from . import db
 
 
 def authenticate_login(email, password):
@@ -27,3 +27,6 @@ def authenticate_login(email, password):
                 db.session.commit()
             return user
         return None
+
+
+
