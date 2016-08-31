@@ -1,8 +1,9 @@
 from flask import Blueprint
 
-main = Blueprint('main', __name__, static_folder='static', static_url_path='/Users/atan/PycharmProjects/openrecords_v2_0/openrecords/static')
+main = Blueprint('main', __name__)
 
 from flask import render_template, session, redirect, url_for, current_app
-from . import main, views
+
+from app.main import views
 
 

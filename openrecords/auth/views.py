@@ -9,7 +9,7 @@ from .. import app
 
 
 @auth.route('/login', methods=['GET', 'POST'])
-def index():
+def login():
     req = prepare_flask_request(request)
     auth = init_saml_auth(req)
     errors = []

@@ -9,11 +9,9 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 
 from config import config
-from . import main
 
 db = SQLAlchemy()
 bootstrap = Bootstrap()
-app = Flask(__name__, static_folder='./static')
 
 
 def create_app(config_name):
@@ -24,8 +22,11 @@ def create_app(config_name):
 
     :return: Flask application
     """
+    app = Flask(__name__)
     app.config.from_object(config[config_name])
+
     config[config_name].init_app(app)
+
     db.init_app(app)
     bootstrap.init_app(app)
 
