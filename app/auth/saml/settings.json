@@ -2,13 +2,13 @@
     "strict": true,
     "debug": true,
     "sp": {
-        "entityId": "http://openrecords-v2.ngrok.io/metadata/",
+        "entityId": "http://openrecords-v2.ngrok.io/auth/metadata/",
         "assertionConsumerService": {
-            "url": "http://openrecords-v2.ngrok.io/?acs",
+            "url": "http://openrecords-v2.ngrok.io/auth/?acs",
             "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
         },
         "singleLogoutService": {
-            "url": "http://openrecords-v2.ngrok.io/?sls",
+            "url": "http://openrecords-v2.ngrok.io/auth/?sls",
             "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
         },
         "NameIDFormat": "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress",
