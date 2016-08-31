@@ -241,8 +241,15 @@
 
     $('#extendButton').on('click', function (e) {
         var formData = new FormData($("#extension")[0]);
+        var extension_status = $('#days_after')[0].selectedIndex;
+        if (extension_status == 1){
+            extension_url = "/email/email_extension_20.html";
+        }
+        else{
+            extension_url = "/email/email_extension.html";
+        }
         $.ajax({
-            url: "/email/email_extension.html",
+            url: extension_url,
             type: 'POST',
             processData: false,
             contentType: false,

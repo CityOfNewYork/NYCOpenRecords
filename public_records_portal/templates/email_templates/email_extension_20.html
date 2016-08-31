@@ -7,8 +7,14 @@
                         <span style="font-family: arial,helvetica,sans-serif;">
                             <span style="color: rgb(51, 51, 51); font-size: 14px;">
                                 <p>
-                                    Due to the volume of requests we have received, we estimate that we will be able to
-                                    provide you with a determination within {{ days_after }} days
+                                    We are still in the process of searching for the documents you requested under the Freedom of Information Law
+                                    (FOIL). You can expect a response on or about {{ notification_content['due_date'] }}
+                                </p>
+                                <p>
+                                    {% if notification_content['additional_information'] %}
+                                        Additional Information: <br />
+                                        {{ notification_content['additional_information'] }}
+                                    {% endif %}
                                 </p>
                                 <p>
                                     You can view the request and take any necessary action at the following webpage:
