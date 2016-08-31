@@ -23,7 +23,7 @@ def index():
     if 'sso' in request.args:
         return redirect(auth.login())
     elif 'sso2' in request.args:
-        return_to = '%sattrs/' % request.host_url
+        return_to = '%sauth/attrs/' % request.host_url
         return redirect(auth.login(return_to))
     elif 'slo' in request.args:
         name_id = None
