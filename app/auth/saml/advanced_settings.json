@@ -1,0 +1,29 @@
+{
+     "security": {
+        "nameIdEncrypted": false,
+        "authnRequestsSigned": true,
+        "logoutRequestSigned": true,
+        "logoutResponseSigned": true,
+        "signMetadata": false,
+        "wantMessagesSigned": false,
+        "wantAssertionsSigned": true,
+        "wantNameIdEncrypted": false
+    },
+    "contactPerson": {
+        "technical": {
+            "givenName": "Joel Castillo",
+            "emailAddress": "jcastillo@records.nyc.gov"
+        },
+        "support": {
+            "givenName": "Joel Castillo",
+            "emailAddress": "jcastillo@records.nyc.gov"
+        }
+    },
+    "organization": {
+        "en-US": {
+            "name": "OpenRecords - v2.0 - Dev",
+            "displayname": "OpenRecords - v2.0 - Dev",
+            "url": "http://openrecords_v2_0.ngrok.io/"
+        }
+    }
+}
