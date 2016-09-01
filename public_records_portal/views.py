@@ -633,7 +633,6 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
 
 @app.route("/email/<string:template_name>", methods=["GET", "POST"])
 def show_email(template_name, errors=None, form=None):
-    fields = form
     request_id = request.form.get('request_id')
     acknowledge_status = request.form.get('acknowledge_status')
     due_date = request.form.get('due_date')
@@ -643,8 +642,6 @@ def show_email(template_name, errors=None, form=None):
     if request.form.get('days_after') != '' and request.form.get('days_after') is not None:
         days_after = int(request.form.get('days_after'))
     req = get_obj("Request", request_id)
-
-
 
     if due_date == '' or due_date is None:
         if days_after is not None:
