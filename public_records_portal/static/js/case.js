@@ -67,16 +67,15 @@
         }
     });
 
-    $("#days_after").change(function () {
+    $("#acknowledge_status").change(function () {
         selected = $(this).val();
-        if (selected === "0") {
+        if (selected === "-1") {
             $("#custom_due_date").show();
         }
         else {
             $("#custom_due_date").hide();
         }
     });
-
 
     $("#days_after").change(function () {
         selected = $(this).val();
@@ -213,8 +212,16 @@
         custom_date = new Date(custom_date);
         var current_date = new Date(Date.now());
         var date_difference = (custom_date - current_date) / 86400000;
+        var input = $("<input>")
+                .attr("type", "hidden")
+                .attr("name", "days_after").val(Math.ceil(date_difference));
+        $('#AcknowledgeNote').append($(input));
+        var formData = new FormData($("#AcknowledgeNote")[0]);
         if (acknowledge_status == 0){
             acknowledge_url = "/email/email_acknowledgement_20.html";
+        }
+        else if (acknowledge_status == 5 & date_difference >= 21){
+            acknowledge_url = "/email/email_acknowledgement.html";
         }
         else{
             acknowledge_url = "/email/email_acknowledgement.html";

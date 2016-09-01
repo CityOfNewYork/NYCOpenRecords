@@ -69,7 +69,6 @@ zip_reg_ex = re.compile('^[0-9]{5}(?:-[0-9]{4})?$')
 
 @app.before_request
 def csrf_protect():
-    app.logger.info("def csrf_protect")
     if request.method == "POST":
         token = session['_csrf_token']
         if not token or token != request.form.get('_csrf_token'):
