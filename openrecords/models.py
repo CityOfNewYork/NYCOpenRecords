@@ -66,26 +66,25 @@ class Role(db.Model):
         Agency FOIL Officer, Agency Administrator.
         """
         roles = {
-            'Anonymous User': (
-                Permission.DUPLICATE_REQUEST | Permission.VIEW_REQUEST_STATUS_PUBLIC | Permission.VIEW_REQUEST_INFO_PUBLIC,
-                True),
+            'Anonymous User': (Permission.DUPLICATE_REQUEST | Permission.VIEW_REQUEST_STATUS_PUBLIC |
+                               Permission.VIEW_REQUEST_INFO_PUBLIC, True),
             'Public User - Non Requester': (Permission.ADD_NOTE | Permission.DUPLICATE_REQUEST |
                                             Permission.VIEW_REQUEST_STATUS_PUBLIC | Permission.VIEW_REQUEST_INFO_PUBLIC,
                                             False),
-            'Public User - Requester': (
-                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.VIEW_DOCUMENTS_IMMEDIATELY |
-                Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_PUBLIC, False),
-            'Agency Helper': (
-                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.VIEW_REQUESTS_HELPER | VIEW_REQUEST_INFO_ALL |
-                Permission.VIEW_REQUEST_STATUS_ALL, False)
-            'Agency FOIL Officer': (
-                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS | Permission.CLOSE_REQUESTS |
-                Permission.ADD_HELPERS | Permission.REMOVE_HELPERS | Permission.ACKNOWLEDGE | Permission.VIEW_REQUESTS_AGENCY |
-                Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False),
-            'Agency Administrator': (
-                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS | Permission.CLOSE_REQUESTS |
-                Permission.ADD_HELPERS | Permission.REMOVE_HELPERS | Permission.ACKNOWLEDGE | Permission.CHANGE_REQUEST_POC |
-                Permission.VIEW_REQUESTS_ALL | Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False)
+            'Public User - Requester': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS |
+                                        Permission.VIEW_DOCUMENTS_IMMEDIATELY | Permission.VIEW_REQUEST_INFO_ALL |
+                                        Permission.VIEW_REQUEST_STATUS_PUBLIC, False),
+            'Agency Helper': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.VIEW_REQUESTS_HELPER |
+                              Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False),
+            'Agency FOIL Officer': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS |
+                                    Permission.CLOSE_REQUESTS | Permission.ADD_HELPERS | Permission.REMOVE_HELPERS |
+                                    Permission.ACKNOWLEDGE | Permission.VIEW_REQUESTS_AGENCY |
+                                    Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False),
+            'Agency Administrator': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS |
+                                     Permission.CLOSE_REQUESTS | Permission.ADD_HELPERS | Permission.REMOVE_HELPERS |
+                                     Permission.ACKNOWLEDGE | Permission.CHANGE_REQUEST_POC |
+                                     Permission.VIEW_REQUESTS_ALL | Permission.VIEW_REQUEST_INFO_ALL |
+                                     Permission.VIEW_REQUEST_STATUS_ALL, False)
         }
         for r in roles:
             role = Role.query.filter_by(name=r).first()
@@ -95,7 +94,6 @@ class Role(db.Model):
             role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
-
 
     def __repr__(self):
         return '<Role %r>' % self.name
