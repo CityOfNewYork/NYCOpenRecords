@@ -1,26 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
+<html class="no-js" lang="en">
+<head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %}</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}" />
+    {% block custom_css %}
+    {% endblock %}
+</head>
 
-    <title>A Python SAML Toolkit by OneLogin demo</title>
+<body>
 
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="container">
-      <h1>A Python SAML Toolkit by OneLogin demo</h1>
-
-      {% block content %}{% endblock %}
-    </div>
-  </body>
-</html>
+{% include "_nyc_gov_header.html" %}
+</body>

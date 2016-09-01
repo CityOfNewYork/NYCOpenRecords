@@ -1,0 +1,32 @@
+<div class="nycidm-header">
+    <div class="upper-header-black">
+        <div class="container-nycidm">
+            {% if current_user.is_authenticated %}
+                <span class="upper-header-right">
+                    <span class="upper-header-a">
+                        <a href="">Log Out</a>
+                    </span>
+                </span>
+                {% if current_user.user_type == 'EDIRSSO' %}
+                    <img class="vert-divide-right" alt="" src="{{ url_for('static', filename='img/upper-header-divider.gif') }}">
+                    <span class="upper-header-b">
+                        <a href="">Profile</a>
+                    </span>
+                {% endif %}
+            {% else %}
+                <span class="upper-header-right">
+                    <span class="upper-header-a">
+                        <a href="">Log In</a>
+                    </span>
+                </span>
+            {% endif %}
+            <span class="upper-header-left">
+    		<a href="http://www1.nyc.gov/"><img class="small-nyc-logo" alt="" src="{{ url_for('static', filename='img/nyc_white@x2.png') }}"></a>
+    		<img class="vert-divide" alt="" src="{{ url_for('static', filename='img/upper-header-divider.gif') }}">
+                <span class="upper-header-black-title">
+                    OpenRecords
+                </span>
+            </span>
+        </div>
+    </div>
+</div>
