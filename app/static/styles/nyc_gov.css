@@ -1,0 +1,80 @@
+body {
+    margin: 0;
+}
+
+a img {
+    border: 0;
+}
+
+.container-nycidm {
+    *zoom: 1;
+    max-width: 940px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+}
+
+.container-nycidm:after {
+    content: "";
+    display: table;
+    clear: both
+}
+
+.container-nycidm:before, .container:after {
+    display: table;
+    line-height: 0;
+    content: ""
+}
+
+.container-nycidm:after {
+    clear: both;
+}
+
+.nycidm-header .upper-header-black {
+    background: #000;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 25px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0;
+}
+
+.nycidm-header .upper-header-black a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.nycidm-header .small-nyc-logo {
+    height: 15px;
+    width: 40px;
+    position: relative;
+    top: -4px;
+}
+
+.nycidm-header .upper-header-black-title {
+    position: relative;
+    top: -7px;
+}
+
+.nycidm-header .upper-header-b, .nycidm-header .upper-header-a {
+    float: right;
+    padding-top: 5px;
+}
+
+.nycidm-header .vert-divide {
+    margin: 0 10px;
+}
+
+.vert-divide-right {
+    float: right;
+    margin: 0 10px;
+}
+
+@media only screen and (max-width: 767px) {
+    .nycidm-header .upper-header-black-title {
+        display: none;
+    }
+}
