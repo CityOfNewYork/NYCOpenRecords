@@ -1,4 +1,3 @@
-
 import re
 from datetime import datetime, timedelta
 from sqlalchemy.dialects.postgresql import JSON
@@ -12,6 +11,96 @@ from . import db
 from flask_login import UserMixin, AnonymousUserMixin
 from validate_email import validate_email
 
+
+class Permission:
+    """
+    Define the permission codes for certain actions.
+    """
+    DUPLICATE_REQUEST = 0x01
+    VIEW_REQUEST_STATUS_PUBLIC = 0x02
+    VIEW_REQUEST_STATUS_ALL = 0x03
+    VIEW_REQUEST_INFO_PUBLIC = 0x04
+    VIEW_REQUEST_INFO_ALL = 0x05
+    ADD_NOTE = 0x06
+    UPLOAD_DOCUMENTS = 0x08
+    VIEW_DOCUMENTS_IMMEDIATELY = 0x09
+    VIEW_REQUESTS_HELPER = 0x10
+    VIEW_REQUESTS_AGENCY = 0x11
+    VIEW_REQUESTS_ALL = 0x12
+    EXTEND_REQUESTS = 0x13
+    CLOSE_REQUESTS = 0x14
+    ADD_HELPERS = 0x15
+    REMOVE_HELPERS = 0x16
+    ACKNOWLEDGE = 0x17
+    CHANGE_REQUEST_POC = 0x18
+    ADMINISTER = 0x80
+    # ANONYMOUS_USER = 0x007
+    # PUBLIC_USER_NON_REQUESTER = 0x013
+    # PUBLIC_USER_REQUESTER = 0x030
+    # AGENCY_HELPER = 0x032
+    # AGENCY_FOIL_OFFICER = 0x108
+    # AGENCY_ADMINISTRATOR = 0x125
+
+class Role(db.Model):
+    """
+    Define the Role class with the following columns and relationships:
+
+    id -- Column: Integer, PrimaryKey
+    name -- Column: String(64), Unique
+    default -- Column: Boolean, Default = False
+    permissions -- Column: Integer
+    users -- Relationship: 'User', 'role'
+    """
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    permissions = db.Column(db.Integer)
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+
+    @staticmethod
+    def insert_roles():
+        """
+        Insert permissions for each role: Anonymous User, Public User - Non Requester, Public User - Requester, Agency Helper,
+        Agency FOIL Officer, Agency Administrator.
+        """
+        roles = {
+            'Anonymous User': (
+                Permission.DUPLICATE_REQUEST | Permission.VIEW_REQUEST_STATUS_PUBLIC | Permission.VIEW_REQUEST_INFO_PUBLIC,
+                True),
+            'Public User - Non Requester': (Permission.ADD_NOTE | Permission.DUPLICATE_REQUEST |
+                                            Permission.VIEW_REQUEST_STATUS_PUBLIC | Permission.VIEW_REQUEST_INFO_PUBLIC,
+                                            False),
+            'Public User - Requester': (
+                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.VIEW_DOCUMENTS_IMMEDIATELY |
+                Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_PUBLIC, False),
+            'Agency Helper': (
+                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.VIEW_REQUESTS_HELPER | VIEW_REQUEST_INFO_ALL |
+                Permission.VIEW_REQUEST_STATUS_ALL, False)
+            'Agency FOIL Officer': (
+                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS | Permission.CLOSE_REQUESTS |
+                Permission.ADD_HELPERS | Permission.REMOVE_HELPERS | Permission.ACKNOWLEDGE | Permission.VIEW_REQUESTS_AGENCY |
+                Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False),
+            'Agency Administrator': (
+                Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS | Permission.CLOSE_REQUESTS |
+                Permission.ADD_HELPERS | Permission.REMOVE_HELPERS | Permission.ACKNOWLEDGE | Permission.CHANGE_REQUEST_POC |
+                Permission.VIEW_REQUESTS_ALL | Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False)
+        }
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.permissions = roles[r][0]
+            role.default = roles[r][1]
+            db.session.add(role)
+        db.session.commit()
+
+
+    def __repr__(self):
+        return '<Role %r>' % self.name
+
+
 class RecordPrivacy:
     """
     The privacy setting of an uploaded record
@@ -24,6 +113,7 @@ class RecordPrivacy:
     PRIVATE = 0x1
     RELEASED_AND_PRIVATE = 0x2
     RELEASED_AND_PUBLIC = 0x3
+
 
 class User(UserMixin, db.Model):
     """User class which can be an agency user or a public user"""
@@ -155,6 +245,7 @@ class Department(db.Model):
     def __repr__(self):
         return '<Department %r>' % self.name
 
+
 class Request(db.Model):
     """
     A request for a record from the city
@@ -185,7 +276,7 @@ class Request(db.Model):
     status_updated = db.Column(db.DateTime)
     title = db.Column(db.String(90), nullable=False)
     description = db.Column(db.String(50000),
-                     nullable=False)  # The actual request text.
+                            nullable=False)  # The actual request text.
     owners = relationship('Owner', cascade='all, delete',
                           order_by='Owner.date_created.asc()')
     subscribers = relationship('Subscriber',
@@ -203,11 +294,11 @@ class Request(db.Model):
     department = relationship('Department', uselist=False)
     offline_submission_type = db.Column(db.String())
     prev_status = db.Column(db.String(400))  # The previous status of the request (open, closed, etc.)
-    #Adding new privacy option for description field
-    description_private=db.Column(db.Boolean, default=True)
-    title_private=db.Column(db.Boolean, default=False)
-    agency_description=db.Column(db.String(5000))
-    agency_description_due_date=db.Column(db.DateTime, default=None, nullable=True)
+    # Adding new privacy option for description field
+    description_private = db.Column(db.Boolean, default=True)
+    title_private = db.Column(db.Boolean, default=False)
+    agency_description = db.Column(db.String(5000))
+    agency_description_due_date = db.Column(db.DateTime, default=None, nullable=True)
 
     def __init__(
             self,
@@ -239,6 +330,7 @@ class Request(db.Model):
 
     def __repr__(self):
         return '<Request %r>' % self.summary
+
 
 class Owner(db.Model):
     """
@@ -278,6 +370,7 @@ class Owner(db.Model):
     def __repr__(self):
         return '<Owner %r>' % self.id
 
+
 class Subscriber(db.Model):
     """
     A user following a request to receive updates whenever a request is changed
@@ -309,6 +402,7 @@ class Subscriber(db.Model):
 
     def __repr__(self):
         return '<Subscriber %r>' % self.user_i
+
 
 class Record(db.Model):
     """
@@ -372,6 +466,7 @@ class Record(db.Model):
 def __repr__(self):
     return '<Record %r>' % self.description
 
+
 class Note(db.Model):
     """
     A note made by a user for other users to see under a request's responses
@@ -411,6 +506,7 @@ class Note(db.Model):
     def __repr__(self):
         return '<Note %r>' % self.text
 
+
 class Extension(db.Model):
     """
     An extension made to a request
@@ -422,7 +518,7 @@ class Extension(db.Model):
     :param days_after: the amount of days the request is extended by. set to -1 if a custom due date is set
     """
 
-    __tablename__= 'extension'
+    __tablename__ = 'extension'
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime)
     request_id = db.Column(db.String(100), db.ForeignKey('request.id'))
@@ -443,8 +539,10 @@ class Extension(db.Model):
         self.due_date = due_date
         self.days_after = days_after
 
+
 def __repr__(self):
     return '<Note %r>' % self.text
+
 
 class Email(db.Model):
     """
@@ -469,14 +567,13 @@ class Email(db.Model):
     email_content = db.Column(JSON, nullable=False)
 
     def __init__(
-        self,
-        request_id,
-        recipient,
-        subject=None,
-        time_sent=None,
-        email_content=None
+            self,
+            request_id,
+            recipient,
+            subject=None,
+            time_sent=None,
+            email_content=None
     ):
-
         self.request_id = request_id
         self.recipient = recipient
         self.subject = subject
