@@ -14,7 +14,27 @@ from validate_email import validate_email
 
 class Permission:
     """
-    Define the permission codes for certain actions.
+    Define the permission codes for certain actions:
+
+    DUPLICATE_REQUEST: Duplicate Request (New Request based on same criteria)
+    VIEW_REQUEST_STATUS_PUBLIC: View detailed request status (Open, In Progress, Closed)
+    VIEW_REQUEST_STATUS_ALL: View detailed request status (Open, In Progress, Due Soon, Overdue, Closed)
+    VIEW_REQUEST_INFO_PUBLIC: View all public request information
+    VIEW_REQUEST_INFO_ALL: View all request information
+    ADD_NOTE: Add Note (Agency Only) or (Agency Only & Requester Only) or (Agency Only, Requester / Agency)
+    UPLOAD_DOCUMENTS: Upload Documents (Agency Only & Requester Only) or (Agency Only / Private) or
+                        (Agency Only / Private, Agency / Requester, All Users)
+    VIEW_DOCUMENTS_IMMEDIATELY: View Documents Immediately - Public or 'Released and Private'
+    VIEW_REQUESTS_HELPER: View requests where they are assigned
+    VIEW_REQUESTS_AGENCY: View all requests for their agency
+    VIEW_REQUESTS_ALL: View all requests for all agencies
+    EXTEND_REQUESTS: Extend Request
+    CLOSE_REQUESTS: Close Request (Denial/Fulfill)
+    ADD_HELPERS: Add Helper (Helper permissions must be specified on a per request basis)
+    REMOVE_HELPERS: Remove Helper
+    ACKNOWLEDGE: Acknowledge
+    CHANGE_REQUEST_POC: Change Request POC
+    ADMINISTER: All permissions
     """
     DUPLICATE_REQUEST = 0x000001
     VIEW_REQUEST_STATUS_PUBLIC = 0x000002
@@ -56,8 +76,8 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         """
-        Insert permissions for each role: Anonymous User, Public User - Non Requester, Public User - Requester, Agency Helper,
-        Agency FOIL Officer, Agency Administrator.
+        Insert permissions for each role: Anonymous User, Public User - Non Requester, Public User - Requester,
+        Agency Helper, Agency FOIL Officer, Agency Administrator.
         """
         roles = {
             'Anonymous User': (Permission.DUPLICATE_REQUEST | Permission.VIEW_REQUEST_STATUS_PUBLIC |
