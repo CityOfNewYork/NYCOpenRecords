@@ -36,24 +36,24 @@ class Permission:
     CHANGE_REQUEST_POC: Change Request POC
     ADMINISTER: All permissions
     """
-    DUPLICATE_REQUEST = 0x000001
-    VIEW_REQUEST_STATUS_PUBLIC = 0x000002
-    VIEW_REQUEST_STATUS_ALL = 0x000004
-    VIEW_REQUEST_INFO_PUBLIC = 0x000008
-    VIEW_REQUEST_INFO_ALL = 0x000016
-    ADD_NOTE = 0x000032
-    UPLOAD_DOCUMENTS = 0x000064
-    VIEW_DOCUMENTS_IMMEDIATELY = 0x000128
-    VIEW_REQUESTS_HELPER = 0x000256
-    VIEW_REQUESTS_AGENCY = 0x000512
-    VIEW_REQUESTS_ALL = 0x001024
-    EXTEND_REQUESTS = 0x002048
-    CLOSE_REQUESTS = 0x004096
-    ADD_HELPERS = 0x008192
-    REMOVE_HELPERS = 0x016384
-    ACKNOWLEDGE = 0x032768
-    CHANGE_REQUEST_POC = 0x065536
-    ADMINISTER = 0x131072
+    DUPLICATE_REQUEST = 0x00001
+    VIEW_REQUEST_STATUS_PUBLIC = 0x00002
+    VIEW_REQUEST_STATUS_ALL = 0x00004
+    VIEW_REQUEST_INFO_PUBLIC = 0x00008
+    VIEW_REQUEST_INFO_ALL = 0x00010
+    ADD_NOTE = 0x00020
+    UPLOAD_DOCUMENTS = 0x00040
+    VIEW_DOCUMENTS_IMMEDIATELY = 0x00080
+    VIEW_REQUESTS_HELPER = 0x00100
+    VIEW_REQUESTS_AGENCY = 0x00200
+    VIEW_REQUESTS_ALL = 0x00400
+    EXTEND_REQUESTS = 0x00800
+    CLOSE_REQUESTS = 0x01000
+    ADD_HELPERS = 0x02000
+    REMOVE_HELPERS = 0x04000
+    ACKNOWLEDGE = 0x08000
+    CHANGE_REQUEST_POC = 0x10000
+    ADMINISTER = 0x20000
 
 class Role(db.Model):
     """
@@ -68,9 +68,7 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    default = db.Column(db.Boolean, default=False, index=True)
     permissions = db.Column(db.Integer)
-    users = db.relationship('User', backref='role', lazy='dynamic')
 
 
     @staticmethod
