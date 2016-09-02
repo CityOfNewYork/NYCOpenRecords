@@ -206,25 +206,38 @@
     });
 
     $('#rerouteButton').on('click', function () {
-        var formData = new FormData($("#AcknowledgeNote")[0]);
         var acknowledge_status = $('#acknowledge_status')[0].selectedIndex;
-        var custom_date = $('#datepicker').val();
-        custom_date = new Date(custom_date);
-        var current_date = new Date(Date.now());
-        var date_difference = (custom_date - current_date) / 86400000;
         var input = $("<input>")
-                .attr("type", "hidden")
-                .attr("name", "days_after").val(Math.ceil(date_difference));
+            .attr("type", "hidden")
+            .attr("name", "days_after")
+            .attr("id","days_after").val('');
         $('#AcknowledgeNote').append($(input));
-        var formData = new FormData($("#AcknowledgeNote")[0]);
-        if (acknowledge_status == 0){
-            acknowledge_url = "/email/email_acknowledgement_20.html";
-        }
-        else if (acknowledge_status == 5 & date_difference >= 21){
-            acknowledge_url = "/email/email_acknowledgement.html";
+        var days_after=document.getElementById('days_after');
+        if (acknowledge_status != 0){
+            if (acknowledge_status == 5) {
+                var custom_date = $('#datepicker').val();
+                custom_date = new Date(custom_date);
+                var current_date = new Date(Date.now());
+                var date_difference = (custom_date - current_date) / 86400000;
+                if (date_difference >= 21){
+                    days_after.value=Math.ceil(date_difference);
+                    acknowledge_url = "/email/email_acknowledgement.html";
+                }
+                else{
+                    days_after.value=Math.ceil(date_difference);
+                    acknowledge_url = "/email/email_acknowledgement_20.html";
+                }
+            }
+            else{
+                days_after.value=$('#acknowledge_status').val();
+                acknowledge_url = "/email/email_acknowledgement.html";
+            }
+            var formData = new FormData($("#AcknowledgeNote")[0]);
         }
         else{
+            days_after.value=$('#acknowledge_status').val();
             acknowledge_url = "/email/email_acknowledgement.html";
+            var formData = new FormData($("#AcknowledgeNote")[0]);
         }
         $.ajax({
             url: acknowledge_url,
@@ -235,7 +248,12 @@
             success: function (data) {
                 $('#form_id').val('AcknowledgeNote');
                 var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-                modalQuestion += ' ' + $('#acknowledge_status').val();
+                if ($('#acknowledge_status').val() == -1){
+                    modalQuestion += ' ' + $('#datepicker').val();
+                }
+                else {
+                    modalQuestion += ' ' + $('#acknowledge_status').val();
+                }
                 $('#modalquestionDiv').html(modalQuestion);
                 $('#modalQuestionTable').hide();
                 CKEDITOR.replace('email_text');
