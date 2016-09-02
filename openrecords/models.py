@@ -591,3 +591,30 @@ class Email(db.Model):
         self.subject = subject
         self.time_sent = time_sent
         self.email_content = email_content
+
+
+# Jonathan Started Here
+
+# Agency
+# Employer ID Number (EIN) Primary key, 3 digit int
+# Agency name - String (64)
+# Next Request Number - int sequence starting at 1 to 99999 (each agency has its own sequence, next number in the sequence)
+# Agency default email - String
+# Agency appeal email - String
+
+class Agency(db.Model):
+    __tablename__ = 'agency'
+    ein = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), nullable=False)
+    next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
+    default_email = db.Column(db.String(254))
+    appeal_email = db.Column(db.String(254))
+
+    def __repr__(self):
+        return '<Agency %r>' % self.name
+
+class UserRequest(db.Model):
+    __tablename__ = 'user_request'
+    user_guid = db.Column(db.String(1000), db.ForeignKey("users.guid"))
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
+    permission = db.Column(db.Integer)
