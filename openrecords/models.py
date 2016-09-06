@@ -593,13 +593,6 @@ class Email(db.Model):
 
 # Jonathan Started Here
 
-# Agency
-# Employer ID Number (EIN) Primary key, 3 digit int
-# Agency name - String (64)
-# Next Request Number - int sequence starting at 1 to 99999 (each agency has its own sequence, next number in the sequence)
-# Agency default email - String
-# Agency appeal email - String
-
 class Agency(db.Model):
     __tablename__ = 'agency'
     ein = db.Column(db.Integer, primary_key=True)
@@ -613,6 +606,77 @@ class Agency(db.Model):
 
 class UserRequest(db.Model):
     __tablename__ = 'user_request'
-    user_guid = db.Column(db.String(1000), db.ForeignKey("users.guid"))
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
+    user_guid = db.Column(db.String(1000), db.ForeignKey("user.guid"))
+    request_id = db.Column(db.String(19), db.ForeignKey("request.id"))
     permission = db.Column(db.Integer)
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'user'
+    guid = db.Column(db.String(1000), primary_key=True)
+    password_hash = db.Column(db.String(255))
+    user_type = db.Column(db.String(64), primary_key=True)
+    email = db.Column(db.String(254))
+    first_name = db.Column(db.String(32), nullable=False)
+    middle_initial = db.Column(db.String(1))
+    last_name = db.Column(db.String(64), nullable=False)
+    email_validated = db.Column(db.Boolean(), nullable=False)
+    terms_of_use_accepted = db.Column(db.Boolean(), nullable=False)
+    title = db.Column(db.String(64))
+    company = db.Column(db.String(128))
+    phone_number = db.Column(db.String(15))
+    fax_number = db.Column(db.String(15))
+    mailing_address = db.Column(JSON)
+
+    def __repr__(self):
+        return '<User %r>' % self.guid
+
+
+class Request(db.Model):
+    __tablename__ = 'request'
+    id = db.Column(db.String(19), primary_key=True)
+    title = db.Column(db.String(90))
+    description = db.Column(db.String(5000))
+    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
+    date_created = db.Column(db.DateTime, default=datetime.utcnow())
+    date_submitted = db.Column(db.DateTime)
+    due_date = db.Column(db.DateTime)
+    # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
+    submission = db.Column(db.String(30))
+    current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
+                                       name='statuses'))
+    visibility = db.Column(JSON)
+
+    def __repr__(self):
+        return '<Request %r>' % self.id
+
+
+class Event(db.Model):
+    id = db.Column(db.String(100), primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
+    user_id = db.Column(db.String(1000), db.ForeignKey('user.guid'))
+    response_id = db.Column(db.Integer, db.ForeignKey('response.id'))
+    type = db.Column(db.String(30))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow())
+    previous_response_value = db.Column(db.String(5000))
+    new_responpse_vvalue = db.Column(db.String(50000))
+
+    def __repr__(self):
+        return '<Event %r>' % self.id
+
+
+class Response(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
+    type = db.Column(db.String(30))
+    date_modified = db.Column(db.DateTime)
+    content = db.Column(JSON)
+    privacy = db.Column(db.String(7))
+
+    def __repr__(self):
+        return '<Response %r>' % self.id
+
+
+# do we care about what users work at what agency?
+# get submission types for Request table
+# finish up roles and permissions
