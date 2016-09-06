@@ -505,7 +505,7 @@ def create_owner(request_id, reason, email=None, user_id=None):
 
 
 # @export "change_request_status"
-def change_request_status(request_id, status):
+def change_request_status(request_id, status, due_date=None):
     req = get_obj("Request", request_id)
     req.prev_status = req.status
     req.status = status
@@ -517,9 +517,12 @@ def change_request_status(request_id, status):
     date_created = req.date_received or req.date_created
     date_created = cal.adjust(date_created, FOLLOWING)
     if "days" in status:
-            days_to_fulfill = re.findall(r"(\d{2,3}) days",status)[0]
-            app.logger.info("Changing Due Date: %s " % cal.addbusdays(req.due_date, int(days_to_fulfill)))
-            req.due_date = cal.addbusdays(req.due_date, int(days_to_fulfill))
+        days_to_fulfill = re.findall(r"(\d{2,3}) days",status)[0]
+        app.logger.info("Changing Due Date: %s " % cal.addbusdays(req.due_date, int(days_to_fulfill)))
+        req.due_date = cal.addbusdays(req.due_date, int(days_to_fulfill))
+    elif due_date != None:
+        app.logger.info("Changing Due Date: %s " % due_date)
+        req.due_date = due_date
     db.session.commit()
 
 
