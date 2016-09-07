@@ -110,20 +110,6 @@ class Role(db.Model):
     def __repr__(self):
         return '<Role %r>' % self.name
 
-
-class RecordPrivacy:
-    """
-    The privacy setting of an uploaded record
-    PRIVATE: The file is uploaded but it cannot be viewed by public users and no email notification is sent out
-    RELEASED_AND_PRIVATE: File is uploaded but cannot be viewed under the request. An email notification is sent out to
-     subscribers.
-    RELEASED_AND_PUBLIC: File is uploaded and can be viewed under the request. An email notification is sent to all
-    subscribers.
-    """
-    PRIVATE = 0x1
-    RELEASED_AND_PRIVATE = 0x2
-    RELEASED_AND_PUBLIC = 0x3
-
 # Jonathan Started Here
 
 class Agency(db.Model):
