@@ -22,4 +22,4 @@ from . import main
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    pass
+    return render_template('base.html')

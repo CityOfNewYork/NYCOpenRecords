@@ -6,12 +6,12 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'SECRET KEY'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
-    MAIL_PORT = os.environ.get('MAIL_PORT') or 1111
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') or False
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_SUBJECT_PREFIX = '[TimeClock]'
-    MAIL_SENDER = 'Records Timeclock <RTimeclock@records.nyc.gov>'
+    MAIL_SUBJECT_PREFIX = '[OpenRecords]'
+    MAIL_SENDER = 'OpenRecords<openrecords@records.nyc.gov>'
     WTF_CSRF_ENABLED = True
 
     # Asset Paths
@@ -21,7 +21,7 @@ class Config:
     SAML_PATH = os.environ.get('SAML_PATH') or os.path.join(os.path.abspath(os.curdir), 'saml')
 
     # Logging
-    LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.pardir, 'logs')
+    LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.abspath(os.path.pardir), 'logs')
 
     @staticmethod
     def init_app(app):
