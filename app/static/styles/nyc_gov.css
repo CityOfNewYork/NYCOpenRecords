@@ -359,7 +359,7 @@ footer .form-search .ico-search {
     text-indent: 100%;
     white-space: nowrap;
     overflow: hidden;
-    background: url("../../images/sprite-ico-search.png") no-repeat #616161 left -8px;
+    background: url("../img/sprite-ico-search.png") no-repeat #616161 left -8px;
     padding: 0;
     display: block;
     width: 24px;
@@ -383,7 +383,7 @@ footer .logo-nyc {
     width: 93px;
     height: 31px;
     display: block;
-    background-image: url("../../images/nyc_white.png");
+    background-image: url("../img/nyc_white@x2.png");
     background-size: 93px 31px;
     float: left;
     margin-right: 10px;
@@ -392,7 +392,7 @@ footer .logo-nyc {
 @media (-webkit-min-device-pixel-ratio: 2) {
 
     footer .logo-nyc {
-        background-image: url("../../images/nyc_white@x2.png");
+        background-image: url("../img/nyc_white@x2.png");
         background-size: 93px 31px;
         background-repeat: no-repeat;
     }
