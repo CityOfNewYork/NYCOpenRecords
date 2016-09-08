@@ -2,23 +2,19 @@ import logging
 import os
 import time
 from datetime import timedelta
-from flask import Flask, session
-from flask_kvsession import KVSessionExtension
-from flask_login import LoginManager
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
 from logging import Formatter
 from logging.handlers import RotatingFileHandler
+
+from flask import Flask, session
+from flask_kvsession import KVSessionExtension
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 from simplekv.db.sql import SQLAlchemyStore
 
 from config import config
 
 migrate = Migrate()
 db = SQLAlchemy()
-
-login_manager = LoginManager()
-login_manager.session_protection = 'strong'  # strong: track IP address and browser agent
-login_manager.login_view = 'auth.login'
 
 
 def load_db(db):
@@ -49,7 +45,6 @@ def create_app(config_name):  # App Factory
                                        '[in %(pathname)s:%(lineno)d]'))
         handler.setLevel(logging.INFO)
         app.logger.addHandler(handler)
-    login_manager.init_app(app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)

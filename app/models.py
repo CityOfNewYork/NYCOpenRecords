@@ -1,14 +1,9 @@
-from datetime import datetime
-
-from flask_login import UserMixin
-from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import relationship
 
 from app import db
 
 
-class User(UserMixin, db.Model):
+class User(db.Model):
     """User class which can be an agency user or a public user"""
     __tablename__ = 'users'
     guid = db.Column(db.String(1000), primary_key=True)
