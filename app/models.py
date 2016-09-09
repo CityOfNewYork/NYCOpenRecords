@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, \
     check_password_hash
 from . import db
 from flask_login import UserMixin, AnonymousUserMixin
-from validate_email import validate_email
+# from validate_email import validate_email
 
 
 class Permission:
@@ -110,8 +110,6 @@ class Role(db.Model):
     def __repr__(self):
         return '<Role %r>' % self.name
 
-# Jonathan Started Here
-
 
 class Agency(db.Model):
     __tablename__ = 'agency'
@@ -134,8 +132,7 @@ class UserRequest(db.Model):
 
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
-    guid = db.Column(db.String(1000), primary_key=True, unique=True)
-    password_hash = db.Column(db.String(255))
+    guid = db.Column(db.String(64), primary_key=True, unique=True)  # guid + user type
     user_type = db.Column(db.String(64), primary_key=True)
     email = db.Column(db.String(254))
     first_name = db.Column(db.String(32), nullable=False)
@@ -144,10 +141,11 @@ class User(UserMixin, db.Model):
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean(), nullable=False)
     title = db.Column(db.String(64))
-    company = db.Column(db.String(128))
+    company = db.Column(db.String(128)) # outside company
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
-    mailing_address = db.Column(JSON)
+    mailing_address = db.Column(JSON) # need to define validation for minimum acceptable mailing address
+    # agency id foreign key
 
     def __repr__(self):
         return '<User %r>' % self.guid
@@ -163,9 +161,9 @@ class Request(db.Model):
     date_submitted = db.Column(db.DateTime)
     due_date = db.Column(db.DateTime)
     # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
-    submission = db.Column(db.String(30))
+    submission = db.Column(db.String(30)) # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
-                                       name='statuses'))
+                                       name='statuses')) # due soon is within the next "5" business days
     visibility = db.Column(JSON)
 
     def __repr__(self):
@@ -176,12 +174,12 @@ class Event(db.Model):
     __tablename__ = 'event'
     id = db.Column(db.String(100), primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
-    user_id = db.Column(db.String(1000), db.ForeignKey('user.guid'))
+    user_id = db.Column(db.String(1000), db.ForeignKey('user.guid')) # who did the action
     response_id = db.Column(db.Integer, db.ForeignKey('response.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_response_value = db.Column(db.String(5000))
-    new_response_value = db.Column(db.String(50000))
+    previous_response_value = db.Column(db.String)
+    new_response_value = db.Column(db.String)
 
     def __repr__(self):
         return '<Event %r>' % self.id
@@ -198,8 +196,3 @@ class Response(db.Model):
 
     def __repr__(self):
         return '<Response %r>' % self.id
-
-
-# do we care about what users work at what agency?
-# get submission types for Request table
-# finish up roles and permissions

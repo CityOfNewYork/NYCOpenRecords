@@ -19,6 +19,8 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'postgresql://localhost:5432/openrecords_v2_0_dev'
 
 class TestingConfig(Config):
     TESTING = True

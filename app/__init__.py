@@ -1,10 +1,10 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from config import config
-from os.path import abspath, dirname, join
-from os import pardir, environ
-from . import main
-from business_calendar import Calendar, MO, TU, WE, TH, FR
+# from os.path import abspath, dirname, join
+# from os import pardir, environ
+# from . import main
+# from business_calendar import Calendar, MO, TU, WE, TH, FR
 db = SQLAlchemy()
 
 app = Flask(__name__)
@@ -23,11 +23,11 @@ def create_app(config_name):
 
     db.init_app(app)
 
-    from .main import main as main_blueprint
-    app.register_blueprint(main_blueprint)
-
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    # from .main import main as main_blueprint
+    # app.register_blueprint(main_blueprint)
+    #
+    # from .auth import auth as auth_blueprint
+    # app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
     return app
 
