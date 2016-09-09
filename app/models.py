@@ -112,6 +112,7 @@ class Role(db.Model):
 
 # Jonathan Started Here
 
+
 class Agency(db.Model):
     __tablename__ = 'agency'
     ein = db.Column(db.Integer, primary_key=True)
@@ -123,16 +124,17 @@ class Agency(db.Model):
     def __repr__(self):
         return '<Agency %r>' % self.name
 
+
 class UserRequest(db.Model):
     __tablename__ = 'user_request'
-    user_guid = db.Column(db.String(1000), db.ForeignKey("user.guid"))
-    request_id = db.Column(db.String(19), db.ForeignKey("request.id"))
+    user_guid = db.Column(db.String(1000), db.ForeignKey("user.guid"), primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey("request.id"), primary_key=True)
     permission = db.Column(db.Integer)
 
 
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
-    guid = db.Column(db.String(1000), primary_key=True)
+    guid = db.Column(db.String(1000), primary_key=True, unique=True)
     password_hash = db.Column(db.String(255))
     user_type = db.Column(db.String(64), primary_key=True)
     email = db.Column(db.String(254))
@@ -179,7 +181,7 @@ class Event(db.Model):
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_response_value = db.Column(db.String(5000))
-    new_responpse_vvalue = db.Column(db.String(50000))
+    new_response_value = db.Column(db.String(50000))
 
     def __repr__(self):
         return '<Event %r>' % self.id
