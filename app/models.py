@@ -167,6 +167,28 @@ class Request(db.Model):
                                        name='statuses'))  # due soon is within the next "5" business days
     visibility = db.Column(JSON)
 
+    def __init__(
+            self,
+            id,
+            title,
+            description,
+            # agency,
+            date_created,
+            date_submitted=None,
+            due_date=None,
+            submission=None,
+            current_status=None
+    ):
+        self.id = id
+        self.title = title
+        self.description = description
+        # self.agency = agency
+        self.date_created = date_created
+        self.date_submitted = date_submitted
+        self.due_date = due_date
+        self.submission = submission
+        self.current_status = current_status
+
     def __repr__(self):
         return '<Request %r>' % self.id
 

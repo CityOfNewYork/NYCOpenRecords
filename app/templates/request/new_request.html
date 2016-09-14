@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="page-header">
+        <h1>FOIL Request</h1>
+    </div>
+
+    <form name="newrequest" class="form-horizontal" id="submitRequest" method="POST" action="">
+    {{ form.hidden_tag() }}
+
+        <div class="form-group row"
+            <label for="Category" class="col-sm-3 form-control-label">Category:</label>
+            {{ form.request_category }}
+        </div>
+
+        {% for error in form.request_agency.errors %}
+            <div class="alert alert-danger" id="missing_agency">{{ error }}</div>
+        {% endfor %}
+        <div class="form-group row">
+            <label for="Category" class="col-sm-3 form-control-label">Agency:</label>
+            {{ form.request_agency }}
+        </div>
+
+        {% for error in form.request_title.errors %}
+            <div class="alert alert-danger" id="missing_name">{{ error }}</div>
+        {% endfor %}
+        <div class="form-group row">
+            <label for="Title" class="col-sm-3 form-control-label">Title:</label>
+            {{ form.request_title }}
+        </div>
+
+        {% for error in form.request_description.errors %}
+            <div class="alert alert-danger" id="missing_name">{{ error }}</div>
+        {% endfor %}
+        <div class="form-group row">
+            <label for="Description" class="col-sm-3 form-control-label">Description:</label>
+            {{ form.request_description }}
+        </div>
+
+        <div class="form-group row">
+            {{ form.request_file }}
+        </div>
+
+        <p><input type="submit" value="Submit"></p>
+    </form>
+{% endblock %}

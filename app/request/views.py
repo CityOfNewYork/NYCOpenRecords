@@ -4,67 +4,44 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
-from flask import Flask, abort, request
-from flask_restful import Api, Resource, reqparse, fields, marshal
+from flask import (
+    render_template,
+    request,
+    redirect,
+    url_for
+)
+from datetime import datetime
+from .. import db
+from .. models import Request
+from . forms import NewRequestForm
 from . import request_blueprint
-
-api = Api(request_blueprint)
-
-requests = [
-    {
-        'id': 1,
-        'title': u'Birth Certificate',
-        'description': u'Birth Certificate for myself',
-        'agency': 2,
-        'submission': u'Phone'
-    },
-    {
-        'id': 2,
-        'title': u'Email Records',
-        'description': u'Email Records from the agency',
-        'agency': 3,
-        'submission': u'Online'
-    }
-]
-
-request_fields = {
-    'title': fields.String,
-    'description': fields.String,
-    'agency': fields.Integer,
-    'submission': fields.String,
-    'uri': fields.Url('request')
-}
+import random
+import string
 
 
-# def abort_if_request_doesnt_exist(request_id):
-#     if request_id not in requests:
-#         abort(404, message="Request {} doesn't exist".format(request_id))
+@request_blueprint.route('/new', methods=['GET', 'POST'])
+def new_request():
+    """
+    Create a new FOIL request
 
+    1) What are the inputs (from the Request Form)
+    2) What are the expected values for each of the above
+    3) What are the valid returns from this function (errors, success, messages)
+    4) Anything else we need to know
 
-class RequestAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('title', type=str, required=True,
-                                   help='No request title provided',
-                                   location='json')
-        self.reqparse.add_argument('description', type=str, default="", location='json')
-        self.reqparse.add_argument('agency', type=int, default="", location='json')
-        self.reqparse.add_argument('submission', type=str, default="", location='json')
-        self.reqparse.add_argument('uri', type=str, default="", location=request.url)
-        super(RequestAPI, self).__init__()
-
-    def post(self):
-        args = self.reqparse.parse_args()
-        # request = {
-        #     'id': requests[-1]['id'] + 1,
-        #     'title': args['title'],
-        #     'description': args['description'],
-        #     'submission': args['submission']
-        # }
-        requests.append(request)
-
-        request.json['uri'] = request.url
-        return request.json
-
-api.add_resource(RequestAPI, '/request')
+    """
+    form = NewRequestForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            # Helper function to handle processing of data and secondary validation on the backend
+            newrequest = Request(id=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)),
+                                 title=form.request_title.data, description=form.request_description.data,
+                                 date_created=datetime.now()
+                                 )
+            db.session.add(newrequest)
+            db.session.commit()
+            return redirect(url_for('main.index'))
+        else:
+            print(form.errors)
+    return render_template('request/new_request.html', form=form)
 
