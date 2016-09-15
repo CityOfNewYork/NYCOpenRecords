@@ -155,11 +155,11 @@ class User(UserMixin, db.Model):
 class Request(db.Model):
     __tablename__ = 'request'
     id = db.Column(db.String(19), primary_key=True)
+    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
-    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
-    date_submitted = db.Column(db.DateTime)
+    date_submitted = db.Column(db.DateTime) # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
     # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
     submission = db.Column(db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input

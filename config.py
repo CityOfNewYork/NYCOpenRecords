@@ -1,7 +1,9 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
 class Config:
+    WTF_CSRF_ENABLED = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     MAIL_SERVER = 'smtp.googlemail.com'
@@ -17,13 +19,16 @@ class Config:
     def init_app(app):
         pass
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'postgresql://localhost:5432/openrecords_v2_0_dev'
 
+
 class TestingConfig(Config):
     TESTING = True
+
 
 class ProductionConfig(Config):
     pass

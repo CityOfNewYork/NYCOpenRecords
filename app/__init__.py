@@ -1,10 +1,27 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from config import config
-
+from business_calendar import Calendar, MO, TU, WE, TH, FR
 
 db = SQLAlchemy()
 app = Flask(__name__)
+
+calendar = Calendar(
+    workdays=[MO, TU, WE, TH, FR],
+    holidays=[
+        '2016-01-01',
+        '2016-01-18',
+        '2016-02-15',
+        '2016-05-30',
+        '2016-07-4',
+        '2016-09-5',
+        '2016-10-10',
+        '2016-11-08',
+        '2016-11-11',
+        '2016-11-24',
+        '2016-12-26'
+    ]
+)
 
 
 def create_app(config_name):
@@ -17,6 +34,7 @@ def create_app(config_name):
     """
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+
     db.init_app(app)
 
     from .main import main as main_blueprint
