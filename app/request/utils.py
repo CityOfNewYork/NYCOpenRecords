@@ -1,12 +1,20 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# TODO: Module Level Comments
+"""
+    app.request.utils
+    ~~~~~~~~~~~~~~~~
+
 """
 
-
-"""
-from app.models import Request, Agency
-from app.utils import create_object, update_object
+from app.models import Request, Agency, Event
+from app.db_utils import create_object, update_object
 from datetime import datetime
 from business_calendar import FOLLOWING
 from app import calendar
+from app.constants import ACKNOWLEDGEMENT_DAYS_DUE
+from flask import render_template
+from .. import db
 
 
 def process_request(title=None, description=None, agency=None, submission=None):
@@ -20,9 +28,10 @@ def process_request(title=None, description=None, agency=None, submission=None):
     :return:
     """
     # 1. Generate the request id
-    generate_request_id()
+    request_id = generate_request_id()
 
     # 2a. Generate Email Notification Text for Agency
+    agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
     # 2b. Generate Email Notification Text for Requester
 
     # 3a. Send Email Notification Text for Agency
@@ -33,17 +42,21 @@ def process_request(title=None, description=None, agency=None, submission=None):
     date_submitted = get_date_submitted(date_created)
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = calc_due_date(date_submitted)
+    due_date = calc_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
 
     # 5. Create File object (Response table if applicable)
 
     # 6. Store File object
 
     # 7. Create Request object
-
+    req = Request(id=request_id, title=title, description=description, date_created=date_created,
+                  date_submitted=date_submitted, due_date=due_date)
     # 8. Store Request object
-
+    create_object(type="Request", obj=req)
     # 9. Store Events object
+    event = Event(id=id, request_id=request_id, timestamp=datetime.utcnow())
+    db.session.add(event)
+    db.session.commit()
 
 
 def generate_request_id(agency):
@@ -58,6 +71,16 @@ def generate_request_id(agency):
     return request_id
 
 
+def generate_email_template(template_name, **kwargs):
+    """
+
+    :param template_name:
+    :param kwargs:
+    :return:
+    """
+    return render_template(template_name, **kwargs)
+
+
 def get_date_submitted(date_created):
     """
 
@@ -68,13 +91,17 @@ def get_date_submitted(date_created):
     return date_submitted
 
 
-def calc_due_date(date_submitted):
+def calc_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
     """
 
     :param date_submitted:
+    :param days_until_due:
+    :param hour_due: Hour when the request will be marked as overdue, defaults to 1700 (5 P.M.)
+    :param minute_due: Minute when the request will be marked as overdue, defaults to 00 (On the hour)
+    :param second_due: Second when the request will be marked as overdue, defaults to 00
     :return:
     """
-
-    due_date = calendar.addbusdays(calendar.adjust(date_submitted.replace(hour=17, minute=00, second=00), 5), 5)
+    due_date = calendar.addbusdays(calendar.adjust(date_submitted.replace(hour_due, minute_due, second_due),
+                                                   days_until_due), days_until_due)
     return due_date
 
