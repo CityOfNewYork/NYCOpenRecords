@@ -14,12 +14,9 @@ from flask import (
 from datetime import datetime
 from .. import db
 from .. models import Request
-from . forms import NewRequestForm
-from . import request_blueprint
-import random
-import string
-import os
-from .. db_helpers import create_request
+from app.request.forms import NewRequestForm
+from app.request import request_blueprint
+from app.request.utils import process_request
 
 
 @request_blueprint.route('/new', methods=['GET', 'POST'])
@@ -37,14 +34,8 @@ def new_request():
     if request.method == 'POST':
         if form.validate_on_submit():
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(id=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)),
-                title=form.request_title.data, description=form.request_description.data, date_created=datetime.now())
-            # newrequest = Request(id=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)),
-            #                      title=form.request_title.data, description=form.request_description.data,
-            #                      date_created=datetime.now()
-            #                      )
-            # db.session.add(newrequest)
-            # db.session.commit()
+            process_request(title=form.request_title.data, description=form.request_description.data,
+                            submission=form.request_submission.data)
             return redirect(url_for('main.index'))
 
         else:

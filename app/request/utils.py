@@ -14,7 +14,6 @@ from business_calendar import FOLLOWING
 from app import calendar
 from app.constants import ACKNOWLEDGEMENT_DAYS_DUE
 from flask import render_template
-from .. import db
 
 
 def process_request(title=None, description=None, agency=None, submission=None):
@@ -50,13 +49,12 @@ def process_request(title=None, description=None, agency=None, submission=None):
 
     # 7. Create Request object
     req = Request(id=request_id, title=title, description=description, date_created=date_created,
-                  date_submitted=date_submitted, due_date=due_date)
+                  date_submitted=date_submitted, due_date=due_date, submission=submission)
     # 8. Store Request object
     create_object(type="Request", obj=req)
     # 9. Store Events object
     event = Event(id=id, request_id=request_id, timestamp=datetime.utcnow())
-    db.session.add(event)
-    db.session.commit()
+    create_object(type="Event", obj=event)
 
 
 def generate_request_id(agency):
