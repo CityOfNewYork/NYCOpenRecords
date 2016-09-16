@@ -4,6 +4,7 @@ from flask_mail import Mail
 from config import config
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 
+
 db = SQLAlchemy()
 mail = Mail()
 app = Flask(__name__)
@@ -24,6 +25,9 @@ calendar = Calendar(
         '2016-12-26'
     ]
 )
+
+UPLOAD_FOLDER = '/Desktop'
+ALLOWED_EXTENSIONS = set(['txt', 'csv', 'jpeg'])
 
 
 def create_app(config_name):

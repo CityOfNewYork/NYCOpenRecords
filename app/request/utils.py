@@ -5,6 +5,8 @@
     app.request.utils
     ~~~~~~~~~~~~~~~~
 
+    synopsis: Handles the functions for requests
+
 """
 
 from app.models import Request, Agency, Event
@@ -14,7 +16,9 @@ from business_calendar import FOLLOWING
 from app import calendar
 from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type
 from flask import render_template
-import random, string # FOR TESTING
+# FOR TESTING
+import random
+import string
 
 
 def process_request(title=None, description=None, agency=None, submission=None):
@@ -42,7 +46,7 @@ def process_request(title=None, description=None, agency=None, submission=None):
     date_submitted = get_date_submitted(date_created)
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = calc_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
+    due_date = get_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
 
     # 5. Create File object (Response table if applicable)
 
@@ -61,17 +65,17 @@ def process_request(title=None, description=None, agency=None, submission=None):
     create_object(obj=event)
 
 
-def generate_request_id(agency):
+def generate_request_id():
     """
 
     :param agency:
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
-    next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
-    update_object(type="agency", field="next_request_number", value=next_request_number + 1)
-    request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
+    # next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
+    # update_object(type="agency", field="next_request_number", value=next_request_number + 1)
+    # request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
     # FOR TESTING: remove agency in function argument and comment out above, uncomment below
-    # request_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+    request_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     return request_id
 
 
@@ -95,7 +99,7 @@ def get_date_submitted(date_created):
     return date_submitted
 
 
-def calc_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
+def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
     """
 
     :param date_submitted: date submitted which is the date_created rounded off to the next business day
@@ -105,8 +109,7 @@ def calc_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, se
     :param second_due: Second when the request will be marked as overdue, defaults to 00
     :return: due date which is 5 business days after the date_submitted and time is always 5:00 PM
     """
-    due_date = calendar.addbusdays(calendar.adjust(date_submitted.replace(hour=hour_due, minute=minute_due,
-                                                                          second=second_due),
-                                                   days_until_due), days_until_due)
+    calc_due_date = calendar.addbusdays(date_submitted, days_until_due)  # calculates due date
+    due_date = calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
     return due_date
 

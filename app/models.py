@@ -159,10 +159,10 @@ class Request(db.Model):
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
-    date_submitted = db.Column(db.DateTime) # used to calculate due date, rounded off to next business day
+    date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
     # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
-    submission = db.Column(db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
+    submission = db.Column(db.String(30))   # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
     visibility = db.Column(JSON)

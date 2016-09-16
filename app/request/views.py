@@ -13,6 +13,14 @@ from flask import (
 from app.request.forms import NewRequestForm
 from app.request import request_blueprint
 from app.request.utils import process_request
+from app import app
+from werkzeug.utils import secure_filename
+import os
+from constants import ALLOWED_EXTENSIONS
+
+
+# def allowed_filename(filename):
+#     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 @request_blueprint.route('/new', methods=['GET', 'POST'])
@@ -32,6 +40,12 @@ def new_request():
             # Helper function to handle processing of data and secondary validation on the backend
             process_request(title=form.request_title.data, description=form.request_description.data,
                             submission=form.request_submission.data)
+            submitted_file = secure_filename(form.request_file.data)
+            form.request_file.data.save('app/static/' + submitted_file)
+            # submitted_file = form.request_file
+            # if submitted_file:
+            #     filename = secure_filename(submitted_file.data)
+
             return redirect(url_for('main.index'))
 
         else:
