@@ -23,7 +23,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['agency'], ['agency.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.drop_table('users')
     op.add_column('agency', sa.Column('category', sa.String(length=64), nullable=True))
     op.add_column('user', sa.Column('agency', sa.Integer(), nullable=True))
     op.create_foreign_key(None, 'user', 'agency', ['agency'], ['ein'])

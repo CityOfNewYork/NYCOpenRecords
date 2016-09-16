@@ -12,25 +12,26 @@ from app.db_utils import create_object, update_object
 from datetime import datetime
 from business_calendar import FOLLOWING
 from app import calendar
-from app.constants import ACKNOWLEDGEMENT_DAYS_DUE
+from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type
 from flask import render_template
+import random, string # FOR TESTING
 
 
 def process_request(title=None, description=None, agency=None, submission=None):
     """
 
-    :param title:
-    :param description:
+    :param title: request title
+    :param description: request description
     :param agency:
-    :param date_created:
-    :param submission:
-    :return:
+    :param date_created: date the request was made
+    :param submission: request submission method
+    :return: creates and stores the request and event object for a new FOIL request
     """
     # 1. Generate the request id
     request_id = generate_request_id()
 
     # 2a. Generate Email Notification Text for Agency
-    agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
+    # agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
     # 2b. Generate Email Notification Text for Requester
 
     # 3a. Send Email Notification Text for Agency
@@ -51,30 +52,35 @@ def process_request(title=None, description=None, agency=None, submission=None):
     req = Request(id=request_id, title=title, description=description, date_created=date_created,
                   date_submitted=date_submitted, due_date=due_date, submission=submission)
     # 8. Store Request object
-    create_object(type="Request", obj=req)
-    # 9. Store Events object
-    event = Event(id=id, request_id=request_id, timestamp=datetime.utcnow())
-    create_object(type="Event", obj=event)
+    create_object(obj=req)
+
+    # 9. Create Event object
+    event = Event(request_id=request_id, type=event_type['request_created'], timestamp=datetime.utcnow())
+
+    # 10. Store Event object
+    create_object(obj=event)
 
 
 def generate_request_id(agency):
     """
 
     :param agency:
-    :return:
+    :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
     update_object(type="agency", field="next_request_number", value=next_request_number + 1)
     request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
+    # FOR TESTING: remove agency in function argument and comment out above, uncomment below
+    # request_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     return request_id
 
 
 def generate_email_template(template_name, **kwargs):
     """
 
-    :param template_name:
+    :param template_name: specific email template
     :param kwargs:
-    :return:
+    :return: email template
     """
     return render_template(template_name, **kwargs)
 
@@ -82,8 +88,8 @@ def generate_email_template(template_name, **kwargs):
 def get_date_submitted(date_created):
     """
 
-    :param date_created:
-    :return:
+    :param date_created: date the request was made
+    :return: date submitted which is the date_created rounded off to the next business day
     """
     date_submitted = calendar.addbusdays(calendar.adjust(date_created, FOLLOWING), FOLLOWING)
     return date_submitted
@@ -92,14 +98,15 @@ def get_date_submitted(date_created):
 def calc_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
     """
 
-    :param date_submitted:
-    :param days_until_due:
+    :param date_submitted: date submitted which is the date_created rounded off to the next business day
+    :param days_until_due: number of business days until a request is due
     :param hour_due: Hour when the request will be marked as overdue, defaults to 1700 (5 P.M.)
     :param minute_due: Minute when the request will be marked as overdue, defaults to 00 (On the hour)
     :param second_due: Second when the request will be marked as overdue, defaults to 00
-    :return:
+    :return: due date which is 5 business days after the date_submitted and time is always 5:00 PM
     """
-    due_date = calendar.addbusdays(calendar.adjust(date_submitted.replace(hour_due, minute_due, second_due),
+    due_date = calendar.addbusdays(calendar.adjust(date_submitted.replace(hour=hour_due, minute=minute_due,
+                                                                          second=second_due),
                                                    days_until_due), days_until_due)
     return due_date
 

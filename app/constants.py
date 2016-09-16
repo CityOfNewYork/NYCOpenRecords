@@ -27,3 +27,43 @@ event_type = {
     "note_edited": "note_edited",
     "note_deleted": "note_deleted",
 }
+
+# FOR TESTING
+agencies = [
+    ('', ''),
+    ('Agency1', 'Agency1'),
+    ('Agency2', 'Agency2'),
+    ('Agency3', 'Agency3'),
+    ('Agency4', 'Agency4'),
+    ('Agency5', 'Agency5'),
+    ('Agency6', 'Agency6'),
+    ('Agency7', 'Agency7'),
+    ('Agency8', 'Agency8')
+]
+
+categories = [
+    ('', ''),
+    ('Business', 'Business'),
+    ('Civic Services', 'Civic Services'),
+    ('Culture & Recreation', 'Culture & Recreation'),
+    ('Education', 'Education'),
+    ('Government Administration', 'Government Administration'),
+    ('Environment', 'Environment'),
+    ('Health', 'Health'),
+    ('Housing & Development', 'Housing & Development'),
+    ('Public Safety', 'Public Safety'),
+    ('Social Services', 'Social Services'),
+    ('Transportation', 'Transportation')
+]
+
+# direct input/mail/fax/email/phone/311/text method of answering request default is direct input
+submission_method = [
+    ('', ''),
+    ('Direct Input', 'Direct Input'),
+    ('Fax', 'Fax'),
+    ('Phone', 'Phone'),
+    ('Email', 'Email'),
+    ('Mail', 'Mail'),
+    ('In-Person', 'In-Person'),
+    ('311', '311')
+]

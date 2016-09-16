@@ -9,11 +9,7 @@ from flask import (
     request,
     redirect,
     url_for,
-    Flask
 )
-from datetime import datetime
-from .. import db
-from .. models import Request
 from app.request.forms import NewRequestForm
 from app.request import request_blueprint
 from app.request.utils import process_request

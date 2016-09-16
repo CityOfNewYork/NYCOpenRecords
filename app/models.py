@@ -7,7 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, \
     check_password_hash
-from . import db
+from app import db
 from flask_login import UserMixin, AnonymousUserMixin
 # from validate_email import validate_email
 
@@ -55,6 +55,7 @@ class Permission:
     CHANGE_REQUEST_POC = 0x10000
     ADMINISTER = 0x20000
 
+
 class Role(db.Model):
     """
     Define the Role class with the following columns and relationships:
@@ -69,7 +70,6 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     permissions = db.Column(db.Integer)
-
 
     @staticmethod
     def insert_roles():
@@ -195,7 +195,7 @@ class Request(db.Model):
 
 class Event(db.Model):
     __tablename__ = 'event'
-    id = db.Column(db.String(100), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
     user_id = db.Column(db.String(1000), db.ForeignKey('user.guid'))  # who did the action
     response_id = db.Column(db.Integer, db.ForeignKey('response.id'))
