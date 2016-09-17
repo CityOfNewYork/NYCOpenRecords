@@ -10,11 +10,12 @@
 """
 
 from app.models import Request, Agency, Event
+from app.models import User as something
 from app.db_utils import create_object, update_object
 from datetime import datetime
 from business_calendar import FOLLOWING
 from app import calendar
-from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type
+from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type, user_type
 from flask import render_template
 # FOR TESTING
 import random
@@ -65,6 +66,66 @@ def process_request(title=None, description=None, agency=None, submission=None):
     create_object(obj=event)
 
 
+def process_anon_request(title, description, submission, email, first_name, last_name, user_title, company, phone,
+                         fax, address):
+    """
+
+    :param title: request title
+    :param description: request description
+    :param submission: request submission method
+    :param email: requester's email
+    :param first_name: requester's first name
+    :param last_name: requester's last name
+    :param user_title: requester's title
+    :param company: requester's organization
+    :param phone: requester's phone number
+    :param fax: requester's fax number
+    :param address: requester's address
+    :return: creates and stores the new FOIL request from an anonymous user
+    """
+    # Creates and stores Request and Event object
+    process_request(title=title, description=description, submission=submission)
+    guid = generate_guid()
+
+    # Creates User object
+    usr = something(guid=guid, user_type=user_type['anonymous_user'], email=email, first_name=first_name,
+                    last_name=last_name, title=user_title, company=company, email_validated=False,
+                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+
+    # Store User object
+    create_object(obj=usr)
+
+
+def process_agency_request(title, description, submission, email, first_name, last_name, user_title, company, phone,
+                           fax, address):
+    """
+
+    :param title: request title
+    :param description: request description
+    :param submission: request submission method
+    :param email: requester's email
+    :param first_name: requester's first name
+    :param last_name: requester's last name
+    :param user_title: requester's title
+    :param company: requester's organization
+    :param phone: requester's phone number
+    :param fax: requester's fax number
+    :param address: requester's address
+    :return: creates and stores the new FOIL request from an agency user
+    """
+    # Creates and stores Request and Event object
+    process_request(title=title, description=description, submission=submission)
+    guid = generate_guid()
+
+    # Creates User object
+    usr = something(guid=guid, user_type=user_type['agency_user'], email=email, first_name=first_name,
+                    last_name=last_name, title=user_title, company=company, email_validated=False,
+                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+
+    # Store User object
+    create_object(obj=usr)
+
+
 def generate_request_id():
     """
 
@@ -77,6 +138,11 @@ def generate_request_id():
     # FOR TESTING: remove agency in function argument and comment out above, uncomment below
     request_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
     return request_id
+
+
+def generate_guid():
+    guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
+    return guid
 
 
 def generate_email_template(template_name, **kwargs):
@@ -112,4 +178,3 @@ def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, sec
     calc_due_date = calendar.addbusdays(date_submitted, days_until_due)  # calculates due date
     due_date = calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
     return due_date
-
