@@ -21,11 +21,14 @@ def new_request():
     """
     Create a new FOIL request
 
-    1) What are the inputs (from the Request Form)
-    2) What are the expected values for each of the above
-    3) What are the valid returns from this function (errors, success, messages)
-    4) Anything else we need to know
+    title: request title
+    description: request description
+    agency: agency selected for the request
+    submission: submission method for the request
 
+    :return: redirects to homepage if form validates
+     uploaded file is stored in app/static
+     if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
     form = NewRequestForm()
     if request.method == 'POST':
@@ -36,9 +39,7 @@ def new_request():
             # File upload that stores uploaded file to app/static
             filename = secure_filename(form.request_file.data.filename)
             form.request_file.data.save('app/static/' + filename)
-
             return redirect(url_for('main.index'))
-
         else:
             print(form.errors)
     return render_template('request/new_request.html', form=form)
