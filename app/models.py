@@ -1,3 +1,7 @@
+"""
+Models for open records database
+"""
+
 import re
 from datetime import datetime, timedelta
 from sqlalchemy.dialects.postgresql import JSON
@@ -9,6 +13,8 @@ from werkzeug.security import generate_password_hash, \
     check_password_hash
 from app import db
 from flask_login import UserMixin, AnonymousUserMixin
+
+
 # from validate_email import validate_email
 
 
@@ -112,6 +118,18 @@ class Role(db.Model):
 
 
 class Agency(db.Model):
+    """
+    Define the Agency class with the following columns and relationships:
+
+    ein - the primary key of the agency table, 3 digit integer that is unique for each agency
+    category - a string containing the category of the agency (ex: business/education)
+    name - a string containing the name of the agency
+    next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
+                          request number sequence
+    default_email - a string containing the default email of the agency regarding general inquiries about requests
+    appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
+    """
+
     __tablename__ = 'agency'
     ein = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(64))
@@ -125,6 +143,15 @@ class Agency(db.Model):
 
 
 class UserRequest(db.Model):
+    """
+    Define the UserRequest class with the following columns and relationships:
+    A UserRequest is a many to many relationship between users who are related to a certain request
+    user_guid and request_id are combined to create a composite primary key
+
+    user_guid = a foreign key that links to the primary key of the User table
+    request_id = a foreign key that links to the primary key of the Request table
+    """
+
     __tablename__ = 'user_request'
     user_guid = db.Column(db.String(1000), db.ForeignKey("user.guid"), primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey("request.id"), primary_key=True)
@@ -132,7 +159,27 @@ class UserRequest(db.Model):
 
 
 class User(UserMixin, db.Model):
+    """
+    Define the User class with the following columns and relationships:
+
+    guid - a string that contains the unique guid of a agency user
+    user_type - a string that tells what type of a user they are (agency user, helper, etc.)
+    guid and user_type are combined to create a composite primary key
+    agency - a foreign key that links to the primary key of the agency table
+    email - a string containing the user's email
+    first_name - a string containing the user's first name
+    middle_initial - a string containing the user's middle initial
+    last_name - a string containing the user's last name
+    email_validated - a boolean that is set to true if the user's email has been validated
+    terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency's terms of use
+    title - a string containing the user's title if they are affiliated with an outside company
+    company - a string containing the user's outside company affiliation
+    phone_number - string containing the user's phone number
+    fax_number - string containing the user's fax number
+    mailing_address - a JSON object containing the user's address
+    """
     __tablename__ = 'user'
+    # might have to change this so we have an ID sequence
     guid = db.Column(db.String(64), primary_key=True, unique=True)  # guid + user type
     user_type = db.Column(db.String(64), primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
@@ -143,16 +190,31 @@ class User(UserMixin, db.Model):
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean(), nullable=False)
     title = db.Column(db.String(64))
-    company = db.Column(db.String(128)) # outside company
-    phone_number = db.Column(db.String(15))
+    company = db.Column(db.String(128))  # outside company
+    phone_number = db.Column(db.String(15)) # do we want a string or integer?
     fax_number = db.Column(db.String(15))
-    mailing_address = db.Column(JSON) # need to define validation for minimum acceptable mailing address
+    mailing_address = db.Column(JSON)  # need to define validation for minimum acceptable mailing address
 
     def __repr__(self):
         return '<User %r>' % self.guid
 
 
 class Request(db.Model):
+    """
+    Define the Request class with the following columns and relationships:
+
+    id - a string containing the requst id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
+    agency - a foreign key that links that the primary key of the agency the request was assigned to
+    title - a string containing a short description of the request
+    description - a string containing a full description of what is needed from the request
+    date_created - the actual creation time of the request
+    date_submitted - a date that rolls forward to the next business day based on date_created
+    due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
+    submission - a Enum that selects from a list of submission methods
+    current_status - a Enum that selects from a list of different statuses a request can have
+    visibility - a JSON object that contains the visbility settings of a request
+    """
+
     __tablename__ = 'request'
     id = db.Column(db.String(19), primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
@@ -161,8 +223,9 @@ class Request(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
-    # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
-    submission = db.Column(db.String(30))   # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
+    # submission = db.Column(db.Enum('Direct Input', 'Mail', 'Email', 'Fax', 'Phone', 'Text', '311', name='submission_type'))
+    submission = db.Column(
+        db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
     visibility = db.Column(JSON)
@@ -194,6 +257,20 @@ class Request(db.Model):
 
 
 class Event(db.Model):
+    """
+    Define the Event class with the following columns and relationships:
+    Events are any type of action that happened to a request after it was submitted
+
+    id - an integer that is the primary key of an Event
+    request_id - a foreign key that links to a request's primary key
+    user_id - a foreign key that links to the user_id of the person who performed the event
+    response_id - a foreign key that links to the primary key of a response
+    type - a string containing the type of event that occurred
+    timestamp - a datetime that keeps track of what time an event was performed
+    previous_response_value - a string containing the old response value
+    new_response_value - a string containing the new response value
+    """
+
     __tablename__ = 'event'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
@@ -209,6 +286,17 @@ class Event(db.Model):
 
 
 class Response(db.Model):
+    """
+    Define the Response class with the following columns and relationships:
+
+    id - an integer that is the primary key of a Response
+    request_id - a foreign key that links to the primary key of a request
+    type - a string containing the type of response that was given for a request
+    date_modified - a datetime object that keeps track of when a request was changed
+    content - a JSON object that contains the content for all the possible responses a request can have
+    privacy - a string containing the privacy option for a response
+    """
+
     __tablename__ = 'response'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
@@ -222,6 +310,14 @@ class Response(db.Model):
 
 
 class Reason(db.Model):
+    """
+    Define the Reason class with the following columns and relationships:
+
+    id - an integer that is the primary key of a Reason
+    agency - a foreign key that links to the a agency's primary key which is the EIN number
+    deny_reason - a string containing the message that will be shown when a request is denied
+    """
+
     __tablename__ = 'reason'
     id = db.Column(db.Integer, primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agency.ein'), nullable=True)
