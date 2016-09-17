@@ -22,7 +22,7 @@ import random
 import string
 
 
-def process_request(title=None, description=None, agency=None, submission=None):
+def process_request(title=None, description=None, agency=None, submission='Direct Input'):
     """
 
     :param title: request title
@@ -66,7 +66,7 @@ def process_request(title=None, description=None, agency=None, submission=None):
     create_object(obj=event)
 
 
-def process_anon_request(title, description, submission, email, first_name, last_name, user_title, company, phone,
+def process_anon_request(agency, title, description, email, first_name, last_name, user_title, company, phone,
                          fax, address):
     """
 
@@ -84,7 +84,7 @@ def process_anon_request(title, description, submission, email, first_name, last
     :return: creates and stores the new FOIL request from an anonymous user
     """
     # Creates and stores Request and Event object
-    process_request(title=title, description=description, submission=submission)
+    process_request(agency=agency, title=title, description=description)
     guid = generate_guid()
 
     # Creates User object
@@ -96,7 +96,7 @@ def process_anon_request(title, description, submission, email, first_name, last
     create_object(obj=usr)
 
 
-def process_agency_request(title, description, submission, email, first_name, last_name, user_title, company, phone,
+def process_agency_request(agency, title, description, submission, email, first_name, last_name, user_title, company, phone,
                            fax, address):
     """
 
@@ -114,7 +114,7 @@ def process_agency_request(title, description, submission, email, first_name, la
     :return: creates and stores the new FOIL request from an agency user
     """
     # Creates and stores Request and Event object
-    process_request(title=title, description=description, submission=submission)
+    process_request(agency=agency, title=title, description=description, submission=submission)
     guid = generate_guid()
 
     # Creates User object

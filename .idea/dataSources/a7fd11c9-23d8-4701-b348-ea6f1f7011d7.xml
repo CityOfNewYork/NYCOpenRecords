@@ -1,0 +1,541 @@
+<dataSource name="OpenRecords_v2_0 - Development">
+  <database-model serializer="dbm" rdbms="POSTGRES" format-version="2.6">
+    <database id="1" name="openrecords_v2_0_dev">
+      <object-id>43780</object-id>
+      <visible>1</visible>
+    </database>
+    <database id="2" name="postgres">
+      <object-id>12641</object-id>
+    </database>
+    <database id="3" name="openrecords_v1.2.1">
+      <object-id>16384</object-id>
+    </database>
+    <database id="4" name="openrecords_20160716_0752_production">
+      <object-id>16657</object-id>
+    </database>
+    <database id="5" name="pcdl_dev">
+      <object-id>17283</object-id>
+    </database>
+    <database id="6" name="womens_activism_nyc">
+      <object-id>17370</object-id>
+    </database>
+    <database id="7" name="timeclock_dev">
+      <object-id>17565</object-id>
+    </database>
+    <database id="8" name="procurement">
+      <object-id>18509</object-id>
+    </database>
+    <database id="9" name="womens_activism_nyc_dev">
+      <object-id>26701</object-id>
+    </database>
+    <database id="10" name="openrecords_20160906_1215">
+      <object-id>43296</object-id>
+    </database>
+    <schema id="11" parent="1" name="public">
+      <object-id>2200</object-id>
+      <visible>1</visible>
+      <introspection-state-number>2051</introspection-state-number>
+      <introspection-timestamp>2016-09-17.15:10:07.167</introspection-timestamp>
+    </schema>
+    <schema id="12" parent="1" name="pg_catalog">
+      <object-id>11</object-id>
+    </schema>
+    <schema id="13" parent="1" name="pg_toast">
+      <object-id>99</object-id>
+    </schema>
+    <schema id="14" parent="1" name="pg_temp_1">
+      <object-id>11816</object-id>
+    </schema>
+    <schema id="15" parent="1" name="pg_toast_temp_1">
+      <object-id>11817</object-id>
+    </schema>
+    <schema id="16" parent="1" name="information_schema">
+      <object-id>12349</object-id>
+    </schema>
+    <sequence id="17" parent="11" name="agency_ein_seq">
+      <object-id>43784</object-id>
+      <state-number>2051</state-number>
+    </sequence>
+    <sequence id="18" parent="11" name="event_id_seq">
+      <object-id>43876</object-id>
+      <state-number>2051</state-number>
+    </sequence>
+    <sequence id="19" parent="11" name="reason_id_seq">
+      <object-id>43902</object-id>
+      <state-number>2051</state-number>
+    </sequence>
+    <sequence id="20" parent="11" name="response_id_seq">
+      <object-id>43842</object-id>
+      <state-number>2051</state-number>
+    </sequence>
+    <sequence id="21" parent="11" name="roles_id_seq">
+      <object-id>43795</object-id>
+      <state-number>2051</state-number>
+    </sequence>
+    <object-type id="22" parent="11" name="statuses">
+      <object-id>43816</object-id>
+      <state-number>2051</state-number>
+      <sub-kind>ENUM</sub-kind>
+      <sub-category>ENUM</sub-category>
+      <labels>Open,In Progress,Due Soon,Overdue,Closed,Re-Opened</labels>
+    </object-type>
+    <table id="23" parent="11" name="agency">
+      <object-id>43786</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="24" parent="11" name="alembic_version">
+      <object-id>43781</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="25" parent="11" name="event">
+      <object-id>43878</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="26" parent="11" name="reason">
+      <object-id>43904</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="27" parent="11" name="request">
+      <object-id>43829</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="28" parent="11" name="response">
+      <object-id>43844</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="29" parent="11" name="roles">
+      <object-id>43797</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="30" parent="11" name="user">
+      <object-id>43805</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <table id="31" parent="11" name="user_request">
+      <object-id>43858</object-id>
+      <state-number>2051</state-number>
+    </table>
+    <column id="32" parent="23" name="ein">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>integer|0</data-type>
+      <default-expression>nextval('agency_ein_seq'::regclass)</default-expression>
+    </column>
+    <column id="33" parent="23" name="name">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(64)|0</data-type>
+    </column>
+    <column id="34" parent="23" name="next_request_number">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <column id="35" parent="23" name="default_email">
+      <state-number>2051</state-number>
+      <data-type>varchar(254)|0</data-type>
+    </column>
+    <column id="36" parent="23" name="appeal_email">
+      <state-number>2051</state-number>
+      <data-type>varchar(254)|0</data-type>
+    </column>
+    <column id="37" parent="23" name="category">
+      <state-number>2051</state-number>
+      <data-type>varchar(64)|0</data-type>
+    </column>
+    <index id="38" parent="23" name="agency_pkey">
+      <object-id>43793</object-id>
+      <columns>ein</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="39" parent="23" name="agency_pkey">
+      <object-id>43794</object-id>
+      <columns>ein</columns>
+      <underlying-index>agency_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <column id="40" parent="24" name="version_num">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(32)|0</data-type>
+    </column>
+    <column id="41" parent="25" name="id">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>integer|0</data-type>
+      <default-expression>nextval('event_id_seq'::regclass)</default-expression>
+    </column>
+    <column id="42" parent="25" name="request_id">
+      <state-number>2051</state-number>
+      <data-type>varchar(19)|0</data-type>
+    </column>
+    <column id="43" parent="25" name="user_id">
+      <state-number>2051</state-number>
+      <data-type>varchar(1000)|0</data-type>
+    </column>
+    <column id="44" parent="25" name="response_id">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <column id="45" parent="25" name="type">
+      <state-number>2051</state-number>
+      <data-type>varchar(30)|0</data-type>
+    </column>
+    <column id="46" parent="25" name="timestamp">
+      <state-number>2051</state-number>
+      <data-type>timestamp|0</data-type>
+    </column>
+    <column id="47" parent="25" name="previous_response_value">
+      <state-number>2051</state-number>
+      <data-type>varchar(5000)|0</data-type>
+    </column>
+    <column id="48" parent="25" name="new_response_value">
+      <state-number>2051</state-number>
+      <data-type>varchar(50000)|0</data-type>
+    </column>
+    <index id="49" parent="25" name="event_pkey">
+      <object-id>43885</object-id>
+      <columns>id</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="50" parent="25" name="event_pkey">
+      <object-id>43886</object-id>
+      <columns>id</columns>
+      <underlying-index>event_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <foreign-key id="51" parent="25" name="event_request_id_fkey">
+      <object-id>43887</object-id>
+      <columns>request_id</columns>
+      <ref-key>~.request.request_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <foreign-key id="52" parent="25" name="event_user_id_fkey">
+      <object-id>43897</object-id>
+      <columns>user_id</columns>
+      <ref-key>~.user.user_guid_key</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <foreign-key id="53" parent="25" name="event_response_id_fkey">
+      <object-id>43892</object-id>
+      <columns>response_id</columns>
+      <ref-key>~.response.response_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <column id="54" parent="26" name="id">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>integer|0</data-type>
+      <default-expression>nextval('reason_id_seq'::regclass)</default-expression>
+    </column>
+    <column id="55" parent="26" name="agency">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <column id="56" parent="26" name="deny_reason">
+      <state-number>2051</state-number>
+      <data-type>varchar|0</data-type>
+    </column>
+    <index id="57" parent="26" name="reason_pkey">
+      <object-id>43911</object-id>
+      <columns>id</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="58" parent="26" name="reason_pkey">
+      <object-id>43912</object-id>
+      <columns>id</columns>
+      <underlying-index>reason_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <foreign-key id="59" parent="26" name="reason_agency_fkey">
+      <object-id>43913</object-id>
+      <columns>agency</columns>
+      <ref-key>~.agency.agency_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <column id="60" parent="27" name="id">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(19)|0</data-type>
+    </column>
+    <column id="61" parent="27" name="title">
+      <state-number>2051</state-number>
+      <data-type>varchar(90)|0</data-type>
+    </column>
+    <column id="62" parent="27" name="description">
+      <state-number>2051</state-number>
+      <data-type>varchar(5000)|0</data-type>
+    </column>
+    <column id="63" parent="27" name="agency">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <column id="64" parent="27" name="date_created">
+      <state-number>2051</state-number>
+      <data-type>timestamp|0</data-type>
+    </column>
+    <column id="65" parent="27" name="date_submitted">
+      <state-number>2051</state-number>
+      <data-type>timestamp|0</data-type>
+    </column>
+    <column id="66" parent="27" name="due_date">
+      <state-number>2051</state-number>
+      <data-type>timestamp|0</data-type>
+    </column>
+    <column id="67" parent="27" name="submission">
+      <state-number>2051</state-number>
+      <data-type>varchar(30)|0</data-type>
+    </column>
+    <column id="68" parent="27" name="current_status">
+      <state-number>2051</state-number>
+      <data-type>statuses|0</data-type>
+    </column>
+    <column id="69" parent="27" name="visibility">
+      <state-number>2051</state-number>
+      <data-type>json|0</data-type>
+    </column>
+    <index id="70" parent="27" name="request_pkey">
+      <object-id>43835</object-id>
+      <columns>id</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="71" parent="27" name="request_pkey">
+      <object-id>43836</object-id>
+      <columns>id</columns>
+      <underlying-index>request_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <foreign-key id="72" parent="27" name="request_agency_fkey">
+      <object-id>43837</object-id>
+      <columns>agency</columns>
+      <ref-key>~.agency.agency_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <column id="73" parent="28" name="id">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>integer|0</data-type>
+      <default-expression>nextval('response_id_seq'::regclass)</default-expression>
+    </column>
+    <column id="74" parent="28" name="request_id">
+      <state-number>2051</state-number>
+      <data-type>varchar(19)|0</data-type>
+    </column>
+    <column id="75" parent="28" name="type">
+      <state-number>2051</state-number>
+      <data-type>varchar(30)|0</data-type>
+    </column>
+    <column id="76" parent="28" name="date_modified">
+      <state-number>2051</state-number>
+      <data-type>timestamp|0</data-type>
+    </column>
+    <column id="77" parent="28" name="content">
+      <state-number>2051</state-number>
+      <data-type>json|0</data-type>
+    </column>
+    <column id="78" parent="28" name="privacy">
+      <state-number>2051</state-number>
+      <data-type>varchar(7)|0</data-type>
+    </column>
+    <index id="79" parent="28" name="response_pkey">
+      <object-id>43851</object-id>
+      <columns>id</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="80" parent="28" name="response_pkey">
+      <object-id>43852</object-id>
+      <columns>id</columns>
+      <underlying-index>response_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <foreign-key id="81" parent="28" name="response_request_id_fkey">
+      <object-id>43853</object-id>
+      <columns>request_id</columns>
+      <ref-key>~.request.request_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <column id="82" parent="29" name="id">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>integer|0</data-type>
+      <default-expression>nextval('roles_id_seq'::regclass)</default-expression>
+    </column>
+    <column id="83" parent="29" name="name">
+      <state-number>2051</state-number>
+      <data-type>varchar(64)|0</data-type>
+    </column>
+    <column id="84" parent="29" name="permissions">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <index id="85" parent="29" name="roles_pkey">
+      <object-id>43801</object-id>
+      <columns>id</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <index id="86" parent="29" name="roles_name_key">
+      <object-id>43803</object-id>
+      <columns>name</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="87" parent="29" name="roles_pkey">
+      <object-id>43802</object-id>
+      <columns>id</columns>
+      <underlying-index>roles_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <key id="88" parent="29" name="roles_name_key">
+      <object-id>43804</object-id>
+      <columns>name</columns>
+      <underlying-index>roles_name_key</underlying-index>
+    </key>
+    <column id="89" parent="30" name="guid">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(1000)|0</data-type>
+    </column>
+    <column id="90" parent="30" name="user_type">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(64)|0</data-type>
+    </column>
+    <column id="91" parent="30" name="email">
+      <state-number>2051</state-number>
+      <data-type>varchar(254)|0</data-type>
+    </column>
+    <column id="92" parent="30" name="first_name">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(32)|0</data-type>
+    </column>
+    <column id="93" parent="30" name="middle_initial">
+      <state-number>2051</state-number>
+      <data-type>varchar|0</data-type>
+    </column>
+    <column id="94" parent="30" name="last_name">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(64)|0</data-type>
+    </column>
+    <column id="95" parent="30" name="email_validated">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>boolean|0</data-type>
+    </column>
+    <column id="96" parent="30" name="terms_of_use_accepted">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>boolean|0</data-type>
+    </column>
+    <column id="97" parent="30" name="title">
+      <state-number>2051</state-number>
+      <data-type>varchar(64)|0</data-type>
+    </column>
+    <column id="98" parent="30" name="company">
+      <state-number>2051</state-number>
+      <data-type>varchar(128)|0</data-type>
+    </column>
+    <column id="99" parent="30" name="phone_number">
+      <state-number>2051</state-number>
+      <data-type>varchar(15)|0</data-type>
+    </column>
+    <column id="100" parent="30" name="fax_number">
+      <state-number>2051</state-number>
+      <data-type>varchar(15)|0</data-type>
+    </column>
+    <column id="101" parent="30" name="mailing_address">
+      <state-number>2051</state-number>
+      <data-type>json|0</data-type>
+    </column>
+    <column id="102" parent="30" name="agency">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <index id="103" parent="30" name="user_pkey">
+      <object-id>43811</object-id>
+      <columns>guid
+user_type</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <index id="104" parent="30" name="user_guid_key">
+      <object-id>43813</object-id>
+      <columns>guid</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="105" parent="30" name="user_pkey">
+      <object-id>43812</object-id>
+      <columns>guid
+user_type</columns>
+      <underlying-index>user_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <key id="106" parent="30" name="user_guid_key">
+      <object-id>43814</object-id>
+      <columns>guid</columns>
+      <underlying-index>user_guid_key</underlying-index>
+    </key>
+    <foreign-key id="107" parent="30" name="user_agency_fkey">
+      <object-id>43918</object-id>
+      <columns>agency</columns>
+      <ref-key>~.agency.agency_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <column id="108" parent="31" name="user_guid">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(1000)|0</data-type>
+    </column>
+    <column id="109" parent="31" name="request_id">
+      <state-number>2051</state-number>
+      <mandatory>1</mandatory>
+      <data-type>varchar(19)|0</data-type>
+    </column>
+    <column id="110" parent="31" name="permission">
+      <state-number>2051</state-number>
+      <data-type>integer|0</data-type>
+    </column>
+    <index id="111" parent="31" name="user_request_pkey">
+      <object-id>43864</object-id>
+      <columns>user_guid
+request_id</columns>
+      <desc-columns />
+      <unique>1</unique>
+    </index>
+    <key id="112" parent="31" name="user_request_pkey">
+      <object-id>43865</object-id>
+      <columns>user_guid
+request_id</columns>
+      <underlying-index>user_request_pkey</underlying-index>
+      <primary>1</primary>
+    </key>
+    <foreign-key id="113" parent="31" name="user_request_user_guid_fkey">
+      <object-id>43871</object-id>
+      <columns>user_guid</columns>
+      <ref-key>~.user.user_guid_key</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+    <foreign-key id="114" parent="31" name="user_request_request_id_fkey">
+      <object-id>43866</object-id>
+      <columns>request_id</columns>
+      <ref-key>~.request.request_pkey</ref-key>
+      <cascade-update-rule>restrict</cascade-update-rule>
+      <cascade-delete-rule>restrict</cascade-delete-rule>
+    </foreign-key>
+  </database-model>
+</dataSource>

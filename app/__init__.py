@@ -1,10 +1,12 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail
-from config import config
 from business_calendar import Calendar, MO, TU, WE, TH, FR
+from flask import Flask
+from flask_bootstrap import Bootstrap
+from flask_mail import Mail
+from flask_sqlalchemy import SQLAlchemy
 
+from config import config
 
+bootstrap = Bootstrap()
 db = SQLAlchemy()
 mail = Mail()
 app = Flask(__name__)
@@ -26,9 +28,6 @@ calendar = Calendar(
     ]
 )
 
-UPLOAD_FOLDER = '/Desktop'
-ALLOWED_EXTENSIONS = set(['txt', 'csv', 'jpeg'])
-
 
 def create_app(config_name):
     """
@@ -41,6 +40,7 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    bootstrap.init_app(app)
     db.init_app(app)
     mail.init_app(app)
 
@@ -49,8 +49,5 @@ def create_app(config_name):
 
     from app.request import request_blueprint
     app.register_blueprint(request_blueprint)
-
-    # from .auth import auth as auth_blueprint
-    # app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
     return app
