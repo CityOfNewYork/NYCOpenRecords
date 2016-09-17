@@ -4,12 +4,11 @@
     :synopsis: Defines forms used to create Procurement requests.
 """
 
-from flask import Flask
 from flask_wtf import Form
-from wtforms import StringField, SelectField, TextAreaField, BooleanField, SubmitField, FileField
+from wtforms import StringField, SelectField, TextAreaField, SubmitField
+from flask_wtf.file import FileField
 from wtforms.validators import DataRequired, Length
 from app.constants import categories, agencies, submission_method
-app = Flask(__name__)
 
 
 class NewRequestForm(Form):

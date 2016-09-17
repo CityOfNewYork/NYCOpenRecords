@@ -95,7 +95,7 @@ def get_date_submitted(date_created):
     :param date_created: date the request was made
     :return: date submitted which is the date_created rounded off to the next business day
     """
-    date_submitted = calendar.addbusdays(calendar.adjust(date_created, FOLLOWING), FOLLOWING)
+    date_submitted = calendar.addbusdays(date_created, FOLLOWING)
     return date_submitted
 
 
