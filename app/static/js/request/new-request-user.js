@@ -3,9 +3,9 @@
  */
 $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
-    document.getElementById('request-title').setAttribute('data-parsley-required', '');
-    document.getElementById('request-title').setAttribute('data-parsley-maxlength', 90);
-    document.getElementById('request-agency').setAttribute('data-parsley-required', '');
-    document.getElementById('request-description').setAttribute('data-parsley-required', '');
-    document.getElementById('request-description').setAttribute('data-parsley-maxlength', 5000);
+    $('#request-title').attr('data-parsley-required', '');
+    $('#request-title').attr('data-parsley-maxlength', 90);
+    $('#request-agency').attr('data-parsley-required', '');
+    $('#request-description').attr('data-parsley-required', '');
+    $('#request-description').attr('data-parsley-maxlength', 5000);
 });

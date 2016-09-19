@@ -50,7 +50,7 @@ def create_request(user_type):
                                  user_title=form.user_title.data, company=form.user_organization.data,
                                  phone=form.phone.data, fax=form.fax.data, address=form.address.data)
             return redirect(url_for('main.index'))
-        return render_template('request/new_request.html', form=form)
+        return render_template('request/new_request-anon.html', form=form)
 
     elif user_type == 'agency':
         form = AgencyUserRequestForm()

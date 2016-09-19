@@ -7,26 +7,23 @@ $(document).ready(function () {
     $('#phone').mask("999-999-9999");
     $('#zipcode').mask("99999");
 
-    // Datepicker for date request was received when creating a new request
-    $(".dtpick").datepicker({
-        dateFormat: "yy-mm-dd"
-    });
+    // Apply parsley validation styles to the input forms for a new request.
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var required_fields = ['request-title','request-description', 'request-agency', 'first-name','last-name','email',
-        'phone','fax','address-line-1', 'method-received','request-date', 'city','zipcode'];
+        'phone','fax','address-line-1', 'city', 'zipcode'];
     for (i = 0 ; i < required_fields.length ; i++){
         $('#' + required_fields[i]).attr('data-parsley-required','');
     }
 
-    // Apply parsley validation styles to the input forms for a new request.
+    // Specify length requirement of certain fields
     $('#request-title').attr('data-parsley-maxlength', 90);
     $('#request-description').attr('data-parsley-maxlength', 5000);
     $('#phone').attr('data-parsley-length','[10,10]');
     $('#zipcode').attr('data-parsley-length', '[5,5]');
 
     // Custom Validation Messages
-    $('#phone').attr('data-parsley-length-message', 'The phone number must be 10 digits.');
+    $('#phone').attr('data-parsley-minlength-message', 'Must be a 10 digit phone number');
 
     // Disable default error messages for email,phone,fax,address so custom one can be used instead.
     $('#phone').attr('data-parsley-required-message', '');
@@ -38,8 +35,8 @@ $(document).ready(function () {
 
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
-    // Called when validation is used and checks that at least one form of contact was filled out
-    $('#request-form').parsley().subscribe('parsley:form:validate', function (formInstance) {
+    // Checks that at least one form of contact was filled out in addition to the rest of the form.
+    $('#request-form').parsley().subscribe('parsley:form:validate', function () {
         if ($('#address-line-1').parsley().isValid()){
                 $('#city').attr('data-parsley-required','');
                 $('#state').attr('data-parsley-required','');
@@ -74,4 +71,5 @@ $(document).ready(function () {
             $('#email').attr('data-parsley-required', '');
         }
     });
+
 });

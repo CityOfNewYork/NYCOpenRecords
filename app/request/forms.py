@@ -9,6 +9,8 @@ from datetime import datetime
 from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField
+from wtforms.fields.html5 import TelField
+
 
 from app.constants import categories, agencies, submission_method, states
 
@@ -77,7 +79,7 @@ class AgencyUserRequestForm(Form):
     address_2 = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=states, default='NY')
-    zipcode = StringField('Zipcode')
+    zipcode = StringField('Zip')
 
     # Method Received
     method_received = SelectField('Format Received (required)', choices=submission_method)
@@ -129,7 +131,7 @@ class AnonymousRequestForm(Form):
     address_2 = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=states, default='NY')
-    zipcode = StringField('Zipcode')
+    zipcode = StringField('Zip')
 
     # File Upload
     request_file = FileField('Upload File')

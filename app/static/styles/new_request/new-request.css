@@ -1,3 +1,4 @@
+/*CSS page shared by new_request.html, new_request_agency.html, new_request_user.html*/
 h1{
     font-size: 31.5px;
 }
@@ -187,4 +188,12 @@ h1{
 .contact-form-error-message{
 	/*color: indianred;*/
 	color: #e74c3c;
+}
+
+#state{
+	height: 50px;
+}
+
+#zipcode{
+	width: 45px;
 }
