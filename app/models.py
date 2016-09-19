@@ -149,7 +149,23 @@ class User(UserMixin, db.Model):
     mailing_address = db.Column(JSON) # need to define validation for minimum acceptable mailing address
 
     def __repr__(self):
-        return '<User %r>' % self.guid
+        return '<User {}:{}>'.format(self.guid, self.user_type)
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return self.email_validated and self.terms_of_use_accepted
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return "{}:{}".format(self.guid, self.user_type)
+
 
 
 class Request(db.Model):

@@ -1,6 +1,6 @@
 # Project Specific
-saml
-
+saml/
+redis-stable/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
