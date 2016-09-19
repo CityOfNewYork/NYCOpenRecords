@@ -1,6 +1,7 @@
 # Project Specific
 saml/
 redis-stable/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

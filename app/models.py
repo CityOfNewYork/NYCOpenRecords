@@ -1,14 +1,11 @@
-import re
-from datetime import datetime, timedelta
+from datetime import datetime
+
+from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy import Column, Integer, ForeignKey
-from sqlalchemy import and_, or_
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
-from werkzeug.security import generate_password_hash, \
-    check_password_hash
+
 from . import db
-from flask_login import UserMixin, AnonymousUserMixin
+
+
 # from validate_email import validate_email
 
 
@@ -55,6 +52,7 @@ class Permission:
     CHANGE_REQUEST_POC = 0x10000
     ADMINISTER = 0x20000
 
+
 class Role(db.Model):
     """
     Define the Role class with the following columns and relationships:
@@ -69,7 +67,6 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     permissions = db.Column(db.Integer)
-
 
     @staticmethod
     def insert_roles():
@@ -143,13 +140,10 @@ class User(UserMixin, db.Model):
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean(), nullable=False)
     title = db.Column(db.String(64))
-    company = db.Column(db.String(128)) # outside company
+    organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
-    mailing_address = db.Column(JSON) # need to define validation for minimum acceptable mailing address
-
-    def __repr__(self):
-        return '<User {}:{}>'.format(self.guid, self.user_type)
+    mailing_address = db.Column(JSON)  # need to define validation for minimum acceptable mailing address
 
     @property
     def is_authenticated(self):
@@ -166,6 +160,11 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return "{}:{}".format(self.guid, self.user_type)
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '<User {}:{}>'.format(self.guid, self.user_type)
 
 
 class Request(db.Model):
@@ -178,7 +177,8 @@ class Request(db.Model):
     date_submitted = db.Column(db.DateTime)
     due_date = db.Column(db.DateTime)
     # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
-    submission = db.Column(db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
+    submission = db.Column(
+        db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
     visibility = db.Column(JSON)

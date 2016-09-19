@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div id="container-fluid">
+    <div class="col-sm-12">
+        <form method="post" class="form" role="form" id="request-form">
+            <h1>Personal Information</h1>
+            <p>This information will not be publicly viewable on this site. You must provide contact
+                information so that the agency can respond to your request for records.</p>
+
+            <div class="contact-form-error-message"></div>
+            <div class="row-fluid">
+                <div class="col-sm-10 col-sm-push-1">
+                    <h1>Alternate Contact Information</h1>
+
+                    <p>No information entered in this section will be visible to the public.</p>
+                </div>
+            </div>
+
+            {{ form.user_title.label(class='request-heading') }}
+            {{ form.user_title(id='user-title', class='input-block-level',
+                placeholder='Your role in your organization (if applicable)') }}<br>
+
+            {{ form.user_organization.label(class='request-heading') }}
+            {{ form.user_organization(id='user-organization', class='input-block-level',
+                placeholder='Your organization (if applicable)') }}<br>
+
+            {{ form.phone.label(class='request-heading') }}
+            {{ form.phone(id='phone', class='input-block-level',
+                placeholder='(555) 555-5555') }}<br>
+
+            {{ form.fax.label(class='request-heading') }}
+            {{ form.fax(id='fax', class='input-block-level',
+                placeholder='(555) 555-5555') }}<br>
+
+            <div class="request-heading">Address</div>
+            Address Line 1
+            {{ form.address_one(id='address-line-1', class='input-block-level',
+                placeholder='123 Main Street') }}<br>
+
+            Address Line 2
+            {{ form.address_two(id='address_2', class='input-block-level',
+                placeholder='Apartment 3D') }}<br>
+            <div class="row-fluid">
+                <div class="span5">
+                    {{ form.city.label(class='request-heading') }}
+                    {{ form.city(id='city', class='input-block-level',
+                        placeholder='New York') }}<br>
+                </div>
+                <div class="span4">
+                    {{ form.state.label(class='request-heading') }}
+                    {{ form.state(id='state', class='input-block-level') }}<br>
+                </div>
+                <div class="span3">
+                    {{ form.zipcode.label(class='request-heading', selected='New York') }}
+                    {{ form.zipcode(id='zipcode', class='input-block-level',
+                        placeholder='12345') }}<br>
+                </div>
+            </div>
+
+            {{ form.submit(id='submit', class='btn-primary') }}<br>
+        </form>
+    </div>
+</div>
+{% endblock %}

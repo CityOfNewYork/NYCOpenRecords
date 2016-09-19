@@ -3,11 +3,14 @@
 
    :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
 """
+import json
+
 from flask import request, redirect, session, render_template, make_response, url_for
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 from app.auth import auth
-from app.auth.utils import prepare_flask_request, init_saml_auth
+from app.auth.forms import ManageUserAccountForm
+from app.auth.utils import prepare_flask_request, init_saml_auth, create_mailing_address, process_user_data
 from app.models import User
 
 
@@ -104,6 +107,39 @@ def metadata():
     return resp
 
 
-@auth.route('/manage')
+@auth.route('/manage', methods=['GET', 'POST'])
 def manage_account():
-    pass
+    """
+
+    :return:
+    """
+    form = ManageUserAccountForm()
+    if request.method == 'POST':
+
+        # Get Form Data
+        title = form.user_title.data
+        organization = form.user_organization.data
+        phone = form.phone.data
+        fax = form.fax.data
+        mailing_address = create_mailing_address(
+            address_one=form.address_one.data,
+            address_two=form.address_two.data,
+            city=form.city.data,
+            state=form.state.data,
+            zipcode=form.zipcode.data
+        )
+
+        # Determine if user needs to be stored in the database or updated
+        success = process_user_data(
+            guid=session['samlUserdata']['guid'][0],
+            title=title,
+            organization=organization,
+            phone=phone,
+            fax=fax,
+            mailing_address=mailing_address
+        )
+        if not success:
+            error_message = 'Failed to update your user account. Please contact the OpenRecords support team'
+            return render_template('auth/manage_account.html', errors=error_message)
+
+    return render_template('auth/manage_account.html', form=form)
