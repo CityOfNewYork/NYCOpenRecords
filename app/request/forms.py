@@ -14,25 +14,48 @@ from app.constants import categories, agencies, submission_method, states
 
 
 class PublicUserRequestForm(Form):
+    """
+    Form for public users to create a new FOIL request.
+    For a public user, the required fields are:
+
+    # Request information
+    agency: agency selected for the request
+    title: name or title of the request
+    description: detailed description of the request
+
+    """
     # Request Information
     request_category = SelectField('Category (optional)', choices=categories)
     request_agency = SelectField('Agency (required)', choices=agencies)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
-    request_date = DateTimeField("Request Date (required)", format="%Y-%m-%d", default=datetime.today)
-
-    # Personal Information
-    first_name = StringField('First Name (required)')
-    last_name = StringField('Last Name (required)')
-    user_title = StringField('Title')
-    user_organization = StringField('Organization')
 
     # Submit Button
     submit = SubmitField('Submit Request')
 
 
 class AgencyUserRequestForm(Form):
-    """Form for creating a new FOIL request for agency user"""
+    """
+    Form for agency users to create a new FOIL request.
+    For a agency user, the required fields are:
+
+    # Request Information
+    agency: agency selected for the request
+    title: name or title of the request
+    description: detailed description of the request
+    request_date: date the request was made
+    method_received: format the request was received
+
+    # Personal Information
+    first_name: first name of the requester
+    last_name: last name of the requester
+
+    # Contact Information (at least one form on contact is required)
+    email: requester's email address
+    phone: requester's phone number
+    fax: requester's fax number
+    address, city, state, zip: requester's address
+    """
     # Request Information
     request_category = SelectField('Category', choices=categories)
     request_agency = SelectField('Agency (required)', choices=agencies)
@@ -67,7 +90,25 @@ class AgencyUserRequestForm(Form):
 
 
 class AnonymousRequestForm(Form):
-    """Form for creating a new FOIL request for anonymous user"""
+    """
+    Form for anonymous users to create a new FOIL request.
+    For a anonymous user, the required fields are:
+
+    # Request Information
+    agency: agency selected for the request
+    title: name or title of the request
+    description: detailed description of the request
+
+    # Personal Information
+    first_name: first name of the requester
+    last_name: last name of the requester
+
+    # Contact Information (at least one form on contact is required)
+    email: requester's email address
+    phone: requester's phone number
+    fax: requester's fax number
+    address, city, state, zip: requester's address
+    """
     # Request Information
     request_category = SelectField('Category (optional)', choices=categories)
     request_agency = SelectField('Agency (required)', choices=agencies)
@@ -89,9 +130,6 @@ class AnonymousRequestForm(Form):
     city = StringField('City')
     state = SelectField('State', choices=states, default='NY')
     zipcode = StringField('Zipcode')
-
-    # Method Received
-    method_received = SelectField('Format Received (required)', choices=submission_method)
 
     # File Upload
     request_file = FileField('Upload File')
