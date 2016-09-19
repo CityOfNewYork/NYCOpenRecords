@@ -47,7 +47,7 @@ def index():
             session['samlNameId'] = auth.get_nameid()
             session['samlSessionIndex'] = auth.get_session_index()
             self_url = OneLogin_Saml2_Utils.get_self_url(req)
-            user = User.query.filter_by(guid=session['samlUserdata']['guid'][0]).first()
+            user = User.query.filter_by(guid=session['samlUserdata']['GUID'][0]).first()
             if not user:
                 return redirect(url_for('auth.manage_account'))
             if 'RelayState' in request.form and self_url != request.form['RelayState']:
@@ -131,7 +131,7 @@ def manage_account():
 
         # Determine if user needs to be stored in the database or updated
         success = process_user_data(
-            guid=session['samlUserdata']['guid'][0],
+            guid=session['samlUserdata']['GUID'][0],
             title=title,
             organization=organization,
             phone=phone,

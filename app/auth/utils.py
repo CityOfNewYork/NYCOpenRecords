@@ -7,8 +7,8 @@ from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from app.constants import (
     AGENCY_USER
 )
-from app.models import Agency, User
 from app.db_utils import create_object, update_object
+from app.models import Agency, User
 
 
 def init_saml_auth(req):
@@ -78,17 +78,39 @@ def process_user_data(guid, title=None, organization=None, phone=None, fax=None,
             mailing_address=mailing_address
         )
     else:
-        user_type = session['samlUserdata']['user_type'][0]
+        user_type = session['samlUserdata']['userType'][0]
 
-        if user.user_type == AGENCY_USER:
+        if user_type == AGENCY_USER:
             organization = Agency.query.filter_by(email_domain=user.email.split('@')[-1]).first()
+        try:
+            email = session['samlUserdata']['mail'][0]
+        except KeyError:
+            email = None
 
-        email = session['samlUserdata']['email'][0]
-        first_name = session['samlUserdata']['first_name'][0]
-        middle_initial = session['samlUserdata']['middle_initial'][0]
-        last_name = session['samlUserdata']['last_name'][0]
-        email_validated = session['samlUserdata']['email_validated'][0]
-        terms_of_use_accepted = session['samlUserdata']['terms_of_use_accepted'][0]
+        try:
+            first_name = session['samlUserdata']['givenName'][0]
+        except KeyError:
+            first_name = None
+
+        try:
+            middle_initial = session['samlUserdata']['middleName'][0]
+        except KeyError:
+            middle_initial = None
+
+        try:
+            last_name = session['samlUserdata']['sn'][0]
+        except KeyError:
+            last_name = None
+
+        try:
+            email_validated = session['samlUserdata']['nycExtEmailValidationFlag'][0]
+        except KeyError:
+            email_validated = None
+
+        try:
+            terms_of_use_accepted = session['samlUserdata']['nycExtTOUVersion'][0]
+        except KeyError:
+            terms_of_use_accepted = None
 
         user_id = User(
             guid=guid,
@@ -149,4 +171,3 @@ def update_user(guid=None, **kwargs):
     if not user:
         return None
     return user
-
