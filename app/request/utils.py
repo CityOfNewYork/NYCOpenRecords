@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# TODO: Module Level Comments
 """
     app.request.utils
     ~~~~~~~~~~~~~~~~
@@ -24,13 +23,15 @@ import string
 
 def process_request(title=None, description=None, agency=None, submission='Direct Input'):
     """
+    Function for creating and storing a new request on the backend.
 
     :param title: request title
-    :param description: request description
-    :param agency:
+    :param description: detailed description of the request
+    :param agency: agency selected for the request
     :param date_created: date the request was made
     :param submission: request submission method
     :return: creates and stores the request and event object for a new FOIL request
+             Request and Event table are updated in the database
     """
     # 1. Generate the request id
     request_id = generate_request_id()
@@ -69,10 +70,10 @@ def process_request(title=None, description=None, agency=None, submission='Direc
 def process_anon_request(agency, title, description, email, first_name, last_name, user_title, company, phone,
                          fax, address):
     """
+    Function for creating and storing a new request from an anonymous user on the backend.
 
     :param title: request title
-    :param description: request description
-    :param submission: request submission method
+    :param description: detailed description of the request
     :param email: requester's email
     :param first_name: requester's first name
     :param last_name: requester's last name
@@ -82,6 +83,7 @@ def process_anon_request(agency, title, description, email, first_name, last_nam
     :param fax: requester's fax number
     :param address: requester's address
     :return: creates and stores the new FOIL request from an anonymous user
+             Request, Event, and User table are updated in the database
     """
     # Creates and stores Request and Event object
     process_request(agency=agency, title=title, description=description)
@@ -99,10 +101,11 @@ def process_anon_request(agency, title, description, email, first_name, last_nam
 def process_agency_request(agency, title, description, submission, email, first_name, last_name, user_title, company, phone,
                            fax, address):
     """
+    Function for creating an storing a new request from an agency user on the backend.
 
     :param title: request title
-    :param description: request description
-    :param submission: request submission method
+    :param description: detailed description of the request
+    :param submission: format the request was received
     :param email: requester's email
     :param first_name: requester's first name
     :param last_name: requester's last name
@@ -112,6 +115,8 @@ def process_agency_request(agency, title, description, submission, email, first_
     :param fax: requester's fax number
     :param address: requester's address
     :return: creates and stores the new FOIL request from an agency user
+             Request, Event, and User table are updated in the database
+
     """
     # Creates and stores Request and Event object
     process_request(agency=agency, title=title, description=description, submission=submission)
@@ -129,7 +134,7 @@ def process_agency_request(agency, title, description, submission, email, first_
 def generate_request_id():
     """
 
-    :param agency:
+    :param agency: agency ein used as a paramater to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     # next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
@@ -141,6 +146,10 @@ def generate_request_id():
 
 
 def generate_guid():
+    """
+    FOR TESTING: function that generates a guid
+    :return: guid
+    """
     guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
     return guid
 
@@ -157,6 +166,7 @@ def generate_email_template(template_name, **kwargs):
 
 def get_date_submitted(date_created):
     """
+    Function that generates the date submitted for a request
 
     :param date_created: date the request was made
     :return: date submitted which is the date_created rounded off to the next business day
@@ -167,6 +177,7 @@ def get_date_submitted(date_created):
 
 def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
     """
+    Function that generates the due date for a request
 
     :param date_submitted: date submitted which is the date_created rounded off to the next business day
     :param days_until_due: number of business days until a request is due

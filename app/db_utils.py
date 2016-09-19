@@ -1,4 +1,3 @@
-# TODO: Module Level Comments
 """
     app.db_utils
     ~~~~~~~~~~~~~~~~

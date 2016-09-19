@@ -35,7 +35,8 @@ def create_request(user_type):
         form = PublicUserRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            process_request(agency=form.request_agency.data, title=form.request_title.data, description=form.request_description.data)
+            process_request(agency=form.request_agency.data, title=form.request_title.data,
+                            description=form.request_description.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
 
@@ -43,8 +44,8 @@ def create_request(user_type):
     elif user_type == 'anon':
         form = AnonymousRequestForm()
         if request.method == 'POST':
-            process_anon_request(agency=form.request_agency.data,title=form.request_title.data, description=form.request_description.data,
-                                 email=form.email.data,
+            process_anon_request(agency=form.request_agency.data,title=form.request_title.data,
+                                 description=form.request_description.data, email=form.email.data,
                                  first_name=form.first_name.data, last_name=form.last_name.data,
                                  user_title=form.user_title.data, company=form.user_organization.data,
                                  phone=form.phone.data, fax=form.fax.data, address=form.address.data)
@@ -54,10 +55,11 @@ def create_request(user_type):
     elif user_type == 'agency':
         form = AgencyUserRequestForm()
         if request.method == 'POST':
-            process_agency_request(agency=form.request_agency.data,title=form.request_title.data, description=form.request_description.data,
-                                   submission=form.method_received.data, email=form.email.data,
-                                   first_name=form.first_name.data, last_name=form.last_name.data,
-                                   user_title=form.user_title.data, company=form.user_organization.data,
-                                   phone=form.phone.data, fax=form.fax.data, address=form.address.data)
+            process_agency_request(agency=form.request_agency.data,title=form.request_title.data,
+                                   description=form.request_description.data, submission=form.method_received.data,
+                                   email=form.email.data, first_name=form.first_name.data,
+                                   last_name=form.last_name.data, user_title=form.user_title.data,
+                                   company=form.user_organization.data, phone=form.phone.data, fax=form.fax.data,
+                                   address=form.address.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)
