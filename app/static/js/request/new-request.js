@@ -2,23 +2,14 @@
  * Created by atan on 9/14/16.
  */
 $(document).ready(function () {
-    // Datepicker for date request was received when creating a new request
-    $(".dtpick").datepicker({
-        dateFormat: "yy-mm-dd"
-    });
-    // $('#request-form').parsley().subcribe('parsley:form:validate', function(formInstance){
-    // })
-    // Apply parsley validation styles to the input forms for a new request.
+    // Apply parsley validatiobn styles to the input forms for a new request.
     document.getElementById('request-title').setAttribute('data-parsley-required', '');
     document.getElementById('request-title').setAttribute('data-parsley-maxlength', 90);
     document.getElementById('request-agency').setAttribute('data-parsley-required', '');
     document.getElementById('request-description').setAttribute('data-parsley-required', '');
     document.getElementById('request-description').setAttribute('data-parsley-maxlength', 5000);
-    document.getElementById('request-date').setAttribute('data-parsley-required', '');
     document.getElementById('first-name').setAttribute('data-parsley-required', '');
     document.getElementById('last-name').setAttribute('data-parsley-required', '');
-    document.getElementById('method-received').setAttribute('data-parsley-required', '');
-    document.getElementById('request-date').setAttribute('data-parsley-required', '');
     // Contact information validation
     document.getElementById('email').setAttribute('data-parsley-errors-messages-disabled', '');
     document.getElementById('email').setAttribute('data-parsley-type', 'email');
@@ -30,8 +21,6 @@ $(document).ready(function () {
     document.getElementById('phone').setAttribute('data-parsley-required', '');
     document.getElementById('address-line-1').setAttribute('data-parsley-required', '');
     document.getElementById('email').setAttribute('data-parsley-required', '');
-    // var formInstance = $('#request-form').parsley();
-    window.Parsley.addValidator('')
     $('#request-form').parsley().subscribe('parsley:form:validate', function (formInstance) {
         if ($('#email').parsley().isValid() ||
             $('#phone').parsley().isValid() ||
