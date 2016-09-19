@@ -64,7 +64,7 @@ $(document).ready(function () {
         }
         else {
             // If none of the fields are valid then produce an error message and apply required fields.
-            $('.contact-form-error-message').html("*At least one of the following must be filled out: Email, Phone, Fax, and Address (with City, State, and Zipcode)");
+            $('.contact-form-error-message').html("*At least one of the following must be filled out: Email, Phone, Fax, and/or Address (with City, State, and Zipcode)");
             $('#fax').attr('data-parsley-required', '');
             $('#phone').attr('data-parsley-required', '');
             $('#address-line-1').attr('data-parsley-required', '');
