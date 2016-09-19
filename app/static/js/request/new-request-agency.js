@@ -28,18 +28,22 @@ $(document).ready(function () {
     document.getElementById('phone').setAttribute('data-parsley-required', '');
     document.getElementById('address-line-1').setAttribute('data-parsley-required', '');
     document.getElementById('email').setAttribute('data-parsley-required', '');
+
+    // Checks that at least one form of contact was filled out
     $('#request-form').parsley().subscribe('parsley:form:validate', function (formInstance) {
         if ($('#email').parsley().isValid() ||
             $('#phone').parsley().isValid() ||
             $('#fax').parsley().isValid() ||
             $('#address-line-1').parsley().isValid())
         {
+            // If at least one of the fields are validated then removed their requirement
             $('#phone').removeAttr('data-parsley-required').parsley().destroy();
             $('#fax').removeAttr('data-parsley-required').parsley().destroy();
             $('#address-line-1').removeAttr('data-parsley-required').parsley().destroy();
             $('#email').removeAttr('data-parsley-required').parsley().destroy();
         }
         else {
+            // If none of the fields are valid then produce an error message and apply required fields.
             $('.contact-form-error-message').html("*At least one of the following must be filled out: Email, Phone, Fax, and Address");
             document.getElementById('fax').setAttribute('data-parsley-required', '');
             document.getElementById('phone').setAttribute('data-parsley-required', '');
