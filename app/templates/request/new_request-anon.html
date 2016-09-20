@@ -4,6 +4,7 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/new_request/new-request.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-theme.css') }}"/>
 {% endblock %}
 {% block content %}
     <div id="container-fluid">
@@ -28,9 +29,11 @@
                         {{ form.request_title(id='request-title', class='input-block-level',
                         placeholder='Please provide a short summary of your request.') }}
 
+
                 {{ form.request_description.label(class='request-heading top-padding') }}
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}<br>
+                <a id="popover" href="javascript:void(0)" data-toggle="popover" title="Popover Header" data-content="Some content inside the popover">Toggle popover</a>
 
                 <h1>Personal Information</h1>
 
@@ -130,6 +133,7 @@
 
 {% block custom_script %}
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js')}}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery-ui.js')}}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.mask.js') }}"></script>

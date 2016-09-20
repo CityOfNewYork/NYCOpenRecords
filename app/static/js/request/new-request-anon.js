@@ -3,6 +3,8 @@
  */
 $(document).ready(function () {
 
+    $('[data-toggle="popover"]').popover();
+
     // jQuery mask plugin to format fields
     $('#phone').mask("999-999-9999");
     $('#zipcode').mask("99999");
