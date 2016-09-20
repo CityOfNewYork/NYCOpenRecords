@@ -11,6 +11,7 @@ from flask import (
     url_for,
 )
 
+import os
 from app.request import request_blueprint
 from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
 from app.request.utils import process_request, process_anon_request, process_agency_request
@@ -43,7 +44,10 @@ def create_request(user_type):
     # Anonymous user
     elif user_type == 'anon':
         form = AnonymousRequestForm()
+
         if request.method == 'POST':
+            file = request.files['myFiles']
+            # file.save(os.path.join(os.path.abspath("./app/uploads/"),file.filename))
             process_anon_request(agency=form.request_agency.data,title=form.request_title.data,
                                  description=form.request_description.data, email=form.email.data,
                                  first_name=form.first_name.data, last_name=form.last_name.data,
