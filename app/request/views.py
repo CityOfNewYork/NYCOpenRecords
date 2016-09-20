@@ -46,8 +46,6 @@ def create_request(user_type):
         form = AnonymousRequestForm()
 
         if request.method == 'POST':
-            file = request.files['myFiles']
-            # file.save(os.path.join(os.path.abspath("./app/uploads/"),file.filename))
             process_anon_request(agency=form.request_agency.data,title=form.request_title.data,
                                  description=form.request_description.data, email=form.email.data,
                                  first_name=form.first_name.data, last_name=form.last_name.data,

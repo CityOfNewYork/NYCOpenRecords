@@ -8,7 +8,7 @@
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-8">
-            <form method="post" class="form" role="form" id="request-form" data-parsley-validate>
+            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
                 {{ form.hidden_tag() }}
                 <h1>Request a Record (Logged in Agency User)</h1>
 {#                <input type="text" class="form-control" name="fullname" required data-parsley-minlength="10"/>#}
@@ -106,6 +106,8 @@
                         placeholder='12345') }}<br>
                     </div>
                 </div>
+                {{ form.request_file.label(class='request-heading') }}
+                {{ form.request_file(id='request-file') }}
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>

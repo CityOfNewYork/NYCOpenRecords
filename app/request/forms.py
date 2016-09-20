@@ -32,6 +32,9 @@ class PublicUserRequestForm(Form):
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
 
+    # File Upload
+    request_file = FileField('Upload File')
+
     # Submit Button
     submit = SubmitField('Submit Request')
 
