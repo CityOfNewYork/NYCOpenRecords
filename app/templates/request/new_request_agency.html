@@ -11,7 +11,7 @@
             <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
                 {{ form.hidden_tag() }}
                 <h1>Request a Record (Logged in Agency User)</h1>
-{#                <input type="text" class="form-control" name="fullname" required data-parsley-minlength="10"/>#}
+
                 <p>Please make your request specific so you receive the fastest service. After you submit a FOIL request
                     you
                     will receive a confirmation number so you can track the status of the response. The agency will
@@ -137,9 +137,9 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js')}}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery-ui.js')}}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-agency.js') }}"></script>
 {% endblock %}
