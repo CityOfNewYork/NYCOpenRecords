@@ -40,6 +40,11 @@
                 <div class="alert alert-info">
                     <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
                 </div>
+                {# Upload field for user to add files #}
+                <div class="col-sm-12">
+                    {{ form.request_file.label(class='request-heading') }}
+                    {{ form.request_file(id='request-file') }}
+                </div>
 
                 <h1>Personal Information</h1>
 
@@ -103,11 +108,7 @@
                     </div>
                 </div>
 
-                {# Upload field for user to add files #}
-                <div class="col-sm-12">
-                    {{ form.request_file.label(class='request-heading') }}
-                    {{ form.request_file(id='request-file') }}
-                </div>
+
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>

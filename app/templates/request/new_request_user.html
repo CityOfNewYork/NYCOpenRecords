@@ -36,15 +36,17 @@
                 {{ form.request_description.label(class='request-heading') }}
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}
+                                {# Upload file field #}
+
                 <div class="alert alert-info">
                     <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
                 </div>
-                <br><br>
-                {# Upload file field #}
                 <div class="col-sm-12">
                     {{ form.request_file.label(class='request-heading') }}
                     {{ form.request_file(id='request-file') }}
                 </div>
+                <br><br>
+
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
