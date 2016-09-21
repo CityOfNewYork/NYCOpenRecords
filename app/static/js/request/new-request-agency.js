@@ -65,11 +65,13 @@ $(document).ready(function () {
     $('#email').attr('data-parsley-type', 'email');
     // Called when validation is used and checks that at least one form of contact was filled out
     $('#request-form').parsley().subscribe('parsley:form:validate', function (formInstance) {
+        // If address is filled out then make sure the city, state, and zipcode are filled.
         if ($('#address-line-1').parsley().isValid()){
                 $('#city').attr('data-parsley-required','');
                 $('#state').attr('data-parsley-required','');
                 $('#zipcode').attr('data-parsley-required','');
             }
+        // Checks that at least one of the contact information fields is filled in addition to the rest of the form
         if ($('#email').parsley().isValid() ||
             $('#phone').parsley().isValid() ||
             $('#fax').parsley().isValid() ||
@@ -81,7 +83,7 @@ $(document).ready(function () {
             $('#first-name').parsley().isValid() &&
             $('#last-name').parsley().isValid())
         ) {
-            // If at least one of the fields are validated then removed their requirement
+            // If at least one of the fields are validated then remove required from the rest of the contact fields that aren't being filled out
             $('#city').removeAttr('data-parsley-required');
             $('#state').removeAttr('data-parsley-required');
             $('#zipcode').removeAttr('data-parsley-required');

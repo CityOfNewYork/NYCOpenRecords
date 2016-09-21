@@ -25,7 +25,6 @@ $(document).ready(function () {
         $('#request-description').popover('show');
     });
 
-     // data-toggle="popover", title="Example Request", data-content="Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015."
     // jQuery mask plugin to format fields
     $('#phone').mask("(999) 999-9999");
     $('#fax').mask("(999) 999-9999");
@@ -49,7 +48,7 @@ $(document).ready(function () {
 
     // Custom Validation Messages
     $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
-    $('#phone').attr('data-parsley-minlength-message', 'Must be a 10 digit phone number');
+    $('#phone').attr('data-parsley-minlength-message', 'The phone number must be 10 digits.');
 
     // Disable default error messages for email,phone,fax,address so custom one can be used instead.
     $('#phone').attr('data-parsley-required-message', '');
@@ -63,11 +62,13 @@ $(document).ready(function () {
     $('#email').attr('data-parsley-type', 'email');
     // Checks that at least one form of contact was filled out in addition to the rest of the form.
     $('#request-form').parsley().subscribe('parsley:form:validate', function () {
+        // If address is filled out then make sure the city, state, and zipcode are filled.
         if ($('#address-line-1').parsley().isValid()){
                 $('#city').attr('data-parsley-required','');
                 $('#state').attr('data-parsley-required','');
                 $('#zipcode').attr('data-parsley-required','');
             }
+        // Checks that at least one of the contact information fields is filled in addition to the rest of the form
         if ($('#email').parsley().isValid() ||
             $('#phone').parsley().isValid() ||
             $('#fax').parsley().isValid() ||
@@ -79,7 +80,7 @@ $(document).ready(function () {
             $('#first-name').parsley().isValid() &&
             $('#last-name').parsley().isValid())
         ) {
-            // If at least one of the fields are validated then removed their requirement
+            // If at least one of the fields are validated then remove required from the rest of the contact fields that aren't being filled out
             $('#city').removeAttr('data-parsley-required');
             $('#state').removeAttr('data-parsley-required');
             $('#zipcode').removeAttr('data-parsley-required');
