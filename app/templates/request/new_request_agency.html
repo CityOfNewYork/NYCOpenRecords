@@ -112,8 +112,10 @@
                     placeholder='12345') }}<br>
                 </div>
                 {# File upload field #}
-                {{ form.request_file.label(class='request-heading') }}
-                {{ form.request_file(id='request-file') }}
+                <div class="col-sm-12">
+                    {{ form.request_file.label(class='request-heading') }}
+                    {{ form.request_file(id='request-file') }}
+                </div>
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
