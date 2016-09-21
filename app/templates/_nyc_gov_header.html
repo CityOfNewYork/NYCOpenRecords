@@ -4,7 +4,7 @@
             {% if current_user and current_user.is_authenticated %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="">Log Out</a>
+                        <a href="/auth/?slo">Log Out</a>
                     </span>
                 </span>
                 {% if current_user.user_type == 'EDIRSSO' %}

@@ -58,5 +58,11 @@
     {% if current_user.is_anonymous %}
         user is anonymous
     {% endif %}
+    {% if current_user.is_public %}
+        user is public
+    {% endif %}
+    {% if current_user.is_agency %}
+        user is agency
+    {% endif %}
 
 {% endblock %}
