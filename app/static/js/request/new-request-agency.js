@@ -25,7 +25,7 @@ $(document).ready(function () {
 
     // jQuery mask plugin to format fields
     $('#phone').mask("(999) 999-9999");
-    $('#fax').mask("(999) 999-9999")
+    $('#fax').mask("(999) 999-9999");
     $('#zipcode').mask("99999");
 
     // Datepicker for date request was received when creating a new request
@@ -43,10 +43,12 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
     $('#request-title').attr('data-parsley-maxlength', 90);
     $('#request-description').attr('data-parsley-maxlength', 5000);
-    $('#phone').attr('data-parsley-length','[10,10]');
+    $('#phone').attr('data-parsley-length','[14,14]');
+    $('#fax').attr('data-parsley-length','[14,14]');
     $('#zipcode').attr('data-parsley-length', '[5,5]');
 
     // Custom Validation Messages
+    $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
     $('#phone').attr('data-parsley-length-message', 'The phone number must be 10 digits.');
 
     // Disable default error messages for email,phone,fax,address so custom one can be used instead.

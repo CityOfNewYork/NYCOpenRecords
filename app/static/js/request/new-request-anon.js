@@ -43,10 +43,12 @@ $(document).ready(function () {
     // Specify length requirement of certain fields
     $('#request-title').attr('data-parsley-maxlength', 90);
     $('#request-description').attr('data-parsley-maxlength', 5000);
-    $('#phone').attr('data-parsley-length','[10,10]');
+    $('#phone').attr('data-parsley-length','[14,14]');
+    $('#fax').attr('data-parsley-length','[14,14]');
     $('#zipcode').attr('data-parsley-length', '[5,5]');
 
     // Custom Validation Messages
+    $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
     $('#phone').attr('data-parsley-minlength-message', 'Must be a 10 digit phone number');
 
     // Disable default error messages for email,phone,fax,address so custom one can be used instead.
