@@ -62,7 +62,7 @@ class AgencyUserRequestForm(Form):
     address, city, state, zip: requester's address
     """
     # Request Information
-    request_category = SelectField('Category', choices=categories)
+    request_category = SelectField('Category (optional)', choices=categories)
     request_agency = SelectField('Agency (required)', choices=agencies)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')

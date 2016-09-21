@@ -7,7 +7,7 @@
 {% endblock %}
 {% block content %}
     <div id="container-fluid">
-        <div class="col-sm-8">
+        <div class="col-sm-10 col-sm-push-1">
             <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
                 {{ form.hidden_tag() }}
                 <h1>Request a Record (Logged in Agency User)</h1>
@@ -28,13 +28,17 @@
                 {{ form.request_title.label(class='request-heading') }}
                         {{ form.request_title(id='request-title', class='input-block-level',
                         placeholder='Please provide a short summary of your request.') }}
-                <p><b>Note: The agency, category, or topic of your request will be visible to the public. Do not
-                        enter personal information here.</b></p>
+                <div class="alert alert-info">
+                    <p><b>Note: The agency, category, and topic of your request will be visible to the public. Do not
+                            enter personal information here.</b></p>
+                </div>
                 {# Description of the request #}
                 {{ form.request_description.label(class='request-heading') }}
                 {{ form.request_description(id='request-description', class='input-block-level',
-                    placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}<br>
-                <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p><br><br>
+                    placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}
+                <div class="alert alert-info">
+                    <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
+                </div>
                 <h1>Private Information</h1>
                 <div class="request-heading">
                     Receipt Information
@@ -64,14 +68,10 @@
                 placeholder='requester@email.com') }}<br>
 
                 <div class="contact-form-error-message"></div>
-                <div class="row-fluid">
-                    <div class="span8">
-                        <h1>Alternate Contact Information</h1>
+                <h1>Alternate Contact Information</h1>
 
-                        <p>No information entered in this section will be visible to the public.</p>
-                        <p>Note: You must have provide at least one type of contact information (phone number, fax number, or address)</p>
-                    </div>
-                </div>
+                <p>No information entered in this section will be visible to the public.</p>
+                <p>Note: You must have provide at least one type of contact information (phone number, fax number, or address)</p>
                 {# User of title #}
                 {{ form.user_title.label(class='request-heading') }}
                 {{ form.user_title(id='user-title', class='input-block-level',
@@ -97,21 +97,19 @@
                 Address Line 2
                 {{ form.address_2(id='address_2', class='input-block-level',
                 placeholder='Apartment 3D') }}<br>
-                <div class="row-fluid">
-                    <div class="span5">
-                        {{ form.city.label(class='request-heading') }}
-                        {{ form.city(id='city', class='input-block-level',
-                        placeholder='New York') }}<br>
-                    </div>
-                    <div class="span4">
-                        {{ form.state.label(class='request-heading') }}
-                        {{ form.state(id='state', class='input-block-level') }}<br>
-                    </div>
-                    <div class="span3">
-                        {{ form.zipcode.label(class='request-heading', selected='New York') }}
-                        {{ form.zipcode(id='zipcode', class='input-block-level',
-                        placeholder='12345') }}<br>
-                    </div>
+                <div class="col-sm-4 no-padding-left">
+                    {{ form.city.label(class='request-heading') }}
+                    {{ form.city(id='city', class='input-block-level',
+                    placeholder='New York') }}<br>
+                </div>
+                <div class="col-sm-4">
+                    {{ form.state.label(class='request-heading') }}
+                    {{ form.state(id='state', class='input-block-level') }}<br>
+                </div>
+                <div class="col-sm-4">
+                    {{ form.zipcode.label(class='request-heading', selected='New York') }}
+                    {{ form.zipcode(id='zipcode', class='input-block-level',
+                    placeholder='12345') }}<br>
                 </div>
                 {# File upload field #}
                 {{ form.request_file.label(class='request-heading') }}
