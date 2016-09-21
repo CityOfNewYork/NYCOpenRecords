@@ -1,6 +1,7 @@
 # Project Specific
 saml/
 redis-stable/
+python-sudo.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
