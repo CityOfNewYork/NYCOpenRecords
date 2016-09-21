@@ -2,16 +2,26 @@
  * Created by atan on 9/14/16.
  */
 $(document).ready(function () {
-    $('[data-toggle="popover"]').popover();
-
-    $('#request-description').click(function(){
-        $('#request-description').attr({
+    // javascript to add tooltip popovers when selecting the title and description
+    $('#request-title').attr({
+            'data-trigger': "focus",
             'data-toggle': "popover",
-            title: "Example Request"
-            'data-content': ""
-        });
-        $('#popover').popover('show');
+            'data-content': "Public Advocate Emails from 2015",
+            title: "Example Title"
     });
+    $('#request-title').click(function(){
+        $('#request-title').popover('show');
+    });
+    $('#request-description').attr({
+            'data-trigger': "focus",
+            'data-toggle': "popover",
+            'data-content': "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
+            title: "Example Request"
+    });
+    $('#request-description').click(function(){
+        $('#request-description').popover('show');
+    });
+
 
      // data-toggle="popover", title="Example Request", data-content="Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015."
     // jQuery mask plugin to format fields
