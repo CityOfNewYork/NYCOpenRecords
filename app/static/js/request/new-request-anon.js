@@ -4,19 +4,19 @@
 $(document).ready(function () {
     $('[data-toggle="popover"]').popover();
 
-    $('#request-description').click(function(){
-        $('#request-description').attr({
-            'data-toggle': "popover",
-            title: "Example Request"
-            'data-content': ""
-        });
-        $('#popover').popover('show');
-    });
+    // $('#request-description').click(function(){
+    //     $('#request-description').attr({
+    //         'data-toggle': "popover",
+    //         title: "Example Request"
+    //         'data-content': ""
+    //     });
+    //     $('#popover').popover('show');
+    // });
 
      // data-toggle="popover", title="Example Request", data-content="Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015."
     // jQuery mask plugin to format fields
-    $('#phone').mask("(999) 999 9999");
-    $('#fax').mask("(999) 999 9999");
+    $('#phone').mask("(999) 999-9999");
+    $('#fax').mask("(999) 999-9999");
     $('#zipcode').mask("99999");
 
     // Apply parsley validation styles to the input forms for a new request.

@@ -4,8 +4,8 @@
 $(document).ready(function () {
 
     // jQuery mask plugin to format fields
-    $('#phone').mask("(999) 999 9999");
-    $('#fax').mask("(999) 999 9999")
+    $('#phone').mask("(999) 999-9999");
+    $('#fax').mask("(999) 999-9999")
     $('#zipcode').mask("99999");
 
     // Datepicker for date request was received when creating a new request
