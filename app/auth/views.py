@@ -3,14 +3,13 @@
 
    :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
 """
-import json
 
 from flask import request, redirect, session, render_template, make_response, url_for
-from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 from app.auth import auth
 from app.auth.forms import ManageUserAccountForm
 from app.auth.utils import prepare_flask_request, init_saml_auth, create_mailing_address, process_user_data
+from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 from app.models import User
 
 
@@ -54,6 +53,7 @@ def index():
                 return redirect(auth.redirect_to(request.form['RelayState']))
     elif 'sls' in request.args:
         dscb = lambda: session.clear()
+        req['get_data']['SAMLResponse'] = req['post_data']['SAMLResponse']
         url = auth.process_slo(delete_session_cb=dscb)
         errors = auth.get_errors()
         if len(errors) == 0:
