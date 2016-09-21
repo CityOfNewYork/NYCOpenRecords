@@ -18,18 +18,19 @@
                     notify
                     you about how much time is required to
                     respond to your request.</p>
+                {# Categories to filter out agencies #}
                 {{ form.request_category.label(class='request-heading') }}
                 {{ form.request_category(id='request-category', class='input-block-level') }}<br>
-
+                {# Agency selector field #}
                 {{ form.request_agency.label(class='request-heading') }}
                 {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
-
+                {# Title of the request #}
                 {{ form.request_title.label(class='request-heading') }}
                         {{ form.request_title(id='request-title', class='input-block-level',
                         placeholder='Please provide a short summary of your request.') }}
                 <p><b>Note: The agency, category, or topic of your request will be visible to the public. Do not
                         enter personal information here.</b></p>
-
+                {# Description of the request #}
                 {{ form.request_description.label(class='request-heading') }}
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}<br>
@@ -38,8 +39,10 @@
                 <div class="request-heading">
                     Receipt Information
                 </div>
+                {# Format of request received #}
                 Format Received (required)
                 {{ form.method_received(id='method-received', class='input-block-level') }}
+                {# Date request was received #}
                 Request Date (required)
                 {{ form.request_date(id='request-date', class='input-block-level dtpick') }}
 
@@ -47,14 +50,15 @@
 
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
+                {# First name of user #}
                 {{ form.first_name.label(class='request-heading') }}
                 {{ form.first_name(id='first-name', class='input-block-level',
                 placeholder='John') }}<br>
-
+                {# Last name of user #}
                 {{ form.last_name.label(class='request-heading') }}
                 {{ form.last_name(id='last-name', class='input-block-level',
                 placeholder='Doe') }}<br>
-
+                {# Email of user #}
                 {{ form.email.label(class='request-heading') }}
                 {{ form.email(id='email', class='input-block-level',
                 placeholder='requester@email.com') }}<br>
@@ -68,23 +72,23 @@
                         <p>Note: You must have provide at least one type of contact information (phone number, fax number, or address)</p>
                     </div>
                 </div>
-
+                {# User of title #}
                 {{ form.user_title.label(class='request-heading') }}
                 {{ form.user_title(id='user-title', class='input-block-level',
                 placeholder='Your role in your organization (if applicable)') }}<br>
-
+                {# Organization/Agency user belongs to #}
                 {{ form.user_organization.label(class='request-heading') }}
                 {{ form.user_organization(id='user-organization', class='input-block-level',
                 placeholder='Your organization (if applicable)') }}<br>
-
+                {# Phone number of user #}
                 {{ form.phone.label(class='request-heading') }}
                 {{ form.phone(id='phone', class='input-block-level',
                 placeholder='(555) 555-5555') }}<br>
-
+                {# Fax number of user #}
                 {{ form.fax.label(class='request-heading') }}
                 {{ form.fax(id='fax', class='input-block-level',
                 placeholder='(555) 555-5555') }}<br>
-
+                {# Address of user #}
                 <div class="request-heading">Address</div>
                 Address Line 1
                 {{ form.address(id='address-line-1', class='input-block-level',
@@ -109,6 +113,7 @@
                         placeholder='12345') }}<br>
                     </div>
                 </div>
+                {# File upload field #}
                 {{ form.request_file.label(class='request-heading') }}
                 {{ form.request_file(id='request-file') }}
 
