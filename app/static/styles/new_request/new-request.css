@@ -215,3 +215,8 @@ h1{
     max-width: 100%;
     width: 300px;
 }
+
+#request-form{
+    margin-left: 25%;
+    width: 100%;
+}
