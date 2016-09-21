@@ -20,7 +20,9 @@ def user_loader(user_id):
     :param unicode user_id: user_id (GUID + UserType) of user to retrieve
     :return: User object
     """
-    return User.query.get(user_id)
+    guid = user_id.split(':')[0]
+    user_type = user_id.split(':')[1]
+    return User.query.filter_by(guid=guid, user_type=user_type).first()
 
 
 def init_saml_auth(req):
@@ -200,8 +202,7 @@ def find_or_create_user(guid, user_type):
     if user:
         return user, False
     else:
-
-
+        user = create_user()
         return user, True
 
 
@@ -212,6 +213,10 @@ def create_user():
     """
     saml_user_data = session['samlUserdata']
 
+    guid = saml_user_data['GUID'][0]
+
+    user_type = saml_user_data['userType'][0]
+
     # Determine if the user's email address has been validated
     # nycExtEmailValidationFlag is empty if user_type = Saml2In:NYC Employees
     # Otherwise, the validation flag will be either TRUE or FALSE
@@ -219,13 +224,22 @@ def create_user():
         if len(saml_user_data.get('nycExtEmailValidationFlag')[0]) == 0:
             email_validated = False
         else:
-            email_validated = saml_user_data.get('nycExtEmailValidationFlag')
+            email_validated = saml_user_data.get('nycExtEmailValidationFlag')[0]
             if email_validated == 'TRUE':
                 email_validated = True
             else:
                 email_validated = False
     else:
         email_validated = False
+
+    # Get the user's email (mail), if provided, otherwise email will be an empty string
+    if saml_user_data.get('mail', None):
+        if len(saml_user_data.get('mail')) == 0:
+            email = ''
+        else:
+            email = saml_user_data.get('mail')[0]
+    else:
+        email = ''
 
     # Get the users first_name, if provided, otherwise first_name will be an empty string
     if saml_user_data.get('givenName', None):
@@ -236,17 +250,43 @@ def create_user():
     else:
         first_name = ''
 
-    user = User(guid=str(guid[0]),
-                user_type=str(user_type[0]),
-                email=str(saml_user_data.get('mail', '')[0] if len(saml_user_data.get('mail', '')) > 0 else None),
+    # Get the user's middle_initial (middleName), if provided, otherwise middle_initial will be an empty string
+    if saml_user_data.get('middleName', None):
+        if len(saml_user_data.get('middleName')) == 0:
+            middle_initial = ''
+        else:
+            middle_initial = saml_user_data.get('middleName')[0]
+    else:
+        middle_initial = ''
+
+    # Get the user's last_name (sn), if provided, otherwise last_name will be an empty string
+    if saml_user_data.get('sn', None):
+        if len(saml_user_data.get('sn')) == 0:
+            last_name = ''
+        else:
+            last_name = saml_user_data.get('sn')[0]
+    else:
+        last_name = ''
+
+    # Get the user's last_name (sn), if provided, otherwise last_name will be an empty string
+    if saml_user_data.get('nycExtTOUVersion', None):
+        if len(saml_user_data.get('nycExtTOUVersion')) == 0:
+            terms_of_use_accepted = None
+        else:
+            terms_of_use_accepted = saml_user_data.get('nycExtTOUVersion')[0]
+    else:
+        terms_of_use_accepted = None
+
+    user = User(guid=guid,
+                user_type=user_type,
+                email=email,
                 first_name=first_name,
-                middle_initial=str(saml_user_data.get('middleName', '')[0]) if len(
-                    saml_user_data.get('middleName', '')) > 0 else None,
-                last_name=str(saml_user_data.get('sn', '')[0]) if len(saml_user_data.get('sn', '')) > 0 else None,
+                middle_initial=middle_initial,
+                last_name=last_name,
                 email_validated=email_validated,
-                terms_of_use_accepted=str(saml_user_data.get('nycExtTOUVersion', '')[0]) if len(
-                    saml_user_data.get('nycExtTOUVersion', '')) > 0 else None)
+                terms_of_use_accepted=terms_of_use_accepted)
+
     if create_object(user):
         return user
-    else:
-        # Insert Error Message
+    else:  # Insert Error Message
+        return None

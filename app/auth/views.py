@@ -31,9 +31,11 @@ def index():
 
     if 'sso' in request.args:
         return redirect(auth.login())
+
     elif 'sso2' in request.args:
         return_to = '%sauth/attrs/' % request.host_url
         return redirect(auth.login(return_to))
+
     elif 'slo' in request.args:
         name_id = None
         session_index = None
@@ -43,6 +45,7 @@ def index():
             session_index = session['samlSessionIndex']
 
         return redirect(auth.logout(name_id=name_id, session_index=session_index))
+
     elif 'acs' in request.args:
         auth.process_response()
         errors = auth.get_errors()
@@ -52,9 +55,14 @@ def index():
             session['samlNameId'] = auth.get_nameid()
             session['samlSessionIndex'] = auth.get_session_index()
             self_url = OneLogin_Saml2_Utils.get_self_url(req)
-            user = find_or_create_user(session['samlUserdata']['GUID'], session['samlUserdata']['userType'])
+            user, new_user = find_or_create_user(session['samlUserdata']['GUID'], session['samlUserdata']['userType'])
+            if user:
+                login_user(user)
+            if new_user:
+                return redirect(url_for('auth.manage_account'))
             if 'RelayState' in request.form and self_url != request.form['RelayState']:
                 return redirect(auth.redirect_to(request.form['RelayState']))
+
     elif 'sls' in request.args:
         dscb = lambda: session.clear()
         req['get_data']['SAMLResponse'] = req['post_data']['SAMLResponse']

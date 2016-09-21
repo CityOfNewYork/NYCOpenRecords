@@ -1,8 +1,9 @@
 import redis
 from flask import Flask
-from flask_login import LoginManager, login_user, logout_user, login_required
 from flask_kvsession import KVSessionExtension
+from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 
 from config import config
@@ -10,6 +11,7 @@ from config import config
 db = SQLAlchemy()
 login_manager = LoginManager()
 store = RedisStore(redis.StrictRedis(db=1))
+prefixed_store = PrefixDecorator('session_', store)
 
 app = Flask(__name__)
 
@@ -29,7 +31,7 @@ def create_app(config_name):
     login_manager.init_app(app)
 
     login_manager.login_view = 'auth.login'
-    KVSessionExtension(store, app)
+    KVSessionExtension(prefixed_store, app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)

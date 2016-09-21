@@ -11,8 +11,12 @@ def create_object(obj):
     :param obj: Object class being created in database
     :return: Adding and committing object to database
     """
-    db.session.add(obj)
-    db.session.commit()
+    try:
+        db.session.add(obj)
+        db.session.commit()
+        return str(obj)
+    except:
+        return None
 
 
 def update_object(attribute, value, obj_type, obj_id):
