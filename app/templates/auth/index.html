@@ -55,5 +55,8 @@
     {% if current_user.is_authenticated %}
         user is authenticated
     {% endif %}
+    {% if current_user.is_anonymous %}
+        user is anonymous
+    {% endif %}
 
 {% endblock %}

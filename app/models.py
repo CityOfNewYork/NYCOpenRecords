@@ -1,15 +1,11 @@
-from datetime import datetime
 import csv
-from urllib.request import urlopen
+from datetime import datetime
 
-from flask import session
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from sqlalchemy.dialects.postgresql import JSON
 
 from app import app, db
-
-
-# from validate_email import validate_email
+from app.constants import PUBLIC_USER, AGENCY_USER
 
 
 class Permission:
@@ -181,15 +177,31 @@ class User(UserMixin, db.Model):
         return self.email_validated and self.terms_of_use_accepted
 
     @property
-    def is_anonymous(self):
+    def is_public(self):
         """
-        Checks to see if the user is anonymous. Anonymous users will not have SAML UserData in the session.
+        Checks to see if the current user is a public user as defined below:
+
+        PUBLIC_USER_NYC_ID = 'EDIRSSO'
+        PUBLIC_USER_FACEBOOK = 'FacebookSSO'
+        PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
+        PUBLIC_USER_GOOGLE = 'GoogleSSO'
+        PUBLIC_USER_YAHOO = 'YahooSSO'
+        PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
+
         :return: Boolean
         """
-        try:
-            return bool(session['samlUserdata']['GUID'])
-        except KeyError:
-            return True
+        return current_user.user_type in PUBLIC_USER
+
+    @property
+    def is_agency(self):
+        """
+        Checks to see if the current user is an agency user
+
+        AGENCY_USER = 'Saml2In:NYC Employees'
+
+        :return: Boolean
+        """
+        return current_user.user_type == AGENCY_USER
 
     def get_id(self):
         return "{}:{}".format(self.guid, self.user_type)
