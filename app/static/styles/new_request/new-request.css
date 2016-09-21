@@ -201,3 +201,17 @@ h1{
 #request-file{
 	padding-bottom: 30px;
 }
+
+.new-request-description-tooltip{
+    padding-left: 300px;
+    padding-right: 25px;
+}
+
+.new-request-description-tooltip{
+    width:300px;
+}
+
+.popover{
+    max-width: 100%;
+    width: 300px;
+}
