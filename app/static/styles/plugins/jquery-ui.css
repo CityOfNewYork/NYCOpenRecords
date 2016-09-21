@@ -1078,18 +1078,18 @@ a.ui-button:active,
 }
 .ui-state-active .ui-icon,
 .ui-button:active .ui-icon {
-	background-image: url("../../../../../../Downloads/jquery-ui-1.12.1.custom/images/ui-icons_ffffff_256x240.png");
+	background-image: url("../../img/ui-icons_ffffff_256x240.png");
 }
 .ui-state-highlight .ui-icon,
 .ui-button .ui-state-highlight.ui-icon {
-	background-image: url("../../../../../../Downloads/jquery-ui-1.12.1.custom/images/ui-icons_777620_256x240.png");
+	background-image: url("../../img/ui-icons_777620_256x240.png");
 }
 .ui-state-error .ui-icon,
 .ui-state-error-text .ui-icon {
-	background-image: url("../../../../../../Downloads/jquery-ui-1.12.1.custom/images/ui-icons_cc0000_256x240.png");
+	background-image: url("../../img/ui-icons_cc0000_256x240.png");
 }
 .ui-button .ui-icon {
-	background-image: url("../../../../../../Downloads/jquery-ui-1.12.1.custom/images/ui-icons_777777_256x240.png");
+	background-image: url("../../img/ui-icons_777777_256x240.png");
 }
 
 /* positioning */
