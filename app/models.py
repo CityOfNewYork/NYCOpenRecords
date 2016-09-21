@@ -1,10 +1,12 @@
 from datetime import datetime
+import csv
+from urllib.request import urlopen
 
 from flask import session
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import JSON
 
-from . import db
+from app import app, db
 
 
 # from validate_email import validate_email
@@ -112,11 +114,35 @@ class Role(db.Model):
 class Agency(db.Model):
     __tablename__ = 'agency'
     ein = db.Column(db.Integer, primary_key=True)
-    category = db.Column(db.String(64))
-    name = db.Column(db.String(64), nullable=False)
+    category = db.Column(db.String(256))
+    name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
-    appeal_email = db.Column(db.String(254))
+    appeals_email = db.Column(db.String(254))
+
+    @staticmethod
+    def insert_agencies():
+        """
+        Automatically populate the agency table for the OpenRecords application.
+        """
+        data = open(app.config['AGENCY_DATA'], 'r')
+        dictreader = csv.DictReader(data)
+
+        for row in dictreader:
+            # import pdb; pdb.set_trace()
+            print(row)
+            print(len(row['category']))
+            print(len(row['name']))
+            agency = Agency(
+                ein=row['ein'],
+                category=row['category'],
+                name=row['name'],
+                next_request_number=row['next_request_number'],
+                default_email=row['default_email'],
+                appeals_email=row['appeals_email']
+            )
+            db.session.add(agency)
+        db.session.commit()
 
     def __repr__(self):
         return '<Agency %r>' % self.name
