@@ -23,8 +23,8 @@ class ManageUserAccountForm(Form):
     """
     user_title = StringField('Title')
     user_organization = StringField('Organization')
-    phone = StringField('Phone')
-    fax = StringField('Fax')
+    phone_number = StringField('Phone')
+    fax_number = StringField('Fax')
     address_one = StringField('Address Line One')
     address_two = StringField('Address Line Two')
     city = StringField('City')

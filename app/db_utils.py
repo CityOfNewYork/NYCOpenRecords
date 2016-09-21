@@ -4,6 +4,7 @@
     synopsis: Handles the functions for database control
 """
 from app import db
+from app.models import User, Agency, Request, Response, Reason, UserRequest, Permission, Role
 
 
 def create_object(obj):

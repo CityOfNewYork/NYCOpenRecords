@@ -63,7 +63,7 @@ def prepare_flask_request(request):
     }
 
 
-def process_user_data(guid, title=None, organization=None, phone=None, fax=None, mailing_address=None):
+def process_user_data(guid, title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None):
     """
     Processes user data for a logged in user. Will update the database with user parameters, or create a user entry
     in the database if none exists.
@@ -71,8 +71,8 @@ def process_user_data(guid, title=None, organization=None, phone=None, fax=None,
     :param guid: Unique ID for the user; String
     :param title: User's title; String
     :param organization: Users organization; String
-    :param phone: User's phone number; String
-    :param fax: User's fax number; String
+    :param phone_number: User's phone_number number; String
+    :param fax_number: User's fax_number number; String
     :param mailing_address: User's mailing address; JSON Object
     :return: User GUID + User Type
     """
@@ -82,67 +82,29 @@ def process_user_data(guid, title=None, organization=None, phone=None, fax=None,
         if user.user_type == AGENCY_USER:
             organization = Agency.query.filter_by(email_domain=user.email.split('@')[-1]).first()
 
-        user_id = update_user(
-            guid=guid,
-            agency=(organization.ein or None),
-            title=title,
-            organization=organization.name,
-            phone=phone,
-            fax=fax,
-            mailing_address=mailing_address
-        )
+            user_id = update_user(
+                guid=guid,
+                user_type=user.user_type,
+                agency=(organization.ein or None),
+                title=title,
+                organization=organization.name,
+                phone_number=phone_number,
+                fax_number=fax_number,
+                mailing_address=mailing_address
+            )
+        else:
+            user_id = update_user(
+                guid=guid,
+                user_type=user.user_type,
+                title=title,
+                organization=organization,
+                phone_number=phone_number,
+                fax_number=fax_number,
+                mailing_address=mailing_address
+            )
+
     else:
-        user_type = session['samlUserdata']['userType'][0]
-
-        if user_type == AGENCY_USER:
-            organization = Agency.query.filter_by(email_domain=user.email.split('@')[-1]).first()
-        try:
-            email = session['samlUserdata']['mail'][0]
-        except KeyError:
-            email = None
-
-        try:
-            first_name = session['samlUserdata']['givenName'][0]
-        except KeyError:
-            first_name = None
-
-        try:
-            middle_initial = session['samlUserdata']['middleName'][0]
-        except KeyError:
-            middle_initial = None
-
-        try:
-            last_name = session['samlUserdata']['sn'][0]
-        except KeyError:
-            last_name = None
-
-        try:
-            email_validated = session['samlUserdata']['nycExtEmailValidationFlag'][0]
-        except KeyError:
-            email_validated = None
-
-        try:
-            terms_of_use_accepted = session['samlUserdata']['nycExtTOUVersion'][0]
-        except KeyError:
-            terms_of_use_accepted = None
-
-        user_id = User(
-            guid=guid,
-            user_type=user_type,
-            agency=(organization.ein or None),
-            email=email,
-            first_name=first_name,
-            middle_initial=middle_initial,
-            last_name=last_name,
-            email_validated=email_validated,
-            terms_of_user_accepted=terms_of_use_accepted,
-            title=title,
-            organization=organization.name,
-            phone=phone,
-            fax=fax,
-            mailing_address=user
-        )
-        create_object(user)
+        user = create_user(title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None)
     return user_id
 
 
@@ -169,7 +131,7 @@ def create_mailing_address(address_one, city, state, zipcode, address_two=None):
     return mailing_address
 
 
-def update_user(guid=None, **kwargs):
+def update_user(guid=None, user_type=None, **kwargs):
     """
     Updates a user if they exist in the database.
     :param guid:
@@ -180,7 +142,7 @@ def update_user(guid=None, **kwargs):
     if not guid:
         return None
     for key, value in kwargs.items():
-        user = update_object(attribute=key, value=value, obj_type="User", obj_id=guid)
+        user = update_object(attribute=key, value=value, obj_type="User", obj_id=(guid, user_type))
 
     if not user:
         return None
@@ -206,7 +168,7 @@ def find_or_create_user(guid, user_type):
         return user, True
 
 
-def create_user():
+def create_user(title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None):
     """
 
     :return:
@@ -284,7 +246,13 @@ def create_user():
                 middle_initial=middle_initial,
                 last_name=last_name,
                 email_validated=email_validated,
-                terms_of_use_accepted=terms_of_use_accepted)
+                terms_of_use_accepted=terms_of_use_accepted,
+                title=title,
+                organization=organization,
+                phone_number=phone_number,
+                fax_number=fax_number,
+                mailing_address=mailing_address
+                )
 
     if create_object(user):
         return user
