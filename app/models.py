@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from flask import session
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import JSON
 
@@ -138,7 +139,7 @@ class User(UserMixin, db.Model):
     middle_initial = db.Column(db.String(1))
     last_name = db.Column(db.String(64), nullable=False)
     email_validated = db.Column(db.Boolean(), nullable=False)
-    terms_of_use_accepted = db.Column(db.Boolean(), nullable=False)
+    terms_of_use_accepted = db.Column(db.String(16), nullable=True)
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(15))
@@ -155,7 +156,14 @@ class User(UserMixin, db.Model):
 
     @property
     def is_anonymous(self):
-        return False
+        """
+        Checks to see if the user is anonymous. Anonymous users will not have SAML UserData in the session.
+        :return: Boolean
+        """
+        try:
+            return bool(session['samlUserdata']['GUID'])
+        except KeyError:
+            return True
 
     def get_id(self):
         return "{}:{}".format(self.guid, self.user_type)

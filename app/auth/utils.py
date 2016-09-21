@@ -4,11 +4,23 @@ from urllib.parse import urljoin, urlparse
 from flask import current_app, request, session
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
+from app import login_manager
 from app.constants import (
     AGENCY_USER
 )
 from app.db_utils import create_object, update_object
 from app.models import Agency, User
+
+
+@login_manager.user_loader
+def user_loader(user_id):
+    """
+    Given a user_id (GUID + UserType), return the associated User object.
+
+    :param unicode user_id: user_id (GUID + UserType) of user to retrieve
+    :return: User object
+    """
+    return User.query.get(user_id)
 
 
 def init_saml_auth(req):
@@ -171,3 +183,70 @@ def update_user(guid=None, **kwargs):
     if not user:
         return None
     return user
+
+
+def find_or_create_user(guid, user_type):
+    """
+    Given a guid and user_type, equivalent to a user id, find or create a user in the database.
+
+    Returns the User object and a boolean marking the user as a new user.
+
+    :param unicode guid: GUID for the user
+    :param unicode user_type: User Type. See auth.constants for list of valid user types
+    :return: (User Object, Boolean for Is new User)
+    """
+    user = User.query.filter_by(guid=str(guid[0]), user_type=str(user_type[0])).first()
+
+    if user:
+        return user, False
+    else:
+
+
+        return user, True
+
+
+def create_user():
+    """
+
+    :return:
+    """
+    saml_user_data = session['samlUserdata']
+
+    # Determine if the user's email address has been validated
+    # nycExtEmailValidationFlag is empty if user_type = Saml2In:NYC Employees
+    # Otherwise, the validation flag will be either TRUE or FALSE
+    if saml_user_data.get('nycExtEmailValidationFlag', None):
+        if len(saml_user_data.get('nycExtEmailValidationFlag')[0]) == 0:
+            email_validated = False
+        else:
+            email_validated = saml_user_data.get('nycExtEmailValidationFlag')
+            if email_validated == 'TRUE':
+                email_validated = True
+            else:
+                email_validated = False
+    else:
+        email_validated = False
+
+    # Get the users first_name, if provided, otherwise first_name will be an empty string
+    if saml_user_data.get('givenName', None):
+        if len(saml_user_data.get('givenName')) == 0:
+            first_name = ''
+        else:
+            first_name = saml_user_data.get('givenName')[0]
+    else:
+        first_name = ''
+
+    user = User(guid=str(guid[0]),
+                user_type=str(user_type[0]),
+                email=str(saml_user_data.get('mail', '')[0] if len(saml_user_data.get('mail', '')) > 0 else None),
+                first_name=first_name,
+                middle_initial=str(saml_user_data.get('middleName', '')[0]) if len(
+                    saml_user_data.get('middleName', '')) > 0 else None,
+                last_name=str(saml_user_data.get('sn', '')[0]) if len(saml_user_data.get('sn', '')) > 0 else None,
+                email_validated=email_validated,
+                terms_of_use_accepted=str(saml_user_data.get('nycExtTOUVersion', '')[0]) if len(
+                    saml_user_data.get('nycExtTOUVersion', '')) > 0 else None)
+    if create_object(user):
+        return user
+    else:
+        # Insert Error Message
