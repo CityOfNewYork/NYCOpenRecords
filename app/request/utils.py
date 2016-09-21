@@ -8,13 +8,12 @@
 
 """
 
-from app.models import Request, Agency, Event
-from app.models import User as something
+from app import calendar
+from app.models import Request, Agency, Event, User
 from app.db_utils import create_object, update_object
+from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type, user_type
 from datetime import datetime
 from business_calendar import FOLLOWING
-from app import calendar
-from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type, user_type
 from flask import render_template
 # FOR TESTING
 import random
@@ -67,11 +66,12 @@ def process_request(title=None, description=None, agency=None, submission='Direc
     create_object(obj=event)
 
 
-def process_anon_request(agency, title, description, email, first_name, last_name, user_title, company, phone,
-                         fax, address):
+def process_anon_request(agency, title, description, email, first_name, last_name, user_title, company, phone, fax,
+                         address):
     """
     Function for creating and storing a new request from an anonymous user on the backend.
 
+    :param agency: agency ein used as a parameter to create user in database
     :param title: request title
     :param description: detailed description of the request
     :param email: requester's email
@@ -90,19 +90,20 @@ def process_anon_request(agency, title, description, email, first_name, last_nam
     guid = generate_guid()
 
     # Creates User object
-    usr = something(guid=guid, user_type=user_type['anonymous_user'], email=email, first_name=first_name,
-                    last_name=last_name, title=user_title, company=company, email_validated=False,
-                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+    user = User(guid=guid, user_type=user_type['anonymous_user'], email=email, first_name=first_name,
+                last_name=last_name, title=user_title, company=company, email_validated=False,
+                terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
 
     # Store User object
-    create_object(obj=usr)
+    create_object(obj=user)
 
 
-def process_agency_request(agency, title, description, submission, email, first_name, last_name, user_title, company, phone,
-                           fax, address):
+def process_agency_request(agency, title, description, submission, email, first_name, last_name, user_title, company,
+                           phone, fax, address):
     """
     Function for creating an storing a new request from an agency user on the backend.
 
+    :param agency: agency ein used as a parameter to create user in database
     :param title: request title
     :param description: detailed description of the request
     :param submission: format the request was received
@@ -123,12 +124,12 @@ def process_agency_request(agency, title, description, submission, email, first_
     guid = generate_guid()
 
     # Creates User object
-    usr = something(guid=guid, user_type=user_type['agency_user'], email=email, first_name=first_name,
-                    last_name=last_name, title=user_title, company=company, email_validated=False,
-                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+    user = User(guid=guid, user_type=user_type['agency_user'], email=email, first_name=first_name,
+                last_name=last_name, title=user_title, company=company, email_validated=False,
+                terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
 
     # Store User object
-    create_object(obj=usr)
+    create_object(obj=user)
 
 
 def generate_request_id():
