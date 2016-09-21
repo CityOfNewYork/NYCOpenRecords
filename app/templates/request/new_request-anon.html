@@ -29,11 +29,14 @@
                 {{ form.request_title.label(class='request-heading') }}
                         {{ form.request_title(id='request-title', class='input-block-level',
                         placeholder='Please provide a short summary of your request.') }}
+                <p><b>Note: The agency, category, or topic of your request will be visible to the public. Do not
+                        enter personal information here.</b></p>
 
 
                 {{ form.request_description.label(class='request-heading top-padding') }}
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}<br>
+                <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
 
                 <h1>Personal Information</h1>
 
@@ -107,28 +110,7 @@
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
         </div>
-        <div class="col-sm-4">
-            <div class="sideblock">
-                <div class="example-title">
-                    <h3>Example Title</h3>
-                    <p>Public Advocate Emails from 2015</p>
-                </div>
-                <br>
-                <p><b>Note: The agency, category, or topic of your request will be visible to the public. Do not
-                        enter personal information here.</b></p>
-                <div class=" top-padding2"></div>
-                <div class="example-request">
-                    <h3>Example Request</h3>
-                    <p>Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from
-                        the Public Advocate's Office between July 27, 2015 and September 10, 2015.</p>
-                </div>
-                <br>
-                <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
-            </div>
-        </div>
-{#        end div for second column#}
     </div>
-{#    end div for first column#}
 {% endblock %}
 
 {% block custom_script %}
