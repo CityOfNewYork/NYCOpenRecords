@@ -55,8 +55,10 @@ a img {
 }
 
 .nycidm-header .upper-header-black-title {
-    position: relative;
-    top: -7px;
+    color:#fff;
+	font-size:12px;
+	font-weight:700;
+	padding:0 0 0 10px
 }
 
 .nycidm-header .upper-header-b, .nycidm-header .upper-header-a {
@@ -322,7 +324,7 @@ footer .form-search {
 
 footer .form-search .input-search {
     width: 79px;
-    height: 20px;
+    height: 32px;
     padding: 4px 6px;
     outline: none;
     font-size: 14px;

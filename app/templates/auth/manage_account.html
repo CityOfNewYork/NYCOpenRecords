@@ -1,10 +1,13 @@
 {% extends "base.html" %}
-
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+{% endblock %}
 {% block content %}
 
 <div id="container-fluid">
     <div class="col-sm-12">
-        <form method="post" class="form" role="form" id="request-form">
+        <form method="post" class="form" role="form" id="request-form" data-parsley-validate>
             <h1>Manage OpenRecords Profile</h1>
 
             {{ form.user_title.label(class='request-heading') }}
@@ -14,7 +17,7 @@
             {{ form.user_organization.label(class='request-heading') }}
             {{ form.user_organization(id='user-organization', class='input-block-level',
                 placeholder='Your organization (if applicable)') }}<br>
-
+            <div class="contact-form-error-message"></div>
             {{ form.phone_number.label(class='request-heading') }}
             {{ form.phone_number(id='phone', class='input-block-level',
                 placeholder='(555) 555-5555') }}<br>
@@ -52,4 +55,9 @@
         </form>
     </div>
 </div>
+{% endblock %}
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/auth/manage-account.js') }}"></script>
 {% endblock %}

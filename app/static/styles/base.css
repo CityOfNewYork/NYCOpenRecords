@@ -81,3 +81,8 @@
     line-height:2;
     color:#999;
 }
+
+.contact-form-error-message{
+	/*color: indianred;*/
+	color: #e74c3c;
+}
