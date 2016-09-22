@@ -65,6 +65,10 @@ $(document).ready(function () {
     $('#email').attr('data-parsley-type', 'email');
     // Called when validation is used and checks that at least one form of contact was filled out
     $('#request-form').parsley().subscribe('parsley:form:validate', function (formInstance) {
+        // Re-apply validators to fields in the event that they were removed from previous validation requests.
+        for (i = 0 ; i < required_fields.length ; i++){
+           $('#' + required_fields[i]).attr('data-parsley-required','');
+        }
         // If address is filled out then make sure the city, state, and zipcode are filled.
         if ($('#address-line-1').parsley().isValid()){
                 $('#city').attr('data-parsley-required','');
@@ -84,13 +88,13 @@ $(document).ready(function () {
             $('#last-name').parsley().isValid())
         ) {
             // If at least one of the fields are validated then remove required from the rest of the contact fields that aren't being filled out
-            $('#city').removeAttr('data-parsley-required');
-            $('#state').removeAttr('data-parsley-required');
-            $('#zipcode').removeAttr('data-parsley-required');
-            $('#phone').removeAttr('data-parsley-required');
-            $('#fax').removeAttr('data-parsley-required');
-            $('#address-line-1').removeAttr('data-parsley-required');
-            $('#email').removeAttr('data-parsley-required');
+                $('#city').removeAttr('data-parsley-required');
+                $('#state').removeAttr('data-parsley-required');
+                $('#zipcode').removeAttr('data-parsley-required');
+                $('#phone').removeAttr('data-parsley-required');
+                $('#fax').removeAttr('data-parsley-required');
+                $('#address-line-1').removeAttr('data-parsley-required');
+                $('#email').removeAttr('data-parsley-required');
         }
         else {
             // If none of the fields are valid then produce an error message and apply required fields.
