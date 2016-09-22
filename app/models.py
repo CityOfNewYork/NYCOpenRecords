@@ -142,10 +142,6 @@ class Agency(db.Model):
         dictreader = csv.DictReader(data)
 
         for row in dictreader:
-            # import pdb; pdb.set_trace()
-            print(row)
-            print(len(row['category']))
-            print(len(row['name']))
             agency = Agency(
                 ein=row['ein'],
                 category=row['category'],

@@ -36,19 +36,6 @@ USER_TYPE = {
     "public_user": "public_user"
 }
 
-# FOR TESTING
-agencies = [
-    ('', ''),
-    ('Agency1', 'Agency1'),
-    ('Agency2', 'Agency2'),
-    ('Agency3', 'Agency3'),
-    ('Agency4', 'Agency4'),
-    ('Agency5', 'Agency5'),
-    ('Agency6', 'Agency6'),
-    ('Agency7', 'Agency7'),
-    ('Agency8', 'Agency8')
-]
-
 categories = [
     ('', ''),
     ('Business', 'Business'),

@@ -11,8 +11,11 @@ from flask_wtf.file import FileField
 from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField
 from wtforms.fields.html5 import TelField
 
+from app.constants import categories, submission_method, STATES
+from app.models import Agency
 
-from app.constants import categories, agencies, submission_method, STATES
+
+agencies = [(agency.ein, agency.name) for agency in Agency.query.all()]
 
 
 class PublicUserRequestForm(Form):
