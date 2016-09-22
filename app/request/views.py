@@ -14,11 +14,12 @@ from flask import (
 import os
 from app.request import request_blueprint
 from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
-from app.request.utils import process_request, process_anon_request, process_agency_request
+from app.request.utils import create_request
+from flask_login import current_user
 
 
-@request_blueprint.route('/new/<string:user_type>', methods=['GET', 'POST'])
-def create_request(user_type):
+@request_blueprint.route('/new', methods=['GET', 'POST'])
+def submit_request():
     """
     Create a new FOIL request
 
@@ -32,38 +33,38 @@ def create_request(user_type):
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
     # Public user
-    if user_type == 'public':
+    if current_user.is_public:
         form = PublicUserRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            process_request(agency=form.request_agency.data, title=form.request_title.data,
-                            description=form.request_description.data)
+            create_request(agency=form.request_agency.data, title=form.request_title.data,
+                           description=form.request_description.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
 
     # Anonymous user
-    elif user_type == 'anon':
+    if current_user and current_user.is_anonymous:
         form = AnonymousRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            process_anon_request(agency=form.request_agency.data,title=form.request_title.data,
-                                 description=form.request_description.data, email=form.email.data,
-                                 first_name=form.first_name.data, last_name=form.last_name.data,
-                                 user_title=form.user_title.data, organization=form.user_organization.data,
-                                 phone=form.phone.data, fax=form.fax.data, address=form.address.data)
+            create_request(agency=form.request_agency.data, title=form.request_title.data,
+                           description=form.request_description.data, email=form.email.data,
+                           first_name=form.first_name.data, last_name=form.last_name.data,
+                           user_title=form.user_title.data, organization=form.user_organization.data,
+                           phone=form.phone.data, fax=form.fax.data, address=form.address.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_anon.html', form=form)
 
     # Agency user
-    elif user_type == 'agency':
+    elif current_user.is_agency:
         form = AgencyUserRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            process_agency_request(agency=form.request_agency.data,title=form.request_title.data,
-                                   description=form.request_description.data, submission=form.method_received.data,
-                                   email=form.email.data, first_name=form.first_name.data,
-                                   last_name=form.last_name.data, user_title=form.user_title.data,
-                                   organization=form.user_organization.data, phone=form.phone.data, fax=form.fax.data,
-                                   address=form.address.data)
+            create_request(agency=form.request_agency.data, title=form.request_title.data,
+                           description=form.request_description.data, submission=form.method_received.data,
+                           agency_date_submitted=form.request_date.data, email=form.email.data,
+                           first_name=form.first_name.data, last_name=form.last_name.data,
+                           user_title=form.user_title.data, organization=form.user_organization.data,
+                           phone=form.phone.data, fax=form.fax.data, address=form.address.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)
