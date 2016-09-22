@@ -9,9 +9,9 @@ Logout Response class of OneLogin's Python Toolkit.
 
 """
 
-from onelogin.saml2.utils import OneLogin_Saml2_Utils
-from onelogin.saml2.xml_templates import OneLogin_Saml2_Templates
-from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
+from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
+from app.lib.onelogin.saml2.xml_templates import OneLogin_Saml2_Templates
+from app.lib.onelogin.saml2.xml_utils import OneLogin_Saml2_XML
 
 
 class OneLogin_Saml2_Logout_Response(object):

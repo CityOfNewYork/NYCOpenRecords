@@ -11,8 +11,8 @@ Auxiliary class of OneLogin's Python Toolkit.
 
 from os.path import join, dirname
 from lxml import etree
-from onelogin.saml2 import compat
-from onelogin.saml2.constants import OneLogin_Saml2_Constants
+from app.lib.onelogin.saml2 import compat
+from app.lib.onelogin.saml2.constants import OneLogin_Saml2_Constants
 
 
 for prefix, url in OneLogin_Saml2_Constants.NSMAP.items():

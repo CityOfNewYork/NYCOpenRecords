@@ -21,10 +21,10 @@ from uuid import uuid4
 import zlib
 import xmlsec
 
-from onelogin.saml2 import compat
-from onelogin.saml2.constants import OneLogin_Saml2_Constants
-from onelogin.saml2.errors import OneLogin_Saml2_Error
-from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
+from app.lib.onelogin.saml2 import compat
+from app.lib.onelogin.saml2.constants import OneLogin_Saml2_Constants
+from app.lib.onelogin.saml2.errors import OneLogin_Saml2_Error
+from app.lib.onelogin.saml2.xml_utils import OneLogin_Saml2_XML
 
 
 try:

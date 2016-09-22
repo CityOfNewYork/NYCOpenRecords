@@ -12,11 +12,11 @@ Metadata class of OneLogin's Python Toolkit.
 from time import gmtime, strftime, time
 from datetime import datetime
 
-from onelogin.saml2 import compat
-from onelogin.saml2.constants import OneLogin_Saml2_Constants
-from onelogin.saml2.utils import OneLogin_Saml2_Utils
-from onelogin.saml2.xml_templates import OneLogin_Saml2_Templates
-from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
+from app.lib.onelogin.saml2 import compat
+from app.lib.onelogin.saml2.constants import OneLogin_Saml2_Constants
+from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
+from app.lib.onelogin.saml2.xml_templates import OneLogin_Saml2_Templates
+from app.lib.onelogin.saml2.xml_utils import OneLogin_Saml2_XML
 
 try:
     basestring

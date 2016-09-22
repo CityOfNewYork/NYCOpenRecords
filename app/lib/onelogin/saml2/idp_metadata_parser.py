@@ -15,8 +15,8 @@ try:
 except ImportError:
     import urllib2
 
-from onelogin.saml2.constants import OneLogin_Saml2_Constants
-from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
+from app.lib.onelogin.saml2.constants import OneLogin_Saml2_Constants
+from app.lib.onelogin.saml2.xml_utils import OneLogin_Saml2_XML
 
 
 class OneLogin_Saml2_IdPMetadataParser(object):

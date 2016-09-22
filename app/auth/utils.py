@@ -2,7 +2,7 @@ import json
 from urllib.parse import urljoin, urlparse
 
 from flask import current_app, request, session
-from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from app import login_manager
 from app.constants import (
