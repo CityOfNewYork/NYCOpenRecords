@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from config import config
+from app.models import Anonymous
 
 
 bootstrap = Bootstrap()
@@ -55,6 +56,7 @@ def create_app(config_name):
     mail.init_app(app)
 
     login_manager.login_view = 'auth.login'
+    login_manager.anonymous_user = Anonymous
     KVSessionExtension(prefixed_store, app)
 
     from .main import main as main_blueprint

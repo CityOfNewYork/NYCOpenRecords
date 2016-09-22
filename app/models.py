@@ -2,21 +2,13 @@
 Models for open records database
 """
 
-import re
-from datetime import datetime, timedelta
 import csv
 from datetime import datetime
 
-from flask_login import UserMixin, current_user
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy import Column, Integer, ForeignKey
-from sqlalchemy import and_, or_
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
-from werkzeug.security import generate_password_hash, \
-    check_password_hash
-from app import db
 from flask_login import UserMixin, AnonymousUserMixin
+from flask_login import current_user
+from sqlalchemy.dialects.postgresql import JSON
+
 from app import app, db
 from app.constants import PUBLIC_USER, AGENCY_USER
 
@@ -264,6 +256,41 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User {}:{}>'.format(self.guid, self.user_type)
+
+
+class Anonymous(AnonymousUserMixin):
+    @property
+    def is_authenticated(self):
+        """
+        Anonymous users are not authenticated.
+        :return: Boolean
+        """
+        return False
+
+    @property
+    def is_public(self):
+        """
+        Anonymous users are treated differently from Public Users who are authenticated. This method always
+        returns False.
+        :return: Boolean
+        """
+        return False
+
+    @property
+    def is_anonymous(self):
+        """
+        Anonymous users always return True
+        :return: Boolean
+        """
+        return True
+
+    @property
+    def is_agency(self):
+        """
+        Anonymous users always return False
+        :return: Boolean
+        """
+        return False
 
 
 class Request(db.Model):
