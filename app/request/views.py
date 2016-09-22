@@ -18,7 +18,7 @@ from app.request.utils import create_request
 from flask_login import current_user
 
 
-@request_blueprint.route('/new/<string:user_type>', methods=['GET', 'POST'])
+@request_blueprint.route('/new', methods=['GET', 'POST'])
 def submit_request():
     """
     Create a new FOIL request
@@ -43,7 +43,7 @@ def submit_request():
         return render_template('request/new_request_user.html', form=form)
 
     # Anonymous user
-    elif current_user.is_anonymous:
+    if current_user and current_user.is_anonymous:
         form = AnonymousRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
