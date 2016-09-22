@@ -2,7 +2,7 @@ ACKNOWLEDGEMENT_DAYS_DUE = 5
 UPLOAD_FOLDER = '/csv/upload'
 ALLOWED_EXTENSIONS = set(['txt', 'csv'])
 
-event_type = {
+EVENT_TYPE = {
     "user_added": "user_added",
     "user_permissions_changed": "user_permissions_changed",
     "user_information_edited": "user_information_edited",
@@ -30,7 +30,7 @@ event_type = {
     "note_deleted": "note_deleted",
 }
 
-user_type = {
+USER_TYPE = {
     "anonymous_user": "anonymous_user",
     "agency_user": "agency_user",
     "public_user": "public_user"

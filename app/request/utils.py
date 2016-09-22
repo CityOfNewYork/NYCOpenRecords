@@ -11,16 +11,19 @@
 from app import calendar
 from app.models import Request, Agency, Event, User
 from app.db_utils import create_object, update_object
-from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, event_type, user_type
+from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, EVENT_TYPE, USER_TYPE
 from datetime import datetime
 from business_calendar import FOLLOWING
 from flask import render_template
+from flask_login import current_user
 # FOR TESTING
 import random
 import string
 
 
-def process_request(title=None, description=None, agency=None, submission='Direct Input'):
+def create_request(title=None, description=None, agency=None, submission='Direct Input', agency_date_submitted=None,
+                   email=None, first_name=None, last_name=None, user_title=None, organization=None, phone=None,
+                   fax=None, address=None):
     """
     Function for creating and storing a new request on the backend.
 
@@ -53,83 +56,40 @@ def process_request(title=None, description=None, agency=None, submission='Direc
 
     # 6. Store File object
 
-    # 7. Create Request object
-    req = Request(id=request_id, title=title, description=description, date_created=date_created,
-                  date_submitted=date_submitted, due_date=due_date, submission=submission)
-    # 8. Store Request object
-    create_object(obj=req)
+    # 7a. Create and store Request object for public user
+    if current_user.is_public:
+        req = Request(id=request_id, title=title, description=description, date_created=date_created,
+                      date_submitted=date_submitted, due_date=due_date, submission=submission)
+        create_object(obj=req)
+
+    # 7b. Create and store Request and User object for anonymous user
+    if current_user.is_anonymous:
+        req = Request(id=request_id, title=title, description=description, date_created=date_created,
+                      date_submitted=date_submitted, due_date=due_date, submission=submission)
+        create_object(obj=req)
+        guid = generate_guid()
+        usr = User(guid=guid, user_type=USER_TYPE['anonymous_user'], email=email, first_name=first_name,
+                   last_name=last_name, title=user_title, organization=organization, email_validated=False,
+                   terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+        create_object(obj=usr)
+
+    # 7c. Create and store Request and User object for agency user
+    if current_user.is_agency:
+        due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
+        req = Request(id=request_id, title=title, description=description, date_created=agency_date_created,
+                      date_submitted=date_submitted, due_date=due_date, submission=submission)
+        create_object(obj=req)
+        guid = generate_guid()
+        usr = User(guid=guid, user_type=USER_TYPE['agency_user'], email=email, first_name=first_name,
+                   last_name=last_name, title=user_title, organization=organization, email_validated=False,
+                   terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+        create_object(obj=usr)
 
     # 9. Create Event object
-    event = Event(request_id=request_id, type=event_type['request_created'], timestamp=datetime.utcnow())
+    event = Event(request_id=request_id, type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
 
     # 10. Store Event object
     create_object(obj=event)
-
-
-def process_anon_request(agency, title, description, email, first_name, last_name, user_title, organization, phone, fax,
-                         address):
-    """
-    Function for creating and storing a new request from an anonymous user on the backend.
-
-    :param agency: agency ein used as a parameter to create user in database
-    :param title: request title
-    :param description: detailed description of the request
-    :param email: requester's email
-    :param first_name: requester's first name
-    :param last_name: requester's last name
-    :param user_title: requester's title
-    :param company: requester's organization
-    :param phone: requester's phone number
-    :param fax: requester's fax number
-    :param address: requester's address
-    :return: creates and stores the new FOIL request from an anonymous user
-             Request, Event, and User table are updated in the database
-    """
-    # Creates and stores Request and Event object
-    process_request(agency=agency, title=title, description=description)
-    guid = generate_guid()
-
-    # Creates User object
-    user = User(guid=guid, user_type=user_type['anonymous_user'], email=email, first_name=first_name,
-                last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
-
-    # Store User object
-    create_object(obj=user)
-
-
-def process_agency_request(agency, title, description, submission, email, first_name, last_name, user_title,
-                           organization, phone, fax, address):
-    """
-    Function for creating an storing a new request from an agency user on the backend.
-
-    :param agency: agency ein used as a parameter to create user in database
-    :param title: request title
-    :param description: detailed description of the request
-    :param submission: format the request was received
-    :param email: requester's email
-    :param first_name: requester's first name
-    :param last_name: requester's last name
-    :param user_title: requester's title
-    :param company: requester's organization
-    :param phone: requester's phone number
-    :param fax: requester's fax number
-    :param address: requester's address
-    :return: creates and stores the new FOIL request from an agency user
-             Request, Event, and User table are updated in the database
-
-    """
-    # Creates and stores Request and Event object
-    process_request(agency=agency, title=title, description=description, submission=submission)
-    guid = generate_guid()
-
-    # Creates User object
-    user = User(guid=guid, user_type=user_type['agency_user'], email=email, first_name=first_name,
-                last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
-
-    # Store User object
-    create_object(obj=user)
 
 
 def generate_request_id():
