@@ -10,7 +10,6 @@ from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 
 from config import config
-from .models import Anonymous
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
@@ -54,6 +53,8 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
+
+    from .models import Anonymous
 
     login_manager.login_view = 'auth.login'
     login_manager.anonymous_user = Anonymous
