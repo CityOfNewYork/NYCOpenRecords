@@ -5,18 +5,7 @@
 <div id="container-fluid">
     <div class="col-sm-12">
         <form method="post" class="form" role="form" id="request-form">
-            <h1>Personal Information</h1>
-            <p>This information will not be publicly viewable on this site. You must provide contact
-                information so that the agency can respond to your request for records.</p>
-
-            <div class="contact-form-error-message"></div>
-            <div class="row-fluid">
-                <div class="col-sm-10 col-sm-push-1">
-                    <h1>Alternate Contact Information</h1>
-
-                    <p>No information entered in this section will be visible to the public.</p>
-                </div>
-            </div>
+            <h1>Manage OpenRecords Profile</h1>
 
             {{ form.user_title.label(class='request-heading') }}
             {{ form.user_title(id='user-title', class='input-block-level',
