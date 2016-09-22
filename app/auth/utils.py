@@ -1,3 +1,5 @@
+# TODO: Add module level comments
+
 import json
 from urllib.parse import urljoin, urlparse
 
@@ -82,7 +84,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
         if user.user_type == AGENCY_USER:
             organization = Agency.query.filter_by(email_domain=user.email.split('@')[-1]).first()
 
-            user_id = update_user(
+            user = update_user(
                 guid=guid,
                 user_type=user.user_type,
                 agency=(organization.ein or None),
@@ -93,7 +95,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
                 mailing_address=mailing_address
             )
         else:
-            user_id = update_user(
+            user = update_user(
                 guid=guid,
                 user_type=user.user_type,
                 title=title,
@@ -105,7 +107,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
 
     else:
         user = create_user(title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None)
-    return user_id
+    return user
 
 
 def create_mailing_address(address_one, city, state, zipcode, address_two=None):
