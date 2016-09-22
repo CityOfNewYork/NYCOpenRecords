@@ -1,0 +1,224 @@
+/*CSS page shared by new_request.html, new_request_agency.html, new_request_user.html*/
+h1{
+    font-size: 31.5px;
+}
+
+.wrapper
+{
+    margin-bottom: -10rem;
+    min-height:100%;
+    max-width:calc(940px + 20px);
+    margin-left:auto;
+    margin-right:auto;
+    padding-left:20px;
+    padding-right:20px
+}
+
+@media (max-width: 979px) and (min-width: 768px) {
+    .wrapper
+    {
+        max-width:724px
+    }
+}
+
+@media (max-width: 767px) {
+    .wrapper
+    {
+        padding-left:20px;
+        padding-right:20px;
+        margin-bottom:-27rem
+    }
+}
+.wrapper input,.wrapper select,.wrapper textarea
+{
+	font-size:1.5rem;
+	line-height:1.4;
+	padding:.7rem;
+	width:calc(100% - 1.4rem);
+	display:block;
+	-moz-box-sizing:content-box;
+	-webkit-box-sizing:content-box;
+	box-sizing:content-box
+}
+
+.wrapper input[type=text],.wrapper select[type=text],.wrapper textarea[type=text]
+{
+	padding:1rem .7rem
+}
+
+.wrapper input.placeholder,.wrapper select.placeholder,.wrapper textarea.placeholder
+{
+	color:#999
+}
+
+.wrapper .combobox-container input
+{
+	width:calc(100% - 4.7rem);
+	display:inline-block
+}
+
+.input-block-level
+{
+	display:block;
+	width:100%;
+	height:30px;
+	-webkit-box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	box-sizing:border-box;
+    background-color: white;
+	border:1px solid #ccc;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+	-moz-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+	box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+	-webkit-transition:border linear .2s,box-shadow linear .2s;
+	-moz-transition:border linear .2s,box-shadow linear .2s;
+	-o-transition:border linear .2s,box-shadow linear .2s;
+	transition:border linear .2s,box-shadow linear .2s
+}
+
+.span12
+{
+	width:940px
+}
+
+.span11
+{
+	width:860px
+}
+
+.span10
+{
+	width:780px
+}
+
+.span9
+{
+	width:700px
+}
+
+.span8
+{
+    display: inline-block;
+	width:620px
+}
+
+.span7
+{
+	width:540px
+}
+
+.span6
+{
+	width:460px
+}
+
+.span5
+{
+	width:40.17094017094%;
+    display:inline-block;
+    padding-right: 2%;
+
+}
+
+.span4
+{
+	width:31.623931623932%;
+    display:inline-block;
+    padding-right:2%;
+}
+
+.span3
+{
+	width:23.076923076923%;
+    display:inline-block
+}
+
+.span2
+{
+	width:140px
+}
+
+.span1
+{
+	width:60px
+}
+
+
+.row-fluid
+{
+	width:100%;
+}
+
+.request-heading{
+    font-weight:400;
+    font-size: 17.5px;
+	line-height:2;
+	color:#999
+}
+
+#request-description{
+    height: 15rem
+}
+
+.sideblock{
+    padding-top: 33rem;
+}
+
+.example-title{
+    padding: 1rem 1.5rem;
+    background-color: #efefef;
+}
+
+.example-request{
+	padding: 1rem 1.5rem;
+	background-color: #efefef;
+}
+.top-padding{
+	padding-top: 16rem;
+}
+
+.top-padding2{
+	padding-top: 5rem;
+}
+
+.parsley-errors-list {
+	color: #e74c3c;
+}
+
+.contact-form-error-message{
+	/*color: indianred;*/
+	color: #e74c3c;
+}
+
+#state{
+	height: 50px;
+}
+
+#zipcode{
+	width: 45px;
+}
+
+#request-file{
+	padding-bottom: 30px;
+}
+
+.new-request-description-tooltip{
+    padding-left: 300px;
+    padding-right: 25px;
+}
+
+.new-request-description-tooltip{
+    width:300px;
+}
+
+.popover{
+    max-width: 100%;
+}
+
+#request-form{
+    width: 100%;
+}
+
+.no-padding-left{
+	padding-left: 0px;
+}
