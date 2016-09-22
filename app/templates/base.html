@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock title %}</title>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}" />
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-theme.css') }}" />
+    <link type="image/x-icon" rel="icon" href="{{ url_for('static', filename='img/favicon-32x32.png') }}"/>
     {% block custom_css %}
     {% endblock %}
 </head>
 
 <body>
+
 {% include "_nyc_gov_header.html" %}
-{% block content %}
+{% for message in get_flashed_messages() %}
+    {{ message }}
+{% endfor %}
+<div class="wrapper">
+    {% block content %}
+    {% endblock %}
+</div>
+{% block custom_script %}
 {% endblock %}
-{% include "_nyc_gov_footer.html" %}
 </body>

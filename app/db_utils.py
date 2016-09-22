@@ -4,6 +4,8 @@
     synopsis: Handles the functions for database control
 """
 from app import db
+
+# TODO: Add comment explaining why this is needed
 from app.models import User, Agency, Request, Response, Reason, UserRequest, Permission, Role
 
 

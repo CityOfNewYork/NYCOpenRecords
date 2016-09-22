@@ -1,9 +1,22 @@
+"""
+Models for open records database
+"""
+
+import re
+from datetime import datetime, timedelta
 import csv
 from datetime import datetime
 
 from flask_login import UserMixin, current_user
 from sqlalchemy.dialects.postgresql import JSON
-
+from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import and_, or_
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
+from werkzeug.security import generate_password_hash, \
+    check_password_hash
+from app import db
+from flask_login import UserMixin, AnonymousUserMixin
 from app import app, db
 from app.constants import PUBLIC_USER, AGENCY_USER
 
@@ -108,6 +121,18 @@ class Role(db.Model):
 
 
 class Agency(db.Model):
+    """
+    Define the Agency class with the following columns and relationships:
+
+    ein - the primary key of the agency table, 3 digit integer that is unique for each agency
+    category - a string containing the category of the agency (ex: business/education)
+    name - a string containing the name of the agency
+    next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
+                          request number sequence
+    default_email - a string containing the default email of the agency regarding general inquiries about requests
+    appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
+    """
+
     __tablename__ = 'agency'
     ein = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(256))
@@ -145,6 +170,15 @@ class Agency(db.Model):
 
 
 class UserRequest(db.Model):
+    """
+    Define the UserRequest class with the following columns and relationships:
+    A UserRequest is a many to many relationship between users who are related to a certain request
+    user_guid and request_id are combined to create a composite primary key
+
+    user_guid = a foreign key that links to the primary key of the User table
+    request_id = a foreign key that links to the primary key of the Request table
+    """
+
     __tablename__ = 'user_request'
     user_guid = db.Column(db.String(1000), db.ForeignKey("user.guid"), primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey("request.id"), primary_key=True)
@@ -152,6 +186,25 @@ class UserRequest(db.Model):
 
 
 class User(UserMixin, db.Model):
+    """
+    Define the User class with the following columns and relationships:
+
+    guid - a string that contains the unique guid of a agency user
+    user_type - a string that tells what type of a user they are (agency user, helper, etc.)
+    guid and user_type are combined to create a composite primary key
+    agency - a foreign key that links to the primary key of the agency table
+    email - a string containing the user's email
+    first_name - a string containing the user's first name
+    middle_initial - a string containing the user's middle initial
+    last_name - a string containing the user's last name
+    email_validated - a boolean that is set to true if the user's email has been validated
+    terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency's terms of use
+    title - a string containing the user's title if they are affiliated with an outside company
+    company - a string containing the user's outside company affiliation
+    phone_number - string containing the user's phone number
+    fax_number - string containing the user's fax number
+    mailing_address - a JSON object containing the user's address
+    """
     __tablename__ = 'user'
     guid = db.Column(db.String(64), primary_key=True, unique=True)  # guid + user type
     user_type = db.Column(db.String(64), primary_key=True)
@@ -214,13 +267,28 @@ class User(UserMixin, db.Model):
 
 
 class Request(db.Model):
+    """
+    Define the Request class with the following columns and relationships:
+
+    id - a string containing the requst id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
+    agency - a foreign key that links that the primary key of the agency the request was assigned to
+    title - a string containing a short description of the request
+    description - a string containing a full description of what is needed from the request
+    date_created - the actual creation time of the request
+    date_submitted - a date that rolls forward to the next business day based on date_created
+    due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
+    submission - a Enum that selects from a list of submission methods
+    current_status - a Enum that selects from a list of different statuses a request can have
+    visibility - a JSON object that contains the visbility settings of a request
+    """
+
     __tablename__ = 'request'
     id = db.Column(db.String(19), primary_key=True)
+    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
-    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
-    date_submitted = db.Column(db.DateTime)
+    date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
     # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
     submission = db.Column(
@@ -229,13 +297,49 @@ class Request(db.Model):
                                        name='statuses'))  # due soon is within the next "5" business days
     visibility = db.Column(JSON)
 
+    def __init__(
+            self,
+            id,
+            title,
+            description,
+            # agency,
+            date_created,
+            date_submitted=None,
+            due_date=None,
+            submission=None,
+            current_status=None
+    ):
+        self.id = id
+        self.title = title
+        self.description = description
+        # self.agency = agency
+        self.date_created = date_created
+        self.date_submitted = date_submitted
+        self.due_date = due_date
+        self.submission = submission
+        self.current_status = current_status
+
     def __repr__(self):
         return '<Request %r>' % self.id
 
 
 class Event(db.Model):
+    """
+    Define the Event class with the following columns and relationships:
+    Events are any type of action that happened to a request after it was submitted
+
+    id - an integer that is the primary key of an Event
+    request_id - a foreign key that links to a request's primary key
+    user_id - a foreign key that links to the user_id of the person who performed the event
+    response_id - a foreign key that links to the primary key of a response
+    type - a string containing the type of event that occurred
+    timestamp - a datetime that keeps track of what time an event was performed
+    previous_response_value - a string containing the old response value
+    new_response_value - a string containing the new response value
+    """
+
     __tablename__ = 'event'
-    id = db.Column(db.String(100), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
     user_id = db.Column(db.String(1000), db.ForeignKey('user.guid'))  # who did the action
     response_id = db.Column(db.Integer, db.ForeignKey('response.id'))
@@ -249,6 +353,17 @@ class Event(db.Model):
 
 
 class Response(db.Model):
+    """
+    Define the Response class with the following columns and relationships:
+
+    id - an integer that is the primary key of a Response
+    request_id - a foreign key that links to the primary key of a request
+    type - a string containing the type of response that was given for a request
+    date_modified - a datetime object that keeps track of when a request was changed
+    content - a JSON object that contains the content for all the possible responses a request can have
+    privacy - a string containing the privacy option for a response
+    """
+
     __tablename__ = 'response'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
@@ -262,6 +377,14 @@ class Response(db.Model):
 
 
 class Reason(db.Model):
+    """
+    Define the Reason class with the following columns and relationships:
+
+    id - an integer that is the primary key of a Reason
+    agency - a foreign key that links to the a agency's primary key which is the EIN number
+    deny_reason - a string containing the message that will be shown when a request is denied
+    """
+
     __tablename__ = 'reason'
     id = db.Column(db.Integer, primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agency.ein'), nullable=True)
