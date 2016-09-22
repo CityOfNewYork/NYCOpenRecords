@@ -7,12 +7,16 @@ $(document).ready(function () {
 
     // javascript to add tooltip popovers when selecting the title and description
 
+    // Apply parsley validation styles to the input forms for a new request.
+
     // jQuery mask plugin to format fields
     $('#phone').mask("(999) 999-9999");
     $('#fax').mask("(999) 999-9999");
     $('#zipcode').mask("99999");
 
-    // Apply parsley validation styles to the input forms for a new request.
+        // Custom Validation Messages
+    $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
+    $('#phone').attr('data-parsley-minlength-message', 'The phone number must be 10 digits.');
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var required_fields = ['phone','fax','address-line-1', 'city', 'zipcode'];
