@@ -1,16 +1,16 @@
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask import Flask
+from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
-from flask_bootstrap import Bootstrap
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
-from config import config
-from app.models import Anonymous
 
+from config import config
+from .models import Anonymous
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
@@ -65,7 +65,7 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
-    from app.request import request_blueprint
+    from .request import request_blueprint
     app.register_blueprint(request_blueprint)
 
     return app
