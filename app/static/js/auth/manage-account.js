@@ -14,9 +14,10 @@ $(document).ready(function () {
     $('#fax').mask("(999) 999-9999");
     $('#zipcode').mask("99999");
 
-        // Custom Validation Messages
+    // Custom Validation Messages
     $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
-    $('#phone').attr('data-parsley-minlength-message', 'The phone number must be 10 digits.');
+    $('#phone').attr('data-parsley-length-message', 'The phone number must be 10 digits.');
+    $('#zipcode').attr('data-parsley-length-message', 'The Zipcode must be 5 digits.');
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var required_fields = ['phone','fax','address-line-1', 'city', 'zipcode'];
