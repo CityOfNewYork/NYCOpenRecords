@@ -10,7 +10,6 @@ from flask import (
     redirect,
     url_for,
 )
-from app.models import Agency
 from app.db_utils import get_agencies_list
 from app.request import request_blueprint
 from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
@@ -62,10 +61,9 @@ def submit_request():
         form = AgencyUserRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agency=form.request_agency.data, title=form.request_title.data,
-                           description=form.request_description.data, submission=form.method_received.data,
-                           agency_date_submitted=form.request_date.data, email=form.email.data,
-                           first_name=form.first_name.data, last_name=form.last_name.data,
+            create_request(title=form.request_title.data, description=form.request_description.data,
+                           submission=form.method_received.data, agency_date_submitted=form.request_date.data,
+                           email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data,
                            user_title=form.user_title.data, organization=form.user_organization.data,
                            phone=form.phone.data, fax=form.fax.data, address=form.address.data)
             return redirect(url_for('main.index'))

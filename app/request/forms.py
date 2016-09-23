@@ -6,7 +6,6 @@
 
 from datetime import datetime
 
-from flask import Flask
 from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField

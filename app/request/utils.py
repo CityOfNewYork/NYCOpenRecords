@@ -16,7 +16,6 @@ from business_calendar import FOLLOWING
 from flask import render_template
 from flask_login import current_user
 
-from app import app
 from app import calendar
 from app.constants import (
     ACKNOWLEDGEMENT_DAYS_DUE,
@@ -42,7 +41,7 @@ def create_request(title=None, description=None, agency=None, submission='Direct
              Request and Event table are updated in the database
     """
     # 1. Generate the request id
-    request_id = generate_request_id()
+    request_id = generate_request_id(agency)
 
     # 2a. Generate Email Notification Text for Agency
     # agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
@@ -98,7 +97,7 @@ def create_request(title=None, description=None, agency=None, submission='Direct
     create_object(obj=event)
 
 
-def generate_request_id(agency=None):
+def generate_request_id(agency):
     """
 
     :param agency: agency ein used as a paramater to generate the request_id
@@ -106,8 +105,9 @@ def generate_request_id(agency=None):
     """
     if agency:
         next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
-        update_object(attribute='next_request_nubmer', value=next_request_number + 1, obj_type="Agency", obj_id=agency)
-        request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
+        update_object(attribute='next_request_number', value=next_request_number + 1, obj_type="Agency", obj_id=agency)
+        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(datetime.now().strftime("%Y"), int(agency),
+                                                         int(next_request_number))
         return request_id
     return None
 
