@@ -21,7 +21,6 @@
         {% include '_nyc_gov_header.html' %}
     {% endblock %}
     {% block logo %}
-        <div id="google_translate_element"></div>
         <script type="text/javascript">
             function googleTranslateElementInit() {
                 new google.translate.TranslateElement({
@@ -39,7 +38,7 @@
                 <div class="col-sm-4"><img class="center-block header_logo"
                                         src="{{ url_for('static', filename='img/logo.png') }}"/>
                 </div>
-                <div class="col-sm-4"></div>
+                <div id="google_translate_element" class="col-sm-4"></div>
             </a>
         </div>
     {% endblock %}

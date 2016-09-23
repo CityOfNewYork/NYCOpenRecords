@@ -88,5 +88,10 @@
 }
 
 #google_translate_element{
-	float:right;
+	padding-top: 2%;
+	padding-left: 10%;
+}
+
+.row{
+	width:100%;
 }
