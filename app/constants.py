@@ -36,19 +36,6 @@ USER_TYPE = {
     "public_user": "public_user"
 }
 
-# FOR TESTING
-agencies = [
-    ('', ''),
-    ('Agency1', 'Agency1'),
-    ('Agency2', 'Agency2'),
-    ('Agency3', 'Agency3'),
-    ('Agency4', 'Agency4'),
-    ('Agency5', 'Agency5'),
-    ('Agency6', 'Agency6'),
-    ('Agency7', 'Agency7'),
-    ('Agency8', 'Agency8')
-]
-
 categories = [
     ('', ''),
     ('Business', 'Business'),
@@ -138,6 +125,7 @@ PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
 PUBLIC_USER_GOOGLE = 'GoogleSSO'
 PUBLIC_USER_YAHOO = 'YahooSSO'
 PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
+ANONYMOUS_USER = 'AnonymousUser'
 
 PUBLIC_USER = [
     PUBLIC_USER_NYC_ID,
@@ -147,7 +135,3 @@ PUBLIC_USER = [
     PUBLIC_USER_YAHOO,
     PUBLIC_USER_MICROSOFT
 ]
-
-SAML_USER_DATA = {
-    'mail'
-}

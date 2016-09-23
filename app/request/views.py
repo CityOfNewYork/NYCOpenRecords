@@ -10,8 +10,8 @@ from flask import (
     redirect,
     url_for,
 )
-
-import os
+from app.models import Agency
+from app.db_utils import get_agencies_list
 from app.request import request_blueprint
 from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
 from app.request.utils import create_request
@@ -45,6 +45,8 @@ def submit_request():
     # Anonymous user
     if current_user and current_user.is_anonymous:
         form = AnonymousRequestForm()
+        agencies = get_agencies_list()
+        form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
             create_request(agency=form.request_agency.data, title=form.request_title.data,
