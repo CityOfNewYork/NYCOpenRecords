@@ -34,6 +34,8 @@ def submit_request():
     # Public user
     if current_user.is_public:
         form = PublicUserRequestForm()
+        agencies = get_agencies_list()
+        form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
             create_request(agency=form.request_agency.data, title=form.request_title.data,
