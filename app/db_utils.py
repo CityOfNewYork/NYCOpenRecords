@@ -6,7 +6,7 @@
 from app import db
 
 # TODO: Add comment explaining why this is needed
-from app.models import Agency
+from app.models import Agency, User
 
 
 def create_object(obj):
