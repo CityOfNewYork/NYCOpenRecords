@@ -324,7 +324,7 @@ footer .form-search {
 
 footer .form-search .input-search {
     width: 79px;
-    height: 32px;
+    height: 20px;
     padding: 4px 6px;
     outline: none;
     font-size: 14px;
@@ -488,4 +488,27 @@ footer .copyright p {
 
 .container:after {
     clear: both;
+}
+
+.header_logo {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    width: 208px;
+    height: 65px;
+    /*width: 328px;*/
+    /*height: 104px;*/
+}
+
+.navbar .navbar-nav {
+    display: inline-block;
+    float: none;
+}
+
+.navbar .navbar-collapse {
+    text-align: center;
+}
+
+.openrecords_nav > a {
+    padding-left: .75rem !important;
+    padding-right: .75rem !important;
 }

@@ -5,6 +5,8 @@ from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_mail import Mail
+from config import config
+from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
