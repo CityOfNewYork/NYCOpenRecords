@@ -8,17 +8,23 @@
 
 """
 
-from app import calendar
-from app.models import Request, Agency, Event, User
-from app.db_utils import create_object, update_object
-from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, EVENT_TYPE, USER_TYPE
+import random
+import string
 from datetime import datetime
+
 from business_calendar import FOLLOWING
 from flask import render_template
 from flask_login import current_user
-# FOR TESTING
-import random
-import string
+
+from app import app
+from app import calendar
+from app.constants import (
+    ACKNOWLEDGEMENT_DAYS_DUE,
+    EVENT_TYPE,
+    ANONYMOUS_USER
+)
+from app.db_utils import create_object, update_object
+from app.models import Request, Agency, Event, User
 
 
 def create_request(title=None, description=None, agency=None, submission='Direct Input', agency_date_submitted=None,
@@ -58,17 +64,17 @@ def create_request(title=None, description=None, agency=None, submission='Direct
 
     # 7a. Create and store Request object for public user
     if current_user.is_public:
-        req = Request(id=request_id, title=title, description=description, date_created=date_created,
+        req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
                       date_submitted=date_submitted, due_date=due_date, submission=submission)
         create_object(obj=req)
 
     # 7b. Create and store Request and User object for anonymous user
     if current_user.is_anonymous:
-        req = Request(id=request_id, title=title, description=description, date_created=date_created,
+        req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
                       date_submitted=date_submitted, due_date=due_date, submission=submission)
         create_object(obj=req)
         guid = generate_guid()
-        usr = User(guid=guid, user_type=USER_TYPE['anonymous_user'], email=email, first_name=first_name,
+        usr = User(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
                    last_name=last_name, title=user_title, organization=organization, email_validated=False,
                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
         create_object(obj=usr)
@@ -76,11 +82,11 @@ def create_request(title=None, description=None, agency=None, submission='Direct
     # 7c. Create and store Request and User object for agency user
     if current_user.is_agency:
         due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
-        req = Request(id=request_id, title=title, description=description, date_created=agency_date_created,
+        req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
                       date_submitted=date_submitted, due_date=due_date, submission=submission)
         create_object(obj=req)
         guid = generate_guid()
-        usr = User(guid=guid, user_type=USER_TYPE['agency_user'], email=email, first_name=first_name,
+        usr = User(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
                    last_name=last_name, title=user_title, organization=organization, email_validated=False,
                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
         create_object(obj=usr)
@@ -92,27 +98,18 @@ def create_request(title=None, description=None, agency=None, submission='Direct
     create_object(obj=event)
 
 
-def generate_request_id():
+def generate_request_id(agency=None):
     """
 
     :param agency: agency ein used as a paramater to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
-    # next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
-    # update_object(type="agency", field="next_request_number", value=next_request_number + 1)
-    # request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
-    # FOR TESTING: remove agency in function argument and comment out above, uncomment below
-    request_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    return request_id
-
-
-def generate_guid():
-    """
-    FOR TESTING: function that generates a guid
-    :return: guid
-    """
-    guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
-    return guid
+    if agency:
+        next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
+        update_object(attribute='next_request_nubmer', value=next_request_number + 1, obj_type="Agency", obj_id=agency)
+        request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
+        return request_id
+    return None
 
 
 def generate_email_template(template_name, **kwargs):
@@ -150,3 +147,12 @@ def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, sec
     calc_due_date = calendar.addbusdays(date_submitted, days_until_due)  # calculates due date
     due_date = calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
     return due_date
+
+
+def generate_guid():
+    """
+    Generates a GUID for an anonymous user.
+    :return: guid
+    """
+    guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+    return guid

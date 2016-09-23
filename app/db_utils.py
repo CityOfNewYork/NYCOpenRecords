@@ -6,7 +6,7 @@
 from app import db
 
 # TODO: Add comment explaining why this is needed
-from app.models import User, Agency, Request, Response, Reason, UserRequest, Permission, Role
+from app.models import Agency
 
 
 def create_object(obj):
@@ -55,3 +55,11 @@ def get_obj(obj_type, obj_id):
     if not obj_id:
         return None
     return eval(obj_type).query.get(obj_id)
+
+
+def get_agencies_list():
+    agencies = sorted([(agency.ein, agency.name) for agency in db.session.query(Agency).all()],
+                      key=lambda x: x[1])
+    agencies.insert(0, ('', ''))
+
+    return agencies

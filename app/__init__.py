@@ -54,11 +54,14 @@ def create_app(config_name):
     login_manager.init_app(app)
     mail.init_app(app)
 
-    from .models import Anonymous
+    with app.app_context():
+        db.create_all(app=app)
 
-    login_manager.login_view = 'auth.login'
-    login_manager.anonymous_user = Anonymous
-    KVSessionExtension(prefixed_store, app)
+        from app.models import Anonymous
+
+        login_manager.login_view = 'auth.login'
+        login_manager.anonymous_user = Anonymous
+        KVSessionExtension(prefixed_store, app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)

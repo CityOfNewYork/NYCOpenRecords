@@ -325,7 +325,7 @@ class Request(db.Model):
             id,
             title,
             description,
-            # agency,
+            agency,
             date_created,
             date_submitted=None,
             due_date=None,
@@ -335,7 +335,7 @@ class Request(db.Model):
         self.id = id
         self.title = title
         self.description = description
-        # self.agency = agency
+        self.agency = agency
         self.date_created = date_created
         self.date_submitted = date_submitted
         self.due_date = due_date
