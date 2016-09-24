@@ -10,6 +10,7 @@
 
 import random
 import string
+import uuid
 from datetime import datetime
 
 from business_calendar import FOLLOWING
@@ -23,7 +24,7 @@ from app.constants import (
     ANONYMOUS_USER
 )
 from app.db_utils import create_object, update_object
-from app.models import Requests, Agencies, Events, Users
+from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
 
 
 def create_request(title=None, description=None, agencies=None, submission='Direct Input', agency_date_submitted=None,
@@ -75,6 +76,12 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
         # 10. Store Event object
         create_object(obj=event)
 
+        user_request_entry = UserRequests(user_guid=current_user.guid, user_type=current_user.user_type,
+                                          request_id=request_id,
+                                          permission=Roles.query.filter_by(name='Public User - Requester'))
+
+        create_object(obj=user_request_entry)
+
     # 7b. Create and store Request and User object for anonymous user
     if current_user.is_anonymous:
         req = Requests(id=request_id, title=title, agency=agencies, description=description, date_created=date_created,
@@ -91,6 +98,11 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
 
         # 10. Store Event object
         create_object(obj=event)
+
+        user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
+                                          permissions=Roles.query.filter_by(name='Anonymous User').first().permissions)
+
+        create_object(obj=user_request_entry)
 
     # 7c. Create and store Request and User object for agency user
     if current_user.is_agency:
@@ -111,6 +123,11 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
 
         # 10. Store Event object
         create_object(obj=event)
+
+        user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
+                                          permission=Roles.query.filter_by(name='Agency FOIL Officer'))
+
+        create_object(obj=user_request_entry)
 
 
 def generate_request_id(agencies):
@@ -171,7 +188,7 @@ def generate_guid():
     Generates a GUID for an anonymous user.
     :return: guid
     """
-    guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+    guid = str(uuid.uuid4())
     return guid
 
 

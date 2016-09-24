@@ -82,32 +82,34 @@ class Roles(db.Model):
         """
         roles = {
             'Anonymous User': (Permissions.DUPLICATE_REQUEST | Permissions.VIEW_REQUEST_STATUS_PUBLIC |
-                               Permissions.VIEW_REQUEST_INFO_PUBLIC, True),
+                               Permissions.VIEW_REQUEST_INFO_PUBLIC),
             'Public User - Non Requester': (Permissions.ADD_NOTE | Permissions.DUPLICATE_REQUEST |
-                                            Permissions.VIEW_REQUEST_STATUS_PUBLIC | Permissions.VIEW_REQUEST_INFO_PUBLIC,
-                                            False),
+                                            Permissions.VIEW_REQUEST_STATUS_PUBLIC |
+                                            Permissions.VIEW_REQUEST_INFO_PUBLIC
+                                            ),
             'Public User - Requester': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS |
                                         Permissions.VIEW_DOCUMENTS_IMMEDIATELY | Permissions.VIEW_REQUEST_INFO_ALL |
-                                        Permissions.VIEW_REQUEST_STATUS_PUBLIC, False),
+                                        Permissions.VIEW_REQUEST_STATUS_PUBLIC),
             'Agency Helper': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.VIEW_REQUESTS_HELPER |
-                              Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL, False),
+                              Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL),
             'Agency FOIL Officer': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.EXTEND_REQUESTS |
                                     Permissions.CLOSE_REQUESTS | Permissions.ADD_HELPERS | Permissions.REMOVE_HELPERS |
                                     Permissions.ACKNOWLEDGE | Permissions.VIEW_REQUESTS_AGENCY |
-                                    Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL, False),
+                                    Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL),
             'Agency Administrator': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.EXTEND_REQUESTS |
                                      Permissions.CLOSE_REQUESTS | Permissions.ADD_HELPERS | Permissions.REMOVE_HELPERS |
                                      Permissions.ACKNOWLEDGE | Permissions.CHANGE_REQUEST_POC |
                                      Permissions.VIEW_REQUESTS_ALL | Permissions.VIEW_REQUEST_INFO_ALL |
-                                     Permissions.VIEW_REQUEST_STATUS_ALL, False)
+                                     Permissions.VIEW_REQUEST_STATUS_ALL)
         }
-        for r in roles:
-            roles = Roles.query.filter_by(name=r).first()
-            if roles is None:
-                roles = Roles(name=r)
-            roles.permissions = roles[r][0]
-            roles.default = roles[r][1]
-            db.session.add(roles)
+
+        # import pdb; pdb.set_trace()
+        for name, value in roles.items():
+            role = Roles.query.filter_by(name=name).first()
+            if role is None:
+                role = Roles(name=name)
+            role.permissions = value
+            db.session.add(role)
         db.session.commit()
 
     def __repr__(self):
@@ -157,22 +159,6 @@ class Agencies(db.Model):
 
     def __repr__(self):
         return '<Agencies %r>' % self.name
-
-
-class UserRequests(db.Model):
-    """
-    Define the UserRequest class with the following columns and relationships:
-    A UserRequest is a many to many relationship between users who are related to a certain request
-    user_guid and request_id are combined to create a composite primary key
-
-    user_guid = a foreign key that links to the primary key of the User table
-    request_id = a foreign key that links to the primary key of the Request table
-    """
-
-    __tablename__ = 'user_requests'
-    user_guid = db.Column(db.String(1000), db.ForeignKey("users.guid"), primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
-    permission = db.Column(db.Integer)
 
 
 class Users(UserMixin, db.Model):
@@ -422,3 +408,24 @@ class Reasons(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'), nullable=True)
     deny_reason = db.Column(db.String)  # reasons for denying a request based off law dept's responses
+
+
+class UserRequests(db.Model):
+    """
+    Define the UserRequest class with the following columns and relationships:
+    A UserRequest is a many to many relationship between users who are related to a certain request
+    user_guid and request_id are combined to create a composite primary key
+
+    user_guid = a foreign key that links to the primary key of the User table
+    request_id = a foreign key that links to the primary key of the Request table
+    """
+
+    __tablename__ = 'user_requests'
+    user_guid = db.Column(db.String(64), primary_key=True)
+    user_type = db.Column(db.String(64), primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
+    permissions = db.Column(db.Integer)
+
+    __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
+                                           [Users.guid, Users.user_type]),
+                      {})
