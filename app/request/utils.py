@@ -78,7 +78,8 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
 
         user_request_entry = UserRequests(user_guid=current_user.guid, user_type=current_user.user_type,
                                           request_id=request_id,
-                                          permissions=Roles.query.filter_by(name='Public User - Requester'))
+                                          permissions=Roles.query.filter_by(
+                                              name='Public User - Requester').first().permissions)
 
         create_object(obj=user_request_entry)
 
@@ -125,7 +126,8 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
         create_object(obj=event)
 
         user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
-                                          permissions=Roles.query.filter_by(name='Agency FOIL Officer'))
+                                          permissions=Roles.query.filter_by(
+                                              name='Agency FOIL Officer').first().permissions)
 
         create_object(obj=user_request_entry)
 
