@@ -1,22 +1,22 @@
 <div class="nycidm-header">
     <div class="upper-header-black">
         <div class="container-nycidm">
-            {% if current_user and current_user.is_authenticated %}
+            {% if True %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="">Log Out</a>
+                        <a href="/auth/?slo">Log Out</a>
                     </span>
                 </span>
-                {% if current_user.user_type == 'EDIRSSO' %}
+                {% if True %}
                     <img class="vert-divide-right" alt="" src="{{ url_for('static', filename='img/upper-header-divider.gif') }}">
                     <span class="upper-header-b">
-                        <a href="">Profile</a>
+                        <a href="{{ config['IDP'] }}/account?target=https://nyc.gov/openrecords&returnOnSave=true">Profile</a>
                     </span>
                 {% endif %}
             {% else %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="">Log In</a>
+                        <a href="/auth/?sso">Log In</a>
                     </span>
                 </span>
             {% endif %}

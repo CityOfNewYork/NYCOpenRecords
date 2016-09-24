@@ -3,15 +3,52 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock title %}</title>
+    <title>{% block title %}OpenRecords{% endblock title %}</title>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap.min.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-theme.css') }}" />
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/base.css') }}" />
+    <link type="image/x-icon" rel="icon" href="{{ url_for('static', filename='img/favicon-32x32.png') }}"/>
     {% block custom_css %}
     {% endblock %}
 </head>
 
 <body>
-{% include "_nyc_gov_header.html" %}
-{% block content %}
+{% block navbar %}
+{% block nyc_gov_header %}
+{% include '_nyc_gov_header.html' %}
+{% endblock %}
+
+{% block logo %}
+<div class="row">
+    <a href="{{ url_for('main.index') }}">
+        <div class="span4"></div>
+        <div class="span4"><img class="center-block header_logo"
+                                src="{{ url_for('static', filename='img/logo.png') }}"/>
+        </div>
+        <div class="span4"></div>
+    </a>
+</div>
+{% endblock %}
+<div class="container-fluid">
+    {% block navigation %}
+    {% include "navbar.html" %}
+    {% endblock %}
+
+</div>
 {% endblock %}
 {% include "_nyc_gov_footer.html" %}
+{% for message in get_flashed_messages() %}
+    {{ message }}
+{% endfor %}
+<div class="wrapper">
+    {% block content %}
+    {% endblock %}
+</div>
+{% include "_nyc_gov_footer.html" %}
+<script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery-ui.js')}}"></script>
+{% block custom_script %}
+{% endblock %}
 </body>
