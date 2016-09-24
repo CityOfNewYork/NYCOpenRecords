@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
+{% endblock %}
+
+{% block title %}
+    View Request
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="jumbotron col-md-9">
+                <h3>INFO GOES HERE</h3>
+                <h3>INFO GOES HERE</h3>
+            </div>
+            <div class="col-md-3">
+                <h1>status is going here</h1>
+                <div class="boxed">
+                    In Progress
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid col-md-12">
+            <h1>ACTION BUTTONS GO HERE</h1>
+            <button type="button" class="btn btn-primary btn-sm">Add Record</button>
+            <button type="button" class="btn btn-primary btn-sm">Add Note</button>
+            <button type="button" class="btn btn-primary btn-sm">Extend Request</button>
+            <button type="button" class="btn btn-primary btn-sm">Generate Letter</button>
+            <button type="button" class="btn btn-primary btn-sm">Close Request</button>
+            <button type="button" class="btn btn-primary btn-sm">Manage Helpers</button>
+            <button type="button" class="btn btn-primary btn-sm">Edit Assignee</button>
+        </div>
+        <div class="row-fluid">
+            <div class="col-md-9">
+                <h1>Reponses start here</h1>
+            </div>
+            <div class="col-md-3">
+                <h1>History goes here</h1>
+            </div>
+        </div>
+    </div>
+{% endblock %}

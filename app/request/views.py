@@ -68,3 +68,9 @@ def submit_request():
                            phone=form.phone.data, fax=form.fax.data, address=form.address.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)
+
+
+@request_blueprint.route('/view', methods=['GET', 'POST'])
+def view_request():
+
+    return render_template('request/view_request.html')
