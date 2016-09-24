@@ -38,7 +38,7 @@ def submit_request():
         form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agency=form.request_agency.data, title=form.request_title.data,
+            create_request(agencies=form.request_agency.data, title=form.request_title.data,
                            description=form.request_description.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
@@ -50,7 +50,7 @@ def submit_request():
         form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agency=form.request_agency.data, title=form.request_title.data,
+            create_request(agencies=form.request_agency.data, title=form.request_title.data,
                            description=form.request_description.data, email=form.email.data,
                            first_name=form.first_name.data, last_name=form.last_name.data,
                            user_title=form.user_title.data, organization=form.user_organization.data,

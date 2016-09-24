@@ -6,7 +6,7 @@
 from app import db
 
 # TODO: Add comment explaining why this is needed
-from app.models import Agency, User
+from app.models import Agencies, Users
 
 
 def create_object(obj):
@@ -58,7 +58,7 @@ def get_obj(obj_type, obj_id):
 
 
 def get_agencies_list():
-    agencies = sorted([(agency.ein, agency.name) for agency in db.session.query(Agency).all()],
+    agencies = sorted([(agencies.ein, agencies.name) for agencies in db.session.query(Agencies).all()],
                       key=lambda x: x[1])
     agencies.insert(0, ('', ''))
 
