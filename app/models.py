@@ -7,7 +7,9 @@ from datetime import datetime
 
 from flask_login import UserMixin, AnonymousUserMixin
 from flask_login import current_user
+from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON
+
 
 from app import app, db
 from app.constants import PUBLIC_USER, AGENCY_USER
@@ -288,6 +290,9 @@ class Anonymous(AnonymousUserMixin):
         """
         return False
 
+    def get_id(self):
+        return "{}:{}".format(self.guid, self.user_type)
+
 
 class Request(db.Model):
     """
@@ -364,12 +369,17 @@ class Event(db.Model):
     __tablename__ = 'event'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
-    user_id = db.Column(db.String(1000), db.ForeignKey('user.guid'))  # who did the action
+    user_id = db.Column(db.String(64))  # who did the action
+    user_type = db.Column(db.String(64))
     response_id = db.Column(db.Integer, db.ForeignKey('response.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_response_value = db.Column(db.String)
     new_response_value = db.Column(db.String)
+
+    __table_args__ = (ForeignKeyConstraint([user_id, user_type],
+                                           [User.guid, User.user_type]),
+                      {})
 
     def __repr__(self):
         return '<Event %r>' % self.id
