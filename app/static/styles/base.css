@@ -1,5 +1,7 @@
-.nyc-footer{
-    /*height:50px;*/
+
+
+.nycidm-header .small-nyc-logo{
+	top:0px;
 }
 
 .input-block-level
@@ -87,11 +89,49 @@
 	color: #e74c3c;
 }
 
+footer .form-search .input-search{
+	height:32px;
+	font-size:16px;
+}
+
 #google_translate_element{
 	padding-top: 2%;
 	padding-left: 10%;
 }
 
+.goog-te-gadget-icon{ display:none; }
+.goog-te-menu-value{ display:none; }
+.goog-te-menu-value2{
+	text-decoration: none;
+    color: #0000cc;
+    white-space: nowrap;
+    margin-left: 4px;
+    margin-right: 4px;
+	border: none;
+}
+.goog-te-gadget-simple{
+	background-color: #fff;
+    border:none;
+    font-size: 10pt;
+    display: inline-block;
+    padding-top: 1px;
+    padding-bottom: 2px;
+    cursor: pointer;
+    zoom: 1;
+}
+
 .row{
 	width:100%;
+	margin-left: 0px;
+}
+
+.translate-text{
+	padding-right:5px;
+	font-size:14px;
+	font-weight:bold;
+	color:#666;
+}
+
+footer{
+	font-size:16px;
 }
