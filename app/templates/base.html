@@ -44,7 +44,12 @@
     {% block content %}
     {% endblock %}
 </div>
+{% block footer %}
 {% include "_nyc_gov_footer.html" %}
+{% endblock %}
+
+
+
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js')}}"></script>
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery-ui.js')}}"></script>
