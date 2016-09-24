@@ -16,7 +16,7 @@ from flask import (
     session
 )
 
-from app.models import User
+from app.models import Users
 from . import main
 
 

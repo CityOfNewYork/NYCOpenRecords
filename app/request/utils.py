@@ -23,10 +23,10 @@ from app.constants import (
     ANONYMOUS_USER
 )
 from app.db_utils import create_object, update_object
-from app.models import Request, Agency, Event, User
+from app.models import Requests, Agencies, Events, Users
 
 
-def create_request(title=None, description=None, agency=None, submission='Direct Input', agency_date_submitted=None,
+def create_request(title=None, description=None, agencies=None, submission='Direct Input', agency_date_submitted=None,
                    email=None, first_name=None, last_name=None, user_title=None, organization=None, phone=None,
                    fax=None, address=None):
     """
@@ -41,7 +41,7 @@ def create_request(title=None, description=None, agency=None, submission='Direct
              Request and Event table are updated in the database
     """
     # 1. Generate the request id
-    request_id = generate_request_id(agency)
+    request_id = generate_request_id(agencies)
 
     # 2a. Generate Email Notification Text for Agency
     # agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
@@ -63,59 +63,67 @@ def create_request(title=None, description=None, agency=None, submission='Direct
 
     # 7a. Create and store Request object for public user
     if current_user.is_public:
-        req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
-                      date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=req)
-        event = Event(user_id=current_user.guid, user_type=current_user.user_type, request_id=request_id,
-                      type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+        request = Requests(id=request_id, title=title, agency=agencies, description=description,
+                           date_created=date_created, date_submitted=date_submitted, due_date=due_date,
+                           submission=submission)
+        create_object(obj=request)
+
+        # 9. Create Event object
+        event = Events(user_id=current_user.guid, user_type=current_user.user_type, request_id=request_id,
+                       type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+
+        # 10. Store Event object
         create_object(obj=event)
 
     # 7b. Create and store Request and User object for anonymous user
     if current_user.is_anonymous:
-        req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
-                      date_submitted=date_submitted, due_date=due_date, submission=submission)
+        req = Requests(id=request_id, title=title, agency=agencies, description=description, date_created=date_created,
+                       date_submitted=date_submitted, due_date=due_date, submission=submission)
         create_object(obj=req)
         guid = generate_guid()
-        user = User(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                    last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+        user = Users(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
+                     last_name=last_name, title=user_title, organization=organization, email_validated=False,
+                     terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
         create_object(obj=user)
         # 9. Create Event object
-        event = Event(user_id=user.guid, user_type=user.user_type, request_id=request_id,
-                  type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+        event = Events(user_id=user.guid, user_type=user.user_type, request_id=request_id,
+                       type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
 
         # 10. Store Event object
         create_object(obj=event)
+
     # 7c. Create and store Request and User object for agency user
     if current_user.is_agency:
         due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
-        req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
-                      date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=req)
+        request = Requests(id=request_id, title=title, agency=agencies, description=description,
+                           date_created=date_created,
+                           date_submitted=date_submitted, due_date=due_date, submission=submission)
+        create_object(obj=request)
         guid = generate_guid()
-        user = User(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                    last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+        user = Users(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
+                     last_name=last_name, title=user_title, organization=organization, email_validated=False,
+                     terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
         create_object(obj=user)
 
         # 9. Create Event object
-        event = Event(user_id=user.guid, user_type=user.user_type, request_id=request_id,
-                      type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+        event = Events(user_id=user.guid, user_type=user.user_type, request_id=request_id,
+                       type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
 
         # 10. Store Event object
         create_object(obj=event)
 
 
-def generate_request_id(agency):
+def generate_request_id(agencies):
     """
 
     :param agency: agency ein used as a paramater to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
-    if agency:
-        next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
-        update_object(attribute='next_request_number', value=next_request_number + 1, obj_type="Agency", obj_id=agency)
-        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(datetime.now().strftime("%Y"), int(agency),
+    if agencies:
+        next_request_number = Agencies.query.filter_by(ein=agencies).first().next_request_number
+        update_object(attribute='next_request_number', value=next_request_number + 1, obj_type="Agencies",
+                      obj_id=agencies)
+        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(datetime.now().strftime("%Y"), int(agencies),
                                                          int(next_request_number))
         return request_id
     return None
@@ -165,3 +173,10 @@ def generate_guid():
     """
     guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
     return guid
+
+
+def generate_request_metadata(request):
+    """
+
+    :return:
+    """
