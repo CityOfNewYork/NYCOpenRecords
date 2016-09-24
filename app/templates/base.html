@@ -35,10 +35,8 @@
     {% include "navbar.html" %}
     {% endblock %}
 
-    {% endblock %}
 </div>
-
-{% block content %}
+{% endblock %}
 {% include "_nyc_gov_footer.html" %}
 {% for message in get_flashed_messages() %}
     {{ message }}
@@ -51,7 +49,6 @@
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js')}}"></script>
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery-ui.js')}}"></script>
-{% endblock %}
 {% block custom_script %}
 {% endblock %}
 </body>
