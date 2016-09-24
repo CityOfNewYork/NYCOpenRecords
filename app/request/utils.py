@@ -66,6 +66,9 @@ def create_request(title=None, description=None, agency=None, submission='Direct
         req = Request(id=request_id, title=title, agency=agency, description=description, date_created=date_created,
                       date_submitted=date_submitted, due_date=due_date, submission=submission)
         create_object(obj=req)
+        event = Event(user_id=current_user.guid, user_type=current_user.user_type, request_id=request_id,
+                      type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+        create_object(obj=event)
 
     # 7b. Create and store Request and User object for anonymous user
     if current_user.is_anonymous:
@@ -74,10 +77,15 @@ def create_request(title=None, description=None, agency=None, submission='Direct
         create_object(obj=req)
         guid = generate_guid()
         user = User(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                   last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                   terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+                    last_name=last_name, title=user_title, organization=organization, email_validated=False,
+                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
         create_object(obj=user)
+        # 9. Create Event object
+        event = Event(user_id=user.guid, user_type=user.user_type, request_id=request_id,
+                  type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
 
+        # 10. Store Event object
+        create_object(obj=event)
     # 7c. Create and store Request and User object for agency user
     if current_user.is_agency:
         due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
@@ -86,16 +94,16 @@ def create_request(title=None, description=None, agency=None, submission='Direct
         create_object(obj=req)
         guid = generate_guid()
         user = User(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                   last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                   terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+                    last_name=last_name, title=user_title, organization=organization, email_validated=False,
+                    terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
         create_object(obj=user)
 
-    # 9. Create Event object
-    event = Event(user_id=user.guid, user_type=user.user_type, request_id=request_id, type=EVENT_TYPE['request_created'],
-                  timestamp=datetime.utcnow())
+        # 9. Create Event object
+        event = Event(user_id=user.guid, user_type=user.user_type, request_id=request_id,
+                      type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
 
-    # 10. Store Event object
-    create_object(obj=event)
+        # 10. Store Event object
+        create_object(obj=event)
 
 
 def generate_request_id(agency):
