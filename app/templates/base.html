@@ -32,14 +32,27 @@
 
 
         <div class="row">
-            <a href="{{ url_for('main.index') }}">
-                <div class="col-sm-4"></div>
-                <div class="col-sm-4"><img class="center-block header_logo"
-                                        src="{{ url_for('static', filename='img/logo.png') }}"/>
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4">
+                <a href="{{ url_for('main.index') }}"/>
+
+                <img class="center-block header_logo" style=""
+                     src="{{ url_for('static', filename='img/logo.png') }}"/>
+            </div>
+            <div class="col-sm-2">
+                <div id="google_translate_element">
+                    <div class="skiptranslate goog-te-gadget" dir="ltr">
+                        <div id=":0.targetLanguage" class="goog-te-gadget-simple"
+                             style="white-space: nowrap; border:none;"><span style="vertical-align: middle;"><a
+                                role="menu" class="goog-te-menu-value2" href="javascript:void(0)"><span
+                                class="translate-text">Translate</span><span
+                                style="border-left: 1px solid rgb(187, 187, 187);padding-right:5px;">​</span><span
+                                style="color: rgb(155, 155, 155);">▼</span></a></span></div>
+                    </div>
                 </div>
-{#                <div id="google_translate_element" class="col-sm-4"></div>#}
-                <div id="google_translate_element"><div class="skiptranslate goog-te-gadget" dir="ltr"><div id=":0.targetLanguage" class="goog-te-gadget-simple" style="white-space: nowrap; border:none;"><span style="vertical-align: middle;"><a role="menu" class="goog-te-menu-value2" href="javascript:void(0)"><span class="translate-text">Translate</span><span style="border-left: 1px solid rgb(187, 187, 187);padding-right:5px;">​</span><span style="color: rgb(155, 155, 155);">▼</span></a></span></div></div></div>
-            </a>
+            </div>
+            <div class="col-sm-3"></div>
+
         </div>
     {% endblock %}
     <div class="container-fluid">
