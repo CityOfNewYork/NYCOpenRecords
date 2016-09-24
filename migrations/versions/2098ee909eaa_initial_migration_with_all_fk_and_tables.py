@@ -82,7 +82,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('user_guid', 'request_id')
     )
     op.create_table('event',
-    sa.Column('id', sa.String(length=100), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=True),
     sa.Column('user_id', sa.String(length=1000), nullable=True),
     sa.Column('response_id', sa.Integer(), nullable=True),

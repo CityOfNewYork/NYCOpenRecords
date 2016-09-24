@@ -1,0 +1,28 @@
+{% block navbar %}
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="openrecords_nav"><a href="{{ url_for('request_blueprint.submit_request') }}">Request a Record</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">View Requests</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Report</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Help</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">About</a></li>
+                {% if current_user.is_authenticated %}
+                    <li class="openrecords_nav"><a href="{{ url_for('auth.manage_account') }}">Manage Account</a></li>
+                {% endif %}
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Contact</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div><!--/.container-fluid -->
+</nav>
+{% endblock %}

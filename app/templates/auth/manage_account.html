@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+{% endblock %}
+{% block content %}
+
+<div id="container-fluid">
+    <div class="col-sm-12">
+        <form method="post" class="form" role="form" id="request-form" data-parsley-validate>
+            <h1>Manage OpenRecords Profile</h1>
+
+            {{ form.user_title.label(class='request-heading') }}
+            {{ form.user_title(id='user-title', class='input-block-level',
+                placeholder='Your role in your organization (if applicable)') }}<br>
+
+            {{ form.user_organization.label(class='request-heading') }}
+            {{ form.user_organization(id='user-organization', class='input-block-level',
+                placeholder='Your organization (if applicable)') }}<br>
+            <div class="contact-form-error-message"></div>
+            {{ form.phone_number.label(class='request-heading') }}
+            {{ form.phone_number(id='phone', class='input-block-level',
+                placeholder='(555) 555-5555') }}<br>
+
+            {{ form.fax_number.label(class='request-heading') }}
+            {{ form.fax_number(id='fax', class='input-block-level',
+                placeholder='(555) 555-5555') }}<br>
+
+            <div class="request-heading">Address</div>
+            Address Line 1
+            {{ form.address_one(id='address-line-1', class='input-block-level',
+                placeholder='123 Main Street') }}<br>
+
+            Address Line 2
+            {{ form.address_two(id='address_2', class='input-block-level',
+                placeholder='Apartment 3D') }}<br>
+            <div class="row-fluid">
+                <div class="span5">
+                    {{ form.city.label(class='request-heading') }}
+                    {{ form.city(id='city', class='input-block-level',
+                        placeholder='New York') }}<br>
+                </div>
+                <div class="span4">
+                    {{ form.state.label(class='request-heading') }}
+                    {{ form.state(id='state', class='input-block-level') }}<br>
+                </div>
+                <div class="span3">
+                    {{ form.zipcode.label(class='request-heading', selected='New York') }}
+                    {{ form.zipcode(id='zipcode', class='input-block-level',
+                        placeholder='12345') }}<br>
+                </div>
+            </div>
+
+            {{ form.submit(id='submit', class='btn-primary') }}<br>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/auth/manage-account.js') }}"></script>
+{% endblock %}

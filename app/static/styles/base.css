@@ -1,0 +1,141 @@
+
+
+.nycidm-header .small-nyc-logo{
+	top:0px;
+}
+
+.input-block-level
+{
+	display:block;
+	width:100%;
+	height:30px;
+	-webkit-box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	box-sizing:border-box;
+    background-color: white;
+	border:1px solid #ccc;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+	-moz-box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+	box-shadow:inset 0 1px 1px rgba(0,0,0,0.075);
+	-webkit-transition:border linear .2s,box-shadow linear .2s;
+	-moz-transition:border linear .2s,box-shadow linear .2s;
+	-o-transition:border linear .2s,box-shadow linear .2s;
+	transition:border linear .2s,box-shadow linear .2s
+}
+
+.wrapper
+{
+    margin-bottom: -10rem;
+    height:100%;
+    max-width:calc(940px + 20px);
+    margin-left:auto;
+    margin-right:auto;
+    padding-left:20px;
+    padding-right:20px
+}
+
+@media (max-width: 979px) and (min-width: 768px) {
+    .wrapper
+    {
+        max-width:724px
+    }
+
+}
+
+@media (max-width: 767px) {
+	#google_translate_element{
+		display:none;
+	}
+    .wrapper
+    {
+        padding-left:20px;
+        padding-right:20px;
+        margin-bottom:-27rem
+    }
+}
+.wrapper input,.wrapper select,.wrapper textarea
+{
+	font-size:1.5rem;
+	line-height:1.4;
+	padding:.7rem;
+	width:calc(100% - 1.4rem);
+	display:block;
+	-moz-box-sizing:content-box;
+	-webkit-box-sizing:content-box;
+	box-sizing:content-box
+}
+
+.wrapper input[type=text],.wrapper select[type=text],.wrapper textarea[type=text]
+{
+	padding:1rem .7rem
+}
+
+.wrapper input.placeholder,.wrapper select.placeholder,.wrapper textarea.placeholder
+{
+	color:#999
+}
+
+.wrapper .combobox-container input
+{
+	width:calc(100% - 4.7rem);
+	display:inline-block
+}
+
+.request-heading{
+    font-weight:400;
+    font-size: 17.5px;
+    line-height:2;
+    color:#999;
+}
+
+.contact-form-error-message{
+	/*color: indianred;*/
+	color: #e74c3c;
+}
+
+footer .form-search .input-search{
+	height:32px;
+	font-size:16px;
+}
+
+#google_translate_element{
+	padding-top: 4rem;
+	padding-left: 4rem;
+}
+
+.goog-te-gadget-icon{ display:none; }
+.goog-te-menu-value{ display:none; }
+.goog-te-menu-value2{
+	text-decoration: none;
+    color: #0000cc;
+    white-space: nowrap;
+    margin-left: 4px;
+    margin-right: 4px;
+	border: none;
+}
+.goog-te-gadget-simple{
+	background-color: #fff;
+    border:none;
+    font-size: 10pt;
+    display: inline-block;
+    padding-top: 1px;
+    padding-bottom: 2px;
+    cursor: pointer;
+    zoom: 1;
+}
+
+.row{
+	width:100%;
+	margin-left: 0px;
+}
+
+.translate-text{
+	padding-right:5px;
+	font-size:14px;
+	font-weight:bold;
+	color:#666;
+}
+
+footer{
+	font-size:16px;
+}
