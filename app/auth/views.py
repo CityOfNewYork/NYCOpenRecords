@@ -12,10 +12,11 @@ from app.auth.forms import ManageUserAccountForm
 from app.auth.utils import (
     prepare_flask_request,
     init_saml_auth,
-    create_mailing_address,
     process_user_data,
     find_or_create_user
 )
+from app.lib.user_information import create_mailing_address
+
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 
