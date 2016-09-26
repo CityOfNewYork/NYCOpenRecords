@@ -17,14 +17,16 @@ class Config:
     IDP = os.environ.get('IDP')
     LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.abspath(os.curdir), 'logs/')
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
-    MAIL_SERVER = 'smtp.googlemail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
+    MAIL_SERVER = 'localhost'
+    MAIL_PORT = 2500
+    MAIL_USE_TLS = False
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     FLASKY_MAIL_SUBJECT_PREFIX = '[OpenRecords]'
-    FLASKY_MAIL_SENDER = 'Admin <openrecordsk@doris.com>'
-    FLASKY_ADMIN = os.environ.get('ADMIN')
+    FLASKY_MAIL_SENDER = 'Records Admin <openrecords@records.nyc.gov>'
+    FLASKY_ADMIN = os.environ.get('RECORDS_ADMIN')
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
     @staticmethod
     def init_app(app):
