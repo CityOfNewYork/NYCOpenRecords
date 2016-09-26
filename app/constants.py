@@ -36,7 +36,7 @@ USER_TYPE = {
     "public_user": "public_user"
 }
 
-categories = [
+CATEGORIES = [
     ('', ''),
     ('Business', 'Business'),
     ('Civic Services', 'Civic Services'),
@@ -52,7 +52,7 @@ categories = [
 ]
 
 # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
-submission_method = [
+SUBMISSION_METHOD = [
     ('', ''),
     ('Direct Input', 'Direct Input'),
     ('Fax', 'Fax'),
@@ -135,3 +135,7 @@ PUBLIC_USER = [
     PUBLIC_USER_YAHOO,
     PUBLIC_USER_MICROSOFT
 ]
+
+RESPONSE_TYPE = {
+
+}
