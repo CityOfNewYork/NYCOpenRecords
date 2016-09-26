@@ -1,6 +1,5 @@
 # TODO: Add module level comments
 
-import json
 from urllib.parse import urljoin, urlparse
 
 from flask import current_app, request, session
@@ -108,29 +107,6 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     else:
         user = create_user(title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None)
     return user
-
-
-def create_mailing_address(address_one, city, state, zipcode, address_two=None):
-    """
-    Creates a JSON object from the parts of a mailing address for a user.
-
-    :param address_one: Line one of the user's address; String
-    :param city: City of the user's address; String
-    :param state: State of the user's address; String
-    :param zipcode: Zip code of the user; 5 Digit integer
-    :param address_two: Optional line two of the user's address; String
-    :return: JSON Object containing the address
-    """
-    mailing_address = {
-        'address_one': address_one,
-        'address_two': address_two,
-        'city': city,
-        'state': state,
-        'zip': zipcode
-    }
-    mailing_address = json.dumps(mailing_address)
-
-    return mailing_address
 
 
 def update_user(guid=None, user_type=None, **kwargs):
