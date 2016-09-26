@@ -10,7 +10,8 @@ from flask import (
     redirect,
     url_for,
 )
-from app.db_utils import get_agencies_list, create_mailing_address
+from app.lib.user_information import create_mailing_address
+from app.db_utils import get_agencies_list
 from app.request import request_blueprint
 from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
 from app.request.utils import create_request
