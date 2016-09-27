@@ -5,7 +5,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for event in events %}
+      {% for event in request_history %}
         <td>User {{ event.user }} did {{ event.response }} on {{ event.timestamp }}.</td>
       {% endfor %}
       <tr>
@@ -31,6 +31,6 @@
 </div>
 
 <div class="navigation-arrows" style="text-align: center;">
-    <a>&#9668;</a>
-    <a>&#9658;</a>
+    <a onclick="previous_history()">&#9668;</a>
+    <a onclick="next_history()">&#9658;</a>
 </div>
