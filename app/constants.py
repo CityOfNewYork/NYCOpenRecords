@@ -135,3 +135,9 @@ PUBLIC_USER = [
     PUBLIC_USER_YAHOO,
     PUBLIC_USER_MICROSOFT
 ]
+
+# Email testing variables
+TEST_EMAIL = 'test@email.com'
+TEST_CC = 'test_cc@email.com'
+TEST_BCC = 'test_bcc@email.com'
+TEST_SUBJECT = 'Test Subject'
