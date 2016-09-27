@@ -39,7 +39,7 @@ def submit_request():
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
             create_request(agencies=form.request_agency.data, title=form.request_title.data,
-                           description=form.request_description.data)
+                           description=form.request_description.data, upload_file=form.request_file.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
 
@@ -54,7 +54,8 @@ def submit_request():
                            description=form.request_description.data, email=form.email.data,
                            first_name=form.first_name.data, last_name=form.last_name.data,
                            user_title=form.user_title.data, organization=form.user_organization.data,
-                           phone=form.phone.data, fax=form.fax.data, address=form.address.data)
+                           phone=form.phone.data, fax=form.fax.data, address=form.address.data,
+                           upload_file=form.request_file.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_anon.html', form=form)
 
@@ -67,6 +68,7 @@ def submit_request():
                            submission=form.method_received.data, agency_date_submitted=form.request_date.data,
                            email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data,
                            user_title=form.user_title.data, organization=form.user_organization.data,
-                           phone=form.phone.data, fax=form.fax.data, address=form.address.data)
+                           phone=form.phone.data, fax=form.fax.data, address=form.address.data,
+                           upload_file=form.request_file.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)

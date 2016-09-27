@@ -1,6 +1,4 @@
 ACKNOWLEDGEMENT_DAYS_DUE = 5
-UPLOAD_FOLDER = '/csv/upload'
-ALLOWED_EXTENSIONS = set(['txt', 'csv'])
 
 EVENT_TYPE = {
     "user_added": "user_added",

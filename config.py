@@ -26,6 +26,9 @@ class Config:
     FLASKY_MAIL_SENDER = 'Admin <openrecordsk@doris.com>'
     FLASKY_ADMIN = os.environ.get('ADMIN')
 
+    UPLOAD_QUARANTINE_DIRECTORY = os.path.join(os.path.abspath(os.curdir), 'quarantine/data/')
+    UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.curdir), 'data/')
+
     @staticmethod
     def init_app(app):
         pass
@@ -34,7 +37,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-                              'postgresql://localhost:5432/openrecords_v2_0_dev'
+                              'postgresql://vagrant@/openrecords_v2_0_dev'  # !!! CHANGE BACK BEFORE PUSHING
 
 
 class TestingConfig(Config):

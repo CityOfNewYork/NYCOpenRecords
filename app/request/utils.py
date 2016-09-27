@@ -8,14 +8,17 @@
 
 """
 
+import os
 import random
 import string
 import uuid
 from datetime import datetime
 
 from business_calendar import FOLLOWING
-from flask import render_template
+from flask import render_template, current_app
 from flask_login import current_user
+
+from werkzeug.utils import secure_filename
 
 from app import calendar
 from app.constants import (
@@ -27,9 +30,20 @@ from app.db_utils import create_object, update_object
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
 
 
-def create_request(title=None, description=None, agencies=None, submission='Direct Input', agency_date_submitted=None,
-                   email=None, first_name=None, last_name=None, user_title=None, organization=None, phone=None,
-                   fax=None, address=None):
+def create_request(title=None, # FIXME: how can all of these have a default?
+                   description=None,
+                   agencies=None,
+                   submission='Direct Input',
+                   agency_date_submitted=None,
+                   email=None,
+                   first_name=None,
+                   last_name=None,
+                   user_title=None,
+                   organization=None,
+                   phone=None,
+                   fax=None,
+                   address=None,
+                   upload_file=None):
     """
     Function for creating and storing a new request on the backend.
 
@@ -58,15 +72,34 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
 
-    # 5. Create File object (Response table if applicable)
+    if upload_file is not None:
+        # 5. Store file in quarantine
+        dir = os.path.join(
+            current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            request_id)
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        filename = secure_filename(upload_file.filename)
+        filepath = os.path.join(dir, filename)
+        # TODO: update file path once moved (celery task will take in request_id)
+        upload_file.save(filepath) # TODO: scan and move to /data/
+        # 6. Get file metadata (for Response record)
+        filesize = os.path.getsize(filepath)
 
-    # 6. Store File object
+    request_fields = {
+        'id': request_id,
+        'title': title,
+        'agency': agencies,
+        'description': description,
+        'date_created': date_created,
+        'date_submitted': date_submitted,
+        'due_date': due_date,
+        'submission': submission,
+    }
 
     # 7a. Create and store Request object for public user
     if current_user.is_public:
-        request = Requests(id=request_id, title=title, agency=agencies, description=description,
-                           date_created=date_created, date_submitted=date_submitted, due_date=due_date,
-                           submission=submission)
+        request = Requests(**request_fields)
         create_object(obj=request)
 
         # 9. Create Event object
@@ -76,23 +109,37 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
         # 10. Store Event object
         create_object(obj=event)
 
-        user_request_entry = UserRequests(user_guid=current_user.guid, user_type=current_user.user_type,
+        user_request_entry = UserRequests(user_guid=current_user.guid,
+                                          user_type=current_user.user_type,
                                           request_id=request_id,
                                           permissions=Roles.query.filter_by(
                                               name='Public User - Requester').first().permissions)
 
         create_object(obj=user_request_entry)
 
+    user_fields = {
+        'user_type': ANONYMOUS_USER,
+        'email': email,
+        'first_name': first_name,
+        'last_name': last_name,
+        'title': user_title,
+        'organization': organization,
+        'email_validated': False,
+        'terms_of_use_accepted': False,
+        'phone_number': phone,
+        'fax_number': fax,
+        'mailing_address': address,
+    }
+
     # 7b. Create and store Request and User object for anonymous user
     if current_user.is_anonymous:
-        req = Requests(id=request_id, title=title, agency=agencies, description=description, date_created=date_created,
-                       date_submitted=date_submitted, due_date=due_date, submission=submission)
+        req = Requests(**request_fields)
         create_object(obj=req)
-        guid = generate_guid()
-        user = Users(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                     last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                     terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+
+        user_fields['guid'] = generate_guid()
+        user = Users(**user_fields)
         create_object(obj=user)
+
         # 9. Create Event object
         event = Events(user_id=user.guid, user_type=user.user_type, request_id=request_id,
                        type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
@@ -100,22 +147,22 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
         # 10. Store Event object
         create_object(obj=event)
 
-        user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
-                                          permissions=Roles.query.filter_by(name='Anonymous User').first().permissions)
+        user_request_entry = UserRequests(user_guid=user.guid,
+                                          user_type=user.user_type,
+                                          request_id=request_id,
+                                          permissions=Roles.query.filter_by(
+                                              name='Anonymous User').first().permissions)
 
         create_object(obj=user_request_entry)
 
     # 7c. Create and store Request and User object for agency user
     if current_user.is_agency:
-        due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
-        request = Requests(id=request_id, title=title, agency=agencies, description=description,
-                           date_created=date_created,
-                           date_submitted=date_submitted, due_date=due_date, submission=submission)
+        request_fields['due_date'] = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
+        request = Requests(**request_fields)
         create_object(obj=request)
-        guid = generate_guid()
-        user = Users(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                     last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                     terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
+
+        user_fields['guid'] = generate_guid()
+        user = Users(**user_fields)
         create_object(obj=user)
 
         # 9. Create Event object
@@ -125,7 +172,9 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
         # 10. Store Event object
         create_object(obj=event)
 
-        user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
+        user_request_entry = UserRequests(user_guid=user.guid,
+                                          user_type=user.user_type,
+                                          request_id=request_id,
                                           permissions=Roles.query.filter_by(
                                               name='Agency FOIL Officer').first().permissions)
 
