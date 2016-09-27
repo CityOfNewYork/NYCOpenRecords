@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-response_blueprint = Blueprint('response_blueprint', __name__, url_prefix='/response')
+response = Blueprint('response', __name__)
 
 from . import views
