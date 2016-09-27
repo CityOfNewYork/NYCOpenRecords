@@ -41,6 +41,7 @@ def send_email(to, cc, bcc, subject, template, **kwargs):
     app = current_app._get_current_object()
     msg = Message(app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject,
                   sender=app.config['MAIL_SENDER'], recipients=[to], cc=[cc], bcc=[bcc])
+    # Renders email template from .txt file commented out and not currently used in development
     # msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
     send_async_email.delay(msg)
