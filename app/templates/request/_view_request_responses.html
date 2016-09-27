@@ -1,0 +1,57 @@
+<table class="table">
+    <thead>
+      <tr>
+        <th>Responses</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for response in request_responses %}
+        {% if response.type ==  'File' %}
+
+        {% elif response.type ==  'Link' %}
+
+        {% elif response.type ==  'Instruction' %}
+
+        {% elif response.type ==  'Note' %}
+
+        {% elif response.type ==  'Extension' %}
+
+        {% elif response.type ==  'Email' %}
+
+        {% elif response.type ==  'SMS' %}
+
+        {% elif response.type ==  'Push' %}
+
+        {% elif response.type ==  'Visibility' %}
+
+        {% endif %}
+      {% endfor %}
+      <tr>
+        <td>File</td>
+      </tr>
+      <tr>
+        <td>Link</td>
+      </tr>
+      <tr>
+        <td>Instruction</td>
+      </tr>
+      <tr>
+        <td>Note</td>
+      </tr>
+      <tr>
+        <td>Extension</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+      </tr>
+      <tr>
+        <td>SMS</td>
+      </tr>
+      <tr>
+        <td>Push</td>
+      </tr>
+      <tr>
+        <td>Visibility</td>
+      </tr>
+    </tbody>
+</table>

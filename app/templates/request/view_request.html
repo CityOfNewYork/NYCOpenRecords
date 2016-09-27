@@ -27,7 +27,6 @@
             </div>
         </div>
         <div class="row-fluid col-md-12">
-            <h3>ACTION BUTTONS GO HERE</h3>
             <button type="button" class="btn btn-primary btn-sm">Add Record</button>
             <button type="button" class="btn btn-primary btn-sm">Add Note</button>
             <button type="button" class="btn btn-primary btn-sm">Extend Request</button>
@@ -37,11 +36,11 @@
             <button type="button" class="btn btn-primary btn-sm">Edit Assignee</button>
         </div>
         <div class="row-fluid">
-            <div class="col-md-9">
-                <h3 class="wrap-text">Responses starts here</h3>
+            <div class="col-md-8">
+                {% include 'request/_view_request_responses.html' %}
             </div>
-            <div class="col-md-3">
-                <h3 class="wrap-text">History starts</h3>
+            <div class="col-md-4">
+                {% include 'request/_view_request_history.html' %}
             </div>
         </div>
     </div>
