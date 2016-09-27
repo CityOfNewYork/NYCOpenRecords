@@ -46,14 +46,18 @@
     </div>
 {% endblock %}
 
+{% block scripts %}
+{{ super() }}
 <script type="text/javascript">
     $(document).ready(function() {
+        var request_history_index = 0;
         $.ajax({
         type: "POST",
         url: '/_get_request_history',
         dataType: 'json',
-        data: JSON.stringify(request_history),
+        data: JSON.stringify(request_history_index),
         success: function (response) {
+            var request_history = response;
             console.log(response)
         },
         error: function (error) {
@@ -64,12 +68,14 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function() {
+        var request_responses_index = 0;
         $.ajax({
         type: "POST",
         url: '/_get_request_responses',
         dataType: 'json',
-        data: JSON.stringify(request_responses),
+        data: JSON.stringify(request_responses_index),
         success: function (response) {
+            var request_responses = response;
             console.log(response)
         },
         error: function (error) {
@@ -77,9 +83,6 @@
         }
         })
     });
-</script>
-<script type="text/javascript">
-    function previous_history() {}
 </script>
 <script type="text/javascript">
     function previous_history() {}
@@ -93,3 +96,40 @@
 <script type="text/javascript">
     function next_responses() {}
 </script>
+<script type="text/javascript">
+    function load_more_responses() {
+        var request_responses_index = request_responses_index + 1;
+        $.ajax({
+        type: "POST",
+        url: '/_get_request_responses',
+        dataType: 'json',
+        data: JSON.stringify(request_responses_index),
+        success: function (response) {
+            var request_responses = response;
+            console.log(response)
+        },
+        error: function (error) {
+            console.log(error);
+        }
+        })
+    }
+</script>
+<script type="text/javascript">
+    function load_more_history() {
+        var request_history_index = request_history_index + 1;
+        $.ajax({
+        type: "POST",
+        url: '/_get_request_responses',
+        dataType: 'json',
+        data: JSON.stringify(request_history_index),
+        success: function (response) {
+            var request_history = response;
+            console.log(response)
+        },
+        error: function (error) {
+            console.log(error);
+        }
+        })
+    }
+</script>
+{% endblock %}
