@@ -61,6 +61,9 @@ $(document).ready(function () {
     $('#email').attr('data-parsley-required-message', '');
     $('#zipcode').attr('data-parsley-required-message','');
 
+    // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
+    $('#request-file').attr('data-parsley-max-file-size',"20");
+
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
     // Checks that at least one form of contact was filled out in addition to the rest of the form.
@@ -107,3 +110,5 @@ $(document).ready(function () {
     });
 
 });
+
+
