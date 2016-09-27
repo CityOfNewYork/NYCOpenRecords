@@ -74,4 +74,6 @@ def create_app(config_name):
     from .request import request_blueprint
     app.register_blueprint(request_blueprint)
 
+    from .responses import response_blueprint
+    app.register_blueprint(response_blueprint)
     return app

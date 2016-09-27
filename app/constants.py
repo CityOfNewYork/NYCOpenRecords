@@ -137,5 +137,14 @@ PUBLIC_USER = [
 ]
 
 RESPONSE_TYPE = {
-
+    "note": "note",
+    "record types": "record types",
+    "file": "file",
+    "link": "link",
+    "offline instructions": "offline instructions",
+    "email": "email",
+    "sms": "sms",
+    "push": "push",
+    "extension": "extension",
+    "status": "status"
 }
