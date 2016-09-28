@@ -18,7 +18,8 @@ def create_object(obj):
         db.session.add(obj)
         db.session.commit()
         return str(obj)
-    except:
+    except Exception as e:
+        # TODO: email str(e)
         return None
 
 
@@ -39,7 +40,7 @@ def update_object(attribute, value, obj_type, obj_id):
             db.session.add(obj)
             db.session.commit(obj)
             return str(obj)
-        except:
+        except Exception:
             return None
 
     return None
