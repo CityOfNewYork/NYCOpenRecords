@@ -111,13 +111,7 @@ def create_request(title,
 
     if upload_file is not None:
         # 7. Store file in quarantine
-        success = _save_request_upload(upload_file, request_id)
-
-        # TODO: 6. Get file metadata (for Response record?)
-        # TODO: update content.path once scanned & moved (celery task will take in request_id)
-        # filesize = os.path.getsize(filepath)
-
-        if success:
+        if _save_request_upload(upload_file, request_id):
             # 8. Create upload Event
             upload_event = Events(user_id=user.guid,
                                   user_type=user.user_type,
@@ -134,12 +128,20 @@ def create_request(title,
     role_name = [k for (k, v) in role_to_user.items() if v][0]
 
     # 9. Create Event
+    timestamp = datetime.utcnow()
     event = Events(user_id=user.guid,
                    user_type=user.user_type,
                    request_id=request_id,
                    type=EVENT_TYPE['request_created'],
-                   timestamp=datetime.utcnow())
+                   timestamp=timestamp)
     create_object(event)
+    if current_user.is_agency:
+        agency_event = Events(user_id=current_user.guid,
+                              user_type=current_user.user_type,
+                              request_id=request.id,
+                              type=EVENT_TYPE['request_created'],
+                              timestamp=timestamp)
+        create_object(agency_event)
 
     # 10. Create UserRequest
     user_request = UserRequests(user_guid=user.guid,
