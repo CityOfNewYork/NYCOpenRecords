@@ -17,14 +17,15 @@ class Config:
     IDP = os.environ.get('IDP')
     LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.abspath(os.curdir), 'logs/')
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
-    MAIL_SERVER = 'smtp.googlemail.com'
+    MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    FLASKY_MAIL_SUBJECT_PREFIX = '[OpenRecords]'
-    FLASKY_MAIL_SENDER = 'Admin <openrecordsk@doris.com>'
-    FLASKY_ADMIN = os.environ.get('ADMIN')
+    MAIL_SUBJECT_PREFIX = os.environ.get('[SUBJECT_PREFIX]')
+    MAIL_SENDER = os.environ.get('[MAIL_SENDER]')
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
     @staticmethod
     def init_app(app):
@@ -33,6 +34,11 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    MAIL_PORT = 2500
+    MAIL_USE_TLS = False
+    MAIL_SUBJECT_PREFIX = os.environ.get('[SUBJECT_PREFIX]') or 'OpenRecords'
+    MAIL_SENDER = os.environ.get('[MAIL_SENDER]') or 'Records Admin <openrecords@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'postgresql://localhost:5432/openrecords_v2_0_dev'
 
