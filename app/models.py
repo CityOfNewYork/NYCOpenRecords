@@ -388,8 +388,9 @@ class Responses(db.Model):
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
-    content = db.Column(JSON)
-    privacy = db.Column(db.String(7))
+    # how exactly is metadata_id going to be passed and stored?
+    # metadata_id = db.Column(db.Integer)
+    privacy = db.Column(db.Enum)
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -429,3 +430,24 @@ class UserRequests(db.Model):
     __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
                                            [Users.guid, Users.user_type]),
                       {})
+
+
+class Notes(db.Model):
+    __tablename__ = 'notes'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+    content = db.Column(db.String(5000))
+
+
+class Files(db.Model):
+    __tablename__ = 'files'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+    name = db.Column(db.String)
+    mime_type = db.Column(db.String)
+    title = db.Column(db.String)
+    size = db.Column(db.Integer)
