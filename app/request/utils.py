@@ -8,14 +8,17 @@
 
 """
 
+import os
 import random
 import string
 import uuid
 from datetime import datetime
 
 from business_calendar import FOLLOWING
-from flask import render_template
+from flask import render_template, current_app
 from flask_login import current_user
+
+from werkzeug.utils import secure_filename
 
 from app import calendar
 from app.constants import (
@@ -26,10 +29,23 @@ from app.constants import (
 from app.db_utils import create_object, update_object
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
 
+DIRECT_INPUT = 'Direct Input'
 
-def create_request(title=None, description=None, agencies=None, submission='Direct Input', agency_date_submitted=None,
-                   email=None, first_name=None, last_name=None, user_title=None, organization=None, phone=None,
-                   fax=None, address=None):
+
+def create_request(title,
+                   description,
+                   agency=None,
+                   first_name=None,
+                   last_name=None,
+                   submission=DIRECT_INPUT,
+                   agency_date_submitted=None,
+                   email=None,
+                   user_title=None,
+                   organization=None,
+                   phone=None,
+                   fax=None,
+                   address=None,
+                   upload_file=None):
     """
     Function for creating and storing a new request on the backend.
 
@@ -42,7 +58,7 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
              Request and Event table are updated in the database
     """
     # 1. Generate the request id
-    request_id = generate_request_id(agencies)
+    request_id = generate_request_id(agency)
 
     # 2a. Generate Email Notification Text for Agency
     # agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
@@ -53,97 +69,118 @@ def create_request(title=None, description=None, agencies=None, submission='Dire
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
     date_created = datetime.now()
-    date_submitted = get_date_submitted(date_created)
+    date_submitted = (agency_date_submitted
+                      if current_user.is_agency
+                      else get_date_submitted(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
 
-    # 5. Create File object (Response table if applicable)
+    # 5. Create Request
+    request = Requests(
+        id=request_id,
+        title=title,
+        agency=agency,
+        description=description,
+        date_created=date_created,
+        date_submitted=date_submitted,
+        due_date=due_date,
+        submission=submission
+    )
+    create_object(request)
 
-    # 6. Store File object
-
-    # 7a. Create and store Request object for public user
+    # 6. Get or Create User
     if current_user.is_public:
-        request = Requests(id=request_id, title=title, agency=agencies, description=description,
-                           date_created=date_created, date_submitted=date_submitted, due_date=due_date,
-                           submission=submission)
-        create_object(obj=request)
+        user = current_user
+    else:
+        user = Users(
+            guid=generate_guid(),
+            user_type=ANONYMOUS_USER,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            title=user_title,
+            organization=organization,
+            email_validated=False,
+            terms_of_use_accepted=False,
+            phone_number=phone,
+            fax_number=fax,
+            mailing_address=address
+        )
+        create_object(user)
 
-        # 9. Create Event object
-        event = Events(user_id=current_user.guid, user_type=current_user.user_type, request_id=request_id,
-                       type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+    if upload_file is not None:
+        # 7. Store file in quarantine
+        success = _save_request_upload(upload_file, request_id)
 
-        # 10. Store Event object
-        create_object(obj=event)
+        # TODO: 6. Get file metadata (for Response record?)
+        # TODO: update content.path once scanned & moved (celery task will take in request_id)
+        # filesize = os.path.getsize(filepath)
 
-        user_request_entry = UserRequests(user_guid=current_user.guid, user_type=current_user.user_type,
-                                          request_id=request_id,
-                                          permissions=Roles.query.filter_by(
-                                              name='Public User - Requester').first().permissions)
+        if success:
+            # 8. Create upload Event
+            upload_event = Events(user_id=user.guid,
+                                  user_type=user.user_type,
+                                  request_id=request_id,
+                                  type=EVENT_TYPE['file_added'],
+                                  timestamp=datetime.utcnow())
+            create_object(upload_event)
 
-        create_object(obj=user_request_entry)
+    role_to_user = {
+        'Public User - Requester': current_user.is_public,
+        'Anonymous User': current_user.is_anonymous,
+        'Agency FOIL Officer': current_user.is_agency
+    }
+    role_name = [k for (k, v) in role_to_user.items() if v][0]
 
-    # 7b. Create and store Request and User object for anonymous user
-    if current_user.is_anonymous:
-        req = Requests(id=request_id, title=title, agency=agencies, description=description, date_created=date_created,
-                       date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=req)
-        guid = generate_guid()
-        user = Users(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                     last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                     terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
-        create_object(obj=user)
-        # 9. Create Event object
-        event = Events(user_id=user.guid, user_type=user.user_type, request_id=request_id,
-                       type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+    # 9. Create Event
+    event = Events(user_id=user.guid,
+                   user_type=user.user_type,
+                   request_id=request_id,
+                   type=EVENT_TYPE['request_created'],
+                   timestamp=datetime.utcnow())
+    create_object(event)
 
-        # 10. Store Event object
-        create_object(obj=event)
-
-        user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
-                                          permissions=Roles.query.filter_by(name='Anonymous User').first().permissions)
-
-        create_object(obj=user_request_entry)
-
-    # 7c. Create and store Request and User object for agency user
-    if current_user.is_agency:
-        due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
-        request = Requests(id=request_id, title=title, agency=agencies, description=description,
-                           date_created=date_created,
-                           date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=request)
-        guid = generate_guid()
-        user = Users(guid=guid, user_type=ANONYMOUS_USER, email=email, first_name=first_name,
-                     last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                     terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
-        create_object(obj=user)
-
-        # 9. Create Event object
-        event = Events(user_id=user.guid, user_type=user.user_type, request_id=request_id,
-                       type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
-
-        # 10. Store Event object
-        create_object(obj=event)
-
-        user_request_entry = UserRequests(user_guid=user.guid, user_type=user.user_type, request_id=request_id,
-                                          permissions=Roles.query.filter_by(
-                                              name='Agency FOIL Officer').first().permissions)
-
-        create_object(obj=user_request_entry)
+    # 10. Create UserRequest
+    user_request = UserRequests(user_guid=user.guid,
+                                user_type=user.user_type,
+                                request_id=request_id,
+                                permissions=Roles.query.filter_by(
+                                    name=role_name).first().permissions)
+    create_object(user_request)
 
 
-def generate_request_id(agencies):
+def _save_request_upload(upload_file, request_id):
+    success = True
+    dir = os.path.join(
+        current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+        request_id)
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    filename = secure_filename(upload_file.filename)
+    filepath = os.path.join(dir, filename)
+    try:
+        upload_file.save(filepath)
+    except Exception as e:
+        print("Error saving file {}: {}".format(filename, e))
+        success = False
+    return success
+
+
+def generate_request_id(agency):
     """
 
     :param agency: agency ein used as a paramater to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
-    if agencies:
-        next_request_number = Agencies.query.filter_by(ein=agencies).first().next_request_number
-        update_object(attribute='next_request_number', value=next_request_number + 1, obj_type="Agencies",
-                      obj_id=agencies)
-        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(datetime.now().strftime("%Y"), int(agencies),
-                                                         int(next_request_number))
+    if agency:
+        next_request_number = Agencies.query.filter_by(ein=agency).first().next_request_number
+        update_object(attribute='next_request_number',
+                      value=next_request_number + 1,
+                      obj_type="Agencies",
+                      obj_id=agency)
+        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(
+            datetime.now().strftime("%Y"), int(agency), int(next_request_number))
         return request_id
     return None
 
