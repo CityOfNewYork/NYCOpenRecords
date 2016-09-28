@@ -3,10 +3,18 @@
  */
 $(document).ready(function () {
 
+    // javascript to add tooltip popovers when selecting the title and description
     $('[data-toggle="popover"]').popover();
 
-    // javascript to add tooltip popovers when selecting the title and description
-
+    // Prevent user from entering a non numeric value into phone and fax field
+    $('#phone').keypress(function(key) {
+        if(key.charCode < 48 || key.charCode > 57)
+            key.preventDefault();
+    });
+    $('#fax').keypress(function(key) {
+        if(key.charCode < 48 || key.charCode > 57)
+            key.preventDefault();
+    });
     // Apply parsley validation styles to the input forms for a new request.
 
     // jQuery mask plugin to format fields

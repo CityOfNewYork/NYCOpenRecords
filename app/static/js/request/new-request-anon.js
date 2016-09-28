@@ -5,6 +5,22 @@ $(document).ready(function () {
 
     $('[data-toggle="popover"]').popover();
 
+    // Prevent user from entering a non numeric value into phone and fax field
+    $('#phone').keypress(function(key) {
+        if (key.charCode != 0){
+            if (key.charCode < 48 || key.charCode > 57) {
+                key.preventDefault();
+            }
+        }
+    });
+    $('#fax').keypress(function(key) {
+        if (key.charCode != 0){
+            if (key.charCode < 48 || key.charCode > 57) {
+                key.preventDefault();
+            }
+        }
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $('#request-title').attr({
             'data-placement': "top",
@@ -17,7 +33,7 @@ $(document).ready(function () {
         $('#request-title').popover('show');
     });
     $('#request-description').attr({
-            'data-placement':  "top",
+            'data-placement': "top",
             'data-trigger': "focus",
             'data-toggle': "popover",
             'data-content': "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
