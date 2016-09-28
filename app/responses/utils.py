@@ -11,17 +11,19 @@ from app.db_utils import create_object
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
 import json
+import os
 
 
-def add_file():
+def add_file(request_id, upload_file):
     """
     Will add a file to the database for the specified request.
     :return:
     """
-    # TODO: Implement adding a file
-    print("add_file function")
-
-    return None
+    size = os.path.getsize(upload_file)
+    upload_file = json.dumps({"name": 'filename',
+                              "type": 'mimetype',
+                              "size": size})
+    process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], content=upload_file)
 
 
 def delete_file():
