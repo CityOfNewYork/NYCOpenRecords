@@ -39,7 +39,6 @@ class DevelopmentConfig(Config):
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = os.environ.get('[SUBJECT_PREFIX]') or 'OpenRecords'
     MAIL_SENDER = os.environ.get('[MAIL_SENDER]') or 'Records Admin <openrecords@records.nyc.gov>'
-    MAIL_ADMIN = os.environ.get('RECORDS_ADMIN')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'postgresql://localhost:5432/openrecords_v2_0_dev'
 
