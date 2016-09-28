@@ -24,7 +24,6 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = os.environ.get('[SUBJECT_PREFIX]')
     MAIL_SENDER = os.environ.get('[MAIL_SENDER]')
-    MAIL_ADMIN = os.environ.get('MAIL_ADMIN')
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
