@@ -137,6 +137,9 @@ def process_response(request_id, response_type, event_type, content, privacy='pr
 
     # create event object
     event = Events(request_id=request_id,
+                   # user_id and user_type currently commented out for testing
+                   # will need in production to store user information in events table
+                   # this will should never be called for anonymous user?
                    # user_id=current_user.id,
                    # user_type=current_user.type,
                    type=event_type,
