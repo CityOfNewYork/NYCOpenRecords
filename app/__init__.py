@@ -59,8 +59,6 @@ def create_app(config_name):
     celery.conf.update(app.config)
 
     with app.app_context():
-        db.create_all(app=app)
-
         from app.models import Anonymous
 
         login_manager.login_view = 'auth.login'
