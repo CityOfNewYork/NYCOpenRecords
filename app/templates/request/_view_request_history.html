@@ -5,7 +5,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for event in request_history %}
+      {% for event in request_history_section %}
         <td>User {{ event.user }} did {{ event.response }} on {{ event.timestamp }}.</td>
       {% endfor %}
       <tr>
