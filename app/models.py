@@ -435,16 +435,10 @@ class Notes(db.Model):
     Define the Notes class with the following columns and relationships:
 
     metadata_id - an integer that is the primary key of Notes
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
     content - a string that contains the content of a note
     """
     __tablename__ = 'notes'
     metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     content = db.Column(db.String(5000))
 
 
@@ -453,9 +447,6 @@ class Files(db.Model):
     Define the Files class with the following columns and relationships:
 
     metadata_id - an integer that is the primary key of Files
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
     name - a string containing the name of a file (name is the secured filename)
     mime_type - a string containing the mime_type of a file
     title - a string containing the title of a file (user defined)
@@ -463,9 +454,6 @@ class Files(db.Model):
     """
     __tablename__ = 'files'
     metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     name = db.Column(db.String)  # secured filename
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
@@ -477,17 +465,11 @@ class Links(db.Model):
     Define the Links class with the following columns and relationships:
 
     metadata_id - an integer that is the primary key of Links
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
     title - a string containing the title of a link
     url - a string containing the url link
     """
     __tablename__ = 'links'
     metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     title = db.Column(db.String)
     url = db.Column(db.String)
 
@@ -497,16 +479,10 @@ class Instructions(db.Model):
     Define the Instructions class with the following columns and relationships:
 
     metadata_id - an integer that is the primary key of Instructions
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
     content - a string containing the content of an instruction
     """
     __tablename__ = 'instructions'
     metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     content = db.Column(db.String)
 
 
@@ -515,17 +491,11 @@ class Extensions(db.Model):
     Define the Extensions class with the following columns and relationships:
 
     metadata_id - an integer that is the primary key of Extensions
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
     reason - a string containing the reason for an extension
     date - a datetime object containing the extended date of a request
     """
     __tablename__ = 'extensions'
     metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     reason = db.Column(db.String)
     date = db.Column(db.DateTime)
 
@@ -535,9 +505,6 @@ class Emails(db.Model):
     Define the Emails class with the following columns and relationships:
 
     metadata_id - an integer that is the primary key of Emails
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
     to - a string containing who the the email is being sent to
     cc - a string containing who is cc'd in an email
     bcc -  a string containing who is bcc'd in an email
@@ -548,9 +515,6 @@ class Emails(db.Model):
     """
     __tablename__ = 'emails'
     metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     to = db.Column(db.String)
     cc = db.Column(db.String)
     bcc = db.Column(db.String)
