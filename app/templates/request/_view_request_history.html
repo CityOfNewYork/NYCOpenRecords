@@ -27,10 +27,21 @@
 </table>
 
 <div class="show-more" style="text-align: center;">
-    <a onclick="load_more_history()">Load More</a>
+    {% if request_history_index == 45 %}
+        <a onclick="load_more_history()">Load More</a>
+    {% endif %}
 </div>
 
 <div class="navigation-arrows" style="text-align: center;">
-    <a onclick="previous_history()">&#9668;</a>
-    <a onclick="next_history()">&#9658;</a>
+    {% if request_history_index > 0 %}
+        <a onclick="previous_history()">&#9668;</a>
+    {% else %}
+        <a>&#9668;</a>
+    {% endif %}
+
+    {% if request_history_index < 45 %}
+        <a onclick="next_history()">&#9658;</a>
+    {% else %}
+        <a>&#9658;</a>
+    {% endif %}
 </div>

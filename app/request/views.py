@@ -77,4 +77,7 @@ def view_request():
 
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    return render_template('request/view_request.html')
+    request_history_index = 0
+    request_responses_index = 0
+    return render_template('request/view_request.html', request_history_index=request_history_index,
+                           request_responses_index=request_responses_index)

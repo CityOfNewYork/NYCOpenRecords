@@ -51,7 +51,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         var request_history_reload_index = 0;
-        var request_history_index = 0;
+{#        var request_history_index = 0;#}
         $.ajax({
             type: "POST",
             url: '/_get_request_history',
@@ -102,7 +102,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         var request_responses_reload_index = 0;
-        var request_responses_index = 0;
+{#        var request_responses_index = 0;#}
         $.ajax({
             type: "POST",
             url: '/_get_request_responses',
@@ -110,7 +110,7 @@
             data: JSON.stringify(request_responses_reload_index),
             success: function (response) {
                 var request_responses = response;
-                var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 6)];
+                var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)];
                 console.log(response)
             },
             error: function (error) {
@@ -121,14 +121,14 @@
 </script>
 <script type="text/javascript">
     function previous_responses() {
-        request_responses_index = request_responses_index - 5;
-        request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 6)]
+        request_responses_index = request_responses_index - 10;
+        request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)]
     }
 </script>
 <script type="text/javascript">
     function next_responses() {
-        request_responses_index = request_responses_index + 5;
-        request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 6)]
+        request_responses_index = request_responses_index + 10;
+        request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)]
     }
 </script>
 <script type="text/javascript">
@@ -141,7 +141,7 @@
             data: JSON.stringify(request_responses_reload_index),
             success: function (response) {
                 var request_responses = response;
-                var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 6)];
+                var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)];
                 console.log(response)
             },
             error: function (error) {

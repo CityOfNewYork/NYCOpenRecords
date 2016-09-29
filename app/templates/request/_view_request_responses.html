@@ -83,10 +83,21 @@
 </table>
 
 <div class="show-more" style="text-align: center;">
-    <a onclick="load_more_responses()">Load More</a>
+    {% if request_responses_index == 90 %}
+        <a onclick="load_more_responses()">Load More</a>
+    {% endif %}
 </div>
 
 <div class="navigation-arrows" style="text-align: center;">
-    <a onclick="previous_responses()">&#9668;</a>
-    <a onclick="next_responses()">&#9658;</a>
+    {% if request_responses_index > 0 %}
+        <a onclick="previous_responses()">&#9668;</a>
+    {% else %}
+        <a>&#9668;</a>
+    {% endif %}
+
+    {% if request_responses_index < 90 %}
+        <a onclick="next_responses()">&#9658;</a>
+    {% else %}
+        <a>&#9658;</a>
+    {% endif %}
 </div>
