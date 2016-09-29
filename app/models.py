@@ -10,9 +10,9 @@ from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON
 
-
 from app import app, db
 from app.constants import PUBLIC_USER, AGENCY_USER
+from sqlalchemy.dialects.postgresql import ARRAY
 
 
 class Permissions:
@@ -304,7 +304,6 @@ class Requests(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
-    # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
     submission = db.Column(
         db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
@@ -389,7 +388,7 @@ class Responses(db.Model):
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
     metadata_id = db.Column(db.Integer)
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -445,7 +444,7 @@ class Notes(db.Model):
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     content = db.Column(db.String(5000))
 
 
@@ -466,7 +465,7 @@ class Files(db.Model):
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     name = db.Column(db.String)  # secured filename
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
@@ -488,7 +487,7 @@ class Links(db.Model):
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     title = db.Column(db.String)
     url = db.Column(db.String)
 
@@ -507,7 +506,7 @@ class Instructions(db.Model):
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     content = db.Column(db.String)
 
 
@@ -519,12 +518,16 @@ class Extensions(db.Model):
     request_id - a foreign key that links to the primary key of a request
     response_id - a foreign key that links to the primary key of a response
     privacy - an enum containing the privacy options for a response
+    reason - a string containing the reason for an extension
+    date - a datetime object containing the extended date of a request
     """
     __tablename__ = 'extensions'
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
+    reason = db.Column(db.String)
+    date = db.Column(db.DateTime)
 
 
 class Emails(db.Model):
@@ -540,33 +543,17 @@ class Emails(db.Model):
     bcc -  a string containing who is bcc'd in an email
     subject - a string containing the subject of an email
     email_content - a string containing the content of an email
-    attachments - an array of integers containing the foreign key that links to the primary key of files
+    attachments - an array of integers containing that links to the files metadata_id
 
     """
     __tablename__ = 'emails'
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
     to = db.Column(db.String)
     cc = db.Column(db.String)
     bcc = db.Column(db.String)
-    subject = db.Column(db.String)
+    subject = db.Column(db.String(5000))
     email_content = db.Column(db.String)
-    attachments = db.Column(db.Integer([]), db.ForeignKey('files.metadata_id'))
-
-
-class Visibilities(db.Model):
-    """
-    Define the Visibilities class with the following columns and relationships:
-
-    metadata_id - an integer that is the primary key of Visibilities
-    request_id - a foreign key that links to the primary key of a request
-    response_id - a foreign key that links to the primary key of a response
-    privacy - an enum containing the privacy options for a response
-    """
-    __tablename__ = 'visibilites'
-    metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    attachments = db.Column(ARRAY(db.Integer))
