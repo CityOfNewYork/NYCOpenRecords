@@ -68,7 +68,7 @@ def index():
 
 @upload.route('/test', methods=['GET'])
 def test():
-    return render_template('test/upload.html')
+    return render_template('upload/uploads.html')
 
 
 @upload.route('/id/', methods=['GET'])
