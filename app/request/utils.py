@@ -152,13 +152,13 @@ def create_request(title,
 
 def _save_request_upload(upload_file, request_id):
     success = True
-    dir = os.path.join(
+    dirr = os.path.join(
         current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
         request_id)
-    if not os.path.exists(dir):
-        os.mkdir(dir)
+    if not os.path.exists(dirr):
+        os.mkdir(dirr)
     filename = secure_filename(upload_file.filename)
-    filepath = os.path.join(dir, filename)
+    filepath = os.path.join(dirr, filename)
     try:
         upload_file.save(filepath)
     except Exception as e:

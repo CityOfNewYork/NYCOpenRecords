@@ -65,6 +65,8 @@ def create_app(config_name):
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(prefixed_store, app)
 
+    # TODO: standardize blueprint handling (prefixes in __init__ only?)
+
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
@@ -76,4 +78,8 @@ def create_app(config_name):
 
     from .responses import response as response_blueprint
     app.register_blueprint(response_blueprint, url_prefix='/response')
+
+    from .upload import upload as upload_blueprint
+    app.register_blueprint(upload_blueprint)
+
     return app
