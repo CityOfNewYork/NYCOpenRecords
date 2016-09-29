@@ -61,7 +61,7 @@ class Permissions:
 
 class Roles(db.Model):
     """
-    Define the Role class with the following columns and relationships:
+    Define the Roles class with the following columns and relationships:
 
     id -- Column: Integer, PrimaryKey
     name -- Column: String(64), Unique
@@ -118,9 +118,9 @@ class Roles(db.Model):
 
 class Agencies(db.Model):
     """
-    Define the Agency class with the following columns and relationships:
+    Define the Agencies class with the following columns and relationships:
 
-    ein - the primary key of the agency table, 3 digit integer that is unique for each agency
+    ein - the primary key of the agencies table, 3 digit integer that is unique for each agency
     category - a string containing the category of the agency (ex: business/education)
     name - a string containing the name of the agency
     next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
@@ -163,9 +163,9 @@ class Agencies(db.Model):
 
 class Users(UserMixin, db.Model):
     """
-    Define the User class with the following columns and relationships:
+    Define the Users class with the following columns and relationships:
 
-    guid - a string that contains the unique guid of a agency user
+    guid - a string that contains the unique guid of users
     user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     guid and user_type are combined to create a composite primary key
     agency - a foreign key that links to the primary key of the agency table
@@ -282,9 +282,9 @@ class Anonymous(AnonymousUserMixin):
 
 class Requests(db.Model):
     """
-    Define the Request class with the following columns and relationships:
+    Define the Requests class with the following columns and relationships:
 
-    id - a string containing the requst id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
+    id - a string containing the request id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
     agency - a foreign key that links that the primary key of the agency the request was assigned to
     title - a string containing a short description of the request
     description - a string containing a full description of what is needed from the request
@@ -342,7 +342,7 @@ class Events(db.Model):
     Define the Event class with the following columns and relationships:
     Events are any type of action that happened to a request after it was submitted
 
-    id - an integer that is the primary key of an Event
+    id - an integer that is the primary key of an Events
     request_id - a foreign key that links to a request's primary key
     user_id - a foreign key that links to the user_id of the person who performed the event
     response_id - a foreign key that links to the primary key of a response
@@ -375,7 +375,7 @@ class Responses(db.Model):
     """
     Define the Response class with the following columns and relationships:
 
-    id - an integer that is the primary key of a Response
+    id - an integer that is the primary key of a Responses
     request_id - a foreign key that links to the primary key of a request
     type - a string containing the type of response that was given for a request
     date_modified - a datetime object that keeps track of when a request was changed
@@ -388,8 +388,7 @@ class Responses(db.Model):
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
-    # how exactly is metadata_id going to be passed and stored?
-    # metadata_id = db.Column(db.Integer)
+    metadata_id = db.Column(db.Integer)
     privacy = db.Column(db.Enum)
 
     def __repr__(self):
@@ -400,7 +399,7 @@ class Reasons(db.Model):
     """
     Define the Reason class with the following columns and relationships:
 
-    id - an integer that is the primary key of a Reason
+    id - an integer that is the primary key of a Reasons
     agency - a foreign key that links to the a agency's primary key which is the EIN number
     deny_reason - a string containing the message that will be shown when a request is denied
     """
@@ -434,7 +433,13 @@ class UserRequests(db.Model):
 
 class Notes(db.Model):
     """
+    Define the Notes class with the following columns and relationships:
 
+    metadata_id - an integer that is the primary key of Notes
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
+    content - a string that contains the content of a note
     """
     __tablename__ = 'notes'
     metadata_id = db.Column(db.Integer, primary_key=True)
@@ -446,14 +451,23 @@ class Notes(db.Model):
 
 class Files(db.Model):
     """
+    Define the Files class with the following columns and relationships:
 
+    metadata_id - an integer that is the primary key of Files
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
+    name - a string containing the name of a file (name is the secured filename)
+    mime_type - a string containing the mime_type of a file
+    title - a string containing the title of a file (user defined)
+    size - a string containing the size of a file
     """
     __tablename__ = 'files'
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     privacy = db.Column(db.Enum)
-    name = db.Column(db.String)
+    name = db.Column(db.String)  # secured filename
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
     size = db.Column(db.Integer)
@@ -461,7 +475,14 @@ class Files(db.Model):
 
 class Links(db.Model):
     """
+    Define the Links class with the following columns and relationships:
 
+    metadata_id - an integer that is the primary key of Links
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
+    title - a string containing the title of a link
+    url - a string containing the url link
     """
     __tablename__ = 'links'
     metadata_id = db.Column(db.Integer, primary_key=True)
@@ -469,11 +490,18 @@ class Links(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     privacy = db.Column(db.Enum)
     title = db.Column(db.String)
+    url = db.Column(db.String)
 
 
 class Instructions(db.Model):
     """
+    Define the Instructions class with the following columns and relationships:
 
+    metadata_id - an integer that is the primary key of Instructions
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
+    content - a string containing the content of an instruction
     """
     __tablename__ = 'instructions'
     metadata_id = db.Column(db.Integer, primary_key=True)
@@ -483,8 +511,36 @@ class Instructions(db.Model):
     content = db.Column(db.String)
 
 
+class Extensions(db.Model):
+    """
+    Define the Extensions class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Extensions
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
+    """
+    __tablename__ = 'extensions'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+
+
 class Emails(db.Model):
     """
+    Define the Emails class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Emails
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
+    to - a string containing who the the email is being sent to
+    cc - a string containing who is cc'd in an email
+    bcc -  a string containing who is bcc'd in an email
+    subject - a string containing the subject of an email
+    email_content - a string containing the content of an email
+    attachments - an array of integers containing the foreign key that links to the primary key of files
 
     """
     __tablename__ = 'emails'
@@ -496,22 +552,18 @@ class Emails(db.Model):
     cc = db.Column(db.String)
     bcc = db.Column(db.String)
     subject = db.Column(db.String)
-
-
-class Extensions(db.Model):
-    """
-
-    """
-    __tablename__ = 'extensions'
-    metadata_id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    privacy = db.Column(db.Enum)
+    email_content = db.Column(db.String)
+    attachments = db.Column(db.Integer([]), db.ForeignKey('files.metadata_id'))
 
 
 class Visibilities(db.Model):
     """
+    Define the Visibilities class with the following columns and relationships:
 
+    metadata_id - an integer that is the primary key of Visibilities
+    request_id - a foreign key that links to the primary key of a request
+    response_id - a foreign key that links to the primary key of a response
+    privacy - an enum containing the privacy options for a response
     """
     __tablename__ = 'visibilites'
     metadata_id = db.Column(db.Integer, primary_key=True)
