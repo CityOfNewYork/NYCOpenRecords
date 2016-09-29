@@ -171,6 +171,7 @@ def _save_request_upload(upload_file, request_id):
 
 def generate_request_id(agency):
     """
+    Function that takes in agency as a paramater to generate the FOIL Request ID for a request
 
     :param agency: agency ein used as a paramater to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
