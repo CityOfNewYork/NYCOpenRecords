@@ -433,6 +433,9 @@ class UserRequests(db.Model):
 
 
 class Notes(db.Model):
+    """
+
+    """
     __tablename__ = 'notes'
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
@@ -442,6 +445,9 @@ class Notes(db.Model):
 
 
 class Files(db.Model):
+    """
+
+    """
     __tablename__ = 'files'
     metadata_id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
@@ -451,3 +457,64 @@ class Files(db.Model):
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
     size = db.Column(db.Integer)
+
+
+class Links(db.Model):
+    """
+
+    """
+    __tablename__ = 'links'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+    title = db.Column(db.String)
+
+
+class Instructions(db.Model):
+    """
+
+    """
+    __tablename__ = 'instructions'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+    content = db.Column(db.String)
+
+
+class Emails(db.Model):
+    """
+
+    """
+    __tablename__ = 'emails'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+    to = db.Column(db.String)
+    cc = db.Column(db.String)
+    bcc = db.Column(db.String)
+    subject = db.Column(db.String)
+
+
+class Extensions(db.Model):
+    """
+
+    """
+    __tablename__ = 'extensions'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
+
+
+class Visibilities(db.Model):
+    """
+
+    """
+    __tablename__ = 'visibilites'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    privacy = db.Column(db.Enum)
