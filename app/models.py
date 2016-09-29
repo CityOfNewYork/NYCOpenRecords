@@ -10,9 +10,9 @@ from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON
 
-
 from app import app, db
 from app.constants import PUBLIC_USER, AGENCY_USER
+from sqlalchemy.dialects.postgresql import ARRAY
 
 
 class Permissions:
@@ -61,7 +61,7 @@ class Permissions:
 
 class Roles(db.Model):
     """
-    Define the Role class with the following columns and relationships:
+    Define the Roles class with the following columns and relationships:
 
     id -- Column: Integer, PrimaryKey
     name -- Column: String(64), Unique
@@ -118,9 +118,9 @@ class Roles(db.Model):
 
 class Agencies(db.Model):
     """
-    Define the Agency class with the following columns and relationships:
+    Define the Agencies class with the following columns and relationships:
 
-    ein - the primary key of the agency table, 3 digit integer that is unique for each agency
+    ein - the primary key of the agencies table, 3 digit integer that is unique for each agency
     category - a string containing the category of the agency (ex: business/education)
     name - a string containing the name of the agency
     next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
@@ -163,9 +163,9 @@ class Agencies(db.Model):
 
 class Users(UserMixin, db.Model):
     """
-    Define the User class with the following columns and relationships:
+    Define the Users class with the following columns and relationships:
 
-    guid - a string that contains the unique guid of a agency user
+    guid - a string that contains the unique guid of users
     user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     guid and user_type are combined to create a composite primary key
     agency - a foreign key that links to the primary key of the agency table
@@ -282,9 +282,9 @@ class Anonymous(AnonymousUserMixin):
 
 class Requests(db.Model):
     """
-    Define the Request class with the following columns and relationships:
+    Define the Requests class with the following columns and relationships:
 
-    id - a string containing the requst id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
+    id - a string containing the request id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
     agency - a foreign key that links that the primary key of the agency the request was assigned to
     title - a string containing a short description of the request
     description - a string containing a full description of what is needed from the request
@@ -304,7 +304,6 @@ class Requests(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
-    # submission = db.Column(db.Enum('fill in types here', name='submission_type'))
     submission = db.Column(
         db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
@@ -342,7 +341,7 @@ class Events(db.Model):
     Define the Event class with the following columns and relationships:
     Events are any type of action that happened to a request after it was submitted
 
-    id - an integer that is the primary key of an Event
+    id - an integer that is the primary key of an Events
     request_id - a foreign key that links to a request's primary key
     user_id - a foreign key that links to the user_id of the person who performed the event
     response_id - a foreign key that links to the primary key of a response
@@ -375,7 +374,7 @@ class Responses(db.Model):
     """
     Define the Response class with the following columns and relationships:
 
-    id - an integer that is the primary key of a Response
+    id - an integer that is the primary key of a Responses
     request_id - a foreign key that links to the primary key of a request
     type - a string containing the type of response that was given for a request
     date_modified - a datetime object that keeps track of when a request was changed
@@ -388,8 +387,8 @@ class Responses(db.Model):
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
-    content = db.Column(JSON)
-    privacy = db.Column(db.String(7))
+    metadata_id = db.Column(db.Integer)
+    privacy = db.Column(db.Enum("private", "public", name="privacy"))
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -399,7 +398,7 @@ class Reasons(db.Model):
     """
     Define the Reason class with the following columns and relationships:
 
-    id - an integer that is the primary key of a Reason
+    id - an integer that is the primary key of a Reasons
     agency - a foreign key that links to the a agency's primary key which is the EIN number
     deny_reason - a string containing the message that will be shown when a request is denied
     """
@@ -429,3 +428,96 @@ class UserRequests(db.Model):
     __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
                                            [Users.guid, Users.user_type]),
                       {})
+
+
+class Notes(db.Model):
+    """
+    Define the Notes class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Notes
+    content - a string that contains the content of a note
+    """
+    __tablename__ = 'notes'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(5000))
+
+
+class Files(db.Model):
+    """
+    Define the Files class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Files
+    name - a string containing the name of a file (name is the secured filename)
+    mime_type - a string containing the mime_type of a file
+    title - a string containing the title of a file (user defined)
+    size - a string containing the size of a file
+    """
+    __tablename__ = 'files'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)  # secured filename
+    mime_type = db.Column(db.String)
+    title = db.Column(db.String)
+    size = db.Column(db.Integer)
+
+
+class Links(db.Model):
+    """
+    Define the Links class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Links
+    title - a string containing the title of a link
+    url - a string containing the url link
+    """
+    __tablename__ = 'links'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String)
+    url = db.Column(db.String)
+
+
+class Instructions(db.Model):
+    """
+    Define the Instructions class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Instructions
+    content - a string containing the content of an instruction
+    """
+    __tablename__ = 'instructions'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String)
+
+
+class Extensions(db.Model):
+    """
+    Define the Extensions class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Extensions
+    reason - a string containing the reason for an extension
+    date - a datetime object containing the extended date of a request
+    """
+    __tablename__ = 'extensions'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    reason = db.Column(db.String)
+    date = db.Column(db.DateTime)
+
+
+class Emails(db.Model):
+    """
+    Define the Emails class with the following columns and relationships:
+
+    metadata_id - an integer that is the primary key of Emails
+    to - a string containing who the the email is being sent to
+    cc - a string containing who is cc'd in an email
+    bcc -  a string containing who is bcc'd in an email
+    subject - a string containing the subject of an email
+    email_content - a string containing the content of an email
+    attachments - an array of integers containing that links to the files metadata_id
+
+    """
+    __tablename__ = 'emails'
+    metadata_id = db.Column(db.Integer, primary_key=True)
+    to = db.Column(db.String)
+    cc = db.Column(db.String)
+    bcc = db.Column(db.String)
+    subject = db.Column(db.String(5000))
+    email_content = db.Column(db.String)
+    attachments = db.Column(ARRAY(db.Integer))
