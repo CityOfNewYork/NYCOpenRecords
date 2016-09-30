@@ -17,7 +17,6 @@ from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, Anon
 from app.request.utils import create_request
 from flask_login import current_user
 
-
 @request_blueprint.route('/new', methods=['GET', 'POST'])
 def submit_request():
     """
@@ -98,3 +97,5 @@ def _get_address(form):
         address = create_mailing_address(form.address.data, form.city.data, form.state.data, form.zipcode.data,
                                          form.address_two.data)
     return address
+
+

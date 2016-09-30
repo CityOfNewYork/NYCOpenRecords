@@ -19,6 +19,12 @@ from .lib import (
 )
 from .constants import CONTENT_RANGE_HEADER
 
+@upload.route('/test_upload', methods=['POST'])
+def test_upload():
+    form = request.form
+    print(form)
+    return render_template("base.html")
+
 # TODO: include id here and GET, since we are always dealing with a request id in this case?
 @upload.route('/', methods=['POST'])
 def index():
@@ -53,7 +59,8 @@ def index():
     else:
         ufile.save(filepath)
         # scan_file.delay(filepath)
-
+    # import time
+    # time.sleep(1)
     return jsonify({
         "files": [{
             "name": filename,
@@ -68,7 +75,7 @@ def index():
 
 @upload.route('/test', methods=['GET'])
 def test():
-    return render_template('test/upload.html')
+    return render_template('upload/upload.html')
 
 
 @upload.route('/id/', methods=['GET'])

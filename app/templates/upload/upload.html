@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-    <form id="fileupload" action="//jquery-file-upload.appspot.com/" method="POST" enctype="multipart/form-data">
+    <form id="fileupload" action="/upload/test_upload" method="POST" enctype="multipart/form-data">
         <!-- Redirect browsers with JavaScript disabled to the origin page -->
         <noscript><input type="hidden" name="redirect" value="http://blueimp.github.io/jQuery-File-Upload/"></noscript>
         <div class="row fileupload-buttonbar">
@@ -44,17 +44,19 @@
         </div>
         <!-- The table listing the files available for upload/download -->
         <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
+        <input type="submit" value="Submit">
     </form>
-
     {% raw %}
     <!-- The template to display files available for upload -->
     <script id="template-upload" type="text/x-tmpl">
+
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <tr class="template-upload fade">
             <td>
                 <p class="name">{%=file.name%}</p>
                 <strong class="error text-danger"></strong>
             </td>
+
             <td>
                 <p class="size">Processing...</p>
                 <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
@@ -78,9 +80,12 @@
     </script>
     <!-- The template to display files available for download -->
     <script id="template-download" type="text/x-tmpl">
+
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <tr class="template-download fade">
             <td>
+                Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
+                <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
                 <p class="name">
                     {% if (file.url) { %}
                         <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
@@ -118,7 +123,7 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script src="http://blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
