@@ -23,7 +23,7 @@
 
 .wrapper
 {
-    margin-bottom: -10rem;
+    /*margin-bottom: -10rem;*/
     min-height:100%;
     max-width:calc(940px + 20px);
     margin-left:auto;
@@ -44,7 +44,7 @@
     {
         padding-left:20px;
         padding-right:20px;
-        margin-bottom:-27rem
+        /*margin-bottom:-27rem*/
     }
 }
 .wrapper input,.wrapper select,.wrapper textarea
