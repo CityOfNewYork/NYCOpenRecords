@@ -48,7 +48,7 @@ def response_note(request_id):
     form = NoteForm()
     if flask_request.method == 'POST':
         add_note(request_id=request,
-                 response_content=form.note.data)
+                 content=form.note.data)
         flash('Note has been submitted')
     return render_template('request/view_request.html', request=request, form=form)
 

@@ -44,6 +44,7 @@
                 <div class="col-sm-12">
                     {{ form.request_file.label(class='request-heading') }}
                     {{ form.request_file(id='request-file') }}
+                    <p>*The file must be less than 20 Mb.*</p>
                 </div>
                 <br><br>
 
@@ -59,5 +60,6 @@
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/validation/custom_validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-user.js') }}"></script>
 {% endblock %}
