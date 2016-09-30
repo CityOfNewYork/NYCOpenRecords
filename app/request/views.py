@@ -9,6 +9,7 @@ from flask import (
     request,
     redirect,
     url_for,
+    jsonify
 )
 
 import os

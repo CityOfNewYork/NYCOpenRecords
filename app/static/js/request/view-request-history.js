@@ -7,22 +7,21 @@ $(".load-more-history").hide();
 var request_history = [];
 var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
 
-// $(document).ready(function () {
-//     $.ajax({
-//         type: "POST",
-//         url: '/request/_get_request_history',
-//         dataType: 'json',
-//         data: JSON.stringify(request_history_reload_index),
-//         success: function (response) {
-//             var request_history = response;
-//             var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
-//             console.log(response)
-//         },
-//         error: function (error) {
-//             console.log(error);
-//         }
-//     });
-// });
+$(document).ready(function () {
+    $.ajax({
+        type: "POST",
+        url: '/request/api/v1.0/history',
+        data: {request_history_reload_index: request_history_reload_index},
+        success: function (data) {
+            // var request_history = data;
+            // var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
+            console.log(data.request_history);
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
+});
 
 function previous_history() {
     if (request_history_index != 0) {
