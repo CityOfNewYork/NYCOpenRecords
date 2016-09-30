@@ -6,11 +6,10 @@
 
 """
 from flask_login import current_user
-from app.models import Responses, Events
+from app.models import Responses, Events, Notes
 from app.db_utils import create_object
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
-import json
 
 
 def add_file():
@@ -44,13 +43,17 @@ def edit_file():
     print("edit_file function")
 
 
-def add_note(request_id, response_content):
+def add_note(request_id, content):
     """
-    Will add a note to the database for the specified request.
-    :return:
+
+    :param request_id: takes in FOIL request ID as an argument for the process_response function
+    :param content: content of the note to be created and stored as a note object
+    :return: Stores the note content into the Notes table.
+             Provides parameters for the process_response function to create and store responses and events object.
     """
-    content = json.dumps({"note": response_content})
-    process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], content)
+    note = Notes(content=content)
+    create_object(obj=note)
+    process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], note.metadata_id)
 
 
 def delete_note():
@@ -116,21 +119,23 @@ def add_push():
     print("add_push function")
 
 
-def add_visibility():
+def process_response(request_id, response_type, event_type, metadata_id, privacy='private'):
     """
-    Will add a visibility to the database for the specified request.
-    :return:
+    Creates and stores responses and events objects to the database
+
+    :param request_id: FOIL request ID to be stored into the responses and events tables
+    :param response_type: type of response to be stored in the responses table
+    :param event_type: type of event to be stored in the events table
+    :param metadata_id: metadata_id of the specific response to be stored in the responses table
+    :param privacy: privacy of the response (default is 'private') to be stored in the responses table
+    :return: Creates and stores response object with given arguments from separate response type functions.
+             Creates and stores events object to the database.
     """
-    # TODO: Implement adding a visiblity
-    print("add_visibility function")
-
-
-def process_response(request_id, response_type, event_type, content, privacy='private'):
     # create response object
     response = Responses(request_id=request_id,
                          type=response_type,
                          date_modified=datetime.utcnow(),
-                         content=content,
+                         metadata_id=metadata_id,
                          privacy=privacy)
     # store response object
     create_object(obj=response)
@@ -139,7 +144,7 @@ def process_response(request_id, response_type, event_type, content, privacy='pr
     event = Events(request_id=request_id,
                    # user_id and user_type currently commented out for testing
                    # will need in production to store user information in events table
-                   # this will should never be called for anonymous user?
+                   # will this be called for anonymous user?
                    # user_id=current_user.id,
                    # user_type=current_user.type,
                    type=event_type,
