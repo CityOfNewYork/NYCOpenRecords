@@ -23,7 +23,3 @@ from . import main
 @main.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('base.html')
-
-@main.route('/status', methods=['GET'])
-def status():
-    return render_template('request/status.html')
