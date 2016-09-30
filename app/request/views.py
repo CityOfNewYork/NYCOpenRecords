@@ -108,3 +108,11 @@ def _get_address(form):
         form.zipcode.data,
         form.address_two.data or None
     )
+@request_blueprint.route('/view', methods=['GET', 'POST'])
+def view_request():
+    """
+    This function is for testing purposes of the view a request back until backend functionality is implemeneted.
+
+    :return: redirects to view_request.html which is the frame of the view a request page
+    """
+    return render_template('request/view_request.html')
