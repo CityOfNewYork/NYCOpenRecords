@@ -11,7 +11,7 @@ from app.constants import (
     AGENCY_USER
 )
 from app.db_utils import create_object, update_object
-from app.models import Agencies, Users
+from app.models import Agency, User
 
 
 @login_manager.user_loader
@@ -24,7 +24,7 @@ def user_loader(user_id):
     """
     guid = user_id.split(':')[0]
     user_type = user_id.split(':')[1]
-    return Users.query.filter_by(guid=guid, user_type=user_type).first()
+    return User.query.filter_by(guid=guid, user_type=user_type).first()
 
 
 def init_saml_auth(req):
@@ -78,11 +78,11 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     :param mailing_address: User's mailing address; JSON Object
     :return: User GUID + User Type
     """
-    user = Users.query.filter_by(guid=guid).first()
+    user = User.query.filter_by(guid=guid).first()
 
     if user:
         if user.user_type == AGENCY_USER:
-            organization = Agencies.query.filter_by(email_domain=user.email.split('@')[-1]).first()
+            organization = Agency.query.filter_by(email_domain=user.email.split('@')[-1]).first()
 
             user = update_user(
                 guid=guid,
@@ -144,7 +144,7 @@ def update_user(guid=None, user_type=None, **kwargs):
     if not guid:
         return None
     for key, value in kwargs.items():
-        user = update_object(attribute=key, value=value, obj_type="Users", obj_id=(guid, user_type))
+        user = update_object(attribute=key, value=value, obj_type="User", obj_id=(guid, user_type))
 
     if not user:
         return None
@@ -161,7 +161,7 @@ def find_or_create_user(guid, user_type):
     :param unicode user_type: User Type. See auth.constants for list of valid user types
     :return: (User Object, Boolean for Is new User)
     """
-    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(user_type[0])).first()
+    user = User.query.filter_by(guid=str(guid[0]), user_type=str(user_type[0])).first()
 
     if user:
         return user, False
@@ -241,7 +241,7 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
     else:
         terms_of_use_accepted = None
 
-    user = Users(guid=guid,
+    user = User(guid=guid,
                 user_type=user_type,
                 email=email,
                 first_name=first_name,

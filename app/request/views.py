@@ -10,7 +10,8 @@ from flask import (
     redirect,
     url_for,
 )
-from app.db_utils import get_agencies_list
+
+import os
 from app.request import request_blueprint
 from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
 from app.request.utils import create_request
@@ -34,11 +35,9 @@ def submit_request():
     # Public user
     if current_user.is_public:
         form = PublicUserRequestForm()
-        agencies = get_agencies_list()
-        form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agencies=form.request_agency.data, title=form.request_title.data,
+            create_request(agency=form.request_agency.data, title=form.request_title.data,
                            description=form.request_description.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
@@ -46,11 +45,9 @@ def submit_request():
     # Anonymous user
     if current_user and current_user.is_anonymous:
         form = AnonymousRequestForm()
-        agencies = get_agencies_list()
-        form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agencies=form.request_agency.data, title=form.request_title.data,
+            create_request(agency=form.request_agency.data, title=form.request_title.data,
                            description=form.request_description.data, email=form.email.data,
                            first_name=form.first_name.data, last_name=form.last_name.data,
                            user_title=form.user_title.data, organization=form.user_organization.data,
@@ -63,10 +60,21 @@ def submit_request():
         form = AgencyUserRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(title=form.request_title.data, description=form.request_description.data,
-                           submission=form.method_received.data, agency_date_submitted=form.request_date.data,
-                           email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data,
+            create_request(agency=form.request_agency.data, title=form.request_title.data,
+                           description=form.request_description.data, submission=form.method_received.data,
+                           agency_date_submitted=form.request_date.data, email=form.email.data,
+                           first_name=form.first_name.data, last_name=form.last_name.data,
                            user_title=form.user_title.data, organization=form.user_organization.data,
                            phone=form.phone.data, fax=form.fax.data, address=form.address.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)
+
+
+@request_blueprint.route('/view', methods=['GET', 'POST'])
+def view_request():
+    """
+    This function is for testing purposes of the view a request back until backend functionality is implemeneted.
+
+    :return: redirects to view_request.html which is the frame of the view a request page
+    """
+    return render_template('request/view_request.html')

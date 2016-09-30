@@ -2,20 +2,26 @@
 Models for open records database
 """
 
+import re
+from datetime import datetime, timedelta
 import csv
 from datetime import datetime
 
-from flask_login import UserMixin, AnonymousUserMixin
-from flask_login import current_user
-from sqlalchemy import ForeignKeyConstraint
+from flask_login import UserMixin, current_user
 from sqlalchemy.dialects.postgresql import JSON
-
-
+from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import and_, or_
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
+from werkzeug.security import generate_password_hash, \
+    check_password_hash
+from app import db
+from flask_login import UserMixin, AnonymousUserMixin
 from app import app, db
 from app.constants import PUBLIC_USER, AGENCY_USER
 
 
-class Permissions:
+class Permission:
     """
     Define the permission codes for certain actions:
 
@@ -59,7 +65,7 @@ class Permissions:
     ADMINISTER = 0x20000
 
 
-class Roles(db.Model):
+class Role(db.Model):
     """
     Define the Role class with the following columns and relationships:
 
@@ -81,42 +87,40 @@ class Roles(db.Model):
         Agency Helper, Agency FOIL Officer, Agency Administrator.
         """
         roles = {
-            'Anonymous User': (Permissions.DUPLICATE_REQUEST | Permissions.VIEW_REQUEST_STATUS_PUBLIC |
-                               Permissions.VIEW_REQUEST_INFO_PUBLIC),
-            'Public User - Non Requester': (Permissions.ADD_NOTE | Permissions.DUPLICATE_REQUEST |
-                                            Permissions.VIEW_REQUEST_STATUS_PUBLIC |
-                                            Permissions.VIEW_REQUEST_INFO_PUBLIC
-                                            ),
-            'Public User - Requester': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS |
-                                        Permissions.VIEW_DOCUMENTS_IMMEDIATELY | Permissions.VIEW_REQUEST_INFO_ALL |
-                                        Permissions.VIEW_REQUEST_STATUS_PUBLIC),
-            'Agency Helper': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.VIEW_REQUESTS_HELPER |
-                              Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL),
-            'Agency FOIL Officer': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.EXTEND_REQUESTS |
-                                    Permissions.CLOSE_REQUESTS | Permissions.ADD_HELPERS | Permissions.REMOVE_HELPERS |
-                                    Permissions.ACKNOWLEDGE | Permissions.VIEW_REQUESTS_AGENCY |
-                                    Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL),
-            'Agency Administrator': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.EXTEND_REQUESTS |
-                                     Permissions.CLOSE_REQUESTS | Permissions.ADD_HELPERS | Permissions.REMOVE_HELPERS |
-                                     Permissions.ACKNOWLEDGE | Permissions.CHANGE_REQUEST_POC |
-                                     Permissions.VIEW_REQUESTS_ALL | Permissions.VIEW_REQUEST_INFO_ALL |
-                                     Permissions.VIEW_REQUEST_STATUS_ALL)
+            'Anonymous User': (Permission.DUPLICATE_REQUEST | Permission.VIEW_REQUEST_STATUS_PUBLIC |
+                               Permission.VIEW_REQUEST_INFO_PUBLIC, True),
+            'Public User - Non Requester': (Permission.ADD_NOTE | Permission.DUPLICATE_REQUEST |
+                                            Permission.VIEW_REQUEST_STATUS_PUBLIC | Permission.VIEW_REQUEST_INFO_PUBLIC,
+                                            False),
+            'Public User - Requester': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS |
+                                        Permission.VIEW_DOCUMENTS_IMMEDIATELY | Permission.VIEW_REQUEST_INFO_ALL |
+                                        Permission.VIEW_REQUEST_STATUS_PUBLIC, False),
+            'Agency Helper': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.VIEW_REQUESTS_HELPER |
+                              Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False),
+            'Agency FOIL Officer': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS |
+                                    Permission.CLOSE_REQUESTS | Permission.ADD_HELPERS | Permission.REMOVE_HELPERS |
+                                    Permission.ACKNOWLEDGE | Permission.VIEW_REQUESTS_AGENCY |
+                                    Permission.VIEW_REQUEST_INFO_ALL | Permission.VIEW_REQUEST_STATUS_ALL, False),
+            'Agency Administrator': (Permission.ADD_NOTE | Permission.UPLOAD_DOCUMENTS | Permission.EXTEND_REQUESTS |
+                                     Permission.CLOSE_REQUESTS | Permission.ADD_HELPERS | Permission.REMOVE_HELPERS |
+                                     Permission.ACKNOWLEDGE | Permission.CHANGE_REQUEST_POC |
+                                     Permission.VIEW_REQUESTS_ALL | Permission.VIEW_REQUEST_INFO_ALL |
+                                     Permission.VIEW_REQUEST_STATUS_ALL, False)
         }
-
-        # import pdb; pdb.set_trace()
-        for name, value in roles.items():
-            role = Roles.query.filter_by(name=name).first()
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
             if role is None:
-                role = Roles(name=name)
-            role.permissions = value
+                role = Role(name=r)
+            role.permissions = roles[r][0]
+            role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
 
     def __repr__(self):
-        return '<Roles %r>' % self.name
+        return '<Role %r>' % self.name
 
 
-class Agencies(db.Model):
+class Agency(db.Model):
     """
     Define the Agency class with the following columns and relationships:
 
@@ -129,7 +133,7 @@ class Agencies(db.Model):
     appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
     """
 
-    __tablename__ = 'agencies'
+    __tablename__ = 'agency'
     ein = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(256))
     name = db.Column(db.String(256), nullable=False)
@@ -140,13 +144,17 @@ class Agencies(db.Model):
     @staticmethod
     def insert_agencies():
         """
-        Automatically populate the agencies table for the OpenRecords application.
+        Automatically populate the agency table for the OpenRecords application.
         """
         data = open(app.config['AGENCY_DATA'], 'r')
         dictreader = csv.DictReader(data)
 
         for row in dictreader:
-            agency = Agencies(
+            # import pdb; pdb.set_trace()
+            print(row)
+            print(len(row['category']))
+            print(len(row['name']))
+            agency = Agency(
                 ein=row['ein'],
                 category=row['category'],
                 name=row['name'],
@@ -158,10 +166,26 @@ class Agencies(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return '<Agencies %r>' % self.name
+        return '<Agency %r>' % self.name
 
 
-class Users(UserMixin, db.Model):
+class UserRequest(db.Model):
+    """
+    Define the UserRequest class with the following columns and relationships:
+    A UserRequest is a many to many relationship between users who are related to a certain request
+    user_guid and request_id are combined to create a composite primary key
+
+    user_guid = a foreign key that links to the primary key of the User table
+    request_id = a foreign key that links to the primary key of the Request table
+    """
+
+    __tablename__ = 'user_request'
+    user_guid = db.Column(db.String(1000), db.ForeignKey("user.guid"), primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey("request.id"), primary_key=True)
+    permission = db.Column(db.Integer)
+
+
+class User(UserMixin, db.Model):
     """
     Define the User class with the following columns and relationships:
 
@@ -181,10 +205,10 @@ class Users(UserMixin, db.Model):
     fax_number - string containing the user's fax number
     mailing_address - a JSON object containing the user's address
     """
-    __tablename__ = 'users'
+    __tablename__ = 'user'
     guid = db.Column(db.String(64), primary_key=True, unique=True)  # guid + user type
     user_type = db.Column(db.String(64), primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
     email = db.Column(db.String(254))
     first_name = db.Column(db.String(32), nullable=False)
     middle_initial = db.Column(db.String(1))
@@ -236,51 +260,13 @@ class Users(UserMixin, db.Model):
         return "{}:{}".format(self.guid, self.user_type)
 
     def __init__(self, **kwargs):
-        super(Users, self).__init__(**kwargs)
+        super(User, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}:{}>'.format(self.guid, self.user_type)
+        return '<User {}:{}>'.format(self.guid, self.user_type)
 
 
-class Anonymous(AnonymousUserMixin):
-    @property
-    def is_authenticated(self):
-        """
-        Anonymous users are not authenticated.
-        :return: Boolean
-        """
-        return False
-
-    @property
-    def is_public(self):
-        """
-        Anonymous users are treated differently from Public Users who are authenticated. This method always
-        returns False.
-        :return: Boolean
-        """
-        return False
-
-    @property
-    def is_anonymous(self):
-        """
-        Anonymous users always return True
-        :return: Boolean
-        """
-        return True
-
-    @property
-    def is_agency(self):
-        """
-        Anonymous users always return False
-        :return: Boolean
-        """
-        return False
-
-    def get_id(self):
-        return "{}:{}".format(self.guid, self.user_type)
-
-
-class Requests(db.Model):
+class Request(db.Model):
     """
     Define the Request class with the following columns and relationships:
 
@@ -296,9 +282,9 @@ class Requests(db.Model):
     visibility - a JSON object that contains the visbility settings of a request
     """
 
-    __tablename__ = 'requests'
+    __tablename__ = 'request'
     id = db.Column(db.String(19), primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'))
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
@@ -316,7 +302,7 @@ class Requests(db.Model):
             id,
             title,
             description,
-            agency,
+            # agency,
             date_created,
             date_submitted=None,
             due_date=None,
@@ -326,7 +312,7 @@ class Requests(db.Model):
         self.id = id
         self.title = title
         self.description = description
-        self.agency = agency
+        # self.agency = agency
         self.date_created = date_created
         self.date_submitted = date_submitted
         self.due_date = due_date
@@ -334,10 +320,10 @@ class Requests(db.Model):
         self.current_status = current_status
 
     def __repr__(self):
-        return '<Requests %r>' % self.id
+        return '<Request %r>' % self.id
 
 
-class Events(db.Model):
+class Event(db.Model):
     """
     Define the Event class with the following columns and relationships:
     Events are any type of action that happened to a request after it was submitted
@@ -352,26 +338,21 @@ class Events(db.Model):
     new_response_value - a string containing the new response value
     """
 
-    __tablename__ = 'events'
+    __tablename__ = 'event'
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    user_id = db.Column(db.String(64))  # who did the action
-    user_type = db.Column(db.String(64))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
+    user_id = db.Column(db.String(1000), db.ForeignKey('user.guid'))  # who did the action
+    response_id = db.Column(db.Integer, db.ForeignKey('response.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_response_value = db.Column(db.String)
     new_response_value = db.Column(db.String)
 
-    __table_args__ = (ForeignKeyConstraint([user_id, user_type],
-                                           [Users.guid, Users.user_type]),
-                      {})
-
     def __repr__(self):
-        return '<Events %r>' % self.id
+        return '<Event %r>' % self.id
 
 
-class Responses(db.Model):
+class Response(db.Model):
     """
     Define the Response class with the following columns and relationships:
 
@@ -383,19 +364,19 @@ class Responses(db.Model):
     privacy - a string containing the privacy option for a response
     """
 
-    __tablename__ = 'responses'
+    __tablename__ = 'response'
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    request_id = db.Column(db.String(19), db.ForeignKey('request.id'))
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
     content = db.Column(JSON)
     privacy = db.Column(db.String(7))
 
     def __repr__(self):
-        return '<Responses %r>' % self.id
+        return '<Response %r>' % self.id
 
 
-class Reasons(db.Model):
+class Reason(db.Model):
     """
     Define the Reason class with the following columns and relationships:
 
@@ -404,28 +385,7 @@ class Reasons(db.Model):
     deny_reason - a string containing the message that will be shown when a request is denied
     """
 
-    __tablename__ = 'reasons'
+    __tablename__ = 'reason'
     id = db.Column(db.Integer, primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'), nullable=True)
+    agency = db.Column(db.Integer, db.ForeignKey('agency.ein'), nullable=True)
     deny_reason = db.Column(db.String)  # reasons for denying a request based off law dept's responses
-
-
-class UserRequests(db.Model):
-    """
-    Define the UserRequest class with the following columns and relationships:
-    A UserRequest is a many to many relationship between users who are related to a certain request
-    user_guid and request_id are combined to create a composite primary key
-
-    user_guid = a foreign key that links to the primary key of the User table
-    request_id = a foreign key that links to the primary key of the Request table
-    """
-
-    __tablename__ = 'user_requests'
-    user_guid = db.Column(db.String(64), primary_key=True)
-    user_type = db.Column(db.String(64), primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
-    permissions = db.Column(db.Integer)
-
-    __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
-                                           [Users.guid, Users.user_type]),
-                      {})
