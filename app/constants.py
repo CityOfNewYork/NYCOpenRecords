@@ -1,4 +1,17 @@
+from lib import mapping
+
 ACKNOWLEDGEMENT_DAYS_DUE = 5
+
+ROLE_NAME = mapping(
+    ANONYMOUS='Anonymous User',
+    PUBLIC_NON_REQUESTER='Public User - None Requester',
+    PUBLIC_REQUESTER='Public User - Requester',
+    AGENCY_HELPER='Agency Helper',
+    AGENCY_OFFICER='Agency FOIL Officer',
+    AGENCY_ADMIN='Agency Administrator'
+)
+
+# TODO: apply the above mapping convention where appropriate
 
 EVENT_TYPE = {
     "user_added": "user_added",

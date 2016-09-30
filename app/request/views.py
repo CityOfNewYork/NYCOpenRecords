@@ -13,7 +13,11 @@ from flask import (
 from app.lib.user_information import create_mailing_address
 from app.db_utils import get_agencies_list
 from app.request import request_blueprint
-from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
+from app.request.forms import (
+    PublicUserRequestForm,
+    AgencyUserRequestForm,
+    AnonymousRequestForm
+)
 from app.request.utils import create_request
 from flask_login import current_user
 
@@ -46,7 +50,7 @@ def submit_request():
         return render_template('request/new_request_user.html', form=form)
 
     # Anonymous user
-    if current_user and current_user.is_anonymous:
+    elif current_user.is_anonymous:
         form = AnonymousRequestForm()
         agencies = get_agencies_list()
         form.request_agency.choices = agencies
@@ -90,12 +94,16 @@ def submit_request():
 
 
 def _get_address(form):
-    address = None
-    if 'address' in form:
-        address = create_mailing_address(form.address.data, form.city.data, form.state.data, form.zipcode.data)
-    elif 'address_two' in form:
-        address = create_mailing_address(form.address.data, form.city.data, form.state.data, form.zipcode.data,
-                                         form.address_two.data)
-    return address
+    """
+    Get mailing address from form data.
 
-
+    :type form: app.request.forms.AgencyUserRequestForm
+    :type form: app.request.forms.AnonymousRequestForm
+    """
+    return create_mailing_address(
+        form.address.data,
+        form.city.data,
+        form.state.data,
+        form.zipcode.data,
+        form.address_two.data or None
+    )
