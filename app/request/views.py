@@ -91,10 +91,13 @@ def submit_request():
 
 
 def _get_address(form):
-    address = None
-    if 'address' in form:
-        address = create_mailing_address(form.address.data, form.city.data, form.state.data, form.zipcode.data)
-    elif 'address_two' in form:
-        address = create_mailing_address(form.address.data, form.city.data, form.state.data, form.zipcode.data,
-                                         form.address_two.data)
-    return address
+    """
+    Get mailing address from form data.
+    """
+    return create_mailing_address(
+        form.address.data,
+        form.city.data,
+        form.state.data,
+        form.zipcode.data,
+        form.address_two.data or None
+    )
