@@ -10,10 +10,14 @@ from flask import (
     redirect,
     url_for,
 )
-
-import os
+from app.lib.user_information import create_mailing_address
+from app.db_utils import get_agencies_list
 from app.request import request_blueprint
-from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
+from app.request.forms import (
+    PublicUserRequestForm,
+    AgencyUserRequestForm,
+    AnonymousRequestForm
+)
 from app.request.utils import create_request
 from flask_login import current_user
 
@@ -35,23 +39,36 @@ def submit_request():
     # Public user
     if current_user.is_public:
         form = PublicUserRequestForm()
+        agencies = get_agencies_list()
+        form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agency=form.request_agency.data, title=form.request_title.data,
-                           description=form.request_description.data)
+            create_request(form.request_title.data,
+                           form.request_description.data,
+                           agency=form.request_agency.data,
+                           upload_file=form.request_file.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
 
     # Anonymous user
-    if current_user and current_user.is_anonymous:
+    elif current_user.is_anonymous:
         form = AnonymousRequestForm()
+        agencies = get_agencies_list()
+        form.request_agency.choices = agencies
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agency=form.request_agency.data, title=form.request_title.data,
-                           description=form.request_description.data, email=form.email.data,
-                           first_name=form.first_name.data, last_name=form.last_name.data,
-                           user_title=form.user_title.data, organization=form.user_organization.data,
-                           phone=form.phone.data, fax=form.fax.data, address=form.address.data)
+            create_request(form.request_title.data,
+                           form.request_description.data,
+                           agency=form.request_agency.data,
+                           email=form.email.data,
+                           first_name=form.first_name.data,
+                           last_name=form.last_name.data,
+                           user_title=form.user_title.data,
+                           organization=form.user_organization.data,
+                           phone=form.phone.data,
+                           fax=form.fax.data,
+                           address=_get_address(form),
+                           upload_file=form.request_file.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_anon.html', form=form)
 
@@ -60,16 +77,37 @@ def submit_request():
         form = AgencyUserRequestForm()
         if request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
-            create_request(agency=form.request_agency.data, title=form.request_title.data,
-                           description=form.request_description.data, submission=form.method_received.data,
-                           agency_date_submitted=form.request_date.data, email=form.email.data,
-                           first_name=form.first_name.data, last_name=form.last_name.data,
-                           user_title=form.user_title.data, organization=form.user_organization.data,
-                           phone=form.phone.data, fax=form.fax.data, address=form.address.data)
+            create_request(form.request_title.data,
+                           form.request_description.data,
+                           submission=form.method_received.data,
+                           agency_date_submitted=form.request_date.data,
+                           email=form.email.data,
+                           first_name=form.first_name.data,
+                           last_name=form.last_name.data,
+                           user_title=form.user_title.data,
+                           organization=form.user_organization.data,
+                           phone=form.phone.data,
+                           fax=form.fax.data,
+                           address=_get_address(form),
+                           upload_file=form.request_file.data)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)
 
 
+def _get_address(form):
+    """
+    Get mailing address from form data.
+
+    :type form: app.request.forms.AgencyUserRequestForm
+    :type form: app.request.forms.AnonymousRequestForm
+    """
+    return create_mailing_address(
+        form.address.data,
+        form.city.data,
+        form.state.data,
+        form.zipcode.data,
+        form.address_two.data or None
+    )
 @request_blueprint.route('/view', methods=['GET', 'POST'])
 def view_request():
     """
