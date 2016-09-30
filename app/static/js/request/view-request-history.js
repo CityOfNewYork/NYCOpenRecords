@@ -53,7 +53,7 @@ function load_more_history() {
     request_history_reload_index++;
     $.ajax({
         type: "POST",
-        url: '/_get_request_history',
+        url: '/request/api/v1.0/history',
         dataType: 'json',
         data: JSON.stringify(request_history_reload_index),
         success: function (response) {

@@ -7,22 +7,21 @@ $(".load-more-responses").hide();
 var request_responses = [];
 var request_responses_section = [request_responses.slice(request_history_index, request_history_index + 6)];
 
-// $(document).ready(function () {
-//     $.ajax({
-//         type: "POST",
-//         url: '/request/_get_request_responses',
-//         dataType: 'json',
-//         data: JSON.stringify(request_responses_reload_index),
-//         success: function (response) {
-//             var request_responses = response;
-//             var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)];
-//             console.log(response)
-//         },
-//         error: function (error) {
-//             console.log(error);
-//         }
-//     });
-// });
+$(document).ready(function () {
+    $.ajax({
+        type: "POST",
+        url: '/request/api/v1.0/responses',
+        data: {request_responses_reload_index: request_responses_reload_index},
+        success: function (data) {
+            // var request_responses = data;
+            // var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 6)];
+            console.log(data.request_responses);
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
+});
 
 function previous_responses() {
     if (request_responses_index != 0) {
@@ -54,7 +53,7 @@ function load_more_responses() {
     request_responses_reload_index++;
     $.ajax({
         type: "POST",
-        url: '/_get_request_responses',
+        url: '/request/api/v1.0/responses',
         dataType: 'json',
         data: JSON.stringify(request_responses_reload_index),
         success: function (response) {
