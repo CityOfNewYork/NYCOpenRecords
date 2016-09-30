@@ -1,6 +1,17 @@
+from lib import mapping
+
 ACKNOWLEDGEMENT_DAYS_DUE = 5
-UPLOAD_FOLDER = '/csv/upload'
-ALLOWED_EXTENSIONS = set(['txt', 'csv'])
+
+ROLE_NAME = mapping(
+    ANONYMOUS='Anonymous User',
+    PUBLIC_NON_REQUESTER='Public User - None Requester',
+    PUBLIC_REQUESTER='Public User - Requester',
+    AGENCY_HELPER='Agency Helper',
+    AGENCY_OFFICER='Agency FOIL Officer',
+    AGENCY_ADMIN='Agency Administrator'
+)
+
+# TODO: apply the above mapping convention where appropriate
 
 EVENT_TYPE = {
     "user_added": "user_added",
@@ -36,20 +47,7 @@ USER_TYPE = {
     "public_user": "public_user"
 }
 
-# FOR TESTING
-agencies = [
-    ('', ''),
-    ('Agency1', 'Agency1'),
-    ('Agency2', 'Agency2'),
-    ('Agency3', 'Agency3'),
-    ('Agency4', 'Agency4'),
-    ('Agency5', 'Agency5'),
-    ('Agency6', 'Agency6'),
-    ('Agency7', 'Agency7'),
-    ('Agency8', 'Agency8')
-]
-
-categories = [
+CATEGORIES = [
     ('', ''),
     ('Business', 'Business'),
     ('Civic Services', 'Civic Services'),
@@ -65,7 +63,7 @@ categories = [
 ]
 
 # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
-submission_method = [
+SUBMISSION_METHOD = [
     ('', ''),
     ('Direct Input', 'Direct Input'),
     ('Fax', 'Fax'),
@@ -138,6 +136,7 @@ PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
 PUBLIC_USER_GOOGLE = 'GoogleSSO'
 PUBLIC_USER_YAHOO = 'YahooSSO'
 PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
+ANONYMOUS_USER = 'AnonymousUser'
 
 PUBLIC_USER = [
     PUBLIC_USER_NYC_ID,
@@ -148,6 +147,15 @@ PUBLIC_USER = [
     PUBLIC_USER_MICROSOFT
 ]
 
-SAML_USER_DATA = {
-    'mail'
+RESPONSE_TYPE = {
+    "note": "note",
+    "record types": "record types",
+    "file": "file",
+    "link": "link",
+    "offline instructions": "offline instructions",
+    "email": "email",
+    "sms": "sms",
+    "push": "push",
+    "extension": "extension",
+    "status": "status"
 }

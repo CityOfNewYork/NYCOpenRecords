@@ -8,22 +8,45 @@
 
 """
 
-from app import calendar
-from app.models import Request, Agency, Event, User
-from app.db_utils import create_object, update_object
-from app.constants import ACKNOWLEDGEMENT_DAYS_DUE, EVENT_TYPE, USER_TYPE
-from datetime import datetime
-from business_calendar import FOLLOWING
-from flask import render_template
-from flask_login import current_user
-# FOR TESTING
+import os
 import random
 import string
+import uuid
+from datetime import datetime
+
+from business_calendar import FOLLOWING
+from flask import render_template, current_app
+from flask_login import current_user
+
+from werkzeug.utils import secure_filename
+
+from app import calendar
+from app.constants import (
+    ACKNOWLEDGEMENT_DAYS_DUE,
+    EVENT_TYPE,
+    ANONYMOUS_USER,
+    ROLE_NAME
+)
+from app.db_utils import create_object, update_object
+from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
+
+DIRECT_INPUT = 'Direct Input'
 
 
-def create_request(title=None, description=None, agency=None, submission='Direct Input', agency_date_submitted=None,
-                   email=None, first_name=None, last_name=None, user_title=None, organization=None, phone=None,
-                   fax=None, address=None):
+def create_request(title,
+                   description,
+                   agency=None,
+                   first_name=None,
+                   last_name=None,
+                   submission=DIRECT_INPUT,
+                   agency_date_submitted=None,
+                   email=None,
+                   user_title=None,
+                   organization=None,
+                   phone=None,
+                   fax=None,
+                   address=None,
+                   upload_file=None):
     """
     Function for creating and storing a new request on the backend.
 
@@ -36,7 +59,7 @@ def create_request(title=None, description=None, agency=None, submission='Direct
              Request and Event table are updated in the database
     """
     # 1. Generate the request id
-    request_id = generate_request_id()
+    request_id = generate_request_id(agency)
 
     # 2a. Generate Email Notification Text for Agency
     # agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
@@ -47,76 +70,137 @@ def create_request(title=None, description=None, agency=None, submission='Direct
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
     date_created = datetime.now()
-    date_submitted = get_date_submitted(date_created)
+    date_submitted = (agency_date_submitted
+                      if current_user.is_agency
+                      else get_date_submitted(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
 
-    # 5. Create File object (Response table if applicable)
+    # 5. Create Request
+    request = Requests(
+        id=request_id,
+        title=title,
+        agency=agency,
+        description=description,
+        date_created=date_created,
+        date_submitted=date_submitted,
+        due_date=due_date,
+        submission=submission
+    )
+    create_object(request)
 
-    # 6. Store File object
-
-    # 7a. Create and store Request object for public user
+    # 6. Get or Create User
     if current_user.is_public:
-        req = Request(id=request_id, title=title, description=description, date_created=date_created,
-                      date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=req)
+        user = current_user
+    else:
+        user = Users(
+            guid=generate_guid(),
+            user_type=ANONYMOUS_USER,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            title=user_title,
+            organization=organization,
+            email_validated=False,
+            terms_of_use_accepted=False,
+            phone_number=phone,
+            fax_number=fax,
+            mailing_address=address
+        )
+        create_object(user)
 
-    # 7b. Create and store Request and User object for anonymous user
-    if current_user.is_anonymous:
-        req = Request(id=request_id, title=title, description=description, date_created=date_created,
-                      date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=req)
-        guid = generate_guid()
-        usr = User(guid=guid, user_type=USER_TYPE['anonymous_user'], email=email, first_name=first_name,
-                   last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                   terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
-        create_object(obj=usr)
+    if upload_file and upload_file.filename != '':
+        # 7. Store file in quarantine
+        if _save_request_upload(upload_file, request_id):
+            # 8. Create upload Event
+            upload_event = Events(user_id=user.guid,
+                                  user_type=user.user_type,
+                                  request_id=request_id,
+                                  type=EVENT_TYPE['file_added'],
+                                  timestamp=datetime.utcnow())
+            create_object(upload_event)
 
-    # 7c. Create and store Request and User object for agency user
+    role_to_user = {
+        ROLE_NAME.PUBLIC_REQUESTER : current_user.is_public,
+        ROLE_NAME.ANONYMOUS: current_user.is_anonymous,
+        ROLE_NAME.AGENCY_OFFICER: current_user.is_agency
+    }
+    role_name = [k for (k, v) in role_to_user.items() if v][0]
+    # (key for "truthy" value)
+
+    # 9. Create Event
+    timestamp = datetime.utcnow()
+    event = Events(user_id=user.guid,
+                   user_type=user.user_type,
+                   request_id=request_id,
+                   type=EVENT_TYPE['request_created'],
+                   timestamp=timestamp)
+    create_object(event)
     if current_user.is_agency:
-        due_date = get_due_date(agency_date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
-        req = Request(id=request_id, title=title, description=description, date_created=agency_date_created,
-                      date_submitted=date_submitted, due_date=due_date, submission=submission)
-        create_object(obj=req)
-        guid = generate_guid()
-        usr = User(guid=guid, user_type=USER_TYPE['agency_user'], email=email, first_name=first_name,
-                   last_name=last_name, title=user_title, organization=organization, email_validated=False,
-                   terms_of_use_accepted=False, phone_number=phone, fax_number=fax, mailing_address=address)
-        create_object(obj=usr)
+        agency_event = Events(user_id=current_user.guid,
+                              user_type=current_user.user_type,
+                              request_id=request.id,
+                              type=EVENT_TYPE['request_created'],
+                              timestamp=timestamp)
+        create_object(agency_event)
 
-    # 9. Create Event object
-    event = Event(request_id=request_id, type=EVENT_TYPE['request_created'], timestamp=datetime.utcnow())
+    # 10. Create UserRequest
+    user_request = UserRequests(user_guid=user.guid,
+                                user_type=user.user_type,
+                                request_id=request_id,
+                                permissions=Roles.query.filter_by(
+                                    name=role_name).first().permissions)
+    create_object(user_request)
 
-    # 10. Store Event object
-    create_object(obj=event)
 
-
-def generate_request_id():
+def _save_request_upload(upload_file, request_id):
     """
+    Store an uploaded file under quarantine for a given request id.
 
-    :param agency: agency ein used as a paramater to generate the request_id
+    :param upload_file: the file to store
+    :param request_id: the generated request id
+
+    :return: Whether upload was successful or not.
+    """
+    success = True
+    upload_path = os.path.join(
+        current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+        request_id)
+    if not os.path.exists(upload_path):
+        os.mkdir(upload_path)
+    filename = secure_filename(upload_file.filename)
+    filepath = os.path.join(upload_path, filename)
+    try:
+        upload_file.save(filepath)
+    except Exception as e:
+        print("Error saving file {}: {}".format(filename, e))
+        success = False
+    return success
+
+
+def generate_request_id(agency):
+    """
+    Generates an agency-specific FOIL request id.
+
+    :param agency: agency ein used to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
-    # next_request_number = Agency.query.filter_by(ein=agency).first().next_request_number
-    # update_object(type="agency", field="next_request_number", value=next_request_number + 1)
-    # request_id = 'FOIL-{}-{}-{}'.format(datetime.now().strftime("%Y"), agency, next_request_number)
-    # FOR TESTING: remove agency in function argument and comment out above, uncomment below
-    request_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-    return request_id
-
-
-def generate_guid():
-    """
-    FOR TESTING: function that generates a guid
-    :return: guid
-    """
-    guid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
-    return guid
+    if agency:
+        next_request_number = Agencies.query.filter_by(ein=agency).first().next_request_number
+        update_object(attribute='next_request_number',
+                      value=next_request_number + 1,
+                      obj_type="Agencies",
+                      obj_id=agency)
+        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(
+            datetime.now().strftime("%Y"), int(agency), int(next_request_number))
+        return request_id
+    return None
 
 
 def generate_email_template(template_name, **kwargs):
     """
+    Generate HTML for rich-text emails.
 
     :param template_name: specific email template
     :param kwargs:
@@ -127,7 +211,7 @@ def generate_email_template(template_name, **kwargs):
 
 def get_date_submitted(date_created):
     """
-    Function that generates the date submitted for a request
+    Generates the date submitted for a request.
 
     :param date_created: date the request was made
     :return: date submitted which is the date_created rounded off to the next business day
@@ -138,15 +222,33 @@ def get_date_submitted(date_created):
 
 def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
     """
-    Function that generates the due date for a request
+    Generates the due date for a request.
 
     :param date_submitted: date submitted which is the date_created rounded off to the next business day
     :param days_until_due: number of business days until a request is due
     :param hour_due: Hour when the request will be marked as overdue, defaults to 1700 (5 P.M.)
     :param minute_due: Minute when the request will be marked as overdue, defaults to 00 (On the hour)
     :param second_due: Second when the request will be marked as overdue, defaults to 00
+
     :return: due date which is 5 business days after the date_submitted and time is always 5:00 PM
     """
     calc_due_date = calendar.addbusdays(date_submitted, days_until_due)  # calculates due date
     due_date = calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
     return due_date
+
+
+def generate_guid():
+    """
+    Generates a GUID for an anonymous user.
+    :return: the generated id
+    """
+    guid = str(uuid.uuid4())
+    return guid
+
+
+def generate_request_metadata(request):
+    """
+
+    :return:
+    """
+    pass

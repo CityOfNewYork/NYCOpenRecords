@@ -5,6 +5,22 @@ $(document).ready(function () {
 
     $('[data-toggle="popover"]').popover();
 
+    // Prevent user from entering a non numeric value into phone and fax field
+    $('#phone').keypress(function(key) {
+        if (key.charCode != 0){
+            if (key.charCode < 48 || key.charCode > 57) {
+                key.preventDefault();
+            }
+        }
+    });
+    $('#fax').keypress(function(key) {
+        if (key.charCode != 0){
+            if (key.charCode < 48 || key.charCode > 57) {
+                key.preventDefault();
+            }
+        }
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $('#request-title').attr({
             'data-placement': "top",
@@ -63,6 +79,9 @@ $(document).ready(function () {
     $('#city').attr('data-parsley-required-message','');
     $('#email').attr('data-parsley-required-message', '');
     $('#zipcode').attr('data-parsley-required-message','');
+
+    // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
+    $('#request-file').attr('data-parsley-max-file-size',"20");
 
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
