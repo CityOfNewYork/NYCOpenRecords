@@ -1,76 +1,109 @@
 <table class="table">
     <thead>
-      <tr>
+    <tr>
         <th>History</th>
-      </tr>
+    </tr>
     </thead>
     <tbody>
-      {% for event in request_history_section %}
+    {% for event in request_history_section %}
         <td>User {{ event.user }} did {{ event.response }} on {{ event.timestamp }}.</td>
-      {% endfor %}
-      <tr>
+    {% endfor %}
+    <tr>
         <td>User user did response on timestamp.</td>
-      </tr>
-      <tr>
+    </tr>
+    <tr>
         <td>User user did response on timestamp.</td>
-      </tr>
-      <tr>
+    </tr>
+    <tr>
         <td>User user did response on timestamp.</td>
-      </tr>
-      <tr>
+    </tr>
+    <tr>
         <td>User user did response on timestamp.</td>
-      </tr>
-      <tr>
+    </tr>
+    <tr>
         <td>User user did response on timestamp.</td>
-      </tr>
+    </tr>
     </tbody>
 </table>
+
+<div class="navigation-arrows" style="text-align: center;">
+    <div class="history-active">
+        <a onclick="previous_history()">&#9668;</a>
+        <a onclick="next_history()">&#9658;</a>
+    </div>
+</div>
 
 <div class="load-more-history" style="text-align: center;">
     <a onclick="load_more_history()">Load More</a>
 </div>
 
-<div class="navigation-arrows" style="text-align: center;">
-    <div class="history-next">
-        <a>&#9668;</a>
-        <a onclick="next_history()">&#9658;</a>
-    </div>
-    <div class="history-active">
-        <a onclick="previous_history()">&#9668;</a>
-        <a onclick="next_history()">&#9658;</a>
-    </div>
-    <div class="history-previous">
-        <a onclick="previous_history()">&#9668;</a>
-        <a>&#9658;</a>
-    </div>
-</div>
-
 {% block scripts %}
-<script type="text/javascript">
-    function previous_history() {
-        request_history_index = request_history_index - 5;
-        request_history_section = [request_history.slice(request_history_index, request_history_index + 6)]
-    }
-    function next_history() {
-        request_history_index = request_history_index + 5;
-        request_history_section = [request_history.slice(request_history_index, request_history_index + 6)]
-    }
-    function load_more_history() {
-        request_history_reload_index++;
-        $.ajax({
-            type: "POST",
-            url: '/_get_request_responses',
-            dataType: 'json',
-            data: JSON.stringify(request_history_reload_index),
-            success: function (response) {
-                var request_history = response;
-                var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
-                console.log(response)
-            },
-            error: function (error) {
-                console.log(error);
+    <script type="text/javascript">
+        var request_history_reload_index = 0;
+        var request_history_index = 0;
+        // Hide load-more-history div
+        $(".load-more-history").hide();
+        var request_history = [];
+        var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
+        $(document).ready(function () {
+            {#        $.ajax({#}
+            {#            type: "POST",#}
+            {#            url: '/request/_get_request_history',#}
+            {#            dataType: 'json',#}
+            {#            data: JSON.stringify(request_history_reload_index),#}
+            {#            success: function (response) {#}
+            {#                var request_history = response;#}
+            {#                var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];#}
+            {#                console.log(response)#}
+            {#            },#}
+            {#            error: function (error) {#}
+            {#                console.log(error);#}
+            {#            }#}
+            {#        });#}
+        });
+        function previous_history() {
+            if (request_history_index != 0) {
+                request_history_index = request_history_index - 5;
             }
-        })
-    }
-</script>
+            console.log(request_history_index);
+            request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
+            if (request_history_index == 45) {
+                $(".load-more-history").show();
+            } else {
+                $(".load-more-history").hide();
+            }
+        }
+
+        function next_history() {
+            if (request_history_index != 45) {
+                request_history_index = request_history_index + 5;
+            }
+            console.log(request_history_index);
+            request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
+            if (request_history_index == 45) {
+                $(".load-more-history").show();
+            } else {
+                $(".load-more-history").hide();
+            }
+        }
+
+        function load_more_history() {
+            request_history_reload_index++;
+            $.ajax({
+                type: "POST",
+                url: '/_get_request_history',
+                dataType: 'json',
+                data: JSON.stringify(request_history_reload_index),
+                success: function (response) {
+                    var request_history = response;
+                    var request_history_section = [request_history.slice(request_history_index, request_history_index + 6)];
+                    console.log(response)
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+            request_history_index = 0;
+        }
+    </script>
 {% endblock %}
