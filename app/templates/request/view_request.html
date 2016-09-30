@@ -10,13 +10,14 @@
 
 {% block content %}
     <div class="container-fluid">
-        <div class="row-fluid">
+        <div class="col-sm-12">
             <div class="jumbotron col-sm-9">
                 <h3 class="wrap-text">REQUEST INFO GOES HERE</h3>
                 <h3 class="wrap-text">FOIL number</h3>
                 <h3 class="wrap-text">Title: </h3>
                 <h3 class="wrap-text">Request: </h3>
             </div>
+
             <div class="col-sm-3">
                 <h3 class="wrap-text">Status GOES HERE</h3>
                 <h3 class="wrap-text">In Progress</h3>
@@ -24,14 +25,12 @@
                 <h3 class="wrap-text">Assigned User</h3>
                 <h3 class="wrap-text">Helpers</h3>
             </div>
-        </div>
 
-        <div class="row-fluid col-sm-12"></div>
+            <div class="col-sm-12"></div>
 
-        <div class="row-fluid">
             <div class="col-sm-3">
-                <ul class="nav nav-tabs nav-stacked">
-                    <li role="presentation"><a href="#" class="center-text">Add Record</a></li>
+                <ul class="nav nav-pills nav-stacked action-buttons">
+                    <li role="presentation" class="active"><a href="#" class="center-text">Add Record</a></li>
                     <li role="presentation"><a href="#" class="center-text">Add Note</a></li>
                     <li role="presentation"><a href="#" class="center-text">Extend Request</a></li>
                     <li role="presentation"><a href="#" class="center-text">Generate Letter</a></li>
@@ -42,34 +41,87 @@
             </div>
 
             <div class="col-sm-6">
-                <h3 class="wrap-text">asldfjalksdjfhalskdjfhalksdjhfalksdjhflskdjfhalskdjhfalskdjfhalskdjfhalskdjhfklsj
-                    dhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks
-                    jdhflkasjdhfledhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks
-                    jdhflkasjdhfledhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks
-                    jdhflkasjdhfledhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks
-                    jdhflkasjdhfle
+                <h3 class="wrap-text">
+                    Button Action Goes Here
                 </h3>
             </div>
-        </div>
 
-        <div class="row-fluid col-sm-12"></div>
+            <div class="col-sm-12"></div>
 
-        <div class="row-fluid">
             <div class="col-sm-9">
                 <h3 class="wrap-text">Responses starts here</h3>
-                <h3 class="wrap-text">asldfjalksdjfhalskdjfhalksdjhfalksdjhflskdjfhalskdjhfalskdjfhalskdjfhalskdjhfklsj
-                    dhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks
-                    jdhflkasjdhfle
+                <h3 class="wrap-text">
+                    Response Info
                 </h3>
             </div>
+
             <div class="col-sm-3">
                 <h3 class="wrap-text">History starts</h3>
-                <h3 class="wrap-text">asldfjalksdjfhalskdjfhalksdjhfalksdjhflskdjfhalskdjhfalskdjfhalskdjfhalskdjhfklsj
-                    dhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks
-                    jdhflkasjdhfle
+                <h3 class="wrap-text">
+                    History Info
                 </h3>
             </div>
         </div>
-
     </div>
+
+{#        <div class="row-fluid">#}
+{#            <div class="jumbotron col-sm-9">#}
+{#                <h3 class="wrap-text">REQUEST INFO GOES HERE</h3>#}
+{#                <h3 class="wrap-text">FOIL number</h3>#}
+{#                <h3 class="wrap-text">Title: </h3>#}
+{#                <h3 class="wrap-text">Request: </h3>#}
+{#            </div>#}
+{#            <div class="col-sm-3">#}
+{#                <h3 class="wrap-text">Status GOES HERE</h3>#}
+{#                <h3 class="wrap-text">In Progress</h3>#}
+{#                <h3 class="wrap-text">Assigned Agency</h3>#}
+{#                <h3 class="wrap-text">Assigned User</h3>#}
+{#                <h3 class="wrap-text">Helpers</h3>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <div class="row-fluid col-sm-12"></div>#}
+{##}
+{#        <div class="row-fluid">#}
+{#            <div class="col-sm-3">#}
+{#                <ul class="nav nav-pills nav-stacked">#}
+{#                    <li role="presentation" class="active"><a href="#" class="center-text">Add Record</a></li>#}
+{#                    <li role="presentation"><a href="#" class="center-text">Add Note</a></li>#}
+{#                    <li role="presentation"><a href="#" class="center-text">Extend Request</a></li>#}
+{#                    <li role="presentation"><a href="#" class="center-text">Generate Letter</a></li>#}
+{#                    <li role="presentation"><a href="#" class="center-text">Closer Request</a></li>#}
+{#                    <li role="presentation"><a href="#" class="center-text">Manage Helpers</a></li>#}
+{#                    <li role="presentation"><a href="#" class="center-text">Edit Assignee</a></li>#}
+{#                </ul>#}
+{#            </div>#}
+{##}
+{#            <div class="col-sm-6">#}
+{#                <h3 class="wrap-text">asldfjalksdjfhalskdjfhalksdjhfalksdjhflskdjfhalskdjhfalskdjfhalskdjfhalskdjhfklsj#}
+{#                    dhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks#}
+{#                    jdhflkasjdhfledhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjd#}
+{#                    jdhflkasjdhfledhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjd#}
+{#                    jdhflkasjdhfledhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjd#}
+{#                </h3>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <div class="row-fluid col-sm-12"></div>#}
+{##}
+{#        <div class="row-fluid">#}
+{#            <div class="col-sm-9">#}
+{#                <h3 class="wrap-text">Responses starts here</h3>#}
+{#                <h3 class="wrap-text">asldfjalksdjfhalskdjfhalksdjhfalksdjhflskdjfhalskdjhfalskdjfhalskdjfhalskdjhfklsj#}
+{#                    dhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks#}
+{#                    jdhflkasjdhfle#}
+{#                </h3>#}
+{#            </div>#}
+{#            <div class="col-sm-3">#}
+{#                <h3 class="wrap-text">History starts</h3>#}
+{#                <h3 class="wrap-text">asldfjalksdjfhalskdjfhalksdjhfalksdjhflskdjfhalskdjhfalskdjfhalskdjfhalskdjhfklsj#}
+{#                    dhfalkjdshflaksjdhflaksdjhflaksjdhflkajsdhlakjsdhfaskldjhfalksdjhfalksdjfhlaksdjlkasjdhflaksdjhflaks#}
+{#                    jdhflkasjdhfle#}
+{#                </h3>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
 {% endblock %}
