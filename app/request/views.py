@@ -47,7 +47,7 @@ def submit_request():
         return render_template('request/new_request_user.html', form=form)
 
     # Anonymous user
-    if current_user and current_user.is_anonymous:
+    elif current_user.is_anonymous:
         form = AnonymousRequestForm()
         agencies = get_agencies_list()
         form.request_agency.choices = agencies
