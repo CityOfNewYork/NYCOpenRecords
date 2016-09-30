@@ -6,12 +6,12 @@
 
 """
 from flask_login import current_user
-from app.models import Responses, Events, Notes
+from app.models import Responses, Events, Notes, Files
 from app.db_utils import create_object
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
-import json
 import os
+import magic
 
 
 def add_file(request_id, upload_file):
@@ -20,10 +20,10 @@ def add_file(request_id, upload_file):
     :return:
     """
     size = os.path.getsize(upload_file)
-    upload_file = json.dumps({"name": 'filename',
-                              "type": 'mimetype',
-                              "size": size})
-    process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], content=upload_file)
+    mime_type = magic.from_file(upload_file, mime=True)
+    files = Files(name='test', mime_type=mime_type, title='title', size=size)
+    create_object(obj=files)
+    process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], files.metadata_id)
 
 
 def delete_file():

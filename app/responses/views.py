@@ -17,20 +17,6 @@ from app import app
 app.config['UPLOAD_FOLDER'] = '/Users/gzhou/PycharmProjects/openrecords_v2_0/data/FOIL-XXX'
 
 
-def gen_file_name(filename):
-    """
-    If file was exist already, rename it and return a new name
-    """
-
-    i = 1
-    while os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
-        name, extension = os.path.splitext(filename)
-        filename = '%s_%s%s' % (name, str(i), extension)
-        i = i + 1
-
-    return filename
-
-
 # simple form used to test functionality of storing a note to responses table
 class NoteForm(Form):
     note = StringField('Add Note')
@@ -50,7 +36,7 @@ def response_note(request_id):
         add_note(request_id=request,
                  content=form.note.data)
         flash('Note has been submitted')
-    return render_template('request/view_request.html', request=request, form=form)
+    return render_template('request/view_request_test.html', request=request, form=form)
 
 
 # TODO: Implement response route for file
@@ -60,11 +46,12 @@ def response_file(request_id):
     form = Submit()
     if flask_request.method == 'POST':
         # reads file from directory
-        gen_file_name(filename)
-        upload_file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        add_file(request_id, upload_file)
-        flash('File has been added')
-    return render_template('request/view_request.html', request=request, form=form)
+        # currently commented out for loop for testing
+        # for file in request.form.files:
+            upload_file = os.path.join(app.config['UPLOAD_FOLDER'], 'OP-800.jpeg')
+            add_file(request_id, upload_file)
+            flash('File has been added')
+    return render_template('request/view_request_test.html', request=request, form=form)
 
 
 # TODO: Implement response route for extension
