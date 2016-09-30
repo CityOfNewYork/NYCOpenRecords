@@ -13,7 +13,11 @@ from flask import (
 from app.lib.user_information import create_mailing_address
 from app.db_utils import get_agencies_list
 from app.request import request_blueprint
-from app.request.forms import PublicUserRequestForm, AgencyUserRequestForm, AnonymousRequestForm
+from app.request.forms import (
+    PublicUserRequestForm,
+    AgencyUserRequestForm,
+    AnonymousRequestForm
+)
 from app.request.utils import create_request
 from flask_login import current_user
 
@@ -93,6 +97,9 @@ def submit_request():
 def _get_address(form):
     """
     Get mailing address from form data.
+
+    :type form: app.request.forms.AgencyUserRequestForm
+    :type form: app.request.forms.AnonymousRequestForm
     """
     return create_mailing_address(
         form.address.data,
