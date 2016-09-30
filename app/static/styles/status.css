@@ -1,0 +1,35 @@
+
+h1 span {
+    font-size: 35px;
+    color: white;
+    border-radius: 6px;
+    padding: 3px;
+    text-align: left;
+}
+
+.in_progress {
+    background-color: forestgreen;
+}
+
+.overdue_style {
+    background-color: red;
+}
+
+.duesoon_style {
+    background-color: orange;
+}
+
+.open_style {
+    background-color: #2688AD;
+
+}
+
+.closed_style {
+    background-color: black;
+}
+
+.in_progress_style {
+    border-left: 8px solid forestgreen;
+    padding-left: 5px;
+    margin-left: 5px;
+}

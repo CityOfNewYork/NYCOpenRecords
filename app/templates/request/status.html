@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/status.css') }}"/>
+{% endblock %}
+
+
+{% block title %}
+    Open Records - Status
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="jumbotron">
+            <h1><span>Status</span></h1>
+            <h1><span class="in_progress">In Progress</span></h1>
+            <h1><span class="overdue_style">Overdue</span></h1>
+            <h1><span class="duesoon_style">Due Soon</span></h1>
+            <h1><span class="open_style">Open</span></h1>
+            <h1><span class="closed_style">Closed</span></h1>
+            <hr>
+            <h3>Agency</h3>
+            <h3><a href="#" data-toggle="popover" data-trigger="hover" title="Requester Info" data-content="Only editable if anon">Requester {{ user_title }}</a></h3>
+            <h3><a href="#" data-toggle="popover" data-trigger="hover" title="User info" data-content="Info only for agency users">Assigned User</a></h3>
+            <h3>Due Dates</h3>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script>
+        $(document).ready(function () {
+            $('[data-toggle="popover"]').popover();
+        });
+    </script>
+{% endblock %}
