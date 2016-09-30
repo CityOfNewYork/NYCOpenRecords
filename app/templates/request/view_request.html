@@ -11,22 +11,24 @@
 {% block content %}
     <div class="container-fluid">
         <div class="col-sm-12">
-            <!-- Request info column -->
+            <!-- Request Info Column -->
             <div class="jumbotron col-sm-9">
-                <h3 class="wrap-text">REQUEST INFO GOES HERE</h3>
-                <h3 class="wrap-text">FOIL number</h3>
-                <h3 class="wrap-text">Title: </h3>
-                <h3 class="wrap-text">Request: </h3>
+                <h3 class="wrap-text">Request Info</h3>
+                <h3 class="wrap-text">FOIL Number</h3>
+                <h3 class="wrap-text">Title</h3>
+                <h3 class="wrap-text">Request</h3>
             </div>
-            <!-- Status column -->
+
+            <!-- Status Column -->
             <div class="col-sm-3">
-                <h3 class="wrap-text">Status GOES HERE</h3>
+                <h3 class="wrap-text">Status</h3>
                 <h3 class="wrap-text">In Progress</h3>
                 <h3 class="wrap-text">Assigned Agency</h3>
                 <h3 class="wrap-text">Assigned User</h3>
                 <h3 class="wrap-text">Helpers</h3>
             </div>
-            <!-- Action button column -->
+
+            <!-- Action Button Column -->
             <div class="col-md-12"><h3>Action Buttons</h3>
                 <div class="tabbable tabs-left" id="mobile-toggle">
                     <ul class="nav nav-tabs">
@@ -39,36 +41,38 @@
                     </ul>
                     <div class="tab-content content-min-height">
                         <div class="tab-pane active" id="add-file">
-                            add file content
+                            Add File Content
                         </div>
                         <div class="tab-pane" id="add-link">
-                            add link content
+                            Add Link Content
                         </div>
                         <div class="tab-pane" id="add-instructions">
-                            add instructions content
+                            Add Instructions Content
                         </div>
                         <div class="tab-pane" id="extension">
-                            extension content
+                            Extension Content
                         </div>
                         <div class="tab-pane" id="close-request">
-                            close request content
+                            Close Request Content
                         </div>
                         <div class="tab-pane" id="add-user">
-                            add-user content
+                            Add User Content
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Response column -->
+
+            <!-- Response Column -->
             <div class="col-sm-9">
-                <h3 class="wrap-text">Responses starts here</h3>
+                <h3 class="wrap-text">Responses</h3>
                 <h4 class="wrap-text">
                     Response Info
                 </h4>
             </div>
-            <!-- History column -->
+
+            <!-- History Column -->
             <div class="col-sm-3">
-                <h3 class="wrap-text">History starts</h3>
+                <h3 class="wrap-text">History</h3>
                 <h4 class="wrap-text">
                     History Info
                 </h4>
@@ -78,5 +82,6 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js')}}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
 {% endblock %}
