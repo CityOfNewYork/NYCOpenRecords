@@ -5,19 +5,20 @@ from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
 from flask_mail import Mail
-from config import config
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
+from celery import Celery
 
-from config import config
+from config import config, Config
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 login_manager = LoginManager()
 store = RedisStore(redis.StrictRedis(db=1))
 prefixed_store = PrefixDecorator('session_', store)
+celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
 mail = Mail()
 app = Flask(__name__)
@@ -55,10 +56,9 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
+    celery.conf.update(app.config)
 
     with app.app_context():
-        db.create_all(app=app)
-
         from app.models import Anonymous
 
         login_manager.login_view = 'auth.login'
