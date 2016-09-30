@@ -110,7 +110,7 @@ def create_request(title,
         )
         create_object(user)
 
-    if upload_file.filename != '':
+    if upload_file and upload_file.filename != '':
         # 7. Store file in quarantine
         if _save_request_upload(upload_file, request_id):
             # 8. Create upload Event
