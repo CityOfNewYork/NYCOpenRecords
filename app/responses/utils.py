@@ -10,7 +10,6 @@ from app.models import Responses, Events, Notes
 from app.db_utils import create_object
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
-import json
 
 
 def add_file():
@@ -44,17 +43,17 @@ def edit_file():
     print("edit_file function")
 
 
-def add_note(request_id, response_content):
+def add_note(request_id, content):
     """
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
-    :param response_content: content of the note to be created and stored as a note object
+    :param content: content of the note to be created and stored as a note object
     :return: Stores the note content into the Notes table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
-    note = Notes(content=response_content)
+    note = Notes(content=content)
     create_object(obj=note)
-    process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], new_metadata_id=note.metadata_id)
+    process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], note.metadata_id)
 
 
 def delete_note():
@@ -120,14 +119,14 @@ def add_push():
     print("add_push function")
 
 
-def process_response(request_id, response_type, event_type, new_metadata_id, privacy='private'):
+def process_response(request_id, response_type, event_type, metadata_id, privacy='private'):
     """
     Creates and stores responses and events objects to the database
 
     :param request_id: FOIL request ID to be stored into the responses and events tables
     :param response_type: type of response to be stored in the responses table
     :param event_type: type of event to be stored in the events table
-    :param new_metadata_id: metadata_id of the specific response to be stored in the responses table
+    :param metadata_id: metadata_id of the specific response to be stored in the responses table
     :param privacy: privacy of the response (default is 'private') to be stored in the responses table
     :return: Creates and stores response object with given arguments from separate response type functions.
              Creates and stores events object to the database.
@@ -136,7 +135,7 @@ def process_response(request_id, response_type, event_type, new_metadata_id, pri
     response = Responses(request_id=request_id,
                          type=response_type,
                          date_modified=datetime.utcnow(),
-                         metadata_id=new_metadata_id,
+                         metadata_id=metadata_id,
                          privacy=privacy)
     # store response object
     create_object(obj=response)

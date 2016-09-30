@@ -9,7 +9,7 @@ from app.models import Requests
 from flask import render_template, flash, request as flask_request
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
-from app.responses.utils import add_note, add_file
+from app.responses.utils import add_note
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -24,7 +24,7 @@ def response_note(request_id):
     form = NoteForm()
     if flask_request.method == 'POST':
         add_note(request_id=request,
-                 response_content=form.note.data)
+                 content=form.note.data)
         flash('Note has been submitted')
     return render_template('request/view_request.html', request=request, form=form)
 
