@@ -116,3 +116,7 @@
   border-color: #ddd #ddd #ddd transparent;
   *border-left-color: #ffffff;
 }
+
+.content-min-height{
+    min-height: 30rem;
+}
