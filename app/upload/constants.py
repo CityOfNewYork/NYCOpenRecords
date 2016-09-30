@@ -1,4 +1,7 @@
-import os
+"""
+ .. module:: upload.constants
+
+"""
 
 CONTENT_RANGE_HEADER = 'Content-Range'
 
@@ -25,6 +28,7 @@ ALLOWED_MIMETYPES = [
     'text/plain',
     'text/rtf',
     'image/tiff',
+    'image/tif',
     'audio/x-wav',
     'video/x-ms-asf',
     'application/vnd.ms-excel',
