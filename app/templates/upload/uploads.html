@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-    <form id="fileupload" action="/upload/test_upload" method="POST" enctype="multipart/form-data">
+    <form id="fileupload" action="/response/file" method="POST" enctype="multipart/form-data">
         <!-- Redirect browsers with JavaScript disabled to the origin page -->
         <noscript><input type="hidden" name="redirect" value="http://blueimp.github.io/jQuery-File-Upload/"></noscript>
         <div class="row fileupload-buttonbar">
@@ -85,7 +85,6 @@
         <tr class="template-download fade">
             <td>
                 Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
-                <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
                 <p class="name">
                     {% if (file.url) { %}
                         <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>

@@ -21,6 +21,7 @@ from app.request.forms import (
 from app.request.utils import create_request
 from flask_login import current_user
 
+
 @request_blueprint.route('/new', methods=['GET', 'POST'])
 def submit_request():
     """
