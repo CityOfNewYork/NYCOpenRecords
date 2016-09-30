@@ -6,23 +6,17 @@
     </thead>
     <tbody>
       {% for response in request_responses_section %}
-        {% if response.type ==  'File' %}
+        {% if response.type ==  'Note' %}
+
+        {% elif response.type ==  'File' %}
 
         {% elif response.type ==  'Link' %}
 
-        {% elif response.type ==  'Instruction' %}
+        {% elif response.type ==  'Offline Instruction' %}
 
-        {% elif response.type ==  'Note' %}
+        {% elif response.type ==  'Notification' %}
 
         {% elif response.type ==  'Extension' %}
-
-        {% elif response.type ==  'Email' %}
-
-        {% elif response.type ==  'SMS' %}
-
-        {% elif response.type ==  'Push' %}
-
-        {% elif response.type ==  'Visibility' %}
 
         {% endif %}
       {% endfor %}
@@ -82,22 +76,51 @@
     </tbody>
 </table>
 
-<div class="show-more" style="text-align: center;">
-    {% if request_responses_index == 90 %}
-        <a onclick="load_more_responses()">Load More</a>
-    {% endif %}
+<div class="load-more-responses" style="text-align: center;">
+    <a onclick="load_more_responses()">Load More</a>
 </div>
 
 <div class="navigation-arrows" style="text-align: center;">
-    {% if request_responses_index > 0 %}
-        <a onclick="previous_responses()">&#9668;</a>
-    {% else %}
+    <div class="responses-next">
         <a>&#9668;</a>
-    {% endif %}
-
-    {% if request_responses_index < 90 %}
         <a onclick="next_responses()">&#9658;</a>
-    {% else %}
+    </div>
+    <div class="responses-active">
+        <a onclick="previous_responses()">&#9668;</a>
+        <a onclick="next_responses()">&#9658;</a>
+    </div>
+    <div class="responses-previous">
+        <a onclick="previous_responses()">&#9668;</a>
         <a>&#9658;</a>
-    {% endif %}
+    </div>
 </div>
+
+{% block scripts %}
+<script type="text/javascript">
+    function previous_responses() {
+        request_responses_index = request_responses_index - 10;
+        request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)]
+    }
+    function next_responses() {
+        request_responses_index = request_responses_index + 10;
+        request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)]
+    }
+    function load_more_responses() {
+        request_responses_reload_index++;
+        $.ajax({
+            type: "POST",
+            url: '/_get_request_responses',
+            dataType: 'json',
+            data: JSON.stringify(request_responses_reload_index),
+            success: function (response) {
+                var request_responses = response;
+                var request_responses_section = [request_responses.slice(request_responses_index, request_responses_index + 11)];
+                console.log(response)
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        })
+    }
+</script>
+{% endblock %}
