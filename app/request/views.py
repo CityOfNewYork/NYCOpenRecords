@@ -108,6 +108,8 @@ def _get_address(form):
         form.zipcode.data,
         form.address_two.data or None
     )
+
+
 @request_blueprint.route('/view', methods=['GET', 'POST'])
 def view_request():
     """

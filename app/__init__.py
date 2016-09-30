@@ -71,14 +71,11 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
-    from app.request import request_blueprint
+    from .request import request_blueprint
     app.register_blueprint(request_blueprint, url_prefix="/request")
 
-    from app.request.api import request_api_blueprint
+    from .request.api import request_api_blueprint
     app.register_blueprint(request_api_blueprint, url_prefix="/request/api/v1.0")
-
-    from .request import request_blueprint
-    app.register_blueprint(request_blueprint)
 
     from .responses import response as response_blueprint
     app.register_blueprint(response_blueprint, url_prefix='/response')
