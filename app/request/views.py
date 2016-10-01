@@ -9,7 +9,8 @@ from flask import (
     request,
     redirect,
     url_for,
-    flash
+    flash,
+    current_app
 )
 from app.lib.user_information import create_mailing_address
 from app.db_utils import get_agencies_list
@@ -38,6 +39,9 @@ def new():
      uploaded file is stored in app/static
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
+
+    site_key = current_app.config['RECAPTCHA_SITE_KEY']
+
     # Public user
     if current_user.is_public:
         form = PublicUserRequestForm()
@@ -49,13 +53,13 @@ def new():
                            form.request_description.data,
                            agency=form.request_agency.data,
                            upload_file=form.request_file.data)
-            
+
             if recaptcha.verify() is False:  # user has not passed the recaptcha verification
                 flash("Please complete reCAPTCHA.")
-                return render_template('request/new_request_anon.html', form=form)
-            
+                return render_template('request/new_request_anon.html', form=form, site_key=site_key)
+
             return redirect(url_for('main.index'))
-        return render_template('request/new_request_user.html', form=form)
+        return render_template('request/new_request_user.html', form=form, site_key=site_key)
 
     # Anonymous user
     elif current_user.is_anonymous:
@@ -79,9 +83,9 @@ def new():
 
             if recaptcha.verify() is False:  # user has not passed the recaptcha verification
                 flash("Please complete reCAPTCHA.")
-                return render_template('request/new_request_anon.html', form=form)
+                return render_template('request/new_request_anon.html', form=form, site_key=site_key)
             return redirect(url_for('main.index'))
-        return render_template('request/new_request_anon.html', form=form)
+        return render_template('request/new_request_anon.html', form=form, site_key=site_key)
 
     # Agency user
     elif current_user.is_agency:
@@ -101,13 +105,13 @@ def new():
                            fax=form.fax.data,
                            address=_get_address(form),
                            upload_file=form.request_file.data)
-            
+
             if recaptcha.verify() is False:  # user has not passed the recaptcha verification
                 flash("Please complete reCAPTCHA.")
-                return render_template('request/new_request_anon.html', form=form)
-            
+                return render_template('request/new_request_anon.html', form=form, site_key=site_key)
+
             return redirect(url_for('main.index'))
-        return render_template('request/new_request_agency.html', form=form)
+        return render_template('request/new_request_agency.html', form=form, site_key=site_key)
 
 
 def _get_address(form):
