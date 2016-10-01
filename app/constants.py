@@ -1,4 +1,4 @@
-from lib import mapping
+from .utils import mapping
 
 ACKNOWLEDGEMENT_DAYS_DUE = 5
 

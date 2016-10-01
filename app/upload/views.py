@@ -12,7 +12,7 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 from . import upload
-from .lib import (
+from .utils import (
     parse_content_range,
     is_valid_file_type
 )
@@ -62,7 +62,6 @@ def post(request_id):
         else:
             valid_file_type = is_valid_file_type(file_)
             if valid_file_type:
-                file_.stream.seek(0)
                 file_.save(filepath)
             # scan_file.delay(filepath)
 

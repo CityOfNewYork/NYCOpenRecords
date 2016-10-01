@@ -1,12 +1,15 @@
 """
- .. module:: upload.lib
+ .. module:: upload.utils
 
     :synopsis: Helper functions for uploads
 """
 
 import magic
 import subprocess
-from .constants import ALLOWED_MIMETYPES
+from .constants import (
+    ALLOWED_MIMETYPES,
+    MAX_CHUNKSIZE
+)
 
 
 def parse_content_range(header):
@@ -30,7 +33,6 @@ def parse_content_range(header):
     return int(bytes.split('-')[0]), int(bytes.split('/')[1])
 
 
-#@task
 def is_valid_file_type(obj):
     """
     Validates the mime type of a file.
@@ -40,9 +42,14 @@ def is_valid_file_type(obj):
 
     :return: whether the file type is allowed or not
     """
-    return magic.from_buffer(obj.stream.read(1024), mime=True) in ALLOWED_MIMETYPES
+    is_valid = magic.from_buffer(
+        obj.stream.read(MAX_CHUNKSIZE), mime=True
+    ) in ALLOWED_MIMETYPES
+    obj.stream.seek(0)
+    return is_valid
 
 
+#@task
 def start_file_scan(filepath):
     """
     Scans a file and moves it to data directory if it is clean,
