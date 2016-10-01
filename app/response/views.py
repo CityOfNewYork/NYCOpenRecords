@@ -4,12 +4,12 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 
-from app.responses import response
+from app.response import response
 from app.models import Requests
 from flask import render_template, flash, request as flask_request
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
-from app.responses.utils import add_note
+from app.response.utils import add_note
 
 
 # simple form used to test functionality of storing a note to responses table

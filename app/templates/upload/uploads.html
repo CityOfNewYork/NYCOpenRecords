@@ -84,7 +84,10 @@
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <tr class="template-download fade">
             <td>
-                Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
+                <!-- AUGUST! When making changes, be sure to include the following file.error check... -->
+                {% if (!file.error) { %}
+                    Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
+                {% } %}
                 <p class="name">
                     {% if (file.url) { %}
                         <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
