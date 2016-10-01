@@ -8,8 +8,7 @@
 {% endblock %}
 
 {% block content %}
-
-    <form id="fileupload" action="/upload/test_upload" method="POST" enctype="multipart/form-data">
+    <form id="fileupload" action="/response/file" method="POST" enctype="multipart/form-data">
     <div class="my-slider">
         <ul>
             <li>My slide
@@ -48,11 +47,8 @@
                 <div class="progress-extended">&nbsp;</div>
             </div>
         </div>
-
         <!-- The table listing the files available for upload/download -->
         <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
-
-
             </li>
             <li>My last slide
             <textarea name="email_content"></textarea>
@@ -137,6 +133,12 @@
                 <span class="size">{%=o.formatFileSize(file.size)%}</span>
             </td>
             <td>
+                {% if (file.error) { %}
+                    <button class="btn btn-warning cancel">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
+                {% } %}
                 <!-- TODO: cancellation / deletion
                 {% if (file.deleteUrl) { %}
                     <button class="btn btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
@@ -156,8 +158,6 @@
     {% } %}
     </script>
     {% endraw %}
-
-
 {% endblock %}
 
 {% block custom_script %}

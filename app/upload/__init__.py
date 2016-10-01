@@ -1,5 +1,5 @@
-from flask import Blueprint, session
+from flask import Blueprint
 
-upload = Blueprint('upload', __name__, url_prefix='/upload')
+upload = Blueprint('upload', __name__)
 
 from . import views

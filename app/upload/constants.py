@@ -5,6 +5,8 @@
 
 CONTENT_RANGE_HEADER = 'Content-Range'
 
+MAX_CHUNKSIZE = 512000  # 512 kb
+
 ALLOWED_MIMETYPES = [
     'video/x-msvideo',
     'image/x-ms-bmp',
