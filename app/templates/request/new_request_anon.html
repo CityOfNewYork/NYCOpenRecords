@@ -5,6 +5,13 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
 {% endblock %}
+
+{% block head %}
+    <head>
+        <script src='https://www.google.com/recaptcha/api.js'></script>
+    </head>
+{% endblock %}
+
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
@@ -109,7 +116,9 @@
                     </div>
                 </div>
 
-
+                <div class="col-sm-12 capatcha">
+                    <div class="g-recaptcha" data-sitekey="6LexECYTAAAAAFaNYELFVlBX_ARf8_4QETX9SjYK"></div>
+                </div>
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
@@ -125,4 +134,5 @@
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.mask.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/validation/custom_validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-anon.js') }}"></script>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
 {% endblock %}

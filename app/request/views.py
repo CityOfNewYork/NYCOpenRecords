@@ -9,6 +9,7 @@ from flask import (
     request,
     redirect,
     url_for,
+    flash
 )
 from app.lib.user_information import create_mailing_address
 from app.db_utils import get_agencies_list
@@ -20,6 +21,7 @@ from .forms import (
 )
 from .utils import create_request
 from flask_login import current_user
+from app import recaptcha
 
 
 @request_.route('/new', methods=['GET', 'POST'])
@@ -47,6 +49,11 @@ def new():
                            form.request_description.data,
                            agency=form.request_agency.data,
                            upload_file=form.request_file.data)
+            
+            if recaptcha.verify() is False:  # user has not passed the recaptcha verification
+                flash("Please complete reCAPTCHA.")
+                return render_template('request/new_request_anon.html', form=form)
+            
             return redirect(url_for('main.index'))
         return render_template('request/new_request_user.html', form=form)
 
@@ -69,6 +76,10 @@ def new():
                            fax=form.fax.data,
                            address=_get_address(form),
                            upload_file=form.request_file.data)
+
+            if recaptcha.verify() is False:  # user has not passed the recaptcha verification
+                flash("Please complete reCAPTCHA.")
+                return render_template('request/new_request_anon.html', form=form)
             return redirect(url_for('main.index'))
         return render_template('request/new_request_anon.html', form=form)
 
@@ -90,6 +101,11 @@ def new():
                            fax=form.fax.data,
                            address=_get_address(form),
                            upload_file=form.request_file.data)
+            
+            if recaptcha.verify() is False:  # user has not passed the recaptcha verification
+                flash("Please complete reCAPTCHA.")
+                return render_template('request/new_request_anon.html', form=form)
+            
             return redirect(url_for('main.index'))
         return render_template('request/new_request_agency.html', form=form)
 
