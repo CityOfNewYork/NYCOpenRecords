@@ -2,6 +2,7 @@
 saml/
 redis-stable/
 python-sudo.sh
+quarantine/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
