@@ -11,11 +11,13 @@ load_dotenv(dotenv_path)
 class Config:
     WTF_CSRF_ENABLED = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
-    SAML_PATH = os.environ.get('SAML_PATH') or os.path.join(os.path.abspath(os.curdir), 'saml')
-    AGENCY_DATA = os.environ.get('AGENCY_DATA') or os.path.join(os.path.join(os.path.abspath(os.curdir), 'data'),
-                                                                'agencies.csv')
+    SAML_PATH = (os.environ.get('SAML_PATH') or
+                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+    AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
+                   os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data'), 'agencies.csv'))
     IDP = os.environ.get('IDP')
-    LOGFILE_DIRECTORY = os.environ.get('LOGFILE_DIRECTORY') or os.path.join(os.path.abspath(os.curdir), 'logs/')
+    LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
+                        os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = 587
@@ -26,6 +28,11 @@ class Config:
     MAIL_SENDER = os.environ.get('[MAIL_SENDER]')
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+    UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
+                                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
+    UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
+                        os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/'))
 
     @staticmethod
     def init_app(app):
@@ -39,8 +46,9 @@ class DevelopmentConfig(Config):
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = os.environ.get('[SUBJECT_PREFIX]') or 'OpenRecords'
     MAIL_SENDER = os.environ.get('[MAIL_SENDER]') or 'Records Admin <openrecords@records.nyc.gov>'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-                              'postgresql://localhost:5432/openrecords_v2_0_dev'
+    SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
+                               'postgresql://localhost:5432/openrecords_v2_0_dev')
+    # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
 
 
 class TestingConfig(Config):

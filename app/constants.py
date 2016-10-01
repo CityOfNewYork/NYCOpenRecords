@@ -1,6 +1,17 @@
+from .utils import mapping
+
 ACKNOWLEDGEMENT_DAYS_DUE = 5
-UPLOAD_FOLDER = '/csv/upload'
-ALLOWED_EXTENSIONS = set(['txt', 'csv'])
+
+ROLE_NAME = mapping(
+    ANONYMOUS='Anonymous User',
+    PUBLIC_NON_REQUESTER='Public User - None Requester',
+    PUBLIC_REQUESTER='Public User - Requester',
+    AGENCY_HELPER='Agency Helper',
+    AGENCY_OFFICER='Agency FOIL Officer',
+    AGENCY_ADMIN='Agency Administrator'
+)
+
+# TODO: apply the above mapping convention where appropriate
 
 EVENT_TYPE = {
     "user_added": "user_added",
@@ -36,7 +47,7 @@ USER_TYPE = {
     "public_user": "public_user"
 }
 
-categories = [
+CATEGORIES = [
     ('', ''),
     ('Business', 'Business'),
     ('Civic Services', 'Civic Services'),
@@ -52,7 +63,7 @@ categories = [
 ]
 
 # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
-submission_method = [
+SUBMISSION_METHOD = [
     ('', ''),
     ('Direct Input', 'Direct Input'),
     ('Fax', 'Fax'),
@@ -136,3 +147,15 @@ PUBLIC_USER = [
     PUBLIC_USER_MICROSOFT
 ]
 
+RESPONSE_TYPE = {
+    "note": "note",
+    "record types": "record types",
+    "file": "file",
+    "link": "link",
+    "offline instructions": "offline instructions",
+    "email": "email",
+    "sms": "sms",
+    "push": "push",
+    "extension": "extension",
+    "status": "status"
+}
