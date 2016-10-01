@@ -1,9 +1,12 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
 <div class="test">
     <div class="well col-sm-9">
-        <h2 class="wrap-text"><strong>Request Info</strong></h2>
-        <h3 class="text-muted wrap-text"><strong>{{ request }}</strong></h3>
-        <h3 class="wrap-text">Title</h3>
-        <h3 class="wrap-text">Request</h3>
+        {#        <h2 class="wrap-text"><strong>Request Info</strong></h2>#}
+        {#        <h3 class="text-muted wrap-text"><strong>{{ request }}</strong></h3>#}
+        <h3 class="control-widget">
+            <div class="text-muted" id="request_id">{{ request.id }}</div>
+            <p class="lead" style="margin-bottom: 0rem;" truncateable="250">Title: {{ request.title }}</p>
+{#            <p class="lead" style="margin-bottom: 0rem;" truncateable="250">Description: {{ request.description }}</p>#}
+        </h3>
     </div>
 </div>

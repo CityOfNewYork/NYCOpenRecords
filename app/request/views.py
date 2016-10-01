@@ -123,5 +123,5 @@ def view(request_id):
 
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    request = Requests.query.filter_by(id=request_id).first().id
+    request = Requests.query.filter_by(id=request_id).first()
     return render_template('request/view_request.html', request=request)

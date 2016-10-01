@@ -1,5 +1,14 @@
 .test .well {
-    padding-top: 0px;
-    height: 215px;
-    width: 100%;
+    min-height: 130px;
+}
+
+h3.control-widget {
+    font-size: 24.5px;
+    font-weight: 600;
+    line-height: 20px !important;
+    display: inline !important
+}
+
+.test .lead {
+    line-height: 30px;
 }
