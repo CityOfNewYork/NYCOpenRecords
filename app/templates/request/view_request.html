@@ -12,12 +12,7 @@
     <div class="container-fluid">
         <div class="col-sm-12">
             <!-- Request Info Column -->
-            <div class="jumbotron col-sm-9">
-                <h3 class="wrap-text">Request Info</h3>
-                <h3 class="wrap-text">FOIL Number</h3>
-                <h3 class="wrap-text">Title</h3>
-                <h3 class="wrap-text">Request</h3>
-            </div>
+            {% include 'request/request_info.html' %}
 
             <!-- Status Column -->
             <div class="col-sm-3">
@@ -72,7 +67,7 @@
 
             <!-- History Column -->
             <div class="col-sm-3">
-                <h3 class="wrap-text">History</h3>
+                <h3 class="wrap-text">History</h3>var doc= document.querySelector('link[rel="import"]').import;
                 <h4 class="wrap-text">
                     History Info
                 </h4>

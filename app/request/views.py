@@ -12,7 +12,7 @@ from flask import (
 )
 from app.lib.user_information import create_mailing_address
 from app.db_utils import get_agencies_list
-from . import request as request_
+from app.request import request
 from .forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
@@ -20,9 +20,10 @@ from .forms import (
 )
 from .utils import create_request
 from flask_login import current_user
+from app.models import Requests
 
 
-@request_.route('/new', methods=['GET', 'POST'])
+@request.route('/new', methods=['GET', 'POST'])
 def new():
     """
     Create a new FOIL request
@@ -110,11 +111,17 @@ def _get_address(form):
     )
 
 
-@request_.route('/view', methods=['GET', 'POST'])
-def view():
+@request.route('/view_all', methods=['GET'])
+def view_all():
+    return render_template('request/view_request.html')
+
+
+@request.route('/view/<request_id>', methods=['GET', 'POST'])
+def view(request_id):
     """
     This function is for testing purposes of the view a request back until backend functionality is implemeneted.
 
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    return render_template('request/view_request.html')
+    request = Requests.query.filter_by(id=request_id).first().id
+    return render_template('request/view_request.html', request=request)
