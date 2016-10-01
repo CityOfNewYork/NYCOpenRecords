@@ -141,7 +141,9 @@ footer{
 	font-size:16px;
 }
 
-.navbar-nav > li > a {padding-top:25px !important; padding-bottom:30px !important;}
+.navbar-nav > li > a {padding-top:25px !important; padding-bottom:30px !important;
+	padding-left: 15px !important; padding-right: 15px !important;}
+
 .navbar {min-height:75px !important}
 
 .openrecords_nav{
