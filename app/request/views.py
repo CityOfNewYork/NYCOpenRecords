@@ -6,7 +6,7 @@
 
 from flask import (
     render_template,
-    request,
+    request as flask_request,
     redirect,
     url_for,
 )
@@ -42,7 +42,7 @@ def new():
         form = PublicUserRequestForm()
         agencies = get_agencies_list()
         form.request_agency.choices = agencies
-        if request.method == 'POST':
+        if flask_request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
             create_request(form.request_title.data,
                            form.request_description.data,
@@ -56,7 +56,7 @@ def new():
         form = AnonymousRequestForm()
         agencies = get_agencies_list()
         form.request_agency.choices = agencies
-        if request.method == 'POST':
+        if flask_request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
             create_request(form.request_title.data,
                            form.request_description.data,
@@ -76,7 +76,7 @@ def new():
     # Agency user
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        if request.method == 'POST':
+        if flask_request.method == 'POST':
             # Helper function to handle processing of data and secondary validation on the backend
             create_request(form.request_title.data,
                            form.request_description.data,

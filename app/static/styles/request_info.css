@@ -1,4 +1,5 @@
-.test .jumbotron {
-    padding-top: 15px;
+.test .well {
+    padding-top: 0px;
     height: 215px;
+    width: 100%;
 }
