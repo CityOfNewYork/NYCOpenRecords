@@ -103,6 +103,12 @@
                 <span class="size">{%=o.formatFileSize(file.size)%}</span>
             </td>
             <td>
+                {% if (file.error) { %}
+                    <button class="btn btn-warning cancel">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
+                {% } %}
                 <!-- TODO: cancellation / deletion
                 {% if (file.deleteUrl) { %}
                     <button class="btn btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
