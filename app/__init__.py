@@ -1,5 +1,4 @@
 import redis
-from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
@@ -65,15 +64,19 @@ def create_app(config_name):
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(prefixed_store, app)
 
-    from .main import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    from .main import main
+    app.register_blueprint(main)
 
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    from .auth import auth
+    app.register_blueprint(auth, url_prefix="/auth")
 
-    from .request import request_blueprint
-    app.register_blueprint(request_blueprint)
+    from .request import request
+    app.register_blueprint(request, url_prefix="/request")
 
-    from .responses import response as response_blueprint
-    app.register_blueprint(response_blueprint, url_prefix='/response')
+    from .response import response
+    app.register_blueprint(response, url_prefix="/response")
+
+    from .upload import upload
+    app.register_blueprint(upload, url_prefix="/upload")
+
     return app
