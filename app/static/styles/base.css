@@ -140,3 +140,15 @@ footer .form-search .input-search{
 footer{
 	font-size:16px;
 }
+
+.navbar-nav > li > a {padding-top:25px !important; padding-bottom:30px !important;}
+.navbar {min-height:75px !important}
+
+.openrecords_nav{
+	font-size: 20px;
+	/*font-size: 1.4em*/
+}
+
+.active{
+	min-height: 15px;
+}
