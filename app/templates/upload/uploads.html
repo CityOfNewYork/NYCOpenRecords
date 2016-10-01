@@ -3,10 +3,16 @@
 {% block custom_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/plugins/unslider.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/upload.css') }}">
 {% endblock %}
 
 {% block content %}
+
     <form id="fileupload" action="/upload/test_upload" method="POST" enctype="multipart/form-data">
+    <div class="my-slider">
+        <ul>
+            <li>My slide
         <!-- Redirect browsers with JavaScript disabled to the origin page -->
         <noscript><input type="hidden" name="redirect" value="http://blueimp.github.io/jQuery-File-Upload/"></noscript>
         <div class="row fileupload-buttonbar">
@@ -42,9 +48,24 @@
                 <div class="progress-extended">&nbsp;</div>
             </div>
         </div>
+
         <!-- The table listing the files available for upload/download -->
         <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
-        <input type="submit" value="Submit">
+
+
+            </li>
+            <li>My last slide
+            <textarea name="email_content"></textarea>
+            </li>
+            <li>
+
+                <h4>The following will be Submitted to the request:</h4>
+                <h5>Email:</h5>
+                <div id="email_summary"></div>
+                <input type="submit" value="Submit">
+            </li>
+        </ul>
+    </div>
     </form>
     {% raw %}
     <!-- The template to display files available for upload -->
@@ -84,13 +105,28 @@
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <tr class="template-download fade">
             <td>
-                Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
-                <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
+                {% if (!(file.error)) { %}
+                    Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
+                    <input type="hidden" id="{%=file.name%}" name="{%=file.name%}::title" >
+                    <div class="radio">
+                        <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" name="{%=file.name%}::privacy" value="private">Private</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox" name="{%=file.name%}::email" value=add_to_email>Add to email</label>
+                    </div>
+                {% } %}
+                <p>Name of File:</p>
                 <p class="name">
                     {% if (file.url) { %}
-                        <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                        <b><a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a></b>
                     {% } else { %}
-                        <span>{%=file.name%}</span>
+                        <b><span>{%=file.name%}</span></b>
                     {% } %}
                 </p>
                 {% if (file.error) { %}
@@ -120,6 +156,8 @@
     {% } %}
     </script>
     {% endraw %}
+
+
 {% endblock %}
 
 {% block custom_script %}
@@ -130,4 +168,12 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-main.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/unslider-min.js') }}"></script>
+    <script>
+        jQuery(document).ready(function ($) {
+            $('.my-slider').unslider();
+        });
+    </script>
 {% endblock %}
