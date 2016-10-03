@@ -1,31 +1,47 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
 <div class="test">
     <div class="well col-sm-9">
-        {#        <h2 class="wrap-text"><strong>Request Info</strong></h2>#}
-        {#        <h3 class="text-muted wrap-text"><strong>{{ request }}</strong></h3>#}
         <h3 class="control-widget">
             <div class="text-muted" id="request_id">{{ request.id }}</div>
             <div class="lead" style="margin-bottom: 0rem;">Title: {{ request.title }}
                 <div class="btn-group" data-toggle="buttons">
-                    <label class="btn btn-default" data-active-class="primary">
-                        <input type="radio">Public
+                    <label class="request-title btn btn-default" data-active-class="primary">
+                        <input type="radio" value="public">Public
                     </label>
-                    <label class="btn btn-default active" data-active-class="primary">
-                        <input type="radio">Private
+                    <label class="request-title btn btn-default active" data-active-class="primary">
+                        <input type="radio" value="private">Private
                     </label>
                 </div>
             </div>
-            <p class="lead" style="margin-bottom: 0rem;">Description: {{ request.description }}</p>
+            <div class="lead" style="margin-bottom: 0rem;">Description: {{ request.description }}</div>
             <div class="lead" style="margin-bottom: 0rem;">Agency Description:
                 <div class="btn-group" data-toggle="buttons">
-                    <label class="btn btn-default" data-active-class="primary">
-                        <input type="radio">Public
+                    <label class="agency-desc btn btn-default" data-active-class="primary">
+                        <input type="radio" value="public">Public
                     </label>
-                    <label class="btn btn-default active" data-active-class="primary">
-                        <input type="radio">Private
+                    <label class="agency-desc btn btn-default active" data-active-class="primary">
+                        <input type="radio" value="private">Private
                     </label>
                 </div>
             </div>
         </h3>
     </div>
 </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script type="text/javascript">
+    $(".request-title").click(function () {
+        $.post({
+            url: "/request/test",
+            data: {title: $(this).find(' :input').val(),
+                   id: "{{ request.id }}"}
+        });
+    });
+    $(".agency-desc").click(function () {
+        $.post({
+            url: "/request/test",
+            data: {desc: $(this).find(' :input').val(),
+                   id: "{{ request.id }}"}
+        });
+    });
+</script>

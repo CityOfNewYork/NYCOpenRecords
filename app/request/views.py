@@ -9,9 +9,10 @@ from flask import (
     request as flask_request,
     redirect,
     url_for,
+    jsonify,
 )
 from app.lib.user_information import create_mailing_address
-from app.lib.db_utils import get_agencies_list
+from app.lib.db_utils import get_agencies_list, update_object
 from app.request import request
 from .forms import (
     PublicUserRequestForm,
@@ -21,6 +22,7 @@ from .forms import (
 from .utils import create_request
 from flask_login import current_user
 from app.models import Requests
+import json
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -125,3 +127,29 @@ def view(request_id):
     """
     request = Requests.query.filter_by(id=request_id).first()
     return render_template('request/view_request.html', request=request)
+
+
+@request.route('/test', methods=['POST'])
+def my_action():
+    title = flask_request.form.get('title')
+    agency_desc = flask_request.form.get('desc')
+    id = flask_request.form.get('id')
+    request = Requests.query.filter_by(id=id).first()
+    request_json = json.loads(request.visibility)
+    if title:
+        request_json['title'] = title
+    if agency_desc:
+        request_json['agency_description'] = agency_desc
+
+    update_object(attribute='visibility', value=request_json, obj_type='Requests', obj_id=request.id)
+    return jsonify(request_json), 200
+
+
+# @request.route('/test2', methods=['POST'])
+# def my_action2():
+#     agency_desc = flask_request.form.get('desc')
+#     id = flask_request.form.get('id')
+#     request = Requests.query.filter_by(id=id).first()
+#     value = json.dumps({"agency_description": agency_desc})
+#     update_object(attribute='visibility', value=value, obj_type='Requests', obj_id=request.id)
+#     return jsonify({"agency_description": agency_desc}), 200
