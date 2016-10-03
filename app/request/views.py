@@ -11,7 +11,7 @@ from flask import (
     url_for,
 )
 from app.lib.user_information import create_mailing_address
-from app.db_utils import get_agencies_list
+from app.lib.db_utils import get_agencies_list
 from app.request import request
 from .forms import (
     PublicUserRequestForm,

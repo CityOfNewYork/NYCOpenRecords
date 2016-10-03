@@ -5,8 +5,27 @@
         {#        <h3 class="text-muted wrap-text"><strong>{{ request }}</strong></h3>#}
         <h3 class="control-widget">
             <div class="text-muted" id="request_id">{{ request.id }}</div>
-            <p class="lead" style="margin-bottom: 0rem;" truncateable="250">Title: {{ request.title }}</p>
-{#            <p class="lead" style="margin-bottom: 0rem;" truncateable="250">Description: {{ request.description }}</p>#}
+            <div class="lead" style="margin-bottom: 0rem;">Title: {{ request.title }}
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-default" data-active-class="primary">
+                        <input type="radio">Public
+                    </label>
+                    <label class="btn btn-default active" data-active-class="primary">
+                        <input type="radio">Private
+                    </label>
+                </div>
+            </div>
+            <p class="lead" style="margin-bottom: 0rem;">Description: {{ request.description }}</p>
+            <div class="lead" style="margin-bottom: 0rem;">Agency Description:
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-default" data-active-class="primary">
+                        <input type="radio">Public
+                    </label>
+                    <label class="btn btn-default active" data-active-class="primary">
+                        <input type="radio">Private
+                    </label>
+                </div>
+            </div>
         </h3>
     </div>
 </div>
