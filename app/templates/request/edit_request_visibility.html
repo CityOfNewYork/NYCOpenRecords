@@ -1,0 +1,16 @@
+<script type="text/javascript">
+    $(".request-title").click(function () {
+        $.post({
+            url: "/request/edit_visibility",
+            data: {title: $(this).find(' :input').val(),
+                   id: "{{ request.id }}"}
+        });
+    });
+    $(".agency-desc").click(function () {
+        $.post({
+            url: "/request/edit_visibility",
+            data: {desc: $(this).find(' :input').val(),
+                   id: "{{ request.id }}"}
+        });
+    });
+</script>

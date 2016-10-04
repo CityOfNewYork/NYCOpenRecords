@@ -121,7 +121,7 @@ def view_all():
 @request.route('/view/<request_id>', methods=['GET', 'POST'])
 def view(request_id):
     """
-    This function is for testing purposes of the view a request back until backend functionality is implemeneted.
+    This function is for testing purposes of the view a request back until backend functionality is implemented.
 
     :return: redirects to view_request.html which is the frame of the view a request page
     """
@@ -129,27 +129,26 @@ def view(request_id):
     return render_template('request/view_request.html', request=request)
 
 
-@request.route('/test', methods=['POST'])
-def my_action():
+@request.route('/edit_visibility', methods=['POST'])
+def edit_visibility():
+    """
+    Edits the visibility privacy options of a request's title and agency description.
+    Gets updated privacy options from AJAX call on view_request page.
+
+    :return: JSON Response with updated title and agency description visibility options
+    """
     title = flask_request.form.get('title')
     agency_desc = flask_request.form.get('desc')
-    id = flask_request.form.get('id')
-    request = Requests.query.filter_by(id=id).first()
-    request_json = json.loads(request.visibility)
-    if title:
-        request_json['title'] = title
-    if agency_desc:
-        request_json['agency_description'] = agency_desc
-
-    update_object(attribute='visibility', value=request_json, obj_type='Requests', obj_id=request.id)
-    return jsonify(request_json), 200
-
-
-# @request.route('/test2', methods=['POST'])
-# def my_action2():
-#     agency_desc = flask_request.form.get('desc')
-#     id = flask_request.form.get('id')
-#     request = Requests.query.filter_by(id=id).first()
-#     value = json.dumps({"agency_description": agency_desc})
-#     update_object(attribute='visibility', value=value, obj_type='Requests', obj_id=request.id)
-#     return jsonify({"agency_description": agency_desc}), 200
+    request_id = flask_request.form.get('id')
+    current_request = Requests.query.filter_by(id=request_id).first()
+    # Gets request's current visibility and loads it as a string if it exists, if not creates an empty dictionary
+    visibility = json.loads(current_request.visibility) if current_request.visibility else {}
+    # Stores title visibility if changed, uses current visibility if exists, or set to private if empty
+    visibility['title'] = title or visibility['title'] or 'private'
+    # Stores agency description visibility if changed or uses current visibility or set to private if empty
+    visibility['agency_description'] = agency_desc or visibility['agency_description'] or 'private'
+    update_object(attribute='visibility',
+                  value=json.dumps(visibility),
+                  obj_type='Requests',
+                  obj_id=current_request.id)
+    return jsonify(visibility), 200

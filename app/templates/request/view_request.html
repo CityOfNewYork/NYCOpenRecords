@@ -79,4 +79,5 @@
 {% block custom_script %}
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
+    {% include 'request/edit_request_visibility.html' %}
 {% endblock %}
