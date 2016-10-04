@@ -34,8 +34,7 @@ function previous_responses() {
         }
         document.getElementById("request-responses-table").innerHTML = request_responses_html;
     }
-    console.log(request_responses_index);
-    if (request_responses_index == 40) {
+    if (request_responses_index == request_responses.length - 10) {
         $(".load-more-responses").show();
     } else {
         $(".load-more-responses").hide();
@@ -43,7 +42,7 @@ function previous_responses() {
 }
 
 function next_responses() {
-    if (request_responses_index != 40) {
+    if (request_responses_index != request_responses.length - 10) {
         request_responses_index = request_responses_index + 10;
         var request_responses_html = '<table class="table"> <tbody>';
         for (var i = request_responses_index; i < request_responses_index + 10; i++) {
@@ -51,8 +50,7 @@ function next_responses() {
         }
         document.getElementById("request-responses-table").innerHTML = request_responses_html;
     }
-    console.log(request_responses_index);
-    if (request_responses_index == 40) {
+    if (request_responses_index == request_responses.length - 10) {
         $(".load-more-responses").show();
     } else {
         $(".load-more-responses").hide();
@@ -77,10 +75,5 @@ function load_more_responses() {
             console.log(error);
         }
     });
-    request_responses_index = 0;
-    if (request_responses_index == 40) {
-        $(".load-more-responses").show();
-    } else {
-        $(".load-more-responses").hide();
-    }
+    $(".load-more-responses").hide();
 }

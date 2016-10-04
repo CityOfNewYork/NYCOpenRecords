@@ -34,8 +34,7 @@ function previous_history() {
         }
         document.getElementById("request-history-table").innerHTML = request_history_html;
     }
-    console.log(request_history_index);
-    if (request_history_index == 45) {
+    if (request_history_index == request_history.length - 5) {
         $(".load-more-history").show();
     } else {
         $(".load-more-history").hide();
@@ -43,7 +42,7 @@ function previous_history() {
 }
 
 function next_history() {
-    if (request_history_index != 45) {
+    if (request_history_index != request_history.length - 5) {
         request_history_index = request_history_index + 5;
         var request_history_html = '<table class="table"> <tbody>';
         for (var i = request_history_index; i < request_history_index + 5; i++) {
@@ -51,8 +50,7 @@ function next_history() {
         }
         document.getElementById("request-history-table").innerHTML = request_history_html;
     }
-    console.log(request_history_index);
-    if (request_history_index == 45) {
+    if (request_history_index == request_history.length - 5) {
         $(".load-more-history").show();
     } else {
         $(".load-more-history").hide();
@@ -77,10 +75,5 @@ function load_more_history() {
             console.log(error);
         }
     });
-    request_history_index = 0;
-    if (request_history_index == 45) {
-        $(".load-more-history").show();
-    } else {
-        $(".load-more-history").hide();
-    }
+    $(".load-more-history").hide();
 }
