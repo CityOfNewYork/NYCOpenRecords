@@ -1,89 +1,28 @@
 <div id="request-responses-table">
-<table class="table">
-    <thead>
-    <tr>
-        <th>Responses</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for response in request_responses_section %}
-        {% if response.type ==  'Note' %}
-
-        {% elif response.type ==  'File' %}
-
-        {% elif response.type ==  'Link' %}
-
-        {% elif response.type ==  'Offline Instruction' %}
-
-        {% elif response.type ==  'Notification' %}
-
-        {% elif response.type ==  'Extension' %}
-
-        {% endif %}
-    {% endfor %}
-    {% for response in request_responses_section %}
+    <table class="table">
+        <thead>
         <tr>
-            <td>
-                {{ response }}
-                <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-            </td>
+            <th>Responses</th>
         </tr>
-    {% endfor %}
-{#    <tr>#}
-{#        <td>#}
-{#            File#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Link#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Instruction#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Note#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Extension#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Email#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            SMS#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Push#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-{#    <tr>#}
-{#        <td>#}
-{#            Visibility#}
-{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
-{#        </td>#}
-{#    </tr>#}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+        {% for response in request_responses_section %}
+            {% if response.type ==  'Note' %}
+
+            {% elif response.type ==  'File' %}
+
+            {% elif response.type ==  'Link' %}
+
+            {% elif response.type ==  'Offline Instruction' %}
+
+            {% elif response.type ==  'Notification' %}
+
+            {% elif response.type ==  'Extension' %}
+
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <div class="navigation-arrows" style="text-align: center;">

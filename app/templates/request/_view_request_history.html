@@ -1,21 +1,18 @@
 <div id="request-history-table">
-<table class="table">
-    <thead>
-    <tr>
-        <th>History</th>
-    </tr>
-    </thead>
-    <tbody>
-{#    {% for event in request_history_section %}#}
-{#        <td>User {{ event.user }} did {{ event.response }} on {{ event.timestamp }}.</td>#}
-{#    {% endfor %}#}
-    {% for event in request_history_section %}
+    <table class="table">
+        <thead>
         <tr>
-            <td>{{ event }}</td>
+            <th>History</th>
         </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+        {% for event in request_history_section %}
+            <tr>
+                <td>{{ event }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <div class="navigation-arrows" style="text-align: center;">
