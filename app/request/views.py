@@ -13,7 +13,7 @@ from flask import (
     current_app
 )
 from app.lib.user_information import create_mailing_address
-from app.db_utils import get_agencies_list
+from app.lib.db_utils import get_agencies_list
 from . import request as request_
 from .forms import (
     PublicUserRequestForm,
