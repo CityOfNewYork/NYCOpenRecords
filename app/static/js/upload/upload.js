@@ -12,7 +12,6 @@ $(document).ready(function () {
             'insertdatetime table contextmenu paste code'
         ],
         toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
-        content_css: '//www.tinymce.com/css/codepen.min.css'
     });
 
     //Call ajax to populate email field with content after textarea is finished loading.
@@ -30,7 +29,7 @@ $(document).ready(function () {
                 alert('fail.');
             }
         });
-        $('.unslider-arrow').click(function () {
+        $('.prev-slider,.next-slider').click(function () {
             $("#email_summary").html(tinyMCE.get('email_content').getContent());
         });
     };

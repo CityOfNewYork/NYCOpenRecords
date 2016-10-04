@@ -1,7 +1,23 @@
-.unslider-nav{
-    display:none;
+.carousel-control{
+    background-image: none;
+    background-repeat: no-repeat
 }
 
-.unslider-arrow{
+.previous{
+    background-image: none;
+    background-color:blue;
+}
 
+.next-slider{
+    height:100%;
+    top:50%;
+    float:right;
+    margin-bottom:1rem;
+}
+
+.prev-slider{
+    height:100%;
+    top:50%;
+    float:left;
+    margin-bottom:1rem;
 }
