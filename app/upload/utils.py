@@ -4,11 +4,19 @@
     :synopsis: Helper functions for uploads
 """
 
+import os
 import magic
 import subprocess
+from glob import glob
+from flask import current_app
 from .constants import (
     ALLOWED_MIMETYPES,
-    MAX_CHUNKSIZE
+    MAX_CHUNKSIZE,
+    UPLOAD_STATUS,
+)
+from app import (
+    celery,
+    prefixed_store as redis,
 )
 
 
@@ -49,14 +57,76 @@ def is_valid_file_type(obj):
     return is_valid
 
 
-#@task
-def start_file_scan(filepath):
+@celery.task
+def scan_upload(request_id, filepath):
     """
-    Scans a file and moves it to data directory if it is clean,
-    otherwise deletes the file. Updates redis accordingly.
+    Scans an uploaded file and moves it to the data directory
+    if it is clean, otherwise deletes the file.
+    Updates redis accordingly,
 
     :param filepath: path of file to be scanned
     """
-    # TODO: PIPE output to logfile?
-    subprocess.call(['uvscan', filepath])
-    # wait and move to /data/directory/
+    filename = os.path.basename(filepath)
+
+    key = get_redis_key_upload(request_id, filename)
+    redis.put(key, UPLOAD_STATUS.SCANNING)
+
+    # TODO: PIPE output to logfile (not celery's)? and moar logging
+    options = [
+        '--analyze',  # Use heuristic analysis to find possible new viruses
+        '--atime-preserve'  # Preserve the file's last-accessed time and date
+    ]
+    cmd = ['uvscan'] + options + [filepath]
+    subprocess.call(cmd)
+
+    root, _ = os.path.splitext(filepath)
+    is_infected, filepath = _is_file_infected(root, filepath)
+    if is_infected:
+        os.remove(filepath)
+        redis.delete(key)
+    else:
+        # complete upload
+        dst_dir = os.path.join(
+            current_app.config['UPLOAD_DIRECTORY'],
+            request_id
+        )
+        if not os.path.exists(dst_dir):
+            os.mkdir(dst_dir)
+        os.rename(
+            filepath,
+            os.path.join(dst_dir, filename)
+        )
+        redis.put(key, UPLOAD_STATUS.READY)
+
+
+def _is_file_infected(root, original_path):
+    """
+    Checks if the virus scanner has found an infected file.
+
+    When the scanner detects and infected file, it renames the file's extension
+    using the following conventions:
+
+    Original    Renamed     Example
+    Not v??     v??         file.doc -> file.voc
+    v??         vir         file.vbs -> file.vir
+    <blank>     vir         file     -> file.vir
+
+    :param root: the file path excluding the file extension
+    :param original_path: the unaltered path of an uploaded file
+    :return: (Whether the file is infected or not,
+        the path to the infected file or the original path)
+    """
+    path = glob(root + "*")[0]
+    _, ext = os.path.splitext(path)
+    return original_path != path and ext[1] == 'v', path
+
+
+def get_redis_key_upload(request_id, upload_filename):
+    """
+
+    :param request_id:
+    :param upload_filename:
+    :return: the formatted key
+    """
+    # TODO: ensure compatibility with simplekv
+    return '_'.join((request_id, upload_filename))
