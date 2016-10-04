@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    app.request.utils
+    app.request.lib
     ~~~~~~~~~~~~~~~~
 
     synopsis: Handles the functions for requests
@@ -27,7 +27,7 @@ from app.constants import (
     ANONYMOUS_USER,
     ROLE_NAME
 )
-from app.db_utils import create_object, update_object
+from app.lib.db_utils import create_object, update_object
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
 
 DIRECT_INPUT = 'Direct Input'

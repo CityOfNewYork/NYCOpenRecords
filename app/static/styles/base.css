@@ -1,4 +1,7 @@
-
+body {
+	height:auto;
+	top:auto;
+}
 
 .nycidm-header .small-nyc-logo{
 	top:0px;
