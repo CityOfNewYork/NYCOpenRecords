@@ -5,7 +5,6 @@ var request_history_index = 0;
 // Hide load-more-history div
 $(".load-more-history").hide();
 var request_history;
-var request_history_section;
 
 $(document).ready(function () {
     $.ajax({
@@ -14,15 +13,10 @@ $(document).ready(function () {
         data: {request_history_reload_index: request_history_reload_index},
         success: function (data) {
             request_history = data.request_history;
-            request_history_section = request_history.slice(request_history_index, request_history_index + 5);
-            console.log(request_history);
-            console.log(request_history_section);
             var request_history_html = '<table class="table"> <tbody>';
-            for (var i = 0; i < 5; i++) {
-                request_history_html = request_history_html + '<tr> <td>' + request_history_section[i] + '</td> </tr>';
+            for (var i = request_history_index; i < request_history_index + 5; i++) {
+                request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
             }
-            console.log(request_history_html);
-            console.log(document.getElementById("request-history-table"));
             document.getElementById("request-history-table").innerHTML = request_history_html;
         },
         error: function (error) {
@@ -34,9 +28,13 @@ $(document).ready(function () {
 function previous_history() {
     if (request_history_index != 0) {
         request_history_index = request_history_index - 5;
+        var request_history_html = '<table class="table"> <tbody>';
+        for (var i = request_history_index; i < request_history_index + 5; i++) {
+            request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
+        }
+        document.getElementById("request-history-table").innerHTML = request_history_html;
     }
     console.log(request_history_index);
-    request_history_section = [request_history.slice(request_history_index, request_history_index + 5)];
     if (request_history_index == 45) {
         $(".load-more-history").show();
     } else {
@@ -47,9 +45,13 @@ function previous_history() {
 function next_history() {
     if (request_history_index != 45) {
         request_history_index = request_history_index + 5;
+        var request_history_html = '<table class="table"> <tbody>';
+        for (var i = request_history_index; i < request_history_index + 5; i++) {
+            request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
+        }
+        document.getElementById("request-history-table").innerHTML = request_history_html;
     }
     console.log(request_history_index);
-    request_history_section = [request_history.slice(request_history_index, request_history_index + 5)];
     if (request_history_index == 45) {
         $(".load-more-history").show();
     } else {
@@ -62,16 +64,23 @@ function load_more_history() {
     $.ajax({
         type: "POST",
         url: '/request/api/v1.0/history',
-        dataType: 'json',
-        data: JSON.stringify(request_history_reload_index),
-        success: function (response) {
-            var request_history = response;
-            var request_history_section = [request_history.slice(request_history_index, request_history_index + 5)];
-            console.log(response)
+        data: {request_history_reload_index: request_history_reload_index},
+        success: function (data) {
+            request_history = data.request_history;
+            var request_history_html = '<table class="table"> <tbody>';
+            for (var i = request_history_index; i < request_history_index + 5; i++) {
+                request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
+            }
+            document.getElementById("request-history-table").innerHTML = request_history_html;
         },
         error: function (error) {
             console.log(error);
         }
     });
     request_history_index = 0;
+    if (request_history_index == 45) {
+        $(".load-more-history").show();
+    } else {
+        $(".load-more-history").hide();
+    }
 }
