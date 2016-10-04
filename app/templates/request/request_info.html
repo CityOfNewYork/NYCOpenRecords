@@ -5,23 +5,41 @@
             <div class="text-muted" id="request_id">{{ request.id }}</div>
             <div class="lead" style="margin-bottom: 0rem;">Title: {{ request.title }}
                 <div class="btn-group" data-toggle="buttons">
-                    <label class="request-title btn btn-default" data-active-class="primary">
-                        <input type="radio" value="public">Public
-                    </label>
-                    <label class="request-title btn btn-default active" data-active-class="primary">
-                        <input type="radio" value="private">Private
-                    </label>
+                    {% if visibility['title'] == 'private' %}
+                        <label class="request-title btn btn-default" data-active-class="primary">
+                            <input type="radio" value="public">Public
+                        </label>
+                        <label class="request-title btn btn-default active" data-active-class="primary">
+                            <input type="radio" value="private" checked="checked">Private
+                        </label>
+                    {% else %}
+                        <label class="request-title btn btn-default active" data-active-class="primary">
+                            <input type="radio" value="public">Public
+                        </label>
+                        <label class="request-title btn btn-default" data-active-class="primary">
+                            <input type="radio" value="private" checked="checked">Private
+                        </label>
+                    {% endif %}
                 </div>
             </div>
             <div class="lead" style="margin-bottom: 0rem;">Description: {{ request.description }}</div>
             <div class="lead" style="margin-bottom: 0rem;">Agency Description:
                 <div class="btn-group" data-toggle="buttons">
-                    <label class="agency-desc btn btn-default" data-active-class="primary">
-                        <input type="radio" value="public">Public
-                    </label>
-                    <label class="agency-desc btn btn-default active" data-active-class="primary">
-                        <input type="radio" value="private">Private
-                    </label>
+                    {% if visibility['agency_description'] == 'private' %}
+                        <label class="agency-desc btn btn-default" data-active-class="primary">
+                            <input name="test" type="radio" value="public">Public
+                        </label>
+                        <label class="agency-desc btn btn-default active" data-active-class="primary">
+                            <input name="test" type="radio" value="private">Private
+                        </label>
+                    {% else %}
+                        <label class="agency-desc btn btn-default active" data-active-class="primary">
+                            <input name="test" type="radio" value="public">Public
+                        </label>
+                        <label class="agency-desc btn btn-default" data-active-class="primary">
+                            <input name="test" type="radio" value="private">Private
+                        </label>
+                    {% endif %}
                 </div>
             </div>
         </h3>
