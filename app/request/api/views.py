@@ -10,7 +10,10 @@ def get_request_history():
 
     :return: list of 50 history objects from request
     """
-    request_history = flask_request.form['request_history_reload_index']
+    # request_history = flask_request.form['request_history_reload_index']
+    request_history = []
+    for i in range(1, 51):
+        request_history.append(str(i))
     return jsonify(request_history=request_history)
 
 
@@ -21,5 +24,8 @@ def get_request_responses():
 
     :return: list of 100 history objects from request
     """
-    request_responses = flask_request.form['request_responses_reload_index']
+    # request_responses = flask_request.form['request_responses_reload_index']
+    request_responses = []
+    for i in range(1, 51):
+        request_responses.append(str(i))
     return jsonify(request_responses=request_responses)

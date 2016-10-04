@@ -1,3 +1,4 @@
+<div id="request-history-table">
 <table class="table">
     <thead>
     <tr>
@@ -5,26 +6,17 @@
     </tr>
     </thead>
     <tbody>
+{#    {% for event in request_history_section %}#}
+{#        <td>User {{ event.user }} did {{ event.response }} on {{ event.timestamp }}.</td>#}
+{#    {% endfor %}#}
     {% for event in request_history_section %}
-        <td>User {{ event.user }} did {{ event.response }} on {{ event.timestamp }}.</td>
+        <tr>
+            <td>{{ event }}</td>
+        </tr>
     {% endfor %}
-    <tr>
-        <td>User user did response on timestamp.</td>
-    </tr>
-    <tr>
-        <td>User user did response on timestamp.</td>
-    </tr>
-    <tr>
-        <td>User user did response on timestamp.</td>
-    </tr>
-    <tr>
-        <td>User user did response on timestamp.</td>
-    </tr>
-    <tr>
-        <td>User user did response on timestamp.</td>
-    </tr>
     </tbody>
 </table>
+</div>
 
 <div class="navigation-arrows" style="text-align: center;">
     <div class="history-active">

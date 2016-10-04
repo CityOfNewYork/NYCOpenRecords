@@ -1,3 +1,4 @@
+<div id="request-responses-table">
 <table class="table">
     <thead>
     <tr>
@@ -20,61 +21,70 @@
 
         {% endif %}
     {% endfor %}
-    <tr>
-        <td>
-            File
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            Link
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            Instruction
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    <tr>
-        <td>
-            Note
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            Extension
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            Email
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            SMS
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            Push
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            Visibility
-            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
-        </td>
-    </tr>
+    {% for response in request_responses_section %}
+        <tr>
+            <td>
+                {{ response }}
+                <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>
+            </td>
+        </tr>
+    {% endfor %}
+{#    <tr>#}
+{#        <td>#}
+{#            File#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Link#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Instruction#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Note#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Extension#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Email#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            SMS#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Push#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <td>#}
+{#            Visibility#}
+{#            <button style="float: right;" type="button" class="btn btn-secondary btn-sm">Edit</button>#}
+{#        </td>#}
+{#    </tr>#}
     </tbody>
 </table>
+</div>
 
 <div class="navigation-arrows" style="text-align: center;">
     <div class="responses-active">
