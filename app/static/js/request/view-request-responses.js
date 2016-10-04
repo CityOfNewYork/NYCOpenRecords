@@ -1,11 +1,12 @@
-// Initialize indexes
+// initialize variables
 var request_responses_reload_index = 0;
 var request_responses_index = 0;
-
-// Hide load-more-responses div
-$(".load-more-responses").hide();
 var request_responses;
 
+// hide load-more-responses div
+$(".load-more-responses").hide();
+
+// loads initial responses into div
 $(document).ready(function () {
     $.ajax({
         type: "POST",
@@ -25,6 +26,7 @@ $(document).ready(function () {
     });
 });
 
+// replaces currently displayed responses with previous 10 responses
 function previous_responses() {
     if (request_responses_index != 0) {
         request_responses_index = request_responses_index - 10;
@@ -41,6 +43,7 @@ function previous_responses() {
     }
 }
 
+// replaces currently displayed responses with next 10 responses
 function next_responses() {
     if (request_responses_index != request_responses.length - 10) {
         request_responses_index = request_responses_index + 10;
@@ -57,6 +60,7 @@ function next_responses() {
     }
 }
 
+// loads 50 more responses into request_responses array
 function load_more_responses() {
     request_responses_reload_index++;
     $.ajax({

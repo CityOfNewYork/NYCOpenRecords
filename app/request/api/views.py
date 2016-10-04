@@ -23,7 +23,7 @@ def get_request_responses():
     """
     This function is for testing ajax call for responses section of the view_requests page.
 
-    :return: list of 100 history objects from request
+    :return: list of 50 history objects from request
     """
     request_responses_index = int(flask_request.form['request_responses_reload_index'])
     request_responses_index_end = (request_responses_index + 1) * 50 + 1

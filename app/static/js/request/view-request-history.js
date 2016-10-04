@@ -1,11 +1,12 @@
-// Initialize indexes
+// initialize variables
 var request_history_reload_index = 0;
 var request_history_index = 0;
-
-// Hide load-more-history div
-$(".load-more-history").hide();
 var request_history;
 
+// hide load-more-history div
+$(".load-more-history").hide();
+
+// loads initial history into div
 $(document).ready(function () {
     $.ajax({
         type: "POST",
@@ -25,6 +26,7 @@ $(document).ready(function () {
     });
 });
 
+// replaces currently displayed history events with previous 5 history events
 function previous_history() {
     if (request_history_index != 0) {
         request_history_index = request_history_index - 5;
@@ -41,6 +43,7 @@ function previous_history() {
     }
 }
 
+// replaces currently displayed history events with next 5 history events
 function next_history() {
     if (request_history_index != request_history.length - 5) {
         request_history_index = request_history_index + 5;
@@ -57,6 +60,7 @@ function next_history() {
     }
 }
 
+// loads 50 more history events into request_history array
 function load_more_history() {
     request_history_reload_index++;
     $.ajax({

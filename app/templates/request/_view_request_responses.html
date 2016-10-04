@@ -1,35 +1,8 @@
-<div id="request-responses-table">
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Responses</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for response in request_responses_section %}
-            {% if response.type ==  'Note' %}
+<div id="request-responses-table"></div>
 
-            {% elif response.type ==  'File' %}
-
-            {% elif response.type ==  'Link' %}
-
-            {% elif response.type ==  'Offline Instruction' %}
-
-            {% elif response.type ==  'Notification' %}
-
-            {% elif response.type ==  'Extension' %}
-
-            {% endif %}
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div class="navigation-arrows" style="text-align: center;">
-    <div class="responses-active">
-        <a onclick="previous_responses()">&#9668;</a>
-        <a onclick="next_responses()">&#9658;</a>
-    </div>
+<div class="responses-navigation-arrows" style="text-align: center;">
+    <a onclick="previous_responses()">&#9668;</a>
+    <a onclick="next_responses()">&#9658;</a>
 </div>
 
 <div class="load-more-responses" style="text-align: center;">

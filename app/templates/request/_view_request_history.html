@@ -1,25 +1,8 @@
-<div id="request-history-table">
-    <table class="table">
-        <thead>
-        <tr>
-            <th>History</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for event in request_history_section %}
-            <tr>
-                <td>{{ event }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+<div id="request-history-table"></div>
 
-<div class="navigation-arrows" style="text-align: center;">
-    <div class="history-active">
-        <a onclick="previous_history()">&#9668;</a>
-        <a onclick="next_history()">&#9658;</a>
-    </div>
+<div class="history-navigation-arrows" style="text-align: center;">
+    <a onclick="previous_history()">&#9668;</a>
+    <a onclick="next_history()">&#9658;</a>
 </div>
 
 <div class="load-more-history" style="text-align: center;">
