@@ -26,7 +26,7 @@ def response_note(request_id):
         add_note(request_id=request,
                  content=form.note.data)
         flash('Note has been submitted')
-    return render_template('request/view_request.html', request=request, form=form)
+    return render_template('request/view_note.html', request=request, form=form)
 
 
 # TODO: Implement response route for file
