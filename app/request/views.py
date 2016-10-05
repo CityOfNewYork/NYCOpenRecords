@@ -4,21 +4,26 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
+from tempfile import NamedTemporaryFile
 from flask import (
     render_template,
     request,
     redirect,
     url_for,
 )
-from app.lib.user_information import create_mailing_address
 from app.lib.db_utils import get_agencies_list
+from app.lib.utils import InvalidUserException
 from . import request as request_
 from .forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from .utils import create_request
+from .utils import (
+    create_request,
+    handle_upload_no_id,
+    get_address,
+)
 from flask_login import current_user
 
 
@@ -36,27 +41,39 @@ def new():
      uploaded file is stored in app/static
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-    # Public user
+
     if current_user.is_public:
         form = PublicUserRequestForm()
-        agencies = get_agencies_list()
-        form.request_agency.choices = agencies
-        if request.method == 'POST':
-            # Helper function to handle processing of data and secondary validation on the backend
+        form.request_agency.choices = get_agencies_list()
+        template_suffix = 'user.html'
+    elif current_user.is_anonymous:
+        form = AnonymousRequestForm()
+        form.request_agency.choices = get_agencies_list()
+        template_suffix = 'anon.html'
+    elif current_user.is_agency:
+        form = AgencyUserRequestForm()
+        template_suffix = 'agency.html'
+    else:
+        raise InvalidUserException(current_user)
+
+    new_request_template = 'request/new_request_' + template_suffix
+
+    if request.method == 'POST':
+        # validate upload with no request id available
+        upload_path = None
+        if form.request_file.data:
+            form.request_file.validate(form)
+            upload_path = handle_upload_no_id(form.request_file)
+            if form.request_file.errors:
+                return render_template(new_request_template, form=form)
+
+        # create request
+        if current_user.is_public:
             create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
-                           upload_file=form.request_file.data)
-            return redirect(url_for('main.index'))
-        return render_template('request/new_request_user.html', form=form)
-
-    # Anonymous user
-    elif current_user.is_anonymous:
-        form = AnonymousRequestForm()
-        agencies = get_agencies_list()
-        form.request_agency.choices = agencies
-        if request.method == 'POST':
-            # Helper function to handle processing of data and secondary validation on the backend
+                           upload_path=upload_path)
+        elif current_user.is_anonymous:
             create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
@@ -67,16 +84,9 @@ def new():
                            organization=form.user_organization.data,
                            phone=form.phone.data,
                            fax=form.fax.data,
-                           address=_get_address(form),
-                           upload_file=form.request_file.data)
-            return redirect(url_for('main.index'))
-        return render_template('request/new_request_anon.html', form=form)
-
-    # Agency user
-    elif current_user.is_agency:
-        form = AgencyUserRequestForm()
-        if request.method == 'POST':
-            # Helper function to handle processing of data and secondary validation on the backend
+                           address=get_address(form),
+                           upload_path=upload_path)
+        elif current_user.is_agency:
             create_request(form.request_title.data,
                            form.request_description.data,
                            submission=form.method_received.data,
@@ -88,26 +98,11 @@ def new():
                            organization=form.user_organization.data,
                            phone=form.phone.data,
                            fax=form.fax.data,
-                           address=_get_address(form),
-                           upload_file=form.request_file.data)
-            return redirect(url_for('main.index'))
-        return render_template('request/new_request_agency.html', form=form)
+                           address=get_address(form),
+                           upload_path=upload_path)
+        return redirect(url_for('main.index'))
 
-
-def _get_address(form):
-    """
-    Get mailing address from form data.
-
-    :type form: app.request.forms.AgencyUserRequestForm
-                app.request.forms.AnonymousRequestForm
-    """
-    return create_mailing_address(
-        form.address.data,
-        form.city.data,
-        form.state.data,
-        form.zipcode.data,
-        form.address_two.data or None
-    )
+    return render_template(new_request_template, form=form)
 
 
 @request_.route('/view', methods=['GET', 'POST'])
