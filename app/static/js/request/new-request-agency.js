@@ -128,8 +128,12 @@ $(document).ready(function () {
         }
     });
 
-    // Clear error messages for form.request_file on submit
+    // Clear error messages for form.request_file on submit ...
     $('#submit').click(function() {
+        $('.upload-error').remove();
+    });
+    // ... or on input change for request_file
+    $('#request-file').change(function() {
         $('.upload-error').remove();
     });
 

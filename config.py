@@ -43,6 +43,8 @@ class Config:
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/'))
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED')
+    MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
+                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
     @staticmethod
     def init_app(app):

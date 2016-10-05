@@ -51,10 +51,22 @@ def is_valid_file_type(obj):
     :return: (whether the mime type is allowed or not,
         the mime type)
     """
-    mime_type = magic.from_buffer(
-        obj.stream.read(MAX_CHUNKSIZE), mime=True)
-    obj.stream.seek(0)
-    return mime_type in ALLOWED_MIMETYPES, mime_type
+    # 1. Check content type header
+    mime_type = obj.content_type
+    is_valid = mime_type in ALLOWED_MIMETYPES
+    if is_valid:
+        buffer = obj.stream.read(MAX_CHUNKSIZE)
+        # 2. Check from file buffer
+        mime_type = magic.from_buffer(buffer, mime=True)
+        is_valid = mime_type in ALLOWED_MIMETYPES
+        if is_valid:
+            # 3. Check using mime database file
+            m = magic.Magic(
+                magic_file=current_app.config['MAGIC_FILE'],
+                mime=True)
+            m.from_buffer(buffer)
+        obj.stream.seek(0)
+    return is_valid, mime_type
 
 
 def get_redis_key_upload(request_id, upload_filename):
@@ -123,7 +135,7 @@ def scan_file(filepath):
     if current_app.config['VIRUS_SCAN_ENABLED']:
         options = [
             '--analyze',  # Use heuristic analysis to find possible new viruses
-            '--atime-preserve'  # Preserve the file's last-accessed time and date
+            '--atime-preserve',  # Preserve the file's last-accessed time and date
             '--delete'  # Automatically delete the infected file
         ]
         cmd = ['uvscan'] + options + [filepath]
