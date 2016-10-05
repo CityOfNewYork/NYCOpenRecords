@@ -1,4 +1,4 @@
-.test .well {
+.request-info .well {
     min-height: 130px;
 }
 
@@ -9,8 +9,20 @@ h3.control-widget {
     display: inline !important
 }
 
-.test .lead {
-    line-height: 30px;
+/*#req-title.lead {*/
+    /*line-height: 30px;*/
+    /*display: inline;*/
+    /*padding-right: 50px;*/
+/*}*/
+
+#req-title.lead {
+    padding: 0 !important;
+    /*margin: 0 !important;*/
+}
+
+#req-title2.lead {
+    padding: 0 !important;
+    /*margin: 0 !important;*/
 }
 
 /* sets toggle button to primary when active */
@@ -20,62 +32,18 @@ h3.control-widget {
     border-color: #204d74;
 }
 
-/*!* The switch - the box around the slider *!*/
-/*.switch {*/
-  /*position: relative;*/
-  /*display: inline-block;*/
-  /*width: 45px;*/
-  /*height: 24px;*/
-    /*margin-bottom: 0px;*/
-/*}*/
+.a .title {
+    text-decoration: none;
+    border-bottom: none;
+}
 
-/*!* Hide default HTML checkbox *!*/
-/*.switch input {display:none;}*/
+.editable-click,
+a.editable-click {
+    border-bottom: none;
+    color: inherit;
+}
 
-/*!* The slider *!*/
-/*.slider {*/
-  /*position: absolute;*/
-  /*cursor: pointer;*/
-  /*top: 0;*/
-  /*left: 0;*/
-  /*right: 0;*/
-  /*bottom: 0;*/
-  /*background-color: #ccc;*/
-  /*-webkit-transition: .4s;*/
-  /*transition: .4s;*/
-/*}*/
-
-/*.slider:before {*/
-  /*position: absolute;*/
-  /*content: "";*/
-  /*height: 16px;*/
-  /*width: 16px;*/
-  /*left: 6px;*/
-  /*bottom: 4px;*/
-  /*background-color: white;*/
-  /*-webkit-transition: .4s;*/
-  /*transition: .4s;*/
-/*}*/
-
-/*input:checked + .slider {*/
-  /*background-color: #2196F3;*/
-/*}*/
-
-/*input:focus + .slider {*/
-  /*box-shadow: 0 0 1px #2196F3;*/
-/*}*/
-
-/*input:checked + .slider:before {*/
-  /*-webkit-transform: translateX(16px);*/
-  /*-ms-transform: translateX(16px);*/
-  /*transform: translateX(16px);*/
-/*}*/
-
-/*!* Rounded sliders *!*/
-/*.slider.round {*/
-  /*border-radius: 34px;*/
-/*}*/
-
-/*.slider.round:before {*/
-  /*border-radius: 50%;*/
-/*}*/
+a.editable-click:hover {
+    text-decoration: underline;
+    border-bottom: none;
+}

@@ -1,10 +1,11 @@
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
-<div class="test">
+<div class="request-info">
     <div class="well col-sm-9">
         <h3 class="control-widget">
             <div class="text-muted" id="request_id">{{ request.id }}</div>
-            <div class="lead" style="margin-bottom: 0rem;">Title: <a href id="title">{{ request.title }}</a>
-                <div class="btn-group" data-toggle="buttons">
+            <div class="row">
+                <div class="lead col-sm-1" id="req-title">Title:</div>
+                <div class="lead col-sm-3" id="req-title2"><a href="#" id="title">{{ request.title }}</a></div>
+                <div class="col-sm-push-5 btn-group" data-toggle="buttons">
                     {% if visibility['title'] == 'private' %}
                         <label class="request-title btn btn-default" data-active-class="primary">
                             <input type="radio" value="public">Public
@@ -22,26 +23,24 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="lead" style="margin-bottom: 0rem;">Description:
-                <a href id="description">{{ request.description }}</a>
-            <div class="lead" style="margin-bottom: 0rem;">Agency Description:
-                <div class="btn-group" data-toggle="buttons">
-                    {% if visibility['agency_description'] == 'private' %}
-                        <label class="agency-desc btn btn-default" data-active-class="primary">
-                            <input name="test" type="radio" value="public">Public
-                        </label>
-                        <label class="agency-desc btn btn-default active" data-active-class="primary">
-                            <input name="test" type="radio" value="private">Private
-                        </label>
-                    {% else %}
-                        <label class="agency-desc btn btn-default active" data-active-class="primary">
-                            <input name="test" type="radio" value="public">Public
-                        </label>
-                        <label class="agency-desc btn btn-default" data-active-class="primary">
-                            <input name="test" type="radio" value="private">Private
-                        </label>
-                    {% endif %}
-                </div>
+            <div class="lead">Description: <a href id="description">{{ request.description }}</a></div>
+            <span class="lead">Agency Description: </span>
+            <div class="col-sm-push-6 btn-group" data-toggle="buttons">
+                {% if visibility['agency_description'] == 'private' %}
+                    <label class="agency-desc btn btn-default" data-active-class="primary">
+                        <input name="test" type="radio" value="public">Public
+                    </label>
+                    <label class="agency-desc btn btn-default active" data-active-class="primary">
+                        <input name="test" type="radio" value="private">Private
+                    </label>
+                {% else %}
+                    <label class="agency-desc btn btn-default active" data-active-class="primary">
+                        <input name="test" type="radio" value="public">Public
+                    </label>
+                    <label class="agency-desc btn btn-default" data-active-class="primary">
+                        <input name="test" type="radio" value="private">Private
+                    </label>
+                {% endif %}
             </div>
         </h3>
     </div>

@@ -1,4 +1,7 @@
 <script type="text/javascript">
+    $.fn.editableform.buttons =
+            '<button type="submit" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
+            '<button type="button" class="btn btn-default btn-sm editable-cancel"><i class="glyphicon glyphicon-ban-circle"></i></button>';
     $(document).ready(function () {
         $.fn.editable.defaults.mode = 'inline'
         $('#title').editable({

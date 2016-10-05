@@ -126,16 +126,16 @@
 .editable-clear-x {
    background: url('../../img/clear.png') center center no-repeat;
    display: block;
-   width: 13px;    
+   width: 13px;
    height: 13px;
    position: absolute;
    opacity: 0.6;
    z-index: 100;
-   
+
    top: 50%;
    right: 6px;
    margin-top: -6px;
-   
+
 }
 
 .editable-clear-x:hover {
