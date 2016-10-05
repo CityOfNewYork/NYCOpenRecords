@@ -1,4 +1,5 @@
 import redis
+from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension

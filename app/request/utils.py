@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    app.request.lib
+    app.request.utils
     ~~~~~~~~~~~~~~~~
 
     synopsis: Handles the functions for requests

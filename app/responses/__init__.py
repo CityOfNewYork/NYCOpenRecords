@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-request = Blueprint('request', __name__)
+response = Blueprint('response', __name__)
 
 from . import views
