@@ -51,7 +51,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    VIRUS_SCAN_ENABLED = False
+    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') or False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Development]'
     MAIL_SENDER = 'OpenRecords - Dev Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or

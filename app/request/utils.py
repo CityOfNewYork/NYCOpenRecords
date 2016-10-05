@@ -53,15 +53,21 @@ def create_request(title,
                    address=None,
                    upload_path=None):
     """
-    Function for creating and storing a new request on the backend.
+    Creates a new FOIL Request and associated Users, UserRequests, and Events.
 
     :param title: request title
     :param description: detailed description of the request
     :param agency: agency selected for the request
     :param date_created: date the request was made
     :param submission: request submission method
-    :return: creates and stores the request and event object for a new FOIL request
-             Request and Event table are updated in the database
+    :param agency_date_submitted: submission date chosen by agency
+    :param email: requester's email address
+    :param user_title: requester's organizational title
+    :param organization: requester's organization
+    :param phone: requester's phone number
+    :param fax: requester's fax number
+    :param address: requester's mailing address
+    :param upload_path: file path of the validated upload
     """
     # 1. Generate the request id
     request_id = generate_request_id(agency)

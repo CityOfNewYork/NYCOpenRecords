@@ -43,7 +43,7 @@
                 {# Upload field for user to add files #}
                 <div class="col-sm-12">
                     {{ form.request_file.label(class='request-heading') }}
-                    &nbsp<span class="request-heading">(Must be less than 20 Mb)</span>
+                    &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     {{ form.request_file(id='request-file') }}
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}

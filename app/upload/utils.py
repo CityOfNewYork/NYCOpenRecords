@@ -74,6 +74,9 @@ class VirusDetectedException(Exception):
     """
     Raise when scanner detects an infected file.
     """
+    def __init__(self, filename):
+        super(VirusDetectedException, self).__init__(
+            "Infected file '{}' removed.".format(filename))
 
 
 @celery.task
@@ -121,33 +124,10 @@ def scan_file(filepath):
         options = [
             '--analyze',  # Use heuristic analysis to find possible new viruses
             '--atime-preserve'  # Preserve the file's last-accessed time and date
+            '--delete'  # Automatically delete the infected file
         ]
         cmd = ['uvscan'] + options + [filepath]
         subprocess.call(cmd)  # TODO: redirect output to logfile
-        root, _ = os.path.splitext(filepath)
-        is_infected, infected_path = _is_file_infected(root, filepath)
-        if is_infected:
-            os.remove(infected_path)
-            raise VirusDetectedException
-
-
-def _is_file_infected(root, original_path):
-    """
-    Checks if the virus scanner has found an infected file.
-
-    When the scanner detects and infected file, it renames the file's extension
-    using the following conventions:
-
-    Original    Renamed     Example
-    Not v??     v??         file.doc -> file.voc
-    v??         vir         file.vbs -> file.vir
-    <blank>     vir         file     -> file.vir
-
-    :param root: the file path excluding the file extension
-    :param original_path: the unaltered path of an uploaded file
-    :return: (Whether the file is infected or not,
-        the path to the infected file or to the original file if no virus found)
-    """
-    path = glob(root + "*")[0]
-    _, ext = os.path.splitext(path)
-    return original_path != path and ext[1] == 'v', path
+        # if the file was removed, it was infected
+        if not os.path.exists(filepath):
+            raise VirusDetectedException(os.path.basename(filepath))
