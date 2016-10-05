@@ -119,7 +119,15 @@ def test():
 @upload.route('/status', methods=['GET'])
 def status():
     """
-    /upload/status?request_id=<id>&filename=<name>
+    Check the status of an upload.
+
+    Request Parameters:
+        - request_id
+        - filename
+
+    :returns: {
+        "status": upload status
+    }
     """
     try:
         upload_status = redis.get(
