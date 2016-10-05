@@ -1,0 +1,17 @@
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.fn.editable.defaults.mode = 'inline'
+        $('#title').editable({
+            type: 'text',
+            pk: "{{ request.id }}",
+            url: '/request/view/edit',
+            send: 'always'
+        })
+        $('#description').editable({
+            type: 'text',
+            pk: "{{ request.id }}",
+            url: '/request/view/edit',
+            send: 'always'
+        })
+    })
+</script>

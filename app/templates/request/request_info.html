@@ -3,7 +3,7 @@
     <div class="well col-sm-9">
         <h3 class="control-widget">
             <div class="text-muted" id="request_id">{{ request.id }}</div>
-            <div class="lead" style="margin-bottom: 0rem;">Title: {{ request.title }}
+            <div class="lead" style="margin-bottom: 0rem;">Title: <a href id="title">{{ request.title }}</a>
                 <div class="btn-group" data-toggle="buttons">
                     {% if visibility['title'] == 'private' %}
                         <label class="request-title btn btn-default" data-active-class="primary">
@@ -22,7 +22,8 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="lead" style="margin-bottom: 0rem;">Description: {{ request.description }}</div>
+            <div class="lead" style="margin-bottom: 0rem;">Description:
+                <a href id="description">{{ request.description }}</a>
             <div class="lead" style="margin-bottom: 0rem;">Agency Description:
                 <div class="btn-group" data-toggle="buttons">
                     {% if visibility['agency_description'] == 'private' %}

@@ -152,3 +152,16 @@ def edit_visibility():
                   obj_type='Requests',
                   obj_id=current_request.id)
     return jsonify(visibility), 200
+
+
+@request.route('/view/edit', methods=['POST'])
+def edit_request_info():
+    edit_request = flask_request.form
+    # title = flask_request.form['value']
+    request_id = flask_request.form.get('pk')
+    current_request = Requests.query.filter_by(id=request_id).first()
+    update_object(attribute=edit_request['name'],
+                  value=edit_request['value'],
+                  obj_type='Requests',
+                  obj_id=current_request.id)
+    return jsonify(edit_request), 200
