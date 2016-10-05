@@ -1,16 +1,15 @@
- <div class="container-fluid">
-{#        <div class="jumbotron">#}
-{#            <h1><span>Status</span></h1>#}
-{#            <h1><span class="in-progress">In Progress</span></h1>#}
-{#            <h1><span class="overdue-style">Overdue</span></h1>#}
-{#            <h1><span class="duesoon-style">Due Soon</span></h1>#}
-{#            <h1><span class="open-style">Open</span></h1>#}
-            <h1><span class="closed-style">Closed</span></h1>
-            <hr>
-            <h3>Agency</h3>
-            <h3>Requester Name{{ user_title }}</h3>
-            <div id="requester-popover"><a href="#" data-toggle="popover" data-trigger="hover" title="Requester Info" data-content="Only editable if anon">Requester {{ user_title }}</a></div>
-            <div id="user-popover"><a href="#" data-toggle="popover" data-trigger="hover" title="User info" data-content="Info only for agency users">Assigned User</a></div>
-            <p>Due Dates</p>
-{#        </div>#}
-    </div>
+<div class="container-fluid">
+    {#            <h1><span>Status</span></h1>#}
+    {#            <h1><span class="in-progress">In Progress</span></h1>#}
+    {#            <h1><span class="overdue-style">Overdue</span></h1>#}
+    {#            <h1><span class="duesoon-style">Due Soon</span></h1>#}
+    {#            <h1><span class="open-style">Open</span></h1>#}
+    <h1><span class="closed-style">Closed</span></h1>
+    <hr>
+    <h3>Agency</h3>
+    <div id="requester-popover"><a href="#" data-toggle="popover" data-trigger="hover" title="Requester Info"
+                                   data-content="Only editable if anon"><h3>Requester Name {{ user_title }}</h3></a></div>
+    <div id="user-popover"><a href="#" data-toggle="popover" data-trigger="hover" title="User info"
+                              data-content="Info only for agency users">Assigned User</a></div>
+    <p>Due Dates</p>
+</div>
