@@ -5,17 +5,11 @@
 $(document).ready(function () {
     tinymce.init({
         selector: 'textarea',
-        height: 500,
-        plugins: [
-            'advlist autolink lists link image charmap print preview anchor',
-            'searchreplace visualblocks code fullscreen',
-            'insertdatetime table contextmenu paste code'
-        ],
-        toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
+        height: 200,
     });
 
     //Call ajax to populate email field with content after textarea is finished loading.
-    window.onload =function(){
+    window.onload=function(){
         $.ajax({
             url: "/upload/email",
             type: 'POST',
@@ -23,21 +17,54 @@ $(document).ready(function () {
             contentType: false,
             success: function (data) {
                 //Data should be html template page.
-                tinyMCE.get('email_content').setContent(data);
+                tinyMCE.get('email-content').setContent(data);
             },
             error: function (data) {
                 alert('fail.');
             }
         });
         $('.prev-slider,.next-slider').click(function () {
-            $("#email_summary").html(tinyMCE.get('email_content').getContent());
+            $("#email-summary").html(tinyMCE.get('email-content').getContent());
         });
     };
 
+    $('.carousel').carousel({
+        interval: false,
+        wrap: false
+    });
+
+    $('.title-field').attr('data-parsley-required','');
 
 
+    $('.next-slider').click(function(e){
+        $('#fileupload').parsley().validate();
+        if (!($( '#fileupload' ).parsley().isValid())){
+            e.preventDefault();
+            e.stopPropagation();
+        };
 
+    });
 
+    $('#fileupload').submit(function () {
+        if ($(".add_to_email").checked) {
+            $('.dont_add_to_email').disabled = true;
+        }
+    });
 
-
+    // javascript to remove next and prev buttons if at beginning or end of carousel.
+    $('#prev-slider').hide();
+    $('.carousel').on('slid.bs.carousel', '', function() {
+        if ($('.carousel-inner .item:last').hasClass('active')) {
+            $('#next-slider').hide();
+        }
+        else{
+            $('#next-slider').show();
+        }
+        if ($('.carousel-inner .item:first').hasClass('active')) {
+            $('#prev-slider').hide();
+        }
+        else{
+            $('#prev-slider').show();
+        }
+    });
 });

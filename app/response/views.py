@@ -17,7 +17,6 @@ class NoteForm(Form):
     note = StringField('Add Note')
     submit = SubmitField('Submit')
 
-
 @response.route('/note/<request_id>', methods=['GET', 'POST'])
 def response_note(request_id):
     request = Requests.query.filter_by(id=request_id).first().id

@@ -1,31 +1,19 @@
-{% extends "base.html" %}
-
-{% block custom_css %}
     <link rel="stylesheet" type=text/css href="{{ url_for('static', filename='styles/upload.css') }}">
     <link rel="stylesheet" type=text/css
           href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
     <link rel="stylesheet" type=text/css
           href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
-    <link rel="stylesheet" type=text/css href="{{ url_for('static', filename='styles/plugins/unslider.css') }}">
-{% endblock %}
 
-{% block content %}
     <form id="fileupload" class="carousel slide" action="/response/file" method="POST" enctype="multipart/form-data"
-          data-ride="carousel">
-        {#        <ol class="carousel-indicators">#}
-        {#            <li data-target="#fileupload" data-slide-to="0" class="active"></li>#}
-        {#            <li data-target="#fileupload" data-slide-to="1"></li>#}
-        {#            <li data-target="#fileupload" data-slide-to="2"></li>#}
-        {#            <li data-target="#fileupload" data-slide-to="3"></li>#}
-        {#        </ol>#}
-        <div class="col-sm-1">
+          data-ride="carousel" data-parsley-validate>
+        <div class="col-sm-1 no-padding">
             <a id="prev-slider" class="prev-slider" href="#fileupload" role="button" data-slide="prev">
                 <span class="prev-slider glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
                 <span class="sr-only">Previous</span>
             </a>
         </div>
-        <div class="col-sm-10">
-            <div class="carousel-inner" role="listbox">
+        <div class="col-sm-7">
+            <div class="carousel-inner" role="listbox" style="padding-right: 1rem;">
                 <div class="item active">
                     <!-- Redirect browsers with JavaScript disabled to the origin page -->
                     <noscript><input type="hidden" name="redirect" value="http://blueimp.github.io/jQuery-File-Upload/">
@@ -70,17 +58,17 @@
                     </table>
                 </div>
                 <div class="item">
-                    <textarea name="email_content"></textarea>
+                    <textarea name="email-content"></textarea>
                 </div>
                 <div class="item">
                     <h4>The following will be Submitted to the request:</h4>
                     <h5>Email:</h5>
-                    <div id="email_summary"></div>
+                    <div id="email-summary"></div>
                     <input type="submit" value="Submit">
                 </div>
             </div>
         </div>
-        <div class="col-sm-1">
+        <div class="col-sm-1 no-padding">
             <a id="next-slider" class="next-slider" href="#fileupload" role="button" data-slide="next">
                 <span class="next-slider glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
                 <span class="sr-only">Next</span>
@@ -128,8 +116,8 @@
         <tr class="template-download fade">
             <td>
                 {% if (!(file.error)) { %}
-                    Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
-                    <input type="hidden" id="{%=file.name%}" name="{%=file.name%}::title" >
+                    Title: <input type="text" class="title-field" id="{%=file.name%}" name="{%=file.name%}::title" data-parsley-required>
+                    <input type="hidden" id="{%=file.name%}" name="{%=file.name%}" value="{%=file.name%}">
                     <div class="radio">
                         <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
                     </div>
@@ -137,10 +125,12 @@
                         <label><input type="radio" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
                     </div>
                     <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="private">Private</label>
+                        <label><input type="radio" name="{%=file.name%}::privacy" value="private" checked>Private</label>
                     </div>
                     <div class="checkbox">
-                      <label><input type="checkbox" name="{%=file.name%}::email" value=add_to_email>Add to email</label>
+                      <label><input class="add_to_email" type="checkbox" name="{%=file.name%}::email" value=add_to_email>Add to email
+                      <input class="dont_add_to_email" type="hidden" name="{%=file.name%}::email" value=dont_add_to_email>
+                      </label>
                     </div>
                 {% } %}
                 <p>Name of File:</p>
@@ -186,29 +176,20 @@
 
     </script>
     {% endraw %}
-{% endblock %}
-
-{% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-main.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/unslider-min.js') }}"></script>
-    <script>
-        jQuery(document).ready(function ($) {
-            $('.carousel').carousel({
-                interval: false
-            });
-        });
-    </script>
-{% endblock %}
+{##}
+{#{% block custom_script %}#}
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>#}
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>#}
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>#}
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>#}
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-main.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>#}
+{#{% endblock %}#}

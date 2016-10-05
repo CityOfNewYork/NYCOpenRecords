@@ -21,3 +21,12 @@
     float:left;
     margin-bottom:1rem;
 }
+
+.no-padding{
+    padding-left: 0px;
+    width: 0px;
+}
+
+#email-summary{
+    padding-bottom: 5rem;
+}
