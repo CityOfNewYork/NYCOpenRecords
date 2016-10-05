@@ -128,7 +128,7 @@ $(document).ready(function () {
         }
     });
 
-    // Clear form.request_file.error on submit
+    // Clear error messages for form.request_file on submit
     $('#submit').click(function() {
         $('.upload-error').remove();
     });

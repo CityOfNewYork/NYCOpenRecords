@@ -68,7 +68,6 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     VIRUS_SCAN_ENABLED = True
-    pass
 
 
 config = {

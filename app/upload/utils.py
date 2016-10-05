@@ -59,7 +59,8 @@ def is_valid_file_type(obj):
 
 def get_redis_key_upload(request_id, upload_filename):
     """
-
+    Returns a formatted redis key for an upload.
+    Intended for tracking the status of an upload.
 
     :param request_id: id of the request associated with the upload
     :param upload_filename: the name of the uploaded file
@@ -80,7 +81,7 @@ def scan_and_complete_upload(request_id, filepath):
     """
     Scans an uploaded file (see scan_file) and moves
     it to the data directory if it is clean.
-    Updates redis accordingly,
+    Updates redis accordingly.
 
     :param request_id: id of request associated with the upload
     :param filepath: path to uploaded and quarantined file

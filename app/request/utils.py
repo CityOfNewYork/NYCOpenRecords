@@ -118,7 +118,7 @@ def create_request(title,
     if upload_path is not None:
         # 7. Move file to upload directory
         _move_validated_upload(request_id, upload_path)
-        # 7. Create upload Event
+        # 8. Create upload Event
         upload_event = Events(user_id=user.guid,
                               user_type=user.user_type,
                               request_id=request_id,
@@ -241,7 +241,7 @@ def _move_validated_upload(request_id, tmp_path):
         request_id)
     if not os.path.exists(dst_dir):
         os.mkdir(dst_dir)
-    valid_name = os.path.basename(tmp_path).split('.', 1)[1]
+    valid_name = os.path.basename(tmp_path).split('.', 1)[1]  # remove 'tmp' prefix
     valid_path = os.path.join(dst_dir, valid_name)
     os.rename(tmp_path, valid_path)
 
