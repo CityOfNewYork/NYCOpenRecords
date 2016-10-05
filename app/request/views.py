@@ -11,19 +11,19 @@ from flask import (
     url_for,
 )
 from app.lib.user_information import create_mailing_address
-from app.db_utils import get_agencies_list
-from app.request import request_blueprint
-from app.request.forms import (
+from app.lib.db_utils import get_agencies_list
+from . import request as request_
+from .forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from app.request.utils import create_request
+from .utils import create_request
 from flask_login import current_user
 
 
-@request_blueprint.route('/new', methods=['GET', 'POST'])
-def submit_request():
+@request_.route('/new', methods=['GET', 'POST'])
+def new():
     """
     Create a new FOIL request
 
@@ -99,7 +99,7 @@ def _get_address(form):
     Get mailing address from form data.
 
     :type form: app.request.forms.AgencyUserRequestForm
-    :type form: app.request.forms.AnonymousRequestForm
+                app.request.forms.AnonymousRequestForm
     """
     return create_mailing_address(
         form.address.data,
@@ -108,8 +108,10 @@ def _get_address(form):
         form.zipcode.data,
         form.address_two.data or None
     )
-@request_blueprint.route('/view', methods=['GET', 'POST'])
-def view_request():
+
+
+@request_.route('/view', methods=['GET', 'POST'])
+def view():
     """
     This function is for testing purposes of the view a request back until backend functionality is implemeneted.
 

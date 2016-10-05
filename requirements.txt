@@ -26,6 +26,7 @@ MarkupSafe==0.23
 psycopg2==2.6.2
 python-dotenv==0.6.0
 python-editor==1.0.1
+python-magic==0.4.12
 pytz==2016.6.1
 redis==2.10.5
 simplekv==0.10.0

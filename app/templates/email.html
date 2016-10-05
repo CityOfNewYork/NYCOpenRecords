@@ -11,7 +11,10 @@
 {% endfor %}
 <form id="email" method="POST">
     {{ form.hidden_tag() }}
-    {{ form.email }}
+    {{ form.to.label }}: {{ form.to }}
+    {{ form.cc.label }}: {{ form.cc }}
+    {{ form.bcc.label }}: {{ form.bcc }}
+    {{ form.subject.label }}: {{ form.subject }}
     {{ form.submit }}
 </form>
 <hr>

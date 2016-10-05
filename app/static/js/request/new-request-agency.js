@@ -41,6 +41,9 @@ $(document).ready(function () {
             'data-content': "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
             title: "Example Request"
     });
+    $('#request-description').click(function(){
+        $('#request-description').popover('show');
+    });
     $('#request-description').popover();
     // $('#request-description').click(function(){
     //     $('#request-description').popover('show');
