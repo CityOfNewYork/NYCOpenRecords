@@ -27,6 +27,7 @@ ALLOWED_MIMETYPES = [
     'video/quicktime',
     'audio/mpeg',
     'video/mp4',
+    'video/avi',
     'application/vnd.oasis.opendocument.formula',
     'application/vnd.oasis.opendocument.graphics',
     'application/vnd.oasis.opendocument.presentation',

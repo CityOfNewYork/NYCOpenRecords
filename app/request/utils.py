@@ -19,7 +19,7 @@ from flask_login import current_user
 
 from werkzeug.utils import secure_filename
 
-from app import calendar
+from app import calendar, upload_redis
 from app.constants import (
     ACKNOWLEDGEMENT_DAYS_DUE,
     EVENT_TYPE,
@@ -29,10 +29,12 @@ from app.constants import (
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
+from app.upload.constants import UPLOAD_STATUS
 from app.upload.utils import (
     is_valid_file_type,
     scan_file,
-    VirusDetectedException
+    VirusDetectedException,
+    get_redis_key_upload
 )
 
 DIRECT_INPUT = 'Direct Input'
@@ -250,6 +252,9 @@ def _move_validated_upload(request_id, tmp_path):
     valid_name = os.path.basename(tmp_path).split('.', 1)[1]  # remove 'tmp' prefix
     valid_path = os.path.join(dst_dir, valid_name)
     os.rename(tmp_path, valid_path)
+    upload_redis.set(
+        get_redis_key_upload(request_id, valid_name),
+        UPLOAD_STATUS.READY)
 
 
 def generate_request_id(agency):

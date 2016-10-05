@@ -10,14 +10,19 @@ from flask import (
     render_template,
     current_app,
 )
+from app import upload_redis as redis
 from werkzeug.utils import secure_filename
 from . import upload
 from .utils import (
     parse_content_range,
     is_valid_file_type,
-    scan_and_complete_upload
+    scan_and_complete_upload,
+    get_redis_key_upload,
 )
-from .constants import CONTENT_RANGE_HEADER
+from .constants import (
+    CONTENT_RANGE_HEADER,
+    UPLOAD_STATUS
+)
 
 
 @upload.route('/<request_id>', methods=['POST'])
@@ -43,6 +48,7 @@ def post(request_id):
     if not os.path.exists(upload_path):
         os.mkdir(upload_path)
     filepath = os.path.join(upload_path, filename)
+    key = get_redis_key_upload(request_id, filename)
 
     try:
         if CONTENT_RANGE_HEADER in request.headers:
@@ -56,6 +62,7 @@ def post(request_id):
                 valid_file_type, file_type = is_valid_file_type(file_)
 
             if valid_file_type:
+                redis.set(key, UPLOAD_STATUS.PROCESSING)
                 with open(filepath, 'ab') as fp:
                     fp.seek(start)
                     fp.write(file_.stream.read())
@@ -65,6 +72,7 @@ def post(request_id):
         else:
             valid_file_type, file_type = is_valid_file_type(file_)
             if valid_file_type:
+                redis.set(key, UPLOAD_STATUS.PROCESSING)
                 file_.save(filepath)
                 scan_and_complete_upload.delay(request_id, filepath)
 
@@ -85,8 +93,8 @@ def post(request_id):
                     # "deleteType": 'DELETE',
                 }]
             }
-
     except Exception as e:
+        redis.set(key, UPLOAD_STATUS.ERROR)
         print("Upload for file '{}' failed: {}".format(filename, e))
         response = {
             "files": [{
@@ -108,8 +116,24 @@ def test():
     return render_template('upload/uploads.html')
 
 
-@upload.route('/status/<request_id>', methods=['GET'])
-def status(request_id):
-    # check redis
-    # get_redis_key_upload(request_id, filename)
-    return jsonify({}), 200
+@upload.route('/status', methods=['GET'])
+def status():
+    """
+    /upload/status?request_id=<id>&filename=<name>
+    """
+    try:
+        upload_status = redis.get(
+            get_redis_key_upload(
+                request.args['request_id'],
+                secure_filename(request.args['filename'])
+            )
+        )
+        if upload_status is not None:
+            response = {"status": upload_status.decode("utf-8")}
+        else:
+            response = {"error": "Upload status not found."}
+        status_code = 200
+    except KeyError:
+        response = {}
+        status_code = 422
+    return jsonify(response), status_code
