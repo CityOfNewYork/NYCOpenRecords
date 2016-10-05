@@ -136,9 +136,9 @@
                 <p>Name of File:</p>
                 <p class="name">
                     {% if (file.url) { %}
-                        <b><a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a></b>
+                        <strong><a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a></strong>
                     {% } else { %}
-                        <b><span>{%=file.name%}</span></b>
+                        <strong><span>{%=file.name%}</span></strong>
                     {% } %}
                 </p>
                 {% if (file.error) { %}
@@ -176,20 +176,3 @@
 
     </script>
     {% endraw %}
-{##}
-{#{% block custom_script %}#}
-{#    <script type="text/javascript"#}
-{#            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>#}
-{#    <script type="text/javascript"#}
-{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>#}
-{#    <script type="text/javascript"#}
-{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>#}
-{#    <script type="text/javascript"#}
-{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>#}
-{#    <script type="text/javascript"#}
-{#            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-main.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>#}
-{#{% endblock %}#}

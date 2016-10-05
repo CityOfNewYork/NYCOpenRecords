@@ -11,7 +11,7 @@ $(document).ready(function () {
     //Call ajax to populate email field with content after textarea is finished loading.
     window.onload=function(){
         $.ajax({
-            url: "/upload/email",
+            url: "/responses/email",
             type: 'POST',
             processData: false,
             contentType: false,

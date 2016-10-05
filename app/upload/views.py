@@ -18,12 +18,6 @@ from .utils import (
 )
 from .constants import CONTENT_RANGE_HEADER
 
-@upload.route('/test_upload', methods=['POST'])
-def submit_file():
-    form = request.form
-    return render_template('upload/uploads.html')
-
-
 @upload.route('/<request_id>', methods=['POST'])
 def post(request_id):
     """
@@ -105,17 +99,7 @@ def get(request_id):
     return jsonify({}), 200
 
 
-@upload.route('/test', methods=['GET'])
-def test():
-    return render_template('upload/uploads.html')
-
-
 @upload.route('/status/<request_id>', methods=['GET'])
 def status(request_id):
     # check redis
     return jsonify({}), 200
-
-@upload.route("/email", methods=["GET", "POST"])
-def show_email():
-    form = request.form
-    return render_template('email_templates/email_file_upload.html', department="Department of Records and Information Services", page="http://127.0.0.1:5000/upload/test")

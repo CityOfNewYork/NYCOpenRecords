@@ -17,6 +17,12 @@ class NoteForm(Form):
     note = StringField('Add Note')
     submit = SubmitField('Submit')
 
+@response.route('/enail', methods=['GET', 'POST'])
+def show_email():
+    return render_template('email_templates/email_file_upload.html',
+                           department="Department of Records and Information Services",
+                           page="http://127.0.0.1:5000/upload/test")
+
 @response.route('/note/<request_id>', methods=['GET', 'POST'])
 def response_note(request_id):
     request = Requests.query.filter_by(id=request_id).first().id
