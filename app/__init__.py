@@ -80,6 +80,4 @@ def create_app(config_name):
     from .upload import upload
     app.register_blueprint(upload, url_prefix="/upload")
 
-    from .responses import response as response_blueprint
-    app.register_blueprint(response_blueprint, url_prefix='/response')
     return app

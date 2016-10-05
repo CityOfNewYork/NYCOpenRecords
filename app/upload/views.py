@@ -103,12 +103,3 @@ def get(request_id):
 @upload.route('/test', methods=['GET'])
 def test():
     return render_template('upload/uploads.html')
-
-ns = api.namespace('upload', description='Upload operations for Responses')
-
-upload = api.model('Upload' {
-@upload.route('/status/<request_id>', methods=['GET'])
-def status(request_id):
-    # check redis
-    return jsonify({}), 200
-})
