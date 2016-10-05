@@ -2,7 +2,7 @@
  .. module: utils
 
 """
-from flask_login import current_user
+
 
 def mapping(**named_values):
     return type('Mapping', (), named_values)
