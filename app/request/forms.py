@@ -9,10 +9,8 @@ from datetime import datetime
 from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField
-from wtforms.fields.html5 import TelField
 
-
-from app.constants import categories, agencies, submission_method, STATES
+from app.constants import CATEGORIES, SUBMISSION_METHOD, STATES
 
 
 class PublicUserRequestForm(Form):
@@ -26,9 +24,10 @@ class PublicUserRequestForm(Form):
     description: detailed description of the request
 
     """
+
     # Request Information
-    request_category = SelectField('Category (optional)', choices=categories)
-    request_agency = SelectField('Agency (required)', choices=agencies)
+    request_category = SelectField('Category (optional)', choices=CATEGORIES)
+    request_agency = SelectField('Agency (required)', choices=None)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
 
@@ -61,9 +60,9 @@ class AgencyUserRequestForm(Form):
     fax: requester's fax number
     address, city, state, zip: requester's address
     """
+
     # Request Information
-    request_category = SelectField('Category (optional)', choices=categories)
-    request_agency = SelectField('Agency (required)', choices=agencies)
+    request_category = SelectField('Category (optional)', choices=CATEGORIES)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
     request_date = DateTimeField("Date (required)", format="%Y-%m-%d", default=datetime.today)
@@ -79,13 +78,13 @@ class AgencyUserRequestForm(Form):
     phone = StringField('Phone')
     fax = StringField('Fax')
     address = StringField('Address 1')
-    address_2 = StringField('Address Line 2')
+    address_two = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=STATES, default='NY')
     zipcode = StringField('Zip')
 
     # Method Received
-    method_received = SelectField('Format Received (required)', choices=submission_method)
+    method_received = SelectField('Format Received (required)', choices=SUBMISSION_METHOD)
 
     # File Upload
     request_file = FileField('Upload File')
@@ -115,8 +114,8 @@ class AnonymousRequestForm(Form):
     address, city, state, zip: requester's address
     """
     # Request Information
-    request_category = SelectField('Category (optional)', choices=categories)
-    request_agency = SelectField('Agency (required)', choices=agencies)
+    request_category = SelectField('Category (optional)', choices=CATEGORIES)
+    request_agency = SelectField('Agency (required)', choices=None)
     request_title = TextAreaField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
 
@@ -131,7 +130,7 @@ class AnonymousRequestForm(Form):
     phone = StringField('Phone')
     fax = StringField('Fax')
     address = StringField('Address 1')
-    address_2 = StringField('Address Line 2')
+    address_two = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=STATES, default='NY')
     zipcode = StringField('Zip')

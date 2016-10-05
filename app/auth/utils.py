@@ -1,6 +1,5 @@
 # TODO: Add module level comments
 
-import json
 from urllib.parse import urljoin, urlparse
 
 from flask import current_app, request, session
@@ -10,8 +9,8 @@ from app import login_manager
 from app.constants import (
     AGENCY_USER
 )
-from app.db_utils import create_object, update_object
-from app.models import Agency, User
+from app.lib.db_utils import create_object, update_object
+from app.models import Agencies, Users
 
 
 @login_manager.user_loader
@@ -24,7 +23,7 @@ def user_loader(user_id):
     """
     guid = user_id.split(':')[0]
     user_type = user_id.split(':')[1]
-    return User.query.filter_by(guid=guid, user_type=user_type).first()
+    return Users.query.filter_by(guid=guid, user_type=user_type).first()
 
 
 def init_saml_auth(req):
@@ -78,11 +77,11 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     :param mailing_address: User's mailing address; JSON Object
     :return: User GUID + User Type
     """
-    user = User.query.filter_by(guid=guid).first()
+    user = Users.query.filter_by(guid=guid).first()
 
     if user:
         if user.user_type == AGENCY_USER:
-            organization = Agency.query.filter_by(email_domain=user.email.split('@')[-1]).first()
+            organization = Agencies.query.filter_by(email_domain=user.email.split('@')[-1]).first()
 
             user = update_user(
                 guid=guid,
@@ -110,29 +109,6 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     return user
 
 
-def create_mailing_address(address_one, city, state, zipcode, address_two=None):
-    """
-    Creates a JSON object from the parts of a mailing address for a user.
-
-    :param address_one: Line one of the user's address; String
-    :param city: City of the user's address; String
-    :param state: State of the user's address; String
-    :param zipcode: Zip code of the user; 5 Digit integer
-    :param address_two: Optional line two of the user's address; String
-    :return: JSON Object containing the address
-    """
-    mailing_address = {
-        'address_one': address_one,
-        'address_two': address_two,
-        'city': city,
-        'state': state,
-        'zip': zipcode
-    }
-    mailing_address = json.dumps(mailing_address)
-
-    return mailing_address
-
-
 def update_user(guid=None, user_type=None, **kwargs):
     """
     Updates a user if they exist in the database.
@@ -144,7 +120,7 @@ def update_user(guid=None, user_type=None, **kwargs):
     if not guid:
         return None
     for key, value in kwargs.items():
-        user = update_object(attribute=key, value=value, obj_type="User", obj_id=(guid, user_type))
+        user = update_object(attribute=key, value=value, obj_type="Users", obj_id=(guid, user_type))
 
     if not user:
         return None
@@ -161,7 +137,7 @@ def find_or_create_user(guid, user_type):
     :param unicode user_type: User Type. See auth.constants for list of valid user types
     :return: (User Object, Boolean for Is new User)
     """
-    user = User.query.filter_by(guid=str(guid[0]), user_type=str(user_type[0])).first()
+    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(user_type[0])).first()
 
     if user:
         return user, False
@@ -241,7 +217,7 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
     else:
         terms_of_use_accepted = None
 
-    user = User(guid=guid,
+    user = Users(guid=guid,
                 user_type=user_type,
                 email=email,
                 first_name=first_name,

@@ -1,23 +1,23 @@
 import redis
-from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask import Flask
+from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
-from flask_bootstrap import Bootstrap
 from flask_mail import Mail
-from config import config
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
-from config import config
+from celery import Celery
 
+from config import config, Config
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 login_manager = LoginManager()
 store = RedisStore(redis.StrictRedis(db=1))
 prefixed_store = PrefixDecorator('session_', store)
+celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
 mail = Mail()
 app = Flask(__name__)
@@ -55,17 +55,28 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
+    celery.conf.update(app.config)
 
-    login_manager.login_view = 'auth.login'
-    KVSessionExtension(prefixed_store, app)
+    with app.app_context():
+        from app.models import Anonymous
 
-    from .main import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+        login_manager.login_view = 'auth.login'
+        login_manager.anonymous_user = Anonymous
+        KVSessionExtension(prefixed_store, app)
 
-    from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    from .main import main
+    app.register_blueprint(main)
 
-    from app.request import request_blueprint
-    app.register_blueprint(request_blueprint)
+    from .auth import auth
+    app.register_blueprint(auth, url_prefix="/auth")
+
+    from .request import request
+    app.register_blueprint(request, url_prefix="/request")
+
+    from .response import response
+    app.register_blueprint(response, url_prefix="/response")
+
+    from .upload import upload
+    app.register_blueprint(upload, url_prefix="/upload")
 
     return app
