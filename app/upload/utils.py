@@ -16,7 +16,7 @@ from .constants import (
 )
 from app import (
     celery,
-    prefixed_store as redis,
+    upload_redis as redis
 )
 
 
@@ -48,41 +48,51 @@ def is_valid_file_type(obj):
     :param obj: the file storage object to check
     :type obj: werkzeug.datastructures.FileStorage
 
-    :return: whether the file type is allowed or not
+    :return: (whether the mime type is allowed or not,
+        the mime type)
     """
-    is_valid = magic.from_buffer(
-        obj.stream.read(MAX_CHUNKSIZE), mime=True
-    ) in ALLOWED_MIMETYPES
+    mime_type = magic.from_buffer(
+        obj.stream.read(MAX_CHUNKSIZE), mime=True)
     obj.stream.seek(0)
-    return is_valid
+    return mime_type in ALLOWED_MIMETYPES, mime_type
+
+
+def get_redis_key_upload(request_id, upload_filename):
+    """
+
+
+    :param request_id: id of the request associated with the upload
+    :param upload_filename: the name of the uploaded file
+
+    :return: the formatted key
+    """
+    return '_'.join((request_id, upload_filename))
+
+
+class VirusDetectedException(Exception):
+    """
+    Raise when scanner detects an infected file.
+    """
 
 
 @celery.task
-def scan_upload(request_id, filepath):
+def scan_and_complete_upload(request_id, filepath):
     """
-    Scans an uploaded file and moves it to the data directory
-    if it is clean, otherwise deletes the file.
+    Scans an uploaded file (see scan_file) and moves
+    it to the data directory if it is clean.
     Updates redis accordingly,
 
-    :param filepath: path of file to be scanned
+    :param request_id: id of request associated with the upload
+    :param filepath: path to uploaded and quarantined file
     """
     filename = os.path.basename(filepath)
 
     key = get_redis_key_upload(request_id, filename)
-    redis.put(key, UPLOAD_STATUS.SCANNING)
+    redis.set(key, UPLOAD_STATUS.SCANNING)
 
-    # TODO: PIPE output to logfile (not celery's)? and moar logging
-    options = [
-        '--analyze',  # Use heuristic analysis to find possible new viruses
-        '--atime-preserve'  # Preserve the file's last-accessed time and date
-    ]
-    cmd = ['uvscan'] + options + [filepath]
-    subprocess.call(cmd)
-
-    root, _ = os.path.splitext(filepath)
-    is_infected, filepath = _is_file_infected(root, filepath)
-    if is_infected:
-        os.remove(filepath)
+    try:
+        scan_file(filepath)
+    except VirusDetectedException:
         redis.delete(key)
     else:
         # complete upload
@@ -96,7 +106,28 @@ def scan_upload(request_id, filepath):
             filepath,
             os.path.join(dst_dir, filename)
         )
-        redis.put(key, UPLOAD_STATUS.READY)
+        redis.set(key, UPLOAD_STATUS.READY)
+
+
+def scan_file(filepath):
+    """
+    Scans a file for viruses using McAfee Virus Scan. If an infected
+    file is detected, removes the file and raises VirusDetectedException.
+
+    :param filepath: path of file to scan
+    """
+    if current_app.config['VIRUS_SCAN_ENABLED']:
+        options = [
+            '--analyze',  # Use heuristic analysis to find possible new viruses
+            '--atime-preserve'  # Preserve the file's last-accessed time and date
+        ]
+        cmd = ['uvscan'] + options + [filepath]
+        subprocess.call(cmd)  # TODO: redirect output to logfile
+        root, _ = os.path.splitext(filepath)
+        is_infected, infected_path = _is_file_infected(root, filepath)
+        if is_infected:
+            os.remove(infected_path)
+            raise VirusDetectedException
 
 
 def _is_file_infected(root, original_path):
@@ -114,19 +145,8 @@ def _is_file_infected(root, original_path):
     :param root: the file path excluding the file extension
     :param original_path: the unaltered path of an uploaded file
     :return: (Whether the file is infected or not,
-        the path to the infected file or the original path)
+        the path to the infected file or to the original file if no virus found)
     """
     path = glob(root + "*")[0]
     _, ext = os.path.splitext(path)
     return original_path != path and ext[1] == 'v', path
-
-
-def get_redis_key_upload(request_id, upload_filename):
-    """
-
-    :param request_id:
-    :param upload_filename:
-    :return: the formatted key
-    """
-    # TODO: ensure compatibility with simplekv
-    return '_'.join((request_id, upload_filename))

@@ -125,6 +125,15 @@ $(document).ready(function () {
         }
     });
 
+    // Clear form.request_file.error on submit
+    $('#submit').click(function() {
+        $('.upload-error').remove();
+    });
+
+    // Disable submit button on form submission
+    $('#request-form').submit(function() {
+        $('#submit').prop('disabled', true);  // TODO: display a spinner
+    });
 });
 
 

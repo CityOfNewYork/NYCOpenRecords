@@ -40,4 +40,14 @@ $(document).ready(function () {
     $('#request-form').parsley().subscribe('parsley:form:validate', function () {
         // Do stuff when parsley validates
     });
+
+    // Clear form.request_file.error on submit
+    $('#submit').click(function() {
+        $('.upload-error').remove();
+    });
+
+    // Disable submit button on form submission
+    $('#request-form').submit(function() {
+        $('#submit').prop('disabled', true);  // TODO: display a spinner
+    });
 });
