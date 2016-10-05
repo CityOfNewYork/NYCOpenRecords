@@ -65,13 +65,14 @@ def is_valid_file_type(obj):
                 magic_file=current_app.config['MAGIC_FILE'],
                 mime=True)
             m.from_buffer(buffer)
+            is_valid = mime_type in ALLOWED_MIMETYPES
         obj.stream.seek(0)
     return is_valid, mime_type
 
 
-def get_redis_key_upload(request_id, upload_filename):
+def get_upload_key(request_id, upload_filename):
     """
-    Returns a formatted redis key for an upload.
+    Returns a formatted key for an upload.
     Intended for tracking the status of an upload.
 
     :param request_id: id of the request associated with the upload
@@ -103,7 +104,7 @@ def scan_and_complete_upload(request_id, filepath):
     """
     filename = os.path.basename(filepath)
 
-    key = get_redis_key_upload(request_id, filename)
+    key = get_upload_key(request_id, filename)
     redis.set(key, UPLOAD_STATUS.SCANNING)
 
     try:
