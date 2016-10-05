@@ -34,7 +34,7 @@ from app.upload.utils import (
     is_valid_file_type,
     scan_file,
     VirusDetectedException,
-    get_redis_key_upload
+    get_upload_key
 )
 
 DIRECT_INPUT = 'Direct Input'
@@ -253,7 +253,7 @@ def _move_validated_upload(request_id, tmp_path):
     valid_path = os.path.join(dst_dir, valid_name)
     os.rename(tmp_path, valid_path)
     upload_redis.set(
-        get_redis_key_upload(request_id, valid_name),
+        get_upload_key(request_id, valid_name),
         UPLOAD_STATUS.READY)
 
 

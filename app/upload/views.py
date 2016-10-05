@@ -17,7 +17,7 @@ from .utils import (
     parse_content_range,
     is_valid_file_type,
     scan_and_complete_upload,
-    get_redis_key_upload,
+    get_upload_key,
 )
 from .constants import (
     CONTENT_RANGE_HEADER,
@@ -48,7 +48,7 @@ def post(request_id):
     if not os.path.exists(upload_path):
         os.mkdir(upload_path)
     filepath = os.path.join(upload_path, filename)
-    key = get_redis_key_upload(request_id, filename)
+    key = get_upload_key(request_id, filename)
 
     try:
         if CONTENT_RANGE_HEADER in request.headers:
@@ -123,7 +123,7 @@ def status():
     """
     try:
         upload_status = redis.get(
-            get_redis_key_upload(
+            get_upload_key(
                 request.args['request_id'],
                 secure_filename(request.args['filename'])
             )
