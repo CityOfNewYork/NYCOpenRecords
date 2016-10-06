@@ -125,8 +125,9 @@ def view(request_id):
 
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    request = Requests.query.filter_by(id=request_id).first()
-    return render_template('request/view_request.html', request=request, visibility=json.loads(request.visibility))
+    current_request = Requests.query.filter_by(id=request_id).first()
+    visibility = json.loads(current_request.visibility)
+    return render_template('request/view_request.html', request=current_request, visibility=visibility)
 
 
 @request.route('/edit_visibility', methods=['GET', 'POST'])
@@ -141,12 +142,12 @@ def edit_visibility():
     agency_desc = flask_request.form.get('desc')
     request_id = flask_request.form.get('id')
     current_request = Requests.query.filter_by(id=request_id).first()
-    # Gets request's current visibility and loads it as a string if it exists, if not creates an empty dictionary
-    visibility = json.loads(current_request.visibility) if current_request.visibility else {}
-    # Stores title visibility if changed, uses current visibility if exists, or set to private if empty
-    visibility['title'] = title or visibility['title'] or 'private'
-    # Stores agency description visibility if changed or uses current visibility or set to private if empty
-    visibility['agency_description'] = agency_desc or visibility['agency_description'] or 'private'
+    # Gets request's current visibility and loads it as a string
+    visibility = json.loads(current_request.visibility)
+    # Stores title visibility if changed or uses current visibility if exists
+    visibility['title'] = title or visibility['title']
+    # Stores agency description visibility if changed or uses current visibility
+    visibility['agency_description'] = agency_desc or visibility['agency_description']
     update_object(attribute='visibility',
                   value=json.dumps(visibility),
                   obj_type='Requests',
@@ -154,7 +155,7 @@ def edit_visibility():
     return jsonify(visibility), 200
 
 
-@request.route('/view/edit', methods=['POST'])
+@request.route('/view/edit', methods=['PUT'])
 def edit_request_info():
     edit_request = flask_request.form
     # title = flask_request.form['value']

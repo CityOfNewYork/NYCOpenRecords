@@ -10,17 +10,17 @@
                 </div>
                 <div class="btn-group" data-toggle="buttons">
                     {% if visibility['title'] == 'private' %}
-                        <label class="privacy-btn btn btn-default" data-active-class="primary">
+                        <label class="title-privacy-btn btn btn-default" data-active-class="primary">
                             <input type="radio" value="public">Public
                         </label>
-                        <label class="privacy-btn btn btn-default active" data-active-class="primary">
+                        <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
                             <input type="radio" value="private" checked="checked">Private
                         </label>
                     {% else %}
-                        <label class="privacy-btn btn btn-default active" data-active-class="primary">
+                        <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
                             <input type="radio" value="public">Public
                         </label>
-                        <label class="privacy-btn btn btn-default" data-active-class="primary">
+                        <label class="title-privacy-btn btn btn-default" data-active-class="primary">
                             <input type="radio" value="private" checked="checked">Private
                         </label>
                     {% endif %}
@@ -33,17 +33,17 @@
             <div class="request-label lead col-sm-4">Agency Description:</div>
             <div class="btn-group col-sm-push-5" data-toggle="buttons">
                 {% if visibility['agency_description'] == 'private' %}
-                    <label class="privacy-btn btn btn-default" data-active-class="primary">
+                    <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
                         <input type="radio" value="public">Public
                     </label>
-                    <label class="privacy-btn btn btn-default active" data-active-class="primary">
+                    <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
                         <input type="radio" value="private">Private
                     </label>
                 {% else %}
-                    <label class="privacy-btn btn btn-default active" data-active-class="primary">
+                    <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
                         <input type="radio" value="public">Public
                     </label>
-                    <label class="privacy-btn btn btn-default" data-active-class="primary">
+                    <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
                         <input type="radio" value="private">Private
                     </label>
                 {% endif %}

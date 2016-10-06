@@ -4,21 +4,27 @@
             '<button type="submit" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
             '<button type="button" class="btn btn-default btn-sm editable-cancel"><i class="glyphicon glyphicon-ban-circle"></i></button>';
     $(document).ready(function () {
-        $.fn.editable.defaults.mode = 'inline'
+        $.fn.editable.defaults.mode = 'inline';
         $('#title').editable({
             type: 'textarea',
             pk: "{{ request.id }}",
             url: '/request/view/edit',
             inputclass: 'request-editable',
             send: 'always',
-            rows: 3
-        })
+            rows: 3,
+            ajaxOptions: {
+                type: 'put'
+            }
+        });
         $('#agency_description').editable({
             type: 'textarea',
             pk: "{{ request.id }}",
             url: '/request/view/edit',
             inputclass: 'agency-editable',
-            send: 'always'
-        })
+            send: 'always',
+            ajaxOptions: {
+                type: 'put'
+            }
+        });
     })
 </script>

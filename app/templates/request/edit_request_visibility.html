@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    $(".request-title").click(function () {
+    $(".title-privacy-btn").click(function () {
         $.post({
             url: "/request/edit_visibility",
             data: {
@@ -8,7 +8,7 @@
             }
         });
     });
-    $(".agency-desc").click(function () {
+    $(".desc-privacy-btn").click(function () {
         $.post({
             url: "/request/edit_visibility",
             data: {
