@@ -1,3 +1,4 @@
+<!-- xeditable scripts for request_info section. Allows for inline editing of a request. -->
 <script type="text/javascript">
     $.fn.editableform.buttons =
             '<button type="submit" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
@@ -5,17 +6,18 @@
     $(document).ready(function () {
         $.fn.editable.defaults.mode = 'inline'
         $('#title').editable({
-            type: 'text',
+            type: 'textarea',
             pk: "{{ request.id }}",
             url: '/request/view/edit',
-            inputclass: 'test2',
-            send: 'always'
+            inputclass: 'request-editable',
+            send: 'always',
+            rows: 3
         })
         $('#agency_description').editable({
             type: 'textarea',
             pk: "{{ request.id }}",
             url: '/request/view/edit',
-            inputclass: 'test',
+            inputclass: 'agency-editable',
             send: 'always'
         })
     })
