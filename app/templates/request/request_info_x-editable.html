@@ -5,17 +5,18 @@
             '<button type="button" class="btn btn-default btn-sm editable-cancel"><i class="glyphicon glyphicon-ban-circle"></i></button>';
     $(document).ready(function () {
         $.fn.editable.defaults.mode = 'inline';
-        $('#title').editable({
-            type: 'textarea',
+        $('#title').editable.juniper()({
+{#            type: 'textarea',#}
             pk: "{{ request.id }}",
             url: '/request/view/edit',
-            inputclass: 'request-editable',
-            send: 'always',
-            rows: 3,
+{#            inputclass: 'request-editable',#}
+{#            rows: 3,#}
             ajaxOptions: {
                 type: 'put'
-            }
+            },
+            tpl: '<textarea id="request-title" class="request-editable" rows="3"></textarea>'
         });
+        $('#request-title.request-editable').attr('data-parsley-required', '');
         $('#agency_description').editable({
             type: 'textarea',
             pk: "{{ request.id }}",
@@ -26,5 +27,23 @@
                 type: 'put'
             }
         });
-    })
+    });
+    {#    $(document).ready(function () {#}
+    {#        $('#request-title.request-info').parsley().validate();#}
+    {#    $(document).ready(function () {#}
+
+    {#        $('#request-title').parsley('validate');#}
+
+    {#        $('#request-title').attr('data-parsley-maxlength', 90);#}
+    {#        // Do stuff when parsley validates#}
+    {#    });#}
 </script>
+
+{#            validate: function (value) {#}
+{#                if ($.trim(value) == '') {#}
+{#                    return 'This field is required';#}
+{#                }#}
+{#                if (value.length > 3) {#}
+{#                    return 'Request Title must be less than 90 characters';#}
+{#                }#}
+{#            }#}

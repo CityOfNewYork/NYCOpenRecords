@@ -3,6 +3,8 @@
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/juniper.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
 {% endblock %}
 
@@ -83,6 +85,8 @@
             src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/plugins/bootstrap-editable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/juniper.js') }}"></script>
     {% include 'request/edit_request_visibility.html' %}
     {% include 'request/request_info_x-editable.html' %}
 {% endblock %}
