@@ -24,17 +24,19 @@ $(document).ready(function () {
     // javascript to add tooltip popovers when selecting the title and description
     $('#request-title').attr({
             'data-placement': "top",
-            'data-trigger': "focus",
+            'data-trigger': "hover focus",
             'data-toggle': "popover",
             'data-content': "Public Advocate Emails from 2015",
             title: "Example Title"
     });
-    $('#request-title').click(function(){
-        $('#request-title').popover('show');
-    });
+    $('#request-title').popover();
+    // $('#request-title').click(function(){
+    //     $('#request-title').popover('show');
+    // });
+
     $('#request-description').attr({
             'data-placement': "top",
-            'data-trigger': "focus",
+            'data-trigger': "hover focus",
             'data-toggle': "popover",
             'data-content': "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
             title: "Example Request"
@@ -42,6 +44,10 @@ $(document).ready(function () {
     $('#request-description').click(function(){
         $('#request-description').popover('show');
     });
+    $('#request-description').popover();
+    // $('#request-description').click(function(){
+    //     $('#request-description').popover('show');
+    // });
 
     // jQuery mask plugin to format fields
     $('#phone').mask("(999) 999-9999");
@@ -125,6 +131,19 @@ $(document).ready(function () {
         }
     });
 
+    // Clear error messages for form.request_file on submit...
+    $('#submit').click(function() {
+        $('.upload-error').remove();
+    });
+    // ... or on input change for request_file
+    $('#request-file').change(function() {
+        $('.upload-error').remove();
+    });
+
+    // Disable submit button on form submission
+    $('#request-form').submit(function() {
+        $('#submit').prop('disabled', true);  // TODO: display a spinner
+    });
 });
 
 
