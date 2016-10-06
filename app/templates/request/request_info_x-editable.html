@@ -8,12 +8,14 @@
             type: 'text',
             pk: "{{ request.id }}",
             url: '/request/view/edit',
+            inputclass: 'test2',
             send: 'always'
         })
-        $('#description').editable({
-            type: 'text',
+        $('#agency_description').editable({
+            type: 'textarea',
             pk: "{{ request.id }}",
             url: '/request/view/edit',
+            inputclass: 'test',
             send: 'always'
         })
     })

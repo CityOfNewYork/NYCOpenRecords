@@ -5,18 +5,13 @@
 h3.control-widget {
     font-size: 24.5px;
     font-weight: 600;
-    line-height: 20px !important;
+    /*line-height: 20px !important;*/
     display: inline !important
 }
 
-#req-title.lead {
+.lead {
     padding: 0 !important;
-    /*margin: 0 !important;*/
-}
-
-#req-title2.lead {
-    padding: 0 !important;
-    /*margin: 0 !important;*/
+    margin: 0 !important;
 }
 
 /* sets toggle button to primary when active */
@@ -26,14 +21,26 @@ h3.control-widget {
     border-color: #204d74;
 }
 
-.editable-click,
-a.editable-click {
+.request-info .edit {
     border-bottom: none;
     color: inherit;
     word-wrap: break-word;
 }
 
-a.editable-click:hover {
+.request-info .edit:hover {
     text-decoration: underline;
     border-bottom: none;
+}
+
+.btn {
+    padding: 3.5px 9px;
+}
+
+.request-info .test {
+    width: 600px;
+    font-size: 21px;
+}
+
+.request-info.test2 {
+
 }

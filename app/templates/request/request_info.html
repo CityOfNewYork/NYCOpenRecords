@@ -4,8 +4,8 @@
             <div class="text-muted" id="request_id">{{ request.id }}</div>
             <div class="row">
                 <div class="lead col-sm-1" id="req-title">Title:</div>
-                <div class="lead col-sm-3" id="req-title2"><a href="#" id="title">{{ request.title }}</a></div>
-                <div class="col-sm-push-5 btn-group" data-toggle="buttons">
+                <div class="lead col-sm-3" id="req-title2"><a href="#" class="edit" id="title">{{ request.title }}</a></div>
+                <div class="btn-group col-sm-push-5" data-toggle="buttons">
                     {% if visibility['title'] == 'private' %}
                         <label class="request-title btn btn-default" data-active-class="primary">
                             <input type="radio" value="public">Public
@@ -23,9 +23,11 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="lead">Description: <a href id="description">{{ request.description }}</a></div>
-            <span class="lead">Agency Description: </span>
-            <div class="col-sm-push-6 btn-group" data-toggle="buttons">
+            <br>
+            <div class="lead">Description:<br>{{ request.description }}</div>
+            <br>
+            <div class="lead col-sm-4">Agency Description:</div>
+            <div class="btn-group col-sm-push-5" data-toggle="buttons">
                 {% if visibility['agency_description'] == 'private' %}
                     <label class="agency-desc btn btn-default" data-active-class="primary">
                         <input name="test" type="radio" value="public">Public
@@ -41,6 +43,9 @@
                         <input name="test" type="radio" value="private">Private
                     </label>
                 {% endif %}
+            </div>
+            <div class="lead">
+                <a href="#" class="edit" id="agency_description">{{ request.agency_description }}</a>
             </div>
         </h3>
     </div>
