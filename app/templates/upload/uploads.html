@@ -187,13 +187,14 @@
                 {% } else { %}
                     <!-- PROCESSING -->
                     <img src="/static/img/loading.gif" class="processing-upload" alt="Processing" height="20", width="20">
+                    <!-- REMOVE -->
+                    <button class="remove-post-fileupload btn btn-warning hidden">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
                 {% } %}
 
-                <!-- REMOVE -->
-                <button class="remove-post-fileupload btn btn-warning hidden">
-                    <i class="glyphicon glyphicon-ban-circle"></i>
-                    <span>Remove</span>
-                </button>
+
             </div>
         </div>
     {% } %}
