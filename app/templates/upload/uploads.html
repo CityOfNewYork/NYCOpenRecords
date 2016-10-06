@@ -91,9 +91,6 @@
             success: function (data) {
                 //Data should be html template page.
                 tinyMCE.get('email-content').setContent(data);
-            },
-            error: function (data) {
-                alert('fail.');
             }
         });
         $('.prev-slider,.next-slider').click(function () {
