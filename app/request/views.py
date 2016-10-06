@@ -10,18 +10,24 @@ from flask import (
     render_template,
     redirect,
     url_for,
+    request as flask_request
 )
 from flask_login import current_user
 
 from app.lib.db_utils import get_agencies_list
+from app.lib.utils import InvalidUserException
 from app.models import Requests
 from app.request import request
-from .forms import (
+from app.request.forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from .utils import create_request
+from app.request.utils import (
+    create_request,
+    handle_upload_no_id,
+    get_address,
+)
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -55,7 +61,7 @@ def new():
 
     new_request_template = 'request/new_request_' + template_suffix
 
-    if request.method == 'POST':
+    if flask_request.method == 'POST':
         # validate upload with no request id available
         upload_path = None
         if form.request_file.data:
