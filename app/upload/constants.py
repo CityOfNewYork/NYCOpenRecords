@@ -3,9 +3,18 @@
 
 """
 
+from app.lib.utils import mapping
+
 CONTENT_RANGE_HEADER = 'Content-Range'
 
 MAX_CHUNKSIZE = 512000  # 512 kb
+
+UPLOAD_STATUS = mapping(
+    PROCESSING="processing",
+    SCANNING="scanning",
+    READY="ready",
+    ERROR="error",
+)
 
 ALLOWED_MIMETYPES = [
     'video/x-msvideo',

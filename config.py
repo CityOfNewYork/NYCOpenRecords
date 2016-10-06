@@ -19,6 +19,8 @@ class Config:
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+    AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
+                   os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data'), 'agencies.csv'))
     IDP = os.environ.get('IDP')
 
     # Database Settings
@@ -36,12 +38,17 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = os.environ.get('SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
     # Upload Settings
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
                                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/'))
+    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED')
+    MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
+                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
     @staticmethod
     def init_app(app):
@@ -50,6 +57,10 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') or False
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    MAIL_PORT = 2500
+    MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Development]'
     MAIL_SENDER = 'OpenRecords - Dev Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
@@ -59,12 +70,13 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    VIRUS_SCAN_ENABLED = True
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
 
 
 class ProductionConfig(Config):
-    pass
+    VIRUS_SCAN_ENABLED = True
 
 
 config = {
