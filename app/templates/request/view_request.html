@@ -94,10 +94,8 @@
             src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-main.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
-
+    {% include "request/fileupload.js.html" %}
 {% endblock %}
