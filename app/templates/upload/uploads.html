@@ -12,7 +12,7 @@
             <span class="sr-only">Previous</span>
         </a>
     </div>
-    <div class="col-sm-7">
+    <div class="col-sm-9">
         <div class="carousel-inner" role="listbox" style="padding-right: 1rem;">
             <div class="item active">
                 <!-- Redirect browsers with JavaScript disabled to the origin page -->
@@ -53,9 +53,9 @@
                     </div>
                 </div>
                 <!-- The table listing the files available for upload/download -->
-                <table role="presentation" class="table table-striped">
-                    <tbody class="files"></tbody>
-                </table>
+                <div role="presentation" class="table-striped">
+                    <div class="files"></div>
+                </div>
             </div>
             <div class="item">
                 <textarea name="email-content"></textarea>
@@ -70,8 +70,7 @@
     </div>
     <div class="col-sm-1 no-padding">
         <a id="next-slider" class="next-slider" href="#fileupload" role="button" data-slide="next">
-            <span class="next-slider glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
+            <span class="next-slider glyphicon glyphicon-chevron-right" aria-hidden="true"><br>Next</span>
         </a>
     </div>
 </form>
@@ -106,19 +105,19 @@
 {% raw %}
 <!-- The template to display files available for upload -->
 <script id="template-upload" type="text/x-tmpl">
-
     {% for (var i=0, file; file=o.files[i]; i++) { %}
-        <tr class="template-upload fade">
-            <td>
+        <div class="row template-upload fade upload-row-spacer">
+            <div class="col-sm-5">
                 <p class="name">{%=file.name%}</p>
                 <strong class="error text-danger"></strong>
-            </td>
-
-            <td>
+            </div>
+            <div class="col-sm-2">
                 <p class="size">Processing...</p>
-                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
-            </td>
-            <td>
+                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                </div>
+            </div>
+            <div class="col-sm-5">
                 {% if (!i && !o.options.autoUpload) { %}
                     <button class="btn btn-primary start" disabled>
                         <i class="glyphicon glyphicon-upload"></i>
@@ -131,23 +130,22 @@
                         <span>Cancel</span>
                     </button>
                 {% } %}
-            </td>
-        </tr>
+            </div>
+        </div>
     {% } %}
-
-
-
-
-
-
-
 </script>
 <!-- The template to display files available for download -->
 <script id="template-download" type="text/x-tmpl">
-
     {% for (var i=0, file; file=o.files[i]; i++) { %}
-        <tr class="template-download fade">
-            <td>
+        <div class="row template-download fade upload-row-spacer">
+            <div class="col-sm-8">
+                <p class="name">
+                    {% if (file.url) { %}
+                        Filename: <strong><a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a></strong>
+                    {% } else { %}
+                        Filename: <strong><span>{%=file.name%}</span></strong>
+                    {% } %}
+                </p>
                 {% if (!(file.error)) { %}
                     Title: <input type="text" class="title-field" id="{%=file.name%}" name="{%=file.name%}::title" data-parsley-required>
                     <input type="hidden" id="{%=file.name%}" name="{%=file.name%}" value="{%=file.name%}">
@@ -166,22 +164,14 @@
                       </label>
                     </div>
                 {% } %}
-                <p>Name of File:</p>
-                <p class="name">
-                    {% if (file.url) { %}
-                        <strong><a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a></strong>
-                    {% } else { %}
-                        <strong><span>{%=file.name%}</span></strong>
-                    {% } %}
-                </p>
                 {% if (file.error) { %}
                     <div><span class="label label-danger">Error</span> {%=file.error%}</div>
                 {% } %}
-            </td>
-            <td>
+            </div>
+            <div class="col-sm-2">
                 <span class="size">{%=o.formatFileSize(file.size)%}</span>
             </td>
-            <td>
+            <div class="col-sm-2">
                 {% if (file.error) { %}
                     <button class="btn btn-warning cancel">
                         <i class="glyphicon glyphicon-ban-circle"></i>
@@ -201,16 +191,8 @@
                         <span>Cancel</span>
                     </button>
                 {% } %}
-                -->
-            </td>
-        </tr>
+            </div>
+        </div>
     {% } %}
-
-
-
-
-
-
-
 </script>
 {% endraw %}
