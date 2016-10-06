@@ -139,8 +139,8 @@
 
                 {% if (!(file.error)) { %}
                     <span class="fileupload-input-fields hidden">
-                    Title: <input type="text" class="title-field" id="{%=file.name%}" name="{%=file.name%}::title" data-parsley-required>
-                    <input type="hidden" id="{%=file.name%}" name="{%=file.name%}" value="{%=file.name%}">
+                    Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
+                    <input type="hidden" name="{%=file.name%}" value="{%=file.name%}">
                     <div class="radio">
                         <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
                     </div>
