@@ -18,6 +18,10 @@ class Celery(Command):
     Runs Celery
     """
 
+    # TODO: autoreload and background options?
+    # http://stackoverflow.com/questions/21666229/celery-auto-reload-on-any-changes
+    # http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html
+
     def run(self):
         subprocess.call(['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info'])
 
