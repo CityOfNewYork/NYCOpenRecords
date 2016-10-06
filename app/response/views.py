@@ -4,11 +4,14 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 
-from app.response import response
-from app.models import Requests
+import json
+
 from flask import render_template, flash, request as flask_request
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
+
+from app.models import Requests
+from app.response import response
 from app.response.utils import add_note
 
 
@@ -17,11 +20,6 @@ class NoteForm(Form):
     note = StringField('Add Note')
     submit = SubmitField('Submit')
 
-@response.route('/enail', methods=['GET', 'POST'])
-def show_email():
-    return render_template('email_templates/email_file_upload.html',
-                           department="Department of Records and Information Services",
-                           page="http://127.0.0.1:5000/upload/test")
 
 @response.route('/note/<request_id>', methods=['GET', 'POST'])
 def response_note(request_id):
@@ -47,9 +45,13 @@ def response_extension():
 
 
 # TODO: Implement response route for email
-@response.route('/email/<request_id>', methods=['GET', 'POST'])
+@response.route('/email', methods=['GET', 'POST'])
 def response_email():
-    pass
+    data = json.loads(flask_request.data.decode())
+    request_id = data['request_id']
+    return render_template('email_templates/email_file_upload.html',
+                           department="Department of Records and Information Services",
+                           page="http://127.0.0.1:5000/request/view/{}".format(request_id))
 
 
 # TODO: Implement response route for sms

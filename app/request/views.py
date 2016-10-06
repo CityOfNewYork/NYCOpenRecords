@@ -4,30 +4,27 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
-from tempfile import NamedTemporaryFile
+import json
+
 from flask import (
     render_template,
-    request,
     redirect,
     url_for,
 )
+from flask_login import current_user
+
 from app.lib.db_utils import get_agencies_list
-from app.lib.utils import InvalidUserException
-from . import request as request_
+from app.models import Requests
+from app.request import request
 from .forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from .utils import (
-    create_request,
-    handle_upload_no_id,
-    get_address,
-)
-from flask_login import current_user
+from .utils import create_request
 
 
-@request_.route('/new', methods=['GET', 'POST'])
+@request.route('/new', methods=['GET', 'POST'])
 def new():
     """
     Create a new FOIL request
@@ -105,11 +102,16 @@ def new():
     return render_template(new_request_template, form=form)
 
 
-@request_.route('/view', methods=['GET', 'POST'])
-def view():
-    """
-    This function is for testing purposes of the view a request back until backend functionality is implemeneted.
+@request.route('/view_all', methods=['GET'])
+def view_all():
+    return render_template('request/view_request.html')
 
+
+@request.route('/view/<request_id>', methods=['GET', 'POST'])
+def view(request_id):
+    """
+    This function is for testing purposes of the view a request back until backend functionality is implemented.
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    return render_template('request/view_request.html')
+    request = Requests.query.filter_by(id=request_id).first()
+    return render_template('request/view_request.html', request=request, visibility=json.loads(request.visibility))

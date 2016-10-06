@@ -9,24 +9,6 @@ $(document).ready(function () {
     });
 
     //Call ajax to populate email field with content after textarea is finished loading.
-    window.onload=function(){
-        $.ajax({
-            url: "/responses/email",
-            type: 'POST',
-            processData: false,
-            contentType: false,
-            success: function (data) {
-                //Data should be html template page.
-                tinyMCE.get('email-content').setContent(data);
-            },
-            error: function (data) {
-                alert('fail.');
-            }
-        });
-        $('.prev-slider,.next-slider').click(function () {
-            $("#email-summary").html(tinyMCE.get('email-content').getContent());
-        });
-    };
 
     $('.carousel').carousel({
         interval: false,
