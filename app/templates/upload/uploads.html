@@ -8,7 +8,7 @@
 {% block content %}
     <form id="fileupload" action="/response/file" method="POST" enctype="multipart/form-data">
         <!-- Redirect browsers with JavaScript disabled to the origin page -->
-        <noscript><input type="hidden" name="redirect" value="http://blueimp.github.io/jQuery-File-Upload/"></noscript>
+{#        <noscript><input type="hidden" name="redirect" value="http://blueimp.github.io/jQuery-File-Upload/"></noscript>#}
         <div class="row fileupload-buttonbar">
             <div class="col-lg-7">
                 <span class="btn btn-success fileinput-button">
@@ -20,7 +20,7 @@
                     <i class="glyphicon glyphicon-upload"></i>
                     <span>Start All</span>
                 </button>
-                <!-- TODO: cancellation / deletion
+                <!-- TODO: global cancellation / deletion
                 <button type="reset" class="btn btn-warning cancel">
                     <i class="glyphicon glyphicon-ban-circle"></i>
                     <span>Cancel upload</span>
@@ -47,9 +47,8 @@
         <input type="submit" value="Submit">
     </form>
     {% raw %}
-    <!-- The template to display files available for upload -->
-    <script id="template-upload" type="text/x-tmpl">
 
+    <script id="template-upload" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <tr class="template-upload fade">
             <td>
@@ -78,16 +77,11 @@
         </tr>
     {% } %}
     </script>
-    <!-- The template to display files available for download -->
-    <script id="template-download" type="text/x-tmpl">
 
+    <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
-        <tr class="template-download fade">
+        <tr class="template-download fade" id="{%=file.identifier%}">
             <td>
-                <!-- AUGUST! When making changes, be sure to include the following file.error check... -->
-                {% if (!file.error) { %}
-                    Title: <input type="text" id="{%=file.name%}" name="{%=file.name%}::title" >
-                {% } %}
                 <p class="name">
                     {% if (file.url) { %}
                         <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
@@ -95,39 +89,49 @@
                         <span>{%=file.name%}</span>
                     {% } %}
                 </p>
+
+                {% if (!file.error) { %}
+                    <span class="fileupload-input-fields hidden">
+                        INPUTS REVEALED
+                    </span>
+                {% } %}
+
                 {% if (file.error) { %}
+                    <!-- Error reported using fileupload -->
                     <div><span class="label label-danger">Error</span> {%=file.error%}</div>
                 {% } %}
+
+                <!-- Error reported post upload (fileuploaddone) -->
+                <div class="error-post-fileupload hidden">
+                    <span class="label label-danger">Error</span>
+                    <span class="error-post-fileupload-msg"></span>
+                </div>
             </td>
             <td>
                 <span class="size">{%=o.formatFileSize(file.size)%}</span>
             </td>
             <td>
                 {% if (file.error) { %}
+                    <!-- CANCEL -->
                     <button class="btn btn-warning cancel">
                         <i class="glyphicon glyphicon-ban-circle"></i>
                         <span>Remove</span>
                     </button>
-                {% } %}
-                <!-- TODO: cancellation / deletion
-                {% if (file.deleteUrl) { %}
-                    <button class="btn btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
-                        <i class="glyphicon glyphicon-trash"></i>
-                        <span>Delete</span>
-                    </button>
-                    <input type="checkbox" name="delete" value="1" class="toggle">
                 {% } else { %}
-                    <button class="btn btn-warning cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span>Cancel</span>
-                    </button>
+                    <!-- PROCESSING -->
+                    <img src="/static/img/loading.gif" class="processing-upload" alt="Processing" height="20", width="20">
                 {% } %}
-                -->
+                <!-- REMOVE -->
+                <button class="remove-post-fileupload btn btn-warning hidden">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>Remove</span>
+                </button>
             </td>
         </tr>
     {% } %}
     </script>
     {% endraw %}
+
 {% endblock %}
 
 {% block custom_script %}
