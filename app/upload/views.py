@@ -88,6 +88,7 @@ def post(request_id):
             response = {
                 "files": [{
                     "name": filename,
+                    "original_name": file_.filename,
                     "size": os.path.getsize(filepath),
                 }]
             }
