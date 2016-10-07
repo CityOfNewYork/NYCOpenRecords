@@ -102,7 +102,7 @@
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-upload fade upload-row-spacer">
             <div class="col-sm-5">
-                <p class="name">{%=file.name%}</p>
+                <p class="name original-name">{%=file.name%}</p>
                 <strong class="error text-danger"></strong>
             </div>
             <div class="col-sm-2">
@@ -133,6 +133,7 @@
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
             <div class="col-sm-8">
+                <span class="original-name hidden">{%=file.original_name%}</span>
                 <p class="name">
                     Filename: <strong><span>{%=file.name%}</span></strong>
                 </p>

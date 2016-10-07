@@ -65,14 +65,14 @@ $(function () {
 
     function nameToId(name) {
         /*
-        Returns an encoded version of 'name' with no trailing '='.
+        Returns an encoded version of 'name'.
          */
         return window.btoa(name).replace(/=/g, '');
     }
 
     function idToName(id) {
         /*
-        Returns an unencoded of 'id'.
+        Returns an unencoded version of 'id'.
          */
         return window.atob(id);
     }
@@ -115,6 +115,21 @@ $(function () {
         setTimeout(
             pollUploadStatus.bind(null, filename, htmlId),
             4000); // McAfee Scanner min 3+ sec startup
+    }).bind('fileuploadadd', function (e, data) {
+        // Prevent duplicate files from being added
+        var currentfiles = [];
+        $(this).fileupload('option').filesContainer.children().each(function(){
+            currentfiles.push($.trim($('.original-name', this).text()));
+        });
+        data.files = $.map(data.files, function(file, i){
+            if ($.inArray(file.name, currentfiles) >= 0) {
+                alert("The file '" + file.name + "' has already been added.");
+                return null;
+            }
+            return file;
+        });
+        $('.fileupload-loading').hide();
+        $('.fileupload-process').hide();
     });
 
     // // Load existing files:
