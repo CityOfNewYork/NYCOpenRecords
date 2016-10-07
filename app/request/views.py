@@ -10,7 +10,9 @@ from flask import (
     render_template,
     redirect,
     url_for,
-    request as flask_request
+    request as flask_request,
+    current_app,
+    flash
 )
 from flask_login import current_user
 
@@ -28,6 +30,8 @@ from app.request.utils import (
     handle_upload_no_id,
     get_address,
 )
+from app import recaptcha
+
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -44,6 +48,7 @@ def new():
      uploaded file is stored in app/static
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
+    site_key = current_app.config['RECAPTCHA_SITE_KEY']
 
     if current_user.is_public:
         form = PublicUserRequestForm()
@@ -61,6 +66,8 @@ def new():
 
     new_request_template = 'request/new_request_' + template_suffix
 
+    print(new_request_template)
+
     if flask_request.method == 'POST':
         # validate upload with no request id available
         upload_path = None
@@ -68,7 +75,7 @@ def new():
             form.request_file.validate(form)
             upload_path = handle_upload_no_id(form.request_file)
             if form.request_file.errors:
-                return render_template(new_request_template, form=form)
+                return render_template(new_request_template, form=form, site_key=site_key)
 
         # create request
         if current_user.is_public:
@@ -89,6 +96,9 @@ def new():
                            fax=form.fax.data,
                            address=get_address(form),
                            upload_path=upload_path)
+            if recaptcha.verify() is False:
+                flash("Please complete reCAPTCHA.")
+                return render_template(new_request_template, form=form, site_key=site_key)
         elif current_user.is_agency:
             create_request(form.request_title.data,
                            form.request_description.data,
@@ -104,8 +114,7 @@ def new():
                            address=get_address(form),
                            upload_path=upload_path)
         return redirect(url_for('main.index'))
-
-    return render_template(new_request_template, form=form)
+    return render_template(new_request_template, form=form, site_key=site_key)
 
 
 @request.route('/view_all', methods=['GET'])

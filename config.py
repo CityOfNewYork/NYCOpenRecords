@@ -46,6 +46,10 @@ class Config:
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
+    # ReCaptcha
+    RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
+    RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
+
     @staticmethod
     def init_app(app):
         pass

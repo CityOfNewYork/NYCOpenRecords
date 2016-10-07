@@ -5,6 +5,7 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
 {% endblock %}
+
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
@@ -119,6 +120,11 @@
                         placeholder='12345') }}<br>
                     </div>
                 </div>
+
+                <div class="col-sm-12 capatcha">
+                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+                </div>
+
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
         </div>
@@ -134,6 +140,9 @@
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/validation/custom_validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-anon.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/new-request-character-count.js') }}"></script>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/new-request-character-count.js') }}"></script>
 {% endblock %}
