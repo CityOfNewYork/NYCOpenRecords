@@ -1,4 +1,5 @@
 import redis
+from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
@@ -21,7 +22,9 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 store = RedisStore(redis.StrictRedis(db=1))
 prefixed_store = PrefixDecorator('session_', store)
-celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
+celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
+
+upload_redis = redis.StrictRedis(db=2)
 
 mail = Mail()
 app = Flask(__name__)

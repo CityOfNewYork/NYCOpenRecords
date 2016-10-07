@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}OpenRecords{% endblock title %}</title>
+
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-theme.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}"/>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/new_request/new-request.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/base.css') }}"/>
+
     <link type="image/x-icon" rel="shortcut icon" href="{{ url_for('static', filename='img/favicon-32x32.png') }}"/>
     {% block custom_css %}
     {% endblock %}

@@ -4,28 +4,37 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
+import json
+
 from flask import (
     render_template,
-    request,
     redirect,
     url_for,
-    flash,
-    current_app
+    request as flask_request,
+    current_app,
+    flash
 )
-from app.lib.user_information import create_mailing_address
+from flask_login import current_user
+
 from app.lib.db_utils import get_agencies_list
-from . import request as request_
-from .forms import (
+from app.lib.utils import InvalidUserException
+from app.models import Requests
+from app.request import request
+from app.request.forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from .utils import create_request
-from flask_login import current_user
+from app.request.utils import (
+    create_request,
+    handle_upload_no_id,
+    get_address,
+)
 from app import recaptcha
 
 
-@request_.route('/new', methods=['GET', 'POST'])
+
+@request.route('/new', methods=['GET', 'POST'])
 def new():
     """
     Create a new FOIL request
@@ -39,30 +48,50 @@ def new():
      uploaded file is stored in app/static
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-
     site_key = current_app.config['RECAPTCHA_SITE_KEY']
 
-    # Public user
     if current_user.is_public:
         form = PublicUserRequestForm()
-        agencies = get_agencies_list()
-        form.request_agency.choices = agencies
-        if request.method == 'POST':
-            # Helper function to handle processing of data and secondary validation on the backend
+        form.request_agency.choices = get_agencies_list()
+        template_suffix = 'user.html'
+    elif current_user.is_anonymous:
+        form = AnonymousRequestForm()
+        form.request_agency.choices = get_agencies_list()
+        template_suffix = 'anon.html'
+    elif current_user.is_agency:
+        form = AgencyUserRequestForm()
+        template_suffix = 'agency.html'
+    else:
+        raise InvalidUserException(current_user)
+
+    new_request_template = 'request/new_request_' + template_suffix
+
+    print(new_request_template)
+
+    if flask_request.method == 'POST':
+        # validate upload with no request id available
+        upload_path = None
+        if form.request_file.data:
+            form.request_file.validate(form)
+            upload_path = handle_upload_no_id(form.request_file)
+            if form.request_file.errors:
+                return render_template(new_request_template, form=form, site_key=site_key)
+
+        if recaptcha.verify() is False:  # anon user has not passed the recaptcha verification
+            flash("Please complete reCAPTCHA.")
+            return render_template(new_request_template, form=form, site_key=site_key)
+
+        # create request
+        if current_user.is_public:
             create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
-                           upload_file=form.request_file.data)
-            return redirect(url_for('main.index'))
-        return render_template('request/new_request_user.html', form=form, site_key=site_key)
+                           upload_path=upload_path)
+        elif current_user.is_anonymous:
+            # if recaptcha.verify() is False:  # anon user has not passed the recaptcha verification
+            #     flash("Please complete reCAPTCHA.")
+            #     return render_template(new_request_template, form=form, site_key=site_key)
 
-    # Anonymous user
-    elif current_user.is_anonymous:
-        form = AnonymousRequestForm()
-        agencies = get_agencies_list()
-        form.request_agency.choices = agencies
-        if request.method == 'POST':
-            # Helper function to handle processing of data and secondary validation on the backend
             create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
@@ -73,20 +102,13 @@ def new():
                            organization=form.user_organization.data,
                            phone=form.phone.data,
                            fax=form.fax.data,
-                           address=_get_address(form),
-                           upload_file=form.request_file.data)
-
-            if recaptcha.verify() is False:  # user has not passed the recaptcha verification
+                           address=get_address(form),
+                           upload_path=upload_path)
+            if recaptcha.verify() is False:
                 flash("Please complete reCAPTCHA.")
-                return render_template('request/new_request_anon.html', form=form, site_key=site_key)
-            return redirect(url_for('main.index'))
-        return render_template('request/new_request_anon.html', form=form, site_key=site_key)
+                return render_template(new_request_template, form=form, site_key=site_key)
 
-    # Agency user
-    elif current_user.is_agency:
-        form = AgencyUserRequestForm()
-        if request.method == 'POST':
-            # Helper function to handle processing of data and secondary validation on the backend
+        elif current_user.is_agency:
             create_request(form.request_title.data,
                            form.request_description.data,
                            submission=form.method_received.data,
@@ -98,33 +120,23 @@ def new():
                            organization=form.user_organization.data,
                            phone=form.phone.data,
                            fax=form.fax.data,
-                           address=_get_address(form),
-                           upload_file=form.request_file.data)
-            return redirect(url_for('main.index'))
-        return render_template('request/new_request_agency.html', form=form, site_key=site_key)
+                           address=get_address(form),
+                           upload_path=upload_path)
+        return redirect(url_for('main.index'))
+
+    return render_template(new_request_template, form=form, site_key=site_key)
 
 
-def _get_address(form):
+@request.route('/view_all', methods=['GET'])
+def view_all():
+    return render_template('request/view_request.html')
+
+
+@request.route('/view/<request_id>', methods=['GET', 'POST'])
+def view(request_id):
     """
-    Get mailing address from form data.
-
-    :type form: app.request.forms.AgencyUserRequestForm
-                app.request.forms.AnonymousRequestForm
-    """
-    return create_mailing_address(
-        form.address.data,
-        form.city.data,
-        form.state.data,
-        form.zipcode.data,
-        form.address_two.data or None
-    )
-
-
-@request_.route('/view', methods=['GET', 'POST'])
-def view():
-    """
-    This function is for testing purposes of the view a request back until backend functionality is implemeneted.
-
+    This function is for testing purposes of the view a request back until backend functionality is implemented.
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    return render_template('request/view_request.html')
+    request = Requests.query.filter_by(id=request_id).first()
+    return render_template('request/view_request.html', request=request)

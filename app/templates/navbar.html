@@ -1,4 +1,3 @@
-{% block navbar %}
 <nav class="navbar navbar-default">
     <div class="container-fluid">
         <div class="navbar-header">
@@ -13,9 +12,10 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li class="openrecords_nav"><a href="{{ url_for('request.new') }}">Request a Record</a></li>
-                <li class="openrecords_nav"><a href="{{ url_for('request.view') }}">View Requests</a></li>
-                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Report</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('request.view_all') }}">View Requests</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Reports</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Help</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">About</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">About</a></li>
                 {% if current_user.is_authenticated %}
                     <li class="openrecords_nav"><a href="{{ url_for('auth.manage_account') }}">Manage Account</a></li>
@@ -25,4 +25,3 @@
         </div><!--/.nav-collapse -->
     </div><!--/.container-fluid -->
 </nav>
-{% endblock %}
