@@ -19,8 +19,6 @@ class Config:
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
-    AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
-                   os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data'), 'agencies.csv'))
     IDP = os.environ.get('IDP')
 
     # Database Settings
@@ -38,8 +36,6 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = os.environ.get('SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
     # Upload Settings
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
