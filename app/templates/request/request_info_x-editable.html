@@ -1,22 +1,27 @@
 <!-- xeditable scripts for request_info section. Allows for inline editing of a request. -->
 <script type="text/javascript">
     $.fn.editableform.buttons =
-            '<button type="submit" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
+            '<button type="submit" id="testbtn" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
             '<button type="button" class="btn btn-default btn-sm editable-cancel"><i class="glyphicon glyphicon-ban-circle"></i></button>';
-    $(document).ready(function () {
+    $(document).ready(function (e) {
         $.fn.editable.defaults.mode = 'inline';
-        $('#title').editable.juniper()({
-{#            type: 'textarea',#}
+
+        $('#title').editable({
+            {#            type: 'textarea',#}
             pk: "{{ request.id }}",
             url: '/request/view/edit',
-{#            inputclass: 'request-editable',#}
-{#            rows: 3,#}
+            {#            inputclass: 'request-editable',#}
+            {#            rows: 3,#}
             ajaxOptions: {
                 type: 'put'
             },
-            tpl: '<textarea id="request-title" class="request-editable" rows="3"></textarea>'
+            tpl: '<textarea id="request-title" class="request-editable" maxlength="90" data-parsley-required data-parsley-maxlength="90" rows="3"></textarea>',
+            {#        $('#title').editable().juniper();#}
+
+            {#            $('.request-editable').parsley('validate');#}
         });
-        $('#request-title.request-editable').attr('data-parsley-required', '');
+
+        {#        $('#request-editable').parsley('validate');#}
         $('#agency_description').editable({
             type: 'textarea',
             pk: "{{ request.id }}",
@@ -25,25 +30,37 @@
             send: 'always',
             ajaxOptions: {
                 type: 'put'
-            }
+            },
+            tpl: '<textarea id="agency-descr" class="request-editable" maxlength="500" data-parsley-required data-parsley-maxlength="500" rows="3"></textarea>'
         });
     });
-    {#    $(document).ready(function () {#}
-    {#        $('#request-title.request-info').parsley().validate();#}
-    {#    $(document).ready(function () {#}
+    $(document).on('click', '.editable-submit', function (e) {
+        if ($('.request-editable').parsley().isValid()==false){
+            $('.request-editable').parsley().validate();
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
 
-    {#        $('#request-title').parsley('validate');#}
+    $(document).on('keypress','.request-editable',function(e){
+        if (e.which == 13) {
+            e.preventDefault();
+            if ($('.request-editable').parsley().isValid()==false) {
+                $('.request-editable').parsley().validate();
+            }
+            else {
+                $('.request-editable').submit();
+            }
 
-    {#        $('#request-title').attr('data-parsley-maxlength', 90);#}
-    {#        // Do stuff when parsley validates#}
-    {#    });#}
+        }
+    });
+    $(document).on('blur','.request-editable',function(e){
+        e.preventDefault();
+        if ($('.request-editable').parsley().isValid()==false) {
+            $('.request-editable').parsley().validate();
+        }
+        else {
+            $('.request-editable').submit();
+        }
+    });
 </script>
-
-{#            validate: function (value) {#}
-{#                if ($.trim(value) == '') {#}
-{#                    return 'This field is required';#}
-{#                }#}
-{#                if (value.length > 3) {#}
-{#                    return 'Request Title must be less than 90 characters';#}
-{#                }#}
-{#            }#}

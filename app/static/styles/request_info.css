@@ -44,7 +44,7 @@ h3.control-widget {
 
 /* sets width and font size of request title text input (called in xeditable js) */
 .request-info .request-editable {
-    width: 300px;
+    width: 280px;
     font-size: 21px;
 }
 
