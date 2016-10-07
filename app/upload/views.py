@@ -13,12 +13,13 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from app import upload_redis as redis
-from . import upload
-from .constants import (
+from app.models import Responses
+from app.upload import upload
+from app.upload.constants import (
     CONTENT_RANGE_HEADER,
     UPLOAD_STATUS
 )
-from .utils import (
+from app.upload.utils import (
     parse_content_range,
     is_valid_file_type,
     scan_and_complete_upload,
@@ -121,15 +122,20 @@ def delete(r_id_type, r_id, filename):
     """
     #TODO: check current user permissions
     filename = secure_filename(filename)
-    try:
-        if r_id_type == "request":
+    path_for_status = {
+        UPLOAD_STATUS.PROCESSING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+        UPLOAD_STATUS.SCANNING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+        UPLOAD_STATUS.READY: current_app.config['UPLOAD_DIRECTORY']
+    }
+    if r_id_type not in ["request", "response"]:
+        response = {"error": "Invalid ID type."}
+    else:
+        try:
+            if r_id_type == "response":
+                response = Responses.query.filter(id=r_id)
+                r_id = response.request_id
             upload_status = redis.get(
                 get_upload_key(r_id, filename)).decode("utf-8")
-            path_for_status = {
-                UPLOAD_STATUS.PROCESSING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-                UPLOAD_STATUS.SCANNING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-                UPLOAD_STATUS.READY: current_app.config['UPLOAD_DIRECTORY']
-            }
             if upload_status is not None:
                 filepath = os.path.join(
                     os.path.join(path_for_status[upload_status], r_id),
@@ -141,14 +147,9 @@ def delete(r_id_type, r_id, filename):
                     response = {"error": "File not found."}
             else:
                 response = {"error": "Upload not found."}
-        elif r_id_type == "response":
-            # TODO: OP-814
-            response = {"error": "Response IDs not yet handled."}
-        else:
-            response = {"error": "Invalid ID type."}
-    except Exception as e:
-        print("Error on DELETE /upload/: {}".format(e))
-        response = {"error": "Failed to delete '{}'".format(filename)}
+        except Exception as e:
+            print("Error on DELETE /upload/: {}".format(e))
+            response = {"error": "Failed to delete '{}'".format(filename)}
 
     return jsonify(response), 200
 
