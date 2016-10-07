@@ -77,10 +77,6 @@ def new():
             if form.request_file.errors:
                 return render_template(new_request_template, form=form, site_key=site_key)
 
-        if recaptcha.verify() is False:  # anon user has not passed the recaptcha verification
-            flash("Please complete reCAPTCHA.")
-            return render_template(new_request_template, form=form, site_key=site_key)
-
         # create request
         if current_user.is_public:
             create_request(form.request_title.data,
@@ -88,10 +84,6 @@ def new():
                            agency=form.request_agency.data,
                            upload_path=upload_path)
         elif current_user.is_anonymous:
-            # if recaptcha.verify() is False:  # anon user has not passed the recaptcha verification
-            #     flash("Please complete reCAPTCHA.")
-            #     return render_template(new_request_template, form=form, site_key=site_key)
-
             create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
@@ -107,7 +99,6 @@ def new():
             if recaptcha.verify() is False:
                 flash("Please complete reCAPTCHA.")
                 return render_template(new_request_template, form=form, site_key=site_key)
-
         elif current_user.is_agency:
             create_request(form.request_title.data,
                            form.request_description.data,
@@ -123,7 +114,6 @@ def new():
                            address=get_address(form),
                            upload_path=upload_path)
         return redirect(url_for('main.index'))
-
     return render_template(new_request_template, form=form, site_key=site_key)
 
 
