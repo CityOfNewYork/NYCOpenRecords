@@ -96,9 +96,12 @@ def new():
                            fax=form.fax.data,
                            address=get_address(form),
                            upload_path=upload_path)
-            if recaptcha.verify() is False:
-                flash("Please complete reCAPTCHA.")
-                return render_template(new_request_template, form=form, site_key=site_key)
+            # commented out recaptcha verifying functionalty because of NYC network proxy preventing it to send a
+            # backend request to the API
+
+            # if recaptcha.verify() is False:
+            #     flash("Please complete reCAPTCHA.")
+            #     return render_template(new_request_template, form=form, site_key=site_key)
         elif current_user.is_agency:
             create_request(form.request_title.data,
                            form.request_description.data,

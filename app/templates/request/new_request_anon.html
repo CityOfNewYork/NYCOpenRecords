@@ -121,9 +121,11 @@
                     </div>
                 </div>
 
-                <div class="col-sm-12 capatcha">
-                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
-                </div>
+{#                commented out recaptcha div because of NYC network proxy preventing it to send a #}
+{#                backend request to the API#}
+{#                <div class="col-sm-12 captcha">#}
+{#                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>#}
+{#                </div>#}
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
