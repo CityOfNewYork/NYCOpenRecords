@@ -1,8 +1,4 @@
 /*CSS page shared by new_request.html, new_request_agency.html, new_request_user.html*/
-.row-fluid {
-    width: 100%;
-}
-
 #request-description {
     height: 15rem
 }
