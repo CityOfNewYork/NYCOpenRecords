@@ -13,9 +13,8 @@ from flask import (
     current_app,
     flash
 )
-from flask_login import current_user
 
-from app.lib.db_utils import get_agencies_list, update_object
+from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
 from app.models import Requests
 from app.request import request
@@ -136,41 +135,3 @@ def view(request_id):
     current_request = Requests.query.filter_by(id=request_id).first()
     visibility = json.loads(current_request.visibility)
     return render_template('request/view_request.html', request=current_request, visibility=visibility)
-
-
-@request.route('/edit_visibility', methods=['GET', 'POST'])
-def edit_visibility():
-    """
-    Edits the visibility privacy options of a request's title and agency description.
-    Gets updated privacy options from AJAX call on view_request page.
-
-    :return: JSON Response with updated title and agency description visibility options
-    """
-    title = flask_request.form.get('title')
-    agency_desc = flask_request.form.get('desc')
-    request_id = flask_request.form.get('id')
-    current_request = Requests.query.filter_by(id=request_id).first()
-    # Gets request's current visibility and loads it as a string
-    visibility = json.loads(current_request.visibility)
-    # Stores title visibility if changed or uses current visibility if exists
-    visibility['title'] = title or visibility['title']
-    # Stores agency description visibility if changed or uses current visibility
-    visibility['agency_description'] = agency_desc or visibility['agency_description']
-    update_object(attribute='visibility',
-                  value=json.dumps(visibility),
-                  obj_type='Requests',
-                  obj_id=current_request.id)
-    return jsonify(visibility), 200
-
-
-@request.route('/view/edit', methods=['PUT'])
-def edit_request_info():
-    edit_request = flask_request.form
-    # title = flask_request.form['value']
-    request_id = flask_request.form.get('pk')
-    current_request = Requests.query.filter_by(id=request_id).first()
-    update_object(attribute=edit_request['name'],
-                  value=edit_request['value'],
-                  obj_type='Requests',
-                  obj_id=current_request.id)
-    return jsonify(edit_request), 200

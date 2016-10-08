@@ -7,7 +7,7 @@
         $.fn.editable.defaults.mode = 'inline';
         $('#title').editable({
             pk: "{{ request.id }}",
-            url: '/request/view/edit',
+            url: '/request/api/v1.0/view/edit',
             ajaxOptions: {
                 type: 'put'
             },
@@ -16,7 +16,7 @@
 
         $('#agency_description').editable({
             pk: "{{ request.id }}",
-            url: '/request/view/edit',
+            url: '/request/api/v1.0/view/edit',
             ajaxOptions: {
                 type: 'put'
             },
