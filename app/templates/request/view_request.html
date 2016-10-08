@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid">
+    <div class="container">
         <div class="col-sm-12">
             <!-- Request Info Column -->
             {% include 'request/request_info.html' %}
@@ -40,7 +40,7 @@
                     </ul>
                     <div class="tab-content content-min-height">
                         <div class="tab-pane active" id="add-file">
-                            Add File Content
+                            {% include "upload/uploads.html" %}
                         </div>
                         <div class="tab-pane" id="add-link">
                             Add Link Content
@@ -83,6 +83,19 @@
 {% block custom_script %}
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>
+    {% include "request/fileupload.js.html" %}
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
