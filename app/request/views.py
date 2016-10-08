@@ -8,10 +8,8 @@ from flask import (
     render_template,
     redirect,
     url_for,
-    jsonify,
     request as flask_request,
     current_app,
-    flash
 )
 
 from app.lib.db_utils import get_agencies_list

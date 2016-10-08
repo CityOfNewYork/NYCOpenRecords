@@ -1,3 +1,9 @@
+"""
+.. module:: api.request.views.
+
+   :synopsis: Handles the API request URL endpoints for the OpenRecords application
+"""
+
 from app.request.api import request_api_blueprint
 from flask import (
     jsonify,
@@ -14,7 +20,7 @@ import json
 def edit_visibility():
     """
     Edits the visibility privacy options of a request's title and agency description.
-    Gets updated privacy options from AJAX call on view_request page.
+    Retrieves updated privacy options from AJAX call on view_request page and stores changes into database.
 
     :return: JSON Response with updated title and agency description visibility options
     """
@@ -37,6 +43,11 @@ def edit_visibility():
 
 @request_api_blueprint.route('/view/edit', methods=['PUT'])
 def edit_request_info():
+    """
+    Edits the title and agency description of a FOIL request through an API PUT method.
+    Retrieves updated edited content from AJAX call on view_request page and stores changes into database.
+    :return: JSON Response with updated content: either request title or agency description)
+    """
     edit_request = flask_request.form
     # title = flask_request.form['value']
     request_id = flask_request.form.get('pk')
