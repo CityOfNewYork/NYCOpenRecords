@@ -43,15 +43,17 @@ h3.control-widget {
 }
 
 /* sets width and font size of request title text input (called in xeditable js) */
-.request-info .request-editable {
+#request-title.request-editable {
     width: 280px;
     font-size: 21px;
+    max-height: 10rem;
 }
 
 /* sets width and font size of agency description text area input (called in xeditable js) */
-.request-info .agency-editable {
-    width: 520px;
+#agency-descr.request-editable {
+    width: 480px;
     font-size: 21px;
+    max-height: 20rem;
 }
 
 /* edits agency description xeditable text area input */
@@ -62,4 +64,10 @@ h3.control-widget {
 /* sets the font-weight of request labels to be darker than the content */
 .request-info .request-label {
     font-weight: 400;
+}
+
+/* sets the div of the agency description to a max height and enables scrolling if overflow*/
+.request-info .agency-desc-text {
+    max-height: 20rem;
+    overflow-y: scroll;
 }
