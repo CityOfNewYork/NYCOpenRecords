@@ -1,139 +1,72 @@
 /*CSS page shared by new_request.html, new_request_agency.html, new_request_user.html*/
-h1{
-    font-size: 31.5px;
-}
-
-.span12
-{
-	width:940px
-}
-
-.span11
-{
-	width:860px
-}
-
-.span10
-{
-	width:780px
-}
-
-.span9
-{
-	width:700px
-}
-
-.span8
-{
-    display: inline-block;
-	width:620px
-}
-
-.span7
-{
-	width:540px
-}
-
-.span6
-{
-	width:460px
-}
-
-.span5
-{
-	width:40.17094017094%;
-    display:inline-block;
-    padding-right: 2%;
-
-}
-
-.span4
-{
-	width:31.623931623932%;
-    display:inline-block;
-    padding-right:2%;
-}
-
-.span3
-{
-	width:23.076923076923%;
-    display:inline-block
-}
-
-.span2
-{
-	width:140px
-}
-
-.span1
-{
-	width:60px
-}
-
-
-.row-fluid
-{
-	width:100%;
-}
-
-#request-description{
+#request-description {
     height: 15rem
 }
 
-.sideblock{
+.sideblock {
     padding-top: 33rem;
 }
 
-.example-title{
+.example-title {
     padding: 1rem 1.5rem;
     background-color: #efefef;
 }
 
-.example-request{
-	padding: 1rem 1.5rem;
-	background-color: #efefef;
-}
-.top-padding{
-	padding-top: 16rem;
+.example-request {
+    padding: 1rem 1.5rem;
+    background-color: #efefef;
 }
 
-.top-padding2{
-	padding-top: 5rem;
+.top-padding {
+    padding-top: 16rem;
+}
+
+.top-padding2 {
+    padding-top: 5rem;
 }
 
 .parsley-errors-list {
-	color: #e74c3c;
+    color: #e74c3c;
 }
 
-#state{
-	height: 50px;
+#state {
+    height: 50px;
 }
 
-#zipcode{
-	width: 45px;
+#zipcode {
+    width: 45px;
 }
 
-#request-file{
-	padding-bottom: 30px;
+#request-file {
+    padding-bottom: 30px;
 }
 
-.new-request-description-tooltip{
+.new-request-description-tooltip {
     padding-left: 300px;
     padding-right: 25px;
 }
 
-.new-request-description-tooltip{
-    width:300px;
+.new-request-description-tooltip {
+    width: 300px;
 }
 
-.popover{
+.popover {
     max-width: 100%;
 }
 
-#request-form{
+#request-form {
     width: 100%;
 }
 
-.no-padding-left{
-	padding-left: 0px;
+.no-padding-left {
+    padding-left: 0px;
+}
+
+.captcha {
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+.g-recaptcha {
+    display: inline-block;
 }

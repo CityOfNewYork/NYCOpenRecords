@@ -4,30 +4,37 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
-from tempfile import NamedTemporaryFile
+import json
+
 from flask import (
     render_template,
-    request,
     redirect,
     url_for,
+    request as flask_request,
+    current_app,
+    flash
 )
+from flask_login import current_user
+
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
-from . import request as request_
-from .forms import (
+from app.models import Requests
+from app.request import request
+from app.request.forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from .utils import (
+from app.request.utils import (
     create_request,
     handle_upload_no_id,
     get_address,
 )
-from flask_login import current_user
+from app import recaptcha
 
 
-@request_.route('/new', methods=['GET', 'POST'])
+
+@request.route('/new', methods=['GET', 'POST'])
 def new():
     """
     Create a new FOIL request
@@ -41,6 +48,7 @@ def new():
      uploaded file is stored in app/static
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
+    site_key = current_app.config['RECAPTCHA_SITE_KEY']
 
     if current_user.is_public:
         form = PublicUserRequestForm()
@@ -58,14 +66,16 @@ def new():
 
     new_request_template = 'request/new_request_' + template_suffix
 
-    if request.method == 'POST':
+    print(new_request_template)
+
+    if flask_request.method == 'POST':
         # validate upload with no request id available
         upload_path = None
         if form.request_file.data:
             form.request_file.validate(form)
             upload_path = handle_upload_no_id(form.request_file)
             if form.request_file.errors:
-                return render_template(new_request_template, form=form)
+                return render_template(new_request_template, form=form, site_key=site_key)
 
         # create request
         if current_user.is_public:
@@ -86,6 +96,12 @@ def new():
                            fax=form.fax.data,
                            address=get_address(form),
                            upload_path=upload_path)
+            # commented out recaptcha verifying functionalty because of NYC network proxy preventing it to send a
+            # backend request to the API
+
+            # if recaptcha.verify() is False:
+            #     flash("Please complete reCAPTCHA.")
+            #     return render_template(new_request_template, form=form, site_key=site_key)
         elif current_user.is_agency:
             create_request(form.request_title.data,
                            form.request_description.data,
@@ -101,15 +117,19 @@ def new():
                            address=get_address(form),
                            upload_path=upload_path)
         return redirect(url_for('main.index'))
+    return render_template(new_request_template, form=form, site_key=site_key)
 
-    return render_template(new_request_template, form=form)
+
+@request.route('/view_all', methods=['GET'])
+def view_all():
+    return render_template('request/view_request.html')
 
 
-@request_.route('/view', methods=['GET', 'POST'])
-def view():
+@request.route('/view/<request_id>', methods=['GET', 'POST'])
+def view(request_id):
     """
-    This function is for testing purposes of the view a request back until backend functionality is implemeneted.
-
+    This function is for testing purposes of the view a request back until backend functionality is implemented.
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    return render_template('request/view_request.html')
+    request = Requests.query.filter_by(id=request_id).first()
+    return render_template('request/view_request.html', request=request)
