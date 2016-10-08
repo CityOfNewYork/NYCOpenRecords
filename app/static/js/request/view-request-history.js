@@ -1,8 +1,8 @@
 // initialize variables
-var request_history_reload_index = 0;
-var request_history_index = 0;
-var request_history;
-var request_history_index_shift = 5;
+var request_history_reload_index = 0; // index to keep track of number of events loaded, load 50 more events for every increment of 1
+var request_history_index = 0; // index to keep track of which interval of events are shown
+var request_history; // initialize variable to store list of events
+var request_history_index_shift = 5; // index number used to increment or decrement request_history_index
 
 // hide load-more-history div
 $(".load-more-history").hide();
@@ -37,7 +37,7 @@ function previous_history() {
         }
         document.getElementById("request-history-table").innerHTML = request_history_html;
     }
-    if (request_history_index == request_history.length - 5) {
+    if (request_history_index == request_history.length - request_history_index_shift) {
         $(".load-more-history").show();
     } else {
         $(".load-more-history").hide();

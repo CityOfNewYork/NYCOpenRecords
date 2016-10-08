@@ -1,8 +1,8 @@
 // initialize variables
-var request_responses_reload_index = 0;
-var request_responses_index = 0;
-var request_responses;
-var request_responses_index_shift = 10;
+var request_responses_reload_index = 0; // index to keep track of number of responses loaded, load 50 more responses for every increment of 1
+var request_responses_index = 0; // index to keep track of which interval of responses are shown
+var request_responses; // initialize variable to store list of responses
+var request_responses_index_shift = 10; // index number used to increment or decrement request_responses_index
 
 // hide load-more-responses div
 $(".load-more-responses").hide();
