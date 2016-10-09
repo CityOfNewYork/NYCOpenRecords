@@ -21,10 +21,10 @@ from werkzeug.utils import secure_filename
 
 from app import calendar, upload_redis
 from app.constants import (
+    event_type,
+    role_name as role,
     ACKNOWLEDGEMENT_DAYS_DUE,
-    EVENT_TYPE,
     ANONYMOUS_USER,
-    ROLE_NAME
 )
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
@@ -130,14 +130,14 @@ def create_request(title,
         upload_event = Events(user_id=user.guid,
                               user_type=user.user_type,
                               request_id=request_id,
-                              type=EVENT_TYPE['file_added'],
+                              type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow())
         create_object(upload_event)
 
     role_to_user = {
-        ROLE_NAME.PUBLIC_REQUESTER : current_user.is_public,
-        ROLE_NAME.ANONYMOUS: current_user.is_anonymous,
-        ROLE_NAME.AGENCY_OFFICER: current_user.is_agency
+        role.PUBLIC_REQUESTER : current_user.is_public,
+        role.ANONYMOUS: current_user.is_anonymous,
+        role.AGENCY_OFFICER: current_user.is_agency
     }
     role_name = [k for (k, v) in role_to_user.items() if v][0]
     # (key for "truthy" value)
@@ -147,14 +147,14 @@ def create_request(title,
     event = Events(user_id=user.guid,
                    user_type=user.user_type,
                    request_id=request_id,
-                   type=EVENT_TYPE['request_created'],
+                   type=event_type.REQ_CREATED,
                    timestamp=timestamp)
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
                               user_type=current_user.user_type,
                               request_id=request.id,
-                              type=EVENT_TYPE['request_created'],
+                              type=event_type.REQ_CREATED,
                               timestamp=timestamp)
         create_object(agency_event)
 
