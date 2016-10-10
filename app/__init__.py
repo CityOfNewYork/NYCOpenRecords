@@ -81,6 +81,9 @@ def create_app(config_name):
     from .request import request
     app.register_blueprint(request, url_prefix="/request")
 
+    from .request.api import request_api_blueprint
+    app.register_blueprint(request_api_blueprint, url_prefix="/request/api/v1.0")
+
     from .response import response
     app.register_blueprint(response, url_prefix="/response")
 
