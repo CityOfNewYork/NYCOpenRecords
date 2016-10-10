@@ -105,7 +105,7 @@ def post(request_id):
     return jsonify(response), 200
 
 
-@upload.route('/<r_id_type>/<r_id>/<filename>', methods=['DELETE'])
+@upload.route('/<r_id_type>/<r_id>/<filename>', methods=['DELETE']) # FIXME: encoded filename
 def delete(r_id_type, r_id, filename):
     """
     Removes an uploaded file.
@@ -121,7 +121,7 @@ def delete(r_id_type, r_id, filename):
         On failure:
             { "error": error message }
     """
-    #TODO: check current user permissions
+    # TODO: check current user request permissions
     filename = secure_filename(filename)
     path_for_status = {
         UPLOAD_STATUS.PROCESSING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
