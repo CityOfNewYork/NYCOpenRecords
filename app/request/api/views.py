@@ -13,8 +13,10 @@ def get_request_history():
     request_history_index = int(flask_request.form['request_history_reload_index'])
     request_history_index_end = (request_history_index + 1) * 50 + 1
     request_history = []
+    # TODO: Query events table
     for i in range(1, request_history_index_end):
         request_history.append(str(i))
+
     return jsonify(request_history=request_history)
 
 
@@ -28,6 +30,7 @@ def get_request_responses():
     request_responses_index = int(flask_request.form['request_responses_reload_index'])
     request_responses_index_end = (request_responses_index + 1) * 50 + 1
     request_responses = []
+    # TODO: Query responses table.
     for i in range(1, request_responses_index_end):
         request_responses.append(str(i))
     return jsonify(request_responses=request_responses)
