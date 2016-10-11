@@ -8,7 +8,7 @@ import json
 from app import db
 
 # TODO: Add comment explaining why this is needed
-from app.models import Agencies, Users
+from app.models import Agencies, Users, Requests
 
 
 def create_object(obj):

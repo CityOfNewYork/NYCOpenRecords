@@ -11,7 +11,7 @@ from flask import current_app
 from .constants import (
     ALLOWED_MIMETYPES,
     MAX_CHUNKSIZE,
-    UPLOAD_STATUS,
+    upload_status,
 )
 from app import (
     celery,
@@ -104,7 +104,7 @@ def scan_and_complete_upload(request_id, filepath):
     filename = os.path.basename(filepath)
 
     key = get_upload_key(request_id, filename)
-    redis.set(key, UPLOAD_STATUS.SCANNING)
+    redis.set(key, upload_status.SCANNING)
 
     try:
         scan_file(filepath)
@@ -122,7 +122,7 @@ def scan_and_complete_upload(request_id, filepath):
             filepath,
             os.path.join(dst_dir, filename)
         )
-        redis.set(key, UPLOAD_STATUS.READY)
+        redis.set(key, upload_status.READY)
 
 
 def scan_file(filepath):

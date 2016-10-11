@@ -4,17 +4,13 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
-import json
-
 from flask import (
     render_template,
     redirect,
     url_for,
     request as flask_request,
     current_app,
-    flash
 )
-from flask_login import current_user
 
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
@@ -25,13 +21,15 @@ from app.request.forms import (
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
+from flask_login import current_user
+from app.models import Requests
+import json
 from app.request.utils import (
     create_request,
     handle_upload_no_id,
     get_address,
 )
 from app import recaptcha
-
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -129,7 +127,9 @@ def view_all():
 def view(request_id):
     """
     This function is for testing purposes of the view a request back until backend functionality is implemented.
+
     :return: redirects to view_request.html which is the frame of the view a request page
     """
-    request = Requests.query.filter_by(id=request_id).first()
-    return render_template('request/view_request.html', request=request)
+    current_request = Requests.query.filter_by(id=request_id).first()
+    visibility = json.loads(current_request.visibility)
+    return render_template('request/view_request.html', request=current_request, visibility=visibility)

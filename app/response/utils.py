@@ -9,7 +9,7 @@ from flask_login import current_user
 from app.models import Responses, Events, Notes
 from app.lib.db_utils import create_object
 from datetime import datetime
-from app.constants import EVENT_TYPE, RESPONSE_TYPE
+from app.constants import event_type, response_type
 
 
 def add_file():
@@ -53,7 +53,7 @@ def add_note(request_id, content):
     """
     note = Notes(content=content)
     create_object(obj=note)
-    process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], note.metadata_id)
+    process_response(request_id, response_type.NOTE, event_type.NOTE_ADDED, note.metadata_id)
 
 
 def delete_note():
