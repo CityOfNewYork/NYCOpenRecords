@@ -1,0 +1,60 @@
+<div class="request-info">
+    <div class="well col-sm-9">
+        <h3 class="control-widget">
+            <div class="text-muted" id="request_id">{{ request.id }}</div>
+            <br>
+            <div class="row">
+                <div class="request-label lead col-sm-1">Title:</div>
+                <div class="request-title-text lead col-sm-8">
+                    <!-- editable area for request title -->
+                    <a href="#" class="xedit" id="title">{{ request.title }}</a>
+                </div>
+                <!-- privacy options for request title -->
+                <div class="btn-group" data-toggle="buttons">
+                    {% if visibility['title'] == 'private' %}
+                        <label class="title-privacy-btn btn btn-default" data-active-class="primary">
+                            <input type="radio" value="public">Public
+                        </label>
+                        <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
+                            <input type="radio" value="private" checked="checked">Private
+                        </label>
+                    {% else %}
+                        <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
+                            <input type="radio" value="public">Public
+                        </label>
+                        <label class="title-privacy-btn btn btn-default" data-active-class="primary">
+                            <input type="radio" value="private" checked="checked">Private
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+            <br>
+            <div class="request-label lead">Description:</div>
+            <div class="lead">{{ request.description }}</div>
+            <br>
+            <div class="request-label lead col-sm-4">Agency Description:</div>
+            <!-- privacy options for agency description -->
+            <div class="btn-group col-sm-push-5" data-toggle="buttons">
+                {% if visibility['agency_description'] == 'private' %}
+                    <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
+                        <input type="radio" value="public">Public
+                    </label>
+                    <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
+                        <input type="radio" value="private">Private
+                    </label>
+                {% else %}
+                    <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
+                        <input type="radio" value="public">Public
+                    </label>
+                    <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
+                        <input type="radio" value="private">Private
+                    </label>
+                {% endif %}
+            </div>
+            <div class="agency-desc-text lead">
+                <!-- editable area for agency description -->
+                <a href="#" class="xedit" id="agency_description">{{ request.agency_description or "" }}</a>
+            </div>
+        </h3>
+    </div>
+</div>

@@ -3,6 +3,7 @@ Models for open records database
 """
 
 import csv
+import json
 from datetime import datetime
 
 from flask_login import UserMixin, AnonymousUserMixin
@@ -300,6 +301,7 @@ class Requests(db.Model):
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
     visibility = db.Column(JSON)
+    agency_description = db.Column(db.String(5000))
 
     def __init__(
             self,
@@ -308,20 +310,25 @@ class Requests(db.Model):
             description,
             agency,
             date_created,
+            visibility=None,
             date_submitted=None,
             due_date=None,
             submission=None,
-            current_status=None
+            current_status=None,
+            agency_description=None
     ):
+        visibility_default = {'title': 'private', 'agency_description': 'private'}
         self.id = id
         self.title = title
         self.description = description
         self.agency = agency
         self.date_created = date_created
+        self.visibility = visibility or json.dumps(visibility_default)
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission
         self.current_status = current_status
+        self.agency_description = agency_description
 
     def __repr__(self):
         return '<Requests %r>' % self.id

@@ -2,6 +2,11 @@
 
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
+    <link rel=stylesheet type=text/css
+          href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/juniper.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
 {% endblock %}
 
 {% block title %}
@@ -12,12 +17,7 @@
     <div class="container">
         <div class="col-sm-12">
             <!-- Request Info Column -->
-            <div class="jumbotron col-sm-9">
-                <h3 class="wrap-text">Request Info</h3>
-                <h3 class="wrap-text">FOIL Number</h3>
-                <h3 class="wrap-text">Title</h3>
-                <h3 class="wrap-text">Request</h3>
-            </div>
+            {% include 'request/_view_request_info.html' %}
 
             <!-- Status Column -->
             <div class="col-sm-3">
@@ -66,7 +66,7 @@
             <div class="col-sm-9">
                 <h3 class="wrap-text">Responses</h3>
                 <h4 class="wrap-text">
-                    Response Info
+                    {% include 'request/_view_request_responses.html' %}
                 </h4>
             </div>
 
@@ -74,7 +74,7 @@
             <div class="col-sm-3">
                 <h3 class="wrap-text">History</h3>
                 <h4 class="wrap-text">
-                    History Info
+                    {% include 'request/_view_request_history.html' %}
                 </h4>
             </div>
         </div>
@@ -84,7 +84,7 @@
 {% block custom_script %}
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
@@ -97,5 +97,15 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
     {% include "request/fileupload.js.html" %}
+    <script type="text/javascript"
+            src="{{ url_for('static',filename='js/plugins/bootstrap-editable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/juniper.js') }}"></script>
+    {% include 'request/_view_request_edit_visibility.html' %}
+    {% include 'request/_view_request_info_x-editable.html' %}
 {% endblock %}
