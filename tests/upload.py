@@ -17,7 +17,7 @@ from app.upload.utils import (
 )
 from app.upload.constants import (
     MAX_CHUNKSIZE,
-    UPLOAD_STATUS,
+    upload_status,
 )
 
 
@@ -164,7 +164,7 @@ class UploadViewsTests(BaseTestCase):
         # test for data/quarantine/
         os.mkdir(self.quarantine_basepath)
         open(self.quarantine_path, 'w').close()
-        redis.set(self.key, UPLOAD_STATUS.SCANNING)
+        redis.set(self.key, upload_status.SCANNING)
         response = self.client.delete(endpoint)
         self.assertEqual(
             json.loads(response.data.decode()),
@@ -175,7 +175,7 @@ class UploadViewsTests(BaseTestCase):
         # test for data/
         os.mkdir(self.upload_basepath)
         open(self.upload_path, 'w').close()
-        redis.set(self.key, UPLOAD_STATUS.READY)
+        redis.set(self.key, upload_status.READY)
         response = self.client.delete(endpoint)
         self.assertEqual(
             json.loads(response.data.decode()),
@@ -202,7 +202,7 @@ class UploadViewsTests(BaseTestCase):
             }
         )
         # good file name
-        redis.set(self.key, UPLOAD_STATUS.PROCESSING)
+        redis.set(self.key, upload_status.PROCESSING)
         response = self.client.get(
             '/upload/status',
             query_string={
@@ -213,7 +213,7 @@ class UploadViewsTests(BaseTestCase):
         self.assertEqual(
             json.loads(response.data.decode()),
             {
-                "status": UPLOAD_STATUS.PROCESSING
+                "status": upload_status.PROCESSING
             }
         )
 
@@ -255,7 +255,7 @@ class UploadUtilsTests(BaseTestCase):
         scan_and_complete_upload(self.request_id, self.quarantine_path)
         self.assertFalse(os.path.exists(self.quarantine_path))
         self.assertTrue(os.path.exists(self.upload_path))
-        self.assertEqual(redis.get(self.key).decode(), UPLOAD_STATUS.READY)
+        self.assertEqual(redis.get(self.key).decode(), upload_status.READY)
 
     def test_scan_bad_file(self):
         with patch(
