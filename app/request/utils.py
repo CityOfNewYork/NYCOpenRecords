@@ -165,6 +165,7 @@ def create_request(title,
                                 permissions=Roles.query.filter_by(
                                     name=role_name).first().permissions)
     create_object(user_request)
+    return request_id
 
 
 def get_address(form):

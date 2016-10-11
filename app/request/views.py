@@ -9,7 +9,7 @@ from flask import (
     redirect,
     url_for,
     request as flask_request,
-    current_app,
+    current_app
 )
 
 from app.lib.db_utils import get_agencies_list
@@ -64,8 +64,6 @@ def new():
 
     new_request_template = 'request/new_request_' + template_suffix
 
-    print(new_request_template)
-
     if flask_request.method == 'POST':
         # validate upload with no request id available
         upload_path = None
@@ -77,12 +75,12 @@ def new():
 
         # create request
         if current_user.is_public:
-            create_request(form.request_title.data,
+            request = create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
                            upload_path=upload_path)
         elif current_user.is_anonymous:
-            create_request(form.request_title.data,
+            request = create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
                            email=form.email.data,
@@ -101,7 +99,7 @@ def new():
             #     flash("Please complete reCAPTCHA.")
             #     return render_template(new_request_template, form=form, site_key=site_key)
         elif current_user.is_agency:
-            create_request(form.request_title.data,
+            request = create_request(form.request_title.data,
                            form.request_description.data,
                            submission=form.method_received.data,
                            agency_date_submitted=form.request_date.data,
@@ -114,8 +112,16 @@ def new():
                            fax=form.fax.data,
                            address=get_address(form),
                            upload_path=upload_path)
-        return redirect(url_for('main.index'))
+        return redirect(url_for('request.confirmation', request_id=request))
     return render_template(new_request_template, form=form, site_key=site_key)
+
+
+@request.route('/confirmation/<request_id>', methods=['GET', 'POST'])
+def confirmation(request_id):
+    current_request = Requests.query.filter_by(id=request_id).first()
+    visibility = json.loads(current_request.visibility)
+    return render_template('request/confirmation.html', request=current_request, visibility=visibility)
+
 
 
 @request.route('/view_all', methods=['GET'])
