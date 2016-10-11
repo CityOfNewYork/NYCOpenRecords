@@ -7,7 +7,7 @@
 """
 from flask_login import current_user
 from app.models import Responses, Events, Notes, Files
-from app.db_utils import create_object
+from app.lib.db_utils import create_object
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
 import os

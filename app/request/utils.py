@@ -9,10 +9,9 @@
 """
 
 import os
-import random
-import string
 import uuid
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 
 from business_calendar import FOLLOWING
 from flask import render_template, current_app
@@ -20,15 +19,23 @@ from flask_login import current_user
 
 from werkzeug.utils import secure_filename
 
-from app import calendar
+from app import calendar, upload_redis
 from app.constants import (
     ACKNOWLEDGEMENT_DAYS_DUE,
     EVENT_TYPE,
     ANONYMOUS_USER,
     ROLE_NAME
 )
-from app.db_utils import create_object, update_object
+from app.lib.db_utils import create_object, update_object
+from app.lib.user_information import create_mailing_address
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
+from app.upload.constants import UPLOAD_STATUS
+from app.upload.utils import (
+    is_valid_file_type,
+    scan_file,
+    VirusDetectedException,
+    get_upload_key
+)
 
 DIRECT_INPUT = 'Direct Input'
 
@@ -46,17 +53,23 @@ def create_request(title,
                    phone=None,
                    fax=None,
                    address=None,
-                   upload_file=None):
+                   upload_path=None):
     """
-    Function for creating and storing a new request on the backend.
+    Creates a new FOIL Request and associated Users, UserRequests, and Events.
 
     :param title: request title
     :param description: detailed description of the request
     :param agency: agency selected for the request
     :param date_created: date the request was made
     :param submission: request submission method
-    :return: creates and stores the request and event object for a new FOIL request
-             Request and Event table are updated in the database
+    :param agency_date_submitted: submission date chosen by agency
+    :param email: requester's email address
+    :param user_title: requester's organizational title
+    :param organization: requester's organization
+    :param phone: requester's phone number
+    :param fax: requester's fax number
+    :param address: requester's mailing address
+    :param upload_path: file path of the validated upload
     """
     # 1. Generate the request id
     request_id = generate_request_id(agency)
@@ -110,16 +123,16 @@ def create_request(title,
         )
         create_object(user)
 
-    if upload_file and upload_file.filename != '':
-        # 7. Store file in quarantine
-        if _save_request_upload(upload_file, request_id):
-            # 8. Create upload Event
-            upload_event = Events(user_id=user.guid,
-                                  user_type=user.user_type,
-                                  request_id=request_id,
-                                  type=EVENT_TYPE['file_added'],
-                                  timestamp=datetime.utcnow())
-            create_object(upload_event)
+    if upload_path is not None:
+        # 7. Move file to upload directory
+        _move_validated_upload(request_id, upload_path)
+        # 8. Create upload Event
+        upload_event = Events(user_id=user.guid,
+                              user_type=user.user_type,
+                              request_id=request_id,
+                              type=EVENT_TYPE['file_added'],
+                              timestamp=datetime.utcnow())
+        create_object(upload_event)
 
     role_to_user = {
         ROLE_NAME.PUBLIC_REQUESTER : current_user.is_public,
@@ -154,29 +167,94 @@ def create_request(title,
     create_object(user_request)
 
 
-def _save_request_upload(upload_file, request_id):
+def get_address(form):
     """
-    Store an uploaded file under quarantine for a given request id.
+    Get mailing address from form data.
 
-    :param upload_file: the file to store
-    :param request_id: the generated request id
-
-    :return: Whether upload was successful or not.
+    :type form: app.request.forms.AgencyUserRequestForm
+                app.request.forms.AnonymousRequestForm
     """
-    success = True
-    upload_path = os.path.join(
-        current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+    return create_mailing_address(
+        form.address.data,
+        form.city.data,
+        form.state.data,
+        form.zipcode.data,
+        form.address_two.data or None
+    )
+
+
+def handle_upload_no_id(file_field):
+    """
+    Try to store and scan an uploaded file when no request id
+    has been generated. Return the stored upload file path
+    on success, otherwise add errors to the file field.
+
+    :param file_field: form file field
+
+    :return: the file path to the stored upload
+    """
+    path = None
+    valid_file_type, file_type = is_valid_file_type(file_field.data)
+    if not valid_file_type:
+        file_field.errors.append(
+            "File type '{}' is not allowed.".format(file_type))
+    else:
+        try:
+            path = _quarantine_upload_no_id(file_field.data)
+        except Exception as e:
+            print("Error saving file {} : {}". format(
+                file_field.data.filename, e))
+            file_field.errors.append('Error saving file.')
+        else:
+            try:
+                scan_file(path)
+            except VirusDetectedException:
+                file_field.errors.append('File is infected.')
+            except Exception:
+                file_field.errors.append('Error scanning file.')
+    return path
+
+
+def _quarantine_upload_no_id(upload_file):
+    """
+    Save an upload file to the quarantine directory, with
+    this directory being the file's immediate parent.
+
+    This file should not exist after the completion of the
+    create-request pipeline and is therefore treated explicitly
+    as temporary (its name is prefixed with an indicator).
+
+    :type upload_file: werkzeug.datastructures.FileStorage
+    :return: the file path to the quarantined upload
+    """
+    with NamedTemporaryFile(
+        dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+        suffix='.{}'.format(secure_filename(upload_file.filename)),
+        delete=False
+    ) as fp:
+        upload_file.save(fp)
+        return fp.name
+
+
+def _move_validated_upload(request_id, tmp_path):
+    """
+    Move an approved upload to the upload directory.
+
+    :param request_id: the id of the request associated with the upload
+    :param tmp_path: the temporary file path to the upload
+        generated by app.request.utils._quarantine_upload_no_id()
+    """
+    dst_dir = os.path.join(
+        current_app.config['UPLOAD_DIRECTORY'],
         request_id)
-    if not os.path.exists(upload_path):
-        os.mkdir(upload_path)
-    filename = secure_filename(upload_file.filename)
-    filepath = os.path.join(upload_path, filename)
-    try:
-        upload_file.save(filepath)
-    except Exception as e:
-        print("Error saving file {}: {}".format(filename, e))
-        success = False
-    return success
+    if not os.path.exists(dst_dir):
+        os.mkdir(dst_dir)
+    valid_name = os.path.basename(tmp_path).split('.', 1)[1]  # remove 'tmp' prefix
+    valid_path = os.path.join(dst_dir, valid_name)
+    os.rename(tmp_path, valid_path)
+    upload_redis.set(
+        get_upload_key(request_id, valid_name),
+        UPLOAD_STATUS.READY)
 
 
 def generate_request_id(agency):
@@ -216,8 +294,7 @@ def get_date_submitted(date_created):
     :param date_created: date the request was made
     :return: date submitted which is the date_created rounded off to the next business day
     """
-    date_submitted = calendar.addbusdays(date_created, FOLLOWING)
-    return date_submitted
+    return calendar.addbusdays(date_created, FOLLOWING)
 
 
 def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
@@ -233,8 +310,7 @@ def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, sec
     :return: due date which is 5 business days after the date_submitted and time is always 5:00 PM
     """
     calc_due_date = calendar.addbusdays(date_submitted, days_until_due)  # calculates due date
-    due_date = calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
-    return due_date
+    return calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
 
 
 def generate_guid():
@@ -242,8 +318,7 @@ def generate_guid():
     Generates a GUID for an anonymous user.
     :return: the generated id
     """
-    guid = str(uuid.uuid4())
-    return guid
+    return str(uuid.uuid4())
 
 
 def generate_request_metadata(request):

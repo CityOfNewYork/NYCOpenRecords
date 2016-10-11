@@ -1,0 +1,73 @@
+/* sets styles for the request_info well*/
+.request-info .well {
+    min-height: 130px;
+}
+
+/* sets the styles for h3 in the html */
+h3.control-widget {
+    font-size: 24.5px;
+    font-weight: 600;
+    line-height: 20px !important;
+    display: inline !important
+}
+
+/* remove padding and margin from lead elements in the well*/
+.request-info .lead {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* sets toggle button to primary when active */
+.btn.active[data-active-class="primary"] {
+    color: #fff;
+    background-color: #286090;
+    border-color: #204d74;
+}
+
+/* sets privacy buttons (public, private) to a certain size */
+.request-info .privacy-btn {
+    padding: 3.5px 9px;
+}
+
+/* removes url hyperlink styling */
+.request-info .xedit {
+    border-bottom: none;
+    color: inherit;
+    word-wrap: break-word;
+}
+
+/* when user hovers over editable content, content is underline */
+.request-info .xedit:hover {
+    text-decoration: underline;
+    border-bottom: none;
+}
+
+/* sets width and font size of request title text input (called in xeditable js) */
+#request-title.request-editable {
+    width: 280px;
+    font-size: 21px;
+    max-height: 10rem;
+}
+
+/* sets width and font size of agency description text area input (called in xeditable js) */
+#agency-descr.request-editable {
+    width: 480px;
+    font-size: 21px;
+    max-height: 20rem;
+}
+
+/* edits agency description xeditable text area input */
+.agency-desc-text .editable-container {
+    padding-top: 10px;
+}
+
+/* sets the font-weight of request labels to be darker than the content */
+.request-info .request-label {
+    font-weight: 400;
+}
+
+/* sets the div of the agency description to a max height and enables scrolling if overflow*/
+.request-info .agency-desc-text {
+    max-height: 20rem;
+    overflow-y: scroll;
+}

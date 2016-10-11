@@ -9,7 +9,7 @@ from app import login_manager
 from app.constants import (
     AGENCY_USER
 )
-from app.db_utils import create_object, update_object
+from app.lib.db_utils import create_object, update_object
 from app.models import Agencies, Users
 
 

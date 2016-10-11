@@ -1,14 +1,16 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% extends "base.html" %}
 {% block custom_css %}
-{#    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/new_request/new-request.css') }}"/>#}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/new_request/new-request.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
 {% endblock %}
+
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
-            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
+            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data
+                  data-parsley-validate>
                 {{ form.hidden_tag() }}
                 <h1>Request a Record</h1>
 
@@ -26,25 +28,35 @@
                 {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
                 {# Title of request #}
                 {{ form.request_title.label(class='request-heading') }}
-                        {{ form.request_title(id='request-title', class='input-block-level',
-                        placeholder='Please provide a short summary of your request.') }}
+                {{ form.request_title(id='request-title', class='input-block-level',
+                        placeholder='Please provide a short summary of your request.', maxlength="90") }}
+                <h5 id="title-character-count">90 characters remaining</h5>
                 <div class="alert alert-info">
                     <p><b>Note: The agency, category, and topic of your request will be visible to the public. Do not
-                            enter personal information here.</b></p>
+                        enter personal information here.</b></p>
                 </div>
 
                 {# Description of Request #}
                 {{ form.request_description.label(class='request-heading') }}
                 {{ form.request_description(id='request-description', class='input-block-level',
-                    placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.") }}
+                    placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.",
+                        maxlength="5000") }}
+                <h5 id="description-character-count" class="required">5000 characters remaining</h5>
                 <div class="alert alert-info">
-                    <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
+                    <p><b>Note: The request details you write here will not be visible to the public. However, the
+                        agency may post a description of the records provided.</b></p>
                 </div>
                 {# Upload field for user to add files #}
                 <div class="col-sm-12">
                     {{ form.request_file.label(class='request-heading') }}
+                    &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     {{ form.request_file(id='request-file') }}
-                    <p>*The file must be less than 20 Mb.*</p>
+                    {% if form.request_file.errors %}
+                        {% for error in form.request_file.errors %}
+                            <div class="alert alert-danger upload-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <br>
                 </div>
 
                 <h1>Personal Information</h1>
@@ -109,7 +121,11 @@
                     </div>
                 </div>
 
-
+{#                commented out recaptcha div because of NYC network proxy preventing it to send a #}
+{#                backend request to the API#}
+{#                <div class="col-sm-12 captcha">#}
+{#                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>#}
+{#                </div>#}
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
             </form>
@@ -118,11 +134,17 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js')}}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery-ui.js')}}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.mask.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/validation/custom_validators.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/validation/custom_validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-anon.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/new-request-character-count.js') }}"></script>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/new-request-character-count.js') }}"></script>
 {% endblock %}

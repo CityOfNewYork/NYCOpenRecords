@@ -1,5 +1,5 @@
 """
- .. module: utils
+ .. module: lib
 
 """
 
