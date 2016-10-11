@@ -7,7 +7,6 @@
 import os
 import magic
 import subprocess
-from glob import glob
 from flask import current_app
 from .constants import (
     ALLOWED_MIMETYPES,
@@ -60,7 +59,7 @@ def is_valid_file_type(obj):
         mime_type = magic.from_buffer(buffer, mime=True)
         is_valid = mime_type in ALLOWED_MIMETYPES
         if is_valid:
-            # 3. Check using mime database file
+            # 3. Check using custom mime database file
             m = magic.Magic(
                 magic_file=current_app.config['MAGIC_FILE'],
                 mime=True)

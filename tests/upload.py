@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 import unittest
 from io import BytesIO
 from unittest.mock import patch
@@ -9,35 +10,49 @@ from flask import current_app
 from werkzeug.utils import secure_filename
 
 from tests.base import BaseTestCase
-from app.upload.utils import get_upload_key
+from app.upload.utils import (
+    get_upload_key,
+    VirusDetectedException,
+    scan_and_complete_upload,
+)
 from app.upload.constants import (
     MAX_CHUNKSIZE,
     UPLOAD_STATUS,
 )
 
 
-class UploadViewsTest(BaseTestCase):
+class UploadViewsTests(BaseTestCase):
 
     def setUp(self):
-        super(UploadViewsTest, self).setUp()
+        super(UploadViewsTests, self).setUp()
         self.filename = "$ome fi/le.txt"
         self.filename_secure = secure_filename(self.filename)
-        self.request_id = 'FOIL-XXX'
-        self.quarantine_path = os.path.join(
+        self.request_id = 'FOIL-TEST-UVT'
+        self.quarantine_basepath = os.path.join(
             current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-            self.request_id,
+            self.request_id
+        )
+        self.quarantine_path = os.path.join(
+            self.quarantine_basepath,
             self.filename_secure
         )
-        self.upload_path = os.path.join(
+        self.upload_basepath = os.path.join(
             current_app.config['UPLOAD_DIRECTORY'],
-            self.request_id,
+            self.request_id
+        )
+        self.upload_path = os.path.join(
+            self.upload_basepath,
             self.filename_secure
         )
         self.key = get_upload_key(self.request_id, self.filename_secure)
 
     def tearDown(self):
         redis.delete(self.key)
-        super(UploadViewsTest, self).tearDown()
+        if os.path.exists(self.quarantine_basepath):
+            shutil.rmtree(self.quarantine_basepath)
+        if os.path.exists(self.upload_basepath):
+            shutil.rmtree(self.upload_basepath)
+        super(UploadViewsTests, self).tearDown()
 
     @patch('app.upload.views.scan_and_complete_upload.delay')
     def test_post(self, scan_and_complete_patch):
@@ -147,6 +162,7 @@ class UploadViewsTest(BaseTestCase):
         }
 
         # test for data/quarantine/
+        os.mkdir(self.quarantine_basepath)
         open(self.quarantine_path, 'w').close()
         redis.set(self.key, UPLOAD_STATUS.SCANNING)
         response = self.client.delete(endpoint)
@@ -157,6 +173,7 @@ class UploadViewsTest(BaseTestCase):
         self.assertFalse(os.path.exists(self.quarantine_path))
 
         # test for data/
+        os.mkdir(self.upload_basepath)
         open(self.upload_path, 'w').close()
         redis.set(self.key, UPLOAD_STATUS.READY)
         response = self.client.delete(endpoint)
@@ -201,8 +218,58 @@ class UploadViewsTest(BaseTestCase):
         )
 
 
-class UploadTestUtils(BaseTestCase):
-    pass
+class UploadUtilsTests(BaseTestCase):
+
+    def setUp(self):
+        super(UploadUtilsTests, self).setUp()
+        self.request_id = 'FOIL-TEST-UUT'
+        self.filename = "iamafile.txt"
+        self.quarantine_basepath = os.path.join(
+            current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            self.request_id
+        )
+        self.quarantine_path = os.path.join(
+            self.quarantine_basepath,
+            self.filename
+        )
+        self.upload_basepath = os.path.join(
+            current_app.config['UPLOAD_DIRECTORY'],
+            self.request_id,
+        )
+        self.upload_path = os.path.join(
+            self.upload_basepath,
+            self.filename
+        )
+        os.mkdir(self.quarantine_basepath)
+        os.mkdir(self.upload_basepath)
+        open(self.quarantine_path, 'w').close()
+        self.key = get_upload_key(self.request_id, self.filename)
+
+    def tearDown(self):
+        redis.delete(self.key)
+        shutil.rmtree(self.quarantine_basepath)
+        shutil.rmtree(self.upload_basepath)
+        super(UploadUtilsTests, self).tearDown()
+
+    def test_scan_good_file(self):
+        scan_and_complete_upload(self.request_id, self.quarantine_path)
+        self.assertFalse(os.path.exists(self.quarantine_path))
+        self.assertTrue(os.path.exists(self.upload_path))
+        self.assertEqual(redis.get(self.key).decode(), UPLOAD_STATUS.READY)
+
+    def test_scan_bad_file(self):
+        with patch(
+            'app.upload.utils.scan_file', side_effect=fake_scan_file
+        ):
+            scan_and_complete_upload(self.request_id, self.quarantine_path)
+            self.assertFalse(os.path.exists(self.quarantine_path))
+            self.assertFalse(os.path.exists(self.upload_path))
+            self.assertFalse(redis.exists(self.key))
+
+
+def fake_scan_file(filepath):
+    os.remove(filepath)
+    raise VirusDetectedException(filepath)
 
 
 if __name__ == "__main__":
