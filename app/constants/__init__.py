@@ -1,51 +1,4 @@
-from app.lib.utils import mapping
-
 ACKNOWLEDGEMENT_DAYS_DUE = 5
-
-ROLE_NAME = mapping(
-    ANONYMOUS='Anonymous User',
-    PUBLIC_NON_REQUESTER='Public User - None Requester',
-    PUBLIC_REQUESTER='Public User - Requester',
-    AGENCY_HELPER='Agency Helper',
-    AGENCY_OFFICER='Agency FOIL Officer',
-    AGENCY_ADMIN='Agency Administrator'
-)
-
-# TODO: apply the above mapping convention where appropriate
-
-EVENT_TYPE = {
-    "user_added": "user_added",
-    "user_permissions_changed": "user_permissions_changed",
-    "user_information_edited": "user_information_edited",
-    "request_created": "request_created",
-    "request_acknowledged": "request_acknowledged",
-    "request_status_changed": "request_status_changed",
-    "request_extended": "request_extended",
-    "request_closed": "request_closed",
-    "request_title_edited": "request_title_edited",
-    "request_agency_description_edited": "request_agency_description_edited",
-    "request_title_privacy_edited": "request_title_privacy_edited",
-    "request_agency_description_privacy_edited": "request_agency_description_privacy_edited",
-    "email_notification_sent": "email_notification_sent",
-    "file_added": "file_added",
-    "file_edited": "file_edited",
-    "file_removed": "file_removed",
-    "link_added": "link_added",
-    "link_edited": "link_edited",
-    "link_removed": "link_removed",
-    "instructions_added": "instructions_added",
-    "instructions_edited": "instructions_edited",
-    "instructions_removed": "instructions_removed",
-    "note_added": "note_added",
-    "note_edited": "note_edited",
-    "note_deleted": "note_deleted",
-}
-
-USER_TYPE = {
-    "anonymous_user": "anonymous_user",
-    "agency_user": "agency_user",
-    "public_user": "public_user"
-}
 
 CATEGORIES = [
     ('', ''),
@@ -138,24 +91,11 @@ PUBLIC_USER_YAHOO = 'YahooSSO'
 PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
 ANONYMOUS_USER = 'AnonymousUser'
 
-PUBLIC_USER = [
+PUBLIC_USER = frozenset((
     PUBLIC_USER_NYC_ID,
     PUBLIC_USER_FACEBOOK,
     PUBLIC_USER_LINKEDIN,
     PUBLIC_USER_GOOGLE,
     PUBLIC_USER_YAHOO,
     PUBLIC_USER_MICROSOFT
-]
-
-RESPONSE_TYPE = {
-    "note": "note",
-    "record types": "record types",
-    "file": "file",
-    "link": "link",
-    "offline instructions": "offline instructions",
-    "email": "email",
-    "sms": "sms",
-    "push": "push",
-    "extension": "extension",
-    "status": "status"
-}
+))

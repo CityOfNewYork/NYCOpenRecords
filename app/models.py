@@ -12,52 +12,13 @@ from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON
 
 from app import app, db
-from app.constants import PUBLIC_USER, AGENCY_USER
+from app.constants import (
+    PUBLIC_USER,
+    AGENCY_USER,
+    permission,
+    role_name,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
-
-
-class Permissions:
-    """
-    Define the permission codes for certain actions:
-
-    DUPLICATE_REQUEST: Duplicate Request (New Request based on same criteria)
-    VIEW_REQUEST_STATUS_PUBLIC: View detailed request status (Open, In Progress, Closed)
-    VIEW_REQUEST_STATUS_ALL: View detailed request status (Open, In Progress, Due Soon, Overdue, Closed)
-    VIEW_REQUEST_INFO_PUBLIC: View all public request information
-    VIEW_REQUEST_INFO_ALL: View all request information
-    ADD_NOTE: Add Note (Agency Only) or (Agency Only & Requester Only) or (Agency Only, Requester / Agency)
-    UPLOAD_DOCUMENTS: Upload Documents (Agency Only & Requester Only) or (Agency Only / Private) or
-                        (Agency Only / Private, Agency / Requester, All Users)
-    VIEW_DOCUMENTS_IMMEDIATELY: View Documents Immediately - Public or 'Released and Private'
-    VIEW_REQUESTS_HELPER: View requests where they are assigned
-    VIEW_REQUESTS_AGENCY: View all requests for their agency
-    VIEW_REQUESTS_ALL: View all requests for all agencies
-    EXTEND_REQUESTS: Extend Request
-    CLOSE_REQUESTS: Close Request (Denial/Fulfill)
-    ADD_HELPERS: Add Helper (Helper permissions must be specified on a per request basis)
-    REMOVE_HELPERS: Remove Helper
-    ACKNOWLEDGE: Acknowledge
-    CHANGE_REQUEST_POC: Change Request POC
-    ADMINISTER: All permissions
-    """
-    DUPLICATE_REQUEST = 0x00001
-    VIEW_REQUEST_STATUS_PUBLIC = 0x00002
-    VIEW_REQUEST_STATUS_ALL = 0x00004
-    VIEW_REQUEST_INFO_PUBLIC = 0x00008
-    VIEW_REQUEST_INFO_ALL = 0x00010
-    ADD_NOTE = 0x00020
-    UPLOAD_DOCUMENTS = 0x00040
-    VIEW_DOCUMENTS_IMMEDIATELY = 0x00080
-    VIEW_REQUESTS_HELPER = 0x00100
-    VIEW_REQUESTS_AGENCY = 0x00200
-    VIEW_REQUESTS_ALL = 0x00400
-    EXTEND_REQUESTS = 0x00800
-    CLOSE_REQUESTS = 0x01000
-    ADD_HELPERS = 0x02000
-    REMOVE_HELPERS = 0x04000
-    ACKNOWLEDGE = 0x08000
-    CHANGE_REQUEST_POC = 0x10000
-    ADMINISTER = 0x20000
 
 
 class Roles(db.Model):
@@ -82,26 +43,56 @@ class Roles(db.Model):
         Agency Helper, Agency FOIL Officer, Agency Administrator.
         """
         roles = {
-            'Anonymous User': (Permissions.DUPLICATE_REQUEST | Permissions.VIEW_REQUEST_STATUS_PUBLIC |
-                               Permissions.VIEW_REQUEST_INFO_PUBLIC),
-            'Public User - Non Requester': (Permissions.ADD_NOTE | Permissions.DUPLICATE_REQUEST |
-                                            Permissions.VIEW_REQUEST_STATUS_PUBLIC |
-                                            Permissions.VIEW_REQUEST_INFO_PUBLIC
-                                            ),
-            'Public User - Requester': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS |
-                                        Permissions.VIEW_DOCUMENTS_IMMEDIATELY | Permissions.VIEW_REQUEST_INFO_ALL |
-                                        Permissions.VIEW_REQUEST_STATUS_PUBLIC),
-            'Agency Helper': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.VIEW_REQUESTS_HELPER |
-                              Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL),
-            'Agency FOIL Officer': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.EXTEND_REQUESTS |
-                                    Permissions.CLOSE_REQUESTS | Permissions.ADD_HELPERS | Permissions.REMOVE_HELPERS |
-                                    Permissions.ACKNOWLEDGE | Permissions.VIEW_REQUESTS_AGENCY |
-                                    Permissions.VIEW_REQUEST_INFO_ALL | Permissions.VIEW_REQUEST_STATUS_ALL),
-            'Agency Administrator': (Permissions.ADD_NOTE | Permissions.UPLOAD_DOCUMENTS | Permissions.EXTEND_REQUESTS |
-                                     Permissions.CLOSE_REQUESTS | Permissions.ADD_HELPERS | Permissions.REMOVE_HELPERS |
-                                     Permissions.ACKNOWLEDGE | Permissions.CHANGE_REQUEST_POC |
-                                     Permissions.VIEW_REQUESTS_ALL | Permissions.VIEW_REQUEST_INFO_ALL |
-                                     Permissions.VIEW_REQUEST_STATUS_ALL)
+            role_name.ANONYMOUS: (
+                permission.DUPLICATE_REQUEST |
+                permission.VIEW_REQUEST_STATUS_PUBLIC |
+                permission.VIEW_REQUEST_INFO_PUBLIC
+            ),
+            role_name.PUBLIC_NON_REQUESTER: (
+                permission.ADD_NOTE |
+                permission.DUPLICATE_REQUEST |
+                permission.VIEW_REQUEST_STATUS_PUBLIC |
+                permission.VIEW_REQUEST_INFO_PUBLIC
+            ),
+            role_name.PUBLIC_REQUESTER: (
+                permission.ADD_NOTE |
+                permission.UPLOAD_DOCUMENTS |
+                permission.VIEW_DOCUMENTS_IMMEDIATELY |
+                permission.VIEW_REQUEST_INFO_ALL |
+                permission.VIEW_REQUEST_STATUS_PUBLIC
+            ),
+            role_name.AGENCY_HELPER: (
+                permission.ADD_NOTE |
+                permission.UPLOAD_DOCUMENTS |
+                permission.VIEW_REQUESTS_HELPER |
+                permission.VIEW_REQUEST_INFO_ALL |
+                permission.VIEW_REQUEST_STATUS_ALL
+            ),
+            role_name.AGENCY_OFFICER: (
+                permission.ADD_NOTE |
+                permission.UPLOAD_DOCUMENTS |
+                permission.EXTEND_REQUESTS |
+                permission.CLOSE_REQUESTS |
+                permission.ADD_HELPERS |
+                permission.REMOVE_HELPERS |
+                permission.ACKNOWLEDGE |
+                permission.VIEW_REQUESTS_AGENCY |
+                permission.VIEW_REQUEST_INFO_ALL |
+                permission.VIEW_REQUEST_STATUS_ALL
+            ),
+            role_name.AGENCY_ADMIN: (
+                permission.ADD_NOTE |
+                permission.UPLOAD_DOCUMENTS |
+                permission.EXTEND_REQUESTS |
+                permission.CLOSE_REQUESTS |
+                permission.ADD_HELPERS |
+                permission.REMOVE_HELPERS |
+                permission.ACKNOWLEDGE |
+                permission.CHANGE_REQUEST_POC |
+                permission.VIEW_REQUESTS_ALL |
+                permission.VIEW_REQUEST_INFO_ALL |
+                permission.VIEW_REQUEST_STATUS_ALL
+            )
         }
 
         # import pdb; pdb.set_trace()
@@ -435,6 +426,13 @@ class UserRequests(db.Model):
     __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
                                            [Users.guid, Users.user_type]),
                       {})
+
+    def has_permission(self, permission):
+        """
+        Ex:
+            has_permission(permission.ADD_NOTE)
+        """
+        return bool(self.permissions & permission)
 
 
 class Notes(db.Model):
