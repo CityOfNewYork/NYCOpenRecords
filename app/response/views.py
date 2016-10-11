@@ -41,7 +41,7 @@ def response_note(request_id):
 @response.route('/file/<request_id>', methods=['GET', 'POST'])
 def response_file(request_id):
     request = Requests.query.filter_by(id=request_id).first().id
-    form = Submit()
+    # form = Submit()
     if flask_request.method == 'POST':
         # reads file from directory
         # currently commented out for loop for testing
