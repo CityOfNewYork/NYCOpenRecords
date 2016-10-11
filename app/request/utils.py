@@ -29,7 +29,7 @@ from app.constants import (
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
-from app.upload.constants import UPLOAD_STATUS
+from app.upload.constants import upload_status
 from app.upload.utils import (
     is_valid_file_type,
     scan_file,
@@ -254,7 +254,7 @@ def _move_validated_upload(request_id, tmp_path):
     os.rename(tmp_path, valid_path)
     upload_redis.set(
         get_upload_key(request_id, valid_name),
-        UPLOAD_STATUS.READY)
+        upload_status.READY)
 
 
 def generate_request_id(agency):
