@@ -59,13 +59,13 @@ def is_valid_file_type(obj):
         # 2. Check from file buffer
         mime_type = magic.from_buffer(buffer, mime=True)
         is_valid = mime_type in ALLOWED_MIMETYPES
-        if is_valid:
-            # 3. Check using mime database file
-            m = magic.Magic(
-                magic_file=current_app.config['MAGIC_FILE'],
-                mime=True)
-            m.from_buffer(buffer)
-            is_valid = mime_type in ALLOWED_MIMETYPES
+        # if is_valid:
+        #     # 3. Check using mime database file
+        #     m = magic.Magic(
+        #         magic_file=current_app.config['MAGIC_FILE'],
+        #         mime=True)
+        #     m.from_buffer(buffer)
+        #     is_valid = mime_type in ALLOWED_MIMETYPES
         obj.stream.seek(0)
     return is_valid, mime_type
 

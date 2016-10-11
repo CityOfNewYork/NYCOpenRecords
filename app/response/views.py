@@ -12,12 +12,7 @@ from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file
-import os
-from app import app
-
-
-app.config['UPLOAD_FOLDER'] = '/Users/gzhou/PycharmProjects/openrecords_v2_0/data/FOIL-XXX'
+from app.response.utils import add_note, add_file, process_upload_data
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -28,28 +23,43 @@ class NoteForm(Form):
 
 @response.route('/note/<request_id>', methods=['GET', 'POST'])
 def response_note(request_id):
-    request = Requests.query.filter_by(id=request_id).first().id
+    """
+    Note response endpoint that takes in the content of a note for a specific request from the frontend.
+    Passes data into helper function in response.utils to update changes into database.
+
+    :param request_id: Specific FOIL request ID for the note
+    :return: Message indicating note has been submitted
+    """
+    current_request = Requests.query.filter_by(id=request_id).first()
+    visibility = json.loads(current_request.visibility)
     form = NoteForm()
     if flask_request.method == 'POST':
-        add_note(request_id=request,
+        add_note(request_id=current_request.id,
                  content=form.note.data)
         flash('Note has been submitted')
-    return render_template('request/view_note.html', request=request, form=form)
+    return render_template('request/view_note.html', request=current_request, form=form, visibility=visibility)
 
 
-# TODO: Implement response route for file
 @response.route('/file/<request_id>', methods=['GET', 'POST'])
 def response_file(request_id):
-    request = Requests.query.filter_by(id=request_id).first().id
-    # form = Submit()
+    """
+    File response endpoint that takes in the metadata of a file for a specific request from the frontend.
+    Calls process_upload_data to process the uploaded file form data.
+    Passes data into helper function in response.utils to update changes into database.
+
+    :param request_id: Specific FOIL request ID for the file
+    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    """
+    current_request = Requests.query.filter_by(id=request_id).first()
+    visibility = json.loads(current_request.visibility)
     if flask_request.method == 'POST':
-        # reads file from directory
-        # currently commented out for loop for testing
-        # for file in request.form.files:
-            upload_file = os.path.join(app.config['UPLOAD_FOLDER'], 'OP-800.jpeg')
-            add_file(request_id, upload_file)
-            flash('File has been added')
-    return render_template('request/view_request_test.html', request=request, form=form)
+        files = process_upload_data(flask_request.form)
+        for file in files:
+            add_file(current_request.id,
+                     filename=file,
+                     title=files[file]['title'],
+                     privacy=files[file]['privacy'])
+    return render_template('request/view_request.html', request=current_request, visibility=visibility)
 
 
 # TODO: Implement response route for extension

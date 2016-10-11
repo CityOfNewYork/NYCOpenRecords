@@ -44,6 +44,7 @@ def edit_request_info():
     """
     Edits the title and agency description of a FOIL request through an API PUT method.
     Retrieves updated edited content from AJAX call on view_request page and stores changes into database.
+
     :return: JSON Response with updated content: either request title or agency description)
     """
     edit_request = flask_request.form

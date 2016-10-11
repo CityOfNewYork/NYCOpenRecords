@@ -5,25 +5,34 @@
     synopsis: Handles the functions for responses
 
 """
-from flask_login import current_user
+from app import app
 from app.models import Responses, Events, Notes, Files
 from app.lib.db_utils import create_object
+from app.lib.file_utils import get_mime_type
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
 import os
-import magic
+import re
 
 
-def add_file(request_id, upload_file):
+def add_file(request_id, filename, title, privacy):
     """
-    Will add a file to the database for the specified request.
-    :return:
+    Creates and stores the file object for the specified request.
+    Gets the file mimetype from a helper function in lib.file_utils
+
+    :param request_id: Request ID that the file is being added to
+    :param filename: The secured_filename of the file.
+    :param title: The title of the file which is entered by the uploader.
+    :param privacy: The privacy option of the file.
+
+    :return: Stores the file metadata into the Files table.
+             Provides parameters for the process_response function to create and store responses and events object.
     """
-    size = os.path.getsize(upload_file)
-    mime_type = magic.from_file(upload_file, mime=True)
-    files = Files(name='test', mime_type=mime_type, title='title', size=size)
+    size = os.path.getsize(os.path.join(app.config['UPLOAD_DIRECTORY'] + request_id, filename))
+    mime_type = get_mime_type(request_id, filename)
+    files = Files(name=filename, mime_type=mime_type, title=title, size=size)
     create_object(obj=files)
-    process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], files.metadata_id)
+    process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], files.metadata_id, privacy)
 
 
 def delete_file():
@@ -48,9 +57,11 @@ def edit_file():
 
 def add_note(request_id, content):
     """
+    Creates and stores the note object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param content: content of the note to be created and stored as a note object
+
     :return: Stores the note content into the Notes table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
@@ -155,3 +166,25 @@ def process_response(request_id, response_type, event_type, metadata_id, privacy
                    response_id=response.id)
     # store event object
     create_object(obj=event)
+
+
+def process_upload_data(form):
+    """
+    Helper function that processes the uploaded file form data.
+    A files dictionary is first created and then populated with keys and their respective values of the form data.
+
+    :return: A files dictionary that contains the uploaded file(s)'s metadata that will be passed as arguments to be
+     stored in the database.
+    """
+    files = {}
+    re_obj = re.compile('filename_')
+    for key in form.keys():
+        if re_obj.match(key):
+            files[key.split('filename_')[1]] = {}
+    for key in files:
+        re_obj = re.compile(key)
+        for form_key in form.keys():
+            if re_obj.match(form_key):
+                files[key][form_key.split(key + '::')[1]] = form[form_key]
+
+    return files
