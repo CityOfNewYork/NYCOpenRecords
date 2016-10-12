@@ -8,6 +8,7 @@
 from app import app
 from app.models import Responses, Events, Notes, Files
 from app.lib.db_utils import create_object
+from app.lib.email_utils import send_email
 from app.lib.file_utils import get_mime_type
 from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE
@@ -188,3 +189,7 @@ def process_upload_data(form):
                 files[key][form_key.split(key + '::')[1]] = form[form_key]
 
     return files
+
+
+def send_response_email(request_id, email_content):
+    UserRequests.query.filter_by(guid=request_id).first()

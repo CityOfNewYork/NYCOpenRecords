@@ -11,6 +11,7 @@ from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
 from app.models import Requests
+from app.lib.email_utils import send_email
 from app.response import response
 from app.response.utils import add_note, add_file, process_upload_data
 
@@ -59,6 +60,8 @@ def response_file(request_id):
                      filename=file,
                      title=files[file]['title'],
                      privacy=files[file]['privacy'])
+        email_content = flask_request.form['email-content']
+        send_response_email(current_request.id, email_content)
     return render_template('request/view_request.html', request=current_request, visibility=visibility)
 
 
@@ -73,6 +76,9 @@ def response_extension():
 def response_email():
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
+    # send_email('test@email.com', 'subject', 'email_templates/email_file_upload.html',
+    #            department="Department of Records and Information Services",
+    #            page="http://127.0.0.1:5000/request/view/{}".format(request_id))
     return render_template('email_templates/email_file_upload.html',
                            department="Department of Records and Information Services",
                            page="http://127.0.0.1:5000/request/view/{}".format(request_id))
