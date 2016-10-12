@@ -3,14 +3,13 @@ Models for open records database
 """
 import csv
 import json
-import os
 from datetime import datetime
 
+from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
 from app import db
 from app.constants import (
@@ -134,7 +133,7 @@ class Agencies(db.Model):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        data = open(os.environ.get('AGENCY_DATA'), 'r')
+        data = open(current_app.config['AGENCY_DATA'], 'r')
         dictreader = csv.DictReader(data)
 
         for row in dictreader:
