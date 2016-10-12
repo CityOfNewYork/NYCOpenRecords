@@ -118,7 +118,7 @@ def upgrade():
     sa.Column('type', sa.String(length=30), nullable=True),
     sa.Column('date_modified', sa.DateTime(), nullable=True),
     sa.Column('metadata_id', sa.Integer(), nullable=True),
-    sa.Column('privacy', sa.Enum('private', 'public', name='privacy'), nullable=True),
+    sa.Column('privacy', sa.Enum('private', 'release_private', 'release_public', name='privacy'), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

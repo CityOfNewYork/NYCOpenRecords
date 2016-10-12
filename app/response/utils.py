@@ -5,13 +5,13 @@
     synopsis: Handles the functions for responses
 
 """
-from app import app
-from app.models import Responses, Events, Notes, Files
+from flask import current_app
+from app.models import Responses, Events, Notes, Files, Requests, Agencies, Users, UserRequests
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email
 from app.lib.file_utils import get_mime_type
 from datetime import datetime
-from app.constants import EVENT_TYPE, RESPONSE_TYPE
+from app.constants import EVENT_TYPE, RESPONSE_TYPE, AGENCY_USER
 import os
 import re
 
@@ -29,7 +29,7 @@ def add_file(request_id, filename, title, privacy):
     :return: Stores the file metadata into the Files table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
-    size = os.path.getsize(os.path.join(app.config['UPLOAD_DIRECTORY'] + request_id, filename))
+    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
     mime_type = get_mime_type(request_id, filename)
     files = Files(name=filename, mime_type=mime_type, title=title, size=size)
     create_object(obj=files)
@@ -191,5 +191,33 @@ def process_upload_data(form):
     return files
 
 
-def send_response_email(request_id, email_content):
-    UserRequests.query.filter_by(guid=request_id).first()
+def send_response_email(request_id):
+
+    user_requests = UserRequests.query.with_entities(
+        UserRequests.user_guid, UserRequests.user_type
+    ).filter_by(request_id=request_id).all()
+    agency_emails = []
+    for ureq in user_requests:
+        user = Users.query.filter_by(guid=ureq.user_guid, user_type=ureq.user_type).first()
+        # if user.user_type == AGENCY_USER:
+
+    # user = UserRequests.query.filter_by(request_id=request_id)
+    # requester_email = Users.query.filter_by(guid=user).first().email
+    # agency = Requests.query.filter_by(id=request_id).first().agency
+    # agency_email = Agencies.query.filter_by(ein=agency).first().default_email
+    # requester_link = UserRequests.query.filter_by(request_id=request_id, permissions=Roles.query.filter_by(
+    #     name=ROLE_NAME.ANONYMOUS).first().permissions).first()
+    # requester = Users.query.filter_by(guid=requester_link.user_guid, user_type=requester_link.user_type).first()
+    # agency = Agencies.query.filter_by(ein=current_request.agency).first()
+    # to = requester_email
+    # cc = None
+    # bcc = agency_email
+    try:
+        send_email(to, cc, bcc, 'Response Added', 'email_templates/email_file_upload',
+                   department="Department of Records and Information Services",
+                   page="http://127.0.0.1:5000/request/view/{}".format(request_id))
+    except AssertionError:
+        # TODO: Handling once in a million years edge case
+        pass
+    except Exception:
+        pass

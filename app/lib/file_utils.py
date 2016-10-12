@@ -5,7 +5,7 @@
     synopsis: Handles the functions for files
 
 """
-from app import app
+from flask import current_app
 import magic
 import os
 
@@ -18,6 +18,6 @@ def get_mime_type(request_id, filename):
 
     :return: mime_type of the file as determined by python magic.
     """
-    upload_file = os.path.join(app.config['UPLOAD_DIRECTORY'] + request_id, filename)
+    upload_file = os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename)
     mime_type = magic.from_file(upload_file, mime=True)
     return mime_type

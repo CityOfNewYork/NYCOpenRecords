@@ -13,7 +13,6 @@ from simplekv.memory.redisstore import RedisStore
 from celery import Celery
 
 
-
 from config import config, Config
 
 recaptcha = ReCaptcha()

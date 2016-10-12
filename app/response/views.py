@@ -11,9 +11,8 @@ from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
 from app.models import Requests
-from app.lib.email_utils import send_email
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data
+from app.response.utils import add_note, add_file, process_upload_data, send_response_email
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -57,11 +56,35 @@ def response_file(request_id):
         files = process_upload_data(flask_request.form)
         for file in files:
             add_file(current_request.id,
-                     filename=file,
-                     title=files[file]['title'],
-                     privacy=files[file]['privacy'])
-        email_content = flask_request.form['email-content']
-        send_response_email(current_request.id, email_content)
+                     file,
+                     files[file]['title'],
+                     files[file]['privacy'])
+
+        private_files = []
+        release_files = []
+        for file in files:
+            if files[file]['privacy'] == 'private':
+                private_files.append(file)
+            else:
+                release_files.append(file)
+
+        recipients_to_files = {
+            "agency_only": private_files,
+            "all": release_files
+        }
+
+        import ipdb
+        ipdb.set_trace()
+        # files_privacy = flask_request.form
+        # for file in files_privacy:
+        #     files_privacy = {}
+        #     for key in files_privacy:
+        #         if re_obj = re.compile(key):
+
+
+
+        # email_content = flask_request.form['email-content']
+        # send_response_email(current_request.id)
     return render_template('request/view_request.html', request=current_request, visibility=visibility)
 
 
@@ -76,9 +99,6 @@ def response_extension():
 def response_email():
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    # send_email('test@email.com', 'subject', 'email_templates/email_file_upload.html',
-    #            department="Department of Records and Information Services",
-    #            page="http://127.0.0.1:5000/request/view/{}".format(request_id))
     return render_template('email_templates/email_file_upload.html',
                            department="Department of Records and Information Services",
                            page="http://127.0.0.1:5000/request/view/{}".format(request_id))

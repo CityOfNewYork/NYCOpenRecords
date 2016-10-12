@@ -6,12 +6,13 @@ import csv
 import json
 from datetime import datetime
 
+from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import JSON
 
-from app import app, db
+from app import db
 from app.constants import PUBLIC_USER, AGENCY_USER
 from sqlalchemy.dialects.postgresql import ARRAY
 
@@ -143,7 +144,7 @@ class Agencies(db.Model):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        data = open(app.config['AGENCY_DATA'], 'r')
+        data = open(current_app.config['AGENCY_DATA'], 'r')
         dictreader = csv.DictReader(data)
 
         for row in dictreader:
@@ -183,7 +184,7 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
-    guid = db.Column(db.String(64), primary_key=True, unique=True)  # guid + user type
+    guid = db.Column(db.String(64), primary_key=True)  # guid + user type
     user_type = db.Column(db.String(64), primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
     email = db.Column(db.String(254))
@@ -326,7 +327,7 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        visibility_default = {'title': 'private', 'agency_description': 'private'}
+        visibility_default = {'title': 'public', 'agency_description': 'private'}
         self.id = id
         self.title = title
         self.description = description
@@ -386,7 +387,7 @@ class Responses(db.Model):
     type - a string containing the type of response that was given for a request
     date_modified - a datetime object that keeps track of when a request was changed
     content - a JSON object that contains the content for all the possible responses a request can have
-    privacy - a string containing the privacy option for a response
+    privacy - an Enum containing the privacy options for a response
     """
 
     __tablename__ = 'responses'
@@ -395,7 +396,7 @@ class Responses(db.Model):
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
     metadata_id = db.Column(db.Integer)
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
+    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
 
     def __repr__(self):
         return '<Responses %r>' % self.id
