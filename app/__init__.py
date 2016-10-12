@@ -42,8 +42,6 @@ calendar = Calendar(
     ]
 )
 
-login_manager.login_view = 'auth.login'
-
 
 def create_app(config_name):
     """
@@ -67,9 +65,9 @@ def create_app(config_name):
 
     with app.app_context():
         from app.models import Anonymous
+        login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
-
-    KVSessionExtension(prefixed_store, app)
+        KVSessionExtension(prefixed_store, app)
 
     from .main import main
     app.register_blueprint(main)
