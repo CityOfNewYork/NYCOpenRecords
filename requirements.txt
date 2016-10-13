@@ -7,8 +7,10 @@ business-calendar==0.2.1
 celery==3.1.23
 click==6.6
 dominate==2.2.1
+elasticsearch==2.4.0
 Flask==0.11.1
 Flask-Bootstrap==3.3.7.0
+Flask-Elasticsearch==0.2.5
 Flask-KVSession==0.6.2
 Flask-Login==0.3.2
 Flask-Mail==0.9.1

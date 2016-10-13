@@ -122,7 +122,7 @@ class Agencies(db.Model):
     """
 
     __tablename__ = 'agencies'
-    ein = db.Column(db.Integer, primary_key=True)
+    ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
     category = db.Column(db.String(256))
     name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
@@ -285,18 +285,18 @@ class Requests(db.Model):
     due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
     submission - a Enum that selects from a list of submission methods
     current_status - a Enum that selects from a list of different statuses a request can have
-    visibility - a JSON object that contains the visbility settings of a request
+    visibility - a JSON object that contains the visibility settings of a request
     """
 
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))  # FIXME: change to agency_ein?
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
-    submission = db.Column(
+    submission = db.Column(  # TODO: update
         db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days

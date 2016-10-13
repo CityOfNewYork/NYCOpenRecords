@@ -3,6 +3,7 @@ from business_calendar import Calendar, MO, TU, WE, TH, FR
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
+from flask_elasticsearch import FlaskElasticsearch
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_recaptcha import ReCaptcha
@@ -18,6 +19,7 @@ from config import config, Config
 
 recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
+es = FlaskElasticsearch()
 db = SQLAlchemy()
 login_manager = LoginManager()
 store = RedisStore(redis.StrictRedis(db=1))
@@ -60,6 +62,7 @@ def create_app(config_name):
 
     recaptcha.init_app(app)
     bootstrap.init_app(app)
+    es.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
