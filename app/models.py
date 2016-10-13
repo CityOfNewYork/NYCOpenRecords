@@ -518,8 +518,7 @@ class Emails(db.Model):
     bcc -  a string containing who is bcc'd in an email
     subject - a string containing the subject of an email
     email_content - a string containing the content of an email
-    attachments - an array of integers containing that links to the files metadata_id
-
+    linked_files - an array of strings containing the links to the files
     """
     __tablename__ = 'emails'
     metadata_id = db.Column(db.Integer, primary_key=True)
@@ -528,4 +527,4 @@ class Emails(db.Model):
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
     email_content = db.Column(db.String)
-    attachments = db.Column(ARRAY(db.Integer))
+    linked_files = db.Column(ARRAY(db.String))

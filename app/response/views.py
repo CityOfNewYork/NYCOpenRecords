@@ -6,13 +6,13 @@
 
 import json
 
-from flask import render_template, flash, request as flask_request
+from flask import render_template, flash, request as flask_request, url_for, redirect
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data, send_response_email
+from app.response.utils import add_note, add_file, process_upload_data, send_response_email, process_privacy_options
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -59,33 +59,12 @@ def response_file(request_id):
                      file,
                      files[file]['title'],
                      files[file]['privacy'])
+        file_options = process_privacy_options(files)
+        email_content = flask_request.form['email-content']
+        for privacy, files in file_options.items():
+            send_response_email(request_id, privacy, files, email_content)
 
-        private_files = []
-        release_files = []
-        for file in files:
-            if files[file]['privacy'] == 'private':
-                private_files.append(file)
-            else:
-                release_files.append(file)
-
-        recipients_to_files = {
-            "agency_only": private_files,
-            "all": release_files
-        }
-
-        import ipdb
-        ipdb.set_trace()
-        # files_privacy = flask_request.form
-        # for file in files_privacy:
-        #     files_privacy = {}
-        #     for key in files_privacy:
-        #         if re_obj = re.compile(key):
-
-
-
-        # email_content = flask_request.form['email-content']
-        # send_response_email(current_request.id)
-    return render_template('request/view_request.html', request=current_request, visibility=visibility)
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 # TODO: Implement response route for extension
@@ -101,7 +80,8 @@ def response_email():
     request_id = data['request_id']
     return render_template('email_templates/email_file_upload.html',
                            department="Department of Records and Information Services",
-                           page="http://127.0.0.1:5000/request/view/{}".format(request_id))
+                           page="http://127.0.0.1:5000/request/view/{}".format(request_id),
+                           files_links={})
 
 
 # TODO: Implement response route for sms

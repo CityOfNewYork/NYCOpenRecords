@@ -6,12 +6,12 @@
 
 """
 from flask import current_app
-from app.models import Responses, Events, Notes, Files, Requests, Agencies, Users, UserRequests
+from app.models import Responses, Events, Notes, Files, Requests, Emails, Users, UserRequests
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email
 from app.lib.file_utils import get_mime_type
 from datetime import datetime
-from app.constants import EVENT_TYPE, RESPONSE_TYPE, AGENCY_USER
+from app.constants import EVENT_TYPE, RESPONSE_TYPE, AGENCY_USER, PUBLIC_USER_NYC_ID, ANONYMOUS_USER
 import os
 import re
 
@@ -107,13 +107,25 @@ def edit_extension():
     print("edit_extension function")
 
 
-def add_email():
+def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
-    Will add an email to the database for the specified request.
-    :return:
+    Creates and stores the note object for the specified request.
+
+    :param request_id: takes in FOIL request ID as an argument for the process_response function
+    :param subject: subject of the email to be created and stored as a email object
+    :param email_content: email body content of the email to be created and stored as a email object
+    :param to: list of person(s) email is being sent to
+    :param cc: list of person(s) email is being cc'ed to
+    :param bcc: list of person(s) email is being bcc'ed
+    :return: Stores the email metadata into the Emails table.
+             Provides parameters for the process_response function to create and store responses and events object.
     """
-    # TODO: Implement adding an email
-    print("add_email function")
+    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
+    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
+    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else  None
+    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
+    create_object(obj=email)
+    process_response(request_id, RESPONSE_TYPE['email'], EVENT_TYPE['email_notification_sent'], email.metadata_id, new_response_value=email_content)
 
 
 def add_sms():
@@ -134,7 +146,7 @@ def add_push():
     print("add_push function")
 
 
-def process_response(request_id, response_type, event_type, metadata_id, privacy='private'):
+def process_response(request_id, response_type, event_type, metadata_id, privacy='private', new_response_value='', previous_response_value=''):
     """
     Creates and stores responses and events objects to the database
 
@@ -164,7 +176,9 @@ def process_response(request_id, response_type, event_type, metadata_id, privacy
                    # user_type=current_user.type,
                    type=event_type,
                    timestamp=datetime.utcnow(),
-                   response_id=response.id)
+                   response_id=response.id,
+                   previous_response_value=previous_response_value,
+                   new_response_value=new_response_value)
     # store event object
     create_object(obj=event)
 
@@ -187,37 +201,106 @@ def process_upload_data(form):
         for form_key in form.keys():
             if re_obj.match(form_key):
                 files[key][form_key.split(key + '::')[1]] = form[form_key]
-
     return files
 
 
-def send_response_email(request_id):
+def send_response_email(request_id, privacy, filenames, email_content):
+    """
+    Function that sends email detailing a file response has been uploaded to a request.
+    If the file privacy is private, only agency users are emailed.
+    If the file privacy is release, the requester is emailed and the agency users are bcced.
 
-    user_requests = UserRequests.query.with_entities(
-        UserRequests.user_guid, UserRequests.user_type
-    ).filter_by(request_id=request_id).all()
+    :param request_id: FOIL request ID
+    :param privacy: privacy option of the uploaded file
+    :param filenames: list of filenames
+    :return: Sends email notification detailing a file response has been uploaded to a request.
+
+    """
+    # TODO: make subject constants
+    subject = 'Response Added'
+    # Get list of agency users on the request
+    agency_user_guids = UserRequests.query.filter_by(request_id=request_id, user_type=AGENCY_USER)
+
+    # Query for the agency email information
     agency_emails = []
-    for ureq in user_requests:
-        user = Users.query.filter_by(guid=ureq.user_guid, user_type=ureq.user_type).first()
-        # if user.user_type == AGENCY_USER:
+    for user_guid in agency_user_guids:
+        agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
+        agency_emails.append(agency_user_email)
 
-    # user = UserRequests.query.filter_by(request_id=request_id)
-    # requester_email = Users.query.filter_by(guid=user).first().email
-    # agency = Requests.query.filter_by(id=request_id).first().agency
-    # agency_email = Agencies.query.filter_by(ein=agency).first().default_email
-    # requester_link = UserRequests.query.filter_by(request_id=request_id, permissions=Roles.query.filter_by(
-    #     name=ROLE_NAME.ANONYMOUS).first().permissions).first()
-    # requester = Users.query.filter_by(guid=requester_link.user_guid, user_type=requester_link.user_type).first()
-    # agency = Agencies.query.filter_by(ein=current_request.agency).first()
-    # to = requester_email
-    # cc = None
-    # bcc = agency_email
+    bcc = agency_emails or ['agency@email.com']
+
+    file_to_link = {}
+    for filename in filenames:
+        file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
+
+    if privacy == 'release':
+        # Query for the requester's email information
+        # Query for the requester's guid from UserRequests using first because there can only be one unique requester
+        requester_guid = UserRequests.query.filter_by(request_id=request_id).filter(
+            UserRequests.user_type.in_([ANONYMOUS_USER, PUBLIC_USER_NYC_ID])).first().user_guid
+        requester_email = Users.query.filter_by(guid=requester_guid).first().email
+
+        # Send email with files to requester and bcc agency users as privacy option is release
+        to = [requester_email]
+        _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
+                                   "Department of Records and Information Services", file_to_link, to=to, bcc=bcc)
+
+    if privacy == 'private':
+        # Send email with files to agency users only as privacy option is private
+        _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
+                                   "Department of Records and Information Services", file_to_link, bcc=bcc)
+
+
+def _safely_send_and_add_email(request_id,
+                               email_content,
+                               subject,
+                               template,
+                               department,
+                               files_links,
+                               to=None,
+                               bcc=None):
+    """
+    Sends email and creates and stores the email object into the Emails table.
+
+    :param request_id: FOIL request ID
+    :param email_content: body of the email
+    :param subject: subject of the email (current is for TESTING purposes)
+    :param template: html template of the email body being rendered
+    :param department: department of the request (current is for TESTING purposes)
+    :param files_links: url link of files placed in email body to be downloaded (current link is for TESTING purposes)
+    :param to: list of person(s) email is being sent to
+    :param bcc: list of person(s) email is being bcc'ed
+    :return:
+    """
     try:
-        send_email(to, cc, bcc, 'Response Added', 'email_templates/email_file_upload',
-                   department="Department of Records and Information Services",
-                   page="http://127.0.0.1:5000/request/view/{}".format(request_id))
+        send_email(subject, template, to=to, bcc=bcc, department=department, files_links=files_links)
+        add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
-        # TODO: Handling once in a million years edge case
-        pass
-    except Exception:
-        pass
+        print('Must include: To, CC, or BCC')
+    except Exception as e:
+        print("Error:", e)
+
+
+def process_privacy_options(files):
+    """
+    Creates a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
+
+    :param files: list of filenames
+    :return: Dictionary with 'release' and 'private' lists
+    """
+    private_files = []
+    release_files = []
+    for file in files:
+        if files[file]['privacy'] == 'private':
+            private_files.append(file)
+        else:
+            release_files.append(file)
+
+    files_privacy_options = dict()
+
+    if release_files:
+        files_privacy_options['release'] = release_files
+
+    if private_files:
+        files_privacy_options['private'] = private_files
+    return files_privacy_options

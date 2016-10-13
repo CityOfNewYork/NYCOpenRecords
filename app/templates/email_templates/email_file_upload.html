@@ -6,3 +6,9 @@
     You can view the request and take any necessary action at the following webpage:
     <a href='{{ page }}'>{{ page }}</a>.
 </p>
+<p>
+    Download the request files at:
+    {% for file, link in files_links.items() %}
+        <a href='{{ link }}'>{{ file }}</a>
+    {% endfor %}
+</p>
