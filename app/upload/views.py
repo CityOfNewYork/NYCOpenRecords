@@ -13,6 +13,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from app import upload_redis as redis
+from app.lib.utils import b64decode_lenient
 from app.models import Responses
 from app.upload import upload
 from app.upload.constants import (
@@ -105,15 +106,16 @@ def post(request_id):
     return jsonify(response), 200
 
 
-@upload.route('/<r_id_type>/<r_id>/<filename>', methods=['DELETE']) # FIXME: encoded filename
-def delete(r_id_type, r_id, filename):
+@upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
+def delete(r_id_type, r_id, filecode):
     """
     Removes an uploaded file.
     NOTE: This can only deal with request ids for now (OP-798)
 
     :param r_id_type: "response" or "request"
     :param r_id: the Response or Request identifier
-    :param filename: the name of the uploaded file
+    :param filecode: the encoded name of the uploaded file
+        (base64 without padding)
 
     :returns:
         On success:
@@ -122,7 +124,7 @@ def delete(r_id_type, r_id, filename):
             { "error": error message }
     """
     # TODO: check current user request permissions
-    filename = secure_filename(filename)
+    filename = secure_filename(b64decode_lenient(filecode))
     path_for_status = {
         upload_status.PROCESSING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
         upload_status.SCANNING: current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],

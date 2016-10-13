@@ -3,6 +3,7 @@ import json
 import shutil
 import unittest
 from io import BytesIO
+from base64 import b64encode
 from unittest.mock import patch
 
 from app import upload_redis as redis
@@ -155,7 +156,7 @@ class UploadViewsTests(BaseTestCase):
     def test_delete_request_id(self):
         endpoint = '/upload/request/{}/{}'.format(
             self.request_id,
-            self.filename_secure  # FIXME: encoded filename
+            b64encode(self.filename_secure.encode()).decode().strip('=')
         )
         expected_response = {
             "deleted": self.filename_secure

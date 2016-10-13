@@ -15,7 +15,7 @@ $(function () {
                     type: 'DELETE',
                     url: '/upload/request/' +
                         '{{ request.id }}/' +
-                        idToName(template.attr('id'))
+                        template.attr('id')
                 });
             }
             template.remove();
@@ -63,18 +63,14 @@ $(function () {
         });
     }
 
-    function nameToId(name) {
+    function encodeName(name) {
         /*
-        Returns an encoded version of 'name'.
+        Returns an encoded (base64 without padding) version of 'name' intended
+        for use as/in an html id attribute or for use in a url.
+        Padding is removed because '=' is an invalid character
+        for an html id and it is reserved character for urls.
          */
         return window.btoa(name).replace(/=/g, '');
-    }
-
-    function idToName(id) {
-        /*
-        Returns an unencoded version of 'id'.
-         */
-        return window.atob(id);
     }
 
     // Initialize the jQuery File Upload widget:
@@ -105,12 +101,12 @@ $(function () {
                 type: "DELETE",
                 url: '/upload/request/' +
                      '{{ request.id }}/' +
-                     data.files[0].name
+                     encodeName(data.files[0].name)
             });
         }
     }).bind('fileuploaddone', function (e, data) {
         var filename = data.result.files[0].name;
-        var htmlId = nameToId(filename);
+        var htmlId = encodeName(filename);
         data.result.files[0].identifier = htmlId;
         setTimeout(
             pollUploadStatus.bind(null, filename, htmlId),
