@@ -150,7 +150,7 @@ class Agencies(db.Model):
     """
 
     __tablename__ = 'agencies'
-    ein = db.Column(db.Integer, primary_key=True)
+    ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
     category = db.Column(db.String(256))
     name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
