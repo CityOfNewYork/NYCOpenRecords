@@ -40,6 +40,21 @@ def parse_content_range(header):
     return int(bytes.split('-')[0]), int(bytes.split('/')[1])
 
 
+def upload_exists(request_id, filename):
+    """
+    Checks for an existing uploaded file.
+
+    :param request_id: id of request associated with the upload
+    :param filename: the name of the uploaded file
+    :return: whether the file exists or not
+    """
+    return os.path.exists(os.path.join(
+        current_app.config['UPLOAD_DIRECTORY'],
+        request_id,
+        filename
+    ))
+
+
 def is_valid_file_type(obj):
     """
     Validates the mime type of a file.

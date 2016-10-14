@@ -82,7 +82,7 @@ class UploadViewsTests(BaseTestCase):
                 self.request_id, self.quarantine_path)
         # check file saved
         self.assertTrue(os.path.exists(self.quarantine_path))
-        os.remove(self.quarantine_path)
+
 
     @patch('app.upload.views.scan_and_complete_upload.delay')
     def test_post_chunked(self, scan_and_complete_patch):
@@ -134,7 +134,25 @@ class UploadViewsTests(BaseTestCase):
                              full_file_size)
             scan_and_complete_patch.assert_called_once_with(
                 self.request_id, self.quarantine_path)
-            os.remove(self.quarantine_path)
+
+    def test_post_existing_file(self):
+        os.mkdir(self.upload_basepath)
+        open(self.upload_path, 'w').close()
+        response = self.client.post(
+            '/upload/' + self.request_id,
+            data={
+                "file": (BytesIO(b""), self.filename)
+            }
+        )
+        self.assertEqual(
+            json.loads(response.data.decode()),
+            {
+                "files": [{
+                    "name": self.filename_secure,
+                    "error": "A file with this name has already been uploaded."
+                }]
+            }
+        )
 
     def test_post_invalid_mime(self):
         response = self.client.post(
@@ -148,7 +166,7 @@ class UploadViewsTests(BaseTestCase):
             {
                 "files": [{
                     "name": self.filename_secure,
-                    "error": "File type 'text/x-python' is not allowed."
+                    "error": "The file type 'text/x-python' is not allowed."
                 }]
             }
         )
