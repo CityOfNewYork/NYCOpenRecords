@@ -436,6 +436,9 @@ class UserRequests(db.Model):
                                            [Users.guid, Users.user_type]),
                       {})
 
+    def __repr__(self):
+        return '<UserRequests %r>' % self.user_guid
+
 
 class Notes(db.Model):
     """

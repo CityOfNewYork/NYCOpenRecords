@@ -14,7 +14,7 @@ from flask import (
 
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
-from app.models import Requests
+from app.models import Requests, UserRequests, Users
 from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
@@ -120,7 +120,12 @@ def new():
 def confirmation(request_id):
     current_request = Requests.query.filter_by(id=request_id).first()
     visibility = json.loads(current_request.visibility)
-    return render_template('request/confirmation.html', request=current_request, visibility=visibility)
+
+    userRequest = UserRequests.query.filter_by(request_id=request_id).first()
+    user = Users.query.filter_by(guid=userRequest.user_guid).first()
+
+    return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
+                           current_user=current_user)
 
 
 
