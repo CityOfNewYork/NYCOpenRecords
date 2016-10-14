@@ -1,5 +1,6 @@
 import unittest
 from app import create_app, db
+from app.models import Roles, Agencies
 
 
 class BaseTestCase(unittest.TestCase):
@@ -10,6 +11,8 @@ class BaseTestCase(unittest.TestCase):
     def setUpClass(cls):
         with cls.app.app_context():
             db.create_all()
+            Roles.populate()
+            Agencies.populate()
 
     @classmethod
     def tearDownClass(cls):

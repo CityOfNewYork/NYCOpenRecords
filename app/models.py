@@ -35,11 +35,10 @@ class Roles(db.Model):
     name = db.Column(db.String(64), unique=True)
     permissions = db.Column(db.Integer)
 
-    @staticmethod
-    def insert_roles():
+    @classmethod
+    def populate(cls):
         """
-        Insert permissions for each role: Anonymous User, Public User - Non Requester, Public User - Requester,
-        Agency Helper, Agency FOIL Officer, Agency Administrator.
+        Insert permissions for each role.
         """
         roles = {
             role_name.ANONYMOUS: (
@@ -94,11 +93,10 @@ class Roles(db.Model):
             )
         }
 
-        # import pdb; pdb.set_trace()
         for name, value in roles.items():
             role = Roles.query.filter_by(name=name).first()
             if role is None:
-                role = Roles(name=name)
+                role = cls(name=name)
             role.permissions = value
             db.session.add(role)
         db.session.commit()
@@ -128,8 +126,8 @@ class Agencies(db.Model):
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
 
-    @staticmethod
-    def insert_agencies():
+    @classmethod
+    def populate(cls):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
@@ -137,7 +135,7 @@ class Agencies(db.Model):
         dictreader = csv.DictReader(data)
 
         for row in dictreader:
-            agency = Agencies(
+            agency = cls(
                 ein=row['ein'],
                 category=row['category'],
                 name=row['name'],

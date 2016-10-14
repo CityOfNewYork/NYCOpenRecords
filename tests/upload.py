@@ -11,6 +11,8 @@ from flask import current_app
 from werkzeug.utils import secure_filename
 
 from tests.base import BaseTestCase
+from tests.tools import RequestsFactory
+
 from app.upload.utils import (
     get_upload_key,
     VirusDetectedException,
@@ -137,7 +139,8 @@ class UploadViewsTests(BaseTestCase):
 
     def test_post_existing_file(self):
         os.mkdir(self.upload_basepath)
-        open(self.upload_path, 'w').close()
+        rf = RequestsFactory(self.request_id)
+        rf.add_file(self.upload_path)
         response = self.client.post(
             '/upload/' + self.request_id,
             data={

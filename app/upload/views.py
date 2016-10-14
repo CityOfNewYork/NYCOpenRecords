@@ -52,6 +52,7 @@ def post(request_id):
                 "name": filename,
                 "error": "A file with this name has already "
                          "been uploaded for this request."
+                # TODO: "link": <link-to-existsing-file> ? would be nice
             }]
         }
     else:
@@ -93,7 +94,8 @@ def post(request_id):
                 response = {
                     "files": [{
                         "name": filename,
-                        "error": "The file type '{}' is not allowed.".format(file_type)
+                        "error": "The file type '{}' is not allowed.".format(
+                            file_type)
                     }]
                 }
             else:
