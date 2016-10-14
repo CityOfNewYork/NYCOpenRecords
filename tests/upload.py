@@ -149,10 +149,13 @@ class UploadViewsTests(BaseTestCase):
             {
                 "files": [{
                     "name": self.filename_secure,
-                    "error": "A file with this name has already been uploaded."
+                    "error": "A file with this name has already "
+                             "been uploaded for this request."
                 }]
             }
         )
+        # make sure file wasn't deleted
+        self.assertTrue(os.path.exists(self.upload_path))
 
     def test_post_invalid_mime(self):
         response = self.client.post(

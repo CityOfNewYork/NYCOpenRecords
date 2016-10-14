@@ -50,7 +50,8 @@ def post(request_id):
         response = {
             "files": [{
                 "name": filename,
-                "error": "A file with this name has already been uploaded."
+                "error": "A file with this name has already "
+                         "been uploaded for this request."
             }]
         }
     else:
@@ -127,6 +128,9 @@ def delete(r_id_type, r_id, filecode):
     :param filecode: the encoded name of the uploaded file
         (base64 without padding)
 
+    optional request body parameters:
+    - quarantine_only: only delete the file if it is quarantined
+
     :returns:
         On success:
             { "deleted": filename }
@@ -150,8 +154,11 @@ def delete(r_id_type, r_id, filecode):
             status = redis.get(
                 get_upload_key(r_id, filename)).decode("utf-8")
             if status is not None:
+                path = (current_app.config['UPLOAD_QUARANTINE_DIRECTORY']
+                        if request.form.get('quarantine_only', False)
+                        else path_for_status[status])
                 filepath = os.path.join(
-                    os.path.join(path_for_status[status], r_id),
+                    os.path.join(path, r_id),
                     filename)
                 if os.path.exists(filepath):
                     os.remove(filepath)

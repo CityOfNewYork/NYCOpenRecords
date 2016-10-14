@@ -101,7 +101,10 @@ $(function () {
                 type: "DELETE",
                 url: '/upload/request/' +
                      '{{ request.id }}/' +
-                     encodeName(data.files[0].name)
+                     encodeName(data.files[0].name),
+                data: {
+                    quarantine_only: true
+                }
             });
         }
     }).bind('fileuploaddone', function (e, data) {
