@@ -6,7 +6,7 @@
 
 """
 from flask import current_app
-from app.models import Responses, Events, Notes, Files, Requests, Emails, Users, UserRequests
+from app.models import Responses, Events, Notes, Files, Emails, Users, UserRequests
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email
 from app.lib.file_utils import get_mime_type
@@ -14,6 +14,7 @@ from datetime import datetime
 from app.constants import EVENT_TYPE, RESPONSE_TYPE, AGENCY_USER, PUBLIC_USER_NYC_ID, ANONYMOUS_USER
 import os
 import re
+import json
 
 
 def add_file(request_id, filename, title, privacy):
@@ -32,8 +33,14 @@ def add_file(request_id, filename, title, privacy):
     size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
     mime_type = get_mime_type(request_id, filename)
     files = Files(name=filename, mime_type=mime_type, title=title, size=size)
+    files_metadata = json.dumps({'name': filename,
+                                 'mime_type': mime_type,
+                                 'title': title,
+                                 'size': size})
+    files_metadata = files_metadata.replace('{', '').replace('}', '')
     create_object(obj=files)
-    process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], files.metadata_id, privacy)
+    _process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], files.metadata_id, privacy,
+                      new_response_value=files_metadata)
 
 
 def delete_file():
@@ -68,7 +75,9 @@ def add_note(request_id, content):
     """
     note = Notes(content=content)
     create_object(obj=note)
-    process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], note.metadata_id)
+    content = json.dumps({'content': content})
+    _process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], note.metadata_id,
+                      new_response_value=content)
 
 
 def delete_note():
@@ -122,10 +131,12 @@ def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
     to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
     cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
-    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else  None
+    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
     email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
     create_object(obj=email)
-    process_response(request_id, RESPONSE_TYPE['email'], EVENT_TYPE['email_notification_sent'], email.metadata_id, new_response_value=email_content)
+    email_content = json.dumps({'email_content': email_content})
+    _process_response(request_id, RESPONSE_TYPE['email'], EVENT_TYPE['email_notification_sent'], email.metadata_id,
+                      new_response_value=email_content)
 
 
 def add_sms():
@@ -146,7 +157,8 @@ def add_push():
     print("add_push function")
 
 
-def process_response(request_id, response_type, event_type, metadata_id, privacy='private', new_response_value='', previous_response_value=''):
+def _process_response(request_id, response_type, event_type, metadata_id, privacy='private', new_response_value='',
+                      previous_response_value=''):
     """
     Creates and stores responses and events objects to the database
 
@@ -155,6 +167,8 @@ def process_response(request_id, response_type, event_type, metadata_id, privacy
     :param event_type: type of event to be stored in the events table
     :param metadata_id: metadata_id of the specific response to be stored in the responses table
     :param privacy: privacy of the response (default is 'private') to be stored in the responses table
+    :param new_response_value: string content of the new response, to be stored in the responses table
+    :param previous_response_value: string content of the previous response, to be stored in the responses table
     :return: Creates and stores response object with given arguments from separate response type functions.
              Creates and stores events object to the database.
     """

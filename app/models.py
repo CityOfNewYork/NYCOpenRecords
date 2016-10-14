@@ -367,8 +367,8 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_response_value = db.Column(db.String)
-    new_response_value = db.Column(db.String)
+    previous_response_value = db.Column(JSON)
+    new_response_value = db.Column(JSON)
 
     __table_args__ = (ForeignKeyConstraint([user_id, user_type],
                                            [Users.guid, Users.user_type]),
@@ -376,6 +376,9 @@ class Events(db.Model):
 
     def __repr__(self):
         return '<Events %r>' % self.id
+
+    def add_new_response(self):
+        self.previous_response_value = self.new_response_value
 
 
 class Responses(db.Model):

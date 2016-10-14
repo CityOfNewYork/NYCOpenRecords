@@ -51,7 +51,6 @@ def response_file(request_id):
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    visibility = json.loads(current_request.visibility)
     if flask_request.method == 'POST':
         files = process_upload_data(flask_request.form)
         for file in files:
