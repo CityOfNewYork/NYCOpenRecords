@@ -3,7 +3,8 @@ saml/
 redis-stable/
 python-sudo.sh
 quarantine/
-
+.vagrant/
+tmp/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

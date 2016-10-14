@@ -7,12 +7,11 @@
 import os
 import magic
 import subprocess
-from glob import glob
 from flask import current_app
 from .constants import (
     ALLOWED_MIMETYPES,
     MAX_CHUNKSIZE,
-    UPLOAD_STATUS,
+    upload_status,
 )
 from app import (
     celery,
@@ -59,8 +58,8 @@ def is_valid_file_type(obj):
         # 2. Check from file buffer
         mime_type = magic.from_buffer(buffer, mime=True)
         is_valid = mime_type in ALLOWED_MIMETYPES
-        if is_valid and os.environ.get('MAGIC_FILE') != '':
-            # 3. Check using mime database file
+        if is_valid and current_app.config['MAGIC_FILE'] != '':
+            # 3. Check using custom mime database file
             m = magic.Magic(
                 magic_file=current_app.config['MAGIC_FILE'],
                 mime=True)
@@ -105,7 +104,7 @@ def scan_and_complete_upload(request_id, filepath):
     filename = os.path.basename(filepath)
 
     key = get_upload_key(request_id, filename)
-    redis.set(key, UPLOAD_STATUS.SCANNING)
+    redis.set(key, upload_status.SCANNING)
 
     try:
         scan_file(filepath)
@@ -123,7 +122,7 @@ def scan_and_complete_upload(request_id, filepath):
             filepath,
             os.path.join(dst_dir, filename)
         )
-        redis.set(key, UPLOAD_STATUS.READY)
+        redis.set(key, upload_status.READY)
 
 
 def scan_file(filepath):

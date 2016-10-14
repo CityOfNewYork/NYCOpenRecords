@@ -76,8 +76,8 @@ def add_note(request_id, content):
     note = Notes(content=content)
     create_object(obj=note)
     content = json.dumps({'content': content})
-    _process_response(request_id, RESPONSE_TYPE['note'], EVENT_TYPE['note_added'], note.metadata_id,
-                      new_response_value=content)
+    _process_response(request_id, response_type.NOTE, event_type.NOTE_ADDED, note.metadata_id,
+                     new_response_value=content)
 
 
 def delete_note():

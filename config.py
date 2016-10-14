@@ -79,6 +79,8 @@ class TestingConfig(Config):
     VIRUS_SCAN_ENABLED = True
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
+    SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
+                               'postgresql://localhost:5432/openrecords_v2_0_test')
 
 
 class ProductionConfig(Config):

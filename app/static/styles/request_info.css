@@ -66,8 +66,13 @@ h3.control-widget {
     font-weight: 400;
 }
 
-/* sets the div of the agency description to a max height and enables scrolling if overflow*/
+/* sets the div of the agency description to a max height and enables scrolling if overflow */
 .request-info .agency-desc-text {
     max-height: 20rem;
     overflow-y: scroll;
+}
+
+/* disables clear button in xeditable textarea */
+.request-info .editable-clear-x {
+    display: none !important;
 }
