@@ -118,13 +118,21 @@ def new():
 
 @request.route('/confirmation/<request_id>', methods=['GET', 'POST'])
 def confirmation(request_id):
+    """
+    Confirmation page that is shown through a redirect of the create request page. Confirmation page will show
+    confirmation message along with how the page would look on the view request page. A confirmation email is sent to
+    the Requester, bcc Agency FOIL Inbox, Agency FOIL Backup - Contains ALL Request Information
+
+    :param request_id: FOIL ID of the request created on the create request page
+    :return: renders 'confirmation.html' after grabbing the user that created the request
+    """
+
     current_request = Requests.query.filter_by(id=request_id).first()
     visibility = json.loads(current_request.visibility)
     userRequest = UserRequests.query.filter_by(request_id=request_id).first()
     user = Users.query.filter_by(guid=userRequest.user_guid).first()
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)
-
 
 
 @request.route('/view_all', methods=['GET'])
