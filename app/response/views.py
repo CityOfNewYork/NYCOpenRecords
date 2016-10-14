@@ -75,6 +75,11 @@ def response_extension():
 # TODO: Implement response route for email
 @response.route('/email', methods=['GET', 'POST'])
 def response_email():
+    """
+    Currently renders the template of the email onto the add file form.
+
+    :return: Render email template to add file form
+    """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
     return render_template('email_templates/email_file_upload.html',

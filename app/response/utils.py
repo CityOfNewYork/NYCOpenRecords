@@ -11,7 +11,7 @@ from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email
 from app.lib.file_utils import get_mime_type
 from datetime import datetime
-from app.constants import EVENT_TYPE, RESPONSE_TYPE, AGENCY_USER, PUBLIC_USER_NYC_ID, ANONYMOUS_USER
+from app.constants import event_type, response_type, AGENCY_USER, PUBLIC_USER_NYC_ID, ANONYMOUS_USER
 import os
 import re
 import json
@@ -39,7 +39,7 @@ def add_file(request_id, filename, title, privacy):
                                  'size': size})
     files_metadata = files_metadata.replace('{', '').replace('}', '')
     create_object(obj=files)
-    _process_response(request_id, RESPONSE_TYPE['file'], EVENT_TYPE['file_added'], files.metadata_id, privacy,
+    _process_response(request_id, response_type.FILE, event_type.FILE_ADDED, files.metadata_id, privacy,
                       new_response_value=files_metadata)
 
 
@@ -77,7 +77,7 @@ def add_note(request_id, content):
     create_object(obj=note)
     content = json.dumps({'content': content})
     _process_response(request_id, response_type.NOTE, event_type.NOTE_ADDED, note.metadata_id,
-                     new_response_value=content)
+                      new_response_value=content)
 
 
 def delete_note():
@@ -135,7 +135,7 @@ def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
     create_object(obj=email)
     email_content = json.dumps({'email_content': email_content})
-    _process_response(request_id, RESPONSE_TYPE['email'], EVENT_TYPE['email_notification_sent'], email.metadata_id,
+    _process_response(request_id, response_type.EMAIL, event_type.EMAIL_NOTIFICATION_SENT, email.metadata_id,
                       new_response_value=email_content)
 
 
@@ -155,46 +155,6 @@ def add_push():
     """
     # TODO: Implement adding a push
     print("add_push function")
-
-
-def _process_response(request_id, response_type, event_type, metadata_id, privacy='private', new_response_value='',
-                      previous_response_value=''):
-    """
-    Creates and stores responses and events objects to the database
-
-    :param request_id: FOIL request ID to be stored into the responses and events tables
-    :param response_type: type of response to be stored in the responses table
-    :param event_type: type of event to be stored in the events table
-    :param metadata_id: metadata_id of the specific response to be stored in the responses table
-    :param privacy: privacy of the response (default is 'private') to be stored in the responses table
-    :param new_response_value: string content of the new response, to be stored in the responses table
-    :param previous_response_value: string content of the previous response, to be stored in the responses table
-    :return: Creates and stores response object with given arguments from separate response type functions.
-             Creates and stores events object to the database.
-    """
-    # create response object
-    response = Responses(request_id=request_id,
-                         type=response_type,
-                         date_modified=datetime.utcnow(),
-                         metadata_id=metadata_id,
-                         privacy=privacy)
-    # store response object
-    create_object(obj=response)
-
-    # create event object
-    event = Events(request_id=request_id,
-                   # user_id and user_type currently commented out for testing
-                   # will need in production to store user information in events table
-                   # will this be called for anonymous user?
-                   # user_id=current_user.id,
-                   # user_type=current_user.type,
-                   type=event_type,
-                   timestamp=datetime.utcnow(),
-                   response_id=response.id,
-                   previous_response_value=previous_response_value,
-                   new_response_value=new_response_value)
-    # store event object
-    create_object(obj=event)
 
 
 def process_upload_data(form):
@@ -227,6 +187,7 @@ def send_response_email(request_id, privacy, filenames, email_content):
     :param request_id: FOIL request ID
     :param privacy: privacy option of the uploaded file
     :param filenames: list of filenames
+    :param email_content: content body of the email notification being sent
     :return: Sends email notification detailing a file response has been uploaded to a request.
 
     """
@@ -265,6 +226,31 @@ def send_response_email(request_id, privacy, filenames, email_content):
                                    "Department of Records and Information Services", file_to_link, bcc=bcc)
 
 
+def process_privacy_options(files):
+    """
+    Creates a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
+
+    :param files: list of filenames
+    :return: Dictionary with 'release' and 'private' lists
+    """
+    private_files = []
+    release_files = []
+    for file in files:
+        if files[file]['privacy'] == 'private':
+            private_files.append(file)
+        else:
+            release_files.append(file)
+
+    files_privacy_options = dict()
+
+    if release_files:
+        files_privacy_options['release'] = release_files
+
+    if private_files:
+        files_privacy_options['private'] = private_files
+    return files_privacy_options
+
+
 def _safely_send_and_add_email(request_id,
                                email_content,
                                subject,
@@ -295,26 +281,41 @@ def _safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def process_privacy_options(files):
+def _process_response(request_id, responses_type, events_type, metadata_id, privacy='private', new_response_value='',
+                      previous_response_value=''):
     """
-    Creates a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
+    Creates and stores responses and events objects to the database
 
-    :param files: list of filenames
-    :return: Dictionary with 'release' and 'private' lists
+    :param request_id: FOIL request ID to be stored into the responses and events tables
+    :param responses_type: type of response to be stored in the responses table
+    :param events_type: type of event to be stored in the events table
+    :param metadata_id: metadata_id of the specific response to be stored in the responses table
+    :param privacy: privacy of the response (default is 'private') to be stored in the responses table
+    :param new_response_value: string content of the new response, to be stored in the responses table
+    :param previous_response_value: string content of the previous response, to be stored in the responses table
+    :return: Creates and stores response object with given arguments from separate response type functions.
+             Creates and stores events object to the database.
     """
-    private_files = []
-    release_files = []
-    for file in files:
-        if files[file]['privacy'] == 'private':
-            private_files.append(file)
-        else:
-            release_files.append(file)
+    # create response object
+    response = Responses(request_id=request_id,
+                         type=responses_type,
+                         date_modified=datetime.utcnow(),
+                         metadata_id=metadata_id,
+                         privacy=privacy)
+    # store response object
+    create_object(obj=response)
 
-    files_privacy_options = dict()
-
-    if release_files:
-        files_privacy_options['release'] = release_files
-
-    if private_files:
-        files_privacy_options['private'] = private_files
-    return files_privacy_options
+    # create event object
+    event = Events(request_id=request_id,
+                   # user_id and user_type currently commented out for testing
+                   # will need in production to store user information in events table
+                   # will this be called for anonymous user?
+                   # user_id=current_user.id,
+                   # user_type=current_user.type,
+                   type=events_type,
+                   timestamp=datetime.utcnow(),
+                   response_id=response.id,
+                   previous_response_value=previous_response_value,
+                   new_response_value=new_response_value)
+    # store event object
+    create_object(obj=event)
