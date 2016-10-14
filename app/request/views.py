@@ -135,7 +135,7 @@ def confirmation(request_id):
     agency = Agencies.query.filter_by(ein=current_request.agency).first()
 
     # send_confirmation_email(request_id, agency_id, user)
-    send_email(to=['jonnyboi950@gmail.com'], cc=None, bcc=None, subject="test subject", template="email_templates/email_confirmation", current_request=current_request, agency=agency )
+    send_email(to=[user.email], cc=None, bcc=None, subject="test subject", template="email_templates/email_confirmation", current_request=current_request, agency=agency, user=user )
 
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)
