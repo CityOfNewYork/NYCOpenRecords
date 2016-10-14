@@ -14,7 +14,7 @@ from flask import (
 
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
-from app.models import Requests, UserRequests, Users
+from app.models import Requests, UserRequests, Users, Agencies
 from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
@@ -133,6 +133,12 @@ def confirmation(request_id):
     user = Users.query.filter_by(guid=userRequest.user_guid).first()
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)
+
+@request.route('/email/<request_id>', methods=['GET', 'POST'])
+def email(request_id):
+    current_request = Requests.query.filter_by(id=request_id).first()
+    agency = Agencies.query.filter_by(ein=current_request.agency).first()
+    return render_template('email_templates/email_confirmation.html', current_request=current_request, agency=agency)
 
 
 @request.route('/view_all', methods=['GET'])
