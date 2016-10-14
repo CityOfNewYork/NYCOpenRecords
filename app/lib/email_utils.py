@@ -1,9 +1,9 @@
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
     app.email_utils
     ~~~~~~~~~~~~~~~~
-
     Implements e-mail notifications for OpenRecords. Flask-mail is a dependency, and the following environment variables
     need to be set in order for this to work: (Currently using Fake SMTP for testing)
         MAIL_SERVER: 'localhost'
@@ -12,7 +12,6 @@
         MAIL_USERNAME: os.environ.get('MAIL_USERNAME')
         MAIL_PASSWORD: os.environ.get('MAIL_PASSWORD')
         DEFAULT_MAIL_SENDER: 'Records Admin <openrecords@records.nyc.gov>'
-
 """
 
 from flask import current_app, render_template
@@ -25,22 +24,22 @@ def send_async_email(msg):
     mail.send(msg)
 
 
-def send_email(to, cc, bcc, subject, template, **kwargs):
+def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
     """
     Function that sends asynchronous emails for the application.
     Takes in arguments from the frontend.
-
-    :param to: Person email is being sent to
-    :param cc: Person being CC'ed on the email
-    :param bcc: Person being BCC'ed on the email
+    :param to: Person(s) email is being sent to
+    :param cc: Person(s) being CC'ed on the email
+    :param bcc: Person(s) being BCC'ed on the email
     :param subject: Subject of the email
     :param template: HTML and TXT template of the email content
     :param kwargs: Additional arguments the function may take in (ie: Message content)
     :return: Sends email asynchronously
     """
+    assert to or cc or bcc
     app = current_app._get_current_object()
     msg = Message(app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject,
-                  sender=app.config['MAIL_SENDER'], recipients=[to], cc=[cc], bcc=[bcc])
+                  sender=app.config['MAIL_SENDER'], recipients=to, cc=cc, bcc=bcc)
     # Renders email template from .txt file commented out and not currently used in development
     # msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)

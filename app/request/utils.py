@@ -36,6 +36,8 @@ from app.upload.utils import (
     VirusDetectedException,
     get_upload_key
 )
+from app.lib.email_utils import send_email
+
 
 DIRECT_INPUT = 'Direct Input'
 
@@ -328,3 +330,52 @@ def generate_request_metadata(request):
     :return:
     """
     pass
+
+
+
+# def send_confirmation_email(request_id, agency_id, user):
+#     subject = 'Confirmation Added'
+#
+#     agency = Agencies.query.filter_by(ein=agency_id).first()
+#     agency_default_email = agency.default_email
+#     agency_emails = []
+#     agency_emails.append(agency_default_email)
+#     bcc = agency_emails or ['agency@email.com']
+#
+#     requester_email = user.email
+#
+#     email_content = None
+#
+#     send_email(requester_email, cc=None, bcc=bcc, subject=subject, "email_templates/email_confirmation", )
+#
+#
+# def _safely_send_and_add_email(request_id,
+#                                        email_content,
+#                                        subject,
+#                                        template,
+#                                        department,
+#                                        files_links,
+#                                        to=None,
+#                                        bcc=None):
+#
+#
+# """
+# Sends email and creates and stores the email object into the Emails table.
+#
+# :param request_id: FOIL request ID
+# :param email_content: body of the email
+# :param subject: subject of the email (current is for TESTING purposes)
+# :param template: html template of the email body being rendered
+# :param department: department of the request (current is for TESTING purposes)
+# :param files_links: url link of files placed in email body to be downloaded (current link is for TESTING purposes)
+# :param to: list of person(s) email is being sent to
+# :param bcc: list of person(s) email is being bcc'ed
+# :return:
+# """
+# try:
+#     send_email(subject, template, to=to, bcc=bcc, department=department, files_links=files_links)
+#     add_email(request_id, subject, email_content, to=to, bcc=bcc)
+# except AssertionError:
+#     print('Must include: To, CC, or BCC')
+# except Exception as e:
+#     print("Error:", e)

@@ -27,9 +27,10 @@ import json
 from app.request.utils import (
     create_request,
     handle_upload_no_id,
-    get_address,
+    get_address
 )
 from app import recaptcha
+from app.lib.email_utils import send_email
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -131,6 +132,11 @@ def confirmation(request_id):
     visibility = json.loads(current_request.visibility)
     userRequest = UserRequests.query.filter_by(request_id=request_id).first()
     user = Users.query.filter_by(guid=userRequest.user_guid).first()
+    agency = Agencies.query.filter_by(ein=current_request.agency).first()
+
+    # send_confirmation_email(request_id, agency_id, user)
+    send_email(to=['jonnyboi950@gmail.com'], cc=None, bcc=None, subject="test subject", template="email_templates/email_confirmation", current_request=current_request, agency=agency )
+
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)
 
