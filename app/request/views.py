@@ -134,8 +134,12 @@ def confirmation(request_id):
     user = Users.query.filter_by(guid=userRequest.user_guid).first()
     agency = Agencies.query.filter_by(ein=current_request.agency).first()
 
+    address = json.loads(user.mailing_address)
+    print(address['zip'])
+
     # send_confirmation_email(request_id, agency_id, user)
-    send_email(to=[user.email], cc=None, bcc=None, subject="test subject", template="email_templates/email_confirmation", current_request=current_request, agency=agency, user=user )
+    send_email(to=[user.email], cc=None, bcc=None, subject="test subject", template="email_templates/email_confirmation"
+               , current_request=current_request, agency=agency, user=user, address=address)
 
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)
