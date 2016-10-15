@@ -1,13 +1,40 @@
-<form id="add_extension" class="form1" method="POST">
-    <div class="col-sm-9">
-        <div class="test">
-            <select form="add_extension">
-                <option value="20">20 Days</option>
-                <option value="30">30 Days</option>
-                <option value="60">60 Days</option>
-                <option value="90">90 Days</option>
-                <option value="120">120 Days</option>
-            </select>
-        </div>
+<div class="add-extension col-sm-8">
+    <div class="Div1">
+        <form id="add_extension" class="form1" method="POST">
+            <span class="extension-header">
+                Extension Content
+            </span>
+            <div class="form-group">
+                <select class="form-control">
+                    <option value="20">20 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="60">60 Days</option>
+                    <option value="90">90 Days</option>
+                    <option value="120">120 Days</option>
+                </select>
+            </div>
+            <div id='request-date'>
+                <input type="text" id="dtpick" name="extension-date">
+            </div>
+        </form>
     </div>
-</form>
+    <div class="Div1">
+        Hello World
+    </div>
+    <div class="Div1">
+        Goodbye World
+    </div>
+</div>
+<div class="col-sm-8">
+    <div class="col-sm-1 no-padding">
+        <a id="previous" role="button">
+            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true" style="display: none;"><br>Previous</span>
+        </a>
+    </div>
+    <div class="col-sm-push-5 no-padding">
+        <a id="next" role="button">
+            <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"><br>Next</span>
+        </a>
+    </div>
+</div>
+
