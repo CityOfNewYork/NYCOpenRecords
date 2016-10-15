@@ -14,7 +14,7 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 from business_calendar import FOLLOWING
-from flask import render_template, current_app
+from flask import render_template, current_app, url_for, request as flask_request
 from flask_login import current_user
 
 from werkzeug.utils import secure_filename
@@ -365,13 +365,18 @@ def send_confirmation_email(request, agency, user,):
     """
     subject = 'New Request Created ({})'.format(request.id)
 
+    # get the agency's default email and adds it to the bcc list
     agency_default_email = agency.default_email
     agency_emails = []
     agency_emails.append(agency_default_email)
     bcc = agency_emails or ['agency@email.com']
 
+    # gets the email and address information from the requester
     requester_email = user.email
     address = json.loads(user.mailing_address)
+
+    # generates the view request page URL for this request
+    page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request.id)
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,
@@ -382,13 +387,13 @@ def send_confirmation_email(request, agency, user,):
         if requester_email:
             send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject,
                        template="email_templates/email_confirmation"
-                       , current_request=request, agency=agency, user=user, address=address)
+                       , current_request=request, agency=agency, user=user, address=address, page=page)
             add_email(request_id=request.id, subject=subject, email_content=email_content, to=[requester_email], bcc=bcc)
         # otherwise send the email directly to the agency
         else:
             send_email(to=[agency_default_email], cc=None, bcc=None, subject=subject,
                        template="email_templates/email_confirmation"
-                       , current_request=request, agency=agency, user=user, address=address)
+                       , current_request=request, agency=agency, user=user, address=address, page=page)
             add_email(request_id=request.id, subject=subject, email_content=email_content, to=[agency_default_email])
     except AssertionError:
         print('Must include: To, CC, or BCC')
