@@ -27,7 +27,7 @@ import json
 from app.request.utils import (
     create_request,
     handle_upload_no_id,
-    get_address
+    get_address, send_confirmation_email
 )
 from app import recaptcha
 from app.lib.email_utils import send_email
@@ -122,7 +122,7 @@ def confirmation(request_id):
     """
     Confirmation page that is shown through a redirect of the create request page. Confirmation page will show
     confirmation message along with how the page would look on the view request page. A confirmation email is sent to
-    the Requester, bcc Agency FOIL Inbox, Agency FOIL Backup - Contains ALL Request Information
+    the Requester and bcc Agency FOIL Inbox- Contains ALL Request Information
 
     :param request_id: FOIL ID of the request created on the create request page
     :return: renders 'confirmation.html' after grabbing the user that created the request
@@ -134,22 +134,10 @@ def confirmation(request_id):
     user = Users.query.filter_by(guid=userRequest.user_guid).first()
     agency = Agencies.query.filter_by(ein=current_request.agency).first()
 
-    address = json.loads(user.mailing_address)
-    print(address['zip'])
-
-    # send_confirmation_email(request_id, agency_id, user)
-    send_email(to=[user.email], cc=None, bcc=None, subject="test subject", template="email_templates/email_confirmation"
-               , current_request=current_request, agency=agency, user=user, address=address)
+    send_confirmation_email(request=current_request, agency=agency, user=user)
 
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)
-
-@request.route('/email/<request_id>', methods=['GET', 'POST'])
-def email(request_id):
-    current_request = Requests.query.filter_by(id=request_id).first()
-    agency = Agencies.query.filter_by(ein=current_request.agency).first()
-    return render_template('email_templates/email_confirmation.html', current_request=current_request, agency=agency)
-
 
 @request.route('/view_all', methods=['GET'])
 def view_all():
