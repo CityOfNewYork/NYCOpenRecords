@@ -470,6 +470,9 @@ class Metadatas(db.Model):
         'notes',
         'links',
         'files',
+        'instructions',
+        'extensions',
+        'emails',
         name='metadata_type'
     ))
     __mapper_args__ = {'polymorphic_on': type}
