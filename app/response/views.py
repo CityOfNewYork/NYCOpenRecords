@@ -31,16 +31,16 @@ def response_note(request_id):
     :return: Message indicating note has been submitted
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    visibility = json.loads(current_request.visibility)
+    privacy = json.loads(current_request.privacy)
     form = NoteForm()
     if flask_request.method == 'POST':
         add_note(request_id=current_request.id,
                  content=form.note.data)
         flash('Note has been submitted')
-    return render_template('request/view_note.html', request=current_request, form=form, visibility=visibility)
+    return render_template('request/view_note.html', request=current_request, form=form, privacy=privacy)
 
 
-@response.route('/file/<request_id>', methods=['GET', 'POST'])
+@response.route('/file/<request_id>', methods=['POST'])
 def response_file(request_id):
     """
     File response endpoint that takes in the metadata of a file for a specific request from the frontend.
@@ -53,16 +53,15 @@ def response_file(request_id):
     current_request = Requests.query.filter_by(id=request_id).first()
     if flask_request.method == 'POST':
         files = process_upload_data(flask_request.form)
-        for file in files:
+        for file_data in files:
             add_file(current_request.id,
-                     file,
-                     files[file]['title'],
-                     files[file]['privacy'])
+                     file_data,
+                     files[file_data]['title'],
+                     files[file_data]['privacy'])
         file_options = process_privacy_options(files)
         email_content = flask_request.form['email-content']
         for privacy, files in file_options.items():
             send_response_email(request_id, privacy, files, email_content)
-
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -84,7 +83,8 @@ def response_email():
     request_id = data['request_id']
     return render_template('email_templates/email_file_upload.html',
                            department="Department of Records and Information Services",
-                           page="http://127.0.0.1:5000/request/view/{}".format(request_id),
+                           page=url_for('request.view', request_id=request_id),
+                           # page="http://127.0.0.1:5000/request/view/{}".format(request_id),
                            files_links={})
 
 
