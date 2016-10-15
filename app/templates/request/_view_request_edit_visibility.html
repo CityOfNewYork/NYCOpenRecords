@@ -1,11 +1,11 @@
 <script type="text/javascript">
     /*
-    Sends a request to the edit visibility endpoint when title privacy button is clicked.
+    Sends a request to the edit privacy endpoint when title privacy button is clicked.
     Data being sent is the selected privacy option, either public or private.
      */
     $(".title-privacy-btn").click(function () {
         $.post({
-            url: "/request/api/v1.0/edit_visibility",
+            url: "/request/api/v1.0/edit_privacy",
             data: {
                 title: $(this).find(' :input').val(),
                 id: "{{ request.id }}"
@@ -13,12 +13,12 @@
         });
     });
     /*
-    Sends a request to the edit visibility endpoint when agency description privacy button is clicked.
+    Sends a request to the edit privacy endpoint when agency description privacy button is clicked.
     Data being sent is the selected privacy option, either public or private.
      */
     $(".desc-privacy-btn").click(function () {
         $.post({
-            url: "/request/api/v1.0/edit_visibility",
+            url: "/request/api/v1.0/edit_privacy",
             data: {
                 desc: $(this).find(' :input').val(),
                 id: "{{ request.id }}"

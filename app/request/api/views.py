@@ -14,29 +14,29 @@ from app.models import Requests
 import json
 
 
-@request_api_blueprint.route('/edit_visibility', methods=['GET', 'POST'])
-def edit_visibility():
+@request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
+def edit_privacy():
     """
-    Edits the visibility privacy options of a request's title and agency description.
+    Edits the privacy privacy options of a request's title and agency description.
     Retrieves updated privacy options from AJAX call on view_request page and stores changes into database.
 
-    :return: JSON Response with updated title and agency description visibility options
+    :return: JSON Response with updated title and agency description privacy options
     """
     title = flask_request.form.get('title')
     agency_desc = flask_request.form.get('desc')
     request_id = flask_request.form.get('id')
     current_request = Requests.query.filter_by(id=request_id).first()
-    # Gets request's current visibility and loads it as a string
-    visibility = json.loads(current_request.visibility)
-    # Stores title visibility if changed or uses current visibility if exists
-    visibility['title'] = title or visibility['title']
-    # Stores agency description visibility if changed or uses current visibility
-    visibility['agency_description'] = agency_desc or visibility['agency_description']
-    update_object(attribute='visibility',
-                  value=json.dumps(visibility),
+    # Gets request's current privacy and loads it as a string
+    privacy = json.loads(current_request.privacy)
+    # Stores title privacy if changed or uses current privacy if exists
+    privacy['title'] = title or privacy['title']
+    # Stores agency description privacy if changed or uses current privacy
+    privacy['agency_description'] = agency_desc or privacy['agency_description']
+    update_object(attribute='privacy',
+                  value=json.dumps(privacy),
                   obj_type='Requests',
                   obj_id=current_request.id)
-    return jsonify(visibility), 200
+    return jsonify(privacy), 200
 
 
 @request_api_blueprint.route('/view/edit', methods=['PUT'])
@@ -44,6 +44,7 @@ def edit_request_info():
     """
     Edits the title and agency description of a FOIL request through an API PUT method.
     Retrieves updated edited content from AJAX call on view_request page and stores changes into database.
+
     :return: JSON Response with updated content: either request title or agency description)
     """
     edit_request = flask_request.form

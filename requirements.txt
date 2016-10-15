@@ -6,6 +6,7 @@ blinker==1.4
 business-calendar==0.2.1
 celery==3.1.23
 click==6.6
+coverage==4.2
 dominate==2.2.1
 Flask==0.11.1
 Flask-Bootstrap==3.3.7.0
@@ -16,6 +17,7 @@ Flask-Migrate==2.0.0
 Flask-ReCaptcha==0.4.2
 Flask-Script==2.0.5
 Flask-SQLAlchemy==2.1
+Flask-Tracy==0.1.3
 Flask-WTF==0.12
 isodate==0.5.4
 itsdangerous==0.24
@@ -25,11 +27,13 @@ lxml==3.6.4
 Mako==1.0.4
 MarkupSafe==0.23
 psycopg2==2.6.2
+pycrypto==2.6.1
 python-dotenv==0.6.0
 python-editor==1.0.1
 python-magic==0.4.12
 pytz==2016.6.1
 redis==2.10.5
+requests==2.11.1
 simplekv==0.10.0
 six==1.10.0
 SQLAlchemy==1.0.15

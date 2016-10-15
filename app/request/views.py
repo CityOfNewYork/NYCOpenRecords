@@ -137,11 +137,11 @@ def confirmation(request_id):
     """
 
     current_request = Requests.query.filter_by(id=request_id).first()
-    visibility = json.loads(current_request.visibility)
+    privacy = json.loads(current_request.privacy)
     creation_event = Events.query.filter_by(request_id=request_id, type='request_created').first()
     user = Users.query.filter_by(guid=creation_event.user_id).first()
 
-    return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
+    return render_template('request/confirmation.html', request=current_request, privacy=privacy, user=user,
                            current_user=current_user)
 
 @request.route('/view_all', methods=['GET'])
@@ -157,5 +157,5 @@ def view(request_id):
     :return: redirects to view_request.html which is the frame of the view a request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    visibility = json.loads(current_request.visibility)
-    return render_template('request/view_request.html', request=current_request, visibility=visibility)
+    privacy = json.loads(current_request.privacy)
+    return render_template('request/view_request.html', request=current_request, privacy=privacy)

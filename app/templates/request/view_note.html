@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="page-header">
-        <h1>{{ request }}</h1>
+        <h1>{{ request.id }}</h1>
     </div>
     <body>
     {% for message in get_flashed_messages() %}

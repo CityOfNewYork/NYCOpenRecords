@@ -32,7 +32,7 @@ def upgrade():
     sa.Column('bcc', sa.String(), nullable=True),
     sa.Column('subject', sa.String(length=5000), nullable=True),
     sa.Column('email_content', sa.String(), nullable=True),
-    sa.Column('attachments', postgresql.ARRAY(sa.Integer()), nullable=True),
+    sa.Column('linked_files', postgresql.ARRAY(sa.String()), nullable=True),
     sa.PrimaryKeyConstraint('metadata_id')
     )
     op.create_table('extensions',
@@ -84,12 +84,13 @@ def upgrade():
     sa.Column('agency', sa.Integer(), nullable=True),
     sa.Column('title', sa.String(length=90), nullable=True),
     sa.Column('description', sa.String(length=5000), nullable=True),
+    sa.Column('agency_description', sa.String(length=5000), nullable=True),
     sa.Column('date_created', sa.DateTime(), nullable=True),
     sa.Column('date_submitted', sa.DateTime(), nullable=True),
     sa.Column('due_date', sa.DateTime(), nullable=True),
     sa.Column('submission', sa.String(length=30), nullable=True),
     sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='statuses'), nullable=True),
-    sa.Column('visibility', postgresql.JSON(), nullable=True),
+    sa.Column('privacy', postgresql.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -109,8 +110,7 @@ def upgrade():
     sa.Column('fax_number', sa.String(length=15), nullable=True),
     sa.Column('mailing_address', postgresql.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
-    sa.PrimaryKeyConstraint('guid', 'user_type'),
-    sa.UniqueConstraint('guid')
+    sa.PrimaryKeyConstraint('guid', 'user_type')
     )
     op.create_table('responses',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -118,7 +118,7 @@ def upgrade():
     sa.Column('type', sa.String(length=30), nullable=True),
     sa.Column('date_modified', sa.DateTime(), nullable=True),
     sa.Column('metadata_id', sa.Integer(), nullable=True),
-    sa.Column('privacy', sa.Enum('private', 'public', name='privacy'), nullable=True),
+    sa.Column('privacy', sa.Enum('private', 'release_private', 'release_public', name='privacy'), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -139,8 +139,8 @@ def upgrade():
     sa.Column('response_id', sa.Integer(), nullable=True),
     sa.Column('type', sa.String(length=30), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
-    sa.Column('previous_response_value', sa.String(), nullable=True),
-    sa.Column('new_response_value', sa.String(), nullable=True),
+    sa.Column('previous_response_value', postgresql.JSON(), nullable=True),
+    sa.Column('new_response_value', postgresql.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.ForeignKeyConstraint(['response_id'], ['responses.id'], ),
     sa.ForeignKeyConstraint(['user_id', 'user_type'], ['users.guid', 'users.user_type'], ),
