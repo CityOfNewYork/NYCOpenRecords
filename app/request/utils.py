@@ -334,7 +334,7 @@ def generate_request_metadata(request):
 
 def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
-    Creates and stores the note object for the specified request.
+    Creates and stores an email object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param subject: subject of the email to be created and stored as a email object
@@ -354,7 +354,16 @@ def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
 
 
 def send_confirmation_email(request, agency, user,):
-    subject = 'Confirmation Added'
+    """
+    Sends out a confirmation email to requester and bcc the agency default email associated with the request.
+    Also calls the add_email function to create a Emails object to be stored in the database.
+
+    :param request: Requests object containing the new created request
+    :param agency: Agencies object containing the agency of the new request
+    :param user: Users object containing the user who created the request
+    :return: sends an email to the requester and agency containing all information related to the request
+    """
+    subject = 'New Request Created ({})'.format(request.id)
 
     agency_default_email = agency.default_email
     agency_emails = []
@@ -364,18 +373,23 @@ def send_confirmation_email(request, agency, user,):
     requester_email = user.email
     address = json.loads(user.mailing_address)
 
+    # grabs the html of the email message so we can store the content in the Emails object
+    email_content = render_template("email_templates/email_confirmation.html", current_request=request,
+                                    agency=agency, user=user, address=address)
+
     try:
+        # if the requester supplied an email sent it to the request and bcc the agency
         if requester_email:
             send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject,
                        template="email_templates/email_confirmation"
                        , current_request=request, agency=agency, user=user, address=address)
-            add_email(request_id=request.id, subject=subject, email_content="test", to=[requester_email], bcc=bcc)
-
+            add_email(request_id=request.id, subject=subject, email_content=email_content, to=[requester_email], bcc=bcc)
+        # otherwise send the email directly to the agency
         else:
             send_email(to=[agency_default_email], cc=None, bcc=None, subject=subject,
                        template="email_templates/email_confirmation"
                        , current_request=request, agency=agency, user=user, address=address)
-            add_email(request_id=request.id, subject=subject, email_content="test", to=[agency_default_email])
+            add_email(request_id=request.id, subject=subject, email_content=email_content, to=[agency_default_email])
     except AssertionError:
         print('Must include: To, CC, or BCC')
     except Exception as e:

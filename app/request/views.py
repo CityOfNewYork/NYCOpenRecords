@@ -36,6 +36,7 @@ from app import recaptcha
 def new():
     """
     Create a new FOIL request
+    sends a confirmation email after the Requests object is created.
 
     title: request title
     description: request description
@@ -127,8 +128,9 @@ def new():
 def confirmation(request_id):
     """
     Confirmation page that is shown through a redirect of the create request page. Confirmation page will show
-    confirmation message along with how the page would look on the view request page. A confirmation email is sent to
-    the Requester and bcc Agency FOIL Inbox- Contains ALL Request Information
+    confirmation message along with how the page would look on the view request page.
+    We send the confirmation email in the create request page so that we don't have to worry about the email being resent
+    if someone manually goes to the URL endpoint.
 
     :param request_id: FOIL ID of the request created on the create request page
     :return: renders 'confirmation.html' after grabbing the user that created the request
