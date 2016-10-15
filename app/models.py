@@ -284,7 +284,8 @@ class Requests(db.Model):
     due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
     submission - a Enum that selects from a list of submission methods
     current_status - a Enum that selects from a list of different statuses a request can have
-    visibility - a JSON object that contains the visbility settings of a request
+    privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
+              (True = Private, False = Public)
     """
 
     __tablename__ = 'requests'
@@ -299,7 +300,7 @@ class Requests(db.Model):
         db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
-    visibility = db.Column(JSON)
+    privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
 
     def __init__(
@@ -309,20 +310,20 @@ class Requests(db.Model):
             description,
             agency,
             date_created,
-            visibility=None,
+            privacy=None,
             date_submitted=None,
             due_date=None,
             submission=None,
             current_status=None,
             agency_description=None
     ):
-        visibility_default = {'title': 'public', 'agency_description': 'private'}
+        privacy_default = {'title': 'false', 'agency_description': 'true'}
         self.id = id
         self.title = title
         self.description = description
         self.agency = agency
         self.date_created = date_created
-        self.visibility = visibility or json.dumps(visibility_default)
+        self.privacy = privacy or json.dumps(privacy_default)
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission

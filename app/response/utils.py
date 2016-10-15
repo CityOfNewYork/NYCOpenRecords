@@ -166,6 +166,8 @@ def process_upload_data(form):
      stored in the database.
     """
     files = {}
+    # re_obj is a regular expression that specifies a set of strings and allows you to check if a particular string
+    #   matches the regular expression. In this case, we are specifying 'filename_' and checking for it.
     re_obj = re.compile('filename_')
     for key in form.keys():
         if re_obj.match(key):
@@ -235,11 +237,11 @@ def process_privacy_options(files):
     """
     private_files = []
     release_files = []
-    for file in files:
-        if files[file]['privacy'] == 'private':
-            private_files.append(file)
+    for filename in files:
+        if files[filename]['privacy'] == 'private':
+            private_files.append(filename)
         else:
-            release_files.append(file)
+            release_files.append(filename)
 
     files_privacy_options = dict()
 
