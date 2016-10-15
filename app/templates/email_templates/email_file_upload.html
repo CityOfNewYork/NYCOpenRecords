@@ -8,7 +8,10 @@
 </p>
 <p>
     Download the request files at:
+    <br>
+    <ul>
     {% for filename, link in files_links.items() %}
-        <a href='{{ link }}'>{{ filename }}</a>
+        <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
     {% endfor %}
+    </ul>
 </p>
