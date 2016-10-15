@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    app.email_utils
+    app.lib.email_utils
     ~~~~~~~~~~~~~~~~
 
     Implements e-mail notifications for OpenRecords. Flask-mail is a dependency, and the following environment variables

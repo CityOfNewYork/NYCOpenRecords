@@ -18,7 +18,7 @@ from app.request.utils import (
     get_date_submitted,
     get_due_date
 )
-from app.db_utils import create_object
+from app.lib.db_utils import create_object
 
 
 class RequestsFactory(object):
@@ -49,7 +49,7 @@ class RequestsFactory(object):
                  mime_type='text/plain',
                  title=None):
         if filepath is None:
-            filename = uuid.uuid4()
+            filename = str(uuid.uuid4())
             filepath = os.path.join(current_app.config['UPLOAD_DIRECTORY'],
                                     self.request.id,
                                     filename)
@@ -72,7 +72,7 @@ class RequestsFactory(object):
             request_id=self.request.id,
             type=response_type.FILE,
             date_modified=datetime.utcnow(),
-            metadata_id=file.metadata_id,
+            metadata_id=file.id,
             privacy="private",
         )
         create_object(response)

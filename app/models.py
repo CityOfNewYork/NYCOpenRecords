@@ -8,7 +8,6 @@ from datetime import datetime
 from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from flask_login import current_user
-from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
 from app import db
@@ -17,6 +16,8 @@ from app.constants import (
     AGENCY_USER,
     permission,
     role_name,
+    response_type,
+    response_privacy,
 )
 
 
@@ -117,7 +118,6 @@ class Agencies(db.Model):
     default_email - a string containing the default email of the agency regarding general inquiries about requests
     appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
     """
-
     __tablename__ = 'agencies'
     ein = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(256))
@@ -285,7 +285,6 @@ class Requests(db.Model):
     privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
               (True = Private, False = Public)
     """
-
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
@@ -346,7 +345,6 @@ class Events(db.Model):
     previous_response_value - a string containing the old response value
     new_response_value - a string containing the new response value
     """
-
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
@@ -358,9 +356,12 @@ class Events(db.Model):
     previous_response_value = db.Column(JSON)
     new_response_value = db.Column(JSON)
 
-    __table_args__ = (ForeignKeyConstraint([user_id, user_type],
-                                           [Users.guid, Users.user_type]),
-                      {})
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            [user_id, user_type],
+            [Users.guid, Users.user_type]
+        ),
+    )
 
     def __repr__(self):
         return '<Events %r>' % self.id
@@ -377,14 +378,39 @@ class Responses(db.Model):
     content - a JSON object that contains the content for all the possible responses a request can have
     privacy - an Enum containing the privacy options for a response
     """
-
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    type = db.Column(db.String(30))
+    type = db.Column(db.Enum(
+        response_type.NOTE,
+        response_type.FILE,
+        response_type.LINK,
+        response_type.EMAIL,
+        response_type.EXTENSION,
+        response_type.INSTRUCTIONS,
+        name="type"))
+    metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
+    privacy = db.Column(db.Enum(
+        response_privacy.PRIVATE,
+        response_privacy.R_PRIVATE,
+        response_privacy.R_PUBLIC,
+        name="privacy"))
     date_modified = db.Column(db.DateTime)
-    metadata_id = db.Column(db.Integer)
-    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
+
+    metadatas = db.relationship(  # 'metadata' is reserved
+        'Metadatas', backref=db.backref('response', uselist=False))
+
+    def __init__(self,
+                 request_id,
+                 type,
+                 metadata_id,
+                 privacy,
+                 date_modified=datetime.utcnow()):
+        self.request_id = request_id
+        self.type = type
+        self.metadata_id = metadata_id
+        self.privacy = privacy
+        self.date_modified = date_modified
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -398,7 +424,6 @@ class Reasons(db.Model):
     agency - a foreign key that links to the a agency's primary key which is the EIN number
     deny_reason - a string containing the message that will be shown when a request is denied
     """
-
     __tablename__ = 'reasons'
     id = db.Column(db.Integer, primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'), nullable=True)
@@ -414,16 +439,18 @@ class UserRequests(db.Model):
     user_guid = a foreign key that links to the primary key of the User table
     request_id = a foreign key that links to the primary key of the Request table
     """
-
     __tablename__ = 'user_requests'
     user_guid = db.Column(db.String(64), primary_key=True)
     user_type = db.Column(db.String(64), primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
     permissions = db.Column(db.Integer)
 
-    __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
-                                           [Users.guid, Users.user_type]),
-                      {})
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            [user_guid, user_type],
+            [Users.guid, Users.user_type]
+        ),
+    )
 
     def has_permission(self, permission):
         """
@@ -433,7 +460,22 @@ class UserRequests(db.Model):
         return bool(self.permissions & permission)
 
 
-class Notes(db.Model):
+class Metadatas(db.Model):
+    """
+    Parent class of response metadata classes (defined below this class).
+    """
+    __tablename__ = 'metadatas'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.Enum(
+        'notes',
+        'links',
+        'files',
+        name='metadata_type'
+    ))
+    __mapper_args__ = {'polymorphic_on': type}
+
+
+class Notes(Metadatas):
     """
     Define the Notes class with the following columns and relationships:
 
@@ -441,11 +483,12 @@ class Notes(db.Model):
     content - a string that contains the content of a note
     """
     __tablename__ = 'notes'
-    metadata_id = db.Column(db.Integer, primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'notes'}
+    id = db.Column(db.Integer, db.ForeignKey(Metadatas.id), primary_key=True)
     content = db.Column(db.String(5000))
 
 
-class Files(db.Model):
+class Files(Metadatas):
     """
     Define the Files class with the following columns and relationships:
 
@@ -456,14 +499,15 @@ class Files(db.Model):
     size - a string containing the size of a file
     """
     __tablename__ = 'files'
-    metadata_id = db.Column(db.Integer, primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'files'}
+    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
     name = db.Column(db.String)  # secured filename
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
     size = db.Column(db.Integer)
 
 
-class Links(db.Model):
+class Links(Metadatas):
     """
     Define the Links class with the following columns and relationships:
 
@@ -472,12 +516,13 @@ class Links(db.Model):
     url - a string containing the url link
     """
     __tablename__ = 'links'
-    metadata_id = db.Column(db.Integer, primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'links'}
+    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
     title = db.Column(db.String)
     url = db.Column(db.String)
 
 
-class Instructions(db.Model):
+class Instructions(Metadatas):
     """
     Define the Instructions class with the following columns and relationships:
 
@@ -485,11 +530,12 @@ class Instructions(db.Model):
     content - a string containing the content of an instruction
     """
     __tablename__ = 'instructions'
-    metadata_id = db.Column(db.Integer, primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'instructions'}
+    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
     content = db.Column(db.String)
 
 
-class Extensions(db.Model):
+class Extensions(Metadatas):
     """
     Define the Extensions class with the following columns and relationships:
 
@@ -498,12 +544,13 @@ class Extensions(db.Model):
     date - a datetime object containing the extended date of a request
     """
     __tablename__ = 'extensions'
-    metadata_id = db.Column(db.Integer, primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'extensions'}
+    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
     reason = db.Column(db.String)
     date = db.Column(db.DateTime)
 
 
-class Emails(db.Model):
+class Emails(Metadatas):
     """
     Define the Emails class with the following columns and relationships:
 
@@ -516,7 +563,8 @@ class Emails(db.Model):
     linked_files - an array of strings containing the links to the files
     """
     __tablename__ = 'emails'
-    metadata_id = db.Column(db.Integer, primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'emails'}
+    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
     to = db.Column(db.String)
     cc = db.Column(db.String)
     bcc = db.Column(db.String)

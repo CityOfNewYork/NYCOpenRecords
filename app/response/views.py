@@ -5,14 +5,31 @@
 """
 
 import json
+from datetime import datetime
 
-from flask import render_template, flash, request as flask_request, url_for, redirect
+from flask import (
+    render_template,
+    flash,
+    request as flask_request,
+    url_for,
+    redirect,
+    jsonify,
+)
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
-from app.models import Requests
+from app.models import Requests, Responses
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data, send_response_email, process_privacy_options
+from app.response.utils import (
+    add_note,
+    add_file,
+    edit_file,
+    process_upload_data,
+    send_response_email,
+    process_privacy_options
+)
+from app.constants import response_type
+from app.lib.db_utils import db_session
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -51,7 +68,7 @@ def response_file(request_id):
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    if flask_request.method == 'POST':
+    if flask_request.method == 'POST':  # FIXME: no need for this check
         files = process_upload_data(flask_request.form)
         for file_data in files:
             add_file(current_request.id,
@@ -103,3 +120,46 @@ def response_push():
 @response.route('/visiblity/<request_id>', methods=['GET', 'POST'])
 def response_visiblity():
     pass
+
+
+@response.route('/<response_id>', methods=['PUT'])
+def edit_response(response_id):
+    """
+    WIP
+    """
+    resp = Responses.query.filter_by(id=response_id).first()
+    data_prev = {}
+    data_new = {}
+
+    # check & update privacy
+    privacy = flask_request.form.get('privacy')
+    if privacy and privacy != resp.privacy:
+        data_prev['privacy'] = resp.privacy
+        data_new['privacy'] = privacy
+        with db_session():
+            resp.privacy = privacy
+            resp.date_modified = datetime.utcnow()
+            # TODO: test if this actually works!
+
+    handler_for_type = {
+        response_type.FILE: edit_file,
+        # response_type.NOTE: edit_note,
+        # ...
+    }
+
+    handler_for_type[resp.type](flask_request, resp.metadata)  # create reference in models?
+
+    # title
+    title = flask_request.form.get('title')
+    if title and title != file.title:
+        data_prev['title'] = file.title
+        data_new['title'] = title
+        # change title in db
+        pass
+
+    # file data TODO: add hash
+    if flask_request.files:
+        # do upload stuff, update db and data dicts
+        # check for existing file names for other request responses
+        pass
+    return jsonify(data_new), 200
