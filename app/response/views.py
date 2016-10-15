@@ -83,8 +83,7 @@ def response_email():
     request_id = data['request_id']
     return render_template('email_templates/email_file_upload.html',
                            department="Department of Records and Information Services",
-                           page=url_for('request.view', request_id=request_id),
-                           # page="http://127.0.0.1:5000/request/view/{}".format(request_id),
+                           page=flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id),
                            files_links={})
 
 
