@@ -75,12 +75,12 @@ def new():
 
         # create request
         if current_user.is_public:
-            request = create_request(form.request_title.data,
+            request_id = create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
                            upload_path=upload_path)
         elif current_user.is_anonymous:
-            request = create_request(form.request_title.data,
+            request_id = create_request(form.request_title.data,
                            form.request_description.data,
                            agency=form.request_agency.data,
                            email=form.email.data,
@@ -99,7 +99,7 @@ def new():
             #     flash("Please complete reCAPTCHA.")
             #     return render_template(new_request_template, form=form, site_key=site_key)
         elif current_user.is_agency:
-            request = create_request(form.request_title.data,
+            request_id = create_request(form.request_title.data,
                            form.request_description.data,
                            submission=form.method_received.data,
                            agency_date_submitted=form.request_date.data,
@@ -112,7 +112,14 @@ def new():
                            fax=form.fax.data,
                            address=get_address(form),
                            upload_path=upload_path)
-        return redirect(url_for('request.confirmation', request_id=request))
+
+        current_request = Requests.query.filter_by(id=request_id).first()
+        creation_event = Events.query.filter_by(request_id=request_id, type='request_created').first()
+        user = Users.query.filter_by(guid=creation_event.user_id).first()
+        agency = Agencies.query.filter_by(ein=current_request.agency).first()
+        send_confirmation_email(request=current_request, agency=agency, user=user)
+
+        return redirect(url_for('request.confirmation', request_id=request_id))
     return render_template(new_request_template, form=form, site_key=site_key)
 
 
@@ -131,9 +138,6 @@ def confirmation(request_id):
     visibility = json.loads(current_request.visibility)
     creation_event = Events.query.filter_by(request_id=request_id, type='request_created').first()
     user = Users.query.filter_by(guid=creation_event.user_id).first()
-    agency = Agencies.query.filter_by(ein=current_request.agency).first()
-
-    send_confirmation_email(request=current_request, agency=agency, user=user)
 
     return render_template('request/confirmation.html', request=current_request, visibility=visibility, user=user,
                            current_user=current_user)

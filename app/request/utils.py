@@ -28,7 +28,7 @@ from app.constants import (
 )
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
-from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
+from app.models import Requests, Agencies, Events, Users, UserRequests, Roles, Emails
 from app.upload.constants import UPLOAD_STATUS
 from app.upload.utils import (
     is_valid_file_type,
@@ -332,6 +332,26 @@ def generate_request_metadata(request):
     """
     pass
 
+def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
+    """
+    Creates and stores the note object for the specified request.
+
+    :param request_id: takes in FOIL request ID as an argument for the process_response function
+    :param subject: subject of the email to be created and stored as a email object
+    :param email_content: email body content of the email to be created and stored as a email object
+    :param to: list of person(s) email is being sent to
+    :param cc: list of person(s) email is being cc'ed to
+    :param bcc: list of person(s) email is being bcc'ed
+    :return: Stores the email metadata into the Emails table.
+             Provides parameters for the process_response function to create and store responses and events object.
+    """
+    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
+    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
+    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
+    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
+    create_object(obj=email)
+    email_content = json.dumps({'email_content': email_content})
+
 
 def send_confirmation_email(request, agency, user,):
     subject = 'Confirmation Added'
@@ -344,12 +364,20 @@ def send_confirmation_email(request, agency, user,):
     requester_email = user.email
     address = json.loads(user.mailing_address)
 
-    if requester_email:
-        send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject,
-                   template="email_templates/email_confirmation"
-                   , current_request=request, agency=agency, user=user, address=address)
-    else:
-        send_email(to=[agency_default_email], cc=None, bcc=None, subject=subject,
-                   template="email_templates/email_confirmation"
-                   , current_request=request, agency=agency, user=user, address=address)
+    try:
+        if requester_email:
+            send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject,
+                       template="email_templates/email_confirmation"
+                       , current_request=request, agency=agency, user=user, address=address)
+            add_email(request_id=request.id, subject=subject, email_content="test", to=[requester_email], bcc=bcc)
+
+        else:
+            send_email(to=[agency_default_email], cc=None, bcc=None, subject=subject,
+                       template="email_templates/email_confirmation"
+                       , current_request=request, agency=agency, user=user, address=address)
+            add_email(request_id=request.id, subject=subject, email_content="test", to=[agency_default_email])
+    except AssertionError:
+        print('Must include: To, CC, or BCC')
+    except Exception as e:
+        print("Error:", e)
 
