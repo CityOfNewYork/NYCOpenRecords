@@ -333,7 +333,6 @@ def generate_request_metadata(request):
     pass
 
 
-
 def send_confirmation_email(request, agency, user,):
     subject = 'Confirmation Added'
 
@@ -345,6 +344,12 @@ def send_confirmation_email(request, agency, user,):
     requester_email = user.email
     address = json.loads(user.mailing_address)
 
+    if requester_email:
+        send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject,
+                   template="email_templates/email_confirmation"
+                   , current_request=request, agency=agency, user=user, address=address)
+    else:
+        send_email(to=[agency_default_email], cc=None, bcc=None, subject=subject,
+                   template="email_templates/email_confirmation"
+                   , current_request=request, agency=agency, user=user, address=address)
 
-    send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject, template="email_templates/email_confirmation"
-               , current_request=request, agency=agency, user=user, address=address)

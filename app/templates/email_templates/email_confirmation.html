@@ -95,7 +95,7 @@
                                                     <strong>Requester's State:</strong>
                                                 </div>
                                                 <div>
-                                                    {% if not address['address_one'] or not address['address_two'] or not address['zip'] %}
+                                                    {% if not address['address_one'] or not address['zip'] %}
                                                     <span class="label">Not provided</span>
                                                     {% else %}
                                                     <span class="label">{{ address['state'] }}</span>

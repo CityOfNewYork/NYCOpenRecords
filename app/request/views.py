@@ -14,7 +14,7 @@ from flask import (
 
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
-from app.models import Requests, UserRequests, Users, Agencies
+from app.models import Requests, Users, Agencies, Events
 from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
@@ -30,7 +30,6 @@ from app.request.utils import (
     get_address, send_confirmation_email
 )
 from app import recaptcha
-from app.lib.email_utils import send_email
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -130,8 +129,8 @@ def confirmation(request_id):
 
     current_request = Requests.query.filter_by(id=request_id).first()
     visibility = json.loads(current_request.visibility)
-    userRequest = UserRequests.query.filter_by(request_id=request_id).first()
-    user = Users.query.filter_by(guid=userRequest.user_guid).first()
+    creation_event = Events.query.filter_by(request_id=request_id, type='request_created').first()
+    user = Users.query.filter_by(guid=creation_event.user_id).first()
     agency = Agencies.query.filter_by(ein=current_request.agency).first()
 
     send_confirmation_email(request=current_request, agency=agency, user=user)
