@@ -1,5 +1,5 @@
 """
-Models for open records database
+Models for OpenRecords database
 """
 import csv
 import json
@@ -173,7 +173,7 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
-    guid = db.Column(db.String(64), primary_key=True, unique=True)  # guid + user type
+    guid = db.Column(db.String(64), primary_key=True)  # guid + user type
     user_type = db.Column(db.String(64), primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
     email = db.Column(db.String(254))
@@ -284,7 +284,8 @@ class Requests(db.Model):
     due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
     submission - a Enum that selects from a list of submission methods
     current_status - a Enum that selects from a list of different statuses a request can have
-    visibility - a JSON object that contains the visbility settings of a request
+    privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
+              (True = Private, False = Public)
     """
 
     __tablename__ = 'requests'
@@ -299,7 +300,7 @@ class Requests(db.Model):
         db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
-    visibility = db.Column(JSON)
+    privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
 
     def __init__(
@@ -309,20 +310,20 @@ class Requests(db.Model):
             description,
             agency,
             date_created,
-            visibility=None,
+            privacy=None,
             date_submitted=None,
             due_date=None,
             submission=None,
             current_status=None,
             agency_description=None
     ):
-        visibility_default = {'title': 'private', 'agency_description': 'private'}
+        privacy_default = {'title': 'false', 'agency_description': 'true'}
         self.id = id
         self.title = title
         self.description = description
         self.agency = agency
         self.date_created = date_created
-        self.visibility = visibility or json.dumps(visibility_default)
+        self.privacy = privacy or json.dumps(privacy_default)
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission
@@ -356,8 +357,8 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_response_value = db.Column(db.String)
-    new_response_value = db.Column(db.String)
+    previous_response_value = db.Column(JSON)
+    new_response_value = db.Column(JSON)
 
     __table_args__ = (ForeignKeyConstraint([user_id, user_type],
                                            [Users.guid, Users.user_type]),
@@ -376,7 +377,7 @@ class Responses(db.Model):
     type - a string containing the type of response that was given for a request
     date_modified - a datetime object that keeps track of when a request was changed
     content - a JSON object that contains the content for all the possible responses a request can have
-    privacy - a string containing the privacy option for a response
+    privacy - an Enum containing the privacy options for a response
     """
 
     __tablename__ = 'responses'
@@ -385,7 +386,7 @@ class Responses(db.Model):
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
     metadata_id = db.Column(db.Integer)
-    privacy = db.Column(db.Enum("private", "public", name="privacy"))
+    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -514,8 +515,7 @@ class Emails(db.Model):
     bcc -  a string containing who is bcc'd in an email
     subject - a string containing the subject of an email
     email_content - a string containing the content of an email
-    attachments - an array of integers containing that links to the files metadata_id
-
+    linked_files - an array of strings containing the links to the files
     """
     __tablename__ = 'emails'
     metadata_id = db.Column(db.Integer, primary_key=True)
@@ -524,4 +524,4 @@ class Emails(db.Model):
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
     email_content = db.Column(db.String)
-    attachments = db.Column(ARRAY(db.Integer))
+    linked_files = db.Column(ARRAY(db.String))
