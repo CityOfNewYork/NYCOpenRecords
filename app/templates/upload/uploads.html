@@ -4,7 +4,7 @@
 <link rel="stylesheet" type=text/css
       href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
 
-<form id="fileupload" class="carousel slide" action="/response/file" method="POST" enctype="multipart/form-data"
+<form id="fileupload" class="carousel slide" action="/response/file/{{ request.id }}" method="POST" enctype="multipart/form-data"
       data-ride="carousel" data-parsley-validate>
     <div class="col-sm-1 no-padding">
         <a id="prev-slider" class="prev-slider" href="#fileupload" role="button" data-slide="prev">
@@ -141,7 +141,7 @@
                 {% if (!(file.error)) { %}
                     <span class="fileupload-input-fields hidden">
                     Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
-                    <input type="hidden" name="{%=file.name%}" value="{%=file.name%}">
+                    <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
                     <div class="radio">
                         <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
                     </div>
