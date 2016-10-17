@@ -19,7 +19,7 @@ from app.lib.email_utils import send_email
 from flask_wtf import Form
 from wtforms import SubmitField, StringField
 
-from app.models import User
+from app.models import Users
 from . import main
 
 

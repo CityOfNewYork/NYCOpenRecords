@@ -1,5 +1,5 @@
 h1 span{
-    font-size: 28px;
+    font-size: 29px;
     color: white;
     border-radius: 6px;
     padding: 3px;
@@ -10,24 +10,26 @@ h1 span{
     background-color: forestgreen;
 }
 
-.overdue-style {
+.overdue {
     background-color: red;
 }
 
-.duesoon-style {
+.duesoon {
     background-color: orange;
 }
 
-.open-style {
+.open {
     background-color: #2688AD;
 
 }
 
-.closed-style {
+.closed {
     background-color: black;
 }
-
-.in-progress-style {
+.reopened{
+    background-color: #cc1278;
+}
+.in-progress {
     border-left: 8px solid forestgreen;
     padding-left: 5px;
     margin-left: 5px;
