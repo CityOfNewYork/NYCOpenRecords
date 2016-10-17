@@ -1,6 +1,6 @@
 $(document).ready(function () {
     // Hides all other divs except for the first. Also hides previous button on the first div.
-    $(".add-extension .Div1").each(function (e) {
+    $(".add-extension .extension-divs").each(function (e) {
         if (e != 0)
             $(this).hide();
         else
@@ -8,22 +8,35 @@ $(document).ready(function () {
     });
 
     // Handles click events on the next button
-    $("#next_btn1").click(function (e) {
-        if ($("#dtpick").is(':visible')) {
-            $("#dtpick").parsley().validate();
-            if (!$('#dtpick').parsley().isValid()) {
+    $("#next-btn1").click(function (e) {
+        if ($("#custom-extension").is(':visible')) {
+            $("#custom-extension").parsley().validate();
+            if (!$('#custom-extension').parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
         }
-        $('#extension-select').parsley().validate();
-        if ($('#extension-select').parsley().isValid() || $('#dtpick').parsley().isValid()) {
+        $("#extension-select").parsley().validate();
+        if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
             document.getElementById("first").style.display = "none";
             document.getElementById("second").style.display = "block";
         }
     });
 
+    $("#next-btn2").click(function () {
+        document.getElementById("second").style.display = "none";
+        document.getElementById("third").style.display = "block";
+    });
 
+    $("#prev-btn1").click(function() {
+        document.getElementById("first").style.display = "block";
+        document.getElementById("second").style.display = "none";
+    });
+
+    $("#prev-btn2").click(function() {
+        document.getElementById("third").style.display = "none";
+        document.getElementById("second").style.display = "block";
+    });
 // Shows custom due date datepicker when Custom Due Date is selected
 $("#extension-select").change(function () {
     selected = $(this).val();
@@ -36,15 +49,15 @@ $("#extension-select").change(function () {
 });
 
 // Datepicker for extension date of a request
-$("#dtpick").datepicker({
+$("#custom-extension").datepicker({
     dateFormat: "yy-mm-dd"
 });
 
 // Apply parsley validation styles to input fields of adding an extension
-$('#dtpick').attr('data-parsley-required', '');
+$('#custom-extension').attr('data-parsley-required', '');
 $('#extension-select').attr('data-parsley-required', '');
 
 // Apply custom validation messages
-$('#dtpick').attr('data-parsley-required-message', 'Extension date must be chosen');
+$('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
 $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
 });

@@ -4,7 +4,7 @@
             <legend class="extension-header">
                 Extend Request
             </legend>
-            <div class="Div1 form-group" id="first">
+            <div class="extension-divs form-group" id="first">
                 <label class="extension-label">Length</label>
                 <select id="extension-select" name="extension-date" class="form-control">
                     <option value="0" selected="selected" disabled="disabled">None selected</option>
@@ -18,33 +18,22 @@
                 <br>
                 <div class="form-group" style="display:none;" id="custom_due_date">
                     <label class="extension-label">Custom Due Date</label>
-                    <input type="text" id="dtpick" name="due_date" value="{{ due_date }}">
+                    <input type="text" id="custom-extension" name="due_date" value="{{ due_date }}">
                 </div>
-                <input id="next_btn1" type="button" value="Next">
+                <input id="next-btn1" type="button" value="Next">
             </div>
-            <div class="Div1 form-group" id="second">
+            <div class="extension-divs form-group" id="second">
                 <textarea name="email-content"></textarea>
-                <input id="pre_btn1" onclick="prev_step1()" type="button" value="Previous">
-                <input id="next_btn2" name="next" onclick="next_step2()" type="button" value="Next">
+                <input id="prev-btn1" type="button" value="Previous">
+                <input id="next-btn2" name="next" type="button" value="Next">
             </div>
-            <div class="Div1 form-group" id="third">
+            <div class="extension-divs form-group" id="third">
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
                 <div id="email-summary"></div>
-                <input type="submit" value="Submit">
-                <input id="pre_btn2" onclick="prev_step2()" type="button" value="Previous">
-                <input class="submit_btn" type="submit" value="Submit">
+                <input id="prev-btn2" type="button" value="Previous">
+                <input class="submit-btn" type="submit" value="Submit">
             </div>
-            {#            <div class="col-sm-1 no-padding">#}
-            {#                <a id="previous" role="button">#}
-            {#                    <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"><br>Prev</span>#}
-            {#                </a>#}
-            {#            </div>#}
-            {#            <div class="col-sm-push-5 no-padding">#}
-            {#                <a id="next" role="button">#}
-            {#                    <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"><br>Next</span>#}
-            {#                </a>#}
-            {#            </div>#}
         </div>
     </div>
 </form>
@@ -70,24 +59,4 @@
             $("#email-summary").html(tinyMCE.get('email-content').getContent());
         });
     };
-
-    function next_step1() {
-        document.getElementById("first").style.display = "none";
-        document.getElementById("second").style.display = "block";
-    }
-    // Function that executes on click of first previous button.
-    function prev_step1() {
-        document.getElementById("first").style.display = "block";
-        document.getElementById("second").style.display = "none";
-    }
-    // Function that executes on click of second next button.
-    function next_step2() {
-        document.getElementById("second").style.display = "none";
-        document.getElementById("third").style.display = "block";
-    }
-    // Function that executes on click of second previous button.
-    function prev_step2() {
-        document.getElementById("third").style.display = "none";
-        document.getElementById("second").style.display = "block";
-    }
 </script>
