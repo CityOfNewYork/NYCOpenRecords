@@ -1,5 +1,5 @@
 
-<div class="container-fluid">
+<class="container-fluid">
 {% if request.current_status == status.IN_PROGRESS %}
     <h1><span class="in-progress">In Progress</span></h1>
 {% elif request.current_status == status.OVERDUE %}
@@ -13,13 +13,13 @@
 {% elif request.current_status == status.CLOSED %}
     <h1><span class="closed">Closed</span></h1>
 {% endif %}
-</div>
+
 <hr>
 <h4>{{ agency_name }} </h4>
 
 
 <h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
-       href="#myModal">{{ requester.name }}</a></h4>
+       href="#requesterModal">{{ requester.name }}</a></h4>
 {# Modal content for anon requesters #}
 <div class="modal fade" id="requesterModal" tabindex="-1" role="dialog" >
     <div class="modal-dialog" role="document">
@@ -30,23 +30,43 @@
                 <h4 class="modal-title">Requester Information</h4>
             </div>
             <div class="modal-body">
-                <form id="user-info" action="/request/view/{{ request_id }}" method="POST">
+                <form id="user-info" action="/request/edit_requester_info/{{ request.id }}" method="POST">
                     <h3>{{ requester.name }}</h3>
                     <div class="form-group">
                         <label for="inputEmail">Email</label>
                         <input type="email" name="email" class="form-control" id="inputEmail"
-                               placeholder="john.doe@example.com">
+                               value="{{ requester.email }}">
                     </div>
                     <div class="form-group">
                         <label for="inputTelephone">Phone Number</label>
-                        <input type="text" name="phone" class="form-control" id="inputTelephone"
+                        <input type="text" name="phone_number" class="form-control" id="inputTelephone"
                                data-format="1 (ddd) ddd-dddd"
-                               placeholder="1(234)-467-8901">
+                               value="{{ requester.phone_number }}">
                     </div>
                     <div class="form-group">
                         <label for="inputAddress">Address</label>
                         <input type="text" name="address" class="form-control" id="inputAddress"
-                               placeholder="123 Main Street Apt 1A 12345">
+                               value="{{ requester.mailing_address['address']}}">
+                        <label for="inputAddress2">Address 2</label>
+                        <input type="text" name="address2" class="form-control" id="inputAddress2"
+                               value="{{ requester.mailing_address['address_two']}}">
+                        <label for="inputCity">City</label>
+                        <input type="text" name="city" class="form-control" id="inputCity"
+                               value="{{ requester.mailing_address['city']}}">
+                        <label for="inputZip">Zip Code</label>
+                        <input type="text" name="zip" class="form-control" id="inputZip"
+                               value="{{ requester.mailing_address['zip']}}">
+                        <label for="inputState">State</label>
+                        <input type="text" name="state" class="form-control" id="inputState"
+                               value="{{ requester.mailing_address['state']}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputOrganization">Organization</label>
+                        <input type="text" name="organization" class="form-control" id="inputOrganization" value="{{ requester.organization }}">
+                    </div>
+                     <div class="form-group">
+                        <label for="inputFax">Fax Number</label>
+                        <input type="text" name="fax_number" class="form-control" id="inputFax" value="{{ requester.fax_number }}">
                     </div>
                     <div>
                         <input type="submit" class="btn btn-primary" value="Submit">
@@ -63,8 +83,8 @@
 </div>
 
 <hr>
-<h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
-       href="#myModal">Assigned User</a></h4>
+<h4><a data-target="#assignedUserModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
+       href="#assignedUserModal">Assigned User</a></h4>
 {# Modal content for assigned users #}
 <div class="modal fade" id="assignedUserModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -75,8 +95,8 @@
                 <h4 class="modal-title">Agency User Information</h4>
             </div>
             <div class="modal-body">
-                <div></div>
-                <div></div>
+                <div>Agency User Information goes here: <br>
+                Such as </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

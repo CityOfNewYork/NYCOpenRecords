@@ -147,3 +147,14 @@ def view(request_id):
                            status=request_status,
                            agency_name=agency.name,
                            requester=requester)
+
+
+@request.route('/edit_requester_info/<request_id>', methods=['POST'])
+def edit_requester_info(request_id):
+    """
+    \
+    :param request_id:
+    :return:
+    """
+    print(flask_request.form)
+    return redirect(url_for('request.view', request_id=request_id))

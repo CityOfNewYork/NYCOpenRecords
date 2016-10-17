@@ -19,8 +19,12 @@
 //  }
 
 //  Switching to Modals
-$('#myModal').on('shown.bs.modal', function () {
-  $('#myInput').focus()
+$('#requesterModal').on('shown.bs.modal', function () {
+  $('#requesterInput').focus()
+});
+
+$('#agencyModal').on('shown.bs.modal', function () {
+  $('#agencyInput').focus()
 });
 
 // $(document).ready(function (){
