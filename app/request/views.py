@@ -140,9 +140,7 @@ def view(request_id):
     agency = Agencies.query.filter_by(ein=current_request.agency).first()
     user_request = UserRequests.query.filter_by(request_id=current_request.id).first()
     requester = Users.query.filter_by(guid=user_request.user_guid,
-                                      user_type=user_request.user_type)
-    # import ipdb
-    # ipdb.set_trace()
+                                      user_type=user_request.user_type).first()
     return render_template('request/view_request.html',
                            request=current_request,
                            privacy=privacy,

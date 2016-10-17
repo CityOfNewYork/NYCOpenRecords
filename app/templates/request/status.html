@@ -1,3 +1,4 @@
+
 <div class="container-fluid">
 {% if request.current_status == status.IN_PROGRESS %}
     <h1><span class="in-progress">In Progress</span></h1>
@@ -20,7 +21,7 @@
 <h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
        href="#myModal">{{ requester.name }}</a></h4>
 {# Modal content for anon requesters #}
-<div class="modal fade" id="requesterModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="requesterModal" tabindex="-1" role="dialog" >
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -62,8 +63,8 @@
 </div>
 
 <hr>
-<h4><a data-target="#userModal" data-toggle="modal" class="MainNavText" id="MainNavHelp" href="#myModal"> Assigned
-    User </a></h4>
+<h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
+       href="#myModal">Assigned User</a></h4>
 {# Modal content for assigned users #}
 <div class="modal fade" id="assignedUserModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">

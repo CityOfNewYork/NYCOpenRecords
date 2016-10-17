@@ -225,6 +225,10 @@ class Users(UserMixin, db.Model):
     def get_id(self):
         return "{}:{}".format(self.guid, self.user_type)
 
+    @property
+    def name(self):
+        return "{} {}".format(self.first_name, self.last_name)
+
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
