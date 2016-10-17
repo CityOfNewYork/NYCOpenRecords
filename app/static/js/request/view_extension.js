@@ -1,21 +1,25 @@
 $(document).ready(function () {
+    // Hides all other dives except for the first. Also hides previous button on the first div.
     $(".add-extension .Div1").each(function (e) {
         if (e != 0)
             $(this).hide();
         else
             $("#previous").hide();
     });
-    $("#add_extension").parsley().validate();
 
-    $("#next").click(function () {
+    // Handles click events on the next button
+    $("#next").click(function (e) {
         if ($('#extension-select').parsley().isValid() == false){
             $('#extension-select').parsley().validate();
-            preventDefault();
-            // e.stopPropagation();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false
         }
         if ($('#dtpick').parsley().isValid() == false) {
             $('#dtpick').parsley().validate();
-            preventDefault();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false
         }
             if ($(".add-extension .Div1:visible").next().length != 0) {
                 $('#dtpick').parsley().reset();
@@ -29,6 +33,7 @@ $(document).ready(function () {
             return false;
     });
 
+    // Handles click events on the previous button
     $("#previous").click(function () {
         if ($(".add-extension .Div1:visible").prev().length != 0)
             $(".add-extension .Div1:visible").prev().show().next().hide();
@@ -39,6 +44,7 @@ $(document).ready(function () {
         return false;
     });
 
+    // Shows custom due date datepicker when Custom Due Date is selected
     $("#extension-select").change(function () {
         selected = $(this).val();
         if (selected === "-1") {
@@ -49,13 +55,16 @@ $(document).ready(function () {
         }
     });
 
+    // Datepicker for extension date of a request
     $("#dtpick").datepicker({
         dateFormat: "yy-mm-dd"
     });
 
-    $('#extension-select').attr('data-parsley-required', '');
+    // Apply data-parsley-required attribute to specified fields
     $('#dtpick').attr('data-parsley-required','');
+    $('#extension-select').attr('data-parsley-required', '');
+
+    // Custom validation messages
     $('#dtpick').attr('data-parsley-required-message', 'Extension date must be chosen');
     $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
-
 });
