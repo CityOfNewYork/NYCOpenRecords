@@ -8,65 +8,43 @@ $(document).ready(function () {
     });
 
     // Handles click events on the next button
-    $("#next").click(function (e) {
-        // Validates extension select field on next button click
-        if ($('#extension-select').parsley().isValid() == false) {
-            $('#extension-select').parsley().validate();
-            e.preventDefault();
-            return false
+    $("#next_btn1").click(function (e) {
+        if ($("#dtpick").is(':visible')) {
+            $("#dtpick").parsley().validate();
+            if (!$('#dtpick').parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
         }
-        // Validates custom datepicker on next button click
-        else if ($('#dtpick').parsley().isValid() == false) {
-            $('#dtpick').parsley().validate();
-            e.preventDefault();
-            return false
-        }
-        // Proceeds to next div on next button click
-        else if ($(".add-extension .Div1:visible").next().length != 0) {
-            $('#dtpick').parsley().reset();
-            $(".add-extension .Div1:visible").next().show().prev().hide();
-            $("#previous").show();
-        }
-        else {
-            $(".add-extension .Div1:visible").hide();
-            $(".add-extension .Div1:first").show();
-        }
-        return false;
-    });
-
-    // Handles click events on the previous button
-    $("#previous").click(function () {
-        // Proceeds to previous div on previous button click
-        if ($(".add-extension .Div1:visible").prev().length != 0)
-            $(".add-extension .Div1:visible").prev().show().next().hide();
-        else {
-            $(".add-extension .Div1:visible").hide();
-            $(".add-extension .Div1:last").show();
-        }
-        return false;
-    });
-
-    // Shows custom due date datepicker when Custom Due Date is selected
-    $("#extension-select").change(function () {
-        selected = $(this).val();
-        if (selected === "-1") {
-            $("#custom_due_date").show();
-        }
-        else {
-            $("#custom_due_date").hide();
+        $('#extension-select').parsley().validate();
+        if ($('#extension-select').parsley().isValid() || $('#dtpick').parsley().isValid()) {
+            document.getElementById("first").style.display = "none";
+            document.getElementById("second").style.display = "block";
         }
     });
 
-    // Datepicker for extension date of a request
-    $("#dtpick").datepicker({
-        dateFormat: "yy-mm-dd"
-    });
 
-    // Apply data-parsley-required attribute to specified fields
-    $('#dtpick').attr('data-parsley-required', '');
-    $('#extension-select').attr('data-parsley-required', '');
+// Shows custom due date datepicker when Custom Due Date is selected
+$("#extension-select").change(function () {
+    selected = $(this).val();
+    if (selected === "-1") {
+        $("#custom_due_date").show();
+    }
+    else {
+        $("#custom_due_date").hide();
+    }
+});
 
-    // Custom validation messages
-    $('#dtpick').attr('data-parsley-required-message', 'Extension date must be chosen');
-    $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
+// Datepicker for extension date of a request
+$("#dtpick").datepicker({
+    dateFormat: "yy-mm-dd"
+});
+
+// Apply parsley validation styles to input fields of adding an extension
+$('#dtpick').attr('data-parsley-required', '');
+$('#extension-select').attr('data-parsley-required', '');
+
+// Apply custom validation messages
+$('#dtpick').attr('data-parsley-required-message', 'Extension date must be chosen');
+$('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
 });
