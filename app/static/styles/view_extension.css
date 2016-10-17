@@ -1,5 +1,20 @@
+.add-extension{
+    position: relative;
+}
+
+.extension-label {
+    font-weight: 400;
+    line-height: 20px;
+}
+
+#previous {
+    position: absolute;
+    left: 0;
+    /*bottom: -240;*/
+}
+
 #next {
     position: absolute;
     right: 0;
-    bottom: 0;
+    /*bottom: -240;*/
 }

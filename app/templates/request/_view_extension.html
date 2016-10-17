@@ -1,34 +1,43 @@
 <div class="add-extension col-sm-8">
-    <div class="Div1">
-        <form id="add_extension" class="form1" method="POST">
-            <span class="extension-header">
-                Extension Content
-            </span>
+    <div class="Div1" id="first">
+        <form id="add_extension" class="extension-form" method="POST">
+            <legend class="extension-header">
+                Extend Request
+            </legend>
             <div class="form-group">
-                <select class="form-control">
+                <label class="extension-label">Length</label>
+                <select id="extension-select" name="extension-date" class="form-control">
+                    <option value="0" selected="selected" disabled="disabled">None selected</option>
                     <option value="20">20 Days</option>
                     <option value="30">30 Days</option>
                     <option value="60">60 Days</option>
                     <option value="90">90 Days</option>
                     <option value="120">120 Days</option>
+                    <option value="-1">Custom Due Date</option>
                 </select>
             </div>
-            <div id='request-date'>
-                <input type="text" id="dtpick" name="extension-date">
+            <div class="form-group" style="display:none;" id="custom_due_date">
+                <label class="extension-label">Custom Due Date</label>
+                <div class="controls">
+                    <input type="text" id="dtpick"
+                           name="due_date"
+                           value="{{ due_date }}">
+                </div>
             </div>
         </form>
     </div>
-    <div class="Div1">
-        Hello World
+    <div class="Div1" id="middle">
+        <textarea name="email-content"></textarea>
     </div>
-    <div class="Div1">
-        Goodbye World
+    <div class="Div1" id="last">
+        <h4>The following will be Submitted to the request:</h4>
+        <h5>Email:</h5>
+        <div id="email-summary"></div>
+        <input type="submit" value="Submit">
     </div>
-</div>
-<div class="col-sm-8">
     <div class="col-sm-1 no-padding">
         <a id="previous" role="button">
-            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true" style="display: none;"><br>Previous</span>
+            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"><br>Prev</span>
         </a>
     </div>
     <div class="col-sm-push-5 no-padding">
@@ -37,4 +46,38 @@
         </a>
     </div>
 </div>
+{#<div class="col-sm-8" style="position: relative">#}
+{#    <div class="col-sm-1 no-padding">#}
+{#        <a id="previous" role="button">#}
+{#            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"><br>Previous</span>#}
+{#        </a>#}
+{#    </div>#}
+{#    <div class="col-sm-push-5 no-padding">#}
+{#        <a id="next" role="button">#}
+{#            <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"><br>Next</span>#}
+{#        </a>#}
+{#    </div>#}
+{#</div>#}
+<script type="text/javascript">
 
+    window.onload = function () {
+        var formData = {
+            request_id: "{{ request.id }}",
+            template_name: "add_file_email_template.html"
+        };
+
+        $.ajax({
+            url: "/response/email",
+            type: 'POST',
+            data: JSON.stringify(formData),
+            contentType: false,
+            success: function (data) {
+                //Data should be html template page.
+                tinyMCE.get('email-content').setContent(data);
+            }
+        });
+        $('#previous, #next').click(function () {
+            $("#email-summary").html(tinyMCE.get('email-content').getContent());
+        });
+    };
+</script>
