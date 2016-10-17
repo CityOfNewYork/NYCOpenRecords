@@ -20,19 +20,19 @@
                     <label class="extension-label">Custom Due Date</label>
                     <input type="text" id="custom-extension" name="due_date" value="{{ due_date }}">
                 </div>
-                <input id="next-btn1" type="button" value="Next">
+                <button type="button" class="next-btn btn btn-primary" id="next-1">Next</button>
             </div>
             <div class="extension-divs form-group" id="second">
                 <textarea name="email-content"></textarea>
-                <input id="prev-btn1" type="button" value="Previous">
-                <input id="next-btn2" name="next" type="button" value="Next">
+                <button type="button" class="prev-btn btn btn-default" id="prev-1">Prev</button>
+                <button type="button" class="next-btn btn btn-primary" id="next-2">Next</button>
             </div>
             <div class="extension-divs form-group" id="third">
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
                 <div id="email-summary"></div>
-                <input id="prev-btn2" type="button" value="Previous">
-                <input class="submit-btn" type="submit" value="Submit">
+                <button type="button" class="prev-btn btn btn-default" id="prev-2">Prev</button>
+                <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
                 tinyMCE.get('email-content').setContent(data);
             }
         });
-        $('#previous, #next').click(function () {
+        $('#prev-btn2, #next-btn2').click(function () {
             $("#email-summary").html(tinyMCE.get('email-content').getContent());
         });
     };

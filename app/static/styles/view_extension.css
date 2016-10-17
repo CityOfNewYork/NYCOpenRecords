@@ -1,4 +1,4 @@
-.add-extension{
+.test {
     position: relative;
 }
 
@@ -7,14 +7,17 @@
     line-height: 20px;
 }
 
-#previous {
+.prev-btn {
     position: absolute;
     left: 0;
-    /*bottom: -240;*/
 }
 
-#next {
+.next-btn {
     position: absolute;
     right: 0;
-    /*bottom: -240;*/
+}
+
+.submit-btn {
+    position: absolute;
+    right: 0;
 }
