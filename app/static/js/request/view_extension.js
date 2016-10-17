@@ -5,14 +5,20 @@ $(document).ready(function () {
         else
             $("#previous").hide();
     });
+    $("#add_extension").parsley().validate();
 
     $("#next").click(function () {
-        if ($('#extension-select').parsley().isValid() == false) {
+        if ($('#extension-select').parsley().isValid() == false){
             $('#extension-select').parsley().validate();
             preventDefault();
             // e.stopPropagation();
         }
+        if ($('#dtpick').parsley().isValid() == false) {
+            $('#dtpick').parsley().validate();
+            preventDefault();
+        }
             if ($(".add-extension .Div1:visible").next().length != 0) {
+                $('#dtpick').parsley().reset();
                 $(".add-extension .Div1:visible").next().show().prev().hide();
                 $("#previous").show();
             }
@@ -48,6 +54,8 @@ $(document).ready(function () {
     });
 
     $('#extension-select').attr('data-parsley-required', '');
+    $('#dtpick').attr('data-parsley-required','');
+    $('#dtpick').attr('data-parsley-required-message', 'Extension date must be chosen');
     $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
 
 });
