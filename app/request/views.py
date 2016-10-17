@@ -3,6 +3,7 @@
 
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
+import json
 
 from flask import (
     render_template,
@@ -14,7 +15,6 @@ from flask import (
 
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
-from app.models import Requests
 from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
@@ -22,14 +22,18 @@ from app.request.forms import (
     AnonymousRequestForm
 )
 from flask_login import current_user
-from app.models import Requests
-import json
+from app.models import (
+    Requests,
+    Agencies,
+    UserRequests,
+    Users,
+)
 from app.request.utils import (
     create_request,
     handle_upload_no_id,
     get_address,
 )
-from app import recaptcha
+from app.constants import request_status
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -132,4 +136,16 @@ def view(request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     privacy = json.loads(current_request.privacy)
-    return render_template('request/view_request.html', request=current_request, privacy=privacy)
+    status = current_request.current_status
+    agency = Agencies.query.filter_by(ein=current_request.agency).first()
+    user_request = UserRequests.query.filter_by(request_id=current_request.id).first()
+    requester = Users.query.filter_by(guid=user_request.user_guid,
+                                      user_type=user_request.user_type)
+    # import ipdb
+    # ipdb.set_trace()
+    return render_template('request/view_request.html',
+                           request=current_request,
+                           privacy=privacy,
+                           status=request_status,
+                           agency_name=agency.name,
+                           requester=requester)

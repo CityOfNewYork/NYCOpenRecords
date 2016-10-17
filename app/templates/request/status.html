@@ -1,19 +1,20 @@
-<class="container-fluid">
-{% if request.current_status == statuses.IN_PROGRESS %}
+<div class="container-fluid">
+{% if request.current_status == status.IN_PROGRESS %}
     <h1><span class="in-progress">In Progress</span></h1>
-{% elif request.current_status == statuses.OVERDUE %}
+{% elif request.current_status == status.OVERDUE %}
     <h1><span class="overdue">Overdue</span></h1>
-{% elif request.current_status == statuses.DUE_SOON %}
+{% elif request.current_status == status.DUE_SOON %}
     <h1><span class="duesoon">Due Soon</span></h1>
-{% elif request.current_status == statuses.OPEN %}
+{% elif request.current_status == status.OPEN %}
     <h1><span class="open">Open</span></h1>
-{% elif request.current_status == statuses.RE_OPENED %}
+{% elif request.current_status == status.RE_OPENED %}
     <h1><span class="reopened">Re-Opened</span></h1>
-{% elif request.current_status == statuses.CLOSED %}
+{% elif request.current_status == status.CLOSED %}
     <h1><span class="closed">Closed</span></h1>
 {% endif %}
+</div>
 <hr>
-<h4>{{ agency.name }} </h4>
+<h4>{{ agency_name }} </h4>
 
 
 <h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"

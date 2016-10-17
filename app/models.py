@@ -17,6 +17,7 @@ from app.constants import (
     AGENCY_USER,
     permission,
     role_name,
+    request_status,
 )
 
 
@@ -296,10 +297,18 @@ class Requests(db.Model):
     due_date = db.Column(db.DateTime)
     submission = db.Column(
         db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
-    current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
-                                       name='statuses'))  # due soon is within the next "5" business days
+    current_status = db.Column(db.Enum(
+        request_status.IN_PROGRESS,
+        request_status.CLOSED,
+        request_status.OPEN,
+        request_status.DUE_SOON,  # within the next "5" business days
+        request_status.RE_OPENED,
+        request_status.OVERDUE,
+        name='status'))
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
+
+    # TODO: agency = db.relationship('Agencies', backref=db.backref('request', use_list=False))
 
     def __init__(
             self,
@@ -330,6 +339,9 @@ class Requests(db.Model):
 
     def __repr__(self):
         return '<Requests %r>' % self.id
+
+    def get_due_date(self):
+        return self.due_date.strftime('%m/%d/%Y')
 
 
 class Events(db.Model):
