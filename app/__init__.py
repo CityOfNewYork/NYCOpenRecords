@@ -1,18 +1,19 @@
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
+from celery import Celery
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
 from flask_mail import Mail
-from business_calendar import Calendar, MO, TU, WE, TH, FR
+from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
-from celery import Celery
 
 from config import config, Config
 
+recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -23,7 +24,6 @@ celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
 upload_redis = redis.StrictRedis(db=2)
 
 mail = Mail()
-app = Flask(__name__)
 
 calendar = Calendar(
     workdays=[MO, TU, WE, TH, FR],
@@ -51,9 +51,12 @@ def create_app(config_name):
 
     :return: Flask application
     """
+
+    app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    recaptcha.init_app(app)
     bootstrap.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
@@ -62,7 +65,6 @@ def create_app(config_name):
 
     with app.app_context():
         from app.models import Anonymous
-
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(prefixed_store, app)
@@ -75,6 +77,9 @@ def create_app(config_name):
 
     from .request import request
     app.register_blueprint(request, url_prefix="/request")
+
+    from .request.api import request_api_blueprint
+    app.register_blueprint(request_api_blueprint, url_prefix="/request/api/v1.0")
 
     from .response import response
     app.register_blueprint(response, url_prefix="/response")

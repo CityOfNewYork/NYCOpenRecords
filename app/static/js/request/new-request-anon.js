@@ -2,7 +2,6 @@
  * Created by atan on 9/14/16.
  */
 $(document).ready(function () {
-
     $('[data-toggle="popover"]').popover();
 
     // Prevent user from entering a non numeric value into phone and fax field

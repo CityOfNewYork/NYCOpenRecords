@@ -7,16 +7,20 @@
 import os
 import magic
 import subprocess
-from glob import glob
 from flask import current_app
-from .constants import (
-    ALLOWED_MIMETYPES,
-    MAX_CHUNKSIZE,
-    UPLOAD_STATUS,
-)
 from app import (
     celery,
     upload_redis as redis
+)
+from app.constants import response_type
+from app.upload.constants import (
+    ALLOWED_MIMETYPES,
+    MAX_CHUNKSIZE,
+    upload_status,
+)
+from app.models import (
+    Responses,
+    Files
 )
 
 
@@ -41,6 +45,36 @@ def parse_content_range(header):
     return int(bytes.split('-')[0]), int(bytes.split('/')[1])
 
 
+def upload_exists(request_id, filename):
+    """
+    Checks for an existing uploaded file.
+
+    :param request_id: id of request associated with the upload
+    :param filename: the name of the uploaded file
+    :return: whether the file exists or not
+    """
+    file_ids = [
+        id_[0] for id_ in
+        Responses.query.with_entities(
+            Responses.metadata_id
+        ).filter_by(
+            request_id=request_id, type=response_type.FILE
+        ).all()
+    ]
+    if file_ids:
+        existing_filenames = [
+            name[0] for name in
+            Files.query.with_entities(
+                Files.name
+            ).filter(
+                Files.metadata_id.in_(file_ids)
+            ).all()
+        ]
+        return filename in existing_filenames
+    else:
+        return False
+
+
 def is_valid_file_type(obj):
     """
     Validates the mime type of a file.
@@ -59,8 +93,8 @@ def is_valid_file_type(obj):
         # 2. Check from file buffer
         mime_type = magic.from_buffer(buffer, mime=True)
         is_valid = mime_type in ALLOWED_MIMETYPES
-        if is_valid:
-            # 3. Check using mime database file
+        if is_valid and current_app.config['MAGIC_FILE'] != '':
+            # 3. Check using custom mime database file
             m = magic.Magic(
                 magic_file=current_app.config['MAGIC_FILE'],
                 mime=True)
@@ -105,7 +139,7 @@ def scan_and_complete_upload(request_id, filepath):
     filename = os.path.basename(filepath)
 
     key = get_upload_key(request_id, filename)
-    redis.set(key, UPLOAD_STATUS.SCANNING)
+    redis.set(key, upload_status.SCANNING)
 
     try:
         scan_file(filepath)
@@ -123,7 +157,7 @@ def scan_and_complete_upload(request_id, filepath):
             filepath,
             os.path.join(dst_dir, filename)
         )
-        redis.set(key, UPLOAD_STATUS.READY)
+        redis.set(key, upload_status.READY)
 
 
 def scan_file(filepath):
