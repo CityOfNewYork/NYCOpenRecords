@@ -1,3 +1,5 @@
+[![Build Status](https://snap-ci.com/kejYyyMhilAfSzyBIY0uiiWifYpYOUK1x9z3Uhyb0O8/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop)
+
 # NYC OpenRecords
 
 NYC OpenRecords is an application that assists individuals in the process of submitting Freedom of Information Law (FOIL) requests to a NCY Agency. The web application also allows government employees to manage, respond to, and fulfill incoming requests. 
