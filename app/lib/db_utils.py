@@ -5,6 +5,7 @@
 """
 import json
 
+from sqlalchemy.orm.attributes import flag_modified
 from app import db
 
 # TODO: Add comment explaining why this is needed
@@ -22,6 +23,7 @@ def create_object(obj):
         return str(obj)
     except Exception as e:
         # TODO: email str(e)
+        db.session.rollback()
         return None
 
 
@@ -38,11 +40,13 @@ def update_object(attribute, value, obj_type, obj_id):
 
     if obj:
         try:
+            if type(value) == type(dict):
+                flag_modified(obj, attribute)
             setattr(obj, attribute, value)
-            db.session.add(obj)
             db.session.commit(obj)
             return str(obj)
         except Exception:
+            db.session.rollback()
             return None
 
     return None

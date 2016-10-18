@@ -5,16 +5,27 @@
     synopsis: Handles the functions for responses
 
 """
-from flask import current_app
-from app.models import Responses, Events, Notes, Files, Emails, Users, UserRequests
-from app.lib.db_utils import create_object
-from app.lib.email_utils import send_email
-from app.lib.file_utils import get_mime_type
+import json
 from datetime import datetime
-from app.constants import event_type, response_type, AGENCY_USER, PUBLIC_USER_NYC_ID, ANONYMOUS_USER
+
 import os
 import re
-import json
+from flask import current_app
+
+from app.constants import (
+    event_type,
+    response_type,
+    AGENCY_USER,
+    PUBLIC_USER_NYC_ID,
+    ANONYMOUS_USER
+)
+from app.lib.db_utils import create_object
+from app.lib.email_utils import (
+    send_email,
+    store_email
+)
+from app.lib.file_utils import get_mime_type
+from app.models import Responses, Events, Notes, Files, Users, UserRequests
 
 
 def add_file(request_id, filename, title, privacy):
@@ -129,11 +140,11 @@ def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :return: Stores the email metadata into the Emails table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
-    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
-    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
-    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
-    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
-    create_object(obj=email)
+    store_email(subject=subject,
+                email_content=email_content,
+                to=to,
+                cc=cc,
+                bcc=bcc)
     email_content = json.dumps({'email_content': email_content})
     _process_response(request_id, response_type.EMAIL, event_type.EMAIL_NOTIFICATION_SENT, email.metadata_id,
                       new_response_value=email_content)
@@ -183,8 +194,8 @@ def process_upload_data(form):
 def send_response_email(request_id, privacy, filenames, email_content):
     """
     Function that sends email detailing a file response has been uploaded to a request.
-    If the file privacy is private, only agency users are emailed.
-    If the file privacy is release, the requester is emailed and the agency users are bcced.
+    If the file privacy is private, only agency_ein users are emailed.
+    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
 
     :param request_id: FOIL request ID
     :param privacy: privacy option of the uploaded file
@@ -195,16 +206,16 @@ def send_response_email(request_id, privacy, filenames, email_content):
     """
     # TODO: make subject constants
     subject = 'Response Added'
-    # Get list of agency users on the request
+    # Get list of agency_ein users on the request
     agency_user_guids = UserRequests.query.filter_by(request_id=request_id, user_type=AGENCY_USER)
 
-    # Query for the agency email information
+    # Query for the agency_ein email information
     agency_emails = []
     for user_guid in agency_user_guids:
         agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
         agency_emails.append(agency_user_email)
 
-    bcc = agency_emails or ['agency@email.com']
+    bcc = agency_emails or ['agency_ein@email.com']
 
     file_to_link = {}
     for filename in filenames:
@@ -217,13 +228,13 @@ def send_response_email(request_id, privacy, filenames, email_content):
             UserRequests.user_type.in_([ANONYMOUS_USER, PUBLIC_USER_NYC_ID])).first().user_guid
         requester_email = Users.query.filter_by(guid=requester_guid).first().email
 
-        # Send email with files to requester and bcc agency users as privacy option is release
+        # Send email with files to requester and bcc agency_ein users as privacy option is release
         to = [requester_email]
         _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
                                    "Department of Records and Information Services", file_to_link, to=to, bcc=bcc)
 
     if privacy == 'private':
-        # Send email with files to agency users only as privacy option is private
+        # Send email with files to agency_ein users only as privacy option is private
         _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
                                    "Department of Records and Information Services", file_to_link, bcc=bcc)
 
@@ -309,11 +320,11 @@ def _process_response(request_id, responses_type, events_type, metadata_id, priv
 
     # create event object
     event = Events(request_id=request_id,
-                   # user_id and user_type currently commented out for testing
+                   # user_id and auth_user_type currently commented out for testing
                    # will need in production to store user information in events table
                    # will this be called for anonymous user?
                    # user_id=current_user.id,
-                   # user_type=current_user.type,
+                   # auth_user_type=current_user.type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
