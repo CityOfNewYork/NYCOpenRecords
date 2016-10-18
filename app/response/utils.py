@@ -266,15 +266,17 @@ def process_email_template_request(data, request_id):
     current_request = Requests.query.filter_by(id=request_id).first()
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     if data['type'] == 'extension_email':
-        current_due_date = current_request.due_date
-        calc_due_date = get_date_submitted(current_due_date)
-        new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
+        if data['extension_value'] != "-1":
+            current_due_date = current_request.due_date
+            calc_due_date = get_date_submitted(current_due_date)
+            new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
+        else:
+            new_due_date = datetime.strptime(data['custom_value'], '%Y-%m-%d')
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                data=data,
                                new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
                                page=page)
-
     if data['type'] == 'file_upload_email':
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,

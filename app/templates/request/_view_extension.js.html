@@ -30,7 +30,8 @@ $(document).ready(function () {
                 template_name: "email_extension.html",
                 type: "extension_email",
                 department: "Department of Records and Information Services",
-                extension_value: $('#extension-select').val()
+                extension_value: $('#extension-select').val(),
+                custom_value: $('#custom-extension').val()
             };
 
             $.ajax({
