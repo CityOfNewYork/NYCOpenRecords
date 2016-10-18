@@ -1,4 +1,5 @@
-[![Build Status](https://snap-ci.com/kejYyyMhilAfSzyBIY0uiiWifYpYOUK1x9z3Uhyb0O8/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop)
+[![Build Status](https://snap-ci.com/kejYyyMhilAfSzyBIY0uiiWifYpYOUK1x9z3Uhyb0O8/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop) [![codecov](https://codecov.io/gh/joelbcastillo/openrecords_v2_0/branch/develop/graph/badge.svg)](https://codecov.io/gh/joelbcastillo/openrecords_v2_0)
+
 
 # NYC OpenRecords
 
