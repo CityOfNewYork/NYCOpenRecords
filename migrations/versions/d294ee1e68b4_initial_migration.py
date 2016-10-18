@@ -1,13 +1,13 @@
 """Initial Migration
 
-Revision ID: 84ff4b4b5ec9
+Revision ID: d294ee1e68b4
 Revises: None
-Create Date: 2016-10-17 20:32:45.674487
+Create Date: 2016-10-18 16:52:08.670801
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '84ff4b4b5ec9'
+revision = 'd294ee1e68b4'
 down_revision = None
 
 from alembic import op
@@ -33,7 +33,7 @@ def upgrade():
     sa.Column('bcc', sa.String(), nullable=True),
     sa.Column('subject', sa.String(length=5000), nullable=True),
     sa.Column('email_content', sa.String(), nullable=True),
-    sa.Column('linked_files', postgresql.ARRAY(String()), nullable=True),
+    sa.Column('linked_files', postgresql.ARRAY(sa.String()), nullable=True),
     sa.PrimaryKeyConstraint('metadata_id')
     )
     op.create_table('extensions',
@@ -75,9 +75,9 @@ def upgrade():
     )
     op.create_table('reasons',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('agency_ein', sa.Integer(), nullable=True),
+    sa.Column('agency', sa.Integer(), nullable=True),
     sa.Column('deny_reason', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
+    sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('requests',
@@ -88,7 +88,7 @@ def upgrade():
     sa.Column('date_created', sa.DateTime(), nullable=True),
     sa.Column('date_submitted', sa.DateTime(), nullable=True),
     sa.Column('due_date', sa.DateTime(), nullable=True),
-    sa.Column('submission', sa.String(length=30), nullable=True),
+    sa.Column('submission', sa.Enum('Direct Input', 'Fax', 'Phone', 'Email', 'Mail', 'In-Person', '311', name='submission'), nullable=True),
     sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='statuses'), nullable=True),
     sa.Column('privacy', postgresql.JSON(), nullable=True),
     sa.Column('agency_description', sa.String(length=5000), nullable=True),
@@ -97,8 +97,8 @@ def upgrade():
     )
     op.create_table('users',
     sa.Column('guid', sa.String(length=64), nullable=False),
-    sa.Column('type', sa.String(length=64), nullable=False),
-    sa.Column('agency_ein', sa.Integer(), nullable=True),
+    sa.Column('auth_user_type', sa.Enum('Saml2In:NYC Employees', 'FacebookSSO', 'MSLiveSSO', 'YahooSSO', 'LinkedInSSO', 'GoogleSSO', 'EDIRSSO', 'AnonymousUser', name='auth_user_type'), nullable=False),
+    sa.Column('agency', sa.Integer(), nullable=True),
     sa.Column('email', sa.String(length=254), nullable=True),
     sa.Column('first_name', sa.String(length=32), nullable=False),
     sa.Column('middle_initial', sa.String(length=1), nullable=True),
@@ -110,8 +110,8 @@ def upgrade():
     sa.Column('phone_number', sa.String(length=15), nullable=True),
     sa.Column('fax_number', sa.String(length=15), nullable=True),
     sa.Column('mailing_address', postgresql.JSON(), nullable=True),
-    sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
-    sa.PrimaryKeyConstraint('guid', 'type')
+    sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
+    sa.PrimaryKeyConstraint('guid', 'auth_user_type')
     )
     op.create_table('responses',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -125,19 +125,19 @@ def upgrade():
     )
     op.create_table('user_requests',
     sa.Column('user_guid', sa.String(length=64), nullable=False),
-    sa.Column('auth_user_type', sa.String(length=64), nullable=False),
+    sa.Column('auth_user_type', sa.Enum('Saml2In:NYC Employees', 'FacebookSSO', 'MSLiveSSO', 'YahooSSO', 'LinkedInSSO', 'GoogleSSO', 'EDIRSSO', 'AnonymousUser', name='auth_user_type'), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=False),
     sa.Column('request_user_type', sa.Enum('requester', 'agency_ein', name='request_user_type'), nullable=True),
     sa.Column('permissions', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
-    sa.ForeignKeyConstraint(['user_guid', 'auth_user_type'], ['users.guid', 'users.type'], ),
+    sa.ForeignKeyConstraint(['user_guid', 'auth_user_type'], ['users.guid', 'users.auth_user_type'], ),
     sa.PrimaryKeyConstraint('user_guid', 'auth_user_type', 'request_id')
     )
     op.create_table('events',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=True),
     sa.Column('user_id', sa.String(length=64), nullable=True),
-    sa.Column('auth_user_type', sa.String(length=64), nullable=True),
+    sa.Column('auth_user_type', sa.Enum('Saml2In:NYC Employees', 'FacebookSSO', 'MSLiveSSO', 'YahooSSO', 'LinkedInSSO', 'GoogleSSO', 'EDIRSSO', 'AnonymousUser', name='auth_user_type'), nullable=False),
     sa.Column('response_id', sa.Integer(), nullable=True),
     sa.Column('type', sa.String(length=30), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
@@ -145,8 +145,8 @@ def upgrade():
     sa.Column('new_response_value', postgresql.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.ForeignKeyConstraint(['response_id'], ['responses.id'], ),
-    sa.ForeignKeyConstraint(['user_id', 'auth_user_type'], ['users.guid', 'users.type'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['user_id', 'auth_user_type'], ['users.guid', 'users.auth_user_type'], ),
+    sa.PrimaryKeyConstraint('id', 'auth_user_type')
     )
     ### end Alembic commands ###
 
