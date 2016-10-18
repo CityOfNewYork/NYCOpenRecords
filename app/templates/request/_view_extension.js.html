@@ -21,7 +21,7 @@ $(document).ready(function () {
         if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
             var formData = {
                 request_id: "{{ request.id }}",
-                template_name: "email.html",
+                template_name: "email_extension.html",
                 department: "Department of Records and Information Services"
             };
 
