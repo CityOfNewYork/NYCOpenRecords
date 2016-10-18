@@ -13,7 +13,8 @@ from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data, send_response_email, process_privacy_options
+from app.response.utils import add_note, add_file, process_upload_data, send_response_email, process_privacy_options, \
+    process_email_template_request
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -84,10 +85,8 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
-    return render_template(template,
-                           data=data,
-                           page=flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id))
+    email_template = process_email_template_request(data, request_id)
+    return email_template
 
 
 # TODO: Implement response route for sms

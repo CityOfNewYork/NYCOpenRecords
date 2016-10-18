@@ -5,13 +5,14 @@
     synopsis: Handles the functions for responses
 
 """
-from flask import current_app
-from app.models import Responses, Events, Notes, Files, Emails, Users, UserRequests
+from flask import current_app, request as flask_request, url_for, render_template
+from app.models import Responses, Events, Notes, Files, Emails, Requests, Users, UserRequests
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email
 from app.lib.file_utils import get_mime_type
 from datetime import datetime
 from app.constants import event_type, response_type, AGENCY_USER, PUBLIC_USER_NYC_ID, ANONYMOUS_USER
+from app.request.utils import get_date_submitted, get_due_date
 import os
 import re
 import json
@@ -253,6 +254,34 @@ def process_privacy_options(files):
     return files_privacy_options
 
 
+def process_email_template_request(data, request_id):
+    """
+    Processes the email template for responses. From data, determine the type of response and follow the appropriate
+    execution path to render the email template.
+
+    :param data: Data from the frontend AJAX call
+    :param request_id: FOIL request ID
+    :return: Renders email template with its given arguments
+    """
+    current_request = Requests.query.filter_by(id=request_id).first()
+    page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
+    if data['type'] == 'extension_email':
+        current_due_date = current_request.due_date
+        calc_due_date = get_date_submitted(current_due_date)
+        new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        return render_template(email_template,
+                               data=data,
+                               new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
+                               page=page)
+
+    if data['type'] == 'file_upload_email':
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        return render_template(email_template,
+                               data=data,
+                               page=page)
+
+
 def _safely_send_and_add_email(request_id,
                                email_content,
                                subject,
@@ -272,7 +301,9 @@ def _safely_send_and_add_email(request_id,
     :param files_links: url link of files placed in email body to be downloaded (current link is for TESTING purposes)
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
-    :return:
+
+    :return: Sends email based on given arguments and creates and stores email object into the Emails table.
+             Will print error if there is an error.
     """
     try:
         send_email(subject, template, to=to, bcc=bcc, department=department, files_links=files_links)
