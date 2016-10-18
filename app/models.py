@@ -335,7 +335,7 @@ class Requests(db.Model):
                                    THREE_ONE_ONE,
                                    name='submission'
                                    )
-                           )  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
+                           )
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
     privacy = db.Column(JSON)
