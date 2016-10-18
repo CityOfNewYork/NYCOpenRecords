@@ -1,0 +1,5 @@
+<ul>
+    {% for request_id in requests %}
+    <li><a href="{{ url_for('request.view', request_id=request_id[0]) }}">{{ request_id[0] }}</a></li>
+    {% endfor %}
+</ul>

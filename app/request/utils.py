@@ -25,8 +25,17 @@ from app.constants import (
     request_user_type
 )
 from app.lib.db_utils import create_object, update_object
+from app.lib.file_utils import get_mime_type
 from app.lib.user_information import create_mailing_address
-from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
+from app.models import (
+    Requests,
+    Agencies,
+    Events,
+    Users,
+    UserRequests,
+    Roles,
+    Files
+)
 from app.upload.constants import upload_status
 from app.constants.submission_methods import DIRECT_INPUT
 from app.upload.utils import (
@@ -125,6 +134,7 @@ def create_request(title,
     if upload_path is not None:
         # 7. Move file to upload directory
         _move_validated_upload(request_id, upload_path)
+
         # 8. Create upload Event
         upload_event = Events(user_id=user.guid,
                               auth_user_type=user.auth_user_type,
@@ -275,6 +285,12 @@ def _move_validated_upload(request_id, tmp_path):
     upload_redis.set(
         get_upload_key(request_id, valid_name),
         upload_status.READY)
+
+    # Store File Object
+    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
+    mime_type = get_mime_type(request_id, valid_name)
+    files = Files(name=valid_name, mime_type=mime_type, title='', size=size)
+    create_object(obj=files)
 
 
 def generate_request_id(agency):
