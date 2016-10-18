@@ -8,15 +8,15 @@
 
 """
 
-import os
+import json
 import uuid
 from datetime import datetime
-from tempfile import NamedTemporaryFile
 
+import os
 from business_calendar import FOLLOWING
 from flask import render_template, current_app, url_for, request as flask_request
 from flask_login import current_user
-
+from tempfile import NamedTemporaryFile
 from werkzeug.utils import secure_filename
 
 from app import calendar, upload_redis
@@ -28,20 +28,17 @@ from app.constants import (
     request_user_type
 )
 from app.lib.db_utils import create_object, update_object
+from app.lib.email_utils import send_email, store_email
 from app.lib.user_information import create_mailing_address
 from app.models import Requests, Agencies, Events, Users, UserRequests, Roles, Emails
 from app.upload.constants import upload_status
+from app.constants.submission_methods import DIRECT_INPUT
 from app.upload.utils import (
     is_valid_file_type,
     scan_file,
     VirusDetectedException,
     get_upload_key
 )
-from app.lib.email_utils import send_email
-import json
-
-
-DIRECT_INPUT = 'Direct Input'
 
 
 def create_request(title,
@@ -63,10 +60,10 @@ def create_request(title,
 
     :param title: request title
     :param description: detailed description of the request
-    :param agency: agency selected for the request
+    :param agency: agency_ein selected for the request
     :param date_created: date the request was made
     :param submission: request submission method
-    :param agency_date_submitted: submission date chosen by agency
+    :param agency_date_submitted: submission date chosen by agency_ein
     :param email: requester's email address
     :param user_title: requester's organizational title
     :param organization: requester's organization
@@ -98,7 +95,7 @@ def create_request(title,
     request = Requests(
         id=request_id,
         title=title,
-        agency=agency,
+        agency_ein=agency,
         description=description,
         date_created=date_created,
         date_submitted=date_submitted,
@@ -139,7 +136,7 @@ def create_request(title,
         create_object(upload_event)
 
     role_to_user = {
-        role.PUBLIC_REQUESTER : current_user.is_public,
+        role.PUBLIC_REQUESTER: current_user.is_public,
         role.ANONYMOUS: current_user.is_anonymous,
         role.AGENCY_OFFICER: current_user.is_agency
     }
@@ -171,16 +168,16 @@ def create_request(title,
                                     name=role_name).first().permissions)
     create_object(user_request)
 
-    # 11. Add all agency administrators to the request.
+    # 11. Add all agency_ein administrators to the request.
 
-    # a. Get all agency administrators objects
-    agency_administrators = Agencies.query.filter_by(ein=agency).first().agency_administrators
+    # a. Get all agency_ein administrators objects
+    agency_administrators = Agencies.query.filter_by(ein=agency).first().administrators
 
     if agency_administrators:
-        # Generate a list of tuples(guid, auth_user_type) identifying the agency administrators
+        # Generate a list of tuples(guid, auth_user_type) identifying the agency_ein administrators
         agency_administrators = [tuple(agency_user.split('::')) for agency_user in agency_administrators]
 
-        # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
+        # b. Store all agency_ein users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
         for agency_administrator in agency_administrators:
             user_request = UserRequests(user_id=agency_administrator[0],
@@ -227,7 +224,7 @@ def handle_upload_no_id(file_field):
         try:
             path = _quarantine_upload_no_id(file_field.data)
         except Exception as e:
-            print("Error saving file {} : {}". format(
+            print("Error saving file {} : {}".format(
                 file_field.data.filename, e))
             file_field.errors.append('Error saving file.')
         else:
@@ -253,9 +250,9 @@ def _quarantine_upload_no_id(upload_file):
     :return: the file path to the quarantined upload
     """
     with NamedTemporaryFile(
-        dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-        suffix='.{}'.format(secure_filename(upload_file.filename)),
-        delete=False
+            dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            suffix='.{}'.format(secure_filename(upload_file.filename)),
+            delete=False
     ) as fp:
         upload_file.save(fp)
         return fp.name
@@ -284,10 +281,10 @@ def _move_validated_upload(request_id, tmp_path):
 
 def generate_request_id(agency):
     """
-    Generates an agency-specific FOIL request id.
+    Generates an agency_ein-specific FOIL request id.
 
-    :param agency: agency ein used to generate the request_id
-    :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
+    :param agency: agency_ein ein used to generate the request_id
+    :return: generated FOIL Request ID (FOIL - year - agency_ein ein - 5 digits for request number)
     """
     if agency:
         next_request_number = Agencies.query.filter_by(ein=agency).first().next_request_number
@@ -353,44 +350,24 @@ def generate_request_metadata(request):
     """
     pass
 
-def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
-    """
-    Creates and stores an email object for the specified request.
 
-    :param request_id: takes in FOIL request ID as an argument for the process_response function
-    :param subject: subject of the email to be created and stored as a email object
-    :param email_content: email body content of the email to be created and stored as a email object
-    :param to: list of person(s) email is being sent to
-    :param cc: list of person(s) email is being cc'ed to
-    :param bcc: list of person(s) email is being bcc'ed
-    :return: Stores the email metadata into the Emails table.
-             Provides parameters for the process_response function to create and store responses and events object.
+def send_confirmation_email(request, agency, user):
     """
-    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
-    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
-    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
-    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
-    create_object(obj=email)
-    email_content = json.dumps({'email_content': email_content})
-
-
-def send_confirmation_email(request, agency, user,):
-    """
-    Sends out a confirmation email to requester and bcc the agency default email associated with the request.
+    Sends out a confirmation email to requester and bcc the agency_ein default email associated with the request.
     Also calls the add_email function to create a Emails object to be stored in the database.
 
     :param request: Requests object containing the new created request
-    :param agency: Agencies object containing the agency of the new request
+    :param agency: Agencies object containing the agency_ein of the new request
     :param user: Users object containing the user who created the request
-    :return: sends an email to the requester and agency containing all information related to the request
+    :return: sends an email to the requester and agency_ein containing all information related to the request
     """
     subject = 'New Request Created ({})'.format(request.id)
 
-    # get the agency's default email and adds it to the bcc list
+    # get the agency_ein's default email and adds it to the bcc list
     agency_default_email = agency.default_email
     agency_emails = []
     agency_emails.append(agency_default_email)
-    bcc = agency_emails or ['agency@email.com']
+    bcc = agency_emails or ['agency_ein@email.com']
 
     # gets the email and address information from the requester
     requester_email = user.email
@@ -404,20 +381,35 @@ def send_confirmation_email(request, agency, user,):
                                     agency=agency, user=user, address=address)
 
     try:
-        # if the requester supplied an email sent it to the request and bcc the agency
+        # if the requester supplied an email sent it to the request and bcc the agency_ein
         if requester_email:
-            send_email(to=[requester_email], cc=None, bcc=bcc, subject=subject,
-                       template="email_templates/email_confirmation"
-                       , current_request=request, agency=agency, user=user, address=address, page=page)
-            add_email(request_id=request.id, subject=subject, email_content=email_content, to=[requester_email], bcc=bcc)
-        # otherwise send the email directly to the agency
+            send_email(to=[requester_email],
+                       bcc=bcc,
+                       subject=subject,
+                       template="email_templates/email_confirmation",
+                       current_request=request,
+                       agency=agency,
+                       user=user,
+                       address=address,
+                       page=page)
+            store_email(subject=subject,
+                        email_content=email_content,
+                        to=[requester_email],
+                        bcc=bcc)
+        # otherwise send the email directly to the agency_ein
         else:
-            send_email(to=[agency_default_email], cc=None, bcc=None, subject=subject,
-                       template="email_templates/email_confirmation"
-                       , current_request=request, agency=agency, user=user, address=address, page=page)
-            add_email(request_id=request.id, subject=subject, email_content=email_content, to=[agency_default_email])
+            send_email(to=[agency_default_email],
+                       subject=subject,
+                       template="email_templates/email_confirmation",
+                       current_request=request,
+                       agency=agency,
+                       user=user,
+                       address=address,
+                       page=page)
+            store_email(subject=subject,
+                        email_content=email_content,
+                        to=[agency_default_email])
     except AssertionError:
         print('Must include: To, CC, or BCC')
     except Exception as e:
         print("Error:", e)
-

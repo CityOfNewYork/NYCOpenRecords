@@ -17,10 +17,10 @@ import json
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
 def edit_privacy():
     """
-    Edits the privacy privacy options of a request's title and agency description.
+    Edits the privacy privacy options of a request's title and agency_ein description.
     Retrieves updated privacy options from AJAX call on view_request page and stores changes into database.
 
-    :return: JSON Response with updated title and agency description privacy options
+    :return: JSON Response with updated title and agency_ein description privacy options
     """
     title = flask_request.form.get('title')
     agency_desc = flask_request.form.get('desc')
@@ -30,7 +30,7 @@ def edit_privacy():
     privacy = json.loads(current_request.privacy)
     # Stores title privacy if changed or uses current privacy if exists
     privacy['title'] = title or privacy['title']
-    # Stores agency description privacy if changed or uses current privacy
+    # Stores agency_ein description privacy if changed or uses current privacy
     privacy['agency_description'] = agency_desc or privacy['agency_description']
     update_object(attribute='privacy',
                   value=json.dumps(privacy),
@@ -42,10 +42,10 @@ def edit_privacy():
 @request_api_blueprint.route('/view/edit', methods=['PUT'])
 def edit_request_info():
     """
-    Edits the title and agency description of a FOIL request through an API PUT method.
+    Edits the title and agency_ein description of a FOIL request through an API PUT method.
     Retrieves updated edited content from AJAX call on view_request page and stores changes into database.
 
-    :return: JSON Response with updated content: either request title or agency description)
+    :return: JSON Response with updated content: either request title or agency_ein description)
     """
     edit_request = flask_request.form
     # title = flask_request.form['value']

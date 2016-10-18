@@ -44,7 +44,7 @@ def new():
 
     title: request title
     description: request description
-    agency: agency selected for the request
+    agency_ein: agency_ein selected for the request
     submission: submission method for the request
 
     :return: redirects to homepage if form validates
@@ -63,7 +63,7 @@ def new():
         template_suffix = 'anon.html'
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        template_suffix = 'agency.html'
+        template_suffix = 'agency_ein.html'
     else:
         raise InvalidUserException(current_user)
 
@@ -119,10 +119,8 @@ def new():
             #     return render_template(new_request_template, form=form, site_key=site_key)
 
         current_request = Requests.query.filter_by(id=request_id).first()
-        requester = UserRequests.query.filter_by(request_user_type=req_user_type.REQUESTER, request_id=request_id).first()
-        requester = Users.query.filter_by(guid=requester.user_guid, auth_user_type=requester.auth_user_type).first()
-        agency = Agencies.query.filter_by(ein=current_request.agency).first()
-        send_confirmation_email(request=current_request, agency=agency, user=requester)
+        requester = current_request.user_requests.filter_by(request_user_type=req_user_type.REQUESTER).first().user
+        send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
         if requester.email:
             flashed_message_html = render_template('request/confirmation_email.html')
@@ -133,27 +131,6 @@ def new():
 
         return redirect(url_for('request.view', request_id=request_id))
     return render_template(new_request_template, form=form, site_key=site_key)
-
-
-@request.route('/confirmation/<request_id>', methods=['GET', 'POST'])
-def confirmation(request_id):
-    """
-    Confirmation page that is shown through a redirect of the create request page. Confirmation page will show
-    confirmation message along with how the page would look on the view request page.
-    We send the confirmation email in the create request page so that we don't have to worry about the email being resent
-    if someone manually goes to the URL endpoint.
-
-    :param request_id: FOIL ID of the request created on the create request page
-    :return: renders 'confirmation_email.html' after grabbing the user that created the request
-    """
-
-    current_request = Requests.query.filter_by(id=request_id).first()
-    privacy = json.loads(current_request.privacy)
-    creation_event = Events.query.filter_by(request_id=request_id, type='request_created').first()
-    user = Users.query.filter_by(guid=creation_event.user_id).first()
-
-    return render_template('request/confirmation_email.html', request=current_request, privacy=privacy, user=user,
-                           current_user=current_user)
 
 
 @request.route('/view_all', methods=['GET'])

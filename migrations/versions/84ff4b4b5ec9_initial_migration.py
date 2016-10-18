@@ -23,7 +23,7 @@ def upgrade():
     sa.Column('next_request_number', sa.Integer(), nullable=True),
     sa.Column('default_email', sa.String(length=254), nullable=True),
     sa.Column('appeals_email', sa.String(length=254), nullable=True),
-    sa.Column('agency_administrators', postgresql.ARRAY(sa.String()), nullable=True),
+    sa.Column('administrators', postgresql.ARRAY(sa.String()), nullable=True),
     sa.PrimaryKeyConstraint('ein')
     )
     op.create_table('emails',
@@ -75,14 +75,14 @@ def upgrade():
     )
     op.create_table('reasons',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('agency', sa.Integer(), nullable=True),
+    sa.Column('agency_ein', sa.Integer(), nullable=True),
     sa.Column('deny_reason', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
+    sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('requests',
     sa.Column('id', sa.String(length=19), nullable=False),
-    sa.Column('agency', sa.Integer(), nullable=True),
+    sa.Column('agency_ein', sa.Integer(), nullable=True),
     sa.Column('title', sa.String(length=90), nullable=True),
     sa.Column('description', sa.String(length=5000), nullable=True),
     sa.Column('date_created', sa.DateTime(), nullable=True),
@@ -92,13 +92,13 @@ def upgrade():
     sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='statuses'), nullable=True),
     sa.Column('privacy', postgresql.JSON(), nullable=True),
     sa.Column('agency_description', sa.String(length=5000), nullable=True),
-    sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
+    sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
     sa.Column('guid', sa.String(length=64), nullable=False),
     sa.Column('type', sa.String(length=64), nullable=False),
-    sa.Column('agency', sa.Integer(), nullable=True),
+    sa.Column('agency_ein', sa.Integer(), nullable=True),
     sa.Column('email', sa.String(length=254), nullable=True),
     sa.Column('first_name', sa.String(length=32), nullable=False),
     sa.Column('middle_initial', sa.String(length=1), nullable=True),
@@ -110,7 +110,7 @@ def upgrade():
     sa.Column('phone_number', sa.String(length=15), nullable=True),
     sa.Column('fax_number', sa.String(length=15), nullable=True),
     sa.Column('mailing_address', postgresql.JSON(), nullable=True),
-    sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
+    sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('guid', 'type')
     )
     op.create_table('responses',
@@ -127,7 +127,7 @@ def upgrade():
     sa.Column('user_guid', sa.String(length=64), nullable=False),
     sa.Column('auth_user_type', sa.String(length=64), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=False),
-    sa.Column('request_user_type', sa.Enum('requester', 'agency', name='request_user_type'), nullable=True),
+    sa.Column('request_user_type', sa.Enum('requester', 'agency_ein', name='request_user_type'), nullable=True),
     sa.Column('permissions', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.ForeignKeyConstraint(['user_guid', 'auth_user_type'], ['users.guid', 'users.type'], ),

@@ -17,7 +17,7 @@ UPLOAD_DOCUMENTS = 0x00040
 VIEW_DOCUMENTS_IMMEDIATELY = 0x00080
 # View requests where they are assigned
 VIEW_REQUESTS_HELPER = 0x00100
-# View all requests for their agency
+# View all requests for their agency_ein
 VIEW_REQUESTS_AGENCY = 0x00200
 # View all requests for all agencies
 VIEW_REQUESTS_ALL = 0x00400
