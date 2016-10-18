@@ -309,11 +309,11 @@ def _process_response(request_id, responses_type, events_type, metadata_id, priv
 
     # create event object
     event = Events(request_id=request_id,
-                   # user_id and user_type currently commented out for testing
+                   # user_id and auth_user_type currently commented out for testing
                    # will need in production to store user information in events table
                    # will this be called for anonymous user?
                    # user_id=current_user.id,
-                   # user_type=current_user.type,
+                   # auth_user_type=current_user.type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,

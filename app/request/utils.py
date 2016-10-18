@@ -25,6 +25,7 @@ from app.constants import (
     role_name as role,
     ACKNOWLEDGEMENT_DAYS_DUE,
     ANONYMOUS_USER,
+    request_user_type
 )
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
@@ -112,7 +113,7 @@ def create_request(title,
     else:
         user = Users(
             guid=generate_guid(),
-            user_type=ANONYMOUS_USER,
+            auth_user_type=ANONYMOUS_USER,
             email=email,
             first_name=first_name,
             last_name=last_name,
@@ -131,7 +132,7 @@ def create_request(title,
         _move_validated_upload(request_id, upload_path)
         # 8. Create upload Event
         upload_event = Events(user_id=user.guid,
-                              user_type=user.user_type,
+                              auth_user_type=user.auth_user_type,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow())
@@ -148,14 +149,14 @@ def create_request(title,
     # 9. Create Event
     timestamp = datetime.utcnow()
     event = Events(user_id=user.guid,
-                   user_type=user.user_type,
+                   auth_user_type=user.auth_user_type,
                    request_id=request_id,
                    type=event_type.REQ_CREATED,
                    timestamp=timestamp)
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
-                              user_type=current_user.user_type,
+                              auth_user_type=current_user.user_type,
                               request_id=request.id,
                               type=event_type.REQ_CREATED,
                               timestamp=timestamp)
@@ -163,11 +164,31 @@ def create_request(title,
 
     # 10. Create UserRequest
     user_request = UserRequests(user_guid=user.guid,
-                                user_type=user.user_type,
+                                auth_user_type=user.auth_user_type,
+                                request_user_type=request_user_type.REQUESTER,
                                 request_id=request_id,
                                 permissions=Roles.query.filter_by(
                                     name=role_name).first().permissions)
     create_object(user_request)
+
+    # 11. Add all agency administrators to the request.
+
+    # a. Get all agency administrators objects
+    agency_administrators = Agencies.query.filter_by(ein=agency).first().agency_administrators
+
+    if agency_administrators:
+        # Generate a list of tuples(guid, auth_user_type) identifying the agency administrators
+        agency_administrators = [tuple(agency_user.split('::')) for agency_user in agency_administrators]
+
+        # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
+        # privileges
+        for agency_administrator in agency_administrators:
+            user_request = UserRequests(user_id=agency_administrator[0],
+                                        auth_auth_user_type=agency_administrator[1],
+                                        request_user_type=request_user_type.AGENCY,
+                                        request_id=request_id,
+                                        permissions=Roles.query.filter_by(name=role.AGENCY_ADMIN).first().permissions)
+            create_object(user_request)
     return request_id
 
 

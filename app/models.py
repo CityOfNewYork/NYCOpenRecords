@@ -17,12 +17,15 @@ from app.constants import (
     AGENCY_USER,
     permission,
     role_name,
+    request_user_type as req_user_type
 )
 
 
 class Roles(db.Model):
     """
     Define the Roles class with the following columns and relationships:
+
+    Roles - Default sets of permissions
 
     id -- Column: Integer, PrimaryKey
     name -- Column: String(64), Unique
@@ -47,7 +50,6 @@ class Roles(db.Model):
                 permission.VIEW_REQUEST_INFO_PUBLIC
             ),
             role_name.PUBLIC_NON_REQUESTER: (
-                permission.ADD_NOTE |
                 permission.DUPLICATE_REQUEST |
                 permission.VIEW_REQUEST_STATUS_PUBLIC |
                 permission.VIEW_REQUEST_INFO_PUBLIC
@@ -116,6 +118,7 @@ class Agencies(db.Model):
                           request number sequence
     default_email - a string containing the default email of the agency regarding general inquiries about requests
     appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
+    agency_administrators - an array of guid::auth_user_type strings that identify default admins for an agencies requests
     """
 
     __tablename__ = 'agencies'
@@ -125,6 +128,7 @@ class Agencies(db.Model):
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
+    agency_administrators = db.Column(ARRAY(db.String))
 
     @classmethod
     def populate(cls):
@@ -155,8 +159,8 @@ class Users(UserMixin, db.Model):
     Define the Users class with the following columns and relationships:
 
     guid - a string that contains the unique guid of users
-    user_type - a string that tells what type of a user they are (agency user, helper, etc.)
-    guid and user_type are combined to create a composite primary key
+    auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
+    guid and auth_user_type are combined to create a composite primary key
     agency - a foreign key that links to the primary key of the agency table
     email - a string containing the user's email
     first_name - a string containing the user's first name
@@ -171,8 +175,8 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
-    guid = db.Column(db.String(64), primary_key=True)  # guid + user type
-    user_type = db.Column(db.String(64), primary_key=True)
+    guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
+    auth_user_type = db.Column(db.String(64), primary_key=True, name='type')
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
     email = db.Column(db.String(254))
     first_name = db.Column(db.String(32), nullable=False)
@@ -208,7 +212,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return current_user.user_type in PUBLIC_USER
+        return current_user.auth_user_type in PUBLIC_USER
 
     @property
     def is_agency(self):
@@ -219,16 +223,16 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return current_user.user_type == AGENCY_USER
+        return current_user.auth_user_type == AGENCY_USER
 
     def get_id(self):
-        return "{}:{}".format(self.guid, self.user_type)
+        return "{}:{}".format(self.guid, self.auth_user_type)
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}:{}>'.format(self.guid, self.user_type)
+        return '<Users {}:{}>'.format(self.guid, self.auth_user_type)
 
 
 class Anonymous(AnonymousUserMixin):
@@ -266,7 +270,7 @@ class Anonymous(AnonymousUserMixin):
         return False
 
     def get_id(self):
-        return "{}:{}".format(self.guid, self.user_type)
+        return "{}:{}".format(self.guid, self.auth_user_type)
 
 
 class Requests(db.Model):
@@ -351,15 +355,15 @@ class Events(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     user_id = db.Column(db.String(64))  # who did the action
-    user_type = db.Column(db.String(64))
+    auth_user_type = db.Column(db.String(64))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_response_value = db.Column(JSON)
     new_response_value = db.Column(JSON)
 
-    __table_args__ = (ForeignKeyConstraint([user_id, user_type],
-                                           [Users.guid, Users.user_type]),
+    __table_args__ = (ForeignKeyConstraint([user_id, auth_user_type],
+                                           [Users.guid, Users.auth_user_type]),
                       {})
 
     def __repr__(self):
@@ -413,16 +417,27 @@ class UserRequests(db.Model):
 
     user_guid = a foreign key that links to the primary key of the User table
     request_id = a foreign key that links to the primary key of the Request table
+    request_user_type: Defines a user by their relationship to the request.
+        Requester submitted the request,
+        Agency is a user from the agency to whom the request is assigned.
+        Anonymous request_user_type is not needed, since anonymous users can always browse a request
+            for public information.
     """
 
     __tablename__ = 'user_requests'
     user_guid = db.Column(db.String(64), primary_key=True)
-    user_type = db.Column(db.String(64), primary_key=True)
+    auth_user_type = db.Column(db.String(64), primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
+    request_user_type = db.Column(db.Enum(req_user_type.REQUESTER,
+                                          req_user_type.AGENCY,
+                                          name='request_user_type'))
     permissions = db.Column(db.Integer)
+    # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
+    # same permissions as an anonymous user browsing a request since there is no method for authenticating that the
+    # current anonymous user is in fact the requester.
 
-    __table_args__ = (ForeignKeyConstraint([user_guid, user_type],
-                                           [Users.guid, Users.user_type]),
+    __table_args__ = (ForeignKeyConstraint([user_guid, auth_user_type],
+                                           [Users.guid, Users.auth_user_type]),
                       {})
 
     def has_permission(self, permission):
