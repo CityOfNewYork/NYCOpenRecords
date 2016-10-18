@@ -1,3 +1,4 @@
+<script type="text/javascript">
 $(document).ready(function () {
     // Hides all other divs except for the first. Also hides previous button on the first div.
     $(".add-extension .extension-divs").each(function (e) {
@@ -18,10 +19,10 @@ $(document).ready(function () {
         }
         $("#extension-select").parsley().validate();
         if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
-            // AJAX call to render extension email if validation passes through next button
             var formData = {
                 request_id: "{{ request.id }}",
-                template_name: "email.html"
+                template_name: "email.html",
+                department: "Department of Records and Information Services"
             };
 
             $.ajax({
@@ -81,3 +82,4 @@ $(document).ready(function () {
     $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
     $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
 });
+</script>

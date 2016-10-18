@@ -95,6 +95,7 @@
 {% endblock %}
 
 {% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
@@ -114,12 +115,11 @@
             src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/request/view_extension.js') }}"></script>
     {% include "request/fileupload.js.html" %}
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     {% include 'request/_view_request_edit_visibility.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}
+    {% include 'request/_view_extension.js.html' %}
 {% endblock %}

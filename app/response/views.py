@@ -5,8 +5,9 @@
 """
 
 import json
+import os
 
-from flask import render_template, flash, request as flask_request, url_for, redirect
+from flask import render_template, flash, request as flask_request, url_for, redirect, current_app
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
@@ -67,8 +68,10 @@ def response_file(request_id):
 
 # TODO: Implement response route for extension
 @response.route('/extension/<request_id>', methods=['GET', 'POST'])
-def response_extension():
+def response_extension(request_id):
     pass
+    current_request = Requests.query.filter_by(id=request_id).first()
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 # TODO: Implement response route for email
@@ -81,10 +84,10 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    return render_template('email_templates/email_file_upload.html',
-                           department="Department of Records and Information Services",
-                           page=flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id),
-                           files_links={})
+    template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+    return render_template(template,
+                           data=data,
+                           page=flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id))
 
 
 # TODO: Implement response route for sms

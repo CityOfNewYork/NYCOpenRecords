@@ -77,7 +77,8 @@
     window.onload = function () {
         var formData = {
             request_id: "{{ request.id }}",
-            template_name: "add_file_email_template.html"
+            files_links: {},
+            template_name: "email_file_upload.html"
         };
 
         $.ajax({

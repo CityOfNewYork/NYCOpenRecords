@@ -1,4 +1,4 @@
-<form id="add_extension" class="extension-form" method="POST">
+<form id="add_extension" class="extension-form" action="/response/extension/{{ request.id }}" method="POST">
     <div class="add-extension col-sm-8">
         <div class="test">
             <legend class="extension-header">
@@ -23,40 +23,17 @@
                 <button type="button" class="next-btn btn btn-primary" id="next-1">Next</button>
             </div>
             <div class="extension-divs form-group" id="second">
-                <textarea name="email-content"></textarea>
+                <textarea name="email-extend-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="next-2">Next</button>
             </div>
             <div class="extension-divs form-group" id="third">
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
-                <div id="email-summary"></div>
+                <div id="email-extend-summary"></div>
                 <button type="button" class="prev-btn btn btn-default" id="prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>
         </div>
     </div>
 </form>
-
-<script type="text/javascript">
-    window.onload = function () {
-        var formData = {
-            request_id: "{{ request.id }}",
-            template_name: "add_file_email_template.html"
-        };
-
-        $.ajax({
-            url: "/response/email",
-            type: 'POST',
-            data: JSON.stringify(formData),
-            contentType: false,
-            success: function (data) {
-                //Data should be html template page.
-                tinyMCE.get('email-content').setContent(data);
-            }
-        });
-        $('#prev-btn2, #next-btn2').click(function () {
-            $("#email-summary").html(tinyMCE.get('email-content').getContent());
-        });
-    };
-</script>
