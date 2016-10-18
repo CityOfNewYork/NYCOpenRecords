@@ -35,7 +35,7 @@ class RequestsFactory(object):
             title="I would like my vital essence.",
             description="Someone has taken my vital essence "
             "and I would like it back.",
-            agency=agency_ein,
+            agency_ein=agency_ein,
             date_created=date_created,
             date_submitted=date_submitted,
             due_date=get_due_date(date_submitted,
