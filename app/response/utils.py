@@ -99,8 +99,8 @@ def edit_note():
     print("edit_note function")
 
 
-# def add_extension(request_id, stuff):
-    # new_due_date = get_new_due_date(stuff['due_date'], request_id)
+def add_extension(request_id, stuff):
+    new_due_date = get_new_due_date(stuff['due_date'], request_id)
 
 
 def edit_extension():
@@ -261,7 +261,7 @@ def process_email_template_request(data, request_id):
     # current_request = Requests.query.filter_by(id=request_id).first()
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     if data['type'] == 'extension_email':
-        if data['extension_value'] != "-1":
+        if data['extension_value']:
             # current_due_date = current_request.due_date
             # calc_due_date = get_date_submitted(current_due_date)
             # new_due_date = get_due_date(calc_due_date, int(data['extension_value']))

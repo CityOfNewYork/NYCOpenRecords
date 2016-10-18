@@ -11,12 +11,16 @@ $(document).ready(function () {
     // Handles click events on the first next button
     $("#next-1").click(function (e) {
         if ($("#custom-extension").is(':visible')) {
+            $('#extension-select').set(null);
             $("#custom-extension").parsley().validate();
             if (!$('#custom-extension').parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
+        } else {
+            $('#custom-extension').set(null);
         }
+
 
         $("#extension-select").parsley().validate();
         if (!$('#extension-select').parsley().isValid()) {

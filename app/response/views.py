@@ -12,7 +12,7 @@ from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data, send_response_email, \
+from app.response.utils import add_note, add_extension, add_file, process_upload_data, send_response_email, \
     process_privacy_options, process_email_template_request
 
 
@@ -70,7 +70,7 @@ def response_file(request_id):
 @response.route('/extension/<request_id>', methods=['GET', 'POST'])
 def response_extension(request_id):
     stuff = flask_request.form
-    # add_extension(request_id, stuff)
+    add_extension(request_id, stuff)
     return redirect(url_for('request.view', request_id=request_id))
 
 
