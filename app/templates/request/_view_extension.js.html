@@ -53,6 +53,7 @@ $(document).ready(function () {
     $("#next-2").click(function () {
         document.getElementById("second").style.display = "none";
         document.getElementById("third").style.display = "block";
+        $("#email-extend-summary").html(tinyMCE.get('email-extend-content').getContent());
     });
 
     // Handles click events on the first previous button

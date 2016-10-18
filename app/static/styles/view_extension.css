@@ -21,3 +21,7 @@
     position: absolute;
     right: 0;
 }
+
+#extension-reason {
+    height: 10rem;
+}

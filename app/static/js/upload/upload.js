@@ -4,8 +4,9 @@
 
 $(document).ready(function () {
     tinymce.init({
-        selector: 'textarea',
-        height: 200,
+        mode : "specific_textareas",
+        editor_selector: 'tinymce-area',
+        height: 180
     });
 
     //Call ajax to populate email field with content after textarea is finished loading.

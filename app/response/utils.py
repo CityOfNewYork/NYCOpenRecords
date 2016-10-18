@@ -99,13 +99,8 @@ def edit_note():
     print("edit_note function")
 
 
-def add_extension():
-    """
-    Will add an extension to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement adding an extension
-    print("add_extension function")
+# def add_extension(request_id, stuff):
+    # new_due_date = get_new_due_date(stuff['due_date'], request_id)
 
 
 def edit_extension():
@@ -263,25 +258,34 @@ def process_email_template_request(data, request_id):
     :param request_id: FOIL request ID
     :return: Renders email template with its given arguments
     """
-    current_request = Requests.query.filter_by(id=request_id).first()
+    # current_request = Requests.query.filter_by(id=request_id).first()
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     if data['type'] == 'extension_email':
         if data['extension_value'] != "-1":
-            current_due_date = current_request.due_date
-            calc_due_date = get_date_submitted(current_due_date)
-            new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
+            # current_due_date = current_request.due_date
+            # calc_due_date = get_date_submitted(current_due_date)
+            # new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
+            new_due_date = get_new_due_date(data['extension_value'], request_id)
         else:
-            new_due_date = datetime.strptime(data['custom_value'], '%Y-%m-%d')
+            new_due_date = datetime.strptime(data['custom_value'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                data=data,
-                               new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
+                               new_due_date=new_due_date,
                                page=page)
     if data['type'] == 'file_upload_email':
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                data=data,
                                page=page)
+
+
+def get_new_due_date(extend_date, request_id):
+    current_request = Requests.query.filter_by(id=request_id).first()
+    current_due_date = current_request.due_date
+    calc_due_date = get_date_submitted(current_due_date)
+    new_due_date = get_due_date(calc_due_date, int(extend_date))
+    return new_due_date.strftime('%A, %b %d, %Y')
 
 
 def _safely_send_and_add_email(request_id,

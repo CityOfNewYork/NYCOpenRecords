@@ -5,16 +5,15 @@
 """
 
 import json
-import os
 
-from flask import render_template, flash, request as flask_request, url_for, redirect, current_app
+from flask import render_template, flash, request as flask_request, url_for, redirect
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data, send_response_email, process_privacy_options, \
-    process_email_template_request
+from app.response.utils import add_note, add_file, process_upload_data, send_response_email, \
+    process_privacy_options, process_email_template_request
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -70,8 +69,8 @@ def response_file(request_id):
 # TODO: Implement response route for extension
 @response.route('/extension/<request_id>', methods=['GET', 'POST'])
 def response_extension(request_id):
-    pass
-    current_request = Requests.query.filter_by(id=request_id).first()
+    stuff = flask_request.form
+    # add_extension(request_id, stuff)
     return redirect(url_for('request.view', request_id=request_id))
 
 

@@ -18,12 +18,15 @@
                 <br>
                 <div class="form-group" style="display:none;" id="custom_due_date">
                     <label class="extension-label">Custom Due Date</label>
-                    <input type="text" id="custom-extension" name="due_date" value="{{ request.due_date }}">
+                    <input type="text" id="custom-extension" name="due_date" value={{ request.due_date }}>
                 </div>
+                <label class="extension-label">Extension Reason</label>
+                <textarea class="input-block-level" id="extension-reason" form="add_extension"
+                          name="reason"></textarea>
                 <button type="button" class="next-btn btn btn-primary" id="next-1">Next</button>
             </div>
             <div class="extension-divs form-group" id="second">
-                <textarea name="email-extend-content"></textarea>
+                <textarea class="tinymce-area" name="email-extend-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="next-2">Next</button>
             </div>
