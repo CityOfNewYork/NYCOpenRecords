@@ -28,9 +28,17 @@ def requests():
     if query is None:
         return jsonify({}), 422
 
-    use_title = request.args.get('title', True)
-    use_agency_desc = request.args.get('agency_description', True)
-    use_description = request.args.get('description', True)
+    # TODO: there is a better way
+    def request_arg_bool_eval(name, default='True'):
+        val = request.args.get(name, default)
+        try:
+            return eval(val.title())
+        except NameError:
+            return eval(default)
+
+    use_title = request_arg_bool_eval('title')
+    use_agency_desc = request_arg_bool_eval('agency_description')
+    use_description = request_arg_bool_eval('description')
 
     fields = {
         'title': use_title,
@@ -60,6 +68,8 @@ def requests():
                 }
             },
             'highlight': {
+                'pre_tags': ['<span style="background-color: yellow; text-decoration: underline">'],
+                'post_tags': ['</span>'],
                 'fields': highlight_fields
             }
         },
