@@ -68,13 +68,14 @@ def response_file(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
-@response.route('/extension/<request_id>', methods=['GET', 'POST'])
+@response.route('/extension/<request_id>', methods=['POST'])
 def response_extension(request_id):
     extension_data = flask_request.form
     add_extension(request_id,
                   extension_data['extension-date'],
                   extension_data['reason'],
-                  extension_data['due_date'])
+                  extension_data['due_date'],
+                  extension_data['email-extend-content'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

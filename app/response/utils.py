@@ -124,13 +124,14 @@ def edit_note():
     print("edit_note function")
 
 
-def add_extension(request_id, extension_length, reason, custom_due_date):
+def add_extension(request_id, extension_length, reason, custom_due_date, email_content):
     """
 
     :param request_id:
     :param extension_length:
     :param reason:
     :param custom_due_date:
+    :param email_content:
     :return:
     """
     if extension_length == '-1':
@@ -146,6 +147,10 @@ def add_extension(request_id, extension_length, reason, custom_due_date):
                       event_type.REQ_EXTENDED,
                       extension.metadata_id,
                       new_response_value=extension_metadata)
+    send_extension_email(extension_length,
+                         reason,
+                         email_content,
+                         request_id)
 
 
 def edit_extension():
@@ -340,33 +345,35 @@ def process_email_template_request(data, request_id):
                                page=page)
 
 
-# def send_extension_email(extension_length, reason, email_content, request_id):
-#     # TODO: make subject constants
-#     subject = 'Response Added'
-#     # Get list of agency_ein users on the request
-#     agency_user_guids = UserRequests.query.filter_by(request_id=request_id, user_type=AGENCY_USER)
-#
-#     # Query for the agency_ein email information
-#     agency_emails = []
-#     for user_guid in agency_user_guids:
-#         agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
-#         agency_emails.append(agency_user_email)
-#
-#     bcc = agency_emails or ['agency_ein@email.com']
-#
-#     requester_guid = UserRequests.query.filter_by(request_id=request_id).filter(
-#         UserRequests.user_type.in_([ANONYMOUS_USER, PUBLIC_USER_NYC_ID])).first().user_guid
-#     requester_email = Users.query.filter_by(guid=requester_guid).first().email
-#
-#     # Send email with files to requester and bcc agency_ein users as privacy option is release
-#     to = [requester_email]
-#     safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
-#                                "Department of Records and Information Services", extension_length, reason, to=to, bcc=bcc)
-#
-#     if privacy == 'private':
-#         # Send email with files to agency_ein users only as privacy option is private
-#         _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
-#                                    "Department of Records and Information Services", file_to_link, bcc=bcc)
+def send_extension_email(extension_length, reason, email_content, request_id):
+    subject = 'Response Added'
+    # Get list of agency_ein users on the request
+    agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
+                                                                                           request_user_type=AGENCY).all()
+
+    # Query for the agency_ein email information
+    agency_emails = []
+    for user_guid in agency_user_guids:
+        agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
+        agency_emails.append(agency_user_email)
+
+    bcc = agency_emails or ['agency_ein@email.com']
+
+    requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                   request_user_type=REQUESTER).first().user.email
+
+    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    to = [requester_email]
+    safely_send_and_add_email(request_id,
+                              email_content,
+                              subject,
+                              "email_templates/email_file_upload",
+                              to=to,
+                              bcc=bcc,
+                              agency_name="Department of Records and Information Services",
+                              extension_length=extension_length,
+                              reason=reason,
+                              )
 
 
 def get_new_due_date(extension_length, request_id):
@@ -412,8 +419,13 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def _process_response(request_id, responses_type, events_type, metadata_id, new_response_value,
-                      previous_response_value=None, privacy='private'):
+def _process_response(request_id,
+                      responses_type,
+                      events_type,
+                      metadata_id,
+                      new_response_value,
+                      previous_response_value=None,
+                      privacy='private'):
     """
     Creates and stores responses and events objects to the database
 
@@ -437,17 +449,24 @@ def _process_response(request_id, responses_type, events_type, metadata_id, new_
     create_object(obj=response)
 
     # create event object
-    current_user = Users.query.filter_by(auth_user_type=PUBLIC_USER_NYC_ID).first()
+    if current_user.is_anonymous:
+        user_guid = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
+                                                                                       request_user_type=REQUESTER)[0]
+        auth_user_type = ANONYMOUS_USER
+    else:
+        user_guid = current_user.guid
+        auth_user_type = current_user.auth_user_type
+
     event = Events(request_id=request_id,
-                   # user_id currently commented out for testing
+                   # user_id and auth_user_type currently commented out for testing
                    # will need in production to store user information in events table
                    # will this be called for anonymous user?
-                   user_id=current_user.guid,
-                   auth_user_type=current_user.auth_user_type,
+                   user_id=user_guid,
+                   auth_user_type=auth_user_type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
-                   previous_response_value=previous_response_value or {},
+                   previous_response_value=previous_response_value,
                    new_response_value=new_response_value)
     # store event object
     create_object(obj=event)
