@@ -100,8 +100,11 @@ def edit_note():
 
 
 def add_extension(request_id, stuff):
-    new_due_date = get_new_due_date(stuff['due_date'], request_id)
-
+    if stuff['extension-date'] == '-1':
+        new_due_date = datetime.strptime(stuff['due_date'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
+    else:
+        new_due_date = get_new_due_date(stuff['extension-date'], request_id)
+    print(new_due_date)
 
 def edit_extension():
     """
@@ -261,7 +264,8 @@ def process_email_template_request(data, request_id):
     # current_request = Requests.query.filter_by(id=request_id).first()
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     if data['type'] == 'extension_email':
-        if data['extension_value']:
+        # calculates new due date based on selected value if custom due date is not selected
+        if data['extension_value'] != "-1":
             # current_due_date = current_request.due_date
             # calc_due_date = get_date_submitted(current_due_date)
             # new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
@@ -281,6 +285,12 @@ def process_email_template_request(data, request_id):
 
 
 def get_new_due_date(extend_date, request_id):
+    """
+
+    :param extend_date:
+    :param request_id:
+    :return:
+    """
     current_request = Requests.query.filter_by(id=request_id).first()
     current_due_date = current_request.due_date
     calc_due_date = get_date_submitted(current_due_date)

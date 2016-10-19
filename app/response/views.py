@@ -12,7 +12,7 @@ from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_extension, add_file, process_upload_data, send_response_email, \
+from app.response.utils import add_note, add_file, add_extension,  process_upload_data, send_response_email, \
     process_privacy_options, process_email_template_request
 
 
