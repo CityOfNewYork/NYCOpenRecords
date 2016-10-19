@@ -17,13 +17,19 @@ $(document).ready(function () {
                 return false;
             }
         }
-
+        // Validate extension select field and reason textarea
         $("#extension-select").parsley().validate();
+        $("#extension-reason").parsley().validate();
         if (!$('#extension-select').parsley().isValid()) {
             e.preventDefault();
             return false;
         }
+        if (!$('#extension-reason').parsley().isValid()) {
+            e.preventDefault();
+            return false;
+        }
 
+        // If validation fields are valid, proceed with next click function
         if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
             var formData = {
                 request_id: "{{ request.id }}",
@@ -84,12 +90,19 @@ $(document).ready(function () {
         dateFormat: "yy-mm-dd"
     });
 
-    // Apply parsley validation styles to input fields of adding an extension
-    $('#custom-extension').attr('data-parsley-required', '');
-    $('#extension-select').attr('data-parsley-required', '');
+    // Loop through required fields and apply a data-parsley-required attribute to them
+    var required_fields = ['custom-extension','extension-select', 'extension-reason'];
+    for (i = 0 ; i < required_fields.length ; i++){
+        $('#' + required_fields[i]).attr('data-parsley-required','');
+    }
+
+    // Apply parsley mininum length validation to extension reason
+    $('#extension-reason').attr('data-parsley-minlength','20');
+
 
     // Apply custom validation messages
     $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
     $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
+    $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
 });
 </script>
