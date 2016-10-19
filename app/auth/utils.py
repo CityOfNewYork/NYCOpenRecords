@@ -119,8 +119,8 @@ def update_user(guid=None, user_type=None, **kwargs):
     user = str()
     if not guid:
         return None
-    for key, value in kwargs.items():
-        user = update_object(attribute=key, value=value, obj_type="Users", obj_id=(guid, auth_user_type))
+    
+    user = update_object(kwargs, obj_type="Users", obj_id=(guid, auth_user_type))
 
     if not user:
         return None

@@ -90,4 +90,7 @@ def create_app(config_name):
     from .upload import upload
     app.register_blueprint(upload, url_prefix="/upload")
 
+    from .search import search
+    app.register_blueprint(search, url_prefix="/search")
+
     return app

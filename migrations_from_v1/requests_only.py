@@ -45,6 +45,7 @@ STATUSES = {
 #   Rerouted
 #   XX days
 
+
 def transfer_row(row_v1, cur_v1, cur_v2):
     cur_v1.execute("SELECT name FROM department WHERE id = %s" % row_v1.department_id)
     agency_ein = AGENCY_CODES[cur_v1.fetchone().name]
@@ -54,10 +55,9 @@ def transfer_row(row_v1, cur_v1, cur_v2):
 
         status = STATUSES.get(row_v1.status.strip().upper(), 'In Progress')
 
-        visibility = {
-            # TODO: should be bools?
-            "title": "private" if row_v1.title_private else "public",
-            "agency_description": "private"  # row_v1.description_private NOT USED
+        privacy = {
+            "title": bool(row_v1.title_private),
+            "agency_description": True  # row_v1.description_private NOT USED
         }
 
         query = ("INSERT INTO requests ("
@@ -70,7 +70,7 @@ def transfer_row(row_v1, cur_v1, cur_v2):
                  "due_date,"  # TODO: why not `date_due`?
                  "submission,"  # FIXME: not nullable
                  "current_status,"  # TODO: should just be `status`
-                 "visibility,"
+                 "privacy,"
                  "agency_description)"
                  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
@@ -84,8 +84,9 @@ def transfer_row(row_v1, cur_v1, cur_v2):
             row_v1.due_date,  # due_date
             row_v1.offline_submission_type,  # submission
             status,  # current_status
-            json.dumps(visibility),  # visibility
+            json.dumps(privacy),  # privacy
             row_v1.agency_description  # agency_description
+            # FIXME: agency_description_due_date missing
         ))
 
 

@@ -31,8 +31,7 @@ def edit_privacy():
         privacy['title'] = True if title == 'true' else False
     if agency_desc is not None:
         privacy['agency_description'] = True if agency_desc == 'true' else False
-    update_object(attribute='privacy',
-                  value=privacy,
+    update_object({'privacy': privacy},
                   obj_type='Requests',
                   obj_id=current_request.id)
     return jsonify(privacy), 200
@@ -50,8 +49,7 @@ def edit_request_info():
     # title = flask_request.form['value']
     request_id = flask_request.form.get('pk')
     current_request = Requests.query.filter_by(id=request_id).first()
-    update_object(attribute=edit_request['name'],
-                  value=edit_request['value'],
+    update_object({edit_request['name']: edit_request['value']},
                   obj_type='Requests',
                   obj_id=current_request.id)
     return jsonify(edit_request), 200
