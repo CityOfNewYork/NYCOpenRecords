@@ -3,12 +3,7 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
-<<<<<<< HEAD
-=======
-import json
-
 from sqlalchemy.orm.attributes import flag_modified
->>>>>>> develop
 from app import db
 
 # Needed for evaluating strings representing models
