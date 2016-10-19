@@ -3,26 +3,10 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
-from contextlib import contextmanager
-
 from app import db
 
-# TODO: Add comment explaining why this is needed
+# Needed for evaluating strings representing models
 from app.models import Agencies, Users, Requests
-
-
-@contextmanager
-def db_session():
-    """
-    Provide a transactional scope around a series of operations.
-    Flask-SQLAlchemy handles closing the session after an HTTP request.
-    """
-    try:
-        yield db.session
-        db.session.commit()
-    except:
-        db.session.rollback()
-        raise
 
 
 def create_object(obj):

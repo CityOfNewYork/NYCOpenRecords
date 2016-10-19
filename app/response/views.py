@@ -29,7 +29,6 @@ from app.response.utils import (
     process_privacy_options
 )
 from app.constants import response_type
-from app.lib.db_utils import db_session
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -136,10 +135,10 @@ def edit_response(response_id):
     if privacy and privacy != resp.privacy:
         data_prev['privacy'] = resp.privacy
         data_new['privacy'] = privacy
-        with db_session():
-            resp.privacy = privacy
-            resp.date_modified = datetime.utcnow()
-            # TODO: test if this actually works!
+        # with db_session():
+        #     resp.privacy = privacy
+        #     resp.date_modified = datetime.utcnow()
+        #     # TODO: test if this actually works!
 
     handler_for_type = {
         response_type.FILE: edit_file,
