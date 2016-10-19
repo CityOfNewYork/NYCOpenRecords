@@ -7,7 +7,7 @@ COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
 
-    COV = coverage.coverage(branch=True, include='app/*')
+    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir(), '.coveragerc'))
     COV.start()
 
 from flask_migrate import Migrate, MigrateCommand
@@ -73,10 +73,8 @@ def test(coverage=False, test_name=None):
         COV.save()
         print('Coverage Summary:')
         COV.report()
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        covdir = os.path.join(basedir, 'tmp/coverage')
-        COV.html_report(directory=covdir)
-        print('HTML version: file://%s/index.html' % covdir)
+        COV.html_report()
+        COV.xml_report()
 
 
 @manager.command
