@@ -18,7 +18,7 @@ from app.request.utils import (
     get_date_submitted,
     get_due_date
 )
-from app.db_utils import create_object
+from app.lib.db_utils import create_object
 
 
 class RequestsFactory(object):

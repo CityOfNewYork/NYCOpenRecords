@@ -1,5 +1,5 @@
 """
-    app.db_utils
+    app.lib.db_utils
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
@@ -43,7 +43,7 @@ def update_object(attribute, value, obj_type, obj_id):
             if type(value) == type(dict):
                 flag_modified(obj, attribute)
             setattr(obj, attribute, value)
-            db.session.commit(obj)
+            db.session.commit()
             return str(obj)
         except Exception:
             db.session.rollback()
