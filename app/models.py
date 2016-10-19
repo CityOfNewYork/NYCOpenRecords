@@ -357,7 +357,7 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        privacy_default = {'title': 'false', 'agency_description': 'true'}
+        privacy_default = {'title': False, 'agency_description': True}
         self.id = id
         self.title = title
         self.description = description
