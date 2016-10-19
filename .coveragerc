@@ -23,4 +23,7 @@ exclude_lines =
 ignore_errors = True
 
 [html]
-directory = coverage_html_report
+directory = tmp/coverage_html_report
+
+[xml]
+output = tmp/coverage_xml_report/coverage.xml
