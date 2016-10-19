@@ -14,16 +14,33 @@ from app import db
 from app.constants import (
     PUBLIC_USER,
     AGENCY_USER,
+    PUBLIC_USER_NYC_ID,
+    PUBLIC_USER_FACEBOOK,
+    PUBLIC_USER_LINKEDIN,
+    PUBLIC_USER_GOOGLE,
+    PUBLIC_USER_YAHOO,
+    PUBLIC_USER_MICROSOFT,
+    ANONYMOUS_USER,
     permission,
     role_name,
-    response_type,
-    response_privacy,
+    request_user_type as req_user_type,
+)
+from app.constants.submission_methods import (
+    DIRECT_INPUT,
+    FAX,
+    PHONE,
+    EMAIL,
+    MAIL,
+    IN_PERSON,
+    THREE_ONE_ONE
 )
 
 
 class Roles(db.Model):
     """
     Define the Roles class with the following columns and relationships:
+
+    Roles - Default sets of permissions
 
     id -- Column: Integer, PrimaryKey
     name -- Column: String(64), Unique
@@ -48,7 +65,6 @@ class Roles(db.Model):
                 permission.VIEW_REQUEST_INFO_PUBLIC
             ),
             role_name.PUBLIC_NON_REQUESTER: (
-                permission.ADD_NOTE |
                 permission.DUPLICATE_REQUEST |
                 permission.VIEW_REQUEST_STATUS_PUBLIC |
                 permission.VIEW_REQUEST_INFO_PUBLIC
@@ -110,13 +126,14 @@ class Agencies(db.Model):
     """
     Define the Agencies class with the following columns and relationships:
 
-    ein - the primary key of the agencies table, 3 digit integer that is unique for each agency
-    category - a string containing the category of the agency (ex: business/education)
-    name - a string containing the name of the agency
-    next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
+    ein - the primary key of the agencies table, 3 digit integer that is unique for each agency_ein
+    category - a string containing the category of the agency_ein (ex: business/education)
+    name - a string containing the name of the agency_ein
+    next_request_number - a sequence containing the next number for the request starting at 1, each agency_ein has its own
                           request number sequence
-    default_email - a string containing the default email of the agency regarding general inquiries about requests
-    appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
+    default_email - a string containing the default email of the agency_ein regarding general inquiries about requests
+    appeal_email - a string containing the appeal email for users regarding the agency_ein closing or denying requests
+    administrators - an array of guid::auth_user_type strings that identify default admins for an agencies requests
     """
     __tablename__ = 'agencies'
     ein = db.Column(db.Integer, primary_key=True)
@@ -125,6 +142,7 @@ class Agencies(db.Model):
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
+    administrators = db.Column(ARRAY(db.String))
 
     @classmethod
     def populate(cls):
@@ -155,15 +173,15 @@ class Users(UserMixin, db.Model):
     Define the Users class with the following columns and relationships:
 
     guid - a string that contains the unique guid of users
-    user_type - a string that tells what type of a user they are (agency user, helper, etc.)
-    guid and user_type are combined to create a composite primary key
-    agency - a foreign key that links to the primary key of the agency table
+    auth_user_type - a string that tells what type of a user they are (agency_ein user, helper, etc.)
+    guid and auth_user_type are combined to create a composite primary key
+    agency_ein - a foreign key that links to the primary key of the agency_ein table
     email - a string containing the user's email
     first_name - a string containing the user's first name
     middle_initial - a string containing the user's middle initial
     last_name - a string containing the user's last name
     email_validated - a boolean that is set to true if the user's email has been validated
-    terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency's terms of use
+    terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency_ein's terms of use
     title - a string containing the user's title if they are affiliated with an outside company
     company - a string containing the user's outside company affiliation
     phone_number - string containing the user's phone number
@@ -171,8 +189,19 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
-    guid = db.Column(db.String(64), primary_key=True)  # guid + user type
-    user_type = db.Column(db.String(64), primary_key=True)
+    guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
+    auth_user_type = db.Column(db.Enum(AGENCY_USER,
+                                       PUBLIC_USER_FACEBOOK,
+                                       PUBLIC_USER_MICROSOFT,
+                                       PUBLIC_USER_YAHOO,
+                                       PUBLIC_USER_LINKEDIN,
+                                       PUBLIC_USER_GOOGLE,
+                                       PUBLIC_USER_NYC_ID,
+                                       ANONYMOUS_USER,
+                                       name='auth_user_type'
+                                       ),
+                               primary_key=True
+                               )
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
     email = db.Column(db.String(254))
     first_name = db.Column(db.String(32), nullable=False)
@@ -185,6 +214,7 @@ class Users(UserMixin, db.Model):
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
     mailing_address = db.Column(JSON)  # need to define validation for minimum acceptable mailing address
+    user_requests = db.relationship("UserRequests", backref="user")
 
     @property
     def is_authenticated(self):
@@ -208,27 +238,27 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return current_user.user_type in PUBLIC_USER
+        return current_user.auth_user_type in PUBLIC_USER
 
     @property
     def is_agency(self):
         """
-        Checks to see if the current user is an agency user
+        Checks to see if the current user is an agency_ein user
 
         AGENCY_USER = 'Saml2In:NYC Employees'
 
         :return: Boolean
         """
-        return current_user.user_type == AGENCY_USER
+        return current_user.auth_user_type == AGENCY_USER
 
     def get_id(self):
-        return "{}:{}".format(self.guid, self.user_type)
+        return "{}:{}".format(self.guid, self.auth_user_type)
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}:{}>'.format(self.guid, self.user_type)
+        return '<Users {}:{}>'.format(self.guid, self.auth_user_type)
 
 
 class Anonymous(AnonymousUserMixin):
@@ -266,7 +296,7 @@ class Anonymous(AnonymousUserMixin):
         return False
 
     def get_id(self):
-        return "{}:{}".format(self.guid, self.user_type)
+        return "{}:{}".format(self.guid, self.auth_user_type)
 
 
 class Requests(db.Model):
@@ -274,38 +304,48 @@ class Requests(db.Model):
     Define the Requests class with the following columns and relationships:
 
     id - a string containing the request id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
-    agency - a foreign key that links that the primary key of the agency the request was assigned to
+    agency_ein - a foreign key that links that the primary key of the agency_ein the request was assigned to
     title - a string containing a short description of the request
     description - a string containing a full description of what is needed from the request
     date_created - the actual creation time of the request
     date_submitted - a date that rolls forward to the next business day based on date_created
-    due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
+    due_date - the date that is set five days after date_submitted, the agency_ein has to acknowledge the request by the due date
     submission - a Enum that selects from a list of submission methods
     current_status - a Enum that selects from a list of different statuses a request can have
-    privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
+    privacy - a JSON object that contains the boolean privacy options of a request's title and agency_ein description
               (True = Private, False = Public)
     """
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
-    submission = db.Column(
-        db.String(30))  # direct input/mail/fax/email/phone/311/text method of answering request default is direct input
+    submission = db.Column(db.Enum(DIRECT_INPUT,
+                                   FAX,
+                                   PHONE,
+                                   EMAIL,
+                                   MAIL,
+                                   IN_PERSON,
+                                   THREE_ONE_ONE,
+                                   name='submission'
+                                   )
+                           )
     current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
                                        name='statuses'))  # due soon is within the next "5" business days
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
+    user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
+    agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
 
     def __init__(
             self,
             id,
             title,
             description,
-            agency,
+            agency_ein,
             date_created,
             privacy=None,
             date_submitted=None,
@@ -314,11 +354,11 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        privacy_default = {'title': 'false', 'agency_description': 'true'}
+        privacy_default = {'title': False, 'agency_description': True}
         self.id = id
         self.title = title
         self.description = description
-        self.agency = agency
+        self.agency_ein = agency_ein
         self.date_created = date_created
         self.privacy = privacy or json.dumps(privacy_default)
         self.date_submitted = date_submitted
@@ -349,7 +389,18 @@ class Events(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     user_id = db.Column(db.String(64))  # who did the action
-    user_type = db.Column(db.String(64))
+    auth_user_type = db.Column(db.Enum(AGENCY_USER,
+                                       PUBLIC_USER_FACEBOOK,
+                                       PUBLIC_USER_MICROSOFT,
+                                       PUBLIC_USER_YAHOO,
+                                       PUBLIC_USER_LINKEDIN,
+                                       PUBLIC_USER_GOOGLE,
+                                       PUBLIC_USER_NYC_ID,
+                                       ANONYMOUS_USER,
+                                       name='auth_user_type'
+                                       ),
+                               primary_key=True
+                               )
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
@@ -358,10 +409,11 @@ class Events(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_id, user_type],
+            [user_id, auth_user_type],
             [Users.guid, Users.user_type]
         ),
     )
+
 
     def __repr__(self):
         return '<Events %r>' % self.id
@@ -381,20 +433,9 @@ class Responses(db.Model):
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    type = db.Column(db.Enum(
-        response_type.NOTE,
-        response_type.FILE,
-        response_type.LINK,
-        response_type.EMAIL,
-        response_type.EXTENSION,
-        response_type.INSTRUCTIONS,
-        name="type"))
+    type = db.Column(db.String(30))
     metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
-    privacy = db.Column(db.Enum(
-        response_privacy.PRIVATE,
-        response_privacy.R_PRIVATE,
-        response_privacy.R_PUBLIC,
-        name="privacy"))
+    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
     date_modified = db.Column(db.DateTime)
 
     metadatas = db.relationship(  # 'metadata' is reserved
@@ -421,7 +462,7 @@ class Reasons(db.Model):
     Define the Reason class with the following columns and relationships:
 
     id - an integer that is the primary key of a Reasons
-    agency - a foreign key that links to the a agency's primary key which is the EIN number
+    agency_ein - a foreign key that links to the a agency_ein's primary key which is the EIN number
     deny_reason - a string containing the message that will be shown when a request is denied
     """
     __tablename__ = 'reasons'
@@ -438,16 +479,38 @@ class UserRequests(db.Model):
 
     user_guid = a foreign key that links to the primary key of the User table
     request_id = a foreign key that links to the primary key of the Request table
+    request_user_type: Defines a user by their relationship to the request.
+        Requester submitted the request,
+        Agency is a user from the agency_ein to whom the request is assigned.
+        Anonymous request_user_type is not needed, since anonymous users can always browse a request
+            for public information.
     """
     __tablename__ = 'user_requests'
     user_guid = db.Column(db.String(64), primary_key=True)
-    user_type = db.Column(db.String(64), primary_key=True)
+    auth_user_type = db.Column(db.Enum(AGENCY_USER,
+                                       PUBLIC_USER_FACEBOOK,
+                                       PUBLIC_USER_MICROSOFT,
+                                       PUBLIC_USER_YAHOO,
+                                       PUBLIC_USER_LINKEDIN,
+                                       PUBLIC_USER_GOOGLE,
+                                       PUBLIC_USER_NYC_ID,
+                                       ANONYMOUS_USER,
+                                       name='auth_user_type'
+                                       ),
+                               primary_key=True
+                               )
     request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
+    request_user_type = db.Column(db.Enum(req_user_type.REQUESTER,
+                                          req_user_type.AGENCY,
+                                          name='request_user_type'))
     permissions = db.Column(db.Integer)
+    # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
+    # same permissions as an anonymous user browsing a request since there is no method for authenticating that the
+    # current anonymous user is in fact the requester.
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_guid, user_type],
+            [user_guid, auth_user_type],
             [Users.guid, Users.user_type]
         ),
     )

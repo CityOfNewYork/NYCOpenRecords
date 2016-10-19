@@ -47,13 +47,15 @@ def response_note(request_id):
     :return: Message indicating note has been submitted
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    privacy = json.loads(current_request.privacy)
     form = NoteForm()
     if flask_request.method == 'POST':
         add_note(request_id=current_request.id,
                  content=form.note.data)
         flash('Note has been submitted')
-    return render_template('request/view_note.html', request=current_request, form=form, privacy=privacy)
+    return render_template('request/view_note.html',
+                           request=current_request,
+                           form=form,
+                           privacy=current_request.privacy)
 
 
 @response.route('/file/<request_id>', methods=['POST'])

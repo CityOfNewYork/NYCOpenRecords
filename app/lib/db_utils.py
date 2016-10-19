@@ -3,6 +3,12 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
+<<<<<<< HEAD
+=======
+import json
+
+from sqlalchemy.orm.attributes import flag_modified
+>>>>>>> develop
 from app import db
 
 # Needed for evaluating strings representing models
@@ -37,9 +43,10 @@ def update_object(attribute, value, obj_type, obj_id):
 
     if obj:
         try:
+            if type(value) == type(dict):
+                flag_modified(obj, attribute)
             setattr(obj, attribute, value)
-            db.session.add(obj)
-            db.session.commit(obj)
+            db.session.commit()
             return str(obj)
         except Exception:
             db.session.rollback()
