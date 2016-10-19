@@ -25,6 +25,19 @@ from app.constants import (
     role_name,
     request_user_type as req_user_type,
 )
+from app.constants.response_privacy import (
+    RELEASE_AND_PUBLIC,
+    RELEASE_AND_PRIVATE,
+    PRIVATE
+)
+from app.constants.status_values import (
+    OPEN,
+    IN_PROGRESS,
+    DUE_SOON,
+    OVERDUE,
+    CLOSED,
+    RE_OPENED
+)
 from app.constants.submission_methods import (
     DIRECT_INPUT,
     FAX,
@@ -335,8 +348,14 @@ class Requests(db.Model):
                                    name='submission'
                                    )
                            )
-    current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
-                                       name='statuses'))  # due soon is within the next "5" business days
+    current_status = db.Column(db.Enum(OPEN,
+                                       IN_PROGRESS,
+                                       DUE_SOON,
+                                       OVERDUE,
+                                       CLOSED,
+                                       RE_OPENED,
+                                       name='statuses')
+                               )  # due soon is within the next "5" business days
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
@@ -437,7 +456,11 @@ class Responses(db.Model):
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
     metadata_id = db.Column(db.Integer)
-    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
+    privacy = db.Column(db.Enum(PRIVATE,
+                                RELEASE_AND_PRIVATE,
+                                RELEASE_AND_PUBLIC,
+                                name="privacy")
+                        )
 
     def __repr__(self):
         return '<Responses %r>' % self.id

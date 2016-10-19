@@ -1,13 +1,13 @@
 """Initial Migration
 
-Revision ID: d294ee1e68b4
+Revision ID: 4132ccc4d149
 Revises: None
-Create Date: 2016-10-18 16:52:08.670801
+Create Date: 2016-10-19 12:47:36.904321
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'd294ee1e68b4'
+revision = '4132ccc4d149'
 down_revision = None
 
 from alembic import op
@@ -127,7 +127,7 @@ def upgrade():
     sa.Column('user_guid', sa.String(length=64), nullable=False),
     sa.Column('auth_user_type', sa.Enum('Saml2In:NYC Employees', 'FacebookSSO', 'MSLiveSSO', 'YahooSSO', 'LinkedInSSO', 'GoogleSSO', 'EDIRSSO', 'AnonymousUser', name='auth_user_type'), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=False),
-    sa.Column('request_user_type', sa.Enum('requester', 'agency_ein', name='request_user_type'), nullable=True),
+    sa.Column('request_user_type', sa.Enum('requester', 'agency', name='request_user_type'), nullable=True),
     sa.Column('permissions', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.ForeignKeyConstraint(['user_guid', 'auth_user_type'], ['users.guid', 'users.auth_user_type'], ),

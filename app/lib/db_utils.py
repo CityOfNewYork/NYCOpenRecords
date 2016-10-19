@@ -27,6 +27,9 @@ def create_object(obj):
         return str(obj)
     except Exception as e:
         # TODO: email str(e)
+        import sys
+        print(e)
+        print(sys.exc_info())
         db.session.rollback()
         return None
 

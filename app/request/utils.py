@@ -34,7 +34,8 @@ from app.models import (
     Users,
     UserRequests,
     Roles,
-    Files
+    Files,
+    Responses
 )
 from app.upload.constants import upload_status
 from app.constants.submission_methods import DIRECT_INPUT
@@ -44,6 +45,8 @@ from app.upload.utils import (
     VirusDetectedException,
     get_upload_key
 )
+from app.constants.response_type import FILE
+from app.constants.response_privacy import PRIVATE
 from app.lib.date_utils import get_following_date, get_due_date
 from app.response.utils import safely_send_and_add_email
 
@@ -133,14 +136,25 @@ def create_request(title,
 
     if upload_path is not None:
         # 7. Move file to upload directory
-        _move_validated_upload(request_id, upload_path)
+        metadata_id, metadata = _move_validated_upload(request_id, upload_path)
+
+        # 8. Create response object
+        responses_type = FILE
+        response = Responses(request_id=request_id,
+                             type=responses_type,
+                             date_modified=datetime.utcnow(),
+                             metadata_id=metadata_id,
+                             privacy=PRIVATE)
+        create_object(obj=response)
 
         # 8. Create upload Event
         upload_event = Events(user_id=user.guid,
                               auth_user_type=user.auth_user_type,
+                              response_id=response.id,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
-                              timestamp=datetime.utcnow())
+                              timestamp=datetime.utcnow(),
+                              new_response_value=metadata)
         create_object(upload_event)
 
     role_to_user = {
@@ -287,10 +301,16 @@ def _move_validated_upload(request_id, tmp_path):
         upload_status.READY)
 
     # Store File Object
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
+    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, valid_name))
     mime_type = get_mime_type(request_id, valid_name)
-    files = Files(name=valid_name, mime_type=mime_type, title='', size=size)
-    create_object(obj=files)
+    file = Files(name=valid_name, mime_type=mime_type, title='', size=size)
+    create_object(obj=file)
+
+    file_metadata = json.dumps({'name': valid_name,
+                                 'mime_type': mime_type,
+                                 'title': '',
+                                 'size': size})
+    return file.metadata_id, file_metadata
 
 
 def generate_request_id(agency):
@@ -366,7 +386,7 @@ def send_confirmation_email(request, agency, user):
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,
-                                    agency=agency, user=user, address=address)
+                                    agency_name=agency.name, user=user, address=address)
 
     try:
         # if the requester supplied an email sent it to the request and bcc the agency_ein

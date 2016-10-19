@@ -17,7 +17,15 @@ from app.constants import (
     response_type,
     ANONYMOUS_USER
 )
-from app.constants.request_user_type import REQUESTER
+from app.constants.response_privacy import (
+    RELEASE_AND_PUBLIC,
+    RELEASE_AND_PRIVATE,
+    PRIVATE
+)
+from app.constants.request_user_type import (
+    AGENCY,
+    REQUESTER
+)
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.date_utils import generate_new_due_date
@@ -402,7 +410,7 @@ def _process_response(request_id,
                       metadata_id,
                       new_response_value,
                       previous_response_value=None,
-                      privacy='private'):
+                      privacy=PRIVATE):
     """
     Creates and stores responses and events objects to the database
 
@@ -433,7 +441,6 @@ def _process_response(request_id,
         user_guid = current_user.guid
         auth_user_type = current_user.auth_user_type
 
-    # create event object
     event = Events(request_id=request_id,
                    user_id=user_guid,
                    auth_user_type=auth_user_type,
