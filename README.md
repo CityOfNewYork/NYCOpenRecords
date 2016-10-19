@@ -1,4 +1,6 @@
-[ ![Codeship Status for nycrecordswebdev/recordtrac](https://codeship.com/projects/e1c59fe0-9c47-0133-fe2b-3604d537a8d3/status?branch=master)](https://codeship.com/projects/127075)
+[ ![Codeship Status for nycrecordswebdev/recordtrac](https://codeship.com/projects/e1c59fe0-9c47-0133-fe2b-3604d537a8d3/status?branch=master)](https://codeship.com/projects/127075) [![codecov](https://codecov.io/gh/joelbcastillo/openrecords_v2_0/branch/develop/graph/badge.svg)](https://codecov.io/gh/joelbcastillo/openrecords_v2_0)
+[![Code Health](https://landscape.io/github/joelbcastillo/openrecords_v2_0/develop/landscape.svg?style=flat)](https://landscape.io/github/joelbcastillo/openrecords_v2_0/develop) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/64dc52651e994c6d995b68be84823cb0)](https://www.codacy.com/app/joel-castillo/openrecords_v2_0?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joelbcastillo/openrecords_v2_0&amp;utm_campaign=Badge_Grade)
+
 
 #NYC OpenRecords
 This is the home page for documentation for the **NYC OpenRecords** application.
