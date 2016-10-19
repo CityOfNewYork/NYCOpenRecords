@@ -70,3 +70,16 @@ def get_agencies_list():
     agencies.insert(0, ('', ''))
 
     return agencies
+
+
+def date_deserialize(obj):
+    """
+    Function that deserializes datetime objects into a JSON object
+
+    :param obj: date object being deserialized
+    :return: date object deserialized as a JSON object
+    """
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    else:
+        raise TypeError

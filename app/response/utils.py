@@ -10,7 +10,8 @@ from datetime import datetime
 
 import os
 import re
-from flask import current_app, request as flask_request, render_template
+from flask import current_app, request as flask_request, render_template, url_for
+from flask_login import current_user
 
 from app.constants import (
     event_type,
@@ -19,14 +20,14 @@ from app.constants import (
     PUBLIC_USER_NYC_ID,
     ANONYMOUS_USER
 )
-from app.lib.db_utils import create_object
+from app.lib.db_utils import create_object, date_deserialize
 from app.lib.email_utils import (
     send_email,
     store_email
 )
 from app.request.utils import get_date_submitted, get_due_date
 from app.lib.file_utils import get_mime_type
-from app.models import Responses, Events, Notes, Files, Users, UserRequests, Requests
+from app.models import Responses, Events, Notes, Files, Users, UserRequests, Requests, Extensions
 
 
 def add_file(request_id, filename, title, privacy):
@@ -110,12 +111,25 @@ def edit_note():
     print("edit_note function")
 
 
-def add_extension(request_id, stuff):
-    if stuff['extension-date'] == '-1':
-        new_due_date = datetime.strptime(stuff['due_date'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
+def add_extension(request_id, extension_length, reason, custom_due_date):
+    """
+
+    :param request_id:
+    :param extension_length:
+    :param reason:
+    :param custom_due_date:
+    :return:
+    """
+    if extension_length == '-1':
+        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
     else:
-        new_due_date = get_new_due_date(stuff['extension-date'], request_id)
-    print(new_due_date)
+        new_due_date = get_new_due_date(extension_length, request_id)
+    extension = Extensions(reason=reason, date=new_due_date)
+    create_object(obj=extension)
+    extension_metadata = json.dumps({'reason': reason,
+                                     'date': date_deserialize(new_due_date)})
+    _process_response(request_id, response_type.EXTENSION, event_type.REQ_EXTENDED, extension.metadata_id,
+                      new_response_value=extension_metadata)
 
 
 def edit_extension():
@@ -281,7 +295,7 @@ def process_email_template_request(data, request_id):
             # current_due_date = current_request.due_date
             # calc_due_date = get_date_submitted(current_due_date)
             # new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
-            new_due_date = get_new_due_date(data['extension_value'], request_id)
+            new_due_date = get_new_due_date(data['extension_value'], request_id).strftime('%A, %b %d, %Y')
         else:
             new_due_date = datetime.strptime(data['custom_value'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
@@ -296,18 +310,18 @@ def process_email_template_request(data, request_id):
                                page=page)
 
 
-def get_new_due_date(extend_date, request_id):
+def get_new_due_date(extension_length, request_id):
     """
 
-    :param extend_date:
+    :param extension_length:
     :param request_id:
     :return:
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     current_due_date = current_request.due_date
     calc_due_date = get_date_submitted(current_due_date)
-    new_due_date = get_due_date(calc_due_date, int(extend_date))
-    return new_due_date.strftime('%A, %b %d, %Y')
+    new_due_date = get_due_date(calc_due_date, int(extension_length))
+    return new_due_date
 
 
 def _safely_send_and_add_email(request_id,
@@ -368,11 +382,12 @@ def _process_response(request_id, responses_type, events_type, metadata_id, priv
 
     # create event object
     event = Events(request_id=request_id,
-                   # user_id and auth_user_type currently commented out for testing
+                   # user_id currently commented out for testing
                    # will need in production to store user information in events table
                    # will this be called for anonymous user?
                    # user_id=current_user.id,
-                   # auth_user_type=current_user.type,
+                   # auth_user_type set to anonymous for testing
+                   auth_user_type=ANONYMOUS_USER,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
