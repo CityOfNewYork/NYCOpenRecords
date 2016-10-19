@@ -42,29 +42,9 @@ def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
     :return: Sends email asynchronously
     """
     assert to or cc or bcc
-    app = current_app._get_current_object()
-    msg = Message(app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject,
-                  sender=app.config['MAIL_SENDER'], recipients=to, cc=cc, bcc=bcc)
+    msg = Message(current_app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject,
+                  sender=current_app.config['MAIL_SENDER'], recipients=to, cc=cc, bcc=bcc)
     # Renders email template from .txt file commented out and not currently used in development
     # msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
     send_async_email.delay(msg)
-
-
-def store_email(subject, email_content, to=None, cc=None, bcc=None):
-    """
-    Creates and stores an email object for the specified request.
-
-    :param subject: subject of the email to be created and stored as a email object
-    :param email_content: email body content of the email to be created and stored as a email object
-    :param to: list of person(s) email is being sent to
-    :param cc: list of person(s) email is being cc'ed to
-    :param bcc: list of person(s) email is being bcc'ed
-    :return: Stores the email metadata into the Emails table.
-             Provides parameters for the process_response function to create and store responses and events object.
-    """
-    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
-    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
-    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
-    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
-    create_object(obj=email)

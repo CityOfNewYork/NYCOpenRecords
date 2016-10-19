@@ -68,7 +68,6 @@ def response_file(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
-# TODO: Implement response route for extension
 @response.route('/extension/<request_id>', methods=['GET', 'POST'])
 def response_extension(request_id):
     extension_data = flask_request.form

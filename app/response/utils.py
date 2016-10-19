@@ -5,7 +5,6 @@
     synopsis: Handles the functions for responses
 
 """
-import json
 from datetime import datetime
 
 import os
@@ -20,14 +19,22 @@ from app.constants import (
     PUBLIC_USER_NYC_ID,
     ANONYMOUS_USER
 )
+from app.constants.request_user_type import AGENCY, REQUESTER
 from app.lib.db_utils import create_object, date_deserialize
-from app.lib.email_utils import (
-    send_email,
-    store_email
-)
-from app.request.utils import get_date_submitted, get_due_date
+from app.lib.email_utils import send_email
+from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.file_utils import get_mime_type
-from app.models import Responses, Events, Notes, Files, Users, UserRequests, Requests, Extensions
+from app.models import (
+    Responses,
+    Events,
+    Notes,
+    Files,
+    Users,
+    UserRequests,
+    Requests,
+    Extensions,
+    Emails
+)
 
 
 def add_file(request_id, filename, title, privacy):
@@ -46,14 +53,17 @@ def add_file(request_id, filename, title, privacy):
     size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
     mime_type = get_mime_type(request_id, filename)
     files = Files(name=filename, mime_type=mime_type, title=title, size=size)
-    files_metadata = json.dumps({'name': filename,
-                                 'mime_type': mime_type,
-                                 'title': title,
-                                 'size': size})
-    files_metadata = files_metadata.replace('{', '').replace('}', '')
+    files_metadata = {'name': filename,
+                      'mime_type': mime_type,
+                      'title': title,
+                      'size': size}
     create_object(obj=files)
-    _process_response(request_id, response_type.FILE, event_type.FILE_ADDED, files.metadata_id, privacy,
-                      new_response_value=files_metadata)
+    _process_response(request_id,
+                      response_type.FILE,
+                      event_type.FILE_ADDED,
+                      files.metadata_id,
+                      new_response_value=files_metadata,
+                      privacy=privacy)
 
 
 def delete_file():
@@ -88,8 +98,11 @@ def add_note(request_id, content):
     """
     note = Notes(content=content)
     create_object(obj=note)
-    content = json.dumps({'content': content})
-    _process_response(request_id, response_type.NOTE, event_type.NOTE_ADDED, note.metadata_id,
+    content = {'content': content}
+    _process_response(request_id,
+                      response_type.NOTE,
+                      event_type.NOTE_ADDED,
+                      note.metadata_id,
                       new_response_value=content)
 
 
@@ -126,9 +139,12 @@ def add_extension(request_id, extension_length, reason, custom_due_date):
         new_due_date = get_new_due_date(extension_length, request_id)
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
-    extension_metadata = json.dumps({'reason': reason,
-                                     'date': date_deserialize(new_due_date)})
-    _process_response(request_id, response_type.EXTENSION, event_type.REQ_EXTENDED, extension.metadata_id,
+    extension_metadata = {'reason': reason,
+                          'date': date_deserialize(new_due_date)}
+    _process_response(request_id,
+                      response_type.EXTENSION,
+                      event_type.REQ_EXTENDED,
+                      extension.metadata_id,
                       new_response_value=extension_metadata)
 
 
@@ -141,7 +157,7 @@ def edit_extension():
     print("edit_extension function")
 
 
-def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
+def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
     Creates and stores the note object for the specified request.
 
@@ -154,13 +170,16 @@ def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :return: Stores the email metadata into the Emails table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
-    store_email(subject=subject,
-                email_content=email_content,
-                to=to,
-                cc=cc,
-                bcc=bcc)
-    email_content = json.dumps({'email_content': email_content})
-    _process_response(request_id, response_type.EMAIL, event_type.EMAIL_NOTIFICATION_SENT, email.metadata_id,
+    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
+    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
+    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
+    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
+    create_object(obj=email)
+    email_content = {'email_content': email_content}
+    _process_response(request_id,
+                      response_type.EMAIL,
+                      event_type.EMAIL_NOTIFICATION_SENT,
+                      email.metadata_id,
                       new_response_value=email_content)
 
 
@@ -221,12 +240,13 @@ def send_response_email(request_id, privacy, filenames, email_content):
     # TODO: make subject constants
     subject = 'Response Added'
     # Get list of agency_ein users on the request
-    agency_user_guids = UserRequests.query.filter_by(request_id=request_id, user_type=AGENCY_USER)
+    agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
+                                                                                           request_user_type=AGENCY).all()
 
     # Query for the agency_ein email information
     agency_emails = []
     for user_guid in agency_user_guids:
-        agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
+        agency_user_email = Users.query.filter_by(guid=user_guid, auth_user_type=AGENCY_USER).first().email
         agency_emails.append(agency_user_email)
 
     bcc = agency_emails or ['agency_ein@email.com']
@@ -238,19 +258,29 @@ def send_response_email(request_id, privacy, filenames, email_content):
     if privacy == 'release':
         # Query for the requester's email information
         # Query for the requester's guid from UserRequests using first because there can only be one unique requester
-        requester_guid = UserRequests.query.filter_by(request_id=request_id).filter(
-            UserRequests.user_type.in_([ANONYMOUS_USER, PUBLIC_USER_NYC_ID])).first().user_guid
-        requester_email = Users.query.filter_by(guid=requester_guid).first().email
+        requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                       request_user_type=REQUESTER).first().user.email
 
         # Send email with files to requester and bcc agency_ein users as privacy option is release
         to = [requester_email]
-        _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
-                                   "Department of Records and Information Services", file_to_link, to=to, bcc=bcc)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  "email_templates/email_file_upload",
+                                  to=to,
+                                  bcc=bcc,
+                                  agency_name="Department of Records and Information Services",
+                                  files_links=file_to_link)
 
     if privacy == 'private':
         # Send email with files to agency_ein users only as privacy option is private
-        _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
-                                   "Department of Records and Information Services", file_to_link, bcc=bcc)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  "email_templates/email_file_upload",
+                                  bcc=bcc,
+                                  agency_name="Department of Records and Information Services",
+                                  files_links=file_to_link)
 
 
 def process_privacy_options(files):
@@ -293,7 +323,7 @@ def process_email_template_request(data, request_id):
         # calculates new due date based on selected value if custom due date is not selected
         if data['extension_value'] != "-1":
             # current_due_date = current_request.due_date
-            # calc_due_date = get_date_submitted(current_due_date)
+            # calc_due_date = get_following_date(current_due_date)
             # new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
             new_due_date = get_new_due_date(data['extension_value'], request_id).strftime('%A, %b %d, %Y')
         else:
@@ -310,6 +340,35 @@ def process_email_template_request(data, request_id):
                                page=page)
 
 
+# def send_extension_email(extension_length, reason, email_content, request_id):
+#     # TODO: make subject constants
+#     subject = 'Response Added'
+#     # Get list of agency_ein users on the request
+#     agency_user_guids = UserRequests.query.filter_by(request_id=request_id, user_type=AGENCY_USER)
+#
+#     # Query for the agency_ein email information
+#     agency_emails = []
+#     for user_guid in agency_user_guids:
+#         agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
+#         agency_emails.append(agency_user_email)
+#
+#     bcc = agency_emails or ['agency_ein@email.com']
+#
+#     requester_guid = UserRequests.query.filter_by(request_id=request_id).filter(
+#         UserRequests.user_type.in_([ANONYMOUS_USER, PUBLIC_USER_NYC_ID])).first().user_guid
+#     requester_email = Users.query.filter_by(guid=requester_guid).first().email
+#
+#     # Send email with files to requester and bcc agency_ein users as privacy option is release
+#     to = [requester_email]
+#     safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
+#                                "Department of Records and Information Services", extension_length, reason, to=to, bcc=bcc)
+#
+#     if privacy == 'private':
+#         # Send email with files to agency_ein users only as privacy option is private
+#         _safely_send_and_add_email(request_id, email_content, subject, "email_templates/email_file_upload",
+#                                    "Department of Records and Information Services", file_to_link, bcc=bcc)
+
+
 def get_new_due_date(extension_length, request_id):
     """
 
@@ -319,19 +378,18 @@ def get_new_due_date(extension_length, request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     current_due_date = current_request.due_date
-    calc_due_date = get_date_submitted(current_due_date)
+    calc_due_date = get_following_date(current_due_date)
     new_due_date = get_due_date(calc_due_date, int(extension_length))
     return new_due_date
 
 
-def _safely_send_and_add_email(request_id,
-                               email_content,
-                               subject,
-                               template,
-                               department,
-                               files_links,
-                               to=None,
-                               bcc=None):
+def safely_send_and_add_email(request_id,
+                              email_content,
+                              subject,
+                              template,
+                              to=None,
+                              bcc=None,
+                              **kwargs):
     """
     Sends email and creates and stores the email object into the Emails table.
 
@@ -339,8 +397,6 @@ def _safely_send_and_add_email(request_id,
     :param email_content: body of the email
     :param subject: subject of the email (current is for TESTING purposes)
     :param template: html template of the email body being rendered
-    :param department: department of the request (current is for TESTING purposes)
-    :param files_links: url link of files placed in email body to be downloaded (current link is for TESTING purposes)
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
 
@@ -348,16 +404,16 @@ def _safely_send_and_add_email(request_id,
              Will print error if there is an error.
     """
     try:
-        send_email(subject, template, to=to, bcc=bcc, department=department, files_links=files_links)
-        add_email(request_id, subject, email_content, to=to, bcc=bcc)
+        send_email(subject, template, to=to, bcc=bcc, **kwargs)
+        _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         print('Must include: To, CC, or BCC')
     except Exception as e:
         print("Error:", e)
 
 
-def _process_response(request_id, responses_type, events_type, metadata_id, privacy='private', new_response_value='',
-                      previous_response_value=''):
+def _process_response(request_id, responses_type, events_type, metadata_id, new_response_value,
+                      previous_response_value=None, privacy='private'):
     """
     Creates and stores responses and events objects to the database
 
@@ -381,17 +437,17 @@ def _process_response(request_id, responses_type, events_type, metadata_id, priv
     create_object(obj=response)
 
     # create event object
+    current_user = Users.query.filter_by(auth_user_type=PUBLIC_USER_NYC_ID).first()
     event = Events(request_id=request_id,
                    # user_id currently commented out for testing
                    # will need in production to store user information in events table
                    # will this be called for anonymous user?
-                   # user_id=current_user.id,
-                   # auth_user_type set to anonymous for testing
-                   auth_user_type=ANONYMOUS_USER,
+                   user_id=current_user.guid,
+                   auth_user_type=current_user.auth_user_type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
-                   previous_response_value=previous_response_value,
+                   previous_response_value=previous_response_value or {},
                    new_response_value=new_response_value)
     # store event object
     create_object(obj=event)
