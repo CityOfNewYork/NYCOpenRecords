@@ -1,35 +1,43 @@
-<span style="font-family: 'Helvetica Neue'">
-
-<h1>Simple Search</h1>
-<h3>Just uses ajax; backbone.js soon... maybe</h3>
-<form>
-    <input id="query" type="text" name="query" title="query" style="width: 100%; font-size: 2em"><br>
-    <br>
-    <input style="display: inline" type="checkbox" name="title" title="title" checked> Title<br>
-    <input type="checkbox" name="description" title="description" checked> Description<br>
-    <input type="checkbox" name="agency-description" title="agency-description" checked>Agency Description<br>
-</form>
-<div id="results-raw" style="white-space: pre"></div>
-<ol id="results"></ol>
-
-</span>
+<body style="font-family: 'Helvetica Neue'">
+    <h1>Simple Search (Requests Only)</h1>
+    <h3>Just uses ajax... backbone.js, or other js tools for that matter, may not be necessary.</h3>
+    <form>
+        <input id="query" type="text" name="query" style="width: 100%; font-size: 2em" placeholder="HERE!"><br>
+        <br>
+        <label>
+            <input style="display: inline" type="checkbox" name="title" checked>
+            Title<br>
+        </label>
+        <label>
+            <input type="checkbox" name="description" checked>
+            Description<br>
+        </label>
+        <label>
+            <input type="checkbox" name="agency-description" checked>
+            Agency Description<br>
+        </label>
+    </form>
+    <div id="results-raw" style="white-space: pre"></div>
+    <ol id="results"></ol>
+</body>
 
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js') }}"></script>
 <script type="text/javascript">
     $(function() {
-        $('#query').on('input', function() {
+
+        function search() {
             var results = $('#results');
             results.children('li').remove();
             results.text('');
-            var query = $(this).val();
+            var query = $('#query').val();
             if (query != '') {
                 $.ajax({
                     url: '/search/requests',
                     data: {
                         query: query,
-                        title: true,
-                        description: true,
-                        agency_description: true
+                        title: $('input[name=title]').prop("checked"),
+                        description: $('input[name=description]').prop("checked"),
+                        agency_description: $('input[name=agency-description]').prop("checked")
                     },
                     dataType: 'json',
                     success: function(resp){
@@ -55,6 +63,9 @@
                     }
                 })
             }
-        });
+        }
+
+        $('#query').on('input', search);
+        $(':checkbox').change(search);
     });
 </script>
