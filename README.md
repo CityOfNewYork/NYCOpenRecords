@@ -1,4 +1,7 @@
-[![Build Status](https://snap-ci.com/kejYyyMhilAfSzyBIY0uiiWifYpYOUK1x9z3Uhyb0O8/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop) [![codecov](https://codecov.io/gh/joelbcastillo/openrecords_v2_0/branch/develop/graph/badge.svg)](https://codecov.io/gh/joelbcastillo/openrecords_v2_0)
+[![Build Status](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop) [![codecov](https://codecov.io/gh/joelbcastillo/openrecords_v2_0/branch/develop/graph/badge.svg)](https://codecov.io/gh/joelbcastillo/openrecords_v2_0)
+[![Code Health](https://landscape.io/github/joelbcastillo/openrecords_v2_0/develop/landscape.svg?style=flat)](https://landscape.io/github/joelbcastillo/openrecords_v2_0/develop) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/64dc52651e994c6d995b68be84823cb0)](https://www.codacy.com/app/joel-castillo/openrecords_v2_0?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joelbcastillo/openrecords_v2_0&amp;utm_campaign=Badge_Grade) [![Requirements Status](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements.svg?branch=develop)](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements/?branch=develop) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/64dc52651e994c6d995b68be84823cb0)](https://www.codacy.com/app/joel-castillo/openrecords_v2_0?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joelbcastillo/openrecords_v2_0&amp;utm_campaign=Badge_Coverage)
+
+
 
 
 # NYC OpenRecords
