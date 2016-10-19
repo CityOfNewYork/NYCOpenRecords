@@ -1,9 +1,11 @@
 """
-    app.db_utils
+    app.lib.db_utils
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
 from app import db, es
+from sqlalchemy.orm.attributes import flag_modified
+
 
 # TODO: Add comment explaining why this is needed
 from app.models import Agencies, Users, Requests
@@ -20,6 +22,7 @@ def create_object(obj):
         return str(obj)
     except Exception as e:
         # TODO: email str(e)
+        db.session.rollback()
         return None
 
 
@@ -38,9 +41,10 @@ def update_object(data, obj_type, obj_id):
 
     if obj:
         for attr, val in data.items():
+            if type(val) == dict:
+                flag_modified(obj, attr)
             setattr(obj, attr, val)
         try:
-            db.session.add(obj)
             db.session.commit()
             obj.es_update()
             return str(obj)

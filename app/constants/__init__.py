@@ -15,18 +15,6 @@ CATEGORIES = [
     ('Transportation', 'Transportation')
 ]
 
-# direct input/mail/fax/email/phone/311/text method of answering request default is direct input
-SUBMISSION_METHOD = [
-    ('', ''),
-    ('Direct Input', 'Direct Input'),
-    ('Fax', 'Fax'),
-    ('Phone', 'Phone'),
-    ('Email', 'Email'),
-    ('Mail', 'Mail'),
-    ('In-Person', 'In-Person'),
-    ('311', '311')
-]
-
 STATES = [
     ('', ''),
     ('AL', 'Alabama'),

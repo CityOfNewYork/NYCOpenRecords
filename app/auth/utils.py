@@ -129,7 +129,7 @@ def update_user(guid=None, user_type=None, **kwargs):
 
 def find_or_create_user(guid, user_type):
     """
-    Given a guid and user_type, equivalent to a user id, find or create a user in the database.
+    Given a guid and auth_user_type, equivalent to a user id, find or create a user in the database.
 
     Returns the User object and a boolean marking the user as a new user.
 

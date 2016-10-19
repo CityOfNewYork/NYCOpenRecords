@@ -18,7 +18,7 @@ from app.request.utils import (
     get_date_submitted,
     get_due_date
 )
-from app.db_utils import create_object
+from app.lib.db_utils import create_object
 
 
 class RequestsFactory(object):
@@ -35,7 +35,7 @@ class RequestsFactory(object):
             title="I would like my vital essence.",
             description="Someone has taken my vital essence "
             "and I would like it back.",
-            agency=agency_ein,
+            agency_ein=agency_ein,
             date_created=date_created,
             date_submitted=date_submitted,
             due_date=get_due_date(date_submitted,
