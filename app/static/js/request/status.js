@@ -27,7 +27,5 @@ $('#agencyModal').on('shown.bs.modal', function () {
   $('#agencyInput').focus()
 });
 
-// $(document).ready(function (){
-//     $('#inputTelephone').mask("(999) 999-9999");
-//     $('#inputAgencyTelephone').mask("(999) 999-9999");
-// });
+$('#inputTelephone').mask('(999) 999-9999');
+

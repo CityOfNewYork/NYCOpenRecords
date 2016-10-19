@@ -1,4 +1,3 @@
-
 <class="container-fluid">
 {% if request.current_status == status.IN_PROGRESS %}
     <h1><span class="in-progress">In Progress</span></h1>
@@ -21,7 +20,7 @@
 <h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
        href="#requesterModal">{{ requester.name }}</a></h4>
 {# Modal content for anon requesters #}
-<div class="modal fade" id="requesterModal" tabindex="-1" role="dialog" >
+<div class="modal fade" id="requesterModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -40,46 +39,57 @@
                     <div class="form-group">
                         <label for="inputTelephone">Phone Number</label>
                         <input type="text" name="phone_number" class="form-control" id="inputTelephone"
-                               data-format="1 (ddd) ddd-dddd"
                                value="{{ requester.phone_number }}">
                     </div>
                     <div class="form-group">
                         <label for="inputAddress">Address</label>
                         <input type="text" name="address" class="form-control" id="inputAddress"
-                               value="{{ requester.mailing_address['address']}}">
-                        <label for="inputAddress2">Address 2</label>
-                        <input type="text" name="address2" class="form-control" id="inputAddress2"
-                               value="{{ requester.mailing_address['address_two']}}">
-                        <label for="inputCity">City</label>
-                        <input type="text" name="city" class="form-control" id="inputCity"
-                               value="{{ requester.mailing_address['city']}}">
-                        <label for="inputZip">Zip Code</label>
-                        <input type="text" name="zip" class="form-control" id="inputZip"
-                               value="{{ requester.mailing_address['zip']}}">
-                        <label for="inputState">State</label>
-                        <input type="text" name="state" class="form-control" id="inputState"
-                               value="{{ requester.mailing_address['state']}}">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputOrganization">Organization</label>
-                        <input type="text" name="organization" class="form-control" id="inputOrganization" value="{{ requester.organization }}">
-                    </div>
-                     <div class="form-group">
-                        <label for="inputFax">Fax Number</label>
-                        <input type="text" name="fax_number" class="form-control" id="inputFax" value="{{ requester.fax_number }}">
+                               value="{{ requester.mailing_address['address'] }}">
                     </div>
                     <div>
-                        <input type="submit" class="btn btn-primary" value="Submit">
-                        {#                        <button type="submit" class="btn btn-primary">Confirm</button>#}
+                        <label for="inputAddress2">Address 2</label>
+                        <input type="text" name="address2" class="form-control" id="inputAddress2"
+                               value="{{ requester.mailing_address['address_two'] }}">
                     </div>
-                </form>
-            </div>
+                    <div>
+                        <label for="inputCity">City</label>
+                        <input type="text" name="city" class="form-control" id="inputCity"
+                               value="{{ requester.mailing_address['city'] }}">
+                    </div>
+                    <div>
+                        <label for="inputZip">Zip Code</label>
+                        <input type="text" name="zip" class="form-control" id="inputZip"
+                               value="{{ requester.mailing_address['zip'] }}">
+                    </div>
+                    <div>
+                        <label for="inputState">State</label>
+                        <input type="text" name="state" class="form-control" id="inputState"
+                               value="{{ requester.mailing_address['state'] }}">
+                    </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+            <div class="form-group">
+                <label for="inputOrganization">Organization</label>
+                <input type="text" name="organization" class="form-control" id="inputOrganization"
+                       value="{{ requester.organization }}">
             </div>
+            <div class="form-group">
+                <label for="inputFax">Fax Number</label>
+                <input type="text" name="fax_number" class="form-control" id="inputFax"
+                       value="{{ requester.fax_number }}">
+            </div>
+            <div>
+                <input type="submit" class="btn btn-primary" value="Submit">
+                {#                        <button type="submit" class="btn btn-primary">Confirm</button>#}
+            </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
     </div>
+</div>
 </div>
 
 <hr>
@@ -96,7 +106,8 @@
             </div>
             <div class="modal-body">
                 <div>Agency User Information goes here: <br>
-                Such as </div>
+                    Such as
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
