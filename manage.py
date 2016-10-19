@@ -1,6 +1,7 @@
 # manage.py
-import os
 import subprocess
+
+import os
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -22,7 +23,7 @@ migrate = Migrate(app, db)
 
 class Celery(Command):
     """
-    Runs Celery
+    Start Celery
     """
 
     # TODO: autoreload and background options?
@@ -52,16 +53,21 @@ manager.add_command("db", MigrateCommand)
 manager.add_command("celery", Celery())
 
 
-@manager.command
-def test(coverage=False):
+@manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
+@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='coverage')
+def test(coverage=False, test_name=None):
     """Run the unit tests."""
     if coverage and not os.environ.get('FLASK_COVERAGE'):
         import sys
         os.environ['FLASK_COVERAGE'] = '1'
         os.execvp(sys.executable, [sys.executable] + sys.argv)
     import unittest
-    tests = unittest.TestLoader().discover('tests', pattern='*.py')
+    if not test_name:
+        tests = unittest.TestLoader().discover('tests', pattern='*.py')
+    else:
+        tests = unittest.TestLoader().loadTestsFromName('tests.' + test_name)
     unittest.TextTestRunner(verbosity=2).run(tests)
+
     if COV:
         COV.stop()
         COV.save()
@@ -71,7 +77,31 @@ def test(coverage=False):
         covdir = os.path.join(basedir, 'tmp/coverage')
         COV.html_report(directory=covdir)
         print('HTML version: file://%s/index.html' % covdir)
-        COV.erase()
+
+
+@manager.command
+def profile(length=25, profile_dir=None):
+    """Start the application under the code profiler."""
+    from werkzeug.contrib.profiler import ProfilerMiddleware
+    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[length],
+                                      profile_dir=profile_dir)
+    app.run()
+
+
+@manager.command
+def deploy():
+    """Run deployment tasks."""
+    from flask_migrate import upgrade
+    from app.models import Roles, Agencies
+
+    # migrate database to latest revision
+    upgrade()
+
+    # create user roles
+    Roles.populate()
+
+    # create agencies
+    Agencies.populate()
 
 
 if __name__ == "__main__":

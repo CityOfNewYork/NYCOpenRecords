@@ -1,5 +1,6 @@
 import unittest
 from app import create_app, db
+from app.models import Roles, Agencies
 
 
 class BaseTestCase(unittest.TestCase):
@@ -21,6 +22,7 @@ class BaseTestCase(unittest.TestCase):
         self.client = self.app.test_client()
         self.app_context = self.app.app_context()
         self.app_context.push()
+        self.populate_database()
 
     def tearDown(self):
         self.clear_database()
@@ -31,3 +33,7 @@ class BaseTestCase(unittest.TestCase):
         for table in reversed(meta.sorted_tables):
             db.session.execute(table.delete())
         db.session.commit()
+
+    def populate_database(self):
+        Roles.populate()
+        Agencies.populate()

@@ -25,6 +25,7 @@ from app.upload.utils import (
     is_valid_file_type,
     scan_and_complete_upload,
     get_upload_key,
+    upload_exists,
 )
 
 
@@ -45,64 +46,76 @@ def post(request_id):
     files = request.files
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
-    upload_path = os.path.join(
-        current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-        request_id)
-    if not os.path.exists(upload_path):
-        os.mkdir(upload_path)
-    filepath = os.path.join(upload_path, filename)
-    key = get_upload_key(request_id, filename)
-
-    try:
-        if CONTENT_RANGE_HEADER in request.headers:
-            start, size = parse_content_range(
-                request.headers[CONTENT_RANGE_HEADER])
-
-            # Only validate mime type on first chunk
-            valid_file_type = True
-            file_type = None
-            if start == 0:
-                valid_file_type, file_type = is_valid_file_type(file_)
-
-            if valid_file_type:
-                redis.set(key, upload_status.PROCESSING)
-                with open(filepath, 'ab') as fp:
-                    fp.seek(start)
-                    fp.write(file_.stream.read())
-                # scan if last chunk written
-                if os.path.getsize(filepath) == size:
-                    scan_and_complete_upload.delay(request_id, filepath)
-        else:
-            valid_file_type, file_type = is_valid_file_type(file_)
-            if valid_file_type:
-                redis.set(key, upload_status.PROCESSING)
-                file_.save(filepath)
-                scan_and_complete_upload.delay(request_id, filepath)
-
-        if not valid_file_type:
-            response = {
-                "files": [{
-                    "name": filename,
-                    "error": "File type '{}' is not allowed.".format(file_type)
-                }]
-            }
-        else:
-            response = {
-                "files": [{
-                    "name": filename,
-                    "original_name": file_.filename,
-                    "size": os.path.getsize(filepath),
-                }]
-            }
-    except Exception as e:
-        redis.set(key, upload_status.ERROR)
-        print("Upload for file '{}' failed: {}".format(filename, e))
+    if upload_exists(request_id, filename):
         response = {
             "files": [{
                 "name": filename,
-                "error": "Error uploading file."
+                "error": "A file with this name has already "
+                         "been uploaded for this request."
+                # TODO: "link": <link-to-existsing-file> ? would be nice
             }]
         }
+    else:
+        upload_path = os.path.join(
+            current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            request_id)
+        if not os.path.exists(upload_path):
+            os.mkdir(upload_path)
+        filepath = os.path.join(upload_path, filename)
+        key = get_upload_key(request_id, filename)
+
+        try:
+            if CONTENT_RANGE_HEADER in request.headers:
+                start, size = parse_content_range(
+                    request.headers[CONTENT_RANGE_HEADER])
+
+                # Only validate mime type on first chunk
+                valid_file_type = True
+                file_type = None
+                if start == 0:
+                    valid_file_type, file_type = is_valid_file_type(file_)
+
+                if valid_file_type:
+                    redis.set(key, upload_status.PROCESSING)
+                    with open(filepath, 'ab') as fp:
+                        fp.seek(start)
+                        fp.write(file_.stream.read())
+                    # scan if last chunk written
+                    if os.path.getsize(filepath) == size:
+                        scan_and_complete_upload.delay(request_id, filepath)
+            else:
+                valid_file_type, file_type = is_valid_file_type(file_)
+                if valid_file_type:
+                    redis.set(key, upload_status.PROCESSING)
+                    file_.save(filepath)
+                    scan_and_complete_upload.delay(request_id, filepath)
+
+            if not valid_file_type:
+                response = {
+                    "files": [{
+                        "name": filename,
+                        "error": "The file type '{}' is not allowed.".format(
+                            file_type)
+                    }]
+                }
+            else:
+                response = {
+                    "files": [{
+                        "name": filename,
+                        "original_name": file_.filename,
+                        "size": os.path.getsize(filepath),
+                    }]
+                }
+        except Exception as e:
+            redis.set(key, upload_status.ERROR)
+            print("Upload for file '{}' failed: {}".format(filename, e))
+            response = {
+                "files": [{
+                    "name": filename,
+                    "error": "There was a problem uploading this file."
+                }]
+            }
+
     return jsonify(response), 200
 
 
@@ -116,6 +129,9 @@ def delete(r_id_type, r_id, filecode):
     :param r_id: the Response or Request identifier
     :param filecode: the encoded name of the uploaded file
         (base64 without padding)
+
+    optional request body parameters:
+    - quarantine_only: only delete the file if it is quarantined
 
     :returns:
         On success:
@@ -140,8 +156,11 @@ def delete(r_id_type, r_id, filecode):
             status = redis.get(
                 get_upload_key(r_id, filename)).decode("utf-8")
             if status is not None:
+                path = (current_app.config['UPLOAD_QUARANTINE_DIRECTORY']
+                        if request.form.get('quarantine_only', False)
+                        else path_for_status[status])
                 filepath = os.path.join(
-                    os.path.join(path_for_status[status], r_id),
+                    os.path.join(path, r_id),
                     filename)
                 if os.path.exists(filepath):
                     os.remove(filepath)
