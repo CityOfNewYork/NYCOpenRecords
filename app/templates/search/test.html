@@ -1,0 +1,60 @@
+<span style="font-family: 'Helvetica Neue'">
+
+<h1>Simple Search</h1>
+<h3>Just uses ajax; backbone.js soon... maybe</h3>
+<form>
+    <input id="query" type="text" name="query" title="query" style="width: 100%; font-size: 2em"><br>
+    <br>
+    <input style="display: inline" type="checkbox" name="title" title="title" checked> Title<br>
+    <input type="checkbox" name="description" title="description" checked> Description<br>
+    <input type="checkbox" name="agency-description" title="agency-description" checked>Agency Description<br>
+</form>
+<div id="results-raw" style="white-space: pre"></div>
+<ol id="results"></ol>
+
+</span>
+
+<script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js') }}"></script>
+<script type="text/javascript">
+    $(function() {
+        $('#query').on('input', function() {
+            var results = $('#results');
+            results.children('li').remove();
+            results.text('');
+            var query = $(this).val();
+            if (query != '') {
+                $.ajax({
+                    url: '/search/requests',
+                    data: {
+                        query: query,
+                        title: true,
+                        description: true,
+                        agency_description: true
+                    },
+                    dataType: 'json',
+                    success: function(resp){
+                        // $('#results-raw').text(JSON.stringify(resp, null, 4));
+                        var hits = resp.hits.hits;
+                        if (hits.length > 0) {
+                            for (var i = 0; i < hits.length; i++) {
+                                var keys = Object.keys(hits[i].highlight);
+                                var content = "";
+                                for (var j = 0; j < keys.length; j++) {
+                                    content += "<strong>" + keys[j] + "</strong>" + "<br>"
+                                            + hits[i].highlight[keys[j]] + "<br>";
+                                }
+                                $('#results').append("<li style='border-bottom: " +
+                                        "1px gray solid; padding-bottom: 1em; " +
+                                        "padding-top: 1em;'>" + "<a href='" + "/request/view/" + hits[i]._id + "'>"
+                                        + hits[i]._id + "</a><br>" + content + "</li>");
+                            }
+                        }
+                        else {
+                            $('#results').text('No results found.')
+                        }
+                    }
+                })
+            }
+        });
+    });
+</script>

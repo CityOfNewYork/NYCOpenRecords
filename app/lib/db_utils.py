@@ -3,9 +3,7 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
-import json
-
-from app import db
+from app import db, es
 
 # TODO: Add comment explaining why this is needed
 from app.models import Agencies, Users, Requests
@@ -25,24 +23,30 @@ def create_object(obj):
         return None
 
 
-def update_object(attribute, value, obj_type, obj_id):
+def update_object(data, obj_type, obj_id):
     """
 
-    :param attribute:
-    :param value:
+    :param data: a dictionary of attribute-value pairs
     :param obj_type:
     :param obj_id:
+
+    :type obj_type: str
+
     :return:
     """
     obj = get_obj(obj_type, obj_id)
 
     if obj:
+        for attr, val in data.items():
+            setattr(obj, attr, val)
         try:
-            setattr(obj, attribute, value)
             db.session.add(obj)
-            db.session.commit(obj)
+            db.session.commit()
+            obj.es_update()
             return str(obj)
-        except Exception:
+        except Exception as e:
+            print(e)
+            db.session.rollback()
             return None
 
     return None

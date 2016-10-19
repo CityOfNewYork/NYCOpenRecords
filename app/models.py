@@ -2,7 +2,6 @@
 Models for OpenRecords database
 """
 import csv
-import json
 from datetime import datetime
 
 from flask import current_app
@@ -11,13 +10,14 @@ from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
-from app import db
+from app import db, es
 from app.constants import (
     PUBLIC_USER,
     AGENCY_USER,
     permission,
     role_name,
 )
+from app.search.constants import INDEX
 
 
 class Roles(db.Model):
@@ -282,7 +282,7 @@ class Requests(db.Model):
     due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
     submission - a Enum that selects from a list of submission methods
     current_status - a Enum that selects from a list of different statuses a request can have
-    privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
+    privacy - a JSON object *NOT A STRING* that contains the boolean privacy options of a request's title and agency description
               (True = Private, False = Public)
     """
 
@@ -315,18 +315,42 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        privacy_default = {'title': 'false', 'agency_description': 'true'}
+        privacy_default = {'title': False, 'agency_description': True}
         self.id = id
         self.title = title
         self.description = description
         self.agency = agency
         self.date_created = date_created
-        self.privacy = privacy or json.dumps(privacy_default)
+        self.privacy = privacy or privacy_default
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission
         self.current_status = current_status
         self.agency_description = agency_description
+
+    def es_update(self):
+        # TODO: handle error response
+        result = es.update(
+            index=INDEX,
+            doc_type='request',
+            id=self.id,
+            body = {
+                'doc': {
+                    'title': self.title,
+                    'description': self.description,
+                    'agency_description': self.agency_description,
+                    'title_private': self.privacy['title'],
+                    'agency_description_private': self.privacy['agency_description'],
+                    'date_submitted': self.date_submitted,
+                    'date_due': self.due_date,
+                    'submission': self.submission,
+                    'status': self.current_status
+                }
+            },
+            # refresh='wait_for'
+        )
+        import json
+        print(json.dumps(result, indent=2))
 
     def __repr__(self):
         return '<Requests %r>' % self.id

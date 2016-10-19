@@ -131,5 +131,4 @@ def view(request_id):
     :return: redirects to view_request.html which is the frame of the view a request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    privacy = json.loads(current_request.privacy)
-    return render_template('request/view_request.html', request=current_request, privacy=privacy)
+    return render_template('request/view_request.html', request=current_request, privacy=current_request.privacy)

@@ -266,8 +266,7 @@ def generate_request_id(agency):
     """
     if agency:
         next_request_number = Agencies.query.filter_by(ein=agency).first().next_request_number
-        update_object(attribute='next_request_number',
-                      value=next_request_number + 1,
+        update_object({'next_request_number': next_request_number + 1},
                       obj_type="Agencies",
                       obj_id=agency)
         request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(

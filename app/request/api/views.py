@@ -27,13 +27,12 @@ def edit_privacy():
     request_id = flask_request.form.get('id')
     current_request = Requests.query.filter_by(id=request_id).first()
     # Gets request's current privacy and loads it as a string
-    privacy = json.loads(current_request.privacy)
+    privacy = current_request.privacy
     # Stores title privacy if changed or uses current privacy if exists
     privacy['title'] = title or privacy['title']
     # Stores agency description privacy if changed or uses current privacy
     privacy['agency_description'] = agency_desc or privacy['agency_description']
-    update_object(attribute='privacy',
-                  value=json.dumps(privacy),
+    update_object({'privacy': privacy},
                   obj_type='Requests',
                   obj_id=current_request.id)
     return jsonify(privacy), 200
@@ -51,8 +50,7 @@ def edit_request_info():
     # title = flask_request.form['value']
     request_id = flask_request.form.get('pk')
     current_request = Requests.query.filter_by(id=request_id).first()
-    update_object(attribute=edit_request['name'],
-                  value=edit_request['value'],
+    update_object({edit_request['name']: edit_request['value']},
                   obj_type='Requests',
                   obj_id=current_request.id)
     return jsonify(edit_request), 200
