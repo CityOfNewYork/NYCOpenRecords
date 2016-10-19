@@ -1,5 +1,5 @@
 ## Build Status
-[![Build Status](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop) [ ![Codeship Status for joelbcastillo/openrecords_v2_0](https://app.codeship.com/projects/51886930-77ad-0134-f704-0e37a99201a3/status?branch=master)](https://app.codeship.com/projects/179988) 
+[![Build Status](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop/build_image)](https://snap-ci.com/joelbcastillo/openrecords_v2_0/branch/develop) [ ![Codeship Status for joelbcastillo/openrecords_v2_0](https://app.codeship.com/projects/51886930-77ad-0134-f704-0e37a99201a3/status?branch=develop)](https://app.codeship.com/projects/179988) 
 
 ## Code Health
 [![Code Health](https://landscape.io/github/joelbcastillo/openrecords_v2_0/develop/landscape.svg?style=flat)](https://landscape.io/github/joelbcastillo/openrecords_v2_0/develop) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/64dc52651e994c6d995b68be84823cb0)](https://www.codacy.com/app/joel-castillo/openrecords_v2_0?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joelbcastillo/openrecords_v2_0&amp;utm_campaign=Badge_Grade) 
