@@ -146,11 +146,12 @@ def add_extension(request_id, extension_length, reason, custom_due_date, email_c
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
                       extension.metadata_id,
-                      new_response_value=extension_metadata)
+                      new_response_value=extension_metadata,
+                      privacy='release_public')
     send_extension_email(extension_length,
                          reason,
                          email_content,
-                         request_id)
+                         request_id,)
 
 
 def edit_extension():
@@ -313,7 +314,7 @@ def process_privacy_options(files):
     return files_privacy_options
 
 
-def process_email_template_request(data, request_id):
+def process_email_template_request(request_id, data):
     """
     Processes the email template for responses. From data, determine the type of response and follow the appropriate
     execution path to render the email template.
@@ -327,9 +328,6 @@ def process_email_template_request(data, request_id):
     if data['type'] == 'extension_email':
         # calculates new due date based on selected value if custom due date is not selected
         if data['extension_value'] != "-1":
-            # current_due_date = current_request.due_date
-            # calc_due_date = get_following_date(current_due_date)
-            # new_due_date = get_due_date(calc_due_date, int(data['extension_value']))
             new_due_date = get_new_due_date(data['extension_value'], request_id).strftime('%A, %b %d, %Y')
         else:
             new_due_date = datetime.strptime(data['custom_value'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
@@ -367,7 +365,7 @@ def send_extension_email(extension_length, reason, email_content, request_id):
     safely_send_and_add_email(request_id,
                               email_content,
                               subject,
-                              "email_templates/email_file_upload",
+                              "email_templates/email_extension",
                               to=to,
                               bcc=bcc,
                               agency_name="Department of Records and Information Services",

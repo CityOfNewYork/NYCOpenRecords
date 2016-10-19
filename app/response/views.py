@@ -89,7 +89,8 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    email_template = process_email_template_request(data, request_id)
+    email_template = process_email_template_request(request_id,
+                                                    data)
     return email_template
 
 

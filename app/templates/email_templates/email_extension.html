@@ -1,9 +1,15 @@
 <p>
-    The {{ data['department'] }} has provided additional
-    information about your request. Please visit <a href='{{ page }}'>{{ page }}</a> to view the additional information.
+    We are still in the process of searching for the documents you requested under the Freedom of Information Law
+    (FOIL).
 </p>
 <p>
-    Your request has been extended until: {{ new_due_date }}.
+    You can expect a response on or about {{ new_due_date }}
+</p>
+<p>
+    Additional Information: <br/>
+    {{ data['extension_reason'] }}
+</p>
+<p>
     You can view the request and take any necessary action at the following webpage:
     <a href='{{ page }}'>{{ page }}</a>.
 </p>
