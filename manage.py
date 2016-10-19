@@ -7,7 +7,7 @@ COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
 
-    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir(), '.coveragerc'))
+    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
     COV.start()
 
 from flask_migrate import Migrate, MigrateCommand
