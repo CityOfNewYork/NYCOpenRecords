@@ -3,13 +3,9 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
-from app import db, es
+from app import db
 from sqlalchemy.orm.attributes import flag_modified
-
-
-# TODO: Add comment explaining why this is needed
-from app.models import Agencies, Users, Requests
-
+from app.models import Agencies
 
 def create_object(obj):
     """
@@ -28,31 +24,36 @@ def create_object(obj):
 
 def update_object(data, obj_type, obj_id):
     """
+    Update a database record.
 
     :param data: a dictionary of attribute-value pairs
-    :param obj_type:
-    :param obj_id:
+    :param obj_type: sqlalchemy model
+    :param obj_id: id of record
 
-    :type obj_type: str
-
-    :return:
+    :return: string representation of the updated object
+        or None if updating failed
     """
     obj = get_obj(obj_type, obj_id)
 
     if obj:
-        for attr, val in data.items():
-            if type(val) == dict:
+        for attr, value in data.items():
+            if type(value) == dict:
+                # update json values
+                for key, val in value.items():
+                    getattr(obj, attr)[key] = val
                 flag_modified(obj, attr)
-            setattr(obj, attr, val)
+            else:
+                setattr(obj, attr, value)
         try:
             db.session.commit()
-            obj.es_update()
-            return str(obj)
         except Exception as e:
-            print(e)
+            print("Error", e)
             db.session.rollback()
-            return None
-
+        else:
+            # update elasticsearch
+            if hasattr(obj, 'es_update'):
+                obj.es_update()
+            return str(obj)
     return None
 
 
@@ -65,7 +66,7 @@ def get_obj(obj_type, obj_id):
     """
     if not obj_id:
         return None
-    return eval(obj_type).query.get(obj_id)
+    return obj_type.query.get(obj_id)
 
 
 def get_agencies_list():

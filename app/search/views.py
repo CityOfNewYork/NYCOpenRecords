@@ -22,11 +22,14 @@ def requests():
     - description: (optional, default: true) search by description?
     - agency_description: (optional, default: true) search by agency description?
     - exact: (optional, default: true) don't use full-text searching?
+    - size: (optional, default: 10) number of results to return
 
     """
     query = request.args.get('query')
     if query is None:
         return jsonify({}), 422
+
+    size = int(request.args.get('size', 10))
 
     # TODO: there is a better way
     def request_arg_bool_eval(name, default='True'):
@@ -74,7 +77,7 @@ def requests():
             }
         },
         _source=['title', 'description', 'agency_description'],
-        size=10,
+        size=size,
     )
 
     return jsonify(result), 200
