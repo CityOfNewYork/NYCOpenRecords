@@ -320,6 +320,9 @@ def _process_response(request_id, responses_type, events_type, metadata_id, priv
 class ResponseEditor(metaclass=ABCMeta):
     """
     Abstract base class for editing a response and its metadata.
+
+    All derived classes must implement the 'metadata_fields' method and
+    should override the `edit_metadata` method with any additional logic.
     """
 
     def __init__(self, user, response, flask_request):
@@ -350,6 +353,12 @@ class ResponseEditor(metaclass=ABCMeta):
         }[type(self.metadata)]
 
     @property
+    def metadata_new(self):
+        data = dict(self.data_new)
+        data.pop('privacy')
+        return data
+
+    @property
     @abstractmethod
     def metadata_fields(self):
         """ List of fields that can be edited directly """
@@ -375,9 +384,13 @@ class ResponseEditor(metaclass=ABCMeta):
             previous_response_value=self.data_old,
             new_reponse_value=self.data_new)
         create_object(event)
-        update_object({'date_modified': timestamp}, 'Response', self.response.id)
-        # TODO: deal with privacy, commit, merge with master
-        update_object(data_new, type(self.metadata).__name__, self.metadata.id)
+        update_object({'date_modified': timestamp,
+                       'privacy': self.data_new['privacy']},
+                      Responses,
+                      self.response.id)
+        update_object(self.metadata_new,
+                      type(self.metadata),
+                      self.metadata.id)
 
 
 class RespFileEditor(ResponseEditor):
@@ -387,6 +400,7 @@ class RespFileEditor(ResponseEditor):
 
     def edit_metadata(self):
         super(RespFileEditor, self).edit_metadata()
+        # TODO: add upload stuff
 
 
 class RespNoteEditor(ResponseEditor):
@@ -395,4 +409,19 @@ class RespNoteEditor(ResponseEditor):
         return ['content']
 
 
-# TODO: the rest of them (same fashion)
+class RespLinkEditor(ResponseEditor):
+
+    def metadata_fields(self):
+        return ['title', 'url']
+
+
+class RespInstructionsEditor(ResponseEditor):
+
+    def metadata_fields(self):
+        return ['content']
+
+
+class RespExtensionEditor(ResponseEditor):
+
+    def metadata_fields(self):
+        return ['reason']

@@ -433,7 +433,7 @@ class Responses(db.Model):
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    type = db.Column(db.String(30))
+    type = db.Column(db.String(30))  # TODO: enum
     metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
     privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
     date_modified = db.Column(db.DateTime)
