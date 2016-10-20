@@ -120,7 +120,7 @@ def update_user(guid=None, user_type=None, **kwargs):
     if not guid:
         return None
     
-    user = update_object(kwargs, obj_type="Users", obj_id=(guid, auth_user_type))
+    user = update_object(kwargs, obj_type=Users, obj_id=(guid, auth_user_type))
 
     if not user:
         return None

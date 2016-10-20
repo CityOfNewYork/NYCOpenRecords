@@ -322,20 +322,20 @@ def _move_validated_upload(request_id, tmp_path):
     return file_obj.metadata_id, file_metadata
 
 
-def generate_request_id(agency):
+def generate_request_id(agency_ein):
     """
     Generates an agency_ein-specific FOIL request id.
 
-    :param agency: agency_ein ein used to generate the request_id
+    :param agency_ein: agency_ein ein used to generate the request_id
     :return: generated FOIL Request ID (FOIL - year - agency_ein ein - 5 digits for request number)
     """
-    if agency:
-        next_request_number = Agencies.query.filter_by(ein=agency).first().next_request_number
+    if agency_ein:
+        next_request_number = Agencies.query.filter_by(ein=agency_ein).first().next_request_number
         update_object({'next_request_number': next_request_number + 1},
-                      obj_type="Agencies",
-                      obj_id=agency)
+                      Agencies,
+                      agency_ein)
         request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(
-            datetime.now().strftime("%Y"), int(agency), int(next_request_number))
+            datetime.now().strftime("%Y"), int(agency_ein), int(next_request_number))
         return request_id
     return None
 

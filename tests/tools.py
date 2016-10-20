@@ -26,6 +26,8 @@ class RequestsFactory(object):
     A very crude first step in making testing easier.
     """
 
+    filepaths = []
+
     def __init__(self, request_id):
         date_created = datetime.utcnow()
         date_submitted = get_date_submitted(date_created)
@@ -56,27 +58,39 @@ class RequestsFactory(object):
         else:
             filename = os.path.basename(filepath)
 
+        self.filepaths.append(filepath)
+
         # create an empty file if the specified path does not exist
         if not os.path.exists(filepath):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             open(filepath, 'w').close()
 
-        file = Files(
+        file_ = Files(
             name=filename,
             mime_type=mime_type,
             title=title or filename,
             size=os.path.getsize(filepath)
         )
-        create_object(file)
+        create_object(file_)
         response = Responses(
             request_id=self.request.id,
             type=response_type.FILE,
             date_modified=datetime.utcnow(),
-            metadata_id=file.metadata_id,
+            metadata_id=file_.metadata_id,
             privacy="private",
         )
         create_object(response)
-        return response
+        return response, file_
 
     def add_note(self):
         pass
+
+    def __del__(self):
+        """
+        Clean up time!
+        - remove any files created by this factory
+        - ...
+        """
+        for path in self.filepaths:
+            if os.path.exists(path):
+                os.remove(path)
