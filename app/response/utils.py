@@ -23,12 +23,13 @@ from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.date_utils import get_new_due_date
 from app.lib.file_utils import get_mime_type
 from app.models import (
+    Agencies,
     Responses,
     Events,
     Notes,
     Files,
-    UserRequests,
     Requests,
+    UserRequests,
     Extensions,
     Emails
 )
@@ -250,13 +251,11 @@ def send_file_email(request_id, privacy, filenames, email_content):
     file_to_link = {}
     for filename in filenames:
         file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
-
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     if privacy == 'release':
         # Query for the requester's email information
-        # Query for the requester's guid from UserRequests using first because there can only be one unique requester
         requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                        request_user_type=REQUESTER).first().user.email
-
         # Send email with files to requester and bcc agency_ein users as privacy option is release
         to = [requester_email]
         safely_send_and_add_email(request_id,
@@ -265,7 +264,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
                                   "email_templates/email_file_upload",
                                   to=to,
                                   bcc=bcc,
-                                  agency_name="Department of Records and Information Services",
+                                  agency_name=agency_name,
                                   files_links=file_to_link)
 
     if privacy == 'private':
@@ -275,7 +274,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
                                   subject,
                                   "email_templates/email_file_upload",
                                   bcc=bcc,
-                                  agency_name="Department of Records and Information Services",
+                                  agency_name=agency_name,
                                   files_links=file_to_link)
 
 
@@ -314,6 +313,7 @@ def process_email_template_request(request_id, data):
     :return: Renders email template with its given arguments
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     # process email template for extension
     if data['type'] == 'extension_email':
         # calculates new due date based on selected value if custom due date is not selected
@@ -332,7 +332,8 @@ def process_email_template_request(request_id, data):
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                data=data,
-                               page=page)
+                               page=page,
+                               agency_name=agency_name)
 
 
 def send_extension_email(request_id, new_due_date, reason, email_content):
@@ -359,7 +360,6 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
                               "email_templates/email_extension",
                               to=to,
                               bcc=bcc,
-                              agency_name="Department of Records and Information Services",
                               new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
                               reason=reason,
                               )

@@ -21,6 +21,7 @@ from flask_mail import Message
 from app import mail, celery
 from app.models import Users, UserRequests
 from app.constants.request_user_type import AGENCY
+from app.constants import AGENCY_USER
 
 
 @celery.task
