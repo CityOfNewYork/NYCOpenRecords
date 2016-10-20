@@ -344,9 +344,8 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
     :param reason: reason for extending the request
     :param email_content: content body of the email notification being sent
 
-    :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a 
-             request.
-             
+    :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a
+    request.
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
