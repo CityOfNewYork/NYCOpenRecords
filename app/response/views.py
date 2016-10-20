@@ -9,7 +9,6 @@ import json
 from flask import render_template, flash, request as flask_request, url_for, redirect
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
-from werkzeug.exceptions import BadRequestKeyError
 
 from app.models import Requests
 from app.response import response
