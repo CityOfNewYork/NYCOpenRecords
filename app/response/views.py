@@ -9,6 +9,7 @@ import json
 from flask import render_template, flash, request as flask_request, url_for, redirect
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
+from werkzeug.exceptions import BadRequestKeyError
 
 from app.models import Requests
 from app.response import response
@@ -78,8 +79,22 @@ def response_extension(request_id):
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     extension_data = flask_request.form
+
+    required_fields = ['length',
+                       'reason',
+                       'due-date',
+                       'email-extend-content']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if extension_data.get(field) is None:
+            flash('Uh Oh, it looks like the extension {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
     add_extension(request_id,
-                  extension_data['extension-length'],
+                  extension_data['length'],
                   extension_data['reason'],
                   extension_data['due-date'],
                   extension_data['email-extend-content'])

@@ -20,7 +20,7 @@ from app.constants import (
 from app.constants.request_user_type import REQUESTER
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email, get_agencies_emails
-from app.lib.date_utils import get_new_due_date
+from app.lib.date_utils import generate_new_due_date
 from app.lib.file_utils import get_mime_type
 from app.models import (
     Responses,
@@ -121,23 +121,8 @@ def edit_note():
     print("edit_note function")
 
 
-def add_extension(request_id, extension_length, reason, custom_due_date, email_content):
-    """
-    Creates and stores the extension object for the specified request.
-
-    :param request_id: Request ID that the extension is being added to
-    :param extension_length: length the due date is being extended by
-    :param reason: reason for extending the request
-    :param custom_due_date: new custom due date of the request
-    :param email_content: email body content of the email to be created and stored as a email object
-    :return: Stores the extension metadata (reason and new due date) into the Extensions table.
-             Provides parameters for the process_response function to create and store responses and events object.
-             Privacy for an extension is always release and public.
-    """
-    if extension_length == '-1':
-        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
-    else:
-        new_due_date = get_new_due_date(extension_length, request_id)
+def add_extension(request_id, length, reason, custom_due_date, email_content):
+    new_due_date = _get_new_due_date(request_id, length, custom_due_date)
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
     extension_metadata = {'reason': reason,
@@ -154,6 +139,25 @@ def add_extension(request_id, extension_length, reason, custom_due_date, email_c
                          email_content)
 
 
+def _get_new_due_date(request_id, extension_length, custom_due_date):
+    """
+    Gets the new due date from either generating with extension length, or setting from an inputted custom due date.
+    If the extension length is -1, then we use the custom_due_date to determine the new_due_date.
+    Or else, extension length has an length (20, 30, 60, 90, or 120) and new_due_date will be determined by
+    generate_due_date.
+
+    :param request_id: FOIL request ID that is being
+    :param extension_length: length the due date is being extended by
+    :param custom_due_date: new custom due date of the request
+    :return: new_due_date of the request
+    """
+    if extension_length == '-1':
+        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
+    else:
+        new_due_date = generate_new_due_date(extension_length, request_id)
+    return new_due_date
+
+
 def edit_extension():
     """
     Will edit an extension to the database for the specified request.
@@ -165,7 +169,7 @@ def edit_extension():
 
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
-    Creates and stores the note object for the specified request.
+    Creates and stores the email object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param subject: subject of the email to be created and stored as a email object
@@ -316,10 +320,9 @@ def process_email_template_request(request_id, data):
     # process email template for extension
     if data['type'] == 'extension_email':
         # calculates new due date based on selected value if custom due date is not selected
-        if data['extension_length'] != "-1":
-            new_due_date = get_new_due_date(data['extension_length'], request_id).strftime('%A, %b %d, %Y')
-        else:
-            new_due_date = datetime.strptime(data['custom_due_date'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
+        new_due_date = _get_new_due_date(request_id,
+                                         data['extension_length'],
+                                         data['custom_due_date']).strftime('%A, %b %d, %Y')
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                data=data,

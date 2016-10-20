@@ -29,7 +29,7 @@ def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=0, seco
     return calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
 
 
-def get_new_due_date(extension_length, request_id):
+def generate_new_due_date(extension_length, request_id):
     """
     Calculates the new due date starting day after the current due date. Calls get_following_date and get_due_date
     functions in lib.date_utils to calculate.

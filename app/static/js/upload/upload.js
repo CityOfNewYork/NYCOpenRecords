@@ -4,8 +4,10 @@
 
 $(document).ready(function () {
     tinymce.init({
+        // sets tinymce to enable only on specific textareas classes
         mode : "specific_textareas",
-        editor_selector: 'tinymce-area',
+        // selector for tinymce textarea classes is set to 'tinymce-area'
+        editor_selector: "tinymce-area",
         height: 180
     });
 
