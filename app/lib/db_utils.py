@@ -47,7 +47,7 @@ def update_object(data, obj_type, obj_id):
         try:
             db.session.commit()
         except Exception as e:
-            print("Error", e)
+            print("Error:", e)
             db.session.rollback()
         else:
             # update elasticsearch
