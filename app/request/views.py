@@ -3,16 +3,16 @@
 
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
-import json
-
 from flask import (
     render_template,
     redirect,
     url_for,
     request as flask_request,
     current_app,
+    flash,
+    Markup
 )
-
+from flask_login import current_user
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
 from app.request import request
@@ -21,7 +21,6 @@ from app.request.forms import (
     AgencyUserRequestForm,
     AnonymousRequestForm
 )
-from flask_login import current_user
 from app.models import (
     Requests,
     Agencies,
@@ -32,18 +31,23 @@ from app.request.utils import (
     create_request,
     handle_upload_no_id,
     get_address,
+    send_confirmation_email
 )
-from app.constants import request_status
+from app.constants import (
+    request_status,
+    request_user_type as req_user_type
+)
 
 
 @request.route('/new', methods=['GET', 'POST'])
 def new():
     """
     Create a new FOIL request
+    sends a confirmation email after the Requests object is created.
 
     title: request title
     description: request description
-    agency: agency selected for the request
+    agency_ein: agency_ein selected for the request
     submission: submission method for the request
 
     :return: redirects to homepage if form validates
@@ -62,13 +66,11 @@ def new():
         template_suffix = 'anon.html'
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        template_suffix = 'agency.html'
+        template_suffix = 'agency_ein.html'
     else:
         raise InvalidUserException(current_user)
 
     new_request_template = 'request/new_request_' + template_suffix
-
-    print(new_request_template)
 
     if flask_request.method == 'POST':
         # validate upload with no request id available
@@ -81,44 +83,56 @@ def new():
 
         # create request
         if current_user.is_public:
-            create_request(form.request_title.data,
-                           form.request_description.data,
-                           agency=form.request_agency.data,
-                           upload_path=upload_path)
-        elif current_user.is_anonymous:
-            create_request(form.request_title.data,
-                           form.request_description.data,
-                           agency=form.request_agency.data,
-                           email=form.email.data,
-                           first_name=form.first_name.data,
-                           last_name=form.last_name.data,
-                           user_title=form.user_title.data,
-                           organization=form.user_organization.data,
-                           phone=form.phone.data,
-                           fax=form.fax.data,
-                           address=get_address(form),
-                           upload_path=upload_path)
+            request_id = create_request(form.request_title.data,
+                                        form.request_description.data,
+                                        agency=form.request_agency.data,
+                                        upload_path=upload_path)
+        elif current_user.is_agency:
+            request_id = create_request(form.request_title.data,
+                                        form.request_description.data,
+                                        submission=form.method_received.data,
+                                        agency_date_submitted=form.request_date.data,
+                                        email=form.email.data,
+                                        first_name=form.first_name.data,
+                                        last_name=form.last_name.data,
+                                        user_title=form.user_title.data,
+                                        organization=form.user_organization.data,
+                                        phone=form.phone.data,
+                                        fax=form.fax.data,
+                                        address=get_address(form),
+                                        upload_path=upload_path)
+        else: # Anonymous User
+            request_id = create_request(form.request_title.data,
+                                        form.request_description.data,
+                                        agency=form.request_agency.data,
+                                        email=form.email.data,
+                                        first_name=form.first_name.data,
+                                        last_name=form.last_name.data,
+                                        user_title=form.user_title.data,
+                                        organization=form.user_organization.data,
+                                        phone=form.phone.data,
+                                        fax=form.fax.data,
+                                        address=get_address(form),
+                                        upload_path=upload_path)
             # commented out recaptcha verifying functionalty because of NYC network proxy preventing it to send a
             # backend request to the API
 
             # if recaptcha.verify() is False:
             #     flash("Please complete reCAPTCHA.")
             #     return render_template(new_request_template, form=form, site_key=site_key)
-        elif current_user.is_agency:
-            create_request(form.request_title.data,
-                           form.request_description.data,
-                           submission=form.method_received.data,
-                           agency_date_submitted=form.request_date.data,
-                           email=form.email.data,
-                           first_name=form.first_name.data,
-                           last_name=form.last_name.data,
-                           user_title=form.user_title.data,
-                           organization=form.user_organization.data,
-                           phone=form.phone.data,
-                           fax=form.fax.data,
-                           address=get_address(form),
-                           upload_path=upload_path)
-        return redirect(url_for('main.index'))
+
+        current_request = Requests.query.filter_by(id=request_id).first()
+        requester = current_request.user_requests.filter_by(request_user_type=req_user_type.REQUESTER).first().user
+        send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
+
+        if requester.email:
+            flashed_message_html = render_template('request/confirmation_email.html')
+            flash(Markup(flashed_message_html), category='success')
+        else:
+            flashed_message_html = render_template('request/confirmation_non_email.html')
+            flash(Markup(flashed_message_html), category='warning')
+
+        return redirect(url_for('request.view', request_id=request_id))
     return render_template(new_request_template, form=form, site_key=site_key)
 
 
@@ -135,15 +149,12 @@ def view(request_id):
     :return: redirects to view_request.html which is the frame of the view a request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    privacy = json.loads(current_request.privacy)
-    status = current_request.current_status
     agency = Agencies.query.filter_by(ein=current_request.agency).first()
     user_request = UserRequests.query.filter_by(request_id=current_request.id).first()
     requester = Users.query.filter_by(guid=user_request.user_guid,
                                       user_type=user_request.user_type).first()
     return render_template('request/view_request.html',
                            request=current_request,
-                           privacy=privacy,
                            status=request_status,
                            agency_name=agency.name,
                            requester=requester)

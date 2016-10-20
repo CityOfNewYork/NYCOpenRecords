@@ -59,7 +59,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') or False
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
-    MAIL_PORT = 2500
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Development]'
     MAIL_SENDER = 'OpenRecords - Dev Admin <donotreply@records.nyc.gov>'
