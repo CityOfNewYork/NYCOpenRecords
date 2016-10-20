@@ -10,6 +10,7 @@ from datetime import datetime
 
 import os
 import re
+from abc import ABCMeta, abstractmethod
 from flask import current_app
 
 from app.constants import (
@@ -19,13 +20,22 @@ from app.constants import (
     PUBLIC_USER_NYC_ID,
     ANONYMOUS_USER
 )
-from app.lib.db_utils import create_object
+from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import (
     send_email,
     store_email
 )
 from app.lib.file_utils import get_mime_type
-from app.models import Responses, Events, Notes, Files, Users, UserRequests
+from app.models import (
+    Responses,
+    Events,
+    Notes,
+    Files,
+    Users,
+    UserRequests,
+    Links,
+    Instructions,
+)
 
 
 def add_file(request_id, filename, title, privacy):
@@ -65,15 +75,6 @@ def delete_file():
     return None
 
 
-def edit_file():
-    """
-    Will edit a file to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement editing a file
-    print("edit_file function")
-
-
 def add_note(request_id, content):
     """
     Creates and stores the note object for the specified request.
@@ -100,15 +101,6 @@ def delete_note():
     print("delete_note function")
 
 
-def edit_note():
-    """
-    Will edit a note in the database for the specified request.
-    :return:
-    """
-    # TODO: Implement deleting a note
-    print("edit_note function")
-
-
 def add_extension():
     """
     Will add an extension to the database for the specified request.
@@ -116,15 +108,6 @@ def add_extension():
     """
     # TODO: Implement adding an extension
     print("add_extension function")
-
-
-def edit_extension():
-    """
-    Will edit an extension to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement editing an extension
-    print("edit_extension function")
 
 
 def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
@@ -332,3 +315,84 @@ def _process_response(request_id, responses_type, events_type, metadata_id, priv
                    new_response_value=new_response_value)
     # store event object
     create_object(obj=event)
+
+
+class ResponseEditor(metaclass=ABCMeta):
+    """
+    Abstract base class for editing a response and its metadata.
+    """
+
+    def __init__(self, user, response, flask_request):
+        self.user = user
+        self.response = response
+        self.flask_request = flask_request
+        self.metadata = response.metadata
+
+        self.data_old = {}
+        self.data_new = {}
+        self.errors = []
+
+        privacy = flask_request.form.get('privacy')
+        if privacy and privacy != self.response.privacy:
+            self.data_old['privacy'] = self.response.privacy
+            self.data_new['privacy'] = privacy
+
+        self.edit_metadata()
+        self.add_event_and_update()
+
+    @property
+    def event_type(self):
+        return {
+            Files: event_type.FILE_EDITED,
+            Notes: event_type.NOTE_EDITED,
+            Links: event_type.LINK_EDITED,
+            Instructions: event_type.INSTRUCTIONS_ADDED,
+        }[type(self.metadata)]
+
+    @property
+    @abstractmethod
+    def metadata_fields(self):
+        """ List of fields that can be edited directly """
+        return list()
+
+    def edit_metadata(self):
+        for field in self.metadata_fields:
+            value_new = self.flask_request.form.get(field)
+            value_orig = getattr(self.metadata, field)
+            if value_new and value_new != value_orig:
+                self.data_old[field] = value_orig
+                self.data_new[field] = value_new
+
+    def add_event_and_update(self):
+        timestamp = datetime.utcnow()
+        event = Events(
+            type=self.event_type,
+            request_id=self.response.request_id,
+            response_id=self.response.id,
+            user_id=self.user.id,
+            auth_user_type=self.user.auth_user_type,
+            timestamp=timestamp,
+            previous_response_value=self.data_old,
+            new_reponse_value=self.data_new)
+        create_object(event)
+        update_object({'date_modified': timestamp}, 'Response', self.response.id)
+        # TODO: deal with privacy, commit, merge with master
+        update_object(data_new, type(self.metadata).__name__, self.metadata.id)
+
+
+class RespFileEditor(ResponseEditor):
+
+    def metadata_fields(self):
+        return ['title']
+
+    def edit_metadata(self):
+        super(RespFileEditor, self).edit_metadata()
+
+
+class RespNoteEditor(ResponseEditor):
+
+    def metadata_fields(self):
+        return ['content']
+
+
+# TODO: the rest of them (same fashion)

@@ -5,7 +5,6 @@
 """
 
 import json
-from datetime import datetime
 
 from flask import (
     render_template,
@@ -15,6 +14,7 @@ from flask import (
     redirect,
     jsonify,
 )
+from flask_login import current_user
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
@@ -23,10 +23,10 @@ from app.response import response
 from app.response.utils import (
     add_note,
     add_file,
-    edit_file,
     process_upload_data,
     send_response_email,
-    process_privacy_options
+    process_privacy_options,
+    RespFileEditor,
 )
 from app.constants import response_type
 
@@ -126,41 +126,31 @@ def response_visiblity():
 @response.route('/<response_id>', methods=['PUT'])
 def edit_response(response_id):
     """
-    WIP
+    Edit a response's privacy and its metadata.
+
+    Expects a request body containing field names and updated values.
+    Ex:
+    {
+        'privacy': 'release_public',
+        'title': 'new title'
+    }
+    Response body consists of both the old and updated data, or an error message.
     """
+    if current_user.is_anonymous():
+        return {}, 403
+    # TODO: permissions check
     resp = Responses.query.filter_by(id=response_id).first()
-    data_prev = {}
-    data_new = {}
-
-    # check & update privacy
-    privacy = flask_request.form.get('privacy')
-    if privacy and privacy != resp.privacy:
-        data_prev['privacy'] = resp.privacy
-        data_new['privacy'] = privacy
-        # with db_session():
-        #     resp.privacy = privacy
-        #     resp.date_modified = datetime.utcnow()
-        #     # TODO: test if this actually works!
-
-    handler_for_type = {
-        response_type.FILE: edit_file,
-        # response_type.NOTE: edit_note,
+    editor_for_type = {
+        response_type.FILE: RespFileEditor,
+        # response_type.NOTE: RespNoteEditor,
         # ...
     }
-
-    handler_for_type[resp.type](flask_request, resp.metadata)  # create reference in models?
-
-    # title
-    title = flask_request.form.get('title')
-    if title and title != file.title:
-        data_prev['title'] = file.title
-        data_new['title'] = title
-        # change title in db
-        pass
-
-    # file data TODO: add hash
-    if flask_request.files:
-        # do upload stuff, update db and data dicts
-        # check for existing file names for other request responses
-        pass
-    return jsonify(data_new), 200
+    editor = editor_for_type[resp.type](current_user, resp, flask_request)
+    if editor.errors:
+        http_response = {"errors": editor.errors}
+    else:
+        http_response = {
+            "old": editor.data_old,
+            "new": editor.data_new
+        }
+    return jsonify(http_response), 200

@@ -61,18 +61,18 @@ class RequestsFactory(object):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             open(filepath, 'w').close()
 
-        file = Files(
+        file_ = Files(
             name=filename,
             mime_type=mime_type,
             title=title or filename,
             size=os.path.getsize(filepath)
         )
-        create_object(file)
+        create_object(file_)
         response = Responses(
             request_id=self.request.id,
             type=response_type.FILE,
             date_modified=datetime.utcnow(),
-            metadata_id=file.id,
+            metadata_id=file_.id,
             privacy="private",
         )
         create_object(response)

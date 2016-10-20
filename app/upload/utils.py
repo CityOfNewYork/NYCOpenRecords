@@ -41,8 +41,8 @@ def parse_content_range(header):
     :param header: the rhs of the content-range header
     :return: the first-byte-pos and instance-length
     """
-    bytes = header.split(' ')[1]
-    return int(bytes.split('-')[0]), int(bytes.split('/')[1])
+    bytes_ = header.split(' ')[1]
+    return int(bytes_.split('-')[0]), int(bytes_.split('/')[1])
 
 
 def upload_exists(request_id, filename):
