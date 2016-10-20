@@ -12,7 +12,7 @@ from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file, add_extension,  process_upload_data, send_response_email, \
+from app.response.utils import add_note, add_file, add_extension,  process_upload_data, send_file_email, \
     process_privacy_options, process_email_template_request
 
 
@@ -64,17 +64,24 @@ def response_file(request_id):
         file_options = process_privacy_options(files)
         email_content = flask_request.form['email-content']
         for privacy, files in file_options.items():
-            send_response_email(request_id, privacy, files, email_content)
+            send_file_email(request_id, privacy, files, email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/extension/<request_id>', methods=['POST'])
 def response_extension(request_id):
+    """
+    Extension response endpoint that takes in the metadata of an extension for a specific request from the frontend.
+    Calls add_extension to process the extension form data.
+
+    :param request_id: Specific FOIL request ID for the extension
+    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    """
     extension_data = flask_request.form
     add_extension(request_id,
-                  extension_data['extension-date'],
+                  extension_data['extension-length'],
                   extension_data['reason'],
-                  extension_data['due_date'],
+                  extension_data['due-date'],
                   extension_data['email-extend-content'])
     return redirect(url_for('request.view', request_id=request_id))
 
@@ -89,8 +96,7 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    email_template = process_email_template_request(request_id,
-                                                    data)
+    email_template = process_email_template_request(request_id, data)
     return email_template
 
 

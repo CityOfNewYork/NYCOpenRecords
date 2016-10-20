@@ -1,7 +1,7 @@
 <script type="text/javascript">
 $(document).ready(function () {
     // Hides all other divs except for the first. Also hides previous button on the first div.
-    $(".add-extension .extension-divs").each(function (e) {
+    $(".extension-control .extension-divs").each(function (e) {
         if (e != 0)
             $(this).hide();
         else
@@ -35,9 +35,8 @@ $(document).ready(function () {
                 request_id: "{{ request.id }}",
                 template_name: "email_extension.html",
                 type: "extension_email",
-                department: "Department of Records and Information Services",
-                extension_value: $('#extension-select').val(),
-                custom_value: $('#custom-extension').val(),
+                extension_length: $('#extension-select').val(),
+                custom_due_date: $('#custom-extension').val(),
                 extension_reason: $('#extension-reason').val()
             };
 
@@ -79,10 +78,10 @@ $(document).ready(function () {
     $("#extension-select").change(function () {
         selected = $(this).val();
         if (selected === "-1") {
-            $("#custom_due_date").show();
+            $("#custom-due-date").show();
         }
         else {
-            $("#custom_due_date").hide();
+            $("#custom-due-date").hide();
         }
     });
 
@@ -90,6 +89,11 @@ $(document).ready(function () {
     $("#custom-extension").datepicker({
         dateFormat: "yy-mm-dd"
     });
+
+    // Strips time from and disables dates before the current due date
+    var current_due_date = "{{ request.due_date }}";
+    current_due_date = current_due_date.split(' ')[0];
+    $("#custom-extension").datepicker('option', 'minDate', current_due_date);
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var required_fields = ['custom-extension','extension-select', 'extension-reason'];

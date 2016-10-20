@@ -15,21 +15,18 @@ from flask_login import current_user
 from app.constants import (
     event_type,
     response_type,
-    AGENCY_USER,
-    PUBLIC_USER_NYC_ID,
     ANONYMOUS_USER
 )
-from app.constants.request_user_type import AGENCY, REQUESTER
+from app.constants.request_user_type import REQUESTER
 from app.lib.db_utils import create_object, date_deserialize
-from app.lib.email_utils import send_email
-from app.lib.date_utils import get_following_date, get_due_date
+from app.lib.email_utils import send_email, get_agencies_emails
+from app.lib.date_utils import get_new_due_date
 from app.lib.file_utils import get_mime_type
 from app.models import (
     Responses,
     Events,
     Notes,
     Files,
-    Users,
     UserRequests,
     Requests,
     Extensions,
@@ -126,13 +123,16 @@ def edit_note():
 
 def add_extension(request_id, extension_length, reason, custom_due_date, email_content):
     """
+    Creates and stores the extension object for the specified request.
 
-    :param request_id:
-    :param extension_length:
-    :param reason:
-    :param custom_due_date:
-    :param email_content:
-    :return:
+    :param request_id: Request ID that the extension is being added to
+    :param extension_length: length the due date is being extended by
+    :param reason: reason for extending the request
+    :param custom_due_date: new custom due date of the request
+    :param email_content: email body content of the email to be created and stored as a email object
+    :return: Stores the extension metadata (reason and new due date) into the Extensions table.
+             Provides parameters for the process_response function to create and store responses and events object.
+             Privacy for an extension is always release and public.
     """
     if extension_length == '-1':
         new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
@@ -148,10 +148,10 @@ def add_extension(request_id, extension_length, reason, custom_due_date, email_c
                       extension.metadata_id,
                       new_response_value=extension_metadata,
                       privacy='release_public')
-    send_extension_email(extension_length,
+    send_extension_email(request_id,
+                         new_due_date,
                          reason,
-                         email_content,
-                         request_id,)
+                         email_content)
 
 
 def edit_extension():
@@ -230,7 +230,7 @@ def process_upload_data(form):
     return files
 
 
-def send_response_email(request_id, privacy, filenames, email_content):
+def send_file_email(request_id, privacy, filenames, email_content):
     """
     Function that sends email detailing a file response has been uploaded to a request.
     If the file privacy is private, only agency_ein users are emailed.
@@ -245,18 +245,8 @@ def send_response_email(request_id, privacy, filenames, email_content):
     """
     # TODO: make subject constants
     subject = 'Response Added'
-    # Get list of agency_ein users on the request
-    agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
-                                                                                           request_user_type=AGENCY).all()
-
-    # Query for the agency_ein email information
-    agency_emails = []
-    for user_guid in agency_user_guids:
-        agency_user_email = Users.query.filter_by(guid=user_guid, auth_user_type=AGENCY_USER).first().email
-        agency_emails.append(agency_user_email)
-
-    bcc = agency_emails or ['agency_ein@email.com']
-
+    bcc = get_agencies_emails(request_id)
+    # create a dictionary of filenames to be passed through jinja to email template
     file_to_link = {}
     for filename in filenames:
         file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
@@ -323,19 +313,21 @@ def process_email_template_request(request_id, data):
     :param request_id: FOIL request ID
     :return: Renders email template with its given arguments
     """
-    # current_request = Requests.query.filter_by(id=request_id).first()
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
+    # process email template for extension
     if data['type'] == 'extension_email':
         # calculates new due date based on selected value if custom due date is not selected
-        if data['extension_value'] != "-1":
-            new_due_date = get_new_due_date(data['extension_value'], request_id).strftime('%A, %b %d, %Y')
+        if data['extension_length'] != "-1":
+            new_due_date = get_new_due_date(data['extension_length'], request_id).strftime('%A, %b %d, %Y')
         else:
-            new_due_date = datetime.strptime(data['custom_value'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
+            new_due_date = datetime.strptime(data['custom_due_date'], '%Y-%m-%d').replace(hour=17, minute=00, second=00).strftime('%A, %b %d, %Y')
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                data=data,
                                new_due_date=new_due_date,
+                               reason=data['extension_reason'],
                                page=page)
+    # process email template for file upload
     if data['type'] == 'file_upload_email':
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
@@ -343,23 +335,23 @@ def process_email_template_request(request_id, data):
                                page=page)
 
 
-def send_extension_email(extension_length, reason, email_content, request_id):
+def send_extension_email(request_id, new_due_date, reason, email_content):
+    """
+    Function that sends email detailing a extension has been added to a request.
+
+    :param request_id: FOIL request ID
+    :param new_due_date: extended due date of the request
+    :param reason: reason for extending the request
+    :param email_content: content body of the email notification being sent
+
+    :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a 
+             request.
+             
+    """
     subject = 'Response Added'
-    # Get list of agency_ein users on the request
-    agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
-                                                                                           request_user_type=AGENCY).all()
-
-    # Query for the agency_ein email information
-    agency_emails = []
-    for user_guid in agency_user_guids:
-        agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
-        agency_emails.append(agency_user_email)
-
-    bcc = agency_emails or ['agency_ein@email.com']
-
+    bcc = get_agencies_emails(request_id)
     requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                    request_user_type=REQUESTER).first().user.email
-
     # Send email with files to requester and bcc agency_ein users as privacy option is release
     to = [requester_email]
     safely_send_and_add_email(request_id,
@@ -369,23 +361,9 @@ def send_extension_email(extension_length, reason, email_content, request_id):
                               to=to,
                               bcc=bcc,
                               agency_name="Department of Records and Information Services",
-                              extension_length=extension_length,
+                              new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
                               reason=reason,
                               )
-
-
-def get_new_due_date(extension_length, request_id):
-    """
-
-    :param extension_length:
-    :param request_id:
-    :return:
-    """
-    current_request = Requests.query.filter_by(id=request_id).first()
-    current_due_date = current_request.due_date
-    calc_due_date = get_following_date(current_due_date)
-    new_due_date = get_due_date(calc_due_date, int(extension_length))
-    return new_due_date
 
 
 def safely_send_and_add_email(request_id,
@@ -446,7 +424,6 @@ def _process_response(request_id,
     # store response object
     create_object(obj=response)
 
-    # create event object
     if current_user.is_anonymous:
         user_guid = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
                                                                                        request_user_type=REQUESTER)[0]
@@ -455,10 +432,8 @@ def _process_response(request_id,
         user_guid = current_user.guid
         auth_user_type = current_user.auth_user_type
 
+    # create event object
     event = Events(request_id=request_id,
-                   # user_id and auth_user_type currently commented out for testing
-                   # will need in production to store user information in events table
-                   # will this be called for anonymous user?
                    user_id=user_guid,
                    auth_user_type=auth_user_type,
                    type=events_type,
