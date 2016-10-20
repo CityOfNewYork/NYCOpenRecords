@@ -44,7 +44,7 @@
                     <div class="form-group">
                         <label for="inputAddress">Address</label>
                         <input type="text" name="address" class="form-control" id="inputAddress"
-                               value="{{ requester.mailing_address['address'] }}">
+                               value="{{ requester.mailing_address['address_one'] }}">
                     </div>
                     <div>
                         <label for="inputAddress2">Address 2</label>
@@ -68,28 +68,28 @@
                     </div>
 
 
-            <div class="form-group">
-                <label for="inputOrganization">Organization</label>
-                <input type="text" name="organization" class="form-control" id="inputOrganization"
-                       value="{{ requester.organization }}">
+                    <div class="form-group">
+                        <label for="inputOrganization">Organization</label>
+                        <input type="text" name="organization" class="form-control" id="inputOrganization"
+                               value="{{ requester.organization }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputFax">Fax Number</label>
+                        <input type="text" name="fax_number" class="form-control" id="inputFax"
+                               value="{{ requester.fax_number }}">
+                    </div>
+                    <div>
+                        <input type="submit" class="btn btn-primary" value="Submit">
+                        {#                        <button type="submit" class="btn btn-primary">Confirm</button>#}
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="inputFax">Fax Number</label>
-                <input type="text" name="fax_number" class="form-control" id="inputFax"
-                       value="{{ requester.fax_number }}">
-            </div>
-            <div>
-                <input type="submit" class="btn btn-primary" value="Submit">
-                {#                        <button type="submit" class="btn btn-primary">Confirm</button>#}
-            </div>
-            </form>
-        </div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
-</div>
 </div>
 
 <hr>
@@ -105,8 +105,11 @@
                 <h4 class="modal-title">Agency User Information</h4>
             </div>
             <div class="modal-body">
-                <div>Agency User Information goes here: <br>
-                    Such as
+                <div>
+                    <h4>Agency User Name</h4>
+                    <h5>Agency User Email</h5>
+                    <h5>Agency User Address</h5>
+                    <h5>Agency User Phone Number</h5>
                 </div>
             </div>
             <div class="modal-footer">

@@ -149,10 +149,10 @@ def view(request_id):
     :return: redirects to view_request.html which is the frame of the view a request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    agency = Agencies.query.filter_by(ein=current_request.agency).first()
-    user_request = UserRequests.query.filter_by(request_id=current_request.id).first()
-    requester = Users.query.filter_by(guid=user_request.user_guid,
-                                      user_type=user_request.user_type).first()
+    agency = current_request.agency
+    requester = current_request.user_requests.filter_by(
+        request_user_type=req_user_type.REQUESTER).first().user
+
     return render_template('request/view_request.html',
                            request=current_request,
                            status=request_status,

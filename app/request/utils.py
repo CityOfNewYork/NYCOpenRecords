@@ -389,7 +389,7 @@ def send_confirmation_email(request, agency, user):
 
     # gets the email and address information from the requester
     requester_email = user.email
-    address = json.loads(user.mailing_address)
+    address = user.mailing_address
 
     # generates the view request page URL for this request
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request.id)

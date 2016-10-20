@@ -44,14 +44,12 @@ def add_file(request_id, filename, title, privacy):
     size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
     mime_type = get_mime_type(request_id, filename)
     files = Files(name=filename, mime_type=mime_type, title=title, size=size)
-    files_metadata = json.dumps({'name': filename,
-                                 'mime_type': mime_type,
-                                 'title': title,
-                                 'size': size})
-    files_metadata = files_metadata.replace('{', '').replace('}', '')
+    files_metadata = {'name': filename,
+                      'mime_type': mime_type,
+                      'title': title,
+                      'size': size}
     create_object(obj=files)
-    _process_response(request_id, response_type.FILE, event_type.FILE_ADDED, files.metadata_id, privacy,
-                      new_response_value=files_metadata)
+    _process_response(request_id, response_type.FILE, event_type.FILE_ADDED, files.metadata_id, files_metadata, privacy)
 
 
 def delete_file():
@@ -86,7 +84,7 @@ def add_note(request_id, content):
     """
     note = Notes(content=content)
     create_object(obj=note)
-    content = json.dumps({'content': content})
+    content = {'content': content}
     _process_response(request_id, response_type.NOTE, event_type.NOTE_ADDED, note.metadata_id,
                       new_response_value=content)
 
@@ -145,7 +143,7 @@ def add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
                 to=to,
                 cc=cc,
                 bcc=bcc)
-    email_content = json.dumps({'email_content': email_content})
+    email_content = {'email_content': email_content}
     _process_response(request_id, response_type.EMAIL, event_type.EMAIL_NOTIFICATION_SENT, email.metadata_id,
                       new_response_value=email_content)
 
@@ -294,8 +292,8 @@ def _safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def _process_response(request_id, responses_type, events_type, metadata_id, privacy='private', new_response_value='',
-                      previous_response_value=''):
+def _process_response(request_id, responses_type, events_type, metadata_id, new_response_value, privacy='private',
+                      previous_response_value=None):
     """
     Creates and stores responses and events objects to the database
 
