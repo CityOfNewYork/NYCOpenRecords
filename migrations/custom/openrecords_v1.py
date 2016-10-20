@@ -1,5 +1,7 @@
-# more of a special copy than a migration
+"""
+Migrate data from OpenRecords V1 database.
 
+"""
 import json
 import psycopg2
 import psycopg2.extras
@@ -29,7 +31,6 @@ AGENCY_CODES = {
     None: 0
 }
 
-
 STATUSES = {
     'OPEN': 'Open',
     'IN PROGRESS': 'In Progress',
@@ -40,7 +41,7 @@ STATUSES = {
     'RE-OPENED': 'Re-Opened',
 }
 
-# Other possible statusus (defaulted to 'In Progress')
+# Other observed statuses (defaulted to 'In Progress')
 #   A response has been added.
 #   Rerouted
 #   XX days
