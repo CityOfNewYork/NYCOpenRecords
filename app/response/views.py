@@ -12,7 +12,8 @@ from wtforms import StringField, SubmitField
 
 from app.models import Requests
 from app.response import response
-from app.response.utils import add_note, add_file, process_upload_data, send_response_email, process_privacy_options
+from app.response.utils import add_note, add_file, add_extension,  process_upload_data, send_file_email, \
+    process_privacy_options, process_email_template_request
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -63,14 +64,40 @@ def response_file(request_id):
         file_options = process_privacy_options(files)
         email_content = flask_request.form['email-content']
         for privacy, files in file_options.items():
-            send_response_email(request_id, privacy, files, email_content)
+            send_file_email(request_id, privacy, files, email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 
-# TODO: Implement response route for extension
-@response.route('/extension/<request_id>', methods=['GET', 'POST'])
-def response_extension():
-    pass
+@response.route('/extension/<request_id>', methods=['POST'])
+def response_extension(request_id):
+    """
+    Extension response endpoint that takes in the metadata of an extension for a specific request from the frontend.
+    Calls add_extension to process the extension form data.
+
+    :param request_id: Specific FOIL request ID for the extension
+    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    """
+    extension_data = flask_request.form
+
+    required_fields = ['length',
+                       'reason',
+                       'due-date',
+                       'email-extend-content']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if extension_data.get(field) is None:
+            flash('Uh Oh, it looks like the extension {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    add_extension(request_id,
+                  extension_data['length'],
+                  extension_data['reason'],
+                  extension_data['due-date'],
+                  extension_data['email-extend-content'])
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 # TODO: Implement response route for email
@@ -83,10 +110,8 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    return render_template('email_templates/email_file_upload.html',
-                           department="Department of Records and Information Services",
-                           page=flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id),
-                           files_links={})
+    email_template = process_email_template_request(request_id, data)
+    return email_template
 
 
 # TODO: Implement response route for sms

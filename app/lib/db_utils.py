@@ -8,8 +8,12 @@ import json
 from sqlalchemy.orm.attributes import flag_modified
 from app import db
 
-# TODO: Add comment explaining why this is needed
-from app.models import Agencies, Users, Requests
+from app.models import (
+    Events,
+    UserRequests,
+    Agencies,
+    Requests,
+)
 
 
 def create_object(obj):
@@ -40,9 +44,12 @@ def update_object(attribute, value, obj_type, obj_id):
 
     if obj:
         try:
-            if type(value) == type(dict):
+            if type(value) == dict:
+                for key, val in value.items():
+                    getattr(obj, attribute)[key] = val
                 flag_modified(obj, attribute)
-            setattr(obj, attribute, value)
+            else:
+                setattr(obj, attribute, value)
             db.session.commit()
             return str(obj)
         except Exception:

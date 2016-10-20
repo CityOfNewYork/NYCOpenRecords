@@ -7,19 +7,16 @@
     synopsis: Handles the functions for requests
 
 """
-
-import json
 import uuid
 from datetime import datetime
 
 import os
-from business_calendar import FOLLOWING
 from flask import render_template, current_app, url_for, request as flask_request
 from flask_login import current_user
 from tempfile import NamedTemporaryFile
 from werkzeug.utils import secure_filename
 
-from app import calendar, upload_redis
+from app import upload_redis
 from app.constants import (
     event_type,
     role_name as role,
@@ -28,9 +25,8 @@ from app.constants import (
     request_user_type
 )
 from app.lib.db_utils import create_object, update_object
-from app.lib.email_utils import send_email, store_email
 from app.lib.user_information import create_mailing_address
-from app.models import Requests, Agencies, Events, Users, UserRequests, Roles, Emails
+from app.models import Requests, Agencies, Events, Users, UserRequests, Roles
 from app.upload.constants import upload_status
 from app.constants.submission_methods import DIRECT_INPUT
 from app.upload.utils import (
@@ -39,6 +35,8 @@ from app.upload.utils import (
     VirusDetectedException,
     get_upload_key
 )
+from app.lib.date_utils import get_following_date, get_due_date
+from app.response.utils import safely_send_and_add_email
 
 
 def create_request(title,
@@ -86,7 +84,7 @@ def create_request(title,
     date_created = datetime.now()
     date_submitted = (agency_date_submitted
                       if current_user.is_agency
-                      else get_date_submitted(date_created))
+                      else get_following_date(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
@@ -309,32 +307,6 @@ def generate_email_template(template_name, **kwargs):
     return render_template(template_name, **kwargs)
 
 
-def get_date_submitted(date_created):
-    """
-    Generates the date submitted for a request.
-
-    :param date_created: date the request was made
-    :return: date submitted which is the date_created rounded off to the next business day
-    """
-    return calendar.addbusdays(date_created, FOLLOWING)
-
-
-def get_due_date(date_submitted, days_until_due, hour_due=17, minute_due=00, second_due=00):
-    """
-    Generates the due date for a request.
-
-    :param date_submitted: date submitted which is the date_created rounded off to the next business day
-    :param days_until_due: number of business days until a request is due
-    :param hour_due: Hour when the request will be marked as overdue, defaults to 1700 (5 P.M.)
-    :param minute_due: Minute when the request will be marked as overdue, defaults to 00 (On the hour)
-    :param second_due: Second when the request will be marked as overdue, defaults to 00
-
-    :return: due date which is 5 business days after the date_submitted and time is always 5:00 PM
-    """
-    calc_due_date = calendar.addbusdays(date_submitted, days_until_due)  # calculates due date
-    return calc_due_date.replace(hour=hour_due, minute=minute_due, second=second_due)  # sets time to 5:00 PM
-
-
 def generate_guid():
     """
     Generates a GUID for an anonymous user.
@@ -371,7 +343,7 @@ def send_confirmation_email(request, agency, user):
 
     # gets the email and address information from the requester
     requester_email = user.email
-    address = json.loads(user.mailing_address)
+    address = user.mailing_address
 
     # generates the view request page URL for this request
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request.id)
@@ -383,32 +355,33 @@ def send_confirmation_email(request, agency, user):
     try:
         # if the requester supplied an email sent it to the request and bcc the agency_ein
         if requester_email:
-            send_email(to=[requester_email],
-                       bcc=bcc,
-                       subject=subject,
-                       template="email_templates/email_confirmation",
-                       current_request=request,
-                       agency=agency,
-                       user=user,
-                       address=address,
-                       page=page)
-            store_email(subject=subject,
-                        email_content=email_content,
-                        to=[requester_email],
-                        bcc=bcc)
+            safely_send_and_add_email(
+                request.id,
+                email_content,
+                subject,
+                "email_templates/email_confirmation",
+                to=[requester_email],
+                bcc=bcc,
+                current_request=request,
+                agency_name=agency,
+                user=user,
+                address=address,
+                page=page
+            )
         # otherwise send the email directly to the agency_ein
         else:
-            send_email(to=[agency_default_email],
-                       subject=subject,
-                       template="email_templates/email_confirmation",
-                       current_request=request,
-                       agency=agency,
-                       user=user,
-                       address=address,
-                       page=page)
-            store_email(subject=subject,
-                        email_content=email_content,
-                        to=[agency_default_email])
+            safely_send_and_add_email(
+                request.id,
+                email_content,
+                subject,
+                "email_templates/email_confirmation",
+                to=[agency_default_email],
+                current_request=request,
+                agency_name=agency,
+                user=user,
+                address=address,
+                page=page
+            )
     except AssertionError:
         print('Must include: To, CC, or BCC')
     except Exception as e:

@@ -6,6 +6,8 @@
           href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_extension.css') }}"/>
 {% endblock %}
 
 {% block title %}
@@ -55,7 +57,7 @@
                             Add Note Content
                         </div>
                         <div class="tab-pane" id="extension">
-                            Extension Content
+                            {% include "request/_view_extension.html" %}
                         </div>
                         <div class="tab-pane" id="close-request">
                             Close Request Content
@@ -93,6 +95,7 @@
 {% endblock %}
 
 {% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
@@ -118,4 +121,5 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     {% include 'request/_view_request_edit_visibility.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}
+    {% include 'request/_view_extension.js.html' %}
 {% endblock %}

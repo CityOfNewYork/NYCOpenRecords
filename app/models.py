@@ -2,7 +2,6 @@
 Models for OpenRecords database
 """
 import csv
-import json
 from datetime import datetime
 
 from flask import current_app
@@ -343,6 +342,8 @@ class Requests(db.Model):
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
 
+    PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
+
     def __init__(
             self,
             id,
@@ -357,13 +358,12 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        privacy_default = {'title': False, 'agency_description': True}
         self.id = id
         self.title = title
         self.description = description
         self.agency_ein = agency_ein
         self.date_created = date_created
-        self.privacy = privacy or json.dumps(privacy_default)
+        self.privacy = privacy or self.PRIVACY_DEFAULT
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission

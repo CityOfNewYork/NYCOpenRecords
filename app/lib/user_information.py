@@ -1,5 +1,3 @@
-import json
-
 def create_mailing_address(address_one, city, state, zipcode, address_two=None):
     """
     Creates a JSON object from the parts of a mailing address for a user.
@@ -11,10 +9,10 @@ def create_mailing_address(address_one, city, state, zipcode, address_two=None):
     :param address_two: Optional line two of the user's address; String
     :return: JSON Object containing the address
     """
-    return json.dumps({
+    return {
         'address_one': address_one,
         'address_two': address_two,
         'city': city,
         'state': state,
         'zip': zipcode
-    })
+    }
