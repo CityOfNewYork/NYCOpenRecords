@@ -2,7 +2,6 @@
 Models for OpenRecords database
 """
 import csv
-import json
 from datetime import datetime
 
 from flask import current_app
@@ -353,8 +352,6 @@ class Requests(db.Model):
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
 
-    # TODO: agency = db.relationship('Agencies', backref=db.backref('request', use_list=False))
-
     def __init__(
             self,
             id,
@@ -385,7 +382,7 @@ class Requests(db.Model):
     def __repr__(self):
         return '<Requests %r>' % self.id
 
-    def get_due_date(self):
+    def get_formatted_due_date(self):
         return self.due_date.strftime('%m/%d/%Y')
 
 
