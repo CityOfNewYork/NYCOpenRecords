@@ -18,12 +18,11 @@ from app.constants import (
     ANONYMOUS_USER
 )
 from app.constants.request_user_type import REQUESTER
-from app.lib.db_utils import create_object, date_deserialize
+from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.date_utils import get_new_due_date
 from app.lib.file_utils import get_mime_type
 from app.models import (
-    Agencies,
     Responses,
     Events,
     Notes,
@@ -142,7 +141,7 @@ def add_extension(request_id, extension_length, reason, custom_due_date, email_c
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
     extension_metadata = {'reason': reason,
-                          'date': date_deserialize(new_due_date)}
+                          'date': new_due_date.isoformat()}
     _process_response(request_id,
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
