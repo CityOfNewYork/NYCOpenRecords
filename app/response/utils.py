@@ -17,18 +17,15 @@ from app.constants import (
     response_type,
     ANONYMOUS_USER
 )
-from app.constants.response_privacy import (
-    RELEASE_AND_PUBLIC,
-    RELEASE_AND_PRIVATE,
-    PRIVATE
-)
 from app.constants.request_user_type import (
-    AGENCY,
     REQUESTER
 )
+from app.constants.response_privacy import (
+    PRIVATE
+)
+from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object
 from app.lib.email_utils import send_email, get_agencies_emails
-from app.lib.date_utils import generate_new_due_date
 from app.lib.file_utils import get_mime_type
 from app.models import (
     Responses,

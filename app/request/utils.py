@@ -141,9 +141,8 @@ def create_request(title,
         metadata_id, metadata = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        responses_type = FILE
         response = Responses(request_id=request_id,
-                             type=responses_type,
+                             type=FILE,
                              date_modified=datetime.utcnow(),
                              metadata_id=metadata_id,
                              privacy=RELEASE_AND_PRIVATE)
@@ -309,10 +308,10 @@ def _move_validated_upload(request_id, tmp_path):
         upload_status.READY)
 
     # Store File Object
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, valid_name))
+    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, valid_name))
     mime_type = get_mime_type(request_id, valid_name)
-    file = Files(name=valid_name, mime_type=mime_type, title='', size=size)
-    create_object(obj=file)
+    file_obj = Files(name=valid_name, mime_type=mime_type, title='', size=size)
+    create_object(obj=file_obj)
 
     file_metadata = {
         'name': valid_name,
@@ -320,7 +319,7 @@ def _move_validated_upload(request_id, tmp_path):
         'title': '',
         'size': size
     }
-    return file.metadata_id, file_metadata
+    return file_obj.metadata_id, file_metadata
 
 
 def generate_request_id(agency):
