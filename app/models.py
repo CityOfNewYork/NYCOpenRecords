@@ -434,7 +434,7 @@ class Events(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_id, auth_user_type],
-            [Users.guid, Users.user_type]
+            [Users.guid, Users.auth_user_type]
         ),
     )
 
@@ -535,7 +535,7 @@ class UserRequests(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.user_type]
+            [Users.guid, Users.auth_user_type]
         ),
     )
 

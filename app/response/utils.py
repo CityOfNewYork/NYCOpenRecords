@@ -329,7 +329,7 @@ class ResponseEditor(metaclass=ABCMeta):
         self.user = user
         self.response = response
         self.flask_request = flask_request
-        self.metadata = response.metadata
+        self.metadata = response.metadatas
 
         self.data_old = {}
         self.data_new = {}
@@ -378,14 +378,14 @@ class ResponseEditor(metaclass=ABCMeta):
             type=self.event_type,
             request_id=self.response.request_id,
             response_id=self.response.id,
-            user_id=self.user.id,
+            user_id=self.user.guid,
             auth_user_type=self.user.auth_user_type,
             timestamp=timestamp,
             previous_response_value=self.data_old,
-            new_reponse_value=self.data_new)
+            new_response_value=self.data_new)
         create_object(event)
         update_object({'date_modified': timestamp,
-                       'privacy': self.data_new['privacy']},
+                      'privacy': self.data_new['privacy']},
                       Responses,
                       self.response.id)
         update_object(self.metadata_new,
@@ -395,6 +395,7 @@ class ResponseEditor(metaclass=ABCMeta):
 
 class RespFileEditor(ResponseEditor):
 
+    @property
     def metadata_fields(self):
         return ['title']
 
@@ -405,23 +406,27 @@ class RespFileEditor(ResponseEditor):
 
 class RespNoteEditor(ResponseEditor):
 
+    @property
     def metadata_fields(self):
         return ['content']
 
 
 class RespLinkEditor(ResponseEditor):
 
+    @property
     def metadata_fields(self):
         return ['title', 'url']
 
 
 class RespInstructionsEditor(ResponseEditor):
 
+    @property
     def metadata_fields(self):
         return ['content']
 
 
 class RespExtensionEditor(ResponseEditor):
 
+    @property
     def metadata_fields(self):
         return ['reason']

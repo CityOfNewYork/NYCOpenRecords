@@ -64,7 +64,7 @@ class UploadViewsTests(BaseTestCase):
             # make request
             response = self.client.post(
                 '/upload/' + self.request_id,
-                data = {
+                data={
                     "file": (BytesIO(file_contents), self.filename)
                 }
             )

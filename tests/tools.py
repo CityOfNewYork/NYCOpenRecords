@@ -7,11 +7,13 @@ from flask import current_app
 from app.constants import (
     ACKNOWLEDGEMENT_DAYS_DUE,
     response_type,
+    PUBLIC_USER_NYC_ID,
 )
 from app.models import (
     Requests,
     Responses,
     Files,
+    Users,
 )
 from app.request.utils import (
     generate_request_id,
@@ -45,6 +47,18 @@ class RequestsFactory(object):
             submission='Direct Input',
             current_status='Open')
         create_object(self.request)
+        self.requester = Users(
+            guid='abc123',
+            auth_user_type=PUBLIC_USER_NYC_ID,
+            agency=agency_ein,
+            first_name='Jane',
+            last_name='Doe',
+            email='jdizzle@email.com',
+            email_validated=True,
+            terms_of_use_accepted=True,
+            title='The Janest')
+        create_object(self.requester)
+        # TODO: UserRequests obj
 
     def add_file(self,
                  filepath=None,
@@ -79,6 +93,7 @@ class RequestsFactory(object):
             metadata_id=file_.id,
             privacy="private",
         )
+        # TODO: add Events FILE_ADDED
         create_object(response)
         return response, file_
 
@@ -94,3 +109,4 @@ class RequestsFactory(object):
         for path in self.filepaths:
             if os.path.exists(path):
                 os.remove(path)
+

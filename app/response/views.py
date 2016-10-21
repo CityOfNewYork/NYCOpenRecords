@@ -136,7 +136,7 @@ def edit_response(response_id):
     }
     Response body consists of both the old and updated data, or an error message.
     """
-    if current_user.is_anonymous():
+    if current_user.is_anonymous:
         return {}, 403
     # TODO: permissions check
     resp = Responses.query.filter_by(id=response_id).first()

@@ -67,7 +67,7 @@ def upload_exists(request_id, filename):
             Files.query.with_entities(
                 Files.name
             ).filter(
-                Files.metadata_id.in_(file_ids)
+                Files.id.in_(file_ids)
             ).all()
         ]
         return filename in existing_filenames
