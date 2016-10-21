@@ -24,6 +24,11 @@ from app.constants import (
     ANONYMOUS_USER,
     request_user_type
 )
+from app.constants.response_privacy import RELEASE_AND_PRIVATE
+from app.constants.response_type import FILE
+from app.constants.status_values import OPEN
+from app.constants.submission_methods import DIRECT_INPUT
+from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.file_utils import get_mime_type
 from app.lib.user_information import create_mailing_address
@@ -37,18 +42,14 @@ from app.models import (
     Files,
     Responses
 )
+from app.response.utils import safely_send_and_add_email
 from app.upload.constants import upload_status
-from app.constants.submission_methods import DIRECT_INPUT
 from app.upload.utils import (
     is_valid_file_type,
     scan_file,
     VirusDetectedException,
     get_upload_key
 )
-from app.constants.response_type import FILE
-from app.constants.response_privacy import PRIVATE
-from app.lib.date_utils import get_following_date, get_due_date
-from app.response.utils import safely_send_and_add_email
 
 
 def create_request(title,
@@ -110,7 +111,8 @@ def create_request(title,
         date_created=date_created,
         date_submitted=date_submitted,
         due_date=due_date,
-        submission=submission
+        submission=submission,
+        current_status=OPEN
     )
     create_object(request)
 
@@ -144,7 +146,7 @@ def create_request(title,
                              type=responses_type,
                              date_modified=datetime.utcnow(),
                              metadata_id=metadata_id,
-                             privacy=PRIVATE)
+                             privacy=RELEASE_AND_PRIVATE)
         create_object(obj=response)
 
         # 8. Create upload Event
@@ -167,11 +169,17 @@ def create_request(title,
 
     # 9. Create Event
     timestamp = datetime.utcnow()
+    request_metadata = {
+        'title': request.title,
+        'description': request.description,
+        'current_status': request.current_status
+    }
     event = Events(user_id=user.guid,
                    auth_user_type=user.auth_user_type,
                    request_id=request_id,
                    type=event_type.REQ_CREATED,
-                   timestamp=timestamp)
+                   timestamp=timestamp,
+                   new_response_value=request_metadata)
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
@@ -306,10 +314,12 @@ def _move_validated_upload(request_id, tmp_path):
     file = Files(name=valid_name, mime_type=mime_type, title='', size=size)
     create_object(obj=file)
 
-    file_metadata = json.dumps({'name': valid_name,
-                                 'mime_type': mime_type,
-                                 'title': '',
-                                 'size': size})
+    file_metadata = {
+        'name': valid_name,
+        'mime_type': mime_type,
+        'title': '',
+        'size': size
+    }
     return file.metadata_id, file_metadata
 
 
