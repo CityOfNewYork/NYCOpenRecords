@@ -13,9 +13,9 @@ from app.models import (
     Responses,
     Files,
 )
-from app.request.utils import (
-    generate_request_id,
-    get_date_submitted,
+from app.request.utils import generate_request_id
+from app.lib.date_utils import (
+    get_following_date,
     get_due_date
 )
 from app.lib.db_utils import create_object
@@ -30,7 +30,7 @@ class RequestsFactory(object):
 
     def __init__(self, request_id):
         date_created = datetime.utcnow()
-        date_submitted = get_date_submitted(date_created)
+        date_submitted = get_following_date(date_created)
         agency_ein = 2
         self.request = Requests(
             request_id or generate_request_id(agency_ein),
