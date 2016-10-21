@@ -1,12 +1,10 @@
 from unittest.mock import patch
 
-from datetime import datetime
+from tests.tools import RequestsFactory
 from tests.base import BaseTestCase
 
 from app.models import Requests, Roles
 from app.lib.db_utils import update_object
-
-from tests.tools import RequestsFactory
 
 
 class UpdateObjectTests(BaseTestCase):

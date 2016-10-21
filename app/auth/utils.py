@@ -109,7 +109,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     return user
 
 
-def update_user(guid=None, user_type=None, **kwargs):
+def update_user(guid=None, auth_user_type=None, **kwargs):
     """
     Updates a user if they exist in the database.
     :param guid:

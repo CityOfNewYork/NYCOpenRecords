@@ -8,6 +8,7 @@ from app import db
 from sqlalchemy.orm.attributes import flag_modified
 from app.models import Agencies
 
+
 def create_object(obj):
     """
     :param obj: Object class being created in database

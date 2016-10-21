@@ -1,7 +1,6 @@
 # HOW TO DENY ACCESS TO ES PORT FOR ANYTHING BUT APP?
 
 from flask import request, jsonify, render_template
-from flask_login import current_user
 
 from app import es
 from app.search import search
