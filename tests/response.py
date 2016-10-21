@@ -1,18 +1,42 @@
 import json
 from io import BytesIO
+
+from flask import jsonify
 from unittest.mock import patch
-
-from flask import session
-from flask_login import login_user, current_user
-
 from tests.base import BaseTestCase
 from tests.tools import RequestsFactory
 
-from app import login_manager
-from app.models import Anonymous
-
 
 class ResponseViewsTests(BaseTestCase):
+
+    def setUp(self):
+        super(ResponseViewsTests, self).setUp()
+        # self.request = Request()# CREATE REQUEST
+
+    def test_post_extension(self):
+        with patch(
+            'app.response.views.add_extension'
+        ) as add_extension_patch, patch(
+            'app.response.views.redirect', return_value=jsonify({})
+        ), patch(
+            'app.response.views.url_for'
+        ):
+            self.client.post(
+                '/response/extension/' + 'fake request id',  # self.request.id,
+                data={
+                    'length': 'foo',
+                    'reason': 'bar',
+                    'due-date': 'baz',
+                    'email-extend-content': 'qux'
+                }
+            )
+            add_extension_patch.assert_called_once_with(
+                'fake request id',
+                'foo',
+                'bar',
+                'baz',
+                'qux'
+            )
 
     def test_edit_file(self):
         rf = RequestsFactory('FOIL-RVT')
@@ -54,3 +78,4 @@ class ResponseViewsTests(BaseTestCase):
         # assert file changed
 
     # def test_edit_file_bad()
+

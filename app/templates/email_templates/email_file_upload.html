@@ -1,5 +1,5 @@
 <p>
-    The {{ department }} has provided additional
+    The {{ agency_name }} has provided additional
     information about your request. Please visit {{ page }} to view the additional information.
 </p>
 <p>
@@ -10,8 +10,14 @@
     Download the request files at:
     <br>
     <ul>
-    {% for filename, link in files_links.items() %}
-        <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
-    {% endfor %}
+        {% if data %}
+            {% for filename, link in data['files_links'].items() %}
+                <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
+            {% endfor %}
+        {% else %}
+            {% for filename, link in files_links.items() %}
+                <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
+            {% endfor %}
+        {% endif %}
     </ul>
 </p>

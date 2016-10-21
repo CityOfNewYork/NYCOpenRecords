@@ -24,6 +24,19 @@ from app.constants import (
     role_name,
     request_user_type as req_user_type,
 )
+from app.constants.response_privacy import (
+    RELEASE_AND_PUBLIC,
+    RELEASE_AND_PRIVATE,
+    PRIVATE
+)
+from app.constants.status_values import (
+    OPEN,
+    IN_PROGRESS,
+    DUE_SOON,
+    OVERDUE,
+    CLOSED,
+    RE_OPENED
+)
 from app.constants.submission_methods import (
     DIRECT_INPUT,
     FAX,
@@ -333,12 +346,20 @@ class Requests(db.Model):
                                    name='submission'
                                    )
                            )
-    current_status = db.Column(db.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened',
-                                       name='statuses'))  # due soon is within the next "5" business days
+    current_status = db.Column(db.Enum(OPEN,
+                                       IN_PROGRESS,
+                                       DUE_SOON,
+                                       OVERDUE,
+                                       CLOSED,
+                                       RE_OPENED,
+                                       name='statuses')
+                               )  # due soon is within the next "5" business days
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
+
+    PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
 
     def __init__(
             self,
@@ -354,13 +375,12 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        privacy_default = {'title': False, 'agency_description': True}
         self.id = id
         self.title = title
         self.description = description
         self.agency_ein = agency_ein
         self.date_created = date_created
-        self.privacy = privacy or privacy_default
+        self.privacy = privacy or self.PRIVACY_DEFAULT
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission
@@ -459,7 +479,12 @@ class Responses(db.Model):
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     type = db.Column(db.String(30))  # TODO: enum
     metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
-    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
+    privacy = db.Column(db.Enum(
+        PRIVATE,
+        RELEASE_AND_PRIVATE,
+        RELEASE_AND_PUBLIC,
+        name="privacy")
+    )
     date_modified = db.Column(db.DateTime)
 
     metadatas = db.relationship(  # 'metadata' is reserved
@@ -569,7 +594,7 @@ class Notes(Metadatas):
     """
     Define the Notes class with the following columns and relationships:
 
-    metadata_id - an integer that is the primary key of Notes
+    id - an integer that is the primary key of Notes
     content - a string that contains the content of a note
     """
     __tablename__ = 'notes'
@@ -582,7 +607,7 @@ class Files(Metadatas):
     """
     Define the Files class with the following columns and relationships:
 
-    metadata_id - an integer that is the primary key of Files
+    id - an integer that is the primary key of Files
     name - a string containing the name of a file (name is the secured filename)
     mime_type - a string containing the mime_type of a file
     title - a string containing the title of a file (user defined)
@@ -601,7 +626,7 @@ class Links(Metadatas):
     """
     Define the Links class with the following columns and relationships:
 
-    metadata_id - an integer that is the primary key of Links
+    id - an integer that is the primary key of Links
     title - a string containing the title of a link
     url - a string containing the url link
     """
@@ -616,7 +641,7 @@ class Instructions(Metadatas):
     """
     Define the Instructions class with the following columns and relationships:
 
-    metadata_id - an integer that is the primary key of Instructions
+    id - an integer that is the primary key of Instructions
     content - a string containing the content of an instruction
     """
     __tablename__ = 'instructions'
@@ -629,7 +654,7 @@ class Extensions(Metadatas):
     """
     Define the Extensions class with the following columns and relationships:
 
-    metadata_id - an integer that is the primary key of Extensions
+    id - an integer that is the primary key of Extensions
     reason - a string containing the reason for an extension
     date - a datetime object containing the extended date of a request
     """
@@ -644,7 +669,7 @@ class Emails(Metadatas):
     """
     Define the Emails class with the following columns and relationships:
 
-    metadata_id - an integer that is the primary key of Emails
+    id - an integer that is the primary key of Emails
     to - a string containing who the the email is being sent to
     cc - a string containing who is cc'd in an email
     bcc -  a string containing who is bcc'd in an email

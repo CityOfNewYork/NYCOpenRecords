@@ -11,7 +11,6 @@ from flask import (
 )
 from app.lib.db_utils import update_object
 from app.models import Requests
-import json
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -22,15 +21,15 @@ def edit_privacy():
 
     :return: JSON Response with updated title and agency_ein description privacy options
     """
-    title = flask_request.form.get('title')
-    agency_desc = flask_request.form.get('desc')
     request_id = flask_request.form.get('id')
     current_request = Requests.query.filter_by(id=request_id).first()
-    privacy = current_request.privacy
-    # Stores title privacy if changed or uses current privacy if exists
-    privacy['title'] = title or privacy['title']
-    # Stores agency_ein description privacy if changed or uses current privacy
-    privacy['agency_description'] = agency_desc or privacy['agency_description']
+    privacy = {}
+    title = flask_request.form.get('title')
+    agency_desc = flask_request.form.get('agency_desc')
+    if title is not None:
+        privacy['title'] = True if title == 'true' else False
+    if agency_desc is not None:
+        privacy['agency_description'] = True if agency_desc == 'true' else False
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)

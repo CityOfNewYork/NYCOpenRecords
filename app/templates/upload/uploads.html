@@ -55,7 +55,7 @@
                 </div>
             </div>
             <div class="item">
-                <textarea name="email-content"></textarea>
+                <textarea class="tinymce-area" name="email-content"></textarea>
             </div>
             <div class="item">
                 <h4>The following will be Submitted to the request:</h4>
@@ -77,7 +77,9 @@
     window.onload = function () {
         var formData = {
             request_id: "{{ request.id }}",
-            template_name: "add_file_email_template.html"
+            files_links: {},
+            type: "file_upload_email",
+            template_name: "email_file_upload.html"
         };
 
         $.ajax({

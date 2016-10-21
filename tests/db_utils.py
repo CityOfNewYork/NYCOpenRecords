@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from datetime import datetime
 from tests.base import BaseTestCase
 
 from app.models import Requests, Roles

@@ -127,7 +127,7 @@ def update_user(guid=None, auth_user_type=None, **kwargs):
     return user
 
 
-def find_or_create_user(guid, user_type):
+def find_or_create_user(guid, auth_user_type):
     """
     Given a guid and auth_user_type, equivalent to a user id, find or create a user in the database.
 
@@ -155,7 +155,7 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
 
     guid = saml_user_data['GUID'][0]
 
-    user_type = saml_user_data['userType'][0]
+    auth_user_type = saml_user_data['userType'][0]
 
     # Determine if the user's email address has been validated
     # nycExtEmailValidationFlag is empty if user_type = Saml2In:NYC Employees
@@ -218,19 +218,18 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
         terms_of_use_accepted = None
 
     user = Users(guid=guid,
-                user_type=auth_user_type,
-                email=email,
-                first_name=first_name,
-                middle_initial=middle_initial,
-                last_name=last_name,
-                email_validated=email_validated,
-                terms_of_use_accepted=terms_of_use_accepted,
-                title=title,
-                organization=organization,
-                phone_number=phone_number,
-                fax_number=fax_number,
-                mailing_address=mailing_address
-                )
+                 auth_user_type=auth_user_type,
+                 email=email,
+                 first_name=first_name,
+                 middle_initial=middle_initial,
+                 last_name=last_name,
+                 email_validated=email_validated,
+                 terms_of_use_accepted=terms_of_use_accepted,
+                 title=title,
+                 organization=organization,
+                 phone_number=phone_number,
+                 fax_number=fax_number,
+                 mailing_address=mailing_address)
 
     if create_object(user):
         return user

@@ -46,7 +46,7 @@ def post(request_id):
     files = request.files
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
-    if upload_exists(request_id, filename):
+    if upload_exists(request_id, filename):  # TODO: edit is true
         response = {
             "files": [{
                 "name": filename,
