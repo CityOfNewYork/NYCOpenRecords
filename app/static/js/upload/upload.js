@@ -4,8 +4,11 @@
 
 $(document).ready(function () {
     tinymce.init({
-        selector: 'textarea',
-        height: 200,
+        // sets tinymce to enable only on specific textareas classes
+        mode : "specific_textareas",
+        // selector for tinymce textarea classes is set to 'tinymce-area'
+        editor_selector: "tinymce-area",
+        height: 180
     });
 
     //Call ajax to populate email field with content after textarea is finished loading.

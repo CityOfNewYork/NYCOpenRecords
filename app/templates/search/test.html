@@ -1,0 +1,95 @@
+<body style="font-family: 'Helvetica Neue'">
+    <h1>Simple Search (Requests Only)</h1>
+    <h3>Just uses ajax.</h3>
+    <form>
+        <input id="query" type="text" name="query" style="width: 100%; font-size: 2em" placeholder="HERE!"><br>
+        <br>
+        <label>
+            <input style="display: inline" type="checkbox" name="title" checked>
+            Title<br>
+        </label>
+        <label>
+            <input type="checkbox" name="description" checked>
+            Description<br>
+        </label>
+        <label>
+            <input type="checkbox" name="agency-description" checked>
+            Agency Description<br>
+        </label>
+        <br>
+        <label>
+            Number of results:
+            <select id="size">
+                <option value="10">10</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="500">500</option>
+            </select>
+        </label>
+    </form>
+    <hr>
+    <div>
+        <p id="time-query">Query Execution Time: <strong></strong></p>
+        <p id="total">Total: <strong></strong></p>
+        <p id="num-result">Result Count: <strong></strong></p>
+    </div>
+    <div id="results-raw" style="white-space: pre"></div>
+    <ol id="results"></ol>
+</body>
+
+<script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js') }}"></script>
+<script type="text/javascript">
+    $(function() {
+
+        function search() {
+            var results = $('#results');
+            results.children('li').remove();
+            results.text('');
+            var query = $('#query').val();
+            if (query != '') {
+                $.ajax({
+                    url: '/search/requests',
+                    data: {
+                        query: query,
+                        title: $('input[name=title]').prop("checked"),
+                        description: $('input[name=description]').prop("checked"),
+                        agency_description: $('input[name=agency-description]').prop("checked"),
+                        size: $('#size').val()
+                    },
+                    dataType: 'json',
+                    success: function(resp){
+                        // uncomment for raw json response
+                        // $('#results-raw').text(JSON.stringify(resp, null, 4));
+                        debugger;
+                        var hits = resp.hits.hits;
+                        if (hits.length > 0) {
+                            for (var i = 0; i < hits.length; i++) {
+                                var keys = Object.keys(hits[i].highlight);
+                                var content = "";
+                                for (var j = 0; j < keys.length; j++) {
+                                    content += "<strong>" + keys[j] + "</strong>" + "<br>"
+                                            + hits[i].highlight[keys[j]] + "<br>";
+                                }
+                                $('#results').append("<li style='border-bottom: " +  // how disgusting
+                                        "1px gray solid; padding-bottom: 1em; " +
+                                        "padding-top: 1em;'>" +
+                                        "<a href='" + "/request/view/" + hits[i]._id + "'>" +
+                                        hits[i]._id + "</a><br>" + content + "</li>");
+                            }
+                        }
+                        else {
+                            $('#results').text('No results found.');
+                        }
+                        $('#time-query').find('strong').text(resp.took);
+                        $('#num-result').find('strong').text(hits.length);
+                        $('#total').find('strong').text(resp.hits.total);
+                    }
+                })
+            }
+        }
+
+        $('#query').on('input', search);
+        $(':checkbox').change(search);
+        $('#size').change(search);
+    });
+</script>

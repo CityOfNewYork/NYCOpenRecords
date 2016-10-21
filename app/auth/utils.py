@@ -23,7 +23,7 @@ def user_loader(user_id):
     """
     guid = user_id.split(':')[0]
     user_type = user_id.split(':')[1]
-    return Users.query.filter_by(guid=guid, user_type=user_type).first()
+    return Users.query.filter_by(guid=guid, auth_user_type=user_type).first()
 
 
 def init_saml_auth(req):
@@ -80,12 +80,12 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     user = Users.query.filter_by(guid=guid).first()
 
     if user:
-        if user.user_type == AGENCY_USER:
+        if user.is_agency_user:
             organization = Agencies.query.filter_by(email_domain=user.email.split('@')[-1]).first()
 
             user = update_user(
                 guid=guid,
-                user_type=user.user_type,
+                user_type=user.auth_user_type,
                 agency=(organization.ein or None),
                 title=title,
                 organization=organization.name,
@@ -96,7 +96,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
         else:
             user = update_user(
                 guid=guid,
-                user_type=user.user_type,
+                user_type=user.auth_user_type,
                 title=title,
                 organization=organization,
                 phone_number=phone_number,
@@ -109,7 +109,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
     return user
 
 
-def update_user(guid=None, user_type=None, **kwargs):
+def update_user(guid=None, auth_user_type=None, **kwargs):
     """
     Updates a user if they exist in the database.
     :param guid:
@@ -119,8 +119,8 @@ def update_user(guid=None, user_type=None, **kwargs):
     user = str()
     if not guid:
         return None
-    for key, value in kwargs.items():
-        user = update_object(attribute=key, value=value, obj_type="Users", obj_id=(guid, user_type))
+    
+    user = update_object(kwargs, obj_type=Users, obj_id=(guid, auth_user_type))
 
     if not user:
         return None
@@ -137,7 +137,7 @@ def find_or_create_user(guid, user_type):
     :param unicode user_type: User Type. See auth.constants for list of valid user types
     :return: (User Object, Boolean for Is new User)
     """
-    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(user_type[0])).first()
+    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(auth_user_type[0])).first()
 
     if user:
         return user, False
@@ -218,7 +218,7 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
         terms_of_use_accepted = None
 
     user = Users(guid=guid,
-                user_type=user_type,
+                user_type=auth_user_type,
                 email=email,
                 first_name=first_name,
                 middle_initial=middle_initial,

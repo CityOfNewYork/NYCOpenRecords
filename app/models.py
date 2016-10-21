@@ -10,7 +10,7 @@ from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
-from app import db
+from app import db, es
 from app.constants import (
     PUBLIC_USER,
     AGENCY_USER,
@@ -26,6 +26,11 @@ from app.constants import (
     request_status,
     request_user_type as req_user_type,
 )
+from app.constants.response_privacy import (
+    RELEASE_AND_PUBLIC,
+    RELEASE_AND_PRIVATE,
+    PRIVATE
+)
 from app.constants.submission_methods import (
     DIRECT_INPUT,
     FAX,
@@ -35,6 +40,7 @@ from app.constants.submission_methods import (
     IN_PERSON,
     THREE_ONE_ONE
 )
+from app.search.constants import INDEX
 
 
 class Roles(db.Model):
@@ -138,7 +144,7 @@ class Agencies(db.Model):
     """
 
     __tablename__ = 'agencies'
-    ein = db.Column(db.Integer, primary_key=True)
+    ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
     category = db.Column(db.String(256))
     name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
@@ -352,6 +358,8 @@ class Requests(db.Model):
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
 
+    PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
+
     def __init__(
             self,
             id,
@@ -366,18 +374,41 @@ class Requests(db.Model):
             current_status=None,
             agency_description=None
     ):
-        privacy_default = {'title': False, 'agency_description': True}
         self.id = id
         self.title = title
         self.description = description
         self.agency_ein = agency_ein
         self.date_created = date_created
-        self.privacy = privacy or privacy_default
+        self.privacy = privacy or self.PRIVACY_DEFAULT
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission
         self.current_status = current_status
         self.agency_description = agency_description
+
+    def es_update(self):
+        # TODO: handle error response
+        result = es.update(
+            index=INDEX,
+            doc_type='request',
+            id=self.id,
+            body = {
+                'doc': {
+                    'title': self.title,
+                    'description': self.description,
+                    'agency_description': self.agency_description,
+                    'title_private': self.privacy['title'],
+                    'agency_description_private': self.privacy['agency_description'],
+                    'date_submitted': self.date_submitted,
+                    'date_due': self.due_date,
+                    'submission': self.submission,
+                    'status': self.current_status
+                }
+            },
+            # refresh='wait_for'
+        )
+        import json
+        print(json.dumps(result, indent=2))
 
     def __repr__(self):
         return '<Requests %r>' % self.id
@@ -449,7 +480,11 @@ class Responses(db.Model):
     type = db.Column(db.String(30))
     date_modified = db.Column(db.DateTime)
     metadata_id = db.Column(db.Integer)
-    privacy = db.Column(db.Enum("private", "release_private", "release_public", name="privacy"))
+    privacy = db.Column(db.Enum(PRIVATE,
+                                RELEASE_AND_PRIVATE,
+                                RELEASE_AND_PUBLIC,
+                                name="privacy")
+                        )
 
     def __repr__(self):
         return '<Responses %r>' % self.id

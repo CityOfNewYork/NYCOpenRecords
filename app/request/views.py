@@ -138,7 +138,8 @@ def new():
 
 @request.route('/view_all', methods=['GET'])
 def view_all():
-    return render_template('request/view_request.html')
+    requests = Requests.query.with_entities(Requests.id).all()
+    return render_template('request/all.html', requests=requests)
 
 
 @request.route('/view/<request_id>', methods=['GET', 'POST'])

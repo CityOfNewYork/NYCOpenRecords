@@ -11,19 +11,19 @@
                 </div>
                 <!-- privacy options for request title -->
                 <div class="btn-group" data-toggle="buttons">
-                    {% if request.privacy['title'] == 'true' %}
+                    {% if privacy['title'] %}
                         <label class="title-privacy-btn btn btn-default" data-active-class="primary">
                             <input type="radio" value="false">Public
                         </label>
                         <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
-                            <input type="radio" value="true" checked="checked">Private
+                            <input type="radio" value="true">Private
                         </label>
                     {% else %}
                         <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
                             <input type="radio" value="false">Public
                         </label>
                         <label class="title-privacy-btn btn btn-default" data-active-class="primary">
-                            <input type="radio" value="true" checked="checked">Private
+                            <input type="radio" value="true">Private
                         </label>
                     {% endif %}
                 </div>
@@ -35,7 +35,7 @@
             <div class="request-label lead col-sm-4">Agency Description:</div>
             <!-- privacy options for agency_ein description -->
             <div class="btn-group col-sm-push-5" data-toggle="buttons">
-                {% if request.privacy['agency_description'] == 'true' %}
+                {% if privacy['agency_description'] %}
                     <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
                         <input type="radio" value="false">Public
                     </label>

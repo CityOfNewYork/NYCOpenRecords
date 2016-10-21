@@ -45,10 +45,14 @@ class Config:
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED')
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
+    EMAIL_TEMPLATE_DIR = (os.environ.get('EMAIL_TEMPLATE_DIR') or 'email_templates/')
 
     # ReCaptcha
     RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
     RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
+
+    # ElasticSearch settings
+    ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
 
     @staticmethod
     def init_app(app):

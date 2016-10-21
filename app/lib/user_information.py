@@ -1,5 +1,3 @@
-import json
-
 def create_mailing_address(address_one, city, state, zipcode, address_two=None):
     """
     Creates a JSON object from the parts of a mailing address for a user.
