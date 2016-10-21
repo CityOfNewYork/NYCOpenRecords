@@ -8,7 +8,7 @@ var request_responses_index_shift = 10; // index number used to increment or dec
 $(".load-more-responses").hide();
 
 // loads initial responses into div
-$(document).ready(function () {
+$(function () {
     $.ajax({
         type: "POST",
         url: '/request/api/v1.0/responses',
@@ -24,6 +24,13 @@ $(document).ready(function () {
         error: function (error) {
             console.log(error);
         }
+    });
+
+    // Disables the submission of form on the enter keypress
+    $(".disable-enter-submit").keypress(function(e){
+       if (e.keyCode == '13') {
+           e.preventDefault();
+       }
     });
 });
 

@@ -8,54 +8,80 @@ $(document).ready(function () {
 
     // Handles click events on the first next button
     $("#link-next-1").click(function (e) {
-        // Validate link select field and reason textarea
-        $("#link-title").parsley().validate();
-        $("#link-url").parsley().validate();
-        if (!$('#link-title').parsley().isValid()) {
-            e.preventDefault();
-            return false;
-        }
-        if (!$('#link-url').parsley().isValid()) {
-            e.preventDefault();
-            return false;
-        }
-        // TODO: determine URL link check
+        {#        var testUrl = $("#link-url").val();#}
         {#        $.ajax({#}
-        {#            type: "GET",#}
-        {#            url: "http://www.google.com",#}
-        {#            dataType: "jsonp",#}
-        {#            statusCode: {#}
-        {#                200: function () {#}
-        {#                    alert('Valid');#}
-        {#                },#}
-        {#                304: function () {#}
-        {#                    alert('Invalid');#}
+        {#            url: testUrl,#}
+        {#            type: 'post',#}
+        {#            data: 'a=b'#}
+        {#        }).done(function (data, statusText, xhr) {#}
+        {#            var status = xhr.status;                //200#}
+        {#            var head = xhr.getAllResponseHeaders(); //Detail header info#}
+        {#            alert(status)#}
+        {#        });#}
+
+        {#        $.ajax({#}
+        {#            url: testUrl,#}
+        {#            crossDomain: true,#}
+        {#            success: function(data) {#}
+        {#                alert('Url good');#}
+        {#            },#}
+        {#            error: function(e) {#}
+        {#                console.log(e);#}
+        {#                alert('Bad url, bad');#}
+        {#            }#}
+        {#        });#}
+        {#        $.get(testUrl, function(){#}
+        {#            alert('GOOD');#}
+        {#        }).fail(function(){#}
+        {#            alert("BAD");#}
+        {#        });#}
+
+        {#        $.ajax({#}
+        {#            url: testUrl,#}
+        {#            dataType: 'jsonp',#}
+        {#            crossDomain: true,#}
+        {#            timeout: 2000,#}
+        {#            complete: function (e, xhr, settings) {#}
+        {#                switch (e.status) {#}
+        {#                    case 200:#}
+        {#                        alert('Valid');#}
+        {#                        break;#}
+        {#                    default:#}
+        {#                        alert('Not Valid');#}
+        {#                        return false;#}
+        {#                        break;#}
         {#                }#}
         {#            }#}
         {#        });#}
+        {#    });#}
+
+        // Validate link select field and reason textarea
+        $("#link-title").parsley().validate();
+        $("#link-url").parsley().validate();
+        {#        if (!$('#link-title').parsley().isValid()) {#}
+        {#            e.preventDefault();#}
+        {#            return false;#}
+        {#        }#}
+        {#        if (!$('#link-url').parsley().isValid()) {#}
+        {#            e.preventDefault();#}
+        {#            return false;#}
+        {#        }#}
+
+        {#        var url = "http://www.google.com";#}
+        {#        $.ajax(url,#}
+        {#                {#}
+        {#                    dataType: "jsonp",#}
+        {#                    statusCode: {#}
+        {#                        404: function () {#}
+        {#                            alert('page not found');#}
+        {#                        }#}
+        {#                    }#}
+        {#                });#}
 
         {##}
-        {#        var testUrl = "http://www.google.com";#}
-        {#          $.ajax({#}
-        {#              url: testUrl,#}
-        {#              dataType: 'jsonp',#}
-        {#              crossDomain: true,#}
-        {#              timeout: 5000,#}
-        {#              complete: function (e, xhr, settings) {#}
-        {#                  switch (e.status) {#}
-        {#                      case 200:#}
-        {#                          alert('Valid');#}
-        {#                          break;#}
-        {#                      default:#}
-        {#                          alert('Not Valid');#}
-        {#                          return false;#}
-        {#                          break;#}
-        {#                  }#}
-        {#              }#}
-        {#          });#}
 
         // If validation fields are valid, proceed with next click function
-        if ($('#link-title').parsley().isValid() || $("#link-url").parsley().isValid()) {
+        if ($('#link-title').parsley().isValid() && $("#link-url").parsley().isValid()) {
             var formData = {
                 request_id: "{{ request.id }}",
                 template_name: "email_link.html",
@@ -76,7 +102,6 @@ $(document).ready(function () {
             });
             document.getElementById("link-first").style.display = "none";
             document.getElementById("link-second").style.display = "block";
-            {#        }#}
         }
     });
 
@@ -84,7 +109,7 @@ $(document).ready(function () {
     $("#link-next-2").click(function () {
         document.getElementById("link-second").style.display = "none";
         document.getElementById("link-third").style.display = "block";
-        $("#email-extend-summary").html(tinyMCE.get('email-extend-content').getContent());
+        $("#email-link-summary").html(tinyMCE.get('email-link-content').getContent());
     });
 
     // Handles click events on the first previous button
@@ -100,11 +125,11 @@ $(document).ready(function () {
     });
 
     // Apply parsley data required validation to link reason
-    $('#link-title').attr('data-parsley-required','');
-    $('#link-title').attr('data-parsley-maxlength','90');
-    $('#link-url').attr('data-parsley-required','');
-    $('#link-url').attr('data-parsley-maxlength','254');
-    $('#link-url').attr('data-parsley-type','url');
+    $('#link-title').attr('data-parsley-required', '');
+    $('#link-title').attr('data-parsley-maxlength', '90');
+    $('#link-url').attr('data-parsley-required', '');
+    $('#link-url').attr('data-parsley-maxlength', '254');
+    $('#link-url').attr('data-parsley-type', 'url');
 
 
     // Apply custom validation messages

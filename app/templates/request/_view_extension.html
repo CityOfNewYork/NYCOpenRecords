@@ -7,7 +7,7 @@
             <!-- first div of the add-extension form -->
             <div class="extension-divs form-group" id="extension-first">
                 <label class="extension-label">Length</label>
-                <select id="extension-select" name="length" class="form-control">
+                <select id="extension-select" name="length" class="disable-enter-submit form-control">
                     <option value="0" selected="selected" disabled="disabled">None selected</option>
                     <option value="20">20 Business Days</option>
                     <option value="30">30 Business Days</option>
@@ -20,7 +20,7 @@
                 <!--  custom due date datepicker -->
                 <div class="form-group" style="display:none;" id="custom-due-date">
                     <label class="extension-label">Custom Due Date</label>
-                    <input type="text" id="custom-extension" name="due-date" value={{ request.due_date }}>
+                    <input type="text" id="custom-extension" name="due-date" class="disable-enter-submit" value={{ request.due_date }}>
                 </div>
                 <label class="extension-label">Extension Reason</label>
                 <textarea class="input-block-level form-group" id="extension-reason" name="reason"

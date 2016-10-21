@@ -34,6 +34,7 @@ from app.lib.file_utils import get_mime_type
 from app.models import (
     Responses,
     Events,
+    Links,
     Notes,
     Files,
     Links,
@@ -115,6 +116,15 @@ def delete_note():
 
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
+    """
+
+    :param request_id:
+    :param length:
+    :param reason:
+    :param custom_due_date:
+    :param email_content:
+    :return:
+    """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
     update_object(
         {'due_date': new_due_date},
@@ -133,6 +143,31 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     send_extension_email(request_id,
                          new_due_date,
                          reason,
+                         email_content)
+
+
+def add_link(request_id, title, url_link, email_content):
+    """
+
+    :param request_id:
+    :param title:
+    :param link:
+    :param email_content:
+    :return:
+    """
+    link = Links(title=title, url=url_link)
+    create_object(obj=link)
+    link_metadata = {'title': title,
+                     'url': url_link}
+    _process_response(request_id,
+                      response_type.LINK,
+                      event_type.LINK_ADDED,
+                      link.metadata_id,
+                      new_response_value=link_metadata,
+                      privacy='release_public')
+    send_extension_email(request_id,
+                         title,
+                         link,
                          email_content)
 
 
@@ -305,15 +340,14 @@ def process_email_template_request(request_id, data):
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     # process email template for extension
     if data['type'] == 'extension_email':
         # calculates new due date based on selected value if custom due date is not selected
         new_due_date = _get_new_due_date(request_id,
                                          data['extension_length'],
                                          data['custom_due_date']).strftime('%A, %b %d, %Y')
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
-                               data=data,
                                new_due_date=new_due_date,
                                reason=data['extension_reason'],
                                page=page)
@@ -331,8 +365,14 @@ def process_email_template_request(request_id, data):
                 filename = file_['filename']
                 files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
         return render_template(email_template,
-                               data=data,
                                page=page,
+                               agency_name=agency_name)
+    # process email template for link
+    if data['type'] == 'link_email':
+        return render_template(email_template,
+                               title=data['link_title'],
+                               url=data['link_url'],
+                               page=page)
                                agency_name=agency_name,
                                files_links=files_links)
 

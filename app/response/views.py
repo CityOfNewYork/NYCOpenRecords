@@ -25,6 +25,7 @@ from app.constants import response_type
 from app.response.utils import (
     add_note,
     add_file,
+    add_link,
     add_extension,
     process_upload_data,
     send_file_email,
@@ -124,6 +125,21 @@ def response_extension(request_id):
                   extension_data['reason'],
                   extension_data['due-date'],
                   extension_data['email-extend-content'])
+    return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/link/<request_id>', methods=['POST'])
+def response_link(request_id):
+    """
+
+    :param request_id:
+    :return:
+    """
+    link_data = flask_request.form
+    add_link(request_id,
+             link_data['title'],
+             link_data['url'],
+             link_data['email-link-content'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
