@@ -105,12 +105,14 @@
                 <h4 class="modal-title">Agency User Information</h4>
             </div>
             <div class="modal-body">
+                {% for user in users %}
                 <div>
-                    <h4>Agency User Name</h4>
-                    <h5>Agency User Email</h5>
+                    <h4>Agency User Name </h4>
+                    <h5>Agency User Email {{ user.email }}</h5>
                     <h5>Agency User Address</h5>
                     <h5>Agency User Phone Number</h5>
                 </div>
+                {% endfor %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

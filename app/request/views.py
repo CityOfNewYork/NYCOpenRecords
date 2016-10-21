@@ -153,11 +153,21 @@ def view(request_id):
     requester = current_request.user_requests.filter_by(
         request_user_type=req_user_type.REQUESTER).first().user
 
+
+
+
+    agency_users = UserRequests.query.filter_by(request_id=request_id, auth_user_type="AnonymousUser").all()
+    # agency_users = UserRequests.query.filter_by(request_id=request_id, request_user_type=req_user_type.AGENCY).all()
+
+    users = []
+    for agency_user in agency_users:
+        users.append(Users.query.filter_by(guid=agency_user.user_guid).first())
     return render_template('request/view_request.html',
                            request=current_request,
                            status=request_status,
                            agency_name=agency.name,
-                           requester=requester)
+                           requester=requester,
+                           users=users)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['POST'])
