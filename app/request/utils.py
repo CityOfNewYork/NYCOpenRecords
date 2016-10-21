@@ -182,7 +182,7 @@ def create_request(title,
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
-                              auth_user_type=current_user.user_type,
+                              auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
                               type=event_type.REQ_CREATED,
                               timestamp=timestamp)

@@ -9,6 +9,7 @@ from app.constants import (
     response_type,
     PUBLIC_USER_NYC_ID,
 )
+from app.constants.response_privacy import PRIVATE
 from app.models import (
     Requests,
     Responses,
@@ -91,7 +92,7 @@ class RequestsFactory(object):
             type=response_type.FILE,
             date_modified=datetime.utcnow(),
             metadata_id=file_.id,
-            privacy="private",
+            privacy=PRIVATE,
         )
         # TODO: add Events FILE_ADDED
         create_object(response)

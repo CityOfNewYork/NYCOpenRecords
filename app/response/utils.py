@@ -13,10 +13,10 @@ from abc import ABCMeta, abstractmethod
 from flask import (
     current_app,
     request as flask_request,
-    render_template, url_for
+    render_template,
+    url_for
 )
 from flask_login import current_user
-
 from app.constants import (
     event_type,
     response_type,

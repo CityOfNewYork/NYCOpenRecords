@@ -85,7 +85,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
 
             user = update_user(
                 guid=guid,
-                user_type=user.auth_user_type,
+                auth_user_type=user.auth_user_type,
                 agency=(organization.ein or None),
                 title=title,
                 organization=organization.name,
@@ -96,7 +96,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
         else:
             user = update_user(
                 guid=guid,
-                user_type=user.auth_user_type,
+                auth_user_type=user.auth_user_type,
                 title=title,
                 organization=organization,
                 phone_number=phone_number,
@@ -134,10 +134,10 @@ def find_or_create_user(guid, auth_user_type):
     Returns the User object and a boolean marking the user as a new user.
 
     :param unicode guid: GUID for the user
-    :param unicode user_type: User Type. See auth.constants for list of valid user types
+    :param unicode auth_user_type: User Type. See auth.constants for list of valid user types
     :return: (User Object, Boolean for Is new User)
     """
-    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(auth_user_type[0])).first()
+    user = Users.query.filter_by(guid=str(guid[0]), auth_user_type=str(auth_user_type[0])).first()
 
     if user:
         return user, False
@@ -158,7 +158,7 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
     auth_user_type = saml_user_data['userType'][0]
 
     # Determine if the user's email address has been validated
-    # nycExtEmailValidationFlag is empty if user_type = Saml2In:NYC Employees
+    # nycExtEmailValidationFlag is empty if auth_user_type = Saml2In:NYC Employees
     # Otherwise, the validation flag will be either TRUE or FALSE
     if saml_user_data.get('nycExtEmailValidationFlag', None):
         if len(saml_user_data.get('nycExtEmailValidationFlag')[0]) == 0:
