@@ -120,13 +120,6 @@ def new():
                                         address=get_address(form),
                                         upload_path=upload_path)
 
-            # FIXME: recaptcha verifying functionalty prevented due to NYC network proxy
-            # (prevents sending a backend request to the API)
-
-            # if recaptcha.verify() is False:
-            #     flash("Please complete reCAPTCHA.")
-            #     return render_template(new_request_template, form=form, site_key=site_key)
-
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.user_requests.filter_by(request_user_type=user_type_request.REQUESTER).first().user
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
