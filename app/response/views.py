@@ -70,17 +70,16 @@ def response_file(request_id):
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    if flask_request.method == 'POST':  # FIXME: no need for this check
-        files = process_upload_data(flask_request.form)
-        for file_data in files:
-            add_file(current_request.id,
-                     file_data,
-                     files[file_data]['title'],
-                     files[file_data]['privacy'])
-        file_options = process_privacy_options(files)
-        email_content = flask_request.form['email-content']
-        for privacy, files in file_options.items():
-            send_file_email(request_id, privacy, files, email_content)
+    files = process_upload_data(flask_request.form)
+    for file_data in files:
+        add_file(current_request.id,
+                 file_data,
+                 files[file_data]['title'],
+                 files[file_data]['privacy'])
+    file_options = process_privacy_options(files)
+    email_content = flask_request.form['email-content']
+    for privacy, files in file_options.items():
+        send_file_email(request_id, privacy, files, email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -158,6 +157,7 @@ def edit_response(response_id):
     {
         'privacy': 'release_public',
         'title': 'new title'
+        'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
     }
     Response body consists of both the old and updated data, or an error message.
     """

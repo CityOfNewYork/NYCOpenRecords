@@ -501,6 +501,7 @@ class ResponseEditor(metaclass=ABCMeta):
         update_object(self.metadata_new,
                       type(self.metadata),
                       self.metadata.id)
+        # TODO: send email... content?
 
 
 class RespFileEditor(ResponseEditor):
@@ -511,6 +512,7 @@ class RespFileEditor(ResponseEditor):
     def edit_metadata(self):
         super(RespFileEditor, self).edit_metadata()
         # TODO: add upload stuff
+        self.flask_request.files
 
 
 class RespNoteEditor(ResponseEditor):

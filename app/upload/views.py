@@ -46,7 +46,13 @@ def post(request_id):
     files = request.files
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
-    if upload_exists(request_id, filename):  # TODO: and if 'edit' is not true
+    # TODO:
+    # If 'edit' (in request body) is true,
+    # an error is NOT returned if the upload exists,
+    # instead, the upload is, after scanning, placed in an update folder
+    # within data/FOIL-XXX/ and moved out of that folder on submit
+    # done by edit response (PUT)
+    if upload_exists(request_id, filename):
         response = {
             "files": [{
                 "name": filename,

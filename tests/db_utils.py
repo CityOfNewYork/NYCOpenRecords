@@ -7,7 +7,6 @@ from app.models import Requests, Roles
 from app.lib.db_utils import update_object
 
 
-
 class UpdateObjectTests(BaseTestCase):
 
     def setUp(self):

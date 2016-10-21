@@ -1,10 +1,13 @@
 import json
 from io import BytesIO
+from unittest.mock import patch
 
 from flask import jsonify
-from unittest.mock import patch
 from tests.base import BaseTestCase
 from tests.tools import RequestsFactory
+
+from app.models import Events
+from app.constants.event_type import FILE_EDITED
 
 
 class ResponseViewsTests(BaseTestCase):
@@ -45,6 +48,14 @@ class ResponseViewsTests(BaseTestCase):
         old_title = response.metadatas.title
         new_filename = 'bovine.txt'
         new_title = "updated title, shiny and chrome"
+        data_old = {
+            'privacy': old_privacy,
+            'title': old_title
+        }
+        data_new = {
+            'privacy': "release_public",
+            'title': new_title
+        }
         # https://github.com/mattupstate/flask-security/issues/259
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
         with self.client as client:
@@ -60,21 +71,39 @@ class ResponseViewsTests(BaseTestCase):
                     'file': (BytesIO(b'the cow goes quack'), new_filename)
                 }
             )
+        # check flask response
         self.assertEqual(
             json.loads(resp.data.decode()),
             {
-                'old': {
-                    'privacy': old_privacy,
-                    'title': old_title,
-                },
-                'new': {
-                    'privacy': "release_public",
-                    'title': new_title
-                }
+                'old': data_old,
+                'new': data_new
             }
         )
-
-        # assert Event
+        # check response and metadata edited
+        self.assertEqual([response.privacy, response.metadatas.title],
+                         ["release_public", new_title])
+        # check FILE_EDITED Event created
+        event = Events.query.filter_by(response_id=response.id).first()
+        self.assertTrue(event)
+        self.assertEqual(
+            [
+                event.request_id,
+                event.user_id,
+                event.auth_user_type,
+                event.type,
+                event.previous_response_value,
+                event.new_response_value,
+            ],
+            [
+                rf.request.id,
+                rf.requester.guid,
+                rf.requester.auth_user_type,
+                FILE_EDITED,
+                data_old,
+                data_new,
+            ]
+        )
+        # check EMAIL_NOTIFICATION_SENT Event created
         # assert file changed
 
     # def test_edit_file_bad()
