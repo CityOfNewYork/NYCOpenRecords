@@ -1,0 +1,77 @@
+<script type="text/javascript">
+$(document).ready(function () {
+    // Hides all other divs except for the first
+    $(".link-control .link-divs").each(function (e) {
+        if (e != 0)
+            $(this).hide();
+    });
+
+    // Handles click events on the first next button
+    $("#link-next-1").click(function (e) {
+        // Validate link select field and reason textarea
+        $("#link-title").parsley().validate();
+        $("#link-url").parsley().validate();
+        if (!$('#link-title').parsley().isValid()) {
+            e.preventDefault();
+            return false;
+        }
+        if (!$('#link-url').parsley().isValid()) {
+            e.preventDefault();
+            return false;
+        }
+
+        // If validation fields are valid, proceed with next click function
+{#        if ($('#link-title').parsley().isValid() || $("#custom-url").parsley().isValid()) {#}
+{#            var formData = {#}
+{#                request_id: "{{ request.id }}",#}
+{#                template_name: "email_link.html",#}
+{#                type: "link_email",#}
+{#                link_length: $('#link-select').val(),#}
+{#                custom_due_date: $('#custom-link').val(),#}
+{#                link_reason: $('#link-reason').val()#}
+{#            };#}
+{##}
+{#            $.ajax({#}
+{#                url: "/response/email",#}
+{#                type: 'POST',#}
+{#                data: JSON.stringify(formData),#}
+{#                contentType: false,#}
+{#                success: function (data) {#}
+{#                    // Data should be html template page.#}
+{#                    tinyMCE.get('email-extend-content').setContent(data);#}
+{#                }#}
+{#            });#}
+            document.getElementById("first").style.display = "none";
+            document.getElementById("second").style.display = "block";
+{#        }#}
+    });
+
+    // Handles click events on the second next button
+    $("#link-next-2").click(function () {
+        document.getElementById("second").style.display = "none";
+        document.getElementById("third").style.display = "block";
+        $("#email-extend-summary").html(tinyMCE.get('email-extend-content').getContent());
+    });
+
+    // Handles click events on the first previous button
+    $("#link-prev-1").click(function () {
+        document.getElementById("first").style.display = "block";
+        document.getElementById("second").style.display = "none";
+    });
+
+    // Handles click events on the second previous button
+    $("#link-prev-2").click(function () {
+        document.getElementById("third").style.display = "none";
+        document.getElementById("second").style.display = "block";
+    });
+
+    // Apply parsley data required validation to link reason
+    $('#link-title').attr('data-parsley-required','');
+    $('#link-url').attr('data-parsley-required','');
+
+
+    // Apply custom validation messages
+    $('#link-title').attr('data-parsley-required-message', 'Link title must be provided');
+    $('#link-url').attr('data-parsley-required-message', 'URL link must be provided');
+});
+</script>

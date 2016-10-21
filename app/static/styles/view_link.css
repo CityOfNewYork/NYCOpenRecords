@@ -1,0 +1,29 @@
+/* TODO: figure out what to do for duplicate selectors. consolidate into a single css file */
+/* sets controlling div to relative position */
+.link-control {
+    position: relative;
+}
+
+/* sets styles for the labels for the extension form */
+.link-label {
+    font-weight: 400;
+    line-height: 20px;
+}
+
+/* sets the position for the previous buttons */
+.prev-btn {
+    position: absolute;
+    left: 0;
+}
+
+/* sets the position for the next buttons */
+.next-btn {
+    position: absolute;
+    right: 0;
+}
+
+/* sets the position for the submit button */
+.submit-btn {
+    position: absolute;
+    right: 0;
+}

@@ -1,11 +1,9 @@
 <script type="text/javascript">
 $(document).ready(function () {
-    // Hides all other divs except for the first. Also hides previous button on the first div.
+    // Hides all other divs except for the first
     $(".extension-control .extension-divs").each(function (e) {
         if (e != 0)
             $(this).hide();
-        else
-            $("#previous").hide();
     });
 
     // Handles click events on the first next button
@@ -101,7 +99,7 @@ $(document).ready(function () {
         $('#' + required_fields[i]).attr('data-parsley-required','');
     }
 
-    // Apply parsley mininum length validation to extension reason
+    // Apply parsley minimum length validation to extension reason
     $('#extension-reason').attr('data-parsley-minlength','20');
     $('#extension-reason').attr('data-parsley-maxlength','5000');
 
