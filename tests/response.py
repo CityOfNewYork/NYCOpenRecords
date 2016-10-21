@@ -20,9 +20,9 @@ class ResponseViewsTests(BaseTestCase):
             self.client.post(
                 '/response/extension/' + 'fake request id',  # self.request.id,
                 data={
-                    'extension-length': 'foo',
+                    'length': 'foo',
                     'reason': 'bar',
-                    'due_date': 'baz',
+                    'due-date': 'baz',
                     'email-extend-content': 'qux'
                 }
             )

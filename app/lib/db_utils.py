@@ -3,17 +3,10 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
-import json
-
-from sqlalchemy.orm.attributes import flag_modified
 from app import db
 
-from app.models import (
-    Events,
-    UserRequests,
-    Agencies,
-    Requests,
-)
+from sqlalchemy.orm.attributes import flag_modified
+from app.models import Agencies
 
 
 def create_object(obj):
@@ -34,31 +27,38 @@ def create_object(obj):
         return None
 
 
-def update_object(attribute, value, obj_type, obj_id):
+def update_object(data, obj_type, obj_id):
     """
+    Update a database record.
 
-    :param attribute:
-    :param value:
-    :param obj_type:
-    :param obj_id:
-    :return:
+    :param data: a dictionary of attribute-value pairs
+    :param obj_type: sqlalchemy model
+    :param obj_id: id of record
+    :return: string representation of the updated object
+
+        or None if updating failed
     """
     obj = get_obj(obj_type, obj_id)
 
     if obj:
-        try:
+        for attr, value in data.items():
             if type(value) == dict:
+                # update json values
                 for key, val in value.items():
-                    getattr(obj, attribute)[key] = val
-                flag_modified(obj, attribute)
+                    getattr(obj, attr)[key] = val
+                flag_modified(obj, attr)
             else:
-                setattr(obj, attribute, value)
+                setattr(obj, attr, value)
+        try:
             db.session.commit()
-            return str(obj)
-        except Exception:
+        except Exception as e:
+            print("Error:", e)
             db.session.rollback()
-            return None
-
+        else:
+            # update elasticsearch
+            if hasattr(obj, 'es_update'):
+                obj.es_update()
+            return str(obj)
     return None
 
 
@@ -71,7 +71,7 @@ def get_obj(obj_type, obj_id):
     """
     if not obj_id:
         return None
-    return eval(obj_type).query.get(obj_id)
+    return obj_type.query.get(obj_id)
 
 
 def get_agencies_list():

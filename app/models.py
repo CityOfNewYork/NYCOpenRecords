@@ -10,7 +10,7 @@ from flask_login import current_user
 from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
-from app import db
+from app import db, es
 from app.constants import (
     PUBLIC_USER,
     AGENCY_USER,
@@ -47,6 +47,7 @@ from app.constants.submission_methods import (
     IN_PERSON,
     THREE_ONE_ONE
 )
+from app.search.constants import INDEX
 
 
 class Roles(db.Model):
@@ -150,7 +151,7 @@ class Agencies(db.Model):
     """
 
     __tablename__ = 'agencies'
-    ein = db.Column(db.Integer, primary_key=True)
+    ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
     category = db.Column(db.String(256))
     name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
@@ -388,6 +389,30 @@ class Requests(db.Model):
         self.submission = submission
         self.current_status = current_status
         self.agency_description = agency_description
+
+    def es_update(self):
+        # TODO: handle error response
+        result = es.update(
+            index=INDEX,
+            doc_type='request',
+            id=self.id,
+            body = {
+                'doc': {
+                    'title': self.title,
+                    'description': self.description,
+                    'agency_description': self.agency_description,
+                    'title_private': self.privacy['title'],
+                    'agency_description_private': self.privacy['agency_description'],
+                    'date_submitted': self.date_submitted,
+                    'date_due': self.due_date,
+                    'submission': self.submission,
+                    'status': self.current_status
+                }
+            },
+            # refresh='wait_for'
+        )
+        import json
+        print(json.dumps(result, indent=2))
 
     def __repr__(self):
         return '<Requests %r>' % self.id
