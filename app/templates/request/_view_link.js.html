@@ -19,31 +19,65 @@ $(document).ready(function () {
             e.preventDefault();
             return false;
         }
+        // TODO: determine URL link check
+        {#        $.ajax({#}
+        {#            type: "GET",#}
+        {#            url: "http://www.google.com",#}
+        {#            dataType: "jsonp",#}
+        {#            statusCode: {#}
+        {#                200: function () {#}
+        {#                    alert('Valid');#}
+        {#                },#}
+        {#                304: function () {#}
+        {#                    alert('Invalid');#}
+        {#                }#}
+        {#            }#}
+        {#        });#}
+
+        {##}
+        {#        var testUrl = "http://www.google.com";#}
+        {#          $.ajax({#}
+        {#              url: testUrl,#}
+        {#              dataType: 'jsonp',#}
+        {#              crossDomain: true,#}
+        {#              timeout: 5000,#}
+        {#              complete: function (e, xhr, settings) {#}
+        {#                  switch (e.status) {#}
+        {#                      case 200:#}
+        {#                          alert('Valid');#}
+        {#                          break;#}
+        {#                      default:#}
+        {#                          alert('Not Valid');#}
+        {#                          return false;#}
+        {#                          break;#}
+        {#                  }#}
+        {#              }#}
+        {#          });#}
 
         // If validation fields are valid, proceed with next click function
-{#        if ($('#link-title').parsley().isValid() || $("#custom-url").parsley().isValid()) {#}
-{#            var formData = {#}
-{#                request_id: "{{ request.id }}",#}
-{#                template_name: "email_link.html",#}
-{#                type: "link_email",#}
-{#                link_length: $('#link-select').val(),#}
-{#                custom_due_date: $('#custom-link').val(),#}
-{#                link_reason: $('#link-reason').val()#}
-{#            };#}
-{##}
-{#            $.ajax({#}
-{#                url: "/response/email",#}
-{#                type: 'POST',#}
-{#                data: JSON.stringify(formData),#}
-{#                contentType: false,#}
-{#                success: function (data) {#}
-{#                    // Data should be html template page.#}
-{#                    tinyMCE.get('email-extend-content').setContent(data);#}
-{#                }#}
-{#            });#}
+        if ($('#link-title').parsley().isValid() || $("#link-url").parsley().isValid()) {
+            var formData = {
+                request_id: "{{ request.id }}",
+                template_name: "email_link.html",
+                type: "link_email",
+                link_title: $('#link-title').val(),
+                link_url: $('#link-url').val(),
+            };
+
+            $.ajax({
+                url: "/response/email",
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: false,
+                success: function (data) {
+                    // Data should be html template page.
+                    tinyMCE.get('email-link-content').setContent(data);
+                }
+            });
             document.getElementById("first").style.display = "none";
             document.getElementById("second").style.display = "block";
-{#        }#}
+            {#        }#}
+        }
     });
 
     // Handles click events on the second next button
@@ -67,11 +101,16 @@ $(document).ready(function () {
 
     // Apply parsley data required validation to link reason
     $('#link-title').attr('data-parsley-required','');
+    $('#link-title').attr('data-parsley-maxlength','90');
     $('#link-url').attr('data-parsley-required','');
+    $('#link-url').attr('data-parsley-maxlength','254');
+    $('#link-url').attr('data-parsley-type','url');
 
 
     // Apply custom validation messages
     $('#link-title').attr('data-parsley-required-message', 'Link title must be provided');
     $('#link-url').attr('data-parsley-required-message', 'URL link must be provided');
+    $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters');
+    $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters');
 });
 </script>
