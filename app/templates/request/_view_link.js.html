@@ -124,18 +124,27 @@ $(document).ready(function () {
         document.getElementById("link-second").style.display = "block";
     });
 
-    // Apply parsley data required validation to link reason
+    // Apply parsley data required validation to link title and url
     $('#link-title').attr('data-parsley-required', '');
-    $('#link-title').attr('data-parsley-maxlength', '90');
     $('#link-url').attr('data-parsley-required', '');
-    $('#link-url').attr('data-parsley-maxlength', '254');
-    $('#link-url').attr('data-parsley-type', 'url');
 
+    $('#link-title').attr('data-parsley-maxlength', '90');
+    $('#link-url').attr('data-parsley-maxlength', '254');
+
+    $('#link-url').attr('data-parsley-type', 'url');
+    $('#link-url').attr('data-parsley-remote', '');
+    $('#link-url').attr('data-parsley-remote-validator', 'url_checker');
+
+    window.Parsley.addAsyncValidator('url_checker', function(xhr) {
+        console.log(this.$element);
+        return 200 === xhr.status;
+    }, '/response/url_checker');
 
     // Apply custom validation messages
     $('#link-title').attr('data-parsley-required-message', 'Link title must be provided');
     $('#link-url').attr('data-parsley-required-message', 'URL link must be provided');
     $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters');
     $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters');
+
 });
 </script>

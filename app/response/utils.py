@@ -151,7 +151,7 @@ def add_link(request_id, title, url_link, email_content):
 
     :param request_id:
     :param title:
-    :param link:
+    :param url_link:
     :param email_content:
     :return:
     """
@@ -165,10 +165,10 @@ def add_link(request_id, title, url_link, email_content):
                       link.metadata_id,
                       new_response_value=link_metadata,
                       privacy='release_public')
-    send_extension_email(request_id,
-                         title,
-                         link,
-                         email_content)
+    send_link_email(request_id,
+                    title,
+                    link,
+                    email_content)
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -340,9 +340,9 @@ def process_email_template_request(request_id, data):
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     # process email template for extension
     if data['type'] == 'extension_email':
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         # calculates new due date based on selected value if custom due date is not selected
         new_due_date = _get_new_due_date(request_id,
                                          data['extension_length'],
@@ -364,11 +364,13 @@ def process_email_template_request(request_id, data):
             if file_['privacy'] != PRIVATE:
                 filename = file_['filename']
                 files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                page=page,
                                agency_name=agency_name)
     # process email template for link
     if data['type'] == 'link_email':
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                title=data['link_title'],
                                url=data['link_url'],
@@ -449,6 +451,35 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
                               bcc=bcc,
                               new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
                               reason=reason)
+
+
+def send_link_email(request_id, title, url_link, email_content):
+    """
+    Function that sends email detailing a extension has been added to a request.
+
+    :param request_id: FOIL request ID
+    :param new_due_date: extended due date of the request
+    :param reason: reason for extending the request
+    :param email_content: content body of the email notification being sent
+
+    :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a
+    request.
+    """
+    subject = 'Response Added'
+    bcc = get_agencies_emails(request_id)
+    requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                   request_user_type=REQUESTER).first().user.email
+    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    to = [requester_email]
+    safely_send_and_add_email(request_id,
+                              email_content,
+                              subject,
+                              "email_templates/email_link",
+                              to=to,
+                              bcc=bcc,
+                              title=title,
+                              url=url_link
+                              )
 
 
 def safely_send_and_add_email(request_id,

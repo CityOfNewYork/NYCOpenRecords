@@ -17,6 +17,7 @@ from flask import (
 from flask_login import current_user
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
+from werkzeug.exceptions import BadRequest
 
 from app.constants.response_privacy import PRIVATE
 from app.models import Requests, Responses
@@ -33,6 +34,8 @@ from app.response.utils import (
     process_email_template_request,
     RespFileEditor
 )
+from urllib.request import urlopen
+
 
 
 # simple form used to test functionality of storing a note to responses table
@@ -155,6 +158,21 @@ def response_email():
     request_id = data['request_id']
     email_template = process_email_template_request(request_id, data)
     return email_template
+
+
+@response.route('/url_checker', methods=['GET', 'POST'])
+def check_url():
+    url_link = flask_request.args['url']
+    try:
+        url_status = urlopen(url_link).getcode()
+    except ValueError as e:
+        print(e)
+        return 'Invalid URL', 400
+
+    if url_status == 200:
+        return 'Valid URL', 200
+    else:
+        return 'Invalid URL', 400
 
 
 # TODO: Implement response route for sms
