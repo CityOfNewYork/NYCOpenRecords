@@ -19,6 +19,8 @@ NYC OpenRecords is an application that assists individuals in the process of sub
 NYC OpenRecords is a Python web application built using the Flask framework for the backend. The frontend is built using the Bootstrap framework. OpenRecords is compatible with most modern browsers, including Internet Explorer 11 and above.
 
 ## Backend Packages
+- Flask-Elasticsearch: Provides search indexing / mapping capabilites for ElasticSearch
+
 
 ## Frontend Packages
 
