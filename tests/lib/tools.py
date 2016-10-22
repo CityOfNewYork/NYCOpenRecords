@@ -26,7 +26,7 @@ from app.lib.db_utils import create_object
 
 class RequestsFactory(object):
     """
-    A very crude first step in making testing easier.
+    Helper for creating test Requests data.
     """
 
     filepaths = []
@@ -80,23 +80,23 @@ class RequestsFactory(object):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             open(filepath, 'w').close()
 
-        file_ = Files(
+        file_meta = Files(
             name=filename,
             mime_type=mime_type,
             title=title or filename,
             size=os.path.getsize(filepath)
         )
-        create_object(file_)
+        create_object(file_meta)
         response = Responses(
             request_id=self.request.id,
             type=response_type.FILE,
             date_modified=datetime.utcnow(),
-            metadata_id=file_.id,
+            metadata_id=file_meta.id,
             privacy=PRIVATE,
         )
         # TODO: add Events FILE_ADDED
         create_object(response)
-        return response, file_
+        return response
 
     def add_note(self):
         pass

@@ -10,17 +10,20 @@ from datetime import datetime
 import os
 import re
 from abc import ABCMeta, abstractmethod
+import magic
+from werkzeug.utils import secure_filename
+from flask_login import current_user
 from flask import (
     current_app,
     request as flask_request,
     render_template,
     url_for
 )
-from flask_login import current_user
 from app.constants import (
     event_type,
     response_type,
-    ANONYMOUS_USER
+    ANONYMOUS_USER,
+    UPDATED_FILE_DIRNAME,
 )
 from app.constants.request_user_type import REQUESTER
 from app.constants.response_privacy import PRIVATE
@@ -443,15 +446,23 @@ class ResponseEditor(metaclass=ABCMeta):
 
         self.data_old = {}
         self.data_new = {}
-        self.errors = []
+        self.errors = []  # TODO: this
 
         privacy = flask_request.form.get('privacy')
         if privacy and privacy != self.response.privacy:
-            self.data_old['privacy'] = self.response.privacy
-            self.data_new['privacy'] = privacy
+            self.set_data_values('privacy', self.response.privacy, privacy)
 
         self.edit_metadata()
         self.add_event_and_update()
+        # TODO: self.email()
+        # What should be the email_content?
+        # Edit existing email response OR new response?
+        # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
+
+
+    def set_data_values(self, key, old, new):
+        self.data_old[key] = old
+        self.data_new[key] = new
 
     @property
     def event_type(self):
@@ -471,37 +482,44 @@ class ResponseEditor(metaclass=ABCMeta):
     @property
     @abstractmethod
     def metadata_fields(self):
-        """ List of fields that can be edited directly """
+        """ List of fields that can be edited directly. """
         return list()
 
     def edit_metadata(self):
+        """
+        For the editable fields, populates the
+        old and new data containers.
+        """
         for field in self.metadata_fields:
             value_new = self.flask_request.form.get(field)
             value_orig = getattr(self.metadata, field)
             if value_new and value_new != value_orig:
-                self.data_old[field] = value_orig
-                self.data_new[field] = value_new
+                self.set_data_values(field, value_orig, value_new)
 
     def add_event_and_update(self):
-        timestamp = datetime.utcnow()
-        event = Events(
-            type=self.event_type,
-            request_id=self.response.request_id,
-            response_id=self.response.id,
-            user_id=self.user.guid,
-            auth_user_type=self.user.auth_user_type,
-            timestamp=timestamp,
-            previous_response_value=self.data_old,
-            new_response_value=self.data_new)
-        create_object(event)
-        update_object({'date_modified': timestamp,
-                      'privacy': self.data_new['privacy']},
-                      Responses,
-                      self.response.id)
-        update_object(self.metadata_new,
-                      type(self.metadata),
-                      self.metadata.id)
-        # TODO: send email... content?
+        """
+        Creates an 'edited' event and updates the
+        response and metadata records.
+        """
+        if not self.errors:
+            timestamp = datetime.utcnow()
+            event = Events(
+                type=self.event_type,
+                request_id=self.response.request_id,
+                response_id=self.response.id,
+                user_id=self.user.guid,
+                auth_user_type=self.user.auth_user_type,
+                timestamp=timestamp,
+                previous_response_value=self.data_old,
+                new_response_value=self.data_new)
+            create_object(event)
+            update_object({'date_modified': timestamp,
+                          'privacy': self.data_new['privacy']},
+                          Responses,
+                          self.response.id)
+            update_object(self.metadata_new,
+                          type(self.metadata),
+                          self.metadata.id)
 
 
 class RespFileEditor(ResponseEditor):
@@ -510,9 +528,58 @@ class RespFileEditor(ResponseEditor):
         return ['title']
 
     def edit_metadata(self):
+        """
+        If the file itself is being edited, gathers
+        its metadata. The values of the 'size', 'name', and
+        'mimetype' fields are determined by the new file.
+        """
         super(RespFileEditor, self).edit_metadata()
-        # TODO: add upload stuff
-        self.flask_request.files
+        new_filename = flask_request.form.get('filename')
+        if new_filename is not None:
+            new_filename = secure_filename(new_filename)
+            filepath = os.path.join(
+                current_app.config['UPLOAD_DIRECTORY'],
+                self.response.request_id,
+                UPDATED_FILE_DIRNAME,
+                new_filename
+            )
+            if os.path.exists(filepath):
+                self.set_data_values('size',
+                                     self.metadata.size,
+                                     os.path.getsize(filepath))
+                self.set_data_values('name',
+                                     self.metadata.name,
+                                     new_filename)
+                self.set_data_values('mime_type',
+                                     self.metadata.mime_type,
+                                     magic.from_file(filepath, mime=True))
+                self.replace_old_file(filepath)
+            else:
+                self.errors.append(
+                    "File '{}' not found.".format(new_filename))
+
+    def replace_old_file(self, updated_filepath):
+        """
+        Move the new file out of the 'updated' directory
+        and delete the file it is replacing.
+        """
+        upload_path = os.path.join(
+            current_app.config['UPLOAD_DIRECTORY'],
+            self.response.request_id
+        )
+        os.remove(
+            os.path.join(
+                upload_path,
+                self.metadata.name
+            )
+        )
+        os.rename(
+            updated_filepath,
+            os.path.join(
+                upload_path,
+                os.path.basename(updated_filepath)
+            )
+        )
 
 
 class RespNoteEditor(ResponseEditor):

@@ -12,7 +12,10 @@ from app import (
     celery,
     upload_redis as redis
 )
-from app.constants import response_type
+from app.constants import (
+    response_type,
+    UPDATED_FILE_DIRNAME,
+)
 from app.upload.constants import (
     ALLOWED_MIMETYPES,
     MAX_CHUNKSIZE,
@@ -104,17 +107,25 @@ def is_valid_file_type(obj):
     return is_valid, mime_type
 
 
-def get_upload_key(request_id, upload_filename):
+def get_upload_key(request_id, upload_filename, for_update=False):
     """
     Returns a formatted key for an upload.
     Intended for tracking the status of an upload.
 
     :param request_id: id of the request associated with the upload
     :param upload_filename: the name of the uploaded file
+    :param for_update: will the uploaded file replace an existing file?
+        (this is required to make keys unique, as the uploaded file
+        may share the same name as the existing file)
 
     :return: the formatted key
+        Ex.
+            FOIL-ID_filename.ext_new
+            FOIL_ID_filename.ext_update
     """
-    return '_'.join((request_id, upload_filename))
+    return '_'.join((request_id,
+                     upload_filename,
+                     'update' if for_update else 'new'))
 
 
 class VirusDetectedException(Exception):
@@ -127,18 +138,20 @@ class VirusDetectedException(Exception):
 
 
 @celery.task
-def scan_and_complete_upload(request_id, filepath):
+def scan_and_complete_upload(request_id, filepath, is_update=False):
     """
     Scans an uploaded file (see scan_file) and moves
-    it to the data directory if it is clean.
+    it to the data directory if it is clean. If is_update is set,
+    the file will also be placed under the 'updated' directory.
     Updates redis accordingly.
 
     :param request_id: id of request associated with the upload
     :param filepath: path to uploaded and quarantined file
+    :param is_update: will the file replace an existing one?
     """
     filename = os.path.basename(filepath)
 
-    key = get_upload_key(request_id, filename)
+    key = get_upload_key(request_id, filename, is_update)
     redis.set(key, upload_status.SCANNING)
 
     try:
@@ -151,8 +164,13 @@ def scan_and_complete_upload(request_id, filepath):
             current_app.config['UPLOAD_DIRECTORY'],
             request_id
         )
+        if is_update:
+            dst_dir = os.path.join(
+                dst_dir,
+                UPDATED_FILE_DIRNAME
+            )
         if not os.path.exists(dst_dir):
-            os.mkdir(dst_dir)
+            os.makedirs(dst_dir)
         os.rename(
             filepath,
             os.path.join(dst_dir, filename)

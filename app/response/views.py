@@ -163,7 +163,7 @@ def edit_response(response_id):
     """
     if current_user.is_anonymous:
         return {}, 403
-    # TODO: permissions check
+    # TODO: user permissions check
     resp = Responses.query.filter_by(id=response_id).first()
     editor_for_type = {
         response_type.FILE: RespFileEditor,
