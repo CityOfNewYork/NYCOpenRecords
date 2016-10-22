@@ -26,7 +26,7 @@ from app.constants import (
     UPDATED_FILE_DIRNAME,
 )
 from app.constants.request_user_type import REQUESTER
-from app.constants.response_privacy import PRIVATE
+from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.db_utils import update_object
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object
@@ -126,7 +126,7 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
                       event_type.REQ_EXTENDED,
                       extension.id,
                       new_response_value=extension_metadata,
-                      privacy='release_public')
+                      privacy=RELEASE_AND_PUBLIC)
     send_extension_email(request_id,
                          new_due_date,
                          reason,
@@ -425,7 +425,7 @@ def _process_response(request_id,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
                    previous_response_value=previous_response_value,
-                   new_response_value=new_response_value)
+                   new_response_value=new_response_value.update(privacy=privacy))
     # store event object
     create_object(obj=event)
 
@@ -446,7 +446,7 @@ class ResponseEditor(metaclass=ABCMeta):
 
         self.data_old = {}
         self.data_new = {}
-        self.errors = []  # TODO: this
+        self.errors = []
 
         privacy = flask_request.form.get('privacy')
         if privacy and privacy != self.response.privacy:

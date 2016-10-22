@@ -155,7 +155,8 @@ def create_request(title,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_response_value=metadata)
+                              new_response_value=metadata.update(
+                                  privacy=RELEASE_AND_PRIVATE))
         create_object(upload_event)
 
     role_to_user = {
