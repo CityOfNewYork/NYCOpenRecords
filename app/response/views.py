@@ -17,7 +17,6 @@ from flask import (
 from flask_login import current_user
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
-from werkzeug.exceptions import BadRequest
 
 from app.constants.response_privacy import PRIVATE
 from app.models import Requests, Responses
@@ -134,9 +133,11 @@ def response_extension(request_id):
 @response.route('/link/<request_id>', methods=['POST'])
 def response_link(request_id):
     """
+    Link response endpoint that takes in the metadata of a link for a specific request from the frontend.
+    Calls add_link to process the extension form data.
 
-    :param request_id:
-    :return:
+    :param request_id: Specific FOIL request ID for the link
+    :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     link_data = flask_request.form
     add_link(request_id,
@@ -162,6 +163,12 @@ def response_email():
 
 @response.route('/url_checker', methods=['GET'])
 def check_url():
+    """
+    Check the incoming url link's HTTP code status.
+
+    :return: If url link is valid, string 'Valid URL' and 200 status code is returned
+             If url link is invalid, string 'Invalid URL' and 400 status code is returned
+    """
     url_link = flask_request.args['url']
     try:
         url_status = urlopen(url_link).getcode()

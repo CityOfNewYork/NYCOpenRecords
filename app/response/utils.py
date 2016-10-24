@@ -48,7 +48,7 @@ from app.models import (
 
 def add_file(request_id, filename, title, privacy):
     """
-    Creates and stores the file object for the specified request.
+    Creates and store the file object for the specified request.
     Gets the file mimetype from a helper function in lib.file_utils
 
     :param request_id: Request ID that the file is being added to
@@ -56,7 +56,7 @@ def add_file(request_id, filename, title, privacy):
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
 
-    :return: Stores the file metadata into the Files table.
+    :return: Store the file metadata into the Files table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
     size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
@@ -88,12 +88,12 @@ def delete_file():
 
 def add_note(request_id, content):
     """
-    Creates and stores the note object for the specified request.
+    Creates and store the note object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param content: content of the note to be created and stored as a note object
 
-    :return: Stores the note content into the Notes table.
+    :return: Store the note content into the Notes table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
     note = Notes(content=content)
@@ -117,14 +117,14 @@ def delete_note():
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
     """
-    Creates and stores the extension object for the specified request.
+    Creates and store the extension object for the specified request.
 
     :param request_id: FOIL request ID for the extension
     :param length: length in business days that the request is being extended by
     :param reason: reason for the extension of the request
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param email_content: email body content of the email to be created and stored as a email object
-    :return: Stores the extension content into the Extensions table.
+    :return: Store the extension content into the Extensions table.
              Provides parameters for the process_response function to create and store responses and events object
              Calls email notification function to email both requester and agency users detailing the extension.
     """
@@ -151,13 +151,13 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
 
 def add_link(request_id, title, url_link, email_content):
     """
-    Creates and stores the link object for the specified request.
+    Creates and store the link object for the specified request.
 
     :param request_id: FOIL request ID for the link
     :param title: title of the link to be stored in the Links table and as a response value
     :param url_link: link url to be stored in the Links table and as a response value
     :param email_content: email body content of the email to be created and stored as a email object
-    :return: Stores the link content into the Links table.
+    :return: Store the link content into the Links table.
              Provides parameters for the process_response function to create and store responses and events object
              Calls email notification function to email both requester and agency users detailing the link.
     """
@@ -198,7 +198,7 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
 
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
-    Creates and stores the email object for the specified request.
+    Create and store the email object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param subject: subject of the email to be created and stored as a email object
@@ -206,7 +206,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :param to: list of person(s) email is being sent to
     :param cc: list of person(s) email is being cc'ed to
     :param bcc: list of person(s) email is being bcc'ed
-    :return: Stores the email metadata into the Emails table.
+    :return: Store the email metadata into the Emails table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
     to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
@@ -313,7 +313,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
 
 def process_privacy_options(files):
     """
-    Creates a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
+    Create a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
 
     :param files: list of filenames
     :return: Dictionary with 'release' and 'private' lists
@@ -497,7 +497,7 @@ def safely_send_and_add_email(request_id,
                               bcc=None,
                               **kwargs):
     """
-    Sends email and creates and stores the email object into the Emails table.
+    Send email and create and store the email object into the Emails table.
 
     :param request_id: FOIL request ID
     :param email_content: string of HTML email content that can be used as a message template
@@ -506,7 +506,7 @@ def safely_send_and_add_email(request_id,
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
 
-    :return: Sends email based on given arguments and creates and stores email object into the Emails table.
+    :return: Sends email based on given arguments and create and store email object into the Emails table.
              Will print error if there is an error.
     """
     try:
@@ -526,7 +526,7 @@ def _process_response(request_id,
                       previous_response_value=None,
                       privacy=PRIVATE):
     """
-    Creates and stores responses and events objects to the database
+    Create and store responses and events objects to the database
 
     :param request_id: FOIL request ID to be stored into the responses and events tables
     :param responses_type: type of response to be stored in the responses table
@@ -535,8 +535,8 @@ def _process_response(request_id,
     :param privacy: privacy of the response (default is 'private') to be stored in the responses table
     :param new_response_value: string content of the new response, to be stored in the responses table
     :param previous_response_value: string content of the previous response, to be stored in the responses table
-    :return: Creates and stores response object with given arguments from separate response type functions.
-             Creates and stores events object to the database.
+    :return: Create and store response object with given arguments from separate response type functions.
+             Create and store events object to the database.
     """
     # create response object
     response = Responses(request_id=request_id,
