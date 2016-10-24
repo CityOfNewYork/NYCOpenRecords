@@ -71,6 +71,7 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
+    ELASTICSEARCH_ENABLED = False
 
 
 class TestingConfig(Config):
