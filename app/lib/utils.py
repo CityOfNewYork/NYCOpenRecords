@@ -37,7 +37,7 @@ def eval_request_bool(val, default=True):
 
     :return: True or False
     """
-    assert type(default) is bool
+    assert isinstance(default, bool)
     if val is not None:
         val = val.lower()
         if val in ['false', '0', 'n', 'no']:

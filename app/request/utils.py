@@ -309,7 +309,7 @@ def _move_validated_upload(request_id, tmp_path):
         upload_status.READY)
 
     # Store File Object
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, valid_name))
+    size = os.path.getsize(valid_path)
     mime_type = get_mime_type(request_id, valid_name)
     file_obj = Files(name=valid_name, mime_type=mime_type, title='', size=size)
     create_object(obj=file_obj)
