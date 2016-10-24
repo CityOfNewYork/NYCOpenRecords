@@ -26,7 +26,7 @@ from app.constants import (
 )
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.response_type import FILE
-from app.constants.status_values import OPEN
+from app.constants.request_status import OPEN
 from app.constants.submission_methods import DIRECT_INPUT
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
