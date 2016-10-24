@@ -22,7 +22,8 @@ from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
-    AnonymousRequestForm
+    AnonymousRequestForm,
+    EditRequesterForm,
 )
 from app.models import (
     Requests,
@@ -69,7 +70,7 @@ def new():
         template_suffix = 'anon.html'
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        template_suffix = 'agency_ein.html'
+        template_suffix = 'agency.html'
     else:
         raise InvalidUserException(current_user)
 
@@ -145,7 +146,7 @@ def view_all():
     return render_template('request/all.html', requests=requests)
 
 
-@request.route('/view/<request_id>', methods=['GET', 'POST'])
+@request.route('/view/<request_id>', methods=['GET'])
 def view(request_id):
     """
     This function is for testing purposes of the view a request back until backend functionality is implemented.
@@ -158,6 +159,7 @@ def view(request_id):
         request_user_type=req_user_type.REQUESTER).first().user
     agency_users = UserRequests.query.filter_by(request_id=request_id,
                                                 request_user_type=req_user_type.AGENCY).all()
+    edit_requester_form = EditRequesterForm(state=requester.mailing_address['state'])
 
     users = []
     for agency_user in agency_users:
@@ -168,7 +170,8 @@ def view(request_id):
                            agency_name=agency.name,
                            requester=requester,
                            privacy=current_request.privacy,
-                           users=users)
+                           users=users,
+                           edit_requester_form=edit_requester_form)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['POST'])
@@ -187,14 +190,14 @@ def edit_requester_info(request_id):
         request_user_type=req_user_type.REQUESTER).first().user
     update_object({
         'email': flask_request.form.get('email') or requester.email,
-        'phone_number': flask_request.form.get('phone_number') or requester.phone_number,
-        'fax_number': flask_request.form.get('fax_number') or requester.fax_number,
+        'phone_number': flask_request.form.get('phone') or requester.phone_number,
+        'fax_number': flask_request.form.get('fax') or requester.fax_number,
         'title': flask_request.form.get('title') or requester.title,
         'organization': flask_request.form.get('organization') or requester.organization,
         'mailing_address': {
-            'zip': flask_request.form.get('zip') or requester.mailing_address['zip'],
+            'zip': flask_request.form.get('zipcode') or requester.mailing_address['zip'],
             'city': flask_request.form.get('city') or requester.mailing_address['city'],
-            'state': flask_request.form.get('state') or requester.maling_address['state'],
+            'state': flask_request.form.get('state') or requester.mailing_address['state'],
             'address_one': flask_request.form.get('address_one') or requester.mailing_address['address_one'],
             'address_two': flask_request.form.get('address_two') or requester.mailing_address['address_two'],
 
