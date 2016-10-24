@@ -57,7 +57,11 @@ $(document).ready(function () {
 
         // Validate link select field and reason textarea
         $("#link-title").parsley().validate();
-        $("#link-url").parsley().validate();
+        $("#link-url").parsley().validate({
+{#            onfocusout: false,#}
+{#            onkeyup: false, //turn off auto validate whilst typing#}
+{#            onsubmit: true#}
+        });
         {#        if (!$('#link-title').parsley().isValid()) {#}
         {#            e.preventDefault();#}
         {#            return false;#}
@@ -87,7 +91,7 @@ $(document).ready(function () {
                 template_name: "email_link.html",
                 type: "link_email",
                 link_title: $('#link-title').val(),
-                link_url: $('#link-url').val(),
+                link_url: $('#link-url').val()
             };
 
             $.ajax({
@@ -128,17 +132,46 @@ $(document).ready(function () {
     $('#link-title').attr('data-parsley-required', '');
     $('#link-url').attr('data-parsley-required', '');
 
+    // Apply parsley max length validation to link title and url
     $('#link-title').attr('data-parsley-maxlength', '90');
     $('#link-url').attr('data-parsley-maxlength', '254');
 
     $('#link-url').attr('data-parsley-type', 'url');
+
+    // Apply parsley remote validation to link url
     $('#link-url').attr('data-parsley-remote', '');
     $('#link-url').attr('data-parsley-remote-validator', 'url_checker');
 
+    // Create parsley asynchronous remote validator
     window.Parsley.addAsyncValidator('url_checker', function(xhr) {
         console.log(this.$element);
         return 200 === xhr.status;
     }, '/response/url_checker');
+
+{#    $('#link-url input[type=text]').on('keyup keydown', function () {#}
+{#        $('#link-url').parsley().destroy();#}
+{#    });#}
+
+{#    window.ParsleyValidator#}
+{#            .addValidator('vatid', function (value, requirement) {#}
+{#                var response = false;#}
+{##}
+{#                $.ajax({#}
+{#                    url: '/response/url_checker',#}
+{#                    data: $('#link-url').val(),#}
+{#                    type: 'get',#}
+{#                    async: false,#}
+{#                    success: function (data) {#}
+{#                        response = 200;#}
+{#                    },#}
+{#                    error: function () {#}
+{#                        response = false;#}
+{#                    }#}
+{#                });#}
+{##}
+{#                return response;#}
+{#            }, 32)#}
+{#            .addMessage('en', 'vatid', 'Vatid is invalid.');#}
 
     // Apply custom validation messages
     $('#link-title').attr('data-parsley-required-message', 'Link title must be provided');

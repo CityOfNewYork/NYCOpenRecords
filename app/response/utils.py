@@ -117,13 +117,16 @@ def delete_note():
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
     """
+    Creates and stores the extension object for the specified request.
 
-    :param request_id:
-    :param length:
-    :param reason:
-    :param custom_due_date:
-    :param email_content:
-    :return:
+    :param request_id: FOIL request ID for the extension
+    :param length: length in business days that the request is being extended by
+    :param reason: reason for the extension of the request
+    :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
+    :param email_content: email body content of the email to be created and stored as a email object
+    :return: Stores the extension content into the Extensions table.
+             Provides parameters for the process_response function to create and store responses and events object
+             Calls email notification function to email both requester and agency users detailing the extension.
     """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
     update_object(
@@ -148,12 +151,15 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
 
 def add_link(request_id, title, url_link, email_content):
     """
+    Creates and stores the link object for the specified request.
 
-    :param request_id:
-    :param title:
-    :param url_link:
-    :param email_content:
-    :return:
+    :param request_id: FOIL request ID for the link
+    :param title: title of the link to be stored in the Links table and as a response value
+    :param url_link: link url to be stored in the Links table and as a response value
+    :param email_content: email body content of the email to be created and stored as a email object
+    :return: Stores the link content into the Links table.
+             Provides parameters for the process_response function to create and store responses and events object
+             Calls email notification function to email both requester and agency users detailing the link.
     """
     link = Links(title=title, url=url_link)
     create_object(obj=link)
@@ -178,7 +184,7 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     Or else, extension length has an length (20, 30, 60, 90, or 120) and new_due_date will be determined by
     generate_due_date.
 
-    :param request_id: FOIL request ID that is being
+    :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: length the due date is being extended by
     :param custom_due_date: new custom due date of the request
     :return: new_due_date of the request
@@ -239,6 +245,7 @@ def process_upload_data(form):
     Helper function that processes the uploaded file form data.
     A files dictionary is first created and then populated with keys and their respective values of the form data.
 
+    :param form: form object to be processed and separated into appropriate keys and values
     :return: A files dictionary that contains the uploaded file(s)'s metadata that will be passed as arguments to be
      stored in the database.
     """
