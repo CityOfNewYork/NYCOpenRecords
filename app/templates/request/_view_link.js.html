@@ -7,85 +7,15 @@ $(document).ready(function () {
     });
 
     // Handles click events on the first next button
-    $("#link-next-1").click(function (e) {
-        {#        var testUrl = $("#link-url").val();#}
-        {#        $.ajax({#}
-        {#            url: testUrl,#}
-        {#            type: 'post',#}
-        {#            data: 'a=b'#}
-        {#        }).done(function (data, statusText, xhr) {#}
-        {#            var status = xhr.status;                //200#}
-        {#            var head = xhr.getAllResponseHeaders(); //Detail header info#}
-        {#            alert(status)#}
-        {#        });#}
+    $("#link-next-1").click(function () {
+        // Onclick, changes button text from to Next
+        $(this).text("Next");
 
-        {#        $.ajax({#}
-        {#            url: testUrl,#}
-        {#            crossDomain: true,#}
-        {#            success: function(data) {#}
-        {#                alert('Url good');#}
-        {#            },#}
-        {#            error: function(e) {#}
-        {#                console.log(e);#}
-        {#                alert('Bad url, bad');#}
-        {#            }#}
-        {#        });#}
-        {#        $.get(testUrl, function(){#}
-        {#            alert('GOOD');#}
-        {#        }).fail(function(){#}
-        {#            alert("BAD");#}
-        {#        });#}
-
-        {#        $.ajax({#}
-        {#            url: testUrl,#}
-        {#            dataType: 'jsonp',#}
-        {#            crossDomain: true,#}
-        {#            timeout: 2000,#}
-        {#            complete: function (e, xhr, settings) {#}
-        {#                switch (e.status) {#}
-        {#                    case 200:#}
-        {#                        alert('Valid');#}
-        {#                        break;#}
-        {#                    default:#}
-        {#                        alert('Not Valid');#}
-        {#                        return false;#}
-        {#                        break;#}
-        {#                }#}
-        {#            }#}
-        {#        });#}
-        {#    });#}
-
-        // Validate link select field and reason textarea
-        $("#link-title").parsley().validate();
-        $("#link-url").parsley().validate({
-{#            onfocusout: false,#}
-{#            onkeyup: false, //turn off auto validate whilst typing#}
-{#            onsubmit: true#}
-        });
-        {#        if (!$('#link-title').parsley().isValid()) {#}
-        {#            e.preventDefault();#}
-        {#            return false;#}
-        {#        }#}
-        {#        if (!$('#link-url').parsley().isValid()) {#}
-        {#            e.preventDefault();#}
-        {#            return false;#}
-        {#        }#}
-
-        {#        var url = "http://www.google.com";#}
-        {#        $.ajax(url,#}
-        {#                {#}
-        {#                    dataType: "jsonp",#}
-        {#                    statusCode: {#}
-        {#                        404: function () {#}
-        {#                            alert('page not found');#}
-        {#                        }#}
-        {#                    }#}
-        {#                });#}
-
-        {##}
+        // Validate link form
+        $("#add-link-form").parsley().validate();
 
         // If validation fields are valid, proceed with next click function
-        if ($('#link-title').parsley().isValid() && $("#link-url").parsley().isValid()) {
+        if ($('#add-link-form').parsley().isValid()) {
             var formData = {
                 request_id: "{{ request.id }}",
                 template_name: "email_link.html",
@@ -148,36 +78,10 @@ $(document).ready(function () {
         return 200 === xhr.status;
     }, '/response/url_checker');
 
-{#    $('#link-url input[type=text]').on('keyup keydown', function () {#}
-{#        $('#link-url').parsley().destroy();#}
-{#    });#}
-
-{#    window.ParsleyValidator#}
-{#            .addValidator('vatid', function (value, requirement) {#}
-{#                var response = false;#}
-{##}
-{#                $.ajax({#}
-{#                    url: '/response/url_checker',#}
-{#                    data: $('#link-url').val(),#}
-{#                    type: 'get',#}
-{#                    async: false,#}
-{#                    success: function (data) {#}
-{#                        response = 200;#}
-{#                    },#}
-{#                    error: function () {#}
-{#                        response = false;#}
-{#                    }#}
-{#                });#}
-{##}
-{#                return response;#}
-{#            }, 32)#}
-{#            .addMessage('en', 'vatid', 'Vatid is invalid.');#}
-
     // Apply custom validation messages
     $('#link-title').attr('data-parsley-required-message', 'Link title must be provided');
     $('#link-url').attr('data-parsley-required-message', 'URL link must be provided');
     $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters');
     $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters');
-
 });
 </script>

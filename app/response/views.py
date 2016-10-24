@@ -160,7 +160,7 @@ def response_email():
     return email_template
 
 
-@response.route('/url_checker', methods=['GET', 'POST'])
+@response.route('/url_checker', methods=['GET'])
 def check_url():
     url_link = flask_request.args['url']
     try:

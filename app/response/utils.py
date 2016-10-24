@@ -170,10 +170,10 @@ def add_link(request_id, title, url_link, email_content):
                       event_type.LINK_ADDED,
                       link.metadata_id,
                       new_response_value=link_metadata,
-                      privacy='release_public')
+                      privacy='private')
     send_link_email(request_id,
                     title,
-                    link,
+                    url_link,
                     email_content)
 
 
@@ -465,8 +465,8 @@ def send_link_email(request_id, title, url_link, email_content):
     Function that sends email detailing a extension has been added to a request.
 
     :param request_id: FOIL request ID
-    :param new_due_date: extended due date of the request
-    :param reason: reason for extending the request
+    :param title: extended due date of the request
+    :param url_link: reason for extending the request
     :param email_content: content body of the email notification being sent
 
     :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a
