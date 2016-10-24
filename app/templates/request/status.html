@@ -43,12 +43,12 @@
                     </div>
                     <div class="form-group">
                         <label for="inputAddress">Address</label>
-                        <input type="text" name="address" class="form-control" id="inputAddress"
+                        <input type="text" name="address_one" class="form-control" id="inputAddress"
                                value="{{ requester.mailing_address['address_one'] }}">
                     </div>
                     <div>
                         <label for="inputAddress2">Address 2</label>
-                        <input type="text" name="address2" class="form-control" id="inputAddress2"
+                        <input type="text" name="address_two" class="form-control" id="inputAddress2"
                                value="{{ requester.mailing_address['address_two'] }}">
                     </div>
                     <div>
@@ -94,7 +94,7 @@
 
 <hr>
 <h4><a data-target="#assignedUserModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
-       href="#assignedUserModal">Assigned User</a></h4>
+       href="#assignedUserModal">Assigned User(s)</a></h4>
 {# Modal content for assigned users #}
 <div class="modal fade" id="assignedUserModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -107,10 +107,18 @@
             <div class="modal-body">
                 {% for user in users %}
                     <div>
-                        <h4>Agency User Name </h4>
-                        <h5>Agency User Email {{ user.email }}</h5>
-                        <h5>Agency User Address</h5>
-                        <h5>Agency User Phone Number</h5>
+                        <h3>Agency User Name</h3>
+                            <p class="lead">{{ user.first_name }} {{ user.last_name }}</p>
+                        <h3>Agency User Email</h3>
+                            <p class="lead">{{ user.email }}</p>
+                        <h3>Agency User Address</h3>
+                            <p class="lead">{{ user.mailing_address['address_one']}}
+                            {{ user.mailing_address['address_two']}}
+                            {{ user.mailing_address['city']}}
+                            {{ user.mailing_address['zip']}}
+                            {{ user.mailing_address['state']}}</p>
+                        <h3>Agency User Phone Number</h3>
+                            <p class="lead">{{ user.phone_number }}</p>
                     </div>
                 {% endfor %}
             </div>
