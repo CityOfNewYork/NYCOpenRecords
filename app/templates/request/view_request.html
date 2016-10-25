@@ -45,7 +45,7 @@
                     </ul>
                     <div class="tab-content content-min-height">
                         <div class="tab-pane active" id="add-file">
-                            {% include "upload/uploads.html" %}
+                            {% include "request/_view_request_add_file.html" %}
                         </div>
                         <div class="tab-pane" id="add-link">
                             Add Link Content
@@ -122,4 +122,5 @@
     {% include 'request/_view_request_edit_visibility.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}
     {% include 'request/_view_extension.js.html' %}
+    {% include 'request/_view_request_add_file.js.html' %}
 {% endblock %}

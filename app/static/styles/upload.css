@@ -1,3 +1,8 @@
+/* sets controlling div to relative position */
+.fileupload-control {
+    position: relative;
+}
+
 .carousel-control{
     background-image: none;
     background-repeat: no-repeat

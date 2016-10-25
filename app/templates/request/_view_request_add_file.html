@@ -1,0 +1,69 @@
+<link rel="stylesheet" type=text/css href="{{ url_for('static', filename='styles/upload.css') }}">
+<link rel="stylesheet" type=text/css
+      href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
+<link rel="stylesheet" type=text/css
+      href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
+
+<form id="fileupload" class="fileupload-form" action="/response/file/{{ request.id }}" method="POST"
+      enctype="multipart/form-data">
+    <div class="add-file col-sm-9">
+        <div class="fileupload-control">
+            <legend class="extension-header">
+                Add File
+            </legend>
+            <div class="fileupload-divs" id="first">
+                <div class="row fileupload-buttonbar">
+                    <div class="col-lg-7">
+                <span class="btn btn-success fileinput-button">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    <span>Add files...</span>
+                    <input type="file" name="file" multiple>
+                </span>
+                        <button type="submit" class="btn btn-primary start">
+                            <i class="glyphicon glyphicon-upload"></i>
+                            <span>Start All</span>
+                        </button>
+                        <!-- TODO: global cancellation / deletion
+                        <button type="reset" class="btn btn-warning cancel">
+                            <i class="glyphicon glyphicon-ban-circle"></i>
+                            <span>Cancel upload</span>
+                        </button>
+                        <button type="button" class="btn btn-danger delete">
+                            <i class="glyphicon glyphicon-trash"></i>
+                            <span>Delete</span>
+                        </button>
+                        <input type="checkbox" class="toggle">
+                        -->
+                        <span class="fileupload-process"></span>
+                    </div>
+                    <!-- The global progress state -->
+                    <div class="col-lg-5 fileupload-progress fade">
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="0"
+                             aria-valuemax="100">
+                            <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div>
+                        <!-- The extended global progress state -->
+                        <div class="progress-extended">&nbsp;</div>
+                    </div>
+                </div>
+                <!-- The table listing the files available for upload/download -->
+                <div role="presentation" class="table-striped">
+                    <div class="files"></div>
+                </div>
+                <button type="button" class="next-btn btn btn-primary" id="fileupload-next-1">Next</button>
+            </div>
+            <div class="fileupload-divs" id="second">
+                <textarea class="tinymce-area" name="email-content"></textarea>
+                <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-1">Prev</button>
+                <button type="button" class="next-btn btn btn-primary" id="fileupload-next-2">Next</button>
+            </div>
+            <div class="fileupload-divs" id="third">
+                <h4>The following will be Submitted to the request:</h4>
+                <h5>Email:</h5>
+                <div id="email-summary"></div>
+                <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-2">Prev</button>
+                <button type="submit" class="submit-btn btn btn-success">Submit</button>
+            </div>
+        </div>
+    </div>
+</form>
