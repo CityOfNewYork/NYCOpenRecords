@@ -1,6 +1,7 @@
 /* sets controlling div to relative position */
 .fileupload-control {
     position: relative;
+    padding-bottom: 5rem;
 }
 
 .carousel-control{
@@ -30,9 +31,9 @@
     width: 0px;
 }
 
-#email-summary{
-    padding-bottom: 5rem;
-}
+/*#email-summary{*/
+    /*padding-bottom: 5rem;*/
+/*}*/
 
 .upload-row-spacer {
     margin-top: 3rem;
