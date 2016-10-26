@@ -197,7 +197,11 @@ def create_request(title,
                                     name=role_name).first().permissions)
     create_object(user_request)
 
-    # 11. Add all agency_ein administrators to the request.
+    # 11. Create the elasticsearch request doc
+    # (Now that we can associate the request with is requester.)
+    request.es_create()
+
+    # 12. Add all agency_ein administrators to the request.
 
     # a. Get all agency_ein administrators objects
     agency_administrators = Agencies.query.filter_by(ein=agency).first().administrators

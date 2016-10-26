@@ -55,11 +55,11 @@ def requests():
     - Description
     """
 
-    from app.models import Users
-    from app.constants import AGENCY_USER
-    user = Users.query.filter_by(guid='ae79854b-e812-4c06-90c8-a780a3a20189',
-                                 auth_user_type=AGENCY_USER).first()
-    login_user(user, force=True)
+    # from app.models import Users
+    # from app.constants import AGENCY_USER
+    # user = Users.query.filter_by(guid='ae79854b-e812-4c06-90c8-a780a3a20189',
+    #                              auth_user_type=AGENCY_USER).first()
+    # login_user(user, force=True)
 
     query = request.args.get('query')
     if query is None:
@@ -83,7 +83,7 @@ def requests():
     except ValueError:
         size = DEFAULT_HITS_SIZE
 
-    if request.args.get('by_phrase', False):
+    if use_id or request.args.get('by_phrase', False):
         match_type = 'match_phrase'
     else:
         match_type = 'match'  # full-text
@@ -188,7 +188,7 @@ def requests():
         dsl.update(
             {
                 'highlight': {
-                    'pre_tags': ['<span style="background-color: yellow; text-decoration: underline">'],
+                    'pre_tags': ['<span class="highlight">'],
                     'post_tags': ['</span>'],
                     'fields': highlight_fields
                 }
@@ -206,7 +206,7 @@ def requests():
         size=size,
     )
 
-    if highlight and not current_user.is_agency:
+    if highlight:
         _process_highlights(result, es_requester_id)
 
     return jsonify(result), 200
@@ -215,7 +215,7 @@ def requests():
 def _process_highlights(results, requester_id=None):
     """
     Removes highlights for private and non-requester fields.
-    Use for non-agency users.
+    Used for non-agency users.
 
     Why this is necessary:
     https://github.com/elastic/elasticsearch/issues/6787

@@ -5,12 +5,20 @@
 """
 import sys
 from app import db
-from app.models import Agencies
+from app.models import Agencies, Requests
 from sqlalchemy.orm.attributes import flag_modified
 
 
 def create_object(obj):
     """
+    Add a database record and its elasticsearch counterpart.
+
+    If 'obj' is a Requests object, nothing will be added to
+    the es index since a UserRequests record is created after
+    its associated request and the es doc requires a
+    requester id. 'es_create' is called explicitly for a
+    Requests object in app.request.utils.
+
     :param obj: Object class being created in database
     :return: Adding and committing object to database
     """
@@ -24,20 +32,19 @@ def create_object(obj):
         return None
     else:
         # create elasticsearch doc
-        if hasattr(obj, 'es_create'):
+        if not isinstance(obj, Requests) and hasattr(obj, 'es_create'):
             obj.es_create()
         return str(obj)
 
 
 def update_object(data, obj_type, obj_id):
     """
-    Update a database record.
+    Update a database record and its elasticsearch counterpart.
 
     :param data: a dictionary of attribute-value pairs
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
     :return: string representation of the updated object
-
         or None if updating failed
     """
     obj = get_obj(obj_type, obj_id)

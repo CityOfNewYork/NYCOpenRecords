@@ -6,9 +6,7 @@ from flask import current_app, request, session
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from app import login_manager
-from app.constants import (
-    AGENCY_USER
-)
+from app.constants import USER_ID_DELIMITER
 from app.lib.db_utils import create_object, update_object
 from app.models import Agencies, Users
 
@@ -21,7 +19,7 @@ def user_loader(user_id):
     :param unicode user_id: user_id (GUID + UserType) of user to retrieve
     :return: User object
     """
-    user_id = user_id.split('|')
+    user_id = user_id.split(USER_ID_DELIMITER)
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
 
 

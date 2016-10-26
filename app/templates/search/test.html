@@ -1,13 +1,17 @@
-<body style="font-family: 'Helvetica Neue'">
+<head>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/simple_search.css') }}"/>
+</head>
+
+<body>
     <h1>Simple Search (Requests Only)</h1>
     <h3>Just uses ajax.</h3>
     <form>
-        <input id="query" type="text" name="query" style="width: 100%; font-size: 2em" placeholder="HERE!"><br>
+        <input id="query" type="text" name="query" placeholder="DO IT!"><br>
         <br>
         Search by:
         <br>
         <label>
-            <input type="checkbox" name="id">
+            <input type="checkbox" name="foil-id" disabled>
             FOIL ID<br>
         </label>
         <label>
@@ -36,9 +40,14 @@
         <br>
         <label>
             <input type="checkbox" name="highlight" checked>
-            Highlight
-            <small>(Toggle provided only for testing.)</small>
-            <br>
+            Highlight*
+            <p><small>
+                *Toggle provided only for testing.
+                <br>
+                Will be set for agency users since they
+                can view all fields, public or private,
+                and no highlight post-processing is required.
+            </small></p>
         </label>
     </form>
     <hr>
@@ -48,7 +57,7 @@
         <p id="num-result">Result Count: <strong></strong></p>
     </div>
     <div id="results-all">
-        <div id="results-raw" style="white-space: pre-wrap;"></div>
+        <div id="results-raw"></div>
         <ol id="results"></ol>
     </div>
 </body>
@@ -67,6 +76,7 @@
                     url: '/search/requests',
                     data: {
                         query: query,
+                        foil_id: $('input[name=foil-id]').prop("checked"),
                         title: $('input[name=title]').prop("checked"),
                         description: $('input[name=description]').prop("checked"),
                         agency_description: $('input[name=agency-description]').prop("checked"),
@@ -101,15 +111,14 @@
                                         content += "<br>" + hits[i].highlight[keys[j]] + "</p>";
                                     }
                                 }
-                                var raw = JSON.stringify(hits[i], null, 4)
-                                $('#results').append("<li style='border-bottom: " +
-                                        "1px gray solid; padding-bottom: 1em; " +
-                                        "padding-top: 1em;'>" +
+                                var raw = JSON.stringify(hits[i], null, 4);
+                                $('#results').append(
+                                        "<li>" +
                                         "<a href='" + "/request/view/" + hits[i]._id + "'>" +
                                         hits[i]._id + "</a> : " + hits[i]._source.public_title +
-                                        "<br>" + content + "<div class='show-raw' style='cursor: pointer'>{...}</div>" +
-                                        "<div class='raw' style='white-space: pre-wrap; cursor: pointer; display: none;'>" +
-                                        raw + "</div></li>");
+                                        "<br>" + content +
+                                        "<div class='show-raw'>{...}</div>" +
+                                        "<div class='raw'>" + raw + "</div></li>");
                             }
                         }
                         else {

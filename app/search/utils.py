@@ -6,7 +6,7 @@ from elasticsearch.helpers import bulk
 from app.search.constants import INDEX
 
 
-def create_all():
+def create_index():
     es.indices.create(
         index=INDEX,
         body={
@@ -44,6 +44,8 @@ def create_all():
         ignore=400
     )
 
+
+def create_docs():
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
 
@@ -77,7 +79,7 @@ def create_all():
     print("Actions performed:", success)
 
 
-def update_all():
+def update_docs():
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
     for r in requests:

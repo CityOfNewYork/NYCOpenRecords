@@ -254,18 +254,30 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return current_user.auth_user_type in PUBLIC_USER
+        return self.auth_user_type in PUBLIC_USER
 
     @property
     def is_agency(self):
         """
-        Checks to see if the current user is an agency_ein user
+        Checks to see if the current user is an agency user
 
         AGENCY_USER = 'Saml2In:NYC Employees'
 
         :return: Boolean
         """
-        return current_user.auth_user_type == AGENCY_USER
+        return self.auth_user_type == AGENCY_USER
+
+    @property
+    def is_anonymous_requester(self):
+        """
+        Checks to see if the current user is an anonymous requester
+
+        NOTE: This is not the same as an anonymous user! This returns
+        true if this user has been created for a specific request.
+
+        :return: Boolean
+        """
+        return self.auth_user_type == ANONYMOUS_USER
 
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
@@ -427,6 +439,7 @@ class Requests(db.Model):
         print(json.dumps(result, indent=2))
 
     def es_create(self):
+        """ Must be called AFTER UserRequest has been created. """
         es.create(
             index=INDEX,
             doc_type='request',
@@ -441,7 +454,9 @@ class Requests(db.Model):
                 'date_due': self.due_date,
                 'submission': self.submission,
                 'status': self.current_status,
-                'requester_id': self.requester.get_id(),
+                'requester_id': (self.requester.get_id()
+                                 if not self.requester.is_anonymous_requester
+                                 else ''),
                 'public_title': 'Private' if self.privacy['title'] else self.title,
             }
         )
@@ -567,7 +582,7 @@ class UserRequests(db.Model):
                                        ),
                                primary_key=True
                                )
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)  # FIXME: 'unique' instead?
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
     request_user_type = db.Column(db.Enum(req_user_type.REQUESTER,
                                           req_user_type.AGENCY,
                                           name='request_user_type'))
