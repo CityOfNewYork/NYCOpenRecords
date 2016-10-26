@@ -21,6 +21,7 @@ from app.constants import (
     PUBLIC_USER_YAHOO,
     PUBLIC_USER_MICROSOFT,
     ANONYMOUS_USER,
+    USER_ID_DELIMITER,
     permission,
     role_name,
     request_user_type as req_user_type,
@@ -266,16 +267,16 @@ class Users(UserMixin, db.Model):
         """
         return current_user.auth_user_type == AGENCY_USER
 
-    # FIXME: is_anonymous auth_user_type == ANONYMOUS_USER ???
-
     def get_id(self):
-        return "{}+{}".format(self.guid, self.auth_user_type)  # FIXME: see auth/utils L24, also, use this for es requester_id
+        return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}+{}>'.format(self.guid, self.auth_user_type)
+        return '<Users {}{}{}>'.format(self.guid,
+                                       USER_ID_DELIMITER,
+                                       self.auth_user_type)
 
 
 class Anonymous(AnonymousUserMixin):
@@ -311,9 +312,6 @@ class Anonymous(AnonymousUserMixin):
         :return: Boolean
         """
         return False
-
-    def get_id(self):
-        return "{}+{}".format(self.guid, self.auth_user_type)
 
 
 class Requests(db.Model):
@@ -406,7 +404,6 @@ class Requests(db.Model):
         self.agency_description = agency_description
 
     def es_update(self):
-        # TODO: handle error response
         result = es.update(
             index=INDEX,
             doc_type='request',
@@ -421,12 +418,33 @@ class Requests(db.Model):
                     'date_due': self.due_date,
                     'submission': self.submission,
                     'status': self.current_status,
+                    'public_title': 'Private' if self.privacy['title'] else self.title
                 }
             },
             # refresh='wait_for'
         )
         import json
         print(json.dumps(result, indent=2))
+
+    def es_create(self):
+        es.create(
+            index=INDEX,
+            doc_type='request',
+            id=self.id,
+            body = {
+                'title': self.title,
+                'description': self.description,
+                'agency_description': self.agency_description,
+                'title_private': self.privacy['title'],
+                'agency_description_private': self.privacy['agency_description'],
+                'date_submitted': self.date_submitted,
+                'date_due': self.due_date,
+                'submission': self.submission,
+                'status': self.current_status,
+                'requester_id': self.requester.get_id(),
+                'public_title': 'Private' if self.privacy['title'] else self.title,
+            }
+        )
 
     def __repr__(self):
         return '<Requests %r>' % self.id

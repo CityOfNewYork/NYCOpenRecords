@@ -3,10 +3,10 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
+import sys
 from app import db
-
-from sqlalchemy.orm.attributes import flag_modified
 from app.models import Agencies
+from sqlalchemy.orm.attributes import flag_modified
 
 
 def create_object(obj):
@@ -17,18 +17,16 @@ def create_object(obj):
     try:
         db.session.add(obj)
         db.session.commit()
-        return str(obj)
     except Exception as e:
-        # TODO: email str(e)
-        import sys
-        print(e)
+        print("Failed to CREATE {} : {}".format(obj, e))
         print(sys.exc_info())
         db.session.rollback()
         return None
-    # else:
-    #     if hasattr(obj, 'es_create'):
-    #         obj.es_create()
-    #     return str(obj)
+    else:
+        # create elasticsearch doc
+        if hasattr(obj, 'es_create'):
+            obj.es_create()
+        return str(obj)
 
 
 def update_object(data, obj_type, obj_id):
@@ -56,10 +54,11 @@ def update_object(data, obj_type, obj_id):
         try:
             db.session.commit()
         except Exception as e:
-            print("Error:", e)
+            print("Failed to UPDATE {} : {}".format(obj, e))
+            print(sys.exc_info())
             db.session.rollback()
         else:
-            # update elasticsearch
+            # update elasticsearch doc
             if hasattr(obj, 'es_update'):
                 obj.es_update()
             return str(obj)
@@ -79,7 +78,8 @@ def get_obj(obj_type, obj_id):
 
 
 def get_agencies_list():
-    agencies = sorted([(agencies.ein, agencies.name) for agencies in db.session.query(Agencies).all()],
+    agencies = sorted([(agencies.ein, agencies.name)
+                       for agencies in db.session.query(Agencies).all()],
                       key=lambda x: x[1])
     agencies.insert(0, ('', ''))
 

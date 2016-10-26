@@ -61,7 +61,7 @@ def create_all():
             'date_due': r.due_date,
             'submission': r.submission,
             'status': r.current_status,
-            'requester_id': ':'.join((r.requester.guid, r.requester.auth_user_type)),
+            'requester_id': r.requester.get_id(),
             'public_title': 'Private' if r.privacy['title'] else r.title,
             # public_agency_description
         })

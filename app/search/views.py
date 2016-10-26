@@ -136,7 +136,7 @@ def requests():
             }
         }
     elif current_user.is_public:
-        es_requester_id = ':'.join((current_user.guid, current_user.auth_user_type))
+        es_requester_id = current_user.get_id()
         if use_title:
             conditions.append({
                 'bool': {
