@@ -29,7 +29,7 @@ from app.constants.request_user_type import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.db_utils import update_object
 from app.lib.date_utils import generate_new_due_date
-from app.lib.db_utils import create_object
+from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.file_utils import get_mime_type
 from app.models import (
@@ -117,6 +117,10 @@ def delete_note():
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
+    update_object(
+        {'due_date': new_due_date},
+        Requests,
+        request_id)
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
     extension_metadata = {'reason': reason,
