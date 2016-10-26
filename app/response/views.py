@@ -77,7 +77,7 @@ def response_file(request_id):
                  files[file_data]['title'],
                  files[file_data]['privacy'])
     file_options = process_privacy_options(files)
-    email_content = flask_request.form['email-content']
+    email_content = flask_request.form['email-file-content']
     for privacy, files in file_options.items():
         send_file_email(request_id, privacy, files, email_content)
     return redirect(url_for('request.view', request_id=request_id))

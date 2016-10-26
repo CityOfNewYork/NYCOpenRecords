@@ -11,7 +11,7 @@
     <br>
     <ul>
         {% if data %}
-            {% for filename, link in data['files_links'].items() %}
+            {% for filename in data['filename'] %}
                 <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
             {% endfor %}
         {% else %}
