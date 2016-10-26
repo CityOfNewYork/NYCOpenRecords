@@ -170,7 +170,13 @@ def scan_and_complete_upload(request_id, filepath, is_update=False):
                 UPDATED_FILE_DIRNAME
             )
         if not os.path.exists(dst_dir):
-            os.makedirs(dst_dir)
+            try:
+                os.makedirs(dst_dir)
+            except OSError as e:
+                # in the time between the call to os.path.exists
+                # and os.makedirs, the directory was created
+                pass
+
         os.rename(
             filepath,
             os.path.join(dst_dir, filename)
