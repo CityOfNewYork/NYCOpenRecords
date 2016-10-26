@@ -44,7 +44,8 @@
                 var formData = {
                     request_id: "{{ request.id }}",
                     template_name: "email_file_upload.html",
-                    type: "file_upload_email"
+                    type: "file_upload_email",
+                    filename: $('.original-name').text()
                 };
 
                 $.ajax({
