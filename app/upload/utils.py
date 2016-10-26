@@ -176,7 +176,6 @@ def scan_and_complete_upload(request_id, filepath, is_update=False):
                 # in the time between the call to os.path.exists
                 # and os.makedirs, the directory was created
                 print(e.args)
-                pass
 
         os.rename(
             filepath,

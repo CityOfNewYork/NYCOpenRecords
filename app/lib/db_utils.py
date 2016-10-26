@@ -4,6 +4,8 @@
     synopsis: Handles the functions for database control
 """
 from app import db
+
+from flask import current_app
 from sqlalchemy.orm.attributes import flag_modified
 from app.models import Agencies
 
@@ -55,7 +57,7 @@ def update_object(data, obj_type, obj_id):
             db.session.rollback()
         else:
             # update elasticsearch
-            if hasattr(obj, 'es_update'):
+            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED']:
                 obj.es_update()
             return str(obj)
     return None
