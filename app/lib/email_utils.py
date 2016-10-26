@@ -56,14 +56,14 @@ def get_agencies_emails(request_id):
     Gets a list of the agencies emails by querying UserRequests by request_id and request_user_type
 
     :param request_id: FOIL request ID to query UserRequests
-    :return: Returns a list of agency emails or ['agency_ein@email.com'] (for testing)
+    :return: Returns a list of agency emails or ['agency@email.com'] (for testing)
     """
-    # Get list of agency_ein users on the request
+    # Get list of agency users on the request
     agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
                                                                                            request_user_type=AGENCY).all()
-    # Query for the agency_ein email information
-    agency_emails = []
+    # Query for the agency email information
+    agency_emails = []  # FIXME: Can this be empty?
     for user_guid in agency_user_guids:
         agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
         agency_emails.append(agency_user_email)
-    return agency_emails or ['agency_ein@email.com']
+    return agency_emails or ['agency@email.com']

@@ -141,13 +141,13 @@ class Agencies(db.Model):
     """
     Define the Agencies class with the following columns and relationships:
 
-    ein - the primary key of the agencies table, 3 digit integer that is unique for each agency_ein
-    category - a string containing the category of the agency_ein (ex: business/education)
-    name - a string containing the name of the agency_ein
-    next_request_number - a sequence containing the next number for the request starting at 1, each agency_ein has its own
+    ein - the primary key of the agencies table, 3 digit integer that is unique for each agency
+    category - a string containing the category of the agency (ex: business/education)
+    name - a string containing the name of the agency
+    next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
                           request number sequence
-    default_email - a string containing the default email of the agency_ein regarding general inquiries about requests
-    appeal_email - a string containing the appeal email for users regarding the agency_ein closing or denying requests
+    default_email - a string containing the default email of the agency regarding general inquiries about requests
+    appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
     administrators - an array of guid::auth_user_type strings that identify default admins for an agencies requests
     """
 
@@ -189,15 +189,15 @@ class Users(UserMixin, db.Model):
     Define the Users class with the following columns and relationships:
 
     guid - a string that contains the unique guid of users
-    auth_user_type - a string that tells what type of a user they are (agency_ein user, helper, etc.)
+    auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     guid and auth_user_type are combined to create a composite primary key
-    agency_ein - a foreign key that links to the primary key of the agency_ein table
+    agency - a foreign key that links to the primary key of the agency table
     email - a string containing the user's email
     first_name - a string containing the user's first name
     middle_initial - a string containing the user's middle initial
     last_name - a string containing the user's last name
     email_validated - a boolean that is set to true if the user's email has been validated
-    terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency_ein's terms of use
+    terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency's terms of use
     title - a string containing the user's title if they are affiliated with an outside company
     company - a string containing the user's outside company affiliation
     phone_number - string containing the user's phone number
@@ -331,15 +331,15 @@ class Requests(db.Model):
     Define the Requests class with the following columns and relationships:
 
     id - a string containing the request id, of the form: FOIL - year 4 digits - EIN 3 digits - 5 digits for request number
-    agency_ein - a foreign key that links that the primary key of the agency_ein the request was assigned to
+    agency - a foreign key that links that the primary key of the agency the request was assigned to
     title - a string containing a short description of the request
     description - a string containing a full description of what is needed from the request
     date_created - the actual creation time of the request
     date_submitted - a date that rolls forward to the next business day based on date_created
-    due_date - the date that is set five days after date_submitted, the agency_ein has to acknowledge the request by the due date
+    due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
     submission - a Enum that selects from a list of submission methods
     current_status - a Enum that selects from a list of different statuses a request can have
-    privacy - a JSON object that contains the boolean privacy options of a request's title and agency_ein description
+    privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
               (True = Private, False = Public)
     """
 
@@ -543,7 +543,7 @@ class Reasons(db.Model):
     Define the Reason class with the following columns and relationships:
 
     id - an integer that is the primary key of a Reasons
-    agency_ein - a foreign key that links to the a agency_ein's primary key which is the EIN number
+    agency - a foreign key that links to the a agency's primary key which is the EIN number
     deny_reason - a string containing the message that will be shown when a request is denied
     """
 
@@ -563,7 +563,7 @@ class UserRequests(db.Model):
     request_id = a foreign key that links to the primary key of the Request table
     request_user_type: Defines a user by their relationship to the request.
         Requester submitted the request,
-        Agency is a user from the agency_ein to whom the request is assigned.
+        Agency is a user from the agency to whom the request is assigned.
         Anonymous request_user_type is not needed, since anonymous users can always browse a request
             for public information.
     """

@@ -44,7 +44,7 @@ def new():
 
     title: request title
     description: request description
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     submission: submission method for the request
 
     :return: redirects to homepage if form validates
@@ -63,7 +63,7 @@ def new():
         template_suffix = 'anon.html'
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        template_suffix = 'agency_ein.html'
+        template_suffix = 'agency.html'
     else:
         raise InvalidUserException(current_user)
 
@@ -111,8 +111,9 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path)
-            # commented out recaptcha verifying functionalty because of NYC network proxy preventing it to send a
-            # backend request to the API
+
+            # FIXME: recaptcha verifying functionalty prevented due to NYC network proxy
+            # (prevents sending a backend request to the API)
 
             # if recaptcha.verify() is False:
             #     flash("Please complete reCAPTCHA.")

@@ -36,7 +36,7 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
     $('#request-title').attr('data-parsley-required', '');
     $('#request-title').attr('data-parsley-maxlength', 90);
-    $('#request-agency_ein').attr('data-parsley-required', '');
+    $('#request-agency').attr('data-parsley-required', '');
     $('#request-description').attr('data-parsley-required', '');
     $('#request-description').attr('data-parsley-maxlength', 5000);
 
@@ -45,6 +45,7 @@ $(document).ready(function () {
 
     $('#request-form').parsley().subscribe('parsley:form:validate', function () {
         // Do stuff when parsley validates
+        // TODO: this or combine (see the other new-request-* js files)
     });
 
     // Clear error messages for form.request_file on submit ...

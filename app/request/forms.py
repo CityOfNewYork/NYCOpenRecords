@@ -20,7 +20,7 @@ class PublicUserRequestForm(Form):
     For a public user, the required fields are:
 
     # Request information
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     title: name or title of the request
     description: detailed description of the request
 
@@ -41,11 +41,11 @@ class PublicUserRequestForm(Form):
 
 class AgencyUserRequestForm(Form):
     """
-    Form for agency_ein users to create a new FOIL request.
-    For a agency_ein user, the required fields are:
+    Form for agency users to create a new FOIL request.
+    For an agency user, the required fields are:
 
     # Request Information
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     title: name or title of the request
     description: detailed description of the request
     request_date: date the request was made
@@ -100,7 +100,7 @@ class AnonymousRequestForm(Form):
     For a anonymous user, the required fields are:
 
     # Request Information
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     title: name or title of the request
     description: detailed description of the request
 
