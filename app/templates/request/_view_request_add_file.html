@@ -49,7 +49,7 @@
                 </div>
                 <!-- The table listing the files available for upload/download -->
                 <div role="presentation" class="table-striped">
-                    <div class="files" id="test"></div>
+                    <div class="files"></div>
                 </div>
                 <button type="button" class="next-btn btn btn-primary" id="fileupload-next-1">Next</button>
             </div>
@@ -62,6 +62,7 @@
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
                 <div id="email-file-summary"></div>
+                <input type="hidden" name="email-file-summary" id="email-file-summary-hidden">
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>
@@ -110,7 +111,7 @@
             <div class="col-sm-8">
                 <span class="original-name hidden">{%=file.original_name%}</span>
                 <p class="name">
-                    Filename: <strong><span>{%=file.name%}</span></strong>
+                    Filename: <strong><span class="secured-name">{%=file.name%}</span></strong>
                 </p>
 
                 {% if (!(file.error)) { %}
@@ -131,18 +132,13 @@
 
                 {% if (file.error) { %}
                     <!-- Error reported using fileupload -->
-                    <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+                    <div><span class="label label-danger upload-error">Error</span> {%=file.error%}</div>
                 {% } %}
 
                 <!-- Error reported post upload (fileuploaddone) -->
                 <div class="error-post-fileupload hidden">
                     <span class="label label-danger">Error</span>
                     <span class="error-post-fileupload-msg"></span>
-                </div>
-            </div>
-                <div class="error-post-fileupload hidden">
-                    <span class="label label-danger">Error</span>
-            <div class="col-sm-2">
                 </div>
             </div>
             <div class="col-sm-1">

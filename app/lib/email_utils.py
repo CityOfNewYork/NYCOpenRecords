@@ -29,7 +29,7 @@ def send_async_email(msg):
     mail.send(msg)
 
 
-def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
+def send_email(subject, to=list(), cc=list(), bcc=list(), template=None,  email_content=None, **kwargs):
     """
     Function that sends asynchronous emails for the application.
     Takes in arguments from the frontend.
@@ -39,6 +39,7 @@ def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
     :param bcc: Person(s) being BCC'ed on the email
     :param subject: Subject of the email
     :param template: HTML and TXT template of the email content
+    :param email_content: string of HTML email content that can be used as a message template
     :param kwargs: Additional arguments the function may take in (ie: Message content)
     :return: Sends email asynchronously
     """
@@ -47,7 +48,10 @@ def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
                   sender=current_app.config['MAIL_SENDER'], recipients=to, cc=cc, bcc=bcc)
     # Renders email template from .txt file commented out and not currently used in development
     # msg.body = render_template(template + '.txt', **kwargs)
-    msg.html = render_template(template + '.html', **kwargs)
+    if email_content:
+        msg.html = email_content
+    else:
+        msg.html = render_template(template + '.html', **kwargs)
     send_async_email.delay(msg)
 
 

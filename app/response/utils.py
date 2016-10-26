@@ -161,7 +161,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param subject: subject of the email to be created and stored as a email object
-    :param email_content: email body content of the email to be created and stored as a email object
+    :param email_content: string of HTML email content to be created and stored as a email object
     :param to: list of person(s) email is being sent to
     :param cc: list of person(s) email is being cc'ed to
     :param bcc: list of person(s) email is being bcc'ed
@@ -215,7 +215,7 @@ def process_upload_data(form):
         if re_obj.match(key):
             files[key.split('filename_')[1]] = {}
     for key in files:
-        re_obj = re.compile(key)
+        re_obj = re.compile('^' + key + '::')
         for form_key in form.keys():
             if re_obj.match(form_key):
                 files[key][form_key.split(key + '::')[1]] = form[form_key]
@@ -296,8 +296,8 @@ def process_privacy_options(files):
 
 def process_email_template_request(request_id, data):
     """
-    Processes the email template for responses. From data, determine the type of response and follow the appropriate
-    execution path to render the email template.
+    Process the email template for responses. Determine the type of response from passed in data and follows
+    the appropriate execution path to render the email template.
 
     :param data: Data from the frontend AJAX call
     :param request_id: FOIL request ID
@@ -320,10 +320,68 @@ def process_email_template_request(request_id, data):
     # process email template for file upload
     if data['type'] == 'file_upload_email':
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        # create a dictionary of filenames to be passed through jinja to email template
+        files_links = {}
+        try:
+            files = data['files']
+        except KeyError:
+            files = []
+        for file_ in files:
+            if file_['privacy'] != PRIVATE:
+                filename = file_['filename']
+                files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
         return render_template(email_template,
                                data=data,
                                page=page,
-                               agency_name=agency_name)
+                               agency_name=agency_name,
+                               files_links=files_links)
+
+
+def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
+    """
+    Function that sends email detailing a file response has been uploaded to a request.
+    If the file privacy is private, only agency_ein users are emailed.
+    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
+
+    :param request_id: FOIL request ID
+    :param privacy: privacy option of the uploaded file
+    :param filenames: list of secured filenames
+    :param email_content: string of HTML email content that can be used as a message template
+    :return: Sends email notification detailing a file response has been uploaded to a request.
+
+    """
+    # TODO: make subject constants
+    subject = 'Response Added'
+    bcc = get_agencies_emails(request_id)
+    # create a dictionary of filenames to be passed through jinja to email template
+    file_to_link = {}
+    for filename in filenames:
+        file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    if privacy == 'release':
+        # Query for the requester's email information
+        requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                       request_user_type=REQUESTER).first().user.email
+        # Send email with files to requester and bcc agency_ein users as privacy option is release
+        to = [requester_email]
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  to=to,
+                                  bcc=bcc,
+                                  agency_name=agency_name,
+                                  files_links=file_to_link)
+
+    if privacy == 'private':
+        # Send email with files to agency_ein users only as privacy option is private
+        email_content = render_template(kwargs['email_template'],
+                                        request_id=request_id,
+                                        agency_name=agency_name,
+                                        files_links=file_to_link)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  bcc=bcc)
 
 
 def send_extension_email(request_id, new_due_date, reason, email_content):
@@ -333,7 +391,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
     :param request_id: FOIL request ID
     :param new_due_date: extended due date of the request
     :param reason: reason for extending the request
-    :param email_content: content body of the email notification being sent
+    :param email_content: string of HTML email content that can be used as a message template
 
     :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a
     request.
@@ -347,7 +405,6 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
     safely_send_and_add_email(request_id,
                               email_content,
                               subject,
-                              "email_templates/email_extension",
                               to=to,
                               bcc=bcc,
                               new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
@@ -358,7 +415,6 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
 def safely_send_and_add_email(request_id,
                               email_content,
                               subject,
-                              template,
                               to=None,
                               bcc=None,
                               **kwargs):
@@ -366,9 +422,8 @@ def safely_send_and_add_email(request_id,
     Sends email and creates and stores the email object into the Emails table.
 
     :param request_id: FOIL request ID
-    :param email_content: body of the email
+    :param email_content: string of HTML email content that can be used as a message template
     :param subject: subject of the email (current is for TESTING purposes)
-    :param template: html template of the email body being rendered
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
 
@@ -376,7 +431,7 @@ def safely_send_and_add_email(request_id,
              Will print error if there is an error.
     """
     try:
-        send_email(subject, template, to=to, bcc=bcc, **kwargs)
+        send_email(subject, to=to, bcc=bcc, email_content=email_content, **kwargs)
         _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         print('Must include: To, CC, or BCC')
