@@ -72,7 +72,8 @@ def create_request(title,
     :param title: request title
     :param description: detailed description of the request
     :param agency: agency_ein selected for the request
-    :param date_created: date the request was made
+    :param first_name: first name of the requester
+    :param last_name: last name of the requester
     :param submission: request submission method
     :param agency_date_submitted: submission date chosen by agency_ein
     :param email: requester's email address
@@ -171,7 +172,8 @@ def create_request(title,
     request_metadata = {
         'title': request.title,
         'description': request.description,
-        'current_status': request.current_status
+        'current_status': request.current_status,
+        'due_date': request.due_date.isoformat()
     }
     event = Events(user_id=user.guid,
                    auth_user_type=user.auth_user_type,
