@@ -32,85 +32,33 @@
                 <form id="user-info" action="/request/edit_requester_info/{{ request.id }}" method="POST">
                     <h3>{{ requester.name }}</h3>
                     {{ edit_requester_form.email.label }}
-                    {{ edit_requester_form.email(class='form-control', value=requester.email) }}
+                    {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', value=requester.email)}}
 
                     {{ edit_requester_form.phone.label }}
                     {{ edit_requester_form.phone(id='inputTelephone', class='form-control', value=requester.phone_number) }}
 
                     {{ edit_requester_form.address_one.label }}
-                    {{ edit_requester_form.address_one(class='form-control', value=requester.mailing_address['address_one']) }}
+                    {{ edit_requester_form.address_one(id='inputAddressOne', class='form-control', value=requester.mailing_address['address_one']) }}
 
                     {{ edit_requester_form.address_two.label }}
-                    {{ edit_requester_form.address_two(class='form-control', value=requester.mailing_address['address_two']) }}
+                    {{ edit_requester_form.address_two(id='inputAddressTwo', class='form-control', value=requester.mailing_address['address_two']) }}
 
                     {{ edit_requester_form.city.label }}
-                    {{ edit_requester_form.city(class='form-control', value=requester.mailing_address['city']) }}
+                    {{ edit_requester_form.city(id='inputCity', class='form-control', value=requester.mailing_address['city']) }}
 
                     {{ edit_requester_form.zipcode.label }}
-                    {{ edit_requester_form.zipcode(class='form-control', value=requester.mailing_address['zip']) }}
+                    {{ edit_requester_form.zipcode(id='inputZip', class='form-control', value=requester.mailing_address['zip']) }}
 
                     {{ edit_requester_form.state.label }}
-                    {{ edit_requester_form.state(class='form-control') }}
+                    {{ edit_requester_form.state(id='inputState', class='form-control') }}
 
                     {{ edit_requester_form.organization.label }}
-                    {{ edit_requester_form.organization(class='form-control', value=requester.organization) }}
+                    {{ edit_requester_form.organization(id='inputOrganization', class='form-control', value=requester.organization) }}
 
                     {{ edit_requester_form.fax.label }}
                     {{ edit_requester_form.fax(id='inputFax', class='form-control', value=requester.fax_number) }}
 
                     {{ edit_requester_form.submit(id='submit', class='btn btn-primary') }}
-
-{#                    <div class="form-group">#}
-{#                        <label for="inputEmail">Email</label>#}
-{#                        <input type="email" name="email" class="form-control" id="inputEmail"#}
-{#                               value="{{ requester.email }}">#}
-{#                    </div>#}
-{#                    <div class="form-group">#}
-{#                        <label for="inputTelephone">Phone Number</label>#}
-{#                        <input type="text" name="phone_number" class="form-control" id="inputTelephone"#}
-{#                               value="{{ requester.phone_number }}">#}
-{#                    </div>#}
-{#                    <div class="form-group">#}
-{#                        <label for="inputAddress">Address</label>#}
-{#                        <input type="text" name="address_one" class="form-control" id="inputAddress"#}
-{#                               value="{{ requester.mailing_address['address_one'] }}">#}
-{#                    </div>#}
-{#                    <div>#}
-{#                        <label for="inputAddress2">Address 2</label>#}
-{#                        <input type="text" name="address_two" class="form-control" id="inputAddress2"#}
-{#                               value="{{ requester.mailing_address['address_two'] }}">#}
-{#                    </div>#}
-{#                    <div>#}
-{#                        <label for="inputCity">City</label>#}
-{#                        <input type="text" name="city" class="form-control" id="inputCity"#}
-{#                               value="{{ requester.mailing_address['city'] }}">#}
-{#                    </div>#}
-{#                    <div>#}
-{#                        <label for="inputZip">Zip Code</label>#}
-{#                        <input type="text" name="zip" class="form-control" id="inputZip"#}
-{#                               value="{{ requester.mailing_address['zip'] }}">#}
-{#                    </div>#}
-{#                    <div>#}
-{#                        <label for="inputState">State</label>#}
-{#                        <input type="text" name="state" class="form-control" id="inputState"#}
-{#                               value="{{ requester.mailing_address['state'] }}">#}
-{#                    </div>#}
-{##}
-{##}
-{#                    <div class="form-group">#}
-{#                        <label for="inputOrganization">Organization</label>#}
-{#                        <input type="text" name="organization" class="form-control" id="inputOrganization"#}
-{#                               value="{{ requester.organization }}">#}
-{#                    </div>#}
-{#                    <div class="form-group">#}
-{#                        <label for="inputFax">Fax Number</label>#}
-{#                        <input type="text" name="fax_number" class="form-control" id="inputFax"#}
-{#                               value="{{ requester.fax_number }}">#}
-{#                    </div>#}
-{#                    <div>#}
-{#                        <input type="submit" class="btn btn-primary" value="Submit">#}
-                        {#                        <button type="submit" class="btn btn-primary">Confirm</button>#}
-{#                    </div>#}
                 </form>
             </div>
 
@@ -160,5 +108,9 @@
 </div>
 <p>Due Date: {{ request.get_formatted_due_date() }}</p>
 </div>
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
+{% endblock %}
 
 
