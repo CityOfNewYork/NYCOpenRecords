@@ -10,39 +10,56 @@
 
         // Handles click events on the first next button
         $("#fileupload-next-1").click(function (e) {
-            // Validate extension select field and reason textarea
-            {#        $("#extension-select").parsley().validate();#}
-            {#        $("#extension-reason").parsley().validate();#}
-            {#        if (!$('#extension-select').parsley().isValid()) {#}
-            {#            e.preventDefault();#}
-            {#            return false;#}
-            {#        }#}
-            {#        if (!$('#extension-reason').parsley().isValid()) {#}
-            {#            e.preventDefault();#}
-            {#            return false;#}
-            {#        }#}
+            // Validate file input field and file form
+            $('#fileupload').parsley().validate();
 
-            // If validation fields are valid, proceed with next click function
-            {#        if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {#}
-            var formData = {
-                request_id: "{{ request.id }}",
-                template_name: "email_file_upload.html",
-                type: "file_upload_email"
-            };
+            // Removes parsley validator on file input field when a file has been successfully uploaded
+            if ($('.template-download').length > 0) {
+                $('#add-files').attr('data-parsley-required', 'false');
+            }
 
-            $.ajax({
-                url: "/response/email",
-                type: 'POST',
-                data: JSON.stringify(formData),
-                contentType: false,
-                success: function (data) {
-                    // Data should be html template page.
-                    tinyMCE.get('email-extend-content').setContent(data);
-                }
-            });
-            document.getElementById("first").style.display = "none";
-            document.getElementById("second").style.display = "block";
+            // Prevent default if one more more upload has not been completed
+            if ($('.template-download').length === 0 && ($('.template-upload').length != 0)) {
+                $('.fileupload-error-messages').html("<div class='alert alert-danger'>One or more uploads has not completed</div>");
+                e.preventDefault();
+                return false;
+            }
 
+            // Prevent default if no file has been added or uploaded
+            if ($('.template-download').length === 0 && ($('.template-upload').length === 0)) {
+                $('.fileupload-error-messages').html("<div class='alert alert-danger'>A file must be added</div>");
+                e.preventDefault();
+                return false;
+            }
+
+            // Prevent default if fileupload form is in NOT valid
+            if (!$('#fileupload').parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Proceed with next click function if validation fields are valid and no files are uploading
+            if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
+                $(".fileupload-error-messages").hide();
+                var formData = {
+                    request_id: "{{ request.id }}",
+                    template_name: "email_file_upload.html",
+                    type: "file_upload_email"
+                };
+
+                $.ajax({
+                    url: "/response/email",
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: false,
+                    success: function (data) {
+                        // Data should be html template page.
+                        tinyMCE.get('email-file-content').setContent(data);
+                    }
+                });
+                document.getElementById("first").style.display = "none";
+                document.getElementById("second").style.display = "block";
+            }
         });
 
         // Handles click events on the second next button
@@ -63,113 +80,12 @@
             document.getElementById("third").style.display = "none";
             document.getElementById("second").style.display = "block";
         });
+
+        // Apply parsley required validation
+        $('#add-files').attr('data-parsley-required', '');
+        $('#add-files').attr('data-parsley-required-message', 'A file must be added.');
+
+        // Apply parsley error message to a specific container
+        $('#add-files').attr('data-parsley-errors-container', '.fileupload-buttonbar');
     });
 </script>
-
-{% raw %}
-<!-- The template to display files available for upload -->
-<script id="template-upload" type="text/x-tmpl">
-    {% for (var i=0, file; file=o.files[i]; i++) { %}
-        <div class="row template-upload fade upload-row-spacer">
-            <div class="col-sm-5">
-                <p class="name original-name">{%=file.name%}</p>
-                <strong class="error text-danger"></strong>
-            </div>
-            <div class="col-sm-2">
-                <p class="size">Processing...</p>
-                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                    <div class="progress-bar progress-bar-success" style="width:0%;"></div>
-                </div>
-            </div>
-            <div class="col-sm-5">
-                {% if (!i && !o.options.autoUpload) { %}
-                    <button class="btn btn-primary start" disabled>
-                        <i class="glyphicon glyphicon-upload"></i>
-                        <span>Start</span>
-                    </button>
-                {% } %}
-                {% if (!i) { %}
-                    <button class="btn btn-warning cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span>Cancel</span>
-                    </button>
-                {% } %}
-            </div>
-        </div>
-    {% } %}
-
-</script>
-<!-- The template to display files available for download -->
-<script id="template-download" type="text/x-tmpl">
-    {% for (var i=0, file; file=o.files[i]; i++) { %}
-        <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
-            <div class="col-sm-8">
-                <span class="original-name hidden">{%=file.original_name%}</span>
-                <p class="name">
-                    Filename: <strong><span>{%=file.name%}</span></strong>
-                </p>
-
-                {% if (!(file.error)) { %}
-                    <span class="fileupload-input-fields hidden">
-                    Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
-                    <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
-                    <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
-                    </div>
-                    <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
-                    </div>
-                    <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="private" checked>Private</label>
-                    </div>
-                    <div class="checkbox">
-                      <label><input class="add_to_email" type="checkbox" name="{%=file.name%}::email" value=add_to_email>Add to email
-                      <input class="dont_add_to_email" type="hidden" name="{%=file.name%}::email" value=dont_add_to_email>
-                      </label>
-                    </div>
-                    </span>
-                {% } %}
-
-                {% if (file.error) { %}
-                    <!-- Error reported using fileupload -->
-                    <div><span class="label label-danger">Error</span> {%=file.error%}</div>
-                {% } %}
-
-                <!-- Error reported post upload (fileuploaddone) -->
-                <div class="error-post-fileupload hidden">
-                    <span class="label label-danger">Error</span>
-                    <span class="error-post-fileupload-msg"></span>
-                </div>
-            </div>
-                <div class="error-post-fileupload hidden">
-                    <span class="label label-danger">Error</span>
-            <div class="col-sm-2">
-                </div>
-            </div>
-            <div class="col-sm-1">
-                <span class="size">{%=o.formatFileSize(file.size)%}</span>
-            </div>
-            <div class="col-sm-2">
-                {% if (file.error) { %}
-                    <!-- CANCEL -->
-                    <button class="btn btn-warning cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span>Remove</span>
-                    </button>
-                {% } else { %}
-                    <!-- PROCESSING -->
-                    <img src="/static/img/loading.gif" class="processing-upload" alt="Processing" height="20", width="20">
-                    <!-- REMOVE -->
-                    <button class="remove-post-fileupload btn btn-warning hidden">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span>Remove</span>
-                    </button>
-                {% } %}
-
-
-            </div>
-        </div>
-    {% } %}
-
-</script>
-{% endraw %}
