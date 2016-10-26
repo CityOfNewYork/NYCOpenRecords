@@ -17,7 +17,7 @@ class InvalidUserException(Exception):
 
 def b64decode_lenient(data):
     """
-    Decodes base64 (bytes or str), padding being optional
+    Decodes base64 (bytes or str), padding being optional.
 
     :param data: a string or bytes-like object of base64 data
     :return: a decoded string
@@ -31,9 +31,11 @@ def b64decode_lenient(data):
 def eval_request_bool(val, default=True):
     """
     Evaluates the boolean value of a request parameter.
+
     :param val: the value to check
     :param default: bool to return by default
-    :return: True or False
+
+    :return: Boolean
     """
     assert isinstance(default, bool)
     if val is not None:

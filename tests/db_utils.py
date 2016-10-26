@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from tests.tools import RequestsFactory
-from tests.base import BaseTestCase
+from tests.lib.base import BaseTestCase
+from tests.lib.tools import RequestsFactory
 
 from app.models import Requests, Roles
 from app.lib.db_utils import update_object

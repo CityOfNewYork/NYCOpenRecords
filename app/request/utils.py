@@ -72,7 +72,8 @@ def create_request(title,
     :param title: request title
     :param description: detailed description of the request
     :param agency: agency_ein selected for the request
-    :param date_created: date the request was made
+    :param first_name: first name of the requester
+    :param last_name: last name of the requester
     :param submission: request submission method
     :param agency_date_submitted: submission date chosen by agency
     :param email: requester's email address
@@ -155,7 +156,8 @@ def create_request(title,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_response_value=metadata)
+                              new_response_value=metadata.update(
+                                  privacy=RELEASE_AND_PRIVATE))
         create_object(upload_event)
 
     role_to_user = {
@@ -171,7 +173,8 @@ def create_request(title,
     request_metadata = {
         'title': request.title,
         'description': request.description,
-        'current_status': request.current_status
+        'current_status': request.current_status,
+        'due_date': request.due_date.isoformat()
     }
     event = Events(user_id=user.guid,
                    auth_user_type=user.auth_user_type,
@@ -182,7 +185,7 @@ def create_request(title,
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
-                              auth_user_type=current_user.user_type,
+                              auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
                               type=event_type.REQ_CREATED,
                               timestamp=timestamp)
@@ -312,7 +315,7 @@ def _move_validated_upload(request_id, tmp_path):
         upload_status.READY)
 
     # Store File Object
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, valid_name))
+    size = os.path.getsize(valid_path)
     mime_type = get_mime_type(request_id, valid_name)
     file_obj = Files(name=valid_name, mime_type=mime_type, title='', size=size)
     create_object(obj=file_obj)
@@ -323,7 +326,7 @@ def _move_validated_upload(request_id, tmp_path):
         'title': '',
         'size': size
     }
-    return file_obj.metadata_id, file_metadata
+    return file_obj.id, file_metadata
 
 
 def generate_request_id(agency_ein):

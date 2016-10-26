@@ -4,6 +4,7 @@
     synopsis: Handles the functions for database control
 """
 import sys
+from flask import current_app
 from app import db
 from app.models import Agencies, Requests
 from sqlalchemy.orm.attributes import flag_modified
@@ -20,6 +21,7 @@ def create_object(obj):
     Requests object in app.request.utils.
 
     :param obj: Object class being created in database
+
     :return: Adding and committing object to database
     """
     try:
@@ -44,6 +46,7 @@ def update_object(data, obj_type, obj_id):
     :param data: a dictionary of attribute-value pairs
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
+
     :return: string representation of the updated object
         or None if updating failed
     """
@@ -65,8 +68,8 @@ def update_object(data, obj_type, obj_id):
             print(sys.exc_info())
             db.session.rollback()
         else:
-            # update elasticsearch doc
-            if hasattr(obj, 'es_update'):
+            # update elasticsearch
+            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED']:
                 obj.es_update()
             return str(obj)
     return None

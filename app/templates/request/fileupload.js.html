@@ -4,6 +4,8 @@
 $(function () {
     'use strict';
 
+    // TODO: for 'Edit a File' -> delete updated file when the process of editing a file response is canceled
+
     function setRemoveBtn(button, sendDelete) {
         sendDelete = typeof sendDelete !== 'undefined' ? sendDelete : true;
         button.removeClass('hidden');
@@ -27,7 +29,7 @@ $(function () {
         Sends a request to the upload status endpoint
         every 2 seconds until it receives a message indicating
         the upload has completed or until it receives an error
-        message and updates the download template.
+        message, then updates the download template.
          */
         $.ajax({
             type: 'GET',
@@ -35,6 +37,7 @@ $(function () {
             data: {
                 request_id: '{{ request.id }}',
                 filename: upload_filename
+                // TODO: for 'Edit a File' -> "is_update: True" (get the status for an upload that is an update)
             },
             dataType: 'json',
             success: function(response) {
@@ -58,6 +61,7 @@ $(function () {
                     tr.find(".fileupload-input-fields").removeClass('hidden');
                     tr.find(".processing-upload").remove();
                     setRemoveBtn(tr.find(".remove-post-fileupload"));
+                    // TODO: for 'Edit a File' -> enable Submit button now that new upload has been approved
                 }
             }
         });
@@ -67,8 +71,8 @@ $(function () {
         /*
         Returns an encoded (base64 without padding) version of 'name' intended
         for use as/in an html id attribute or for use in a url.
-        Padding is removed because '=' is an invalid character
-        for an html id and it is reserved character for urls.
+        Padding is removed because '=' is an invalid character for an html id
+        and it is reserved character for urls.
          */
         return window.btoa(name).replace(/=/g, '');
     }
@@ -78,6 +82,7 @@ $(function () {
         // Uncomment the following to send cross-domain cookies:
         //xhrFields: {withCredentials: true},
         url: '/upload/' + '{{ request.id }}',
+        // TODO: for 'Edit a File' -> "formData: {update: true}" (signal upload is an update)
         maxChunkSize: 512000,  // 512 kb
         maxFileSize: 500000000,  // 500 mb
         // autoUpload: true,
@@ -103,7 +108,7 @@ $(function () {
                      '{{ request.id }}/' +
                      encodeName(data.files[0].name),
                 data: {
-                    quarantine_only: true
+                    quarantined_only: true
                 }
             });
         }
@@ -130,7 +135,9 @@ $(function () {
         $('.fileupload-loading').hide();
         $('.fileupload-process').hide();
     });
+    // TODO: for 'Edit a File' -> on upload start, disable Submit button
 
+    // TODO: for 'Edit a File' -> load the existing file (below might be useful)
     // // Load existing files:
     // $('#fileupload').addClass('fileupload-processing');
     // $.ajax({

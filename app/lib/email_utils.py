@@ -64,6 +64,6 @@ def get_agencies_emails(request_id):
     # Query for the agency email information
     agency_emails = []  # FIXME: Can this be empty?
     for user_guid in agency_user_guids:
-        agency_user_email = Users.query.filter_by(guid=user_guid, user_type=AGENCY_USER).first().email
+        agency_user_email = Users.query.filter_by(guid=user_guid, auth_user_type=AGENCY_USER).first().email
         agency_emails.append(agency_user_email)
     return agency_emails or ['agency@email.com']

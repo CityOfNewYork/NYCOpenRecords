@@ -89,3 +89,5 @@ PUBLIC_USER = frozenset((
 ))
 
 USER_ID_DELIMITER = '|'
+
+UPDATED_FILE_DIRNAME = 'updated'
