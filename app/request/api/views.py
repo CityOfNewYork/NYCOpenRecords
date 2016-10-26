@@ -11,7 +11,6 @@ from flask import (
 )
 from app.lib.db_utils import update_object
 from app.models import Requests
-import json
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])

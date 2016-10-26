@@ -5,6 +5,7 @@
 """
 from app import db
 
+from flask import current_app
 from sqlalchemy.orm.attributes import flag_modified
 from app.models import Agencies
 
@@ -34,8 +35,8 @@ def update_object(data, obj_type, obj_id):
     :param data: a dictionary of attribute-value pairs
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
-    :return: string representation of the updated object
 
+    :return: string representation of the updated object
         or None if updating failed
     """
     obj = get_obj(obj_type, obj_id)
@@ -56,7 +57,7 @@ def update_object(data, obj_type, obj_id):
             db.session.rollback()
         else:
             # update elasticsearch
-            if hasattr(obj, 'es_update'):
+            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED']:
                 obj.es_update()
             return str(obj)
     return None

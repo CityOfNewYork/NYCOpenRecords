@@ -5,6 +5,7 @@ from flask import request, jsonify, render_template
 from app import es
 from app.search import search
 from app.search.constants import INDEX
+from app.lib.utils import eval_request_bool
 
 
 @search.route("/", methods=['GET'])
@@ -30,17 +31,9 @@ def requests():
 
     size = int(request.args.get('size', 10))
 
-    # TODO: there is a better way
-    def request_arg_bool_eval(name, default='True'):
-        val = request.args.get(name, default)
-        try:
-            return eval(val.title())
-        except NameError:
-            return eval(default)
-
-    use_title = request_arg_bool_eval('title')
-    use_agency_desc = request_arg_bool_eval('agency_description')
-    use_description = request_arg_bool_eval('description')
+    use_title = eval_request_bool(request.args.get('title'))
+    use_agency_desc = eval_request_bool(request.args.get('agency_description'))
+    use_description = eval_request_bool(request.args.get('description'))
 
     fields = {
         'title': use_title,
