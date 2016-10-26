@@ -266,14 +266,16 @@ class Users(UserMixin, db.Model):
         """
         return current_user.auth_user_type == AGENCY_USER
 
+    # FIXME: is_anonymous auth_user_type == ANONYMOUS_USER ???
+
     def get_id(self):
-        return "{}:{}".format(self.guid, self.auth_user_type)
+        return "{}+{}".format(self.guid, self.auth_user_type)  # FIXME: see auth/utils L24, also, use this for es requester_id
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}:{}>'.format(self.guid, self.auth_user_type)
+        return '<Users {}+{}>'.format(self.guid, self.auth_user_type)
 
 
 class Anonymous(AnonymousUserMixin):
@@ -311,7 +313,7 @@ class Anonymous(AnonymousUserMixin):
         return False
 
     def get_id(self):
-        return "{}:{}".format(self.guid, self.auth_user_type)
+        return "{}+{}".format(self.guid, self.auth_user_type)
 
 
 class Requests(db.Model):
@@ -359,8 +361,21 @@ class Requests(db.Model):
                                )  # due soon is within the next "5" business days
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
+
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
+    requester = db.relationship(
+        'Users',
+        secondary='user_requests',  # expects table name
+        primaryjoin=lambda: Requests.id == UserRequests.request_id,
+        secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
+                      "Users.auth_user_type == UserRequests.auth_user_type,"
+                      "UserRequests.request_user_type == '{}')".format(
+            req_user_type.REQUESTER),
+        backref=db.backref('request', uselist=False),
+        viewonly=True,
+        uselist=False
+    )
 
     PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
 
@@ -403,10 +418,9 @@ class Requests(db.Model):
                     'agency_description': self.agency_description,
                     'title_private': self.privacy['title'],
                     'agency_description_private': self.privacy['agency_description'],
-                    'date_submitted': self.date_submitted,
                     'date_due': self.due_date,
                     'submission': self.submission,
-                    'status': self.current_status
+                    'status': self.current_status,
                 }
             },
             # refresh='wait_for'
@@ -535,7 +549,7 @@ class UserRequests(db.Model):
                                        ),
                                primary_key=True
                                )
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)  # FIXME: 'unique' instead?
     request_user_type = db.Column(db.Enum(req_user_type.REQUESTER,
                                           req_user_type.AGENCY,
                                           name='request_user_type'))

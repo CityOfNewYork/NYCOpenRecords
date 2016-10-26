@@ -21,8 +21,8 @@ def user_loader(user_id):
     :param unicode user_id: user_id (GUID + UserType) of user to retrieve
     :return: User object
     """
-    guid = user_id.split(':')[0]
-    user_type = user_id.split(':')[1]
+    guid = user_id.split('+')[0]  # FIXME: cannot use colon, AGENCY_USER type has colon!
+    user_type = user_id.split('+')[1]
     return Users.query.filter_by(guid=guid, auth_user_type=user_type).first()
 
 
@@ -127,7 +127,7 @@ def update_user(guid=None, auth_user_type=None, **kwargs):
     return user
 
 
-def find_or_create_user(guid, user_type):
+def find_or_create_user(guid, auth_user_type):
     """
     Given a guid and auth_user_type, equivalent to a user id, find or create a user in the database.
 
@@ -137,7 +137,7 @@ def find_or_create_user(guid, user_type):
     :param unicode user_type: User Type. See auth.constants for list of valid user types
     :return: (User Object, Boolean for Is new User)
     """
-    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(auth_user_type[0])).first()
+    user = Users.query.filter_by(guid=str(guid[0]), auth_user_type=str(auth_user_type[0])).first()
 
     if user:
         return user, False

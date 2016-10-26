@@ -4,8 +4,14 @@
     <form>
         <input id="query" type="text" name="query" style="width: 100%; font-size: 2em" placeholder="HERE!"><br>
         <br>
+        Search by:
+        <br>
         <label>
-            <input style="display: inline" type="checkbox" name="title" checked>
+            <input type="checkbox" name="id">
+            FOIL ID<br>
+        </label>
+        <label>
+            <input type="checkbox" name="title" checked>
             Title<br>
         </label>
         <label>
@@ -26,6 +32,14 @@
                 <option value="500">500</option>
             </select>
         </label>
+        <br>
+        <br>
+        <label>
+            <input type="checkbox" name="highlight" checked>
+            Highlight
+            <small>(Toggle provided only for testing.)</small>
+            <br>
+        </label>
     </form>
     <hr>
     <div>
@@ -33,8 +47,10 @@
         <p id="total">Total: <strong></strong></p>
         <p id="num-result">Result Count: <strong></strong></p>
     </div>
-    <div id="results-raw" style="white-space: pre"></div>
-    <ol id="results"></ol>
+    <div id="results-all">
+        <div id="results-raw" style="white-space: pre-wrap;"></div>
+        <ol id="results"></ol>
+    </div>
 </body>
 
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js') }}"></script>
@@ -54,27 +70,46 @@
                         title: $('input[name=title]').prop("checked"),
                         description: $('input[name=description]').prop("checked"),
                         agency_description: $('input[name=agency-description]').prop("checked"),
-                        size: $('#size').val()
+                        size: $('#size').val(),
+                        highlight: $('input[name=highlight]').prop("checked")
                     },
                     dataType: 'json',
                     success: function(resp){
-                        // uncomment for raw json response
+                        // uncomment for full raw json response
                         // $('#results-raw').text(JSON.stringify(resp, null, 4));
-                        debugger;
                         var hits = resp.hits.hits;
-                        if (hits.length > 0) {
+                        if (typeof hits != 'undefined' && hits.length > 0) {
                             for (var i = 0; i < hits.length; i++) {
-                                var keys = Object.keys(hits[i].highlight);
                                 var content = "";
-                                for (var j = 0; j < keys.length; j++) {
-                                    content += "<strong>" + keys[j] + "</strong>" + "<br>"
-                                            + hits[i].highlight[keys[j]] + "<br>";
+                                if (typeof hits[i].highlight != 'undefined') {
+                                    var keys = Object.keys(hits[i].highlight);
+                                    for (var j = 0; j < keys.length; j++) {
+                                        var key_private = null;
+                                        if (keys[j] == "title") {
+                                            key_private = hits[i]._source.title_private ?
+                                                    "private" : "public";
+                                        }
+                                        else if (keys[j] == "agency_description") {
+                                            key_private = hits[i]._source.agency_description_private ?
+                                                    "private" : "public";
+                                        }
+                                        content += "<p><strong>" + keys[j] + "</strong>";
+
+                                        if (key_private != null) {
+                                            content += " <em>" + key_private + "</em>";
+                                        }
+                                        content += "<br>" + hits[i].highlight[keys[j]] + "</p>";
+                                    }
                                 }
-                                $('#results').append("<li style='border-bottom: " +  // how disgusting
+                                var raw = JSON.stringify(hits[i], null, 4)
+                                $('#results').append("<li style='border-bottom: " +
                                         "1px gray solid; padding-bottom: 1em; " +
                                         "padding-top: 1em;'>" +
                                         "<a href='" + "/request/view/" + hits[i]._id + "'>" +
-                                        hits[i]._id + "</a><br>" + content + "</li>");
+                                        hits[i]._id + "</a> : " + hits[i]._source.public_title +
+                                        "<br>" + content + "<div class='show-raw' style='cursor: pointer'>{...}</div>" +
+                                        "<div class='raw' style='white-space: pre-wrap; cursor: pointer; display: none;'>" +
+                                        raw + "</div></li>");
                             }
                         }
                         else {
@@ -91,5 +126,15 @@
         $('#query').on('input', search);
         $(':checkbox').change(search);
         $('#size').change(search);
+
+        // Toggle raw result data
+        $('#results-all').on('click', '.show-raw', function () {
+            $(this).hide();
+            $(this).next('.raw').css('display', 'block');
+        });
+        $('#results-all').on('click', '.raw', function () {
+            $(this).css('display', 'none');
+            $(this).prev('.show-raw').show();
+        })
     });
 </script>

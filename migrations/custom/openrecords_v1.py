@@ -63,7 +63,7 @@ def transfer_row(row_v1, cur_v1, cur_v2):
 
         query = ("INSERT INTO requests ("
                  "id,"
-                 "agency,"  # TODO: should be `agency_ein`
+                 "agency_ein,"
                  "title,"
                  "description,"
                  "date_created,"

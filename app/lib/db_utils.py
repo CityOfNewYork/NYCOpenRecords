@@ -25,6 +25,10 @@ def create_object(obj):
         print(sys.exc_info())
         db.session.rollback()
         return None
+    # else:
+    #     if hasattr(obj, 'es_create'):
+    #         obj.es_create()
+    #     return str(obj)
 
 
 def update_object(data, obj_type, obj_id):

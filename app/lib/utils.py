@@ -26,3 +26,20 @@ def b64decode_lenient(data):
         data = data.encode()
     data += b'=' * (4 - (len(data) % 4))
     return b64decode(data).decode()
+
+
+def eval_request_bool(val, default=True):
+    """
+    Evaluates the boolean value of a request parameter.
+    :param val: the value to check
+    :param default: bool to return by default
+    :return: True or False
+    """
+    assert isinstance(default, bool)
+    if val is not None:
+        val = val.lower()
+        if val in ['false', '0', 'n', 'no']:
+            return False
+        if val in ['true', '1', 'y', 'yes']:
+            return True
+    return default
