@@ -149,7 +149,7 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
                          email_content)
 
 
-def add_link(request_id, title, url_link, email_content):
+def add_link(request_id, title, url_link, email_content, privacy):
     """
     Creates and store the link object for the specified request.
 
@@ -157,6 +157,7 @@ def add_link(request_id, title, url_link, email_content):
     :param title: title of the link to be stored in the Links table and as a response value
     :param url_link: link url to be stored in the Links table and as a response value
     :param email_content: email body content of the email to be created and stored as a email object
+    :param privacy:
     :return: Store the link content into the Links table.
              Provides parameters for the process_response function to create and store responses and events object
              Calls email notification function to email both requester and agency users detailing the link.
@@ -164,17 +165,19 @@ def add_link(request_id, title, url_link, email_content):
     link = Links(title=title, url=url_link)
     create_object(obj=link)
     link_metadata = {'title': title,
-                     'url': url_link}
+                     'url': url_link,
+                     'privacy': privacy}
     _process_response(request_id,
                       response_type.LINK,
                       event_type.LINK_ADDED,
-                      link.metadata_id,
+                      link.id,
                       new_response_value=link_metadata,
-                      privacy='private')
+                      privacy=privacy)
     send_link_email(request_id,
                     title,
                     url_link,
-                    email_content)
+                    email_content,
+                    privacy)
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -378,9 +381,17 @@ def process_email_template_request(request_id, data):
     # process email template for link
     if data['type'] == 'link_email':
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        try:
+            link = data['link']
+            if link['privacy'] != PRIVATE:
+                url = link['url']
+            else:
+                url = ''
+        except KeyError:
+            url = ''
         return render_template(email_template,
-                               title=data['link_title'],
-                               url=data['link_url'],
+                               agency_name=agency_name,
+                               url=url,
                                page=page)
                                agency_name=agency_name,
                                files_links=files_links)
@@ -460,7 +471,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
                               reason=reason)
 
 
-def send_link_email(request_id, title, url_link, email_content):
+def send_link_email(request_id, title, url_link, email_content, privacy, **kwargs):
     """
     Function that sends email detailing a extension has been added to a request.
 
@@ -473,20 +484,29 @@ def send_link_email(request_id, title, url_link, email_content):
     request.
     """
     subject = 'Response Added'
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     bcc = get_agencies_emails(request_id)
     requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                    request_user_type=REQUESTER).first().user.email
     # Send email with files to requester and bcc agency_ein users as privacy option is release
-    to = [requester_email]
-    safely_send_and_add_email(request_id,
-                              email_content,
-                              subject,
-                              "email_templates/email_link",
-                              to=to,
-                              bcc=bcc,
-                              title=title,
-                              url=url_link
-                              )
+    if privacy == PRIVATE:
+        email_content = render_template(kwargs['email_template'],
+                                        request_id=request_id,
+                                        agency_name=agency_name,
+                                        url=url_link)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  bcc=bcc)
+    else:
+        to = [requester_email]
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  to=to,
+                                  bcc=bcc,
+                                  title=title,
+                                  url=url_link)
 
 
 def safely_send_and_add_email(request_id,

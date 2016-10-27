@@ -143,7 +143,8 @@ def response_link(request_id):
     add_link(request_id,
              link_data['title'],
              link_data['url'],
-             link_data['email-link-content'])
+             link_data['email-link-summary'],
+             link_data['privacy'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
