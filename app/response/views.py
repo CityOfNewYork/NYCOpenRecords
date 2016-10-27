@@ -6,15 +6,31 @@
 
 import json
 
-from flask import render_template, flash, request as flask_request, url_for, redirect
+from flask import (
+    render_template,
+    flash,
+    request as flask_request,
+    url_for,
+    redirect,
+    jsonify,
+)
+from flask_login import current_user
 from flask_wtf import Form
 from wtforms import StringField, SubmitField
 
-from app.models import Requests
+from app.models import Requests, Responses
 from app.response import response
-from app.response.utils import add_note, add_file, add_extension,  process_upload_data, send_file_email, \
-    process_privacy_options, process_email_template_request
-
+from app.constants import response_type
+from app.response.utils import (
+    add_note,
+    add_file,
+    add_extension,
+    process_upload_data,
+    send_file_email,
+    process_privacy_options,
+    process_email_template_request,
+    RespFileEditor
+)
 
 # simple form used to test functionality of storing a note to responses table
 class NoteForm(Form):
@@ -54,17 +70,16 @@ def response_file(request_id):
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    if flask_request.method == 'POST':
-        files = process_upload_data(flask_request.form)
-        for file_data in files:
-            add_file(current_request.id,
-                     file_data,
-                     files[file_data]['title'],
-                     files[file_data]['privacy'])
-        file_options = process_privacy_options(files)
-        email_content = flask_request.form['email-content']
-        for privacy, files in file_options.items():
-            send_file_email(request_id, privacy, files, email_content)
+    files = process_upload_data(flask_request.form)
+    for file_data in files:
+        add_file(current_request.id,
+                 file_data,
+                 files[file_data]['title'],
+                 files[file_data]['privacy'])
+    file_options = process_privacy_options(files)
+    email_content = flask_request.form['email-content']
+    for privacy, files in file_options.items():
+        send_file_email(request_id, privacy, files, email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -130,3 +145,37 @@ def response_push():
 @response.route('/visiblity/<request_id>', methods=['GET', 'POST'])
 def response_visiblity():
     pass
+
+
+@response.route('/<response_id>', methods=['PUT'])
+def edit_response(response_id):
+    """
+    Edit a response's privacy and its metadata.
+
+    Expects a request body containing field names and updated values.
+    Ex:
+    {
+        'privacy': 'release_public',
+        'title': 'new title'
+        'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
+    }
+    Response body consists of both the old and updated data, or an error message.
+    """
+    if current_user.is_anonymous:
+        return {}, 403
+    # TODO: user permissions check
+    resp = Responses.query.filter_by(id=response_id).first()
+    editor_for_type = {
+        response_type.FILE: RespFileEditor,
+        # response_type.NOTE: RespNoteEditor,
+        # ...
+    }
+    editor = editor_for_type[resp.type](current_user, resp, flask_request)
+    if editor.errors:
+        http_response = {"errors": editor.errors}
+    else:
+        http_response = {
+            "old": editor.data_old,
+            "new": editor.data_new
+        }
+    return jsonify(http_response), 200

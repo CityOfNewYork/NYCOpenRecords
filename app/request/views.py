@@ -13,23 +13,23 @@ from flask import (
     Markup
 )
 from flask_login import current_user
+
 from app.lib.db_utils import (
     get_agencies_list,
     update_object,
 )
 from app.lib.utils import InvalidUserException
+from app.models import (
+    Requests,
+    UserRequests,
+    Users,
+)
 from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
     AgencyUserRequestForm,
     AnonymousRequestForm,
     EditRequesterForm,
-)
-from app.models import (
-    Requests,
-    Agencies,
-    UserRequests,
-    Users,
 )
 from app.request.utils import (
     create_request,
@@ -38,10 +38,9 @@ from app.request.utils import (
     send_confirmation_email
 )
 from app.constants import (
-    request_status,
-    request_user_type as req_user_type
+    user_type_request,
+    request_status
 )
-
 
 @request.route('/new', methods=['GET', 'POST'])
 def new():
@@ -51,7 +50,7 @@ def new():
 
     title: request title
     description: request description
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     submission: submission method for the request
 
     :return: redirects to homepage if form validates
@@ -118,15 +117,16 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path)
-            # commented out recaptcha verifying functionalty because of NYC network proxy preventing it to send a
-            # backend request to the API
+
+            # FIXME: recaptcha verifying functionalty prevented due to NYC network proxy
+            # (prevents sending a backend request to the API)
 
             # if recaptcha.verify() is False:
             #     flash("Please complete reCAPTCHA.")
             #     return render_template(new_request_template, form=form, site_key=site_key)
 
         current_request = Requests.query.filter_by(id=request_id).first()
-        requester = current_request.user_requests.filter_by(request_user_type=req_user_type.REQUESTER).first().user
+        requester = current_request.user_requests.filter_by(request_user_type=user_type_request.REQUESTER).first().user
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
         if requester.email:
@@ -157,9 +157,9 @@ def view(request_id):
     current_request = Requests.query.filter_by(id=request_id).first()
     agency = current_request.agency
     requester = current_request.user_requests.filter_by(
-        request_user_type=req_user_type.REQUESTER).first().user
+        request_user_type=user_type_request.REQUESTER).first().user
     agency_users = UserRequests.query.filter_by(request_id=request_id,
-                                                request_user_type=req_user_type.AGENCY).all()
+                                                request_user_type=user_type_request.AGENCY).all()
     edit_requester_form = EditRequesterForm(state=requester.mailing_address['state'])
 
     users = []
@@ -188,7 +188,7 @@ def edit_requester_info(request_id):
     :return:
     """
     requester = Requests.query.filter_by(id=request_id).first().user_requests.filter_by(
-        request_user_type=req_user_type.REQUESTER).first().user
+        request_user_type=user_type_request.REQUESTER).first().user
     update_object({
         'email': flask_request.form.get('email') or requester.email,
         'phone_number': flask_request.form.get('phone') or requester.phone_number,

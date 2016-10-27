@@ -28,12 +28,14 @@ class BaseTestCase(unittest.TestCase):
         self.clear_database()
         self.app_context.pop()
 
-    def clear_database(self):
+    @staticmethod
+    def clear_database():
         meta = db.metadata
         for table in reversed(meta.sorted_tables):
             db.session.execute(table.delete())
         db.session.commit()
 
-    def populate_database(self):
+    @staticmethod
+    def populate_database():
         Roles.populate()
         Agencies.populate()

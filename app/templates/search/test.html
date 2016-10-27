@@ -1,11 +1,22 @@
-<body style="font-family: 'Helvetica Neue'">
+<head>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/simple_search.css') }}"/>
+</head>
+
+<body>
     <h1>Simple Search (Requests Only)</h1>
     <h3>Just uses ajax.</h3>
     <form>
-        <input id="query" type="text" name="query" style="width: 100%; font-size: 2em" placeholder="HERE!"><br>
+        <input id="query" type="text" name="query" placeholder="DO IT!">
+        <span id="query-prefix"></span>
+        <br><br>
+        Search by:
         <br>
         <label>
-            <input style="display: inline" type="checkbox" name="title" checked>
+            <input type="checkbox" name="foil-id">
+            FOIL ID<br>
+        </label>
+        <label>
+            <input type="checkbox" name="title" checked>
             Title<br>
         </label>
         <label>
@@ -26,6 +37,26 @@
                 <option value="500">500</option>
             </select>
         </label>
+        <br>
+        <br>
+        <label>
+            <input type="checkbox" name="highlight" checked>
+            Highlight*
+        </label>
+        <p>
+            <small>
+                *Toggle provided only for testing.
+                <br>
+                Will be set for agency users since they
+                can view all fields, public or private,
+                and <u>no highlight post-processing is required</u>.
+                <br>
+                Other users will only see in what fields
+                their query matches, but no content from
+                that field will be shown (unless of course,
+                we decide to always include highlights).
+            </small>
+        </p>
     </form>
     <hr>
     <div>
@@ -33,8 +64,10 @@
         <p id="total">Total: <strong></strong></p>
         <p id="num-result">Result Count: <strong></strong></p>
     </div>
-    <div id="results-raw" style="white-space: pre"></div>
-    <ol id="results"></ol>
+    <div id="results-all">
+        <div id="results-raw"></div>
+        <ol id="results"></ol>
+    </div>
 </body>
 
 <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/jquery.js') }}"></script>
@@ -51,30 +84,49 @@
                     url: '/search/requests',
                     data: {
                         query: query,
+                        foil_id: $('input[name=foil-id]').prop("checked"),
                         title: $('input[name=title]').prop("checked"),
                         description: $('input[name=description]').prop("checked"),
                         agency_description: $('input[name=agency-description]').prop("checked"),
-                        size: $('#size').val()
+                        size: $('#size').val(),
+                        highlight: $('input[name=highlight]').prop("checked")
                     },
                     dataType: 'json',
                     success: function(resp){
-                        // uncomment for raw json response
+                        // uncomment for full raw json response
                         // $('#results-raw').text(JSON.stringify(resp, null, 4));
-                        debugger;
-                        var hits = resp.hits.hits;
+                        var hits = typeof resp.hits != 'undefined' ? resp.hits.hits : resp;
                         if (hits.length > 0) {
                             for (var i = 0; i < hits.length; i++) {
-                                var keys = Object.keys(hits[i].highlight);
                                 var content = "";
-                                for (var j = 0; j < keys.length; j++) {
-                                    content += "<strong>" + keys[j] + "</strong>" + "<br>"
-                                            + hits[i].highlight[keys[j]] + "<br>";
+                                if (typeof hits[i].highlight != 'undefined') {
+                                    var keys = Object.keys(hits[i].highlight);
+                                    for (var j = 0; j < keys.length; j++) {
+                                        var key_private = null;
+                                        if (keys[j] == "title") {
+                                            key_private = hits[i]._source.title_private ?
+                                                    "private" : "public";
+                                        }
+                                        else if (keys[j] == "agency_description") {
+                                            key_private = hits[i]._source.agency_description_private ?
+                                                    "private" : "public";
+                                        }
+                                        content += "<p><strong>" + keys[j] + "</strong>";
+
+                                        if (key_private != null) {
+                                            content += " <em>" + key_private + "</em>";
+                                        }
+                                        content += "<br>" + hits[i].highlight[keys[j]] + "</p>";
+                                    }
                                 }
-                                $('#results').append("<li style='border-bottom: " +  // how disgusting
-                                        "1px gray solid; padding-bottom: 1em; " +
-                                        "padding-top: 1em;'>" +
+                                var raw = JSON.stringify(hits[i], null, 4);
+                                $('#results').append(
+                                        "<li>" +
                                         "<a href='" + "/request/view/" + hits[i]._id + "'>" +
-                                        hits[i]._id + "</a><br>" + content + "</li>");
+                                        hits[i]._id + "</a> : " + hits[i]._source.public_title +
+                                        "<br>" + content +
+                                        "<div class='show-raw'>{...}</div>" +
+                                        "<div class='raw'>" + raw + "</div></li>");
                             }
                         }
                         else {
@@ -91,5 +143,37 @@
         $('#query').on('input', search);
         $(':checkbox').change(search);
         $('#size').change(search);
+
+        // Disable other filters if searching by FOIL ID
+        $('input[name=foil-id]').click(function() {
+            var names = ['title', 'description', 'agency-description'];
+            var i;
+            if ($(this).prop('checked')) {
+                $('#query-prefix').text('FOIL-');
+                $('#query').css('padding-left', '2.7em').attr('placeholder', '0000-000-00000');
+                for (i in names) {
+                    $('input[name='.concat(names[i], ']')).prop(
+                            'disabled', true).prop('checked', false);
+                }
+            }
+            else {
+                $('#query-prefix').text('');
+                $('#query').css('padding-left', '0').attr('placeholder', 'DO IT!');
+                for (i in names) {
+                    $('input[name='.concat(names[i], ']')).prop(
+                            'disabled', false).prop('checked', true);
+                }
+            }
+        });
+
+        // Toggle raw result data
+        $('#results-all').on('click', '.show-raw', function () {
+            $(this).hide();
+            $(this).next('.raw').css('display', 'block');
+        });
+        $('#results-all').on('click', '.raw', function () {
+            $(this).css('display', 'none');
+            $(this).prev('.show-raw').show();
+        })
     });
 </script>

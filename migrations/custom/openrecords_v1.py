@@ -63,21 +63,21 @@ def transfer_row(row_v1, cur_v1, cur_v2):
 
         query = ("INSERT INTO requests ("
                  "id,"
-                 "agency,"  # TODO: should be `agency_ein`
+                 "agency_ein,"
                  "title,"
                  "description,"
                  "date_created,"
                  "date_submitted,"
                  "due_date,"  # TODO: why not `date_due`?
                  "submission,"  # FIXME: not nullable
-                 "current_status,"  # TODO: should just be `status`
+                 "current_status,"  # TODO: why not just `status`?
                  "privacy,"
                  "agency_description)"
                  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
         cur_v2.execute(query, (
             row_v1.id,  # id
-            agency_ein,  # agency
+            agency_ein,  # agency id
             row_v1.summary,  # title
             row_v1.text,  # description
             row_v1.date_created,  # date_created

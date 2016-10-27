@@ -9,18 +9,26 @@ from datetime import datetime
 
 import os
 import re
-from flask import current_app, request as flask_request, render_template, url_for
+from abc import ABCMeta, abstractmethod
+import magic
+from werkzeug.utils import secure_filename
 from flask_login import current_user
-
+from flask import (
+    current_app,
+    request as flask_request,
+    render_template,
+    url_for
+)
 from app.constants import (
     event_type,
     response_type,
-    ANONYMOUS_USER
+    UPDATED_FILE_DIRNAME,
 )
-from app.constants.request_user_type import REQUESTER
-from app.constants import response_privacy
+from app.constants.user_type_auth import ANONYMOUS_USER
+from app.constants.user_type_request import REQUESTER
+from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import generate_new_due_date
-from app.lib.db_utils import create_object
+from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.file_utils import get_mime_type
 from app.models import (
@@ -28,6 +36,8 @@ from app.models import (
     Events,
     Notes,
     Files,
+    Links,
+    Instructions,
     Requests,
     UserRequests,
     Extensions,
@@ -50,17 +60,17 @@ def add_file(request_id, filename, title, privacy):
     """
     size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
     mime_type = get_mime_type(request_id, filename)
-    files = Files(name=filename, mime_type=mime_type, title=title, size=size)
-    files_metadata = {'name': filename,
-                      'mime_type': mime_type,
-                      'title': title,
-                      'size': size}
-    create_object(obj=files)
+    file_ = Files(name=filename, mime_type=mime_type, title=title, size=size)
+    file_metadata = {'name': filename,
+                     'mime_type': mime_type,
+                     'title': title,
+                     'size': size}
+    create_object(obj=file_)
     _process_response(request_id,
                       response_type.FILE,
                       event_type.FILE_ADDED,
-                      files.metadata_id,
-                      new_response_value=files_metadata,
+                      file_.id,
+                      new_response_value=file_metadata,
                       privacy=privacy)
 
 
@@ -73,15 +83,6 @@ def delete_file():
     print("delete_file function")
 
     return None
-
-
-def edit_file():
-    """
-    Will edit a file to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement editing a file
-    print("edit_file function")
 
 
 def add_note(request_id, content):
@@ -100,7 +101,7 @@ def add_note(request_id, content):
     _process_response(request_id,
                       response_type.NOTE,
                       event_type.NOTE_ADDED,
-                      note.metadata_id,
+                      note.id,
                       new_response_value=content)
 
 
@@ -113,17 +114,12 @@ def delete_note():
     print("delete_note function")
 
 
-def edit_note():
-    """
-    Will edit a note in the database for the specified request.
-    :return:
-    """
-    # TODO: Implement deleting a note
-    print("edit_note function")
-
-
 def add_extension(request_id, length, reason, custom_due_date, email_content):
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
+    update_object(
+        {'due_date': new_due_date},
+        Requests,
+        request_id)
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
     extension_metadata = {'reason': reason,
@@ -131,9 +127,9 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     _process_response(request_id,
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
-                      extension.metadata_id,
+                      extension.id,
                       new_response_value=extension_metadata,
-                      privacy=response_privacy.RELEASE_AND_PUBLIC)
+                      privacy=RELEASE_AND_PUBLIC)
     send_extension_email(request_id,
                          new_due_date,
                          reason,
@@ -159,15 +155,6 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     return new_due_date
 
 
-def edit_extension():
-    """
-    Will edit an extension to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement editing an extension
-    print("edit_extension function")
-
-
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
     Creates and stores the email object for the specified request.
@@ -190,7 +177,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     _process_response(request_id,
                       response_type.EMAIL,
                       event_type.EMAIL_NOTIFICATION_SENT,
-                      email.metadata_id,
+                      email.id,
                       new_response_value=email_content)
 
 
@@ -238,8 +225,8 @@ def process_upload_data(form):
 def send_file_email(request_id, privacy, filenames, email_content):
     """
     Function that sends email detailing a file response has been uploaded to a request.
-    If the file privacy is private, only agency_ein users are emailed.
-    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
+    If the file privacy is private, only agency users are emailed.
+    If the file privacy is release, the requester is emailed and the agency users are bcced.
 
     :param request_id: FOIL request ID
     :param privacy: privacy option of the uploaded file
@@ -260,7 +247,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
         # Query for the requester's email information
         requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                        request_user_type=REQUESTER).first().user.email
-        # Send email with files to requester and bcc agency_ein users as privacy option is release
+        # Send email with files to requester and bcc agency users as privacy option is release
         to = [requester_email]
         safely_send_and_add_email(request_id,
                                   email_content,
@@ -272,7 +259,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
                                   files_links=file_to_link)
 
     if privacy == 'private':
-        # Send email with files to agency_ein users only as privacy option is private
+        # Send email with files to agency users only as privacy option is private
         safely_send_and_add_email(request_id,
                                   email_content,
                                   subject,
@@ -355,7 +342,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
     bcc = get_agencies_emails(request_id)
     requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                    request_user_type=REQUESTER).first().user.email
-    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    # Send email with files to requester and bcc agency users as privacy option is release
     to = [requester_email]
     safely_send_and_add_email(request_id,
                               email_content,
@@ -403,7 +390,7 @@ def _process_response(request_id,
                       metadata_id,
                       new_response_value,
                       previous_response_value=None,
-                      privacy=response_privacy.PRIVATE):
+                      privacy=PRIVATE):
     """
     Creates and stores responses and events objects to the database
 
@@ -441,6 +428,181 @@ def _process_response(request_id,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
                    previous_response_value=previous_response_value,
-                   new_response_value=new_response_value)
+                   new_response_value=new_response_value.update(privacy=privacy))
     # store event object
     create_object(obj=event)
+
+
+class ResponseEditor(metaclass=ABCMeta):
+    """
+    Abstract base class for editing a response and its metadata.
+
+    All derived classes must implement the 'metadata_fields' method and
+    should override the `edit_metadata` method with any additional logic.
+    """
+
+    def __init__(self, user, response, flask_request):
+        self.user = user
+        self.response = response
+        self.flask_request = flask_request
+        self.metadata = response.metadatas
+
+        self.data_old = {}
+        self.data_new = {}
+        self.errors = []
+
+        privacy = flask_request.form.get('privacy')
+        if privacy and privacy != self.response.privacy:
+            self.set_data_values('privacy', self.response.privacy, privacy)
+
+        self.edit_metadata()
+        self.add_event_and_update()
+        # TODO: self.email()
+        # What should be the email_content?
+        # Edit existing email response OR new response?
+        # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
+
+    def set_data_values(self, key, old, new):
+        self.data_old[key] = old
+        self.data_new[key] = new
+
+    @property
+    def event_type(self):
+        return {
+            Files: event_type.FILE_EDITED,
+            Notes: event_type.NOTE_EDITED,
+            Links: event_type.LINK_EDITED,
+            Instructions: event_type.INSTRUCTIONS_ADDED,
+        }[type(self.metadata)]
+
+    @property
+    def metadata_new(self):
+        data = dict(self.data_new)
+        data.pop('privacy')
+        return data
+
+    @property
+    @abstractmethod
+    def metadata_fields(self):
+        """ List of fields that can be edited directly. """
+        return list()
+
+    def edit_metadata(self):
+        """
+        For the editable fields, populates the
+        old and new data containers.
+        """
+        for field in self.metadata_fields:
+            value_new = self.flask_request.form.get(field)
+            value_orig = getattr(self.metadata, field)
+            if value_new and value_new != value_orig:
+                self.set_data_values(field, value_orig, value_new)
+
+    def add_event_and_update(self):
+        """
+        Creates an 'edited' event and updates the
+        response and metadata records.
+        """
+        if not self.errors:
+            timestamp = datetime.utcnow()
+            event = Events(
+                type=self.event_type,
+                request_id=self.response.request_id,
+                response_id=self.response.id,
+                user_id=self.user.guid,
+                auth_user_type=self.user.auth_user_type,
+                timestamp=timestamp,
+                previous_response_value=self.data_old,
+                new_response_value=self.data_new)
+            create_object(event)
+            update_object({'date_modified': timestamp,
+                          'privacy': self.data_new['privacy']},
+                          Responses,
+                          self.response.id)
+            update_object(self.metadata_new,
+                          type(self.metadata),
+                          self.metadata.id)
+
+
+class RespFileEditor(ResponseEditor):
+    @property
+    def metadata_fields(self):
+        return ['title']
+
+    def edit_metadata(self):
+        """
+        If the file itself is being edited, gathers
+        its metadata. The values of the 'size', 'name', and
+        'mimetype' fields are determined by the new file.
+        """
+        super(RespFileEditor, self).edit_metadata()
+        new_filename = flask_request.form.get('filename')
+        if new_filename is not None:
+            new_filename = secure_filename(new_filename)
+            filepath = os.path.join(
+                current_app.config['UPLOAD_DIRECTORY'],
+                self.response.request_id,
+                UPDATED_FILE_DIRNAME,
+                new_filename
+            )
+            if os.path.exists(filepath):
+                self.set_data_values('size',
+                                     self.metadata.size,
+                                     os.path.getsize(filepath))
+                self.set_data_values('name',
+                                     self.metadata.name,
+                                     new_filename)
+                self.set_data_values('mime_type',
+                                     self.metadata.mime_type,
+                                     magic.from_file(filepath, mime=True))
+                self.replace_old_file(filepath)
+            else:
+                self.errors.append(
+                    "File '{}' not found.".format(new_filename))
+
+    def replace_old_file(self, updated_filepath):
+        """
+        Move the new file out of the 'updated' directory
+        and delete the file it is replacing.
+        """
+        upload_path = os.path.join(
+            current_app.config['UPLOAD_DIRECTORY'],
+            self.response.request_id
+        )
+        os.remove(
+            os.path.join(
+                upload_path,
+                self.metadata.name
+            )
+        )
+        os.rename(
+            updated_filepath,
+            os.path.join(
+                upload_path,
+                os.path.basename(updated_filepath)
+            )
+        )
+
+
+class RespNoteEditor(ResponseEditor):
+    @property
+    def metadata_fields(self):
+        return ['content']
+
+
+class RespLinkEditor(ResponseEditor):
+    @property
+    def metadata_fields(self):
+        return ['title', 'url']
+
+
+class RespInstructionsEditor(ResponseEditor):
+    @property
+    def metadata_fields(self):
+        return ['content']
+
+
+class RespExtensionEditor(ResponseEditor):
+    @property
+    def metadata_fields(self):
+        return ['reason']

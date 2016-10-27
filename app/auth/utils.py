@@ -6,9 +6,7 @@ from flask import current_app, request, session
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from app import login_manager
-from app.constants import (
-    AGENCY_USER
-)
+from app.constants import USER_ID_DELIMITER
 from app.lib.db_utils import create_object, update_object
 from app.models import Agencies, Users
 
@@ -21,9 +19,8 @@ def user_loader(user_id):
     :param unicode user_id: user_id (GUID + UserType) of user to retrieve
     :return: User object
     """
-    guid = user_id.split(':')[0]
-    user_type = user_id.split(':')[1]
-    return Users.query.filter_by(guid=guid, auth_user_type=user_type).first()
+    user_id = user_id.split(USER_ID_DELIMITER)
+    return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
 
 
 def init_saml_auth(req):
@@ -85,7 +82,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
 
             user = update_user(
                 guid=guid,
-                user_type=user.auth_user_type,
+                auth_user_type=user.auth_user_type,
                 agency=(organization.ein or None),
                 title=title,
                 organization=organization.name,
@@ -96,7 +93,7 @@ def process_user_data(guid, title=None, organization=None, phone_number=None, fa
         else:
             user = update_user(
                 guid=guid,
-                user_type=user.auth_user_type,
+                auth_user_type=user.auth_user_type,
                 title=title,
                 organization=organization,
                 phone_number=phone_number,
@@ -119,25 +116,25 @@ def update_user(guid=None, auth_user_type=None, **kwargs):
     user = str()
     if not guid:
         return None
-    
-    user = update_object(kwargs, obj_type=Users, obj_id=(guid, auth_user_type))
+
+    user = update_object(kwargs, Users, obj_id=(guid, auth_user_type))
 
     if not user:
         return None
     return user
 
 
-def find_or_create_user(guid, user_type):
+def find_or_create_user(guid, auth_user_type):
     """
     Given a guid and auth_user_type, equivalent to a user id, find or create a user in the database.
 
     Returns the User object and a boolean marking the user as a new user.
 
     :param unicode guid: GUID for the user
-    :param unicode user_type: User Type. See auth.constants for list of valid user types
+    :param unicode auth_user_type: User Type. See auth.constants for list of valid user types
     :return: (User Object, Boolean for Is new User)
     """
-    user = Users.query.filter_by(guid=str(guid[0]), user_type=str(auth_user_type[0])).first()
+    user = Users.query.filter_by(guid=str(guid[0]), auth_user_type=str(auth_user_type[0])).first()
 
     if user:
         return user, False
@@ -155,10 +152,10 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
 
     guid = saml_user_data['GUID'][0]
 
-    user_type = saml_user_data['userType'][0]
+    auth_user_type = saml_user_data['userType'][0]
 
     # Determine if the user's email address has been validated
-    # nycExtEmailValidationFlag is empty if user_type = Saml2In:NYC Employees
+    # nycExtEmailValidationFlag is empty if auth_user_type = Saml2In:NYC Employees
     # Otherwise, the validation flag will be either TRUE or FALSE
     if saml_user_data.get('nycExtEmailValidationFlag', None):
         if len(saml_user_data.get('nycExtEmailValidationFlag')[0]) == 0:
@@ -218,19 +215,18 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
         terms_of_use_accepted = None
 
     user = Users(guid=guid,
-                user_type=auth_user_type,
-                email=email,
-                first_name=first_name,
-                middle_initial=middle_initial,
-                last_name=last_name,
-                email_validated=email_validated,
-                terms_of_use_accepted=terms_of_use_accepted,
-                title=title,
-                organization=organization,
-                phone_number=phone_number,
-                fax_number=fax_number,
-                mailing_address=mailing_address
-                )
+                 auth_user_type=auth_user_type,
+                 email=email,
+                 first_name=first_name,
+                 middle_initial=middle_initial,
+                 last_name=last_name,
+                 email_validated=email_validated,
+                 terms_of_use_accepted=terms_of_use_accepted,
+                 title=title,
+                 organization=organization,
+                 phone_number=phone_number,
+                 fax_number=fax_number,
+                 mailing_address=mailing_address)
 
     if create_object(user):
         return user

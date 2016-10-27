@@ -53,6 +53,7 @@ class Config:
 
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
+    ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') or True
 
     @staticmethod
     def init_app(app):

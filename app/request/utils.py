@@ -21,9 +21,9 @@ from app.constants import (
     event_type,
     role_name as role,
     ACKNOWLEDGEMENT_DAYS_DUE,
-    ANONYMOUS_USER,
-    request_user_type
+    user_type_request
 )
+from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.response_type import FILE
 from app.constants.request_status import OPEN
@@ -72,9 +72,10 @@ def create_request(title,
     :param title: request title
     :param description: detailed description of the request
     :param agency: agency_ein selected for the request
-    :param date_created: date the request was made
+    :param first_name: first name of the requester
+    :param last_name: last name of the requester
     :param submission: request submission method
-    :param agency_date_submitted: submission date chosen by agency_ein
+    :param agency_date_submitted: submission date chosen by agency
     :param email: requester's email address
     :param user_title: requester's organizational title
     :param organization: requester's organization
@@ -155,7 +156,8 @@ def create_request(title,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_response_value=metadata)
+                              new_response_value=metadata.update(
+                                  privacy=RELEASE_AND_PRIVATE))
         create_object(upload_event)
 
     role_to_user = {
@@ -171,7 +173,8 @@ def create_request(title,
     request_metadata = {
         'title': request.title,
         'description': request.description,
-        'current_status': request.current_status
+        'current_status': request.current_status,
+        'due_date': request.due_date.isoformat()
     }
     event = Events(user_id=user.guid,
                    auth_user_type=user.auth_user_type,
@@ -182,7 +185,7 @@ def create_request(title,
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
-                              auth_user_type=current_user.user_type,
+                              auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
                               type=event_type.REQ_CREATED,
                               timestamp=timestamp)
@@ -191,27 +194,31 @@ def create_request(title,
     # 10. Create UserRequest
     user_request = UserRequests(user_guid=user.guid,
                                 auth_user_type=user.auth_user_type,
-                                request_user_type=request_user_type.REQUESTER,
+                                request_user_type=user_type_request.REQUESTER,
                                 request_id=request_id,
                                 permissions=Roles.query.filter_by(
                                     name=role_name).first().permissions)
     create_object(user_request)
 
-    # 11. Add all agency_ein administrators to the request.
+    # 11. Create the elasticsearch request doc
+    # (Now that we can associate the request with its requester.)
+    request.es_create()
 
-    # a. Get all agency_ein administrators objects
+    # 12. Add all agency administrators to the request.
+
+    # a. Get all agency administrators objects
     agency_administrators = Agencies.query.filter_by(ein=agency).first().administrators
 
     if agency_administrators:
-        # Generate a list of tuples(guid, auth_user_type) identifying the agency_ein administrators
+        # Generate a list of tuples(guid, auth_user_type) identifying the agency administrators
         agency_administrators = [tuple(agency_user.split('::')) for agency_user in agency_administrators]
 
-        # b. Store all agency_ein users objects in the UserRequests table as Agency users with Agency Administrator
+        # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
         for agency_administrator in agency_administrators:
             user_request = UserRequests(user_id=agency_administrator[0],
                                         auth_auth_user_type=agency_administrator[1],
-                                        request_user_type=request_user_type.AGENCY,
+                                        request_user_type=user_type_request.AGENCY,
                                         request_id=request_id,
                                         permissions=Roles.query.filter_by(name=role.AGENCY_ADMIN).first().permissions)
             create_object(user_request)
@@ -308,7 +315,7 @@ def _move_validated_upload(request_id, tmp_path):
         upload_status.READY)
 
     # Store File Object
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, valid_name))
+    size = os.path.getsize(valid_path)
     mime_type = get_mime_type(request_id, valid_name)
     file_obj = Files(name=valid_name, mime_type=mime_type, title='', size=size)
     create_object(obj=file_obj)
@@ -319,15 +326,15 @@ def _move_validated_upload(request_id, tmp_path):
         'title': '',
         'size': size
     }
-    return file_obj.metadata_id, file_metadata
+    return file_obj.id, file_metadata
 
 
 def generate_request_id(agency_ein):
     """
-    Generates an agency_ein-specific FOIL request id.
+    Generates an agency-specific FOIL request id.
 
     :param agency_ein: agency_ein ein used to generate the request_id
-    :return: generated FOIL Request ID (FOIL - year - agency_ein ein - 5 digits for request number)
+    :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     if agency_ein:
         next_request_number = Agencies.query.filter_by(ein=agency_ein).first().next_request_number
@@ -387,21 +394,21 @@ def edit_requester_info(user_id, updated_info):
 
 def send_confirmation_email(request, agency, user):
     """
-    Sends out a confirmation email to requester and bcc the agency_ein default email associated with the request.
+    Sends out a confirmation email to requester and bcc the agency default email associated with the request.
     Also calls the add_email function to create a Emails object to be stored in the database.
 
     :param request: Requests object containing the new created request
-    :param agency: Agencies object containing the agency_ein of the new request
+    :param agency: Agencies object containing the agency of the new request
     :param user: Users object containing the user who created the request
-    :return: sends an email to the requester and agency_ein containing all information related to the request
+    :return: sends an email to the requester and agency containing all information related to the request
     """
     subject = 'New Request Created ({})'.format(request.id)
 
-    # get the agency_ein's default email and adds it to the bcc list
+    # get the agency's default email and adds it to the bcc list
     agency_default_email = agency.default_email
-    agency_emails = []
+    agency_emails = []  # FIXME: Can this be empty?
     agency_emails.append(agency_default_email)
-    bcc = agency_emails or ['agency_ein@email.com']
+    bcc = agency_emails or ['agency@email.com']
 
     # gets the email and address information from the requester
     requester_email = user.email
@@ -415,7 +422,7 @@ def send_confirmation_email(request, agency, user):
                                     agency_name=agency.name, user=user, address=address)
 
     try:
-        # if the requester supplied an email sent it to the request and bcc the agency_ein
+        # if the requester supplied an email sent it to the request and bcc the agency
         if requester_email:
             safely_send_and_add_email(
                 request.id,
@@ -430,7 +437,7 @@ def send_confirmation_email(request, agency, user):
                 address=address,
                 page=page
             )
-        # otherwise send the email directly to the agency_ein
+        # otherwise send the email directly to the agency
         else:
             safely_send_and_add_email(
                 request.id,
