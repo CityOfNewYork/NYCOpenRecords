@@ -1,0 +1,14 @@
+<script type="text/javascript">
+    $("#user-info").submit(function (e) {
+        var data = $(this).serialize();
+        e.preventDefault();
+         $.ajax({
+             type: 'PUT',
+             url: '/request/edit_requester_info/{{ request.id }}',
+             data: data,
+             success: function(response) {
+                location.reload();
+            }
+         });
+    });
+</script>

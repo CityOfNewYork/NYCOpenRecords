@@ -10,7 +10,8 @@ from flask import (
     request as flask_request,
     current_app,
     flash,
-    Markup
+    Markup,
+    jsonify,
 )
 from flask_login import current_user
 
@@ -175,7 +176,7 @@ def view(request_id):
                            edit_requester_form=edit_requester_form)
 
 
-@request.route('/edit_requester_info/<request_id>', methods=['POST'])
+@request.route('/edit_requester_info/<request_id>', methods=['PUT'])
 def edit_requester_info(request_id):
     """
     Sample Request Body
@@ -204,4 +205,4 @@ def edit_requester_info(request_id):
 
         }
     }, Users, (requester.guid, requester.auth_user_type))
-    return redirect(url_for('request.view', request_id=request_id))
+    return jsonify({}), 200

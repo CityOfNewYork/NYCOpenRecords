@@ -71,4 +71,3 @@ else
 
 //Activating
 $('#user-info').parsley().validate();
-
