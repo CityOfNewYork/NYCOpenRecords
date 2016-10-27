@@ -174,10 +174,10 @@ def add_link(request_id, title, url_link, email_content, privacy):
                       new_response_value=link_metadata,
                       privacy=privacy)
     send_link_email(request_id,
-                    title,
                     url_link,
-                    email_content,
-                    privacy)
+                    privacy,
+                    email_content=email_content,
+                    email_template='email_templates/email_link.html')
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -267,53 +267,6 @@ def process_upload_data(form):
     return files
 
 
-def send_file_email(request_id, privacy, filenames, email_content):
-    """
-    Function that sends email detailing a file response has been uploaded to a request.
-    If the file privacy is private, only agency users are emailed.
-    If the file privacy is release, the requester is emailed and the agency users are bcced.
-
-    :param request_id: FOIL request ID
-    :param privacy: privacy option of the uploaded file
-    :param filenames: list of filenames
-    :param email_content: content body of the email notification being sent
-    :return: Sends email notification detailing a file response has been uploaded to a request.
-
-    """
-    # TODO: make subject constants
-    subject = 'Response Added'
-    bcc = get_agencies_emails(request_id)
-    # create a dictionary of filenames to be passed through jinja to email template
-    file_to_link = {}
-    for filename in filenames:
-        file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
-    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    if privacy == 'release':
-        # Query for the requester's email information
-        requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                       request_user_type=REQUESTER).first().user.email
-        # Send email with files to requester and bcc agency users as privacy option is release
-        to = [requester_email]
-        safely_send_and_add_email(request_id,
-                                  email_content,
-                                  subject,
-                                  "email_templates/email_file_upload",
-                                  to=to,
-                                  bcc=bcc,
-                                  agency_name=agency_name,
-                                  files_links=file_to_link)
-
-    if privacy == 'private':
-        # Send email with files to agency users only as privacy option is private
-        safely_send_and_add_email(request_id,
-                                  email_content,
-                                  subject,
-                                  "email_templates/email_file_upload",
-                                  bcc=bcc,
-                                  agency_name=agency_name,
-                                  files_links=file_to_link)
-
-
 def process_privacy_options(files):
     """
     Create a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
@@ -350,9 +303,10 @@ def process_email_template_request(request_id, data):
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     # process email template for extension
     if data['type'] == 'extension_email':
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        # email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         # calculates new due date based on selected value if custom due date is not selected
         new_due_date = _get_new_due_date(request_id,
                                          data['extension_length'],
@@ -363,7 +317,7 @@ def process_email_template_request(request_id, data):
                                page=page)
     # process email template for file upload
     if data['type'] == 'file_upload_email':
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        # email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         # create a dictionary of filenames to be passed through jinja to email template
         files_links = {}
         try:
@@ -377,10 +331,11 @@ def process_email_template_request(request_id, data):
         email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
                                page=page,
-                               agency_name=agency_name)
+                               agency_name=agency_name,
+                               files_links=files_links)
     # process email template for link
     if data['type'] == 'link_email':
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        # email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         try:
             link = data['link']
             if link['privacy'] != PRIVATE:
@@ -393,8 +348,6 @@ def process_email_template_request(request_id, data):
                                agency_name=agency_name,
                                url=url,
                                page=page)
-                               agency_name=agency_name,
-                               files_links=files_links)
 
 
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
@@ -471,7 +424,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
                               reason=reason)
 
 
-def send_link_email(request_id, title, url_link, email_content, privacy, **kwargs):
+def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
     """
     Function that sends email detailing a extension has been added to a request.
 
@@ -506,7 +459,6 @@ def send_link_email(request_id, title, url_link, email_content, privacy, **kwarg
                                   subject,
                                   to=to,
                                   bcc=bcc,
-                                  title=title,
                                   url=url_link)
 
 

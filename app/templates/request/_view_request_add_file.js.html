@@ -109,7 +109,6 @@
                 });
             document.getElementById("fileupload-second").style.display = "none";
             document.getElementById("fileupload-third").style.display = "block";
-
         });
 
         // Handles click events on the first previous button
@@ -139,6 +138,7 @@
             mode: "specific_textareas",
             // selector for tinymce textarea classes is set to 'tinymce-area'
             editor_selector: "tinymce-area",
+            elementpath: false,
             height: 180
         });
     });

@@ -140,6 +140,20 @@ def response_link(request_id):
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     link_data = flask_request.form
+
+    required_fields = ['title',
+                       'url',
+                       'email-link-summary',
+                       'privacy']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if link_data.get(field) is None:
+            flash('Uh Oh, it looks like the link {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
     add_link(request_id,
              link_data['title'],
              link_data['url'],
@@ -158,7 +172,10 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    email_template = process_email_template_request(request_id, data)
+    try:
+        email_template = data['email_content']
+    except KeyError:
+        email_template = process_email_template_request(request_id, data)
     return email_template
 
 
