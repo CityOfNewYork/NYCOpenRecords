@@ -9,15 +9,9 @@
 <p>
     Download the request files at:
     <br>
-    <ul>
-        {% if data %}
-            {% for filename, link in data['files_links'].items() %}
-                <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
-            {% endfor %}
-        {% else %}
-            {% for filename, link in files_links.items() %}
-                <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
-            {% endfor %}
-        {% endif %}
-    </ul>
+<ul>
+    {% for filename, link in files_links.items() %}
+        <li style="list-style: none"><a href='{{ link }}'>{{ filename }}</a></li>
+    {% endfor %}
+</ul>
 </p>

@@ -1,0 +1,22 @@
+/* set the position for the previous buttons */
+.prev-btn {
+    position: absolute;
+    left: 0;
+}
+
+/* set the position for the next buttons */
+.next-btn {
+    position: absolute;
+    right: 0;
+}
+
+/* set the position for the submit button */
+.submit-btn {
+    position: absolute;
+    right: 0;
+}
+
+/* set divs to display none */
+.hide-div {
+    display: none;
+}

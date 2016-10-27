@@ -19,7 +19,7 @@ from flask import current_app, render_template
 from flask_mail import Message
 
 from app import mail, celery
-from app.models import Users, UserRequests
+from app.models import Users, UserRequests, Requests
 from app.constants.user_type_request import AGENCY
 from app.constants.user_type_auth import AGENCY_USER
 
@@ -29,7 +29,7 @@ def send_async_email(msg):
     mail.send(msg)
 
 
-def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
+def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_content=None, **kwargs):
     """
     Function that sends asynchronous emails for the application.
     Takes in arguments from the frontend.
@@ -39,6 +39,7 @@ def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
     :param bcc: Person(s) being BCC'ed on the email
     :param subject: Subject of the email
     :param template: HTML and TXT template of the email content
+    :param email_content: string of HTML email content that can be used as a message template
     :param kwargs: Additional arguments the function may take in (ie: Message content)
     :return: Sends email asynchronously
     """
@@ -47,7 +48,10 @@ def send_email(subject, template, to=list(), cc=list(), bcc=list(), **kwargs):
                   sender=current_app.config['MAIL_SENDER'], recipients=to, cc=cc, bcc=bcc)
     # Renders email template from .txt file commented out and not currently used in development
     # msg.body = render_template(template + '.txt', **kwargs)
-    msg.html = render_template(template + '.html', **kwargs)
+    if email_content:
+        msg.html = email_content
+    else:
+        msg.html = render_template(template + '.html', **kwargs)
     send_async_email.delay(msg)
 
 
@@ -66,4 +70,7 @@ def get_agencies_emails(request_id):
     for user_guid in agency_user_guids:
         agency_user_email = Users.query.filter_by(guid=user_guid, auth_user_type=AGENCY_USER).first().email
         agency_emails.append(agency_user_email)
+    # get the agency_ein's default email and adds it to the bcc list
+    agency_default_email = Requests.query.filter_by(id=request_id).first().agency.default_email
+    agency_emails.append(agency_default_email)
     return agency_emails or ['agency@email.com']
