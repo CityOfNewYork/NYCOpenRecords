@@ -12,7 +12,10 @@ from tests.lib.constants import (
 )
 
 from app.models import Events
-from app.constants import UPDATED_FILE_DIRNAME
+from app.constants import (
+    UPDATED_FILE_DIRNAME,
+    USER_ID_DELIMITER,
+)
 from app.constants.event_type import FILE_EDITED
 from app.constants.response_privacy import RELEASE_AND_PUBLIC
 
@@ -93,7 +96,7 @@ class ResponseViewsTests(BaseTestCase):
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
         with self.client as client:
             with client.session_transaction() as session:
-                session['user_id'] = ':'.join((
+                session['user_id'] = USER_ID_DELIMITER.join((
                     rf.requester.guid, rf.requester.auth_user_type))
                 session['_fresh'] = True
             # PUT it in there!
@@ -174,7 +177,7 @@ class ResponseViewsTests(BaseTestCase):
         new_filename = 'bovine.txt'
         with self.client as client:
             with client.session_transaction() as session:
-                session['user_id'] = ':'.join((
+                session['user_id'] = USER_ID_DELIMITER.join((
                     rf.requester.guid, rf.requester.auth_user_type))
                 session['_fresh'] = True
             resp = self.client.put(

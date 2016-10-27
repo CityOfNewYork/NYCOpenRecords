@@ -334,7 +334,7 @@ class Requests(db.Model):
                 request_status.OVERDUE,
                 request_status.CLOSED,
                 request_status.RE_OPENED,
-                name='statuses'))
+                name='status'))
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
 

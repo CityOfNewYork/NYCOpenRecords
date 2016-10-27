@@ -15,6 +15,7 @@ from app.constants import (
     request_status,
 )
 from app.constants.response_privacy import PRIVATE
+from app.constants.role_name import PUBLIC_REQUESTER
 from app.models import (
     Requests,
     Responses,
@@ -22,6 +23,7 @@ from app.models import (
     Users,
     Agencies,
     UserRequests,
+    Roles,
 )
 from app.request.utils import (
     generate_request_id,
@@ -69,7 +71,14 @@ class RequestsFactory(object):
             terms_of_use_accepted=True,
             title='The Janest')
         create_object(self.requester)
-        # TODO: UserRequests obj
+        self.user_request = UserRequests(
+            user_guid=self.requester.guid,
+            auth_user_type=self.requester.auth_user_type,
+            request_id=self.request.id,
+            request_user_type=user_type_request.REQUESTER,
+            permissions=Roles.query.filter_by(
+                name=PUBLIC_REQUESTER).first().permissions)
+        create_object(self.user_request)
 
     def add_file(self,
                  filepath=None,
@@ -122,7 +131,7 @@ class RequestsFactory(object):
                 os.remove(path)
 
 
-def create_user(auth_type):
+def create_user(auth_type=user_type_auth.PUBLIC_USER_NYC_ID):
     """
     :param auth_type: one of app.constants.user_type_auth
     """

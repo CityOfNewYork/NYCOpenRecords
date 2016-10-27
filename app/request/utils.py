@@ -201,7 +201,7 @@ def create_request(title,
     create_object(user_request)
 
     # 11. Create the elasticsearch request doc
-    # (Now that we can associate the request with is requester.)
+    # (Now that we can associate the request with its requester.)
     request.es_create()
 
     # 12. Add all agency administrators to the request.
