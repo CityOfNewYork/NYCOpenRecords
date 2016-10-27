@@ -317,7 +317,6 @@ def process_email_template_request(request_id, data):
                                page=page)
     # process email template for file upload
     if data['type'] == 'file_upload_email':
-        # email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         # create a dictionary of filenames to be passed through jinja to email template
         files_links = {}
         try:
@@ -335,7 +334,6 @@ def process_email_template_request(request_id, data):
                                files_links=files_links)
     # process email template for link
     if data['type'] == 'link_email':
-        # email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         try:
             link = data['link']
             if link['privacy'] != PRIVATE:
