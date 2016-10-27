@@ -32,7 +32,6 @@ def requests():
     - description: (optional, default: true) search by description?
     - agency_description: (optional, default: true) search by agency description?
     - by_phrase: (optional, default: false) use phrase matching instead of standard full-text?
-        NOTE: will always be true if searching by id
     - size: (optional, default: 10) number of results to return
     - highlight: (optional, default: false) show highlights?
         NOTE: if true, will come at a slight performance cost (in order to
@@ -72,7 +71,7 @@ def requests():
                        if not current_user.is_anonymous
                        else False)
 
-    if not any((use_title, use_agency_desc, use_description)):
+    if not any((use_id, use_title, use_agency_desc, use_description)):
         # nothing to query on
         return jsonify({}), 200
 
@@ -83,7 +82,7 @@ def requests():
     except ValueError:
         size = DEFAULT_HITS_SIZE
 
-    if use_id or request.args.get('by_phrase', False):
+    if request.args.get('by_phrase', False):
         match_type = 'match_phrase'
     else:
         match_type = 'match'  # full-text
@@ -94,106 +93,115 @@ def requests():
         'agency_description': use_agency_desc
     }
 
-    conditions = []
     es_requester_id = None
-    if current_user.is_agency:
-        for name, add in fields.items():
-            if add:
-                conditions.append({
-                    match_type: {name: query}
-                })
+    if use_id:
         dsl = {
             'query': {
-                'bool': {
-                    'should': conditions
-                }
-            }
-        }
-    elif current_user.is_anonymous:
-        if use_title:
-            conditions.append({
-                'bool': {
-                    'must': [
-                        {match_type: {'title': query}},
-                        {'term': {'title_private': False}}
-                    ]
-                }
-            })
-        if use_agency_desc:
-            conditions.append({
-                'bool': {
-                    'must': [
-                        {match_type: {'agency_description': query}},
-                        {'term': {'agency_description_private': False}}
-                    ]
-                }
-            })
-        dsl = {
-            'query': {
-                'bool': {
-                    'should': conditions
-                }
-            }
-        }
-    elif current_user.is_public:
-        es_requester_id = current_user.get_id()
-        if use_title:
-            conditions.append({
-                'bool': {
-                    'must': [
-                        {match_type: {'title': query}},
-                        {'bool': {
-                            'should': [
-                                {'term': {'requester_id': es_requester_id}},
-                                {'term': {'title_private': False}}
-                            ]
-                        }}
-                    ]
-                }
-            })
-        if use_agency_desc:
-            conditions.append({
-                'bool': {
-                    'must': [
-                        {match_type: {'agency_description': query}},
-                        {'term': {'agency_description_private': False}}
-                    ]
-                }
-            })
-        if use_description:
-            conditions.append({
-                'bool': {
-                    'must': [
-                        {match_type: {'description': query}},
-                        {'term': {'requester_id': es_requester_id}}
-                    ]
-                }
-            })
-        dsl = {
-            'query': {
-                'bool': {
-                    'should': conditions
+                'wildcard': {
+                    '_uid': 'request#FOIL-*{}*'.format(query)
                 }
             }
         }
     else:
-        raise InvalidUserException(current_user)
-
-    # Add highlights
-    if highlight:
-        highlight_fields = {}
-        for name, add in fields.items():
-            if add:
-                highlight_fields[name] = {}
-        dsl.update(
-            {
-                'highlight': {
-                    'pre_tags': ['<span class="highlight">'],
-                    'post_tags': ['</span>'],
-                    'fields': highlight_fields
+        conditions = []
+        if current_user.is_agency:
+            for name, add in fields.items():
+                if add:
+                    conditions.append({
+                        match_type: {name: query}
+                    })
+            dsl = {
+                'query': {
+                    'bool': {
+                        'should': conditions
+                    }
                 }
             }
-        )
+        elif current_user.is_anonymous:
+            if use_title:
+                conditions.append({
+                    'bool': {
+                        'must': [
+                            {match_type: {'title': query}},
+                            {'term': {'title_private': False}}
+                        ]
+                    }
+                })
+            if use_agency_desc:
+                conditions.append({
+                    'bool': {
+                        'must': [
+                            {match_type: {'agency_description': query}},
+                            {'term': {'agency_description_private': False}}
+                        ]
+                    }
+                })
+            dsl = {
+                'query': {
+                    'bool': {
+                        'should': conditions
+                    }
+                }
+            }
+        elif current_user.is_public:
+            es_requester_id = current_user.get_id()
+            if use_title:
+                conditions.append({
+                    'bool': {
+                        'must': [
+                            {match_type: {'title': query}},
+                            {'bool': {
+                                'should': [
+                                    {'term': {'requester_id': es_requester_id}},
+                                    {'term': {'title_private': False}}
+                                ]
+                            }}
+                        ]
+                    }
+                })
+            if use_agency_desc:
+                conditions.append({
+                    'bool': {
+                        'must': [
+                            {match_type: {'agency_description': query}},
+                            {'term': {'agency_description_private': False}}
+                        ]
+                    }
+                })
+            if use_description:
+                conditions.append({
+                    'bool': {
+                        'must': [
+                            {match_type: {'description': query}},
+                            {'term': {'requester_id': es_requester_id}}
+                        ]
+                    }
+                })
+            dsl = {
+                'query': {
+                    'bool': {
+                        'should': conditions
+                    }
+                }
+            }
+        else:
+            raise InvalidUserException(current_user)
+
+        # Add highlights
+        if highlight:
+            highlight_fields = {}
+            for name, add in fields.items():
+                if add:
+                    highlight_fields[name] = {}
+            dsl.update(
+                {
+                    'highlight': {
+                        'pre_tags': ['<span class="highlight">'],
+                        'post_tags': ['</span>'],
+                        'fields': highlight_fields
+                    }
+                }
+            )
 
     result = es.search(
         index=INDEX,
@@ -206,7 +214,7 @@ def requests():
         size=size,
     )
 
-    if highlight:
+    if highlight and not use_id:
         _process_highlights(result, es_requester_id)
 
     return jsonify(result), 200

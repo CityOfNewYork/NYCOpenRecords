@@ -6,12 +6,13 @@
     <h1>Simple Search (Requests Only)</h1>
     <h3>Just uses ajax.</h3>
     <form>
-        <input id="query" type="text" name="query" placeholder="DO IT!"><br>
-        <br>
+        <input id="query" type="text" name="query" placeholder="DO IT!">
+        <span id="query-prefix"></span>
+        <br><br>
         Search by:
         <br>
         <label>
-            <input type="checkbox" name="foil-id" disabled>
+            <input type="checkbox" name="foil-id">
             FOIL ID<br>
         </label>
         <label>
@@ -53,7 +54,7 @@
                 Other users will only see in what fields
                 their query matches, but no content from
                 that field will be shown (unless of course,
-                we decide to always process highlights).
+                we decide to always include highlights).
             </small>
         </p>
     </form>
@@ -142,6 +143,28 @@
         $('#query').on('input', search);
         $(':checkbox').change(search);
         $('#size').change(search);
+
+        // Disable other filters if searching by FOIL ID
+        $('input[name=foil-id]').click(function() {
+            var names = ['title', 'description', 'agency-description'];
+            var i;
+            if ($(this).prop('checked')) {
+                $('#query-prefix').text('FOIL-');
+                $('#query').css('padding-left', '2.7em').attr('placeholder', '0000-000-00000');
+                for (i in names) {
+                    $('input[name='.concat(names[i], ']')).prop(
+                            'disabled', true).prop('checked', false);
+                }
+            }
+            else {
+                $('#query-prefix').text('');
+                $('#query').css('padding-left', '0').attr('placeholder', 'DO IT!');
+                for (i in names) {
+                    $('input[name='.concat(names[i], ']')).prop(
+                            'disabled', false).prop('checked', true);
+                }
+            }
+        });
 
         // Toggle raw result data
         $('#results-all').on('click', '.show-raw', function () {
