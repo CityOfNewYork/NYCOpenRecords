@@ -115,9 +115,6 @@
     {% endif %}
 
     <p>Due Date: {{ request.get_formatted_due_date() }}</p>
-    {% block custom_script %}
-        <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
-    {% endblock %}
 
 
 </div>
