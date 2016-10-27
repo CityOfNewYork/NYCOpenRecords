@@ -22,12 +22,11 @@ from flask import (
 from app.constants import (
     event_type,
     response_type,
-    ANONYMOUS_USER,
     UPDATED_FILE_DIRNAME,
 )
-from app.constants.request_user_type import REQUESTER
+from app.constants.user_type_auth import ANONYMOUS_USER
+from app.constants.user_type_request import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
-from app.lib.db_utils import update_object
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails

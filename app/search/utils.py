@@ -1,5 +1,3 @@
-from flask_login import current_user
-
 from app import es
 from app.models import Requests
 from elasticsearch.helpers import bulk

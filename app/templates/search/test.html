@@ -41,14 +41,21 @@
         <label>
             <input type="checkbox" name="highlight" checked>
             Highlight*
-            <p><small>
+        </label>
+        <p>
+            <small>
                 *Toggle provided only for testing.
                 <br>
                 Will be set for agency users since they
                 can view all fields, public or private,
-                and no highlight post-processing is required.
-            </small></p>
-        </label>
+                and <u>no highlight post-processing is required</u>.
+                <br>
+                Other users will only see in what fields
+                their query matches, but no content from
+                that field will be shown (unless of course,
+                we decide to always process highlights).
+            </small>
+        </p>
     </form>
     <hr>
     <div>
@@ -87,8 +94,8 @@
                     success: function(resp){
                         // uncomment for full raw json response
                         // $('#results-raw').text(JSON.stringify(resp, null, 4));
-                        var hits = resp.hits.hits;
-                        if (typeof hits != 'undefined' && hits.length > 0) {
+                        var hits = typeof resp.hits != 'undefined' ? resp.hits.hits : resp;
+                        if (hits.length > 0) {
                             for (var i = 0; i < hits.length; i++) {
                                 var content = "";
                                 if (typeof hits[i].highlight != 'undefined') {

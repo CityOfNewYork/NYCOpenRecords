@@ -6,7 +6,7 @@ MAIL = 'Mail'
 IN_PERSON = 'In-Person'
 THREE_ONE_ONE = '311'
 
-SUBMISSION_METHOD = [
+AS_CHOICES = [
     ('', ''),
     (DIRECT_INPUT, DIRECT_INPUT),
     (FAX, FAX),

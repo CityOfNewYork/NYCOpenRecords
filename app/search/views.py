@@ -38,6 +38,7 @@ def requests():
         NOTE: if true, will come at a slight performance cost (in order to
         restrict highlights to public fields, iterating over elasticsearch
         query results is required)
+
     - TODO: agency filter
 
     Anonymous Users can search by:
@@ -55,10 +56,9 @@ def requests():
     - Description
     """
 
+    # FOR USER TESTING
     # from app.models import Users
-    # from app.constants import AGENCY_USER
-    # user = Users.query.filter_by(guid='ae79854b-e812-4c06-90c8-a780a3a20189',
-    #                              auth_user_type=AGENCY_USER).first()
+    # user = Users.query.first()
     # login_user(user, force=True)
 
     query = request.args.get('query')
@@ -154,7 +154,7 @@ def requests():
         if use_agency_desc:
             conditions.append({
                 'bool': {
-                    'must:': [
+                    'must': [
                         {match_type: {'agency_description': query}},
                         {'term': {'agency_description_private': False}}
                     ]
@@ -237,4 +237,4 @@ def _process_highlights(results, requester_id=None):
                 hit['highlight'].pop('agency_description')
             if ('description' in hit['highlight']
                 and not is_requester):
-                hit['description'].pop('description')
+                hit['highlight'].pop('description')

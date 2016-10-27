@@ -11,41 +11,14 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
 from app import db, es
 from app.constants import (
-    PUBLIC_USER,
-    AGENCY_USER,
-    PUBLIC_USER_NYC_ID,
-    PUBLIC_USER_FACEBOOK,
-    PUBLIC_USER_LINKEDIN,
-    PUBLIC_USER_GOOGLE,
-    PUBLIC_USER_YAHOO,
-    PUBLIC_USER_MICROSOFT,
-    ANONYMOUS_USER,
     USER_ID_DELIMITER,
     permission,
     role_name,
-    request_user_type as req_user_type,
-)
-from app.constants.response_privacy import (
-    RELEASE_AND_PUBLIC,
-    RELEASE_AND_PRIVATE,
-    PRIVATE
-)
-from app.constants.status_values import (
-    OPEN,
-    IN_PROGRESS,
-    DUE_SOON,
-    OVERDUE,
-    CLOSED,
-    RE_OPENED
-)
-from app.constants.submission_methods import (
-    DIRECT_INPUT,
-    FAX,
-    PHONE,
-    EMAIL,
-    MAIL,
-    IN_PERSON,
-    THREE_ONE_ONE
+    user_type_auth,
+    user_type_request,
+    request_status,
+    response_privacy,
+    submission_methods,
 )
 from app.search.constants import INDEX
 
@@ -204,18 +177,17 @@ class Users(UserMixin, db.Model):
     """
     __tablename__ = 'users'
     guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
-    auth_user_type = db.Column(db.Enum(AGENCY_USER,
-                                       PUBLIC_USER_FACEBOOK,
-                                       PUBLIC_USER_MICROSOFT,
-                                       PUBLIC_USER_YAHOO,
-                                       PUBLIC_USER_LINKEDIN,
-                                       PUBLIC_USER_GOOGLE,
-                                       PUBLIC_USER_NYC_ID,
-                                       ANONYMOUS_USER,
-                                       name='auth_user_type'
-                                       ),
-                               primary_key=True
-                               )
+    auth_user_type = db.Column(
+        db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.PUBLIC_USER_FACEBOOK,
+                user_type_auth.PUBLIC_USER_MICROSOFT,
+                user_type_auth.PUBLIC_USER_YAHOO,
+                user_type_auth.PUBLIC_USER_LINKEDIN,
+                user_type_auth.PUBLIC_USER_GOOGLE,
+                user_type_auth.PUBLIC_USER_NYC_ID,
+                user_type_auth.ANONYMOUS_USER,
+                name='auth_user_type'),
+        primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
     email = db.Column(db.String(254))
     first_name = db.Column(db.String(32), nullable=False)
@@ -252,7 +224,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type in PUBLIC_USER
+        return self.auth_user_type in user_type_auth.PUBLIC_USER_TYPES
 
     @property
     def is_agency(self):
@@ -263,7 +235,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type == AGENCY_USER
+        return self.auth_user_type == user_type_auth.AGENCY_USER
 
     @property
     def is_anonymous_requester(self):
@@ -275,7 +247,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type == ANONYMOUS_USER
+        return self.auth_user_type == user_type_auth.ANONYMOUS_USER
 
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
@@ -284,9 +256,7 @@ class Users(UserMixin, db.Model):
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}{}{}>'.format(self.guid,
-                                       USER_ID_DELIMITER,
-                                       self.auth_user_type)
+        return '<Users {}>'.format(self.get_id())
 
 
 class Anonymous(AnonymousUserMixin):
@@ -348,24 +318,23 @@ class Requests(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
     due_date = db.Column(db.DateTime)
-    submission = db.Column(db.Enum(DIRECT_INPUT,
-                                   FAX,
-                                   PHONE,
-                                   EMAIL,
-                                   MAIL,
-                                   IN_PERSON,
-                                   THREE_ONE_ONE,
-                                   name='submission'
-                                   )
-                           )
-    current_status = db.Column(db.Enum(OPEN,
-                                       IN_PROGRESS,
-                                       DUE_SOON,
-                                       OVERDUE,
-                                       CLOSED,
-                                       RE_OPENED,
-                                       name='statuses')
-                               )  # due soon is within the next "5" business days
+    submission = db.Column(
+        db.Enum(submission_methods.DIRECT_INPUT,
+                submission_methods.FAX,
+                submission_methods.PHONE,
+                submission_methods.EMAIL,
+                submission_methods.MAIL,
+                submission_methods.IN_PERSON,
+                submission_methods.THREE_ONE_ONE,
+                name='submission'))
+    current_status = db.Column(
+        db.Enum(request_status.OPEN,
+                request_status.IN_PROGRESS,
+                request_status.DUE_SOON,  # within the next 5 business days
+                request_status.OVERDUE,
+                request_status.CLOSED,
+                request_status.RE_OPENED,
+                name='statuses'))
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
 
@@ -378,7 +347,7 @@ class Requests(db.Model):
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(
-            req_user_type.REQUESTER),
+            user_type_request.REQUESTER),
         backref=db.backref('request', uselist=False),
         viewonly=True,
         uselist=False
@@ -480,18 +449,17 @@ class Events(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
     user_id = db.Column(db.String(64))  # who did the action
-    auth_user_type = db.Column(db.Enum(AGENCY_USER,
-                                       PUBLIC_USER_FACEBOOK,
-                                       PUBLIC_USER_MICROSOFT,
-                                       PUBLIC_USER_YAHOO,
-                                       PUBLIC_USER_LINKEDIN,
-                                       PUBLIC_USER_GOOGLE,
-                                       PUBLIC_USER_NYC_ID,
-                                       ANONYMOUS_USER,
-                                       name='auth_user_type'
-                                       ),
-                               primary_key=True
-                               )
+    auth_user_type = db.Column(
+        db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.PUBLIC_USER_FACEBOOK,
+                user_type_auth.PUBLIC_USER_MICROSOFT,
+                user_type_auth.PUBLIC_USER_YAHOO,
+                user_type_auth.PUBLIC_USER_LINKEDIN,
+                user_type_auth.PUBLIC_USER_GOOGLE,
+                user_type_auth.PUBLIC_USER_NYC_ID,
+                user_type_auth.ANONYMOUS_USER,
+                name='auth_user_type'),
+        primary_key=True)
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
@@ -527,11 +495,10 @@ class Responses(db.Model):
     type = db.Column(db.String(30))  # TODO: enum
     metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
     privacy = db.Column(db.Enum(
-        PRIVATE,
-        RELEASE_AND_PRIVATE,
-        RELEASE_AND_PUBLIC,
-        name="privacy")
-    )
+        response_privacy.PRIVATE,
+        response_privacy.RELEASE_AND_PRIVATE,
+        response_privacy.RELEASE_AND_PUBLIC,
+        name="privacy"))
     date_modified = db.Column(db.DateTime)
 
     metadatas = db.relationship(  # 'metadata' is reserved
@@ -583,22 +550,22 @@ class UserRequests(db.Model):
     """
     __tablename__ = 'user_requests'
     user_guid = db.Column(db.String(64), primary_key=True)
-    auth_user_type = db.Column(db.Enum(AGENCY_USER,
-                                       PUBLIC_USER_FACEBOOK,
-                                       PUBLIC_USER_MICROSOFT,
-                                       PUBLIC_USER_YAHOO,
-                                       PUBLIC_USER_LINKEDIN,
-                                       PUBLIC_USER_GOOGLE,
-                                       PUBLIC_USER_NYC_ID,
-                                       ANONYMOUS_USER,
-                                       name='auth_user_type'
-                                       ),
-                               primary_key=True
-                               )
+    auth_user_type = db.Column(
+        db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.PUBLIC_USER_FACEBOOK,
+                user_type_auth.PUBLIC_USER_MICROSOFT,
+                user_type_auth.PUBLIC_USER_YAHOO,
+                user_type_auth.PUBLIC_USER_LINKEDIN,
+                user_type_auth.PUBLIC_USER_GOOGLE,
+                user_type_auth.PUBLIC_USER_NYC_ID,
+                user_type_auth.ANONYMOUS_USER,
+                name='auth_user_type'),
+        primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
-    request_user_type = db.Column(db.Enum(req_user_type.REQUESTER,
-                                          req_user_type.AGENCY,
-                                          name='request_user_type'))
+    request_user_type = db.Column(
+        db.Enum(user_type_request.REQUESTER,
+                user_type_request.AGENCY,
+                name='request_user_type'))
     permissions = db.Column(db.Integer)
     # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
     # same permissions as an anonymous user browsing a request since there is no method for authenticating that the

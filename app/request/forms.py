@@ -10,8 +10,11 @@ from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField
 
-from app.constants import CATEGORIES, STATES
-from app.constants.submission_methods import SUBMISSION_METHOD
+from app.constants import (
+    CATEGORIES,
+    STATES,
+    submission_methods,
+)
 
 
 class PublicUserRequestForm(Form):
@@ -85,7 +88,8 @@ class AgencyUserRequestForm(Form):
     zipcode = StringField('Zip')
 
     # Method Received
-    method_received = SelectField('Format Received (required)', choices=SUBMISSION_METHOD)
+    method_received = SelectField('Format Received (required)',
+                                  choices=submission_methods.AS_CHOICES)
 
     # File Upload
     request_file = FileField('Upload File')

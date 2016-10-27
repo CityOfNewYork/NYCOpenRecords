@@ -21,12 +21,12 @@ from app.constants import (
     event_type,
     role_name as role,
     ACKNOWLEDGEMENT_DAYS_DUE,
-    ANONYMOUS_USER,
-    request_user_type
+    user_type_request
 )
+from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.response_type import FILE
-from app.constants.status_values import OPEN
+from app.constants.request_status import OPEN
 from app.constants.submission_methods import DIRECT_INPUT
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
@@ -194,7 +194,7 @@ def create_request(title,
     # 10. Create UserRequest
     user_request = UserRequests(user_guid=user.guid,
                                 auth_user_type=user.auth_user_type,
-                                request_user_type=request_user_type.REQUESTER,
+                                request_user_type=user_type_request.REQUESTER,
                                 request_id=request_id,
                                 permissions=Roles.query.filter_by(
                                     name=role_name).first().permissions)
@@ -218,7 +218,7 @@ def create_request(title,
         for agency_administrator in agency_administrators:
             user_request = UserRequests(user_id=agency_administrator[0],
                                         auth_auth_user_type=agency_administrator[1],
-                                        request_user_type=request_user_type.AGENCY,
+                                        request_user_type=user_type_request.AGENCY,
                                         request_id=request_id,
                                         permissions=Roles.query.filter_by(name=role.AGENCY_ADMIN).first().permissions)
             create_object(user_request)
