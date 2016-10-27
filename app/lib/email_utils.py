@@ -29,7 +29,7 @@ def send_async_email(msg):
     mail.send(msg)
 
 
-def send_email(subject, to=list(), cc=list(), bcc=list(), template=None,  email_content=None, **kwargs):
+def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_content=None, **kwargs):
     """
     Function that sends asynchronous emails for the application.
     Takes in arguments from the frontend.

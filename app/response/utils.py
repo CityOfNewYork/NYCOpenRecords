@@ -414,6 +414,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
 def safely_send_and_add_email(request_id,
                               email_content,
                               subject,
+                              template=None,
                               to=None,
                               bcc=None,
                               **kwargs):
@@ -423,6 +424,7 @@ def safely_send_and_add_email(request_id,
     :param request_id: FOIL request ID
     :param email_content: string of HTML email content that can be used as a message template
     :param subject: subject of the email (current is for TESTING purposes)
+    :param template: path of the HTML template to be passed into and rendered in send_email
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
 
@@ -430,7 +432,7 @@ def safely_send_and_add_email(request_id,
              Will print error if there is an error.
     """
     try:
-        send_email(subject, to=to, bcc=bcc, email_content=email_content, **kwargs)
+        send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
         _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         print('Must include: To, CC, or BCC')
