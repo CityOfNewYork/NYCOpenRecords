@@ -408,8 +408,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
                               to=to,
                               bcc=bcc,
                               new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
-                              reason=reason,
-                              )
+                              reason=reason)
 
 
 def safely_send_and_add_email(request_id,

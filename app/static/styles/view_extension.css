@@ -10,24 +10,6 @@
     line-height: 20px;
 }
 
-/* sets the position for the previous buttons */
-.prev-btn {
-    position: absolute;
-    left: 0;
-}
-
-/* sets the position for the next buttons */
-.next-btn {
-    position: absolute;
-    right: 0;
-}
-
-/* sets the position for the submit button */
-.submit-btn {
-    position: absolute;
-    right: 0;
-}
-
 /* sets the style for the reason textarea */
 #extension-reason {
     height: 10rem;

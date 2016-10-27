@@ -19,7 +19,7 @@ from flask import current_app, render_template
 from flask_mail import Message
 
 from app import mail, celery
-from app.models import Users, UserRequests
+from app.models import Users, UserRequests, Requests
 from app.constants.user_type_request import AGENCY
 from app.constants.user_type_auth import AGENCY_USER
 
@@ -70,4 +70,7 @@ def get_agencies_emails(request_id):
     for user_guid in agency_user_guids:
         agency_user_email = Users.query.filter_by(guid=user_guid, auth_user_type=AGENCY_USER).first().email
         agency_emails.append(agency_user_email)
+    # get the agency_ein's default email and adds it to the bcc list
+    agency_default_email = Requests.query.filter_by(id=request_id).first().agency.default_email
+    agency_emails.append(agency_default_email)
     return agency_emails or ['agency@email.com']

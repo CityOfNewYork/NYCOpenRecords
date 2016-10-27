@@ -82,9 +82,16 @@ def response_file(request_id):
     email_content = flask_request.form['email-file-summary']
     for privacy, files in file_options.items():
         if privacy == PRIVATE:
-            send_file_email(request_id, privacy, files, email_content=None, email_template='email_templates/email_private_file_upload.html')
+            send_file_email(request_id,
+                            privacy,
+                            files,
+                            email_content=None,
+                            email_template='email_templates/email_private_file_upload.html')
         else:
-            send_file_email(request_id, privacy, files, email_content)
+            send_file_email(request_id,
+                            privacy,
+                            files,
+                            email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 

@@ -32,6 +32,7 @@
                 return false;
             }
 
+            // Prevent default if files with error are not removed
             if ($('.upload-error').length > 0 || $(".error-post-fileupload").is(':visible')) {
                 $('.fileupload-error-messages').html("<div class='alert alert-danger'>Files with Errors must be removed</div>");
                 e.preventDefault();
@@ -46,11 +47,11 @@
 
             // Proceed with next click function if validation fields are valid and no files are uploading
             if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
-                $(".fileupload-error-messages").hide();
+                $('.fileupload-error-messages').html("<div class='alert alert-warning'>Files made Release and Public or Release and Private will be shown with links on the next page</div>");
                 var formData = {
                     request_id: "{{ request.id }}",
                     template_name: "email_file_upload.html",
-                    type: "file_upload_email",
+                    type: "file_upload_email"
                 };
 
                 $.ajax({
@@ -63,20 +64,22 @@
                         tinyMCE.get('email-file-content').setContent(data);
                     }
                 });
-                document.getElementById("first").style.display = "none";
-                document.getElementById("second").style.display = "block";
+                document.getElementById("fileupload-first").style.display = "none";
+                document.getElementById("fileupload-second").style.display = "block";
             }
         });
 
         // Handles click events on the second next button
         $("#fileupload-next-2").click(function () {
+            $('.fileupload-error-messages').html('');
             tinyMCE.triggerSave();
 
+            // Get list of both secured filenames and privacy option values, and store them into variables
             var filenames = $('.secured-name').map( function(){return $(this).text(); }).get();
             var privacy = $('input[type="radio"]:checked').map( function(){return $(this).val(); }).get();
 
+            // Create a list (called files) of dictionaries with keys of filename and privacy
             var files = [];
-
             for( var i = 0; i < filenames.length; i++ ) {
                 file = {};
                 file["filename"] = filenames[i];
@@ -84,9 +87,6 @@
 
                 files.push(file);
             }
-
-            console.log(files);
-
 
             var formData = {
                     request_id: "{{ request.id }}",
@@ -107,26 +107,24 @@
                         $("#email-file-summary-hidden").val(data);
                     }
                 });
-            document.getElementById("second").style.display = "none";
-            document.getElementById("third").style.display = "block";
+            document.getElementById("fileupload-second").style.display = "none";
+            document.getElementById("fileupload-third").style.display = "block";
 
         });
 
         // Handles click events on the first previous button
         $("#fileupload-prev-1").click(function () {
-            document.getElementById("first").style.display = "block";
-            document.getElementById("second").style.display = "none";
+            $('.fileupload-error-messages').html('');
+            document.getElementById("fileupload-first").style.display = "block";
+            document.getElementById("fileupload-second").style.display = "none";
         });
 
         // Handles click events on the second previous button
         $("#fileupload-prev-2").click(function () {
-            document.getElementById("third").style.display = "none";
-            document.getElementById("second").style.display = "block";
+            $('.fileupload-error-messages').html("<div class='alert alert-warning'>Files made Release and Public or Release and Private will be shown with links on the next page</div>");
+            document.getElementById("fileupload-third").style.display = "none";
+            document.getElementById("fileupload-second").style.display = "block";
         });
-
-{#        document.getElementById("email-file-summary-hidden").value = document.getElementById("email-file-summary").innerHTML;#}
-{#        $('#email-file-summary-hidden').val($('#email-file-summary').innerHTML);#}
-{#        $('#email-file-summary-hidden').val($('#email-file-summary').text());#}
 
         // Apply parsley required validation
         $('#add-files').attr('data-parsley-required', '');
@@ -134,5 +132,14 @@
 
         // Apply parsley error message to a specific container
         $('#add-files').attr('data-parsley-errors-container', '.fileupload-buttonbar');
+
+        // Initialize tinymce HTML editor
+        tinymce.init({
+            // sets tinymce to enable only on specific textareas classes
+            mode: "specific_textareas",
+            // selector for tinymce textarea classes is set to 'tinymce-area'
+            editor_selector: "tinymce-area",
+            height: 180
+        });
     });
 </script>

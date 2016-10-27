@@ -12,7 +12,7 @@
                 Add File
             </legend>
             <div class="fileupload-error-messages"></div>
-            <div class="fileupload-divs" id="first">
+            <div class="fileupload-divs" id="fileupload-first">
                 <div class="row fileupload-buttonbar">
                     <div class="col-lg-7">
                 <span class="btn btn-success fileinput-button">
@@ -53,15 +53,18 @@
                 </div>
                 <button type="button" class="next-btn btn btn-primary" id="fileupload-next-1">Next</button>
             </div>
-            <div class="fileupload-divs" id="second" style="display: none">
+            <!-- second div of the add-extension form containing email content -->
+            <div class="fileupload-divs hide-div" id="fileupload-second">
                 <textarea class="tinymce-area" name="email-file-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="fileupload-next-2">Next</button>
             </div>
-            <div class="fileupload-divs" id="third" style="display: none">
+            <!-- last div of the add-extension form containing confirmation and submit -->
+            <div class="fileupload-divs hide-div" id="fileupload-third">
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
                 <div id="email-file-summary"></div>
+                <!-- hidden input to send email summary to backend -->
                 <input type="hidden" name="email-file-summary" id="email-file-summary-hidden">
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
@@ -101,6 +104,8 @@
             </div>
         </div>
     {% } %}
+
+
 
 
 </script>
@@ -165,5 +170,7 @@
             </div>
         </div>
     {% } %}
+
+
 </script>
 {% endraw %}

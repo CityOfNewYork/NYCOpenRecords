@@ -4,37 +4,7 @@
     padding-bottom: 5rem;
 }
 
-.carousel-control{
-    background-image: none;
-    background-repeat: no-repeat
-}
-
-.previous{
-    background-image: none;
-    background-color:blue;
-}
-
-.next-slider{
-    top:50%;
-    float:right;
-    margin-bottom:1rem;
-}
-
-.prev-slider{
-    top:50%;
-    float:left;
-    margin-bottom:1rem;
-}
-
-.no-padding{
-    padding-left: 0px;
-    width: 0px;
-}
-
-/*#email-summary{*/
-    /*padding-bottom: 5rem;*/
-/*}*/
-
+/* sets spacing for uploaded files table */
 .upload-row-spacer {
     margin-top: 3rem;
     margin-bottom: 3rem;
