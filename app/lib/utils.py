@@ -35,7 +35,7 @@ def eval_request_bool(val, default=True):
     :param val: the value to check
     :param default: bool to return by default
 
-    :return: True or False
+    :return: Boolean
     """
     assert isinstance(default, bool)
     if val is not None:

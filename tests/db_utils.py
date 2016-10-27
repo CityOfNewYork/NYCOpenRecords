@@ -1,10 +1,53 @@
+from datetime import datetime
 from unittest.mock import patch
 
 from tests.lib.base import BaseTestCase
-from tests.lib.tools import RequestsFactory
+from tests.lib.tools import (
+    RequestsFactory,
+    create_user,
+)
+from app.constants.submission_methods import IN_PERSON
+from app.constants.request_status import OVERDUE
+from app.models import (
+    Requests,
+    Roles,
+    Users,
+)
+from app.lib.db_utils import (
+    create_object,
+    update_object,
+)
 
-from app.models import Requests, Roles
-from app.lib.db_utils import update_object
+
+class CreateObjectTests(BaseTestCase):
+
+    def test_object_created(self):
+        self.assertFalse(Users.query.first())
+        create_user()
+        self.assertTrue(Users.query.first())
+
+    def test_es_doc_not_created(self):
+        try:
+            create_user()  # Users - model without 'es_create' method
+        except AttributeError:
+            self.fail('es_create() called when it should not have been.')
+
+    @patch('app.models.Requests.es_create')
+    def test_request_es_doc_not_created(self, es_create_patch):
+        create_object(
+            Requests(
+                'FOIL-COT',
+                title="Where's my money Denny?",
+                description="Oh Hi!",
+                agency_ein=54,
+                date_created=datetime.utcnow(),
+                date_submitted=datetime.utcnow(),
+                due_date=datetime.utcnow(),
+                submission=IN_PERSON,
+                current_status=OVERDUE
+            )
+        )
+        self.assertFalse(es_create_patch.called)
 
 
 class UpdateObjectTests(BaseTestCase):

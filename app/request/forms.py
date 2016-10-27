@@ -10,8 +10,11 @@ from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField
 
-from app.constants import CATEGORIES, STATES
-from app.constants.submission_methods import SUBMISSION_METHOD
+from app.constants import (
+    CATEGORIES,
+    STATES,
+    submission_methods,
+)
 
 
 class PublicUserRequestForm(Form):
@@ -20,7 +23,7 @@ class PublicUserRequestForm(Form):
     For a public user, the required fields are:
 
     # Request information
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     title: name or title of the request
     description: detailed description of the request
 
@@ -41,11 +44,11 @@ class PublicUserRequestForm(Form):
 
 class AgencyUserRequestForm(Form):
     """
-    Form for agency_ein users to create a new FOIL request.
-    For a agency_ein user, the required fields are:
+    Form for agency users to create a new FOIL request.
+    For an agency user, the required fields are:
 
     # Request Information
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     title: name or title of the request
     description: detailed description of the request
     request_date: date the request was made
@@ -85,7 +88,8 @@ class AgencyUserRequestForm(Form):
     zipcode = StringField('Zip')
 
     # Method Received
-    method_received = SelectField('Format Received (required)', choices=SUBMISSION_METHOD)
+    method_received = SelectField('Format Received (required)',
+                                  choices=submission_methods.AS_CHOICES)
 
     # File Upload
     request_file = FileField('Upload File')
@@ -100,7 +104,7 @@ class AnonymousRequestForm(Form):
     For a anonymous user, the required fields are:
 
     # Request Information
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     title: name or title of the request
     description: detailed description of the request
 

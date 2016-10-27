@@ -4,8 +4,6 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 
-import json
-
 from flask import (
     render_template,
     redirect,
@@ -20,7 +18,6 @@ from flask_login import current_user
 from app.lib.db_utils import get_agencies_list
 from app.lib.utils import InvalidUserException
 from app.models import Requests
-from app.models import Users, Agencies, Events, UserRequests
 from app.request import request
 from app.request.forms import (
     PublicUserRequestForm,
@@ -33,7 +30,7 @@ from app.request.utils import (
     get_address,
     send_confirmation_email
 )
-from app.constants import request_user_type as req_user_type
+from app.constants import user_type_request
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -44,7 +41,7 @@ def new():
 
     title: request title
     description: request description
-    agency_ein: agency_ein selected for the request
+    agency: agency selected for the request
     submission: submission method for the request
 
     :return: redirects to homepage if form validates
@@ -63,7 +60,7 @@ def new():
         template_suffix = 'anon.html'
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        template_suffix = 'agency_ein.html'
+        template_suffix = 'agency.html'
     else:
         raise InvalidUserException(current_user)
 
@@ -111,15 +108,16 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path)
-            # commented out recaptcha verifying functionalty because of NYC network proxy preventing it to send a
-            # backend request to the API
+
+            # FIXME: recaptcha verifying functionalty prevented due to NYC network proxy
+            # (prevents sending a backend request to the API)
 
             # if recaptcha.verify() is False:
             #     flash("Please complete reCAPTCHA.")
             #     return render_template(new_request_template, form=form, site_key=site_key)
 
         current_request = Requests.query.filter_by(id=request_id).first()
-        requester = current_request.user_requests.filter_by(request_user_type=req_user_type.REQUESTER).first().user
+        requester = current_request.user_requests.filter_by(request_user_type=user_type_request.REQUESTER).first().user
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
         if requester.email:

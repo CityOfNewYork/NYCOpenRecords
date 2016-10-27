@@ -22,12 +22,11 @@ from flask import (
 from app.constants import (
     event_type,
     response_type,
-    ANONYMOUS_USER,
     UPDATED_FILE_DIRNAME,
 )
-from app.constants.request_user_type import REQUESTER
+from app.constants.user_type_auth import ANONYMOUS_USER
+from app.constants.user_type_request import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
-from app.lib.db_utils import update_object
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
@@ -226,8 +225,8 @@ def process_upload_data(form):
 def send_file_email(request_id, privacy, filenames, email_content):
     """
     Function that sends email detailing a file response has been uploaded to a request.
-    If the file privacy is private, only agency_ein users are emailed.
-    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
+    If the file privacy is private, only agency users are emailed.
+    If the file privacy is release, the requester is emailed and the agency users are bcced.
 
     :param request_id: FOIL request ID
     :param privacy: privacy option of the uploaded file
@@ -248,7 +247,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
         # Query for the requester's email information
         requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                        request_user_type=REQUESTER).first().user.email
-        # Send email with files to requester and bcc agency_ein users as privacy option is release
+        # Send email with files to requester and bcc agency users as privacy option is release
         to = [requester_email]
         safely_send_and_add_email(request_id,
                                   email_content,
@@ -260,7 +259,7 @@ def send_file_email(request_id, privacy, filenames, email_content):
                                   files_links=file_to_link)
 
     if privacy == 'private':
-        # Send email with files to agency_ein users only as privacy option is private
+        # Send email with files to agency users only as privacy option is private
         safely_send_and_add_email(request_id,
                                   email_content,
                                   subject,
@@ -343,7 +342,7 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
     bcc = get_agencies_emails(request_id)
     requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                    request_user_type=REQUESTER).first().user.email
-    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    # Send email with files to requester and bcc agency users as privacy option is release
     to = [requester_email]
     safely_send_and_add_email(request_id,
                               email_content,
