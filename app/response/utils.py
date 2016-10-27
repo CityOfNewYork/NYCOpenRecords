@@ -479,6 +479,7 @@ def send_link_email(request_id, title, url_link, email_content, privacy, **kwarg
     :param title: extended due date of the request
     :param url_link: reason for extending the request
     :param email_content: content body of the email notification being sent
+    :param privacy: privacy option of link
 
     :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a
     request.
