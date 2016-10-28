@@ -252,6 +252,10 @@ class Users(UserMixin, db.Model):
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
+    @property
+    def name(self):
+        return ' '.join((self.first_name, self.last_name))
+
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
@@ -380,6 +384,9 @@ class Requests(db.Model):
         self.submission = submission
         self.current_status = current_status
         self.agency_description = agency_description
+
+    def get_formatted_due_date(self):
+        return self.due_date.strftime('%m/%d/%Y')
 
     def es_update(self):
         result = es.update(

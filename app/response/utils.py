@@ -518,7 +518,6 @@ class ResponseEditor(metaclass=ABCMeta):
         # Edit existing email response OR new response?
         # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
 
-
     def set_data_values(self, key, old, new):
         self.data_old[key] = old
         self.data_new[key] = new
