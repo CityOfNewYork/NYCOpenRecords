@@ -375,24 +375,6 @@ def generate_request_metadata(request):
     pass
 
 
-def edit_requester_info(user_id, updated_info):
-    """
-    Update the requester's information for the specified request.
-
-    :param user_id:
-    :param updated_info: Dictionary of fields to values for the updated requester information.
-    :return: If the operation was successful.
-    """
-    for key, value in updated_info.enumerate():
-        # Loop through each value in the updated information and update the database
-        if not update_object(attribute=key, value=value, obj_type=Users, obj_id=user_id):
-            # TODO: Error message to Logfile
-            # TODO: Raise exception with specific error message to alert the user
-            return False
-
-    return True
-
-
 def send_confirmation_email(request, agency, user):
     """
     Sends out a confirmation email to requester and bcc the agency default email associated with the request.

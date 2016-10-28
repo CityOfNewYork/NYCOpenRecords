@@ -188,6 +188,8 @@ def edit_requester_info(request_id):
     :param request_id:
     :return:
     """
+    # TODO: backend validation
+
     requester = Requests.query.filter_by(id=request_id).first().user_requests.filter_by(
         request_user_type=user_type_request.REQUESTER).first().user
     update_object({

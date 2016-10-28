@@ -254,7 +254,7 @@ class Users(UserMixin, db.Model):
 
     @property
     def name(self):
-        return "{} {}".format(self.first_name, self.last_name)
+        return ' '.join((self.first_name, self.last_name))
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
