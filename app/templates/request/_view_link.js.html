@@ -18,7 +18,7 @@ $(document).ready(function () {
         if ($('#add-link-form').parsley().isValid()) {
             var formData = {
                 request_id: "{{ request.id }}",
-                template_name: "email_link.html",
+                template_name: "email_response_link.html",
                 type: "link_email"
             };
 
@@ -52,7 +52,7 @@ $(document).ready(function () {
 
         var formData = {
             request_id: "{{ request.id }}",
-            template_name: "email_link.html",
+            template_name: "email_response_link.html",
             type: "link_email",
             link: link,
             email_content: $('#email-link-content').val()

@@ -34,7 +34,6 @@ from app.lib.file_utils import get_mime_type
 from app.models import (
     Responses,
     Events,
-    Links,
     Notes,
     Files,
     Links,
@@ -48,7 +47,7 @@ from app.models import (
 
 def add_file(request_id, filename, title, privacy):
     """
-    Creates and store the file object for the specified request.
+    Create and store the file object for the specified request.
     Gets the file mimetype from a helper function in lib.file_utils
 
     :param request_id: Request ID that the file is being added to
@@ -88,7 +87,7 @@ def delete_file():
 
 def add_note(request_id, content):
     """
-    Creates and store the note object for the specified request.
+    Create and store the note object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param content: content of the note to be created and stored as a note object
@@ -117,7 +116,7 @@ def delete_note():
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
     """
-    Creates and store the extension object for the specified request.
+    Create and store the extension object for the specified request.
 
     :param request_id: FOIL request ID for the extension
     :param length: length in business days that the request is being extended by
@@ -151,7 +150,7 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
 
 def add_link(request_id, title, url_link, email_content, privacy):
     """
-    Creates and store the link object for the specified request.
+    Create and store the link object for the specified request.
 
     :param request_id: FOIL request ID for the link
     :param title: title of the link to be stored in the Links table and as a response value
@@ -177,7 +176,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
                     url_link,
                     privacy,
                     email_content=email_content,
-                    email_template='email_templates/email_link.html')
+                    email_template='email_templates/email_response_private_link.html')
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -321,14 +320,19 @@ def process_email_template_request(request_id, data):
         files_links = {}
         try:
             files = data['files']
+            default_content = False
+            content = data['email_content']
         except KeyError:
             files = []
+            default_content = True
+            content = None
         for file_ in files:
             if file_['privacy'] != PRIVATE:
                 filename = file_['filename']
                 files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         return render_template(email_template,
+                               default_content=default_content,
+                               content=content,
                                page=page,
                                agency_name=agency_name,
                                files_links=files_links)
@@ -336,13 +340,19 @@ def process_email_template_request(request_id, data):
     if data['type'] == 'link_email':
         try:
             link = data['link']
+            default_content = False
+            content = data['email_content']
             if link['privacy'] != PRIVATE:
                 url = link['url']
             else:
                 url = ''
         except KeyError:
             url = ''
+            default_content = True
+            content = None
         return render_template(email_template,
+                               default_content=default_content,
+                               content=content,
                                agency_name=agency_name,
                                url=url,
                                page=page)

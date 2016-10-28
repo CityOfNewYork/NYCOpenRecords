@@ -172,10 +172,7 @@ def response_email():
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
-    try:
-        email_template = data['email_content']
-    except KeyError:
-        email_template = process_email_template_request(request_id, data)
+    email_template = process_email_template_request(request_id, data)
     return email_template
 
 
