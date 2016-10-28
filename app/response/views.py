@@ -191,3 +191,9 @@ def edit_response(response_id):
             "new": editor.data_new
         }
     return jsonify(http_response), 200
+
+
+@response.route('/<response_id>', methods=['PUT'])
+def test_edit_response_file(response_id):
+    response = Responses.query.filter_by(id=response_id)
+    return render_template('request/test_edit_response_file.html', response=response)

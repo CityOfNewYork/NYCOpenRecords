@@ -31,6 +31,7 @@ from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.file_utils import get_mime_type
+from app.lib.utils import get_file_hash
 from app.models import (
     Responses,
     Events,
@@ -58,13 +59,15 @@ def add_file(request_id, filename, title, privacy):
     :return: Stores the file metadata into the Files table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
+    path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
+    size = os.path.getsize(path)
     mime_type = get_mime_type(request_id, filename)
     file_ = Files(name=filename, mime_type=mime_type, title=title, size=size)
     file_metadata = {'name': filename,
                      'mime_type': mime_type,
                      'title': title,
-                     'size': size}
+                     'size': size,
+                     'hash': get_file_hash(path)}
     create_object(obj=file_)
     _process_response(request_id,
                       response_type.FILE,
@@ -612,6 +615,9 @@ class RespFileEditor(ResponseEditor):
                 self.set_data_values('mime_type',
                                      self.metadata.mime_type,
                                      magic.from_file(filepath, mime=True))
+                self.set_data_values('hash',
+                                     self.metadata.hash,
+                                     get_file_hash(filepath))
                 self.replace_old_file(filepath)
             else:
                 self.errors.append(

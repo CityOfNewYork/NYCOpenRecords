@@ -15,16 +15,16 @@
             <div class="fileupload-divs" id="fileupload-first">
                 <div class="row fileupload-buttonbar">
                     <div class="col-lg-7">
-                <span class="btn btn-success fileinput-button">
-                    <i class="glyphicon glyphicon-plus"></i>
-                    <span>Add files...</span>
-                    <input type="file" name="file" id="add-files" multiple>
-                </span>
+                        <span class="btn btn-success fileinput-button">
+                            <i class="glyphicon glyphicon-plus"></i>
+                            <span>Add files...</span>
+                            <input type="file" name="file" id="add-files" multiple>
+                        </span>
                         <button type="submit" class="btn btn-primary start">
                             <i class="glyphicon glyphicon-upload"></i>
                             <span>Start All</span>
                         </button>
-                        <!-- TODO: global cancellation / deletion
+                        <!-- TODO: (maybe) global cancellation / deletion
                         <button type="reset" class="btn btn-warning cancel">
                             <i class="glyphicon glyphicon-ban-circle"></i>
                             <span>Cancel upload</span>
@@ -104,12 +104,8 @@
             </div>
         </div>
     {% } %}
-
-
-
-
 </script>
-<!-- The template to display files available for download -->
+<!-- The template to display files after upload -->
 <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
@@ -165,12 +161,8 @@
                         <span>Remove</span>
                     </button>
                 {% } %}
-
-
             </div>
         </div>
     {% } %}
-
-
 </script>
 {% endraw %}

@@ -634,6 +634,7 @@ class Files(Metadatas):
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
     size = db.Column(db.Integer)
+    hash = db.Column(db.String)  # sha1
 
 
 class Links(Metadatas):

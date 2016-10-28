@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
+    <link rel=stylesheet type=text/css
+          href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+{% endblock %}
+
+{% block content %}
+    <h1>Test form for editing a File Response</h1>
+    <form id="fileupload" action="/response/{{ response.id }}" method="POST">
+        <input type="hidden" name="_method" value="put" /> <!-- PUT -->
+        <div class="row fileupload-buttonbar">
+            <span class="btn btn-success fileinput-button">
+                <i class="glyphicon glyphicon-plus"></i>
+                <span>Replace File</span>
+                <input type="file" name="file">
+            </span>
+        </div>
+        <label for="title"> Title
+            <input type="text" name="title" value="{{ response.metadatas.title }}">
+        </label>
+        <div>
+            <label>
+                <input type="radio" name="privacy" value="release_public"
+                {% if response.privacy == "release_public" %}checked{% endif %}>
+                Release and Public
+            </label>
+            <br>
+            <label>
+                <input type="radio" name="privacy" value="release_private"
+                {% if response.privacy == "release_private" %}checked{% endif %}>
+                Release and Private
+            </label>
+            <br>
+            <label>
+                <input type="radio" name="privacy" value="private"
+                {% if response.privacy == "private" %}checked{% endif %}>
+                Private
+            </label>
+        </div>
+        <p>How to handle email? Must consult Martin.</p>
+        <span class="btn">
+            <span>Cancel</span>
+        </span>
+        <label>
+            <input type="submit" value="Submit">
+        </label>
+    </form>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/upload.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
+    {% include "request/fileupload.js.html" %}
+    <script type="text/javascript"
+            src="{{ url_for('static',filename='js/plugins/bootstrap-editable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+{% endblock %}
