@@ -402,7 +402,7 @@ def send_confirmation_email(request, agency, user):
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,
-                                    agency_name=agency.name, user=user, address=address)
+                                    agency_name=agency_name, user=user, address=address, page=page)
 
     try:
         # if the requester supplied an email sent it to the request and bcc the agency
