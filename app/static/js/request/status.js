@@ -80,21 +80,18 @@ if ($('#inputEmail').parsley().isValid() ||
     $('#inputAddressOne').parsley().isValid() ||
     $('#inputState').parsley().isValid() &&
     $('#inputZip').parsley().isValid() &&
-    $('#inputCity').parsley().isValid()
-)
-{
-    $('#inputCity').removeAttr('data-parsley-required');
-    $('#inputState').removeAttr('data-parsley-required');
-    $('#inputZip').removeAttr('data-parsley-required');
-    $('#inputTelephone').removeAttr('data-parsley-required');
-    $('#inputFax').removeAttr('data-parsley-required');
-    $('#inputAddressTwo').removeAttr('data-parsley-required');
-    $('#inputAddressOne').removeAttr('data-parsley-required');
-    $('#inputOrganization').removeAttr('data-parsley-required');
-    $('#inputEmail').removeAttr('data-parsley-required');
+    $('#inputCity').parsley().isValid()) {
+        $('#inputCity').removeAttr('data-parsley-required');
+        $('#inputState').removeAttr('data-parsley-required');
+        $('#inputZip').removeAttr('data-parsley-required');
+        $('#inputTelephone').removeAttr('data-parsley-required');
+        $('#inputFax').removeAttr('data-parsley-required');
+        $('#inputAddressTwo').removeAttr('data-parsley-required');
+        $('#inputAddressOne').removeAttr('data-parsley-required');
+        $('#inputOrganization').removeAttr('data-parsley-required');
+        $('#inputEmail').removeAttr('data-parsley-required');
 }
-else
-{
+else {
     //If none of the fields are valid, then produce an error message for them
     $('.contact-form-error-message').html("At least one of the following need to be filled: Email, Phone, Fax, and/or Address (with City, State, and Zipcode");
     $('#inputFax').attr('data-parsley-required', '');
