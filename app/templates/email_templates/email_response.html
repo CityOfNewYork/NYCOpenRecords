@@ -1,8 +1,10 @@
 {% if default_content %}
     <p>
         The {{ agency_name }} has provided additional
-        information about your request number <a href='{{ page }}'>{{ request_id }}</a>. Please visit <a href='{{ page }}'>{{ page }}</a> to view the additional
-        information.
+        information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
+    </p>
+    <p>
+        Please visit <a href='{{ page }}'>{{ page }}</a> to view the additional information.
     </p>
 {% else %}
     {{ content | safe }}

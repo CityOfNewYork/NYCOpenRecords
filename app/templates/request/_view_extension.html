@@ -29,7 +29,7 @@
             </div>
             <!-- second div of the add-extension form containing email content -->
             <div class="extension-divs hide-div form-group" id="extension-second">
-                <textarea class="tinymce-area" name="email-extend-content"></textarea>
+                <textarea class="tinymce-area" name="email-extension-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="extension-prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="extension-next-2">Next</button>
             </div>
@@ -37,7 +37,8 @@
             <div class="extension-divs hide-div form-group" id="extension-third">
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
-                <div id="email-extend-summary"></div>
+                <div id="email-extension-summary"></div>
+                <input type="hidden" name="email-extension-summary" id="email-extension-summary-hidden">
                 <button type="button" class="prev-btn btn btn-default" id="extension-prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>

@@ -36,7 +36,6 @@ from app.response.utils import (
 from urllib.request import urlopen
 
 
-
 # simple form used to test functionality of storing a note to responses table
 class NoteForm(Form):
     note = StringField('Add Note')
@@ -47,7 +46,7 @@ class NoteForm(Form):
 def response_note(request_id):
     """
     Note response endpoint that takes in the content of a note for a specific request from the frontend.
-    Passes data into helper function in response.utils to update changes into database.
+    Pass data into helper function in response.utils to update changes into database.
 
     :param request_id: Specific FOIL request ID for the note
     :return: Message indicating note has been submitted
@@ -68,8 +67,10 @@ def response_note(request_id):
 def response_file(request_id):
     """
     File response endpoint that takes in the metadata of a file for a specific request from the frontend.
-    Calls process_upload_data to process the uploaded file form data.
-    Passes data into helper function in response.utils to update changes into database.
+    Call process_upload_data to process the uploaded file form data.
+    Pass data into helper function in response.utils to update changes into database.
+    Send email notification to requester and bcc agency users if privacy is release.
+    Render specific tempalte and send email notification bcc agency users if privacy is private.
 
     :param request_id: Specific FOIL request ID for the file
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
@@ -102,17 +103,19 @@ def response_file(request_id):
 def response_extension(request_id):
     """
     Extension response endpoint that takes in the metadata of an extension for a specific request from the frontend.
-    Calls add_extension to process the extension form data.
+    Check if required data from form is retrieved.
+    Call add_extension to process the extension form data.
 
     :param request_id: Specific FOIL request ID for the extension
-    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    :return: Flash error message if required form data is missing.
+             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
     extension_data = flask_request.form
 
     required_fields = ['length',
                        'reason',
                        'due-date',
-                       'email-extend-content']
+                       'email-extension-summary']
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -126,7 +129,7 @@ def response_extension(request_id):
                   extension_data['length'],
                   extension_data['reason'],
                   extension_data['due-date'],
-                  extension_data['email-extend-content'])
+                  extension_data['email-extension-summary'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -134,10 +137,12 @@ def response_extension(request_id):
 def response_link(request_id):
     """
     Link response endpoint that takes in the metadata of a link for a specific request from the frontend.
-    Calls add_link to process the extension form data.
+    Check if required data from form is retrieved.
+    Call add_link to process the extension form data.
 
     :param request_id: Specific FOIL request ID for the link
-    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    :return: Flash error message if required form data is missing.
+             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
     link_data = flask_request.form
 
@@ -166,9 +171,10 @@ def response_link(request_id):
 @response.route('/email', methods=['GET', 'POST'])
 def response_email():
     """
-    Currently renders the template of the email onto the add file form.
+    Render email template onto response forms.
+    Call process_email_template_request to render specific response template with appropriate data.
 
-    :return: Render email template to add file form
+    :return: the rendered email tempalate
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']
