@@ -520,16 +520,40 @@ def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
                                   url=url_link)
 
 
-def send_note_email(request_id, note_content, email_content):
+def send_note_email(request_id, note_content, privacy, email_content, **kwargs):
     """
     Function that sends email detailing a note has been added to a request.
     Send email to the requester and bcc all agency users detailing a link has been added to the request as a response.
 
     :param request_id:
     :param note_content:
+    :param privacy:
     :param email_content:
     :return:
     """
+    subject = 'Response Added'
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    bcc = get_agencies_emails(request_id)
+    requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                   request_user_type=REQUESTER).first().user.email
+    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    if privacy == PRIVATE:
+        email_content = render_template(kwargs['email_template'],
+                                        request_id=request_id,
+                                        agency_name=agency_name,
+                                        note_content=note_content)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  bcc=bcc)
+    else:
+        to = [requester_email]
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  to=to,
+                                  bcc=bcc,
+                                  note_content=note_content)
 
 
 def safely_send_and_add_email(request_id,
