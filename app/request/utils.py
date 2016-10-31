@@ -402,7 +402,7 @@ def send_confirmation_email(request, agency, user):
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,
-                                    agency_name=agency_name, user=user, address=address, page=page)
+                                    agency_name=agency.name, user=user, address=address, page=page)
 
     try:
         # if the requester supplied an email sent it to the request and bcc the agency
@@ -411,14 +411,8 @@ def send_confirmation_email(request, agency, user):
                 request.id,
                 email_content,
                 subject,
-                "email_templates/email_confirmation",
                 to=[requester_email],
                 bcc=bcc,
-                current_request=request,
-                agency_name=agency,
-                user=user,
-                address=address,
-                page=page
             )
         # otherwise send the email directly to the agency
         else:
@@ -426,13 +420,7 @@ def send_confirmation_email(request, agency, user):
                 request.id,
                 email_content,
                 subject,
-                "email_templates/email_confirmation",
                 to=[agency_default_email],
-                current_request=request,
-                agency_name=agency,
-                user=user,
-                address=address,
-                page=page
             )
     except AssertionError:
         print('Must include: To, CC, or BCC')
