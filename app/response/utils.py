@@ -146,8 +146,6 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
                       new_response_value=extension_metadata,
                       privacy=RELEASE_AND_PUBLIC)
     send_extension_email(request_id,
-                         new_due_date,
-                         reason,
                          email_content)
 
 

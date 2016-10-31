@@ -2,7 +2,6 @@
 
 <p>The following links were uploaded as private to <a
         href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a></p>
-<p>
-    You can view the additional information at the following webpage: <br/>
-    <a href="{{ url }}">{{ url }}</a><br/>
-</p>
+<ul>
+    <li style="list-style: none"><a href="{{ url }}">{{ url }}</a>
+</ul>
