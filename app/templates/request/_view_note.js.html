@@ -1,0 +1,98 @@
+<script type="text/javascript">
+$(document).ready(function () {
+    // Hides all other divs except for the first
+    $(".note-control .note-divs").each(function (e) {
+        if (e != 0)
+            $(this).hide();
+    });
+
+    // Handles click events on the first next button
+    $("#note-next-1").click(function () {
+        // Onclick, changes button text from to Next
+        $(this).text("Next");
+
+        // Validate note form
+        $("#add-note-form").parsley().validate();
+
+        // If validation fields are valid, proceed with next click function
+        if ($('#add-note-form').parsley().isValid()) {
+            var formData = {
+                request_id: "{{ request.id }}",
+                template_name: "email_response_link.html",
+                type: "note_email"
+            };
+
+            $.ajax({
+                url: "/response/email",
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: false,
+                success: function (data) {
+                    // Data should be html template page.
+                    tinyMCE.get('email-note-content').setContent(data);
+                }
+            });
+            document.getElementById("note-first").style.display = "none";
+            document.getElementById("note-second").style.display = "block";
+        }
+    });
+
+    // Handles click events on the second next button
+    $("#note-next-2").click(function () {
+        tinyMCE.triggerSave();
+
+        // Store the values of note-url and note-privacy into variables
+        var content = $('#note-content').val();
+        var privacy = $('input[type="radio"]:checked').val();
+
+        // Create a dictionary called note with keys of content and privacy
+        note = {};
+        note["content"] = content;
+        note["privacy"] = privacy;
+
+        var formData = {
+            request_id: "{{ request.id }}",
+            template_name: "email_response_note.html",
+            type: "note_email",
+            note: note,
+            email_content: $('#email-note-content').val()
+        };
+
+        $.ajax({
+            url: "/response/email",
+            type: 'POST',
+            data: JSON.stringify(formData),
+            contentType: false,
+            success: function (data) {
+                // Data should be html template page.
+                $("#email-note-summary").html(data);
+                $("#email-note-summary-hidden").val(data);
+            }
+        });
+        document.getElementById("note-second").style.display = "none";
+        document.getElementById("note-third").style.display = "block";
+    });
+
+    // Handles click events on the first previous button
+    $("#note-prev-1").click(function () {
+        document.getElementById("note-first").style.display = "block";
+        document.getElementById("note-second").style.display = "none";
+    });
+
+    // Handles click events on the second previous button
+    $("#note-prev-2").click(function () {
+        document.getElementById("note-third").style.display = "none";
+        document.getElementById("note-second").style.display = "block";
+    });
+
+    // Apply parsley data required validation to note title and url
+    $('#note-content').attr('data-parsley-required', '');
+
+    // Apply parsley max length validation to note title and url
+    $('#note-content').attr('data-parsley-maxlength', '500');
+
+    // Apply custom validation messages
+    $('#note-content').attr('data-parsley-required-message', 'Note content must be provided');
+    $('#note-content').attr('data-parsley-maxlength-message', 'Note content must be less than 500 characters');
+});
+</script>

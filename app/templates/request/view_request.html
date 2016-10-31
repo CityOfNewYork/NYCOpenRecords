@@ -16,6 +16,7 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_request.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_extension.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_link.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_note.css') }}"/>
 {% endblock %}
 
 {% block title %}
@@ -58,7 +59,7 @@
                             Add Instructions Content
                         </div>
                         <div class="tab-pane" id="add-note">
-                            Add Note Content
+                            {% include "request/_view_note.html" %}
                         </div>
                         <div class="tab-pane" id="extension">
                             {% include "request/_view_extension.html" %}
@@ -129,4 +130,5 @@
     {% include 'request/_view_extension.js.html' %}
     {% include 'request/_view_link.js.html' %}
     {% include 'request/_view_request_add_file.js.html' %}
+    {% include 'request/_view_note.js.html' %}
 {% endblock %}
