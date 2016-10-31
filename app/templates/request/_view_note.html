@@ -1,5 +1,5 @@
 <form id="add-note-form" class="note-form" action="/response/note/{{ request.id }}" method="POST">
-    <div class="add-note col-sm-8">
+    <div class="add-note col-sm-9">
         <div class="note-control">
             <legend class="note-header">
                 Add Note
@@ -7,7 +7,7 @@
             <!-- first div of the add-note form -->
             <div class="note-divs form-group" id="note-first">
                 <label class="note-label">Note Content</label>
-                <textarea class="disable-enter-submit form-group" id="note-content" name="content" maxlength="500"></textarea>
+                <textarea class="input-block-level form-group" id="note-content" name="content" maxlength="500"></textarea>
                 <div class="radio">
                     <label><input type="radio" name="privacy" value="release_public">Release and Public</label>
                 </div>
