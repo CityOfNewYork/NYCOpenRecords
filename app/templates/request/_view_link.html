@@ -1,0 +1,46 @@
+<form id="add-link-form" class="link-form" action="/response/link/{{ request.id }}" method="POST">
+    <div class="add-link col-sm-9">
+        <div class="link-control">
+            <legend class="link-header">
+                Add Link
+            </legend>
+            <!-- first div of the add-link form -->
+            <div class="link-divs form-group" id="link-first">
+                <div class="form-group">
+                    <label class="link-label">Title</label>
+                    <input type="text" class="disable-enter-submit" id="link-title" name="title" maxlength="90">
+                </div>
+                <div class="form-group">
+                    <label class="link-label">URL link</label>
+                    <input type="text" class="disable-enter-submit" id="link-url" name="url" maxlength="254">
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="privacy" value="release_public">Release and Public</label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="privacy" value="release_private">Release and Private</label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="privacy" value="private" checked="checked">Private</label>
+                </div>
+                <button type="button" class="next-btn btn btn-primary" id="link-next-1">Validate Link</button>
+            </div>
+            <!-- second div of the add-link form containing email content -->
+            <div class="link-divs form-group" id="link-second">
+                <textarea class="tinymce-area" name="email-link-content"></textarea>
+                <button type="button" class="prev-btn btn btn-default" id="link-prev-1">Prev</button>
+                <button type="button" class="next-btn btn btn-primary" id="link-next-2">Next</button>
+            </div>
+            <!-- last div of the add-link form containing confirmation and submit -->
+            <div class="link-divs form-group" id="link-third">
+                <h4>The following will be Submitted to the request:</h4>
+                <h5>Email:</h5>
+                <div id="email-link-summary"></div>
+                <!-- hidden input to send email summary to backend -->
+                <input type="hidden" name="email-link-summary" id="email-link-summary-hidden">
+                <button type="button" class="prev-btn btn btn-default" id="link-prev-2">Prev</button>
+                <button type="submit" class="submit-btn btn btn-success">Submit</button>
+            </div>
+        </div>
+    </div>
+</form>

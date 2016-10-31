@@ -47,16 +47,17 @@ from app.models import (
 
 def add_file(request_id, filename, title, privacy):
     """
-    Creates and stores the file object for the specified request.
-    Gets the file mimetype from a helper function in lib.file_utils
+    Create and store the file object for the specified request.
+    Gets the file mimetype and magic file check from a helper function in lib.file_utils
+    File privacy options can be either Release and Public, Release and Private, or Private.
+    Provides parameters for the process_response function to create and store responses and events object.
 
     :param request_id: Request ID that the file is being added to
     :param filename: The secured_filename of the file.
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
 
-    :return: Stores the file metadata into the Files table.
-             Provides parameters for the process_response function to create and store responses and events object.
+    :return:
     """
     size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
     mime_type = get_mime_type(request_id, filename)
@@ -70,7 +71,7 @@ def add_file(request_id, filename, title, privacy):
                       response_type.FILE,
                       event_type.FILE_ADDED,
                       file_.id,
-                      new_response_value=file_metadata,
+                      file_metadata,
                       privacy=privacy)
 
 
@@ -87,13 +88,14 @@ def delete_file():
 
 def add_note(request_id, content):
     """
-    Creates and stores the note object for the specified request.
+    Create and store the note object for the specified request.
+    Store the note content into the Notes table.
+    Provides parameters for the process_response function to create and store responses and events object.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param content: content of the note to be created and stored as a note object
 
-    :return: Stores the note content into the Notes table.
-             Provides parameters for the process_response function to create and store responses and events object.
+    :return:
     """
     note = Notes(content=content)
     create_object(obj=note)
@@ -115,6 +117,19 @@ def delete_note():
 
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
+    """
+    Create and store the extension object for the specified request.
+    Extension's privacy is always Release and Public.
+    Provides parameters for the process_response function to create and store responses and events object.
+    Calls email notification function to email both requester and agency users detailing the extension.
+
+    :param request_id: FOIL request ID for the extension
+    :param length: length in business days that the request is being extended by
+    :param reason: reason for the extension of the request
+    :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
+    :param email_content: email body content of the email to be created and stored as a email object
+    :return:
+    """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
     update_object(
         {'due_date': new_due_date},
@@ -128,12 +143,42 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
                       extension.id,
-                      new_response_value=extension_metadata,
+                      extension_metadata,
                       privacy=RELEASE_AND_PUBLIC)
     send_extension_email(request_id,
-                         new_due_date,
-                         reason,
                          email_content)
+
+
+def add_link(request_id, title, url_link, email_content, privacy):
+    """
+    Create and store the link object for the specified request.
+    Store the link content into the Links table.
+    Provides parameters for the process_response function to create and store responses and events object
+    Calls email notification function to email both requester and agency users detailing the link.
+
+    :param request_id: FOIL request ID for the link
+    :param title: title of the link to be stored in the Links table and as a response value
+    :param url_link: link url to be stored in the Links table and as a response value
+    :param email_content: email body content of the email to be created and stored as a email object
+    :param privacy:
+    :return:
+    """
+    link = Links(title=title, url=url_link)
+    create_object(obj=link)
+    link_metadata = {'title': title,
+                     'url': url_link,
+                     'privacy': privacy}
+    _process_response(request_id,
+                      response_type.LINK,
+                      event_type.LINK_ADDED,
+                      link.id,
+                      link_metadata,
+                      privacy=privacy)
+    send_link_email(request_id,
+                    url_link,
+                    privacy,
+                    email_content,
+                    email_template='email_templates/email_response_private_link.html')
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -143,7 +188,7 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     Or else, extension length has an length (20, 30, 60, 90, or 120) and new_due_date will be determined by
     generate_due_date.
 
-    :param request_id: FOIL request ID that is being
+    :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: length the due date is being extended by
     :param custom_due_date: new custom due date of the request
     :return: new_due_date of the request
@@ -157,7 +202,7 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
 
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
-    Creates and stores the email object for the specified request.
+    Create and store the email object for the specified request.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param subject: subject of the email to be created and stored as a email object
@@ -165,7 +210,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :param to: list of person(s) email is being sent to
     :param cc: list of person(s) email is being cc'ed to
     :param bcc: list of person(s) email is being bcc'ed
-    :return: Stores the email metadata into the Emails table.
+    :return: Store the email metadata into the Emails table.
              Provides parameters for the process_response function to create and store responses and events object.
     """
     to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
@@ -204,8 +249,8 @@ def process_upload_data(form):
     Helper function that processes the uploaded file form data.
     A files dictionary is first created and then populated with keys and their respective values of the form data.
 
-    :return: A files dictionary that contains the uploaded file(s)'s metadata that will be passed as arguments to be
-     stored in the database.
+    :param form: form object to be processed and separated into appropriate keys and values
+    :return: A dictionary, files, that contains the uploaded file(s)'s metadata.
     """
     files = {}
     # re_obj is a regular expression that specifies a set of strings and allows you to check if a particular string
@@ -222,59 +267,15 @@ def process_upload_data(form):
     return files
 
 
-def send_file_email(request_id, privacy, filenames, email_content):
-    """
-    Function that sends email detailing a file response has been uploaded to a request.
-    If the file privacy is private, only agency users are emailed.
-    If the file privacy is release, the requester is emailed and the agency users are bcced.
-
-    :param request_id: FOIL request ID
-    :param privacy: privacy option of the uploaded file
-    :param filenames: list of filenames
-    :param email_content: content body of the email notification being sent
-    :return: Sends email notification detailing a file response has been uploaded to a request.
-
-    """
-    # TODO: make subject constants
-    subject = 'Response Added'
-    bcc = get_agencies_emails(request_id)
-    # create a dictionary of filenames to be passed through jinja to email template
-    file_to_link = {}
-    for filename in filenames:
-        file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
-    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    if privacy == 'release':
-        # Query for the requester's email information
-        requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                       request_user_type=REQUESTER).first().user.email
-        # Send email with files to requester and bcc agency users as privacy option is release
-        to = [requester_email]
-        safely_send_and_add_email(request_id,
-                                  email_content,
-                                  subject,
-                                  "email_templates/email_file_upload",
-                                  to=to,
-                                  bcc=bcc,
-                                  agency_name=agency_name,
-                                  files_links=file_to_link)
-
-    if privacy == 'private':
-        # Send email with files to agency users only as privacy option is private
-        safely_send_and_add_email(request_id,
-                                  email_content,
-                                  subject,
-                                  "email_templates/email_file_upload",
-                                  bcc=bcc,
-                                  agency_name=agency_name,
-                                  files_links=file_to_link)
-
-
 def process_privacy_options(files):
     """
-    Creates a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
+    Create a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
+    Two empty lists: private_files and release_files are first created. Iterate through files dictionary to determine
+    the privacy options of file(s) and append to appropriate list. Create files_privacy_option dictionary with keys:
+    release, which holds release_files, and private, which holds private_files.
 
     :param files: list of filenames
-    :return: Dictionary with 'release' and 'private' lists
+    :return: Dictionary with 'release' and 'private' lists.
     """
     private_files = []
     release_files = []
@@ -301,40 +302,86 @@ def process_email_template_request(request_id, data):
 
     :param data: Data from the frontend AJAX call
     :param request_id: FOIL request ID
-    :return: Renders email template with its given arguments
+    :return: Render email template with given arguments
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     # process email template for extension
     if data['type'] == 'extension_email':
-        # calculates new due date based on selected value if custom due date is not selected
-        new_due_date = _get_new_due_date(request_id,
-                                         data['extension_length'],
-                                         data['custom_due_date']).strftime('%A, %b %d, %Y')
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+        # if data['extension'] exists, use email_content as template with specific extension email template
+        try:
+            extension = data['extension']
+            default_content = False
+            content = data['email_content']
+            # calculates new due date based on selected value if custom due date is not selected
+            new_due_date = _get_new_due_date(request_id,
+                                             extension['length'],
+                                             extension['custom_due_date']).strftime('%A, %b %d, %Y')
+            reason = extension['reason']
+        # use default_content in response template
+        except KeyError:
+            default_content = True
+            content = None
+            new_due_date = ''
+            reason = ''
         return render_template(email_template,
-                               data=data,
+                               default_content=default_content,
+                               content=content,
+                               request_id=request_id,
+                               agency_name=agency_name,
                                new_due_date=new_due_date,
-                               reason=data['extension_reason'],
+                               reason=reason,
                                page=page)
     # process email template for file upload
     if data['type'] == 'file_upload_email':
-        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
         # create a dictionary of filenames to be passed through jinja to email template
         files_links = {}
+        # if data['files'] exists, use email_content as template with specific file email template
         try:
             files = data['files']
+            default_content = False
+            content = data['email_content']
+        # use default_content in response template
         except KeyError:
             files = []
+            default_content = True
+            content = None
+        # iterate through files dictionary to create and append links of files with privacy option of not private
         for file_ in files:
             if file_['privacy'] != PRIVATE:
                 filename = file_['filename']
                 files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
         return render_template(email_template,
-                               data=data,
+                               default_content=default_content,
+                               content=content,
+                               request_id=request_id,
                                page=page,
                                agency_name=agency_name,
                                files_links=files_links)
+    # process email template for link
+    if data['type'] == 'link_email':
+        # if data['link'] exists, use email_content as template with specific link email template
+        try:
+            link = data['link']
+            default_content = False
+            content = data['email_content']
+            if link['privacy'] != PRIVATE:
+                url = link['url']
+            else:
+                url = ''
+        # use default_content in response template
+        except KeyError:
+            url = ''
+            default_content = True
+            content = None
+        return render_template(email_template,
+                               default_content=default_content,
+                               content=content,
+                               request_id=request_id,
+                               agency_name=agency_name,
+                               url=url,
+                               page=page)
 
 
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
@@ -342,12 +389,14 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     Function that sends email detailing a file response has been uploaded to a request.
     If the file privacy is private, only agency_ein users are emailed.
     If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
+    Send email notification detailing a file response has been uploaded to the request.
 
     :param request_id: FOIL request ID
     :param privacy: privacy option of the uploaded file
     :param filenames: list of secured filenames
     :param email_content: string of HTML email content that can be used as a message template
-    :return: Sends email notification detailing a file response has been uploaded to a request.
+
+    :return:
 
     """
     # TODO: make subject constants
@@ -384,17 +433,15 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
                                   bcc=bcc)
 
 
-def send_extension_email(request_id, new_due_date, reason, email_content):
+def send_extension_email(request_id, email_content):
     """
     Function that sends email detailing a extension has been added to a request.
+    Send email to the requester and bcc all agency users detailing an extension has been added to the request.
 
     :param request_id: FOIL request ID
-    :param new_due_date: extended due date of the request
-    :param reason: reason for extending the request
     :param email_content: string of HTML email content that can be used as a message template
 
-    :return: An email is sent to the requester and all agency users are bcc detailing an extension has been added to a
-    request.
+    :return:
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
@@ -406,9 +453,46 @@ def send_extension_email(request_id, new_due_date, reason, email_content):
                               email_content,
                               subject,
                               to=to,
-                              bcc=bcc,
-                              new_due_date=new_due_date.strftime('%A, %b %d, %Y'),
-                              reason=reason)
+                              bcc=bcc)
+
+
+def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
+    """
+    Function that sends email detailing a link has been added to a request.
+    If the file privacy is private, only agency_ein users are emailed.
+    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
+    Send email notification detailing a link response has been added to the request.
+
+    :param request_id: FOIL request ID
+    :param url_link: reason for extending the request
+    :param email_content: content body of the email notification being sent
+    :param privacy: privacy option of link
+
+    :return:
+    """
+    subject = 'Response Added'
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    bcc = get_agencies_emails(request_id)
+    requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                   request_user_type=REQUESTER).first().user.email
+    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    if privacy == PRIVATE:
+        email_content = render_template(kwargs['email_template'],
+                                        request_id=request_id,
+                                        agency_name=agency_name,
+                                        url=url_link)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  bcc=bcc)
+    else:
+        to = [requester_email]
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  to=to,
+                                  bcc=bcc,
+                                  url=url_link)
 
 
 def safely_send_and_add_email(request_id,
@@ -419,7 +503,8 @@ def safely_send_and_add_email(request_id,
                               bcc=None,
                               **kwargs):
     """
-    Sends email and creates and stores the email object into the Emails table.
+    Send email based on given arguments and create and store email object into the Emails table.
+    Print error messages if there is Assertion or Exception error occurs.
 
     :param request_id: FOIL request ID
     :param email_content: string of HTML email content that can be used as a message template
@@ -428,8 +513,7 @@ def safely_send_and_add_email(request_id,
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
 
-    :return: Sends email based on given arguments and creates and stores email object into the Emails table.
-             Will print error if there is an error.
+    :return:
     """
     try:
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
@@ -448,7 +532,9 @@ def _process_response(request_id,
                       previous_response_value=None,
                       privacy=PRIVATE):
     """
-    Creates and stores responses and events objects to the database
+    Create and store response object with given arguments from separate response type functions to the database.
+    Check and determine user type for event object as per request.
+    Create and store events object to the database.
 
     :param request_id: FOIL request ID to be stored into the responses and events tables
     :param responses_type: type of response to be stored in the responses table
@@ -457,8 +543,7 @@ def _process_response(request_id,
     :param privacy: privacy of the response (default is 'private') to be stored in the responses table
     :param new_response_value: string content of the new response, to be stored in the responses table
     :param previous_response_value: string content of the previous response, to be stored in the responses table
-    :return: Creates and stores response object with given arguments from separate response type functions.
-             Creates and stores events object to the database.
+    :return:
     """
     # create response object
     response = Responses(request_id=request_id,
@@ -484,7 +569,7 @@ def _process_response(request_id,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
                    previous_response_value=previous_response_value,
-                   new_response_value=new_response_value.update(privacy=privacy))
+                   new_response_value=new_response_value)
     # store event object
     create_object(obj=event)
 

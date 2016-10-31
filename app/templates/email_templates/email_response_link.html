@@ -1,0 +1,9 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if url %}
+        <p>
+            You can view the additional information at the following webpage: <br/>
+            <a href="{{ url }}">{{ url }}</a><br/>
+        </p>
+    {% endif %}
+{% endblock %}

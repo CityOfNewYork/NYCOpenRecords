@@ -1,0 +1,17 @@
+{% if default_content %}
+    <p>
+        The {{ agency_name }} has provided additional
+        information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
+    </p>
+    <p>
+        Please visit <a href='{{ page }}'>{{ page }}</a> to view the additional information.
+    </p>
+{% else %}
+    {{ content | safe }}
+    {% block response_content %}
+    {% endblock %}
+    <p>
+        You can view the request and take any necessary action at the following webpage:
+        <a href='{{ page }}'>{{ page }}</a>.
+    </p>
+{% endif %}

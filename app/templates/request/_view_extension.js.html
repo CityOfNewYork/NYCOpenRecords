@@ -1,11 +1,9 @@
 <script type="text/javascript">
 $(document).ready(function () {
-    // Hides all other divs except for the first. Also hides previous button on the first div.
+    // Hides all other divs except for the first
     $(".extension-control .extension-divs").each(function (e) {
         if (e != 0)
             $(this).hide();
-        else
-            $("#previous").hide();
     });
 
     // Handles click events on the first next button
@@ -33,11 +31,8 @@ $(document).ready(function () {
         if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
             var formData = {
                 request_id: "{{ request.id }}",
-                template_name: "email_extension.html",
+                template_name: "email_response_extension.html",
                 type: "extension_email",
-                extension_length: $('#extension-select').val(),
-                custom_due_date: $('#custom-extension').val(),
-                extension_reason: $('#extension-reason').val()
             };
 
             $.ajax({
@@ -47,31 +42,62 @@ $(document).ready(function () {
                 contentType: false,
                 success: function (data) {
                     // Data should be html template page.
-                    tinyMCE.get('email-extend-content').setContent(data);
+                    tinyMCE.get('email-extension-content').setContent(data);
                 }
             });
-            document.getElementById("first").style.display = "none";
-            document.getElementById("second").style.display = "block";
+            document.getElementById("extension-first").style.display = "none";
+            document.getElementById("extension-second").style.display = "block";
         }
     });
 
     // Handles click events on the second next button
     $("#extension-next-2").click(function () {
-        document.getElementById("second").style.display = "none";
-        document.getElementById("third").style.display = "block";
-        $("#email-extend-summary").html(tinyMCE.get('email-extend-content').getContent());
+        tinyMCE.triggerSave();
+
+        // Store the values of from input fields into variables
+        var length = $('#extension-select').val();
+        var custom_due_date = $('#custom-extension').val();
+        var reason = $('#extension-reason').val();
+
+        // Create a dictionary called extension with keys of length, custom_due_date, and reason
+        extension = {};
+        extension["length"] = length;
+        extension["custom_due_date"] = custom_due_date;
+        extension["reason"] = reason;
+
+        var formData = {
+                request_id: "{{ request.id }}",
+                template_name: "email_response_extension.html",
+                type: "extension_email",
+                extension: extension,
+                email_content: $('#email-extension-content').val()
+            };
+
+            $.ajax({
+                url: "/response/email",
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: false,
+                success: function (data) {
+                    // Data should be html template page.
+                    $("#email-extension-summary").html(data);
+                    $("#email-extension-summary-hidden").val(data);
+                }
+            });
+        document.getElementById("extension-second").style.display = "none";
+        document.getElementById("extension-third").style.display = "block";
     });
 
     // Handles click events on the first previous button
     $("#extension-prev-1").click(function () {
-        document.getElementById("first").style.display = "block";
-        document.getElementById("second").style.display = "none";
+        document.getElementById("extension-first").style.display = "block";
+        document.getElementById("extension-second").style.display = "none";
     });
 
     // Handles click events on the second previous button
     $("#extension-prev-2").click(function () {
-        document.getElementById("third").style.display = "none";
-        document.getElementById("second").style.display = "block";
+        document.getElementById("extension-third").style.display = "none";
+        document.getElementById("extension-second").style.display = "block";
     });
 
     // Shows custom due date datepicker when Custom Due Date is selected
@@ -101,10 +127,9 @@ $(document).ready(function () {
         $('#' + required_fields[i]).attr('data-parsley-required','');
     }
 
-    // Apply parsley mininum length validation to extension reason
+    // Apply parsley minimum length validation to extension reason
     $('#extension-reason').attr('data-parsley-minlength','20');
     $('#extension-reason').attr('data-parsley-maxlength','5000');
-
 
     // Apply custom validation messages
     $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');

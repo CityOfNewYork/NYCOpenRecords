@@ -50,7 +50,7 @@
                 $('.fileupload-error-messages').html("<div class='alert alert-warning'>Files made Release and Public or Release and Private will be shown with links on the next page</div>");
                 var formData = {
                     request_id: "{{ request.id }}",
-                    template_name: "email_file_upload.html",
+                    template_name: "email_response_file.html",
                     type: "file_upload_email"
                 };
 
@@ -90,7 +90,7 @@
 
             var formData = {
                     request_id: "{{ request.id }}",
-                    template_name: "email_file_upload.html",
+                    template_name: "email_response_file.html",
                     type: "file_upload_email",
                     files: files,
                     email_content: $('#email-file-content').val()
@@ -109,7 +109,6 @@
                 });
             document.getElementById("fileupload-second").style.display = "none";
             document.getElementById("fileupload-third").style.display = "block";
-
         });
 
         // Handles click events on the first previous button
@@ -127,8 +126,8 @@
         });
 
         // Apply parsley required validation
-        $('#add-files').attr('data-parsley-required', '');
-        $('#add-files').attr('data-parsley-required-message', 'A file must be added.');
+        $('#add-files').attr('data-parsley-required', 'false');
+{#        $('#add-files').attr('data-parsley-required-message', 'A file must be added.');#}
 
         // Apply parsley error message to a specific container
         $('#add-files').attr('data-parsley-errors-container', '.fileupload-buttonbar');
@@ -139,6 +138,7 @@
             mode: "specific_textareas",
             // selector for tinymce textarea classes is set to 'tinymce-area'
             editor_selector: "tinymce-area",
+            elementpath: false,
             height: 180
         });
     });
