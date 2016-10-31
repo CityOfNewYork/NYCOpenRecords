@@ -65,7 +65,8 @@ def add_file(request_id, filename, title, privacy):
     file_metadata = {'name': filename,
                      'mime_type': mime_type,
                      'title': title,
-                     'size': size}
+                     'size': size,
+                     'privacy': privacy}
     create_object(obj=file_)
     _process_response(request_id,
                       response_type.FILE,
@@ -101,7 +102,8 @@ def add_note(request_id, note_content, email_content, privacy):
     """
     note = Notes(content=note_content)
     create_object(obj=note)
-    note_metadata = {'content': note_content}
+    note_metadata = {'content': note_content,
+                     'privacy': privacy}
     _process_response(request_id,
                       response_type.NOTE,
                       event_type.NOTE_ADDED,
@@ -147,7 +149,8 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
     extension_metadata = {'reason': reason,
-                          'date': new_due_date.isoformat()}
+                          'date': new_due_date.isoformat(),
+                          'privacy': RELEASE_AND_PUBLIC}
     _process_response(request_id,
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
