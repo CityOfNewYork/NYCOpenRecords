@@ -89,7 +89,7 @@ def response_file(request_id):
             send_file_email(request_id,
                             privacy,
                             files,
-                            email_content=None,
+                            None,
                             email_template='email_templates/email_private_file_upload.html')
         else:
             send_file_email(request_id,

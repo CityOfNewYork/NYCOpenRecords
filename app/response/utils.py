@@ -71,7 +71,7 @@ def add_file(request_id, filename, title, privacy):
                       response_type.FILE,
                       event_type.FILE_ADDED,
                       file_.id,
-                      new_response_value=file_metadata,
+                      file_metadata,
                       privacy=privacy)
 
 
@@ -143,7 +143,7 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
                       extension.id,
-                      new_response_value=extension_metadata,
+                      extension_metadata,
                       privacy=RELEASE_AND_PUBLIC)
     send_extension_email(request_id,
                          email_content)
@@ -172,12 +172,12 @@ def add_link(request_id, title, url_link, email_content, privacy):
                       response_type.LINK,
                       event_type.LINK_ADDED,
                       link.id,
-                      new_response_value=link_metadata,
+                      link_metadata,
                       privacy=privacy)
     send_link_email(request_id,
                     url_link,
                     privacy,
-                    email_content=email_content,
+                    email_content,
                     email_template='email_templates/email_response_private_link.html')
 
 
