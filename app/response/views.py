@@ -7,7 +7,6 @@
 import json
 
 from flask import (
-    render_template,
     flash,
     request as flask_request,
     url_for,
@@ -15,8 +14,6 @@ from flask import (
     jsonify,
 )
 from flask_login import current_user
-from flask_wtf import Form
-from wtforms import StringField, SubmitField
 
 from app.constants.response_privacy import PRIVATE
 from app.models import Requests, Responses
@@ -34,6 +31,22 @@ from app.response.utils import (
     RespFileEditor
 )
 from urllib.request import urlopen
+
+
+@response.route('/note/<request_id>', methods=['POST'])
+def response_note(request_id):
+    """
+    Note response endpoint that takes in the content of a note for a specific request from the frontend.
+    Pass data into helper function in response.utils to update changes into database.
+
+    :param request_id: Specific FOIL request ID for the note
+    :return: Message indicating note has been submitted
+    """
+    current_request = Requests.query.filter_by(id=request_id).first()
+    note_data = flask_request.form
+    add_note(request_id=current_request.id,
+             note_content=note_data['content'])
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/file/<request_id>', methods=['POST'])

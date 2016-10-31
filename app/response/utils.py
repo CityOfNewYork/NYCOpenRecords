@@ -86,25 +86,25 @@ def delete_file():
     return None
 
 
-def add_note(request_id, content):
+def add_note(request_id, note_content):
     """
-    Create and store the note object for the specified request.
-    Store the note content into the Notes table.
+    Creates and stores the note object for the specified request.
+    Stores the note content into the Notes table.
     Provides parameters for the process_response function to create and store responses and events object.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
-    :param content: content of the note to be created and stored as a note object
+    :param note_content: string content of the note to be created and stored as a note object
 
     :return:
     """
-    note = Notes(content=content)
+    note = Notes(content=note_content)
     create_object(obj=note)
-    content = {'content': content}
+    note_metadata = {'content': note_content}
     _process_response(request_id,
                       response_type.NOTE,
                       event_type.NOTE_ADDED,
                       note.id,
-                      new_response_value=content)
+                      note_metadata)
 
 
 def delete_note():
@@ -203,6 +203,8 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
     Create and store the email object for the specified request.
+    Store the email metadata into the Emails table.
+    Provides parameters for the process_response function to create and store responses and events object.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param subject: subject of the email to be created and stored as a email object
@@ -210,8 +212,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :param to: list of person(s) email is being sent to
     :param cc: list of person(s) email is being cc'ed to
     :param bcc: list of person(s) email is being bcc'ed
-    :return: Store the email metadata into the Emails table.
-             Provides parameters for the process_response function to create and store responses and events object.
+    :return:
     """
     to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
     cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
@@ -250,6 +251,7 @@ def process_upload_data(form):
     A files dictionary is first created and then populated with keys and their respective values of the form data.
 
     :param form: form object to be processed and separated into appropriate keys and values
+
     :return: A dictionary, files, that contains the uploaded file(s)'s metadata.
     """
     files = {}
@@ -382,6 +384,29 @@ def process_email_template_request(request_id, data):
                                agency_name=agency_name,
                                url=url,
                                page=page)
+    # process email template for note
+    if data['type'] == 'note_email':
+        # if data['note'] exists, use email_content as template with specific link email template
+        try:
+            note = data['note']
+            default_content = False
+            content = data['email_content']
+            if note['privacy'] != PRIVATE:
+                note_content = note['content']
+            else:
+                note_content = ''
+        # use default_content in response template
+        except KeyError:
+            note_content = ''
+            default_content = True
+            content = None
+        return render_template(email_template,
+                               default_content=default_content,
+                               content=content,
+                               request_id=request_id,
+                               agency_name=agency_name,
+                               note_content=note_content,
+                               page=page)
 
 
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
@@ -493,6 +518,18 @@ def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
                                   to=to,
                                   bcc=bcc,
                                   url=url_link)
+
+
+def send_note_email(request_id, note_content, email_content):
+    """
+    Function that sends email detailing a note has been added to a request.
+    Send email to the requester and bcc all agency users detailing a link has been added to the request as a response.
+
+    :param request_id:
+    :param note_content:
+    :param email_content:
+    :return:
+    """
 
 
 def safely_send_and_add_email(request_id,
