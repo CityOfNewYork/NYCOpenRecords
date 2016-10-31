@@ -76,7 +76,7 @@
 
             // Get list of both secured filenames and privacy option values, and store them into variables
             var filenames = $('.secured-name').map( function(){return $(this).text(); }).get();
-            var privacy = $('input[type="radio"]:checked').map( function(){return $(this).val(); }).get();
+            var privacy = $(".file-privacy:checked").map( function(){return $(this).val(); }).get();
 
             // Create a list (called files) of dictionaries with keys of filename and privacy
             var files = [];

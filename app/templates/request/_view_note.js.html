@@ -43,7 +43,7 @@ $(document).ready(function () {
 
         // Store the values of note-url and note-privacy into variables
         var content = $('#note-content').val();
-        var privacy = $('input[type="radio"]:checked').val();
+        var privacy = $(".note-privacy:checked").val();
 
         // Create a dictionary called note with keys of content and privacy
         note = {};

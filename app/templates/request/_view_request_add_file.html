@@ -118,13 +118,13 @@
                     Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
                     <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
                     <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
+                        <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
                     </div>
                     <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
+                        <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
                     </div>
                     <div class="radio">
-                        <label><input type="radio" name="{%=file.name%}::privacy" value="private" checked>Private</label>
+                        <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy" value="private" checked>Private</label>
                     </div>
                     </span>
                 {% } %}

@@ -86,7 +86,7 @@ def delete_file():
     return None
 
 
-def add_note(request_id, note_content):
+def add_note(request_id, note_content, email_content, privacy):
     """
     Creates and stores the note object for the specified request.
     Stores the note content into the Notes table.
@@ -94,6 +94,8 @@ def add_note(request_id, note_content):
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param note_content: string content of the note to be created and stored as a note object
+    :param email_content: email body content of the email to be created and stored as a email object
+    :param privacy: privacy option of the note
 
     :return:
     """
@@ -104,7 +106,13 @@ def add_note(request_id, note_content):
                       response_type.NOTE,
                       event_type.NOTE_ADDED,
                       note.id,
-                      note_metadata)
+                      note_metadata,
+                      privacy=privacy)
+    send_note_email(request_id,
+                    note_content,
+                    privacy,
+                    email_content,
+                    email_template='email_templates/email_response_private_note.html')
 
 
 def delete_note():
@@ -128,6 +136,7 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     :param reason: reason for the extension of the request
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param email_content: email body content of the email to be created and stored as a email object
+
     :return:
     """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
@@ -159,8 +168,9 @@ def add_link(request_id, title, url_link, email_content, privacy):
     :param request_id: FOIL request ID for the link
     :param title: title of the link to be stored in the Links table and as a response value
     :param url_link: link url to be stored in the Links table and as a response value
-    :param email_content: email body content of the email to be created and stored as a email object
+    :param email_content: string of HTML email content to be created and stored as a email object
     :param privacy:
+
     :return:
     """
     link = Links(title=title, url=url_link)
@@ -191,6 +201,7 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: length the due date is being extended by
     :param custom_due_date: new custom due date of the request
+
     :return: new_due_date of the request
     """
     if extension_length == '-1':
@@ -212,6 +223,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :param to: list of person(s) email is being sent to
     :param cc: list of person(s) email is being cc'ed to
     :param bcc: list of person(s) email is being bcc'ed
+
     :return:
     """
     to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
@@ -277,6 +289,7 @@ def process_privacy_options(files):
     release, which holds release_files, and private, which holds private_files.
 
     :param files: list of filenames
+
     :return: Dictionary with 'release' and 'private' lists.
     """
     private_files = []
@@ -304,7 +317,8 @@ def process_email_template_request(request_id, data):
 
     :param data: Data from the frontend AJAX call
     :param request_id: FOIL request ID
-    :return: Render email template with given arguments
+
+    :return: rendered email template with the given arguments
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
@@ -488,7 +502,7 @@ def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
     If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
     Send email notification detailing a link response has been added to the request.
 
-    :param request_id: FOIL request ID
+    :param request_id: FOIL request ID for the specific link
     :param url_link: reason for extending the request
     :param email_content: content body of the email notification being sent
     :param privacy: privacy option of link
@@ -525,10 +539,11 @@ def send_note_email(request_id, note_content, privacy, email_content, **kwargs):
     Function that sends email detailing a note has been added to a request.
     Send email to the requester and bcc all agency users detailing a link has been added to the request as a response.
 
-    :param request_id:
-    :param note_content:
-    :param privacy:
-    :param email_content:
+    :param request_id: FOIL request ID for the specific note
+    :param note_content: string content of the note
+    :param privacy: privacy option of the note
+    :param email_content: string of HTML email content to be created and stored as a email object
+
     :return:
     """
     subject = 'Response Added'
@@ -604,6 +619,7 @@ def _process_response(request_id,
     :param privacy: privacy of the response (default is 'private') to be stored in the responses table
     :param new_response_value: string content of the new response, to be stored in the responses table
     :param previous_response_value: string content of the previous response, to be stored in the responses table
+
     :return:
     """
     # create response object

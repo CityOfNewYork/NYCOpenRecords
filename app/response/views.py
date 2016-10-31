@@ -37,15 +37,32 @@ from urllib.request import urlopen
 def response_note(request_id):
     """
     Note response endpoint that takes in the content of a note for a specific request from the frontend.
-    Pass data into helper function in response.utils to update changes into database.
+    Check if required data from form is retrieved.
+    Call add_link to process the extension form data.
 
-    :param request_id: Specific FOIL request ID for the note
-    :return: Message indicating note has been submitted
+    :param request_id: FOIL request ID for the specific note.
+    :return: Flash error message if required form data is missing.
+             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
-    current_request = Requests.query.filter_by(id=request_id).first()
     note_data = flask_request.form
-    add_note(request_id=current_request.id,
-             note_content=note_data['content'])
+
+    required_fields = ['content',
+                       'email-note-summary',
+                       'privacy']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if note_data.get(field) is None:
+            flash('Uh Oh, it looks like the link {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    current_request = Requests.query.filter_by(id=request_id).first()
+    add_note(current_request.id,
+             note_data['content'],
+             note_data['email-note-summary'],
+             note_data['privacy'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -58,7 +75,7 @@ def response_file(request_id):
     Send email notification to requester and bcc agency users if privacy is release.
     Render specific tempalte and send email notification bcc agency users if privacy is private.
 
-    :param request_id: Specific FOIL request ID for the file
+    :param request_id: FOIL request ID for the specific file.
     :return: redirects to view request page as of right now (IN DEVELOPMENT)
     """
     current_request = Requests.query.filter_by(id=request_id).first()
@@ -92,7 +109,7 @@ def response_extension(request_id):
     Check if required data from form is retrieved.
     Call add_extension to process the extension form data.
 
-    :param request_id: Specific FOIL request ID for the extension
+    :param request_id: FOIL request ID for the specific extension.
     :return: Flash error message if required form data is missing.
              Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
@@ -126,7 +143,7 @@ def response_link(request_id):
     Check if required data from form is retrieved.
     Call add_link to process the extension form data.
 
-    :param request_id: Specific FOIL request ID for the link
+    :param request_id: FOIL request ID for the specific link.
     :return: Flash error message if required form data is missing.
              Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
@@ -160,7 +177,7 @@ def response_email():
     Render email template onto response forms.
     Call process_email_template_request to render specific response template with appropriate data.
 
-    :return: the rendered email tempalate
+    :return: the rendered email template
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']

@@ -1,9 +1,9 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
     {% if note_content %}
-        A note has been added to request {{ request_id }}.
-        <p>
+        The following note has been added to request {{ request_id }}:
+        <p><strong>
             {{ note_content }}
-        </p>
+        </strong></p>
     {% endif %}
 {% endblock %}
