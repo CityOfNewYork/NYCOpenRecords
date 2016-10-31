@@ -389,7 +389,7 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     Function that sends email detailing a file response has been uploaded to a request.
     If the file privacy is private, only agency_ein users are emailed.
     If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
-    Send email notification detailing a file response has been uploaded to a request.
+    Send email notification detailing a file response has been uploaded to the request.
 
     :param request_id: FOIL request ID
     :param privacy: privacy option of the uploaded file
@@ -458,8 +458,10 @@ def send_extension_email(request_id, email_content):
 
 def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
     """
-    Function that sends email detailing a extension has been added to a request.
-    Send email to the requester and bcc all agency users detailing a link has been added to the request as a response.
+    Function that sends email detailing a link has been added to a request.
+    If the file privacy is private, only agency_ein users are emailed.
+    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
+    Send email notification detailing a link response has been added to the request.
 
     :param request_id: FOIL request ID
     :param url_link: reason for extending the request
