@@ -10,7 +10,7 @@
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
             <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data
-                  data-parsley-validate>
+                  data-parsley-validate onsubmit="return validateRecaptcha();">
                 {{ form.hidden_tag() }}
                 <h1>Request a Record</h1>
 
@@ -120,11 +120,11 @@
                         placeholder='12345') }}<br>
                     </div>
                 </div>
-
-{#                commented out recaptcha div because of NYC network proxy preventing it to send a #}
-{#                backend request to the API#}
 {#                <div class="col-sm-12 captcha">#}
 {#                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>#}
+{#                </div>#}
+{#                <div class="recaptcha-error" id="recaptcha-error" style="display: none">#}
+{#                    <p>*Please Complete reCAPTCHA</p>#}
 {#                </div>#}
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
@@ -147,4 +147,6 @@
     <script src='https://www.google.com/recaptcha/api.js'></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/new-request-character-count.js') }}"></script>
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/request/validate-recaptcha.js') }}"></script>#}
 {% endblock %}
