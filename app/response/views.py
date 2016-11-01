@@ -24,6 +24,7 @@ from app.response.utils import (
     add_file,
     add_link,
     add_extension,
+    add_instruction,
     process_upload_data,
     send_file_email,
     process_privacy_options,
@@ -54,7 +55,7 @@ def response_note(request_id):
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
         if note_data.get(field) is None:
-            flash('Uh Oh, it looks like the link {} is missing! '
+            flash('Uh Oh, it looks like the instruction {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
@@ -170,7 +171,37 @@ def response_link(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
-@response.route('/instructions', methods=['POST'])
+@response.route('/instruction/<request_id>', methods=['POST'])
+def response_instructions(request_id):
+    """
+    Instruction response endpoint that takes in from the frontend, the content of a instruction for a specific request.
+    Check if required data from form is retrieved.
+    Call add_instruction to process the extension form data.
+
+    :param request_id: FOIL request ID for the specific note.
+    :return: Flash error message if required form data is missing.
+             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    """
+    instruction_data = flask_request.form
+
+    required_fields = ['content',
+                       'email-instruction-summary',
+                       'privacy']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if instruction_data.get(field) is None:
+            flash('Uh Oh, it looks like the instruction {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    current_request = Requests.query.filter_by(id=request_id).first()
+    add_instruction(current_request.id,
+                    instruction_data['content'],
+                    instruction_data['email-instruction-summary'],
+                    instruction_data['privacy'])
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 # TODO: Implement response route for email

@@ -93,7 +93,7 @@ def add_note(request_id, note_content, email_content, privacy):
     Store the note content into the Notes table.
     Provides parameters for the process_response function to create and store responses and events object.
 
-    :param request_id: takes in FOIL request ID as an argument for the process_response function
+    :param request_id: FOIL request ID for the note
     :param note_content: string content of the note to be created and stored as a note object
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the note
@@ -110,11 +110,11 @@ def add_note(request_id, note_content, email_content, privacy):
                       note.id,
                       note_metadata,
                       privacy=privacy)
-    send_note_email(request_id,
-                    note_content,
-                    privacy,
-                    email_content,
-                    email_template='email_templates/email_response_private_note.html')
+    _send_note_email(request_id,
+                     note_content,
+                     privacy,
+                     email_content,
+                     email_template='email_templates/email_response_private_note.html')
 
 
 def delete_note():
@@ -157,8 +157,8 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
                       extension.id,
                       extension_metadata,
                       privacy=RELEASE_AND_PUBLIC)
-    send_extension_email(request_id,
-                         email_content)
+    _send_extension_email(request_id,
+                          email_content)
 
 
 def add_link(request_id, title, url_link, email_content, privacy):
@@ -187,11 +187,41 @@ def add_link(request_id, title, url_link, email_content, privacy):
                       link.id,
                       link_metadata,
                       privacy=privacy)
-    send_link_email(request_id,
-                    url_link,
-                    privacy,
-                    email_content,
-                    email_template='email_templates/email_response_private_link.html')
+    _send_link_email(request_id,
+                     url_link,
+                     privacy,
+                     email_content,
+                     email_template='email_templates/email_response_private_link.html')
+
+
+def add_instruction(request_id, instruction_content, email_content, privacy):
+    """
+    Creates and stores the instruction object for the specified request.
+    Stores the instruction content into the Instructions table.
+    Provides parameters for the process_response function to create and store responses and events object.
+
+    :param request_id: FOIL request ID for the instruction
+    :param instruction_content: string content of the instruction to be created and stored as a instruction object
+    :param email_content: email body content of the email to be created and stored as a email object
+    :param privacy: The privacy option of the instruction
+
+    :return:
+    """
+    instruction = Instructions(content=instruction_content)
+    create_object(obj=instruction)
+    instruction_metadata = {'content': instruction_content,
+                            'privacy': privacy}
+    _process_response(request_id,
+                      response_type.INSTRUCTIONS,
+                      event_type.INSTRUCTIONS_ADDED,
+                      instruction.id,
+                      instruction_metadata,
+                      privacy=privacy)
+    _send_instruction_email(request_id,
+                            instruction_content,
+                            privacy,
+                            email_content,
+                            email_template='email_templates/email_response_private_instruction.html')
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -425,19 +455,19 @@ def process_email_template_request(request_id, data):
                                note_content=note_content,
                                page=page)
     # process email template for offline instructions
-    if data['type'] == 'instructions_email':
+    if data['type'] == 'instruction_email':
         # if data['instructions'] exists, use email_content as template with specific instructions template
         try:
-            instructions = data['instructions']
+            instruction = data['instruction']
             default_content = False
             content = data['email_content']
-            if instructions['privacy'] != PRIVATE:
-                instructions_content = instructions['content']
+            if instruction['privacy'] != PRIVATE:
+                instruction_content = instruction['content']
             else:
-                instructions_content = ''
+                instruction_content = ''
         # use default_content in response template
         except KeyError:
-            instructions_content = ''
+            instruction_content = ''
             default_content = True
             content = None
         return render_template(email_template,
@@ -445,7 +475,7 @@ def process_email_template_request(request_id, data):
                                content=content,
                                request_id=request_id,
                                agency_name=agency_name,
-                               instructions_content=instructions_content,
+                               instruction_content=instruction_content,
                                page=page)
 
 
@@ -498,7 +528,7 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
                                   bcc=bcc)
 
 
-def send_extension_email(request_id, email_content):
+def _send_extension_email(request_id, email_content):
     """
     Function that sends email detailing a extension has been added to a request.
     Send email to the requester and bcc all agency users detailing an extension has been added to the request.
@@ -521,7 +551,7 @@ def send_extension_email(request_id, email_content):
                               bcc=bcc)
 
 
-def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
+def _send_link_email(request_id, url_link, privacy, email_content, **kwargs):
     """
     Function that sends email detailing a link has been added to a request.
     If the file privacy is private, only agency_ein users are emailed.
@@ -560,7 +590,7 @@ def send_link_email(request_id, url_link, privacy, email_content, **kwargs):
                                   url=url_link)
 
 
-def send_note_email(request_id, note_content, privacy, email_content, **kwargs):
+def _send_note_email(request_id, note_content, privacy, email_content, **kwargs):
     """
     Function that sends email detailing a note has been added to a request.
     Send email to the requester and bcc all agency users detailing a link has been added to the request as a response.
@@ -595,6 +625,44 @@ def send_note_email(request_id, note_content, privacy, email_content, **kwargs):
                                   to=to,
                                   bcc=bcc,
                                   note_content=note_content)
+
+
+def _send_instruction_email(request_id, instruction_content, privacy, email_content, **kwargs):
+    """
+    Function that sends email detailing a instruction has been added to a request.
+    Send email to the requester and bcc all agency users detailing an instruction has been added to the request as a
+    response.
+
+    :param request_id: FOIL request ID for the specific instruction
+    :param instruction_content: string content of the instruction
+    :param privacy: privacy option of the instruction
+    :param email_content: string of HTML email content to be created and stored as a email object
+
+    :return:
+    """
+    subject = 'Response Added'
+    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
+    bcc = get_agencies_emails(request_id)
+    requester_email = UserRequests.query.filter_by(request_id=request_id,
+                                                   request_user_type=REQUESTER).first().user.email
+    # Send email with files to requester and bcc agency_ein users as privacy option is release
+    if privacy == PRIVATE:
+        email_content = render_template(kwargs['email_template'],
+                                        request_id=request_id,
+                                        agency_name=agency_name,
+                                        instruction_content=instruction_content)
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  bcc=bcc)
+    else:
+        to = [requester_email]
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  subject,
+                                  to=to,
+                                  bcc=bcc,
+                                  instruction_content=instruction_content)
 
 
 def safely_send_and_add_email(request_id,

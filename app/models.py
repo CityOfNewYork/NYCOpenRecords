@@ -341,6 +341,7 @@ class Requests(db.Model):
                 name='status'))
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
+    agency_description_release_date = db.Column(db.DateTime)
 
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
@@ -480,7 +481,6 @@ class Events(db.Model):
         ),
     )
 
-
     def __repr__(self):
         return '<Events %r>' % self.id
 
@@ -507,7 +507,7 @@ class Responses(db.Model):
         response_privacy.RELEASE_AND_PUBLIC,
         name="privacy"))
     date_modified = db.Column(db.DateTime)
-
+    release_date = db.Column(db.DateTime)
     metadatas = db.relationship(  # 'metadata' is reserved
         'Metadatas', backref=db.backref('response', uselist=False))
 
