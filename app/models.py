@@ -516,12 +516,14 @@ class Responses(db.Model):
                  type,
                  metadata_id,
                  privacy,
+                 release_date,
                  date_modified=datetime.utcnow()):
         self.request_id = request_id
         self.type = type
         self.metadata_id = metadata_id
         self.privacy = privacy
         self.date_modified = date_modified
+        self.release_date = release_date
 
     def __repr__(self):
         return '<Responses %r>' % self.id

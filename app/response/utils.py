@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import re
 from abc import ABCMeta, abstractmethod
+from app import calendar
 import magic
 from werkzeug.utils import secure_filename
 from flask_login import current_user
@@ -27,6 +28,7 @@ from app.constants import (
 from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.user_type_request import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
@@ -703,6 +705,7 @@ def _process_response(request_id,
                       privacy=PRIVATE):
     """
     Create and store response object with given arguments from separate response type functions to the database.
+    Calculates response release_date (20 business days from today) if privacy option is release and public.
     Check and determine user type for event object as per request.
     Create and store events object to the database.
 
@@ -717,11 +720,17 @@ def _process_response(request_id,
     :return:
     """
     # create response object
+    if privacy == RELEASE_AND_PUBLIC:
+        # calculate response release_date (20 business days from today)
+        release_date = calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS)
+    else:
+        release_date = None
     response = Responses(request_id=request_id,
                          type=responses_type,
                          date_modified=datetime.utcnow(),
                          metadata_id=metadata_id,
-                         privacy=privacy)
+                         privacy=privacy,
+                         release_date=release_date)
     # store response object
     create_object(obj=response)
 
