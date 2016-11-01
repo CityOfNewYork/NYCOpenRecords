@@ -89,8 +89,8 @@ def delete_file():
 
 def add_note(request_id, note_content, email_content, privacy):
     """
-    Creates and stores the note object for the specified request.
-    Stores the note content into the Notes table.
+    Create and store the note object for the specified request.
+    Store the note content into the Notes table.
     Provides parameters for the process_response function to create and store responses and events object.
 
     :param request_id: takes in FOIL request ID as an argument for the process_response function
@@ -423,6 +423,29 @@ def process_email_template_request(request_id, data):
                                request_id=request_id,
                                agency_name=agency_name,
                                note_content=note_content,
+                               page=page)
+    # process email template for offline instructions
+    if data['type'] == 'instructions_email':
+        # if data['instructions'] exists, use email_content as template with specific instructions template
+        try:
+            instructions = data['instructions']
+            default_content = False
+            content = data['email_content']
+            if instructions['privacy'] != PRIVATE:
+                instructions_content = instructions['content']
+            else:
+                instructions_content = ''
+        # use default_content in response template
+        except KeyError:
+            instructions_content = ''
+            default_content = True
+            content = None
+        return render_template(email_template,
+                               default_content=default_content,
+                               content=content,
+                               request_id=request_id,
+                               agency_name=agency_name,
+                               instructions_content=instructions_content,
                                page=page)
 
 

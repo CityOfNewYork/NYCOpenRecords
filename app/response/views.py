@@ -170,6 +170,9 @@ def response_link(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
+@response.route('/instructions', methods=['POST'])
+
+
 # TODO: Implement response route for email
 @response.route('/email', methods=['GET', 'POST'])
 def response_email():

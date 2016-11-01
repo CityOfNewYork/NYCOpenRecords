@@ -1,0 +1,9 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if instructions_content %}
+        The following Offline Instructions has been added to request {{ request_id }}:
+        <p>
+            {{ instructions_content }}
+        </p>
+    {% endif %}
+{% endblock %}
