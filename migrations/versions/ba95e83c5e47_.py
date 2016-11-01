@@ -1,13 +1,13 @@
 """Initial Migration
 
-Revision ID: 4132ccc4d149
+Revision ID: ba95e83c5e47
 Revises: None
-Create Date: 2016-10-19 12:47:36.904321
+Create Date: 2016-11-01 11:43:24.289778
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '4132ccc4d149'
+revision = 'ba95e83c5e47'
 down_revision = None
 
 from alembic import op
@@ -26,45 +26,10 @@ def upgrade():
     sa.Column('administrators', postgresql.ARRAY(sa.String()), nullable=True),
     sa.PrimaryKeyConstraint('ein')
     )
-    op.create_table('emails',
-    sa.Column('metadata_id', sa.Integer(), nullable=False),
-    sa.Column('to', sa.String(), nullable=True),
-    sa.Column('cc', sa.String(), nullable=True),
-    sa.Column('bcc', sa.String(), nullable=True),
-    sa.Column('subject', sa.String(length=5000), nullable=True),
-    sa.Column('email_content', sa.String(), nullable=True),
-    sa.Column('linked_files', postgresql.ARRAY(sa.String()), nullable=True),
-    sa.PrimaryKeyConstraint('metadata_id')
-    )
-    op.create_table('extensions',
-    sa.Column('metadata_id', sa.Integer(), nullable=False),
-    sa.Column('reason', sa.String(), nullable=True),
-    sa.Column('date', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('metadata_id')
-    )
-    op.create_table('files',
-    sa.Column('metadata_id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(), nullable=True),
-    sa.Column('mime_type', sa.String(), nullable=True),
-    sa.Column('title', sa.String(), nullable=True),
-    sa.Column('size', sa.Integer(), nullable=True),
-    sa.PrimaryKeyConstraint('metadata_id')
-    )
-    op.create_table('instructions',
-    sa.Column('metadata_id', sa.Integer(), nullable=False),
-    sa.Column('content', sa.String(), nullable=True),
-    sa.PrimaryKeyConstraint('metadata_id')
-    )
-    op.create_table('links',
-    sa.Column('metadata_id', sa.Integer(), nullable=False),
-    sa.Column('title', sa.String(), nullable=True),
-    sa.Column('url', sa.String(), nullable=True),
-    sa.PrimaryKeyConstraint('metadata_id')
-    )
-    op.create_table('notes',
-    sa.Column('metadata_id', sa.Integer(), nullable=False),
-    sa.Column('content', sa.String(length=5000), nullable=True),
-    sa.PrimaryKeyConstraint('metadata_id')
+    op.create_table('metadatas',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('type', sa.Enum('notes', 'links', 'files', 'instructions', 'extensions', 'emails', name='metadata_type'), nullable=True),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('roles',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -72,6 +37,52 @@ def upgrade():
     sa.Column('permissions', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
+    )
+    op.create_table('emails',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('to', sa.String(), nullable=True),
+    sa.Column('cc', sa.String(), nullable=True),
+    sa.Column('bcc', sa.String(), nullable=True),
+    sa.Column('subject', sa.String(length=5000), nullable=True),
+    sa.Column('email_content', sa.String(), nullable=True),
+    sa.Column('linked_files', postgresql.ARRAY(sa.String()), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['metadatas.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('extensions',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('reason', sa.String(), nullable=True),
+    sa.Column('date', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['metadatas.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('files',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(), nullable=True),
+    sa.Column('mime_type', sa.String(), nullable=True),
+    sa.Column('title', sa.String(), nullable=True),
+    sa.Column('size', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['metadatas.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('instructions',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('content', sa.String(), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['metadatas.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('links',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('title', sa.String(), nullable=True),
+    sa.Column('url', sa.String(), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['metadatas.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('notes',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('content', sa.String(length=5000), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['metadatas.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('reasons',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -89,7 +100,7 @@ def upgrade():
     sa.Column('date_submitted', sa.DateTime(), nullable=True),
     sa.Column('due_date', sa.DateTime(), nullable=True),
     sa.Column('submission', sa.Enum('Direct Input', 'Fax', 'Phone', 'Email', 'Mail', 'In-Person', '311', name='submission'), nullable=True),
-    sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='statuses'), nullable=True),
+    sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='status'), nullable=True),
     sa.Column('privacy', postgresql.JSON(), nullable=True),
     sa.Column('agency_description', sa.String(length=5000), nullable=True),
     sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
@@ -117,9 +128,10 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=True),
     sa.Column('type', sa.String(length=30), nullable=True),
-    sa.Column('date_modified', sa.DateTime(), nullable=True),
-    sa.Column('metadata_id', sa.Integer(), nullable=True),
+    sa.Column('metadata_id', sa.Integer(), nullable=False),
     sa.Column('privacy', sa.Enum('private', 'release_private', 'release_public', name='privacy'), nullable=True),
+    sa.Column('date_modified', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['metadata_id'], ['metadatas.id'], ),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -159,12 +171,13 @@ def downgrade():
     op.drop_table('users')
     op.drop_table('requests')
     op.drop_table('reasons')
-    op.drop_table('roles')
     op.drop_table('notes')
     op.drop_table('links')
     op.drop_table('instructions')
     op.drop_table('files')
     op.drop_table('extensions')
     op.drop_table('emails')
+    op.drop_table('roles')
+    op.drop_table('metadatas')
     op.drop_table('agencies')
     ### end Alembic commands ###
