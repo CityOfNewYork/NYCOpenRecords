@@ -516,6 +516,28 @@ class Responses(db.Model):
         self.privacy = privacy
         self.date_modified = date_modified
 
+    def as_dict(self):
+        content = {
+            c.name: getattr(self, c.name)
+            for c in self.__table__.columns
+        }
+        metadata_preview_attr = {
+            Notes: 'content',
+            Files: 'title',
+            Links: 'content',
+            Instructions: 'content',
+            Extensions: 'reason',
+            Emails: 'subject,'
+        }
+        content.update(
+            preview=getattr(
+                self.metadatas,
+                metadata_preview_attr[type(self.metadatas)]
+            ),
+            metadata=self.metadatas.as_dict()
+        )
+        return content
+
     def __repr__(self):
         return '<Responses %r>' % self.id
 
@@ -602,6 +624,12 @@ class Metadatas(db.Model):
         name='metadata_type'
     ))
     __mapper_args__ = {'polymorphic_on': type}
+
+    def as_dict(self):
+        return {
+            c.name: getattr(self, c.name)
+            for c in self.__table__.columns
+        }
 
 
 class Notes(Metadatas):

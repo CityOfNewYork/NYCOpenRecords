@@ -193,7 +193,8 @@ def edit_response(response_id):
     return jsonify(http_response), 200
 
 
-@response.route('/<response_id>', methods=['PUT'])
+@response.route('/<response_id>', methods=['GET'])
 def test_edit_response_file(response_id):
-    response = Responses.query.filter_by(id=response_id)
-    return render_template('request/test_edit_response_file.html', response=response)
+    response = Responses.query.filter_by(id=response_id).first()
+    request = Requests.query.filter_by(id=response.request_id).first()
+    return render_template('request/test_edit_response_file.html', request=request, response=response)

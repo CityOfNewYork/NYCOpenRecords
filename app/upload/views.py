@@ -17,7 +17,10 @@ from app.lib.utils import (
     b64decode_lenient,
     eval_request_bool,
 )
-from app.models import Responses
+from app.models import (
+    Responses,
+    Files,
+)
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload import upload
 from app.upload.constants import (
@@ -200,9 +203,14 @@ def delete(r_id_type, r_id, filecode):
     return jsonify(response), 200
 
 
-@upload.route('/<request_id>', methods=['GET'])
-def get(request_id):
-    return jsonify({}), 200
+@upload.route('/<response_id>', methods=['GET'])
+def get(response_id):
+    metadata = Responses.query.filter_by(id=response_id).first().metadatas
+
+    if not isinstance(metadata, Files):
+        return jsonify({'error': 'Invalid response id for upload.'}), 400
+
+    return jsonify({"filename": metadata.name}), 200
 
 
 @upload.route('/status', methods=['GET'])

@@ -5,7 +5,6 @@ $(function () {
     'use strict';
 
     // TODO: for 'Edit a File' -> delete updated file when the process of editing a file response is canceled
-
     function setRemoveBtn(button, sendDelete) {
         sendDelete = typeof sendDelete !== 'undefined' ? sendDelete : true;
         button.removeClass('hidden');
@@ -136,22 +135,6 @@ $(function () {
         $('.fileupload-process').hide();
     });
     // TODO: for 'Edit a File' -> on upload start, disable Submit button
-
-    // TODO: for 'Edit a File' -> load the existing file (below might be useful)
-    // // Load existing files:
-    // $('#fileupload').addClass('fileupload-processing');
-    // $.ajax({
-    //     // Uncomment the following to send cross-domain cookies:
-    //     //xhrFields: {withCredentials: true},
-    //     url: $('#fileupload').fileupload('option', 'url'),
-    //     dataType: 'json',
-    //     context: $('#fileupload')[0]
-    // }).always(function () {
-    //     $(this).removeClass('fileupload-processing');
-    // }).done(function (result) {
-    //     $(this).fileupload('option', 'done')
-    //         .call(this, $.Event('done'), {result: result});
-    // });
 
 });
 </script>

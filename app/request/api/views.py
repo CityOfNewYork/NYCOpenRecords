@@ -4,13 +4,14 @@
    :synopsis: Handles the API request URL endpoints for the OpenRecords application
 """
 
-from app.request.api import request_api_blueprint
+from sqlalchemy import desc
 from flask import (
     jsonify,
     request as flask_request,
 )
+from app.request.api import request_api_blueprint
 from app.lib.db_utils import update_object
-from app.models import Requests
+from app.models import Requests, Responses
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -71,17 +72,20 @@ def get_request_history():
     return jsonify(request_history=request_history)
 
 
-@request_api_blueprint.route('/responses', methods=['GET', 'POST'])
+@request_api_blueprint.route('/responses', methods=['GET'])
 def get_request_responses():
     """
     Retrieves a JSON object of event objects to display the responses of a request on the view request page.
 
     :return: json object containing list of 50 response objects from request
     """
-    request_responses_index = int(flask_request.form['request_responses_reload_index'])
-    request_responses_index_end = (request_responses_index + 1) * 50 + 1
-    request_responses = []
-    # TODO: Query responses table.
-    for i in range(1, request_responses_index_end):
-        request_responses.append(str(i))
-    return jsonify(request_responses=request_responses)
+    start = int(flask_request.args['start'])
+    responses = [
+        r.as_dict() for r in
+        Responses.query.filter_by(
+            request_id=flask_request.args['request_id']
+        ).order_by(
+            desc(Responses.date_modified)
+        ).all()[start: start + 30]  # TODO: constant (50)
+    ]
+    return jsonify(responses=responses)
