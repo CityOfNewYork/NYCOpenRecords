@@ -177,7 +177,7 @@ def response_email():
     Render email template onto response forms.
     Call process_email_template_request to render specific response template with appropriate data.
 
-    :return: the rendered email template
+    :return: Returns the HTML of the rendered template
     """
     data = json.loads(flask_request.data.decode())
     request_id = data['request_id']

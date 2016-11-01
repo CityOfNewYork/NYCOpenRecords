@@ -96,7 +96,7 @@ def add_note(request_id, note_content, email_content, privacy):
     :param request_id: takes in FOIL request ID as an argument for the process_response function
     :param note_content: string content of the note to be created and stored as a note object
     :param email_content: email body content of the email to be created and stored as a email object
-    :param privacy: privacy option of the note
+    :param privacy: The privacy option of the note
 
     :return:
     """
@@ -172,7 +172,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     :param title: title of the link to be stored in the Links table and as a response value
     :param url_link: link url to be stored in the Links table and as a response value
     :param email_content: string of HTML email content to be created and stored as a email object
-    :param privacy:
+    :param privacy: The privacy option of the link
 
     :return:
     """
@@ -321,7 +321,7 @@ def process_email_template_request(request_id, data):
     :param data: Data from the frontend AJAX call
     :param request_id: FOIL request ID
 
-    :return: rendered email template with the given arguments
+    :return: Returns the HTML of the rendered template
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
