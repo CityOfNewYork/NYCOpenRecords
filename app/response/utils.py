@@ -463,10 +463,7 @@ def process_email_template_request(request_id, data):
             instruction = data['instruction']
             default_content = False
             content = data['email_content']
-            if instruction['privacy'] != PRIVATE:
-                instruction_content = instruction['content']
-            else:
-                instruction_content = ''
+            instruction_content = instruction['content'] if instruction['privacy'] != PRIVATE else ''
         # use default_content in response template
         except KeyError:
             instruction_content = ''
@@ -509,11 +506,10 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
         requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                        request_user_type=REQUESTER).first().user.email
         # Send email with files to requester and bcc agency_ein users as privacy option is release
-        to = [requester_email]
         safely_send_and_add_email(request_id,
                                   email_content,
                                   subject,
-                                  to=to,
+                                  to=[requester_email],
                                   bcc=bcc,
                                   agency_name=agency_name,
                                   files_links=file_to_link)
@@ -545,11 +541,10 @@ def _send_extension_email(request_id, email_content):
     requester_email = UserRequests.query.filter_by(request_id=request_id,
                                                    request_user_type=REQUESTER).first().user.email
     # Send email with files to requester and bcc agency users as privacy option is release
-    to = [requester_email]
     safely_send_and_add_email(request_id,
                               email_content,
                               subject,
-                              to=to,
+                              to=[requester_email],
                               bcc=bcc)
 
 
@@ -583,11 +578,10 @@ def _send_link_email(request_id, url_link, privacy, email_content, **kwargs):
                                   subject,
                                   bcc=bcc)
     else:
-        to = [requester_email]
         safely_send_and_add_email(request_id,
                                   email_content,
                                   subject,
-                                  to=to,
+                                  to=[requester_email],
                                   bcc=bcc,
                                   url=url_link)
 
@@ -620,11 +614,10 @@ def _send_note_email(request_id, note_content, privacy, email_content, **kwargs)
                                   subject,
                                   bcc=bcc)
     else:
-        to = [requester_email]
         safely_send_and_add_email(request_id,
                                   email_content,
                                   subject,
-                                  to=to,
+                                  to=[requester_email],
                                   bcc=bcc,
                                   note_content=note_content)
 
@@ -658,11 +651,10 @@ def _send_instruction_email(request_id, instruction_content, privacy, email_cont
                                   subject,
                                   bcc=bcc)
     else:
-        to = [requester_email]
         safely_send_and_add_email(request_id,
                                   email_content,
                                   subject,
-                                  to=to,
+                                  to=[requester_email],
                                   bcc=bcc,
                                   instruction_content=instruction_content)
 

@@ -39,11 +39,11 @@ def response_note(request_id):
     """
     Note response endpoint that takes in the content of a note for a specific request from the frontend.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_link to process the extension form data.
 
     :param request_id: FOIL request ID for the specific note.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
     note_data = flask_request.form
 
@@ -108,11 +108,12 @@ def response_extension(request_id):
     """
     Extension response endpoint that takes in the metadata of an extension for a specific request from the frontend.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_extension to process the extension form data.
 
     :param request_id: FOIL request ID for the specific extension.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+
+    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
     extension_data = flask_request.form
 
@@ -142,11 +143,12 @@ def response_link(request_id):
     """
     Link response endpoint that takes in the metadata of a link for a specific request from the frontend.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_link to process the extension form data.
 
     :param request_id: FOIL request ID for the specific link.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+
+    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
     link_data = flask_request.form
 
@@ -176,11 +178,12 @@ def response_instructions(request_id):
     """
     Instruction response endpoint that takes in from the frontend, the content of a instruction for a specific request.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_instruction to process the extension form data.
 
     :param request_id: FOIL request ID for the specific note.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+
+    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
     """
     instruction_data = flask_request.form
 
