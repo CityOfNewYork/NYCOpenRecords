@@ -9,8 +9,10 @@ from datetime import datetime
 
 import os
 import re
-from abc import ABCMeta, abstractmethod
 import magic
+
+from abc import ABCMeta, abstractmethod
+from cached_property import cached_property
 from werkzeug.utils import secure_filename
 from flask_login import current_user
 from flask import (
@@ -513,7 +515,7 @@ class ResponseEditor(metaclass=ABCMeta):
 
         self.privacy_changed = False
         privacy = flask_request.form.get('privacy')
-        if privacy and privacy != self.response.privacy:
+        if privacy is not None and privacy != self.response.privacy:
             self.set_data_values('privacy', self.response.privacy, privacy)
             self.privacy_changed = True
 
@@ -529,8 +531,9 @@ class ResponseEditor(metaclass=ABCMeta):
         # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
 
     def set_data_values(self, key, old, new):
-        self.data_old[key] = old
-        self.data_new[key] = new
+        if old != new:
+            self.data_old[key] = old
+            self.data_new[key] = new
 
     @property
     def event_type(self):
@@ -541,7 +544,7 @@ class ResponseEditor(metaclass=ABCMeta):
             Instructions: event_type.INSTRUCTIONS_ADDED,
         }[type(self.metadata)]
 
-    @property
+    @cached_property
     def metadata_new(self):
         if 'privacy' in self.data_new:
             data = dict(self.data_new)
@@ -563,7 +566,7 @@ class ResponseEditor(metaclass=ABCMeta):
         for field in self.metadata_fields:
             value_new = self.flask_request.form.get(field)
             value_orig = getattr(self.metadata, field)
-            if value_new and value_new != value_orig:
+            if value_new is not None:
                 self.set_data_values(field, value_orig, value_new)
 
     def data_changed(self):
@@ -607,9 +610,10 @@ class ResponseEditor(metaclass=ABCMeta):
             update_object(response_changes,
                           Responses,
                           self.response.id)
-            update_object(self.metadata_new,
-                          type(self.metadata),
-                          self.metadata.id)
+            if self.metadata_new:
+                update_object(self.metadata_new,
+                              type(self.metadata),
+                              self.metadata.id)
 
 
 class RespFileEditor(ResponseEditor):

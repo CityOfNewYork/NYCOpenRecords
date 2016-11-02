@@ -83,10 +83,10 @@ $(document).ready(function () {
         showResponses();
     });
 
-    // TODO: div blocks instead of this:
+    // TODO: remove
     $('#request-responses').on('click', '.tmp-save-changes', function() {
-        var form = $(this).parents('.modal-footer').siblings('.modal-body').children('form');
-        var response_id = $(this).parents('.modal-footer').siblings('.modal-header').children('.response-id').text();
+        var form = $(this).parents('.modal-body').children('form');
+        var response_id = $(this).parents('.modal-content').children('.response-id').text();
         $.ajax({
             url: "/response/" + response_id,
             type: "PUT",
