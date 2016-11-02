@@ -207,8 +207,7 @@ def response_instructions(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
-# TODO: Implement response route for email
-@response.route('/email', methods=['GET', 'POST'])
+@response.route('/email', methods=['POST'])
 def response_email():
     """
     Render email template onto response forms.
@@ -216,7 +215,7 @@ def response_email():
 
     :return: Returns the HTML of the rendered template
     """
-    data = json.loads(flask_request.data.decode())
+    data = flask_request.form
     request_id = data['request_id']
     email_template = process_email_template_request(request_id, data)
     return email_template

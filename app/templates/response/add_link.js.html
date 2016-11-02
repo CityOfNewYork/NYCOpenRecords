@@ -16,17 +16,15 @@ $(document).ready(function () {
 
         // If validation fields are valid, proceed with next click function
         if ($('#add-link-form').parsley().isValid()) {
-            var formData = {
-                request_id: "{{ request.id }}",
-                template_name: "email_response_link.html",
-                type: "link_email"
-            };
-
             $.ajax({
                 url: "/response/email",
                 type: 'POST',
-                data: JSON.stringify(formData),
-                contentType: false,
+                data: {
+                    request_id: "{{ request.id }}",
+                    template_name: "email_response_link.html",
+                    type: "link_email",
+                    privacy: $('.link-privacy:checked').val()
+                },
                 success: function (data) {
                     // Data should be html template page.
                     tinyMCE.get('email-link-content').setContent(data);
@@ -40,29 +38,19 @@ $(document).ready(function () {
     // Handles click events on the second next button
     $("#link-next-2").click(function () {
         tinyMCE.triggerSave();
-
-        // Store the values of link-url and link-privacy into variables
-        var url = $('#link-url').val();
-        var privacy = $('input[type="radio"]:checked').val();
-
-        // Create a dictionary called link with keys of url and privacy
-        link = {};
-        link["url"] = url;
-        link["privacy"] = privacy;
-
-        var formData = {
-            request_id: "{{ request.id }}",
-            template_name: "email_response_link.html",
-            type: "link_email",
-            link: link,
-            email_content: $('#email-link-content').val()
-        };
-
         $.ajax({
             url: "/response/email",
             type: 'POST',
-            data: JSON.stringify(formData),
-            contentType: false,
+            data: {
+                request_id: "{{ request.id }}",
+                template_name: "email_response_link.html",
+                type: "link_email",
+                link: JSON.stringify({
+                    url: $('#link-url').val(),
+                    privacy: $('.link-privacy:checked').val()
+                }),
+                email_content: $('#email-link-content').val()
+            },
             success: function (data) {
                 // Data should be html template page.
                 $("#email-link-summary").html(data);
