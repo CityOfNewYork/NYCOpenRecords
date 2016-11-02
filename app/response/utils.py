@@ -506,21 +506,27 @@ class ResponseEditor(metaclass=ABCMeta):
         self.flask_request = flask_request
         self.metadata = response.metadatas
 
+        self.no_change = False
         self.data_old = {}
         self.data_new = {}
         self.errors = []
 
+        self.privacy_changed = False
         privacy = flask_request.form.get('privacy')
         if privacy and privacy != self.response.privacy:
             self.set_data_values('privacy', self.response.privacy, privacy)
+            self.privacy_changed = True
 
         self.edit_metadata()
-        self.add_event_and_update()
+        if self.data_changed():
+            self.add_event_and_update()
+        else:
+            self.no_change = True
+
         # TODO: self.email()
         # What should be the email_content?
         # Edit existing email response OR new response?
         # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
-
 
     def set_data_values(self, key, old, new):
         self.data_old[key] = old
@@ -537,9 +543,11 @@ class ResponseEditor(metaclass=ABCMeta):
 
     @property
     def metadata_new(self):
-        data = dict(self.data_new)
-        data.pop('privacy')
-        return data
+        if 'privacy' in self.data_new:
+            data = dict(self.data_new)
+            data.pop('privacy')
+            return data
+        return self.data_new
 
     @property
     @abstractmethod
@@ -558,6 +566,20 @@ class ResponseEditor(metaclass=ABCMeta):
             if value_new and value_new != value_orig:
                 self.set_data_values(field, value_orig, value_new)
 
+    def data_changed(self):
+        """
+        Checks for a difference between new data values and their
+        corresponding database fields.
+
+        :returns: is the data different from what is stored in the db?
+        """
+        if self.privacy_changed:
+            return True
+        for key, value in self.metadata_new.items():
+            if value != getattr(self.metadata, key):
+                return True
+        return False
+
     def add_event_and_update(self):
         """
         Creates an 'edited' event and updates the
@@ -575,8 +597,14 @@ class ResponseEditor(metaclass=ABCMeta):
                 previous_response_value=self.data_old,
                 new_response_value=self.data_new)
             create_object(event)
-            update_object({'date_modified': timestamp,
-                          'privacy': self.data_new['privacy']},
+            response_changes = {
+                'date_modified': timestamp
+            }
+            if self.privacy_changed:
+                response_changes.update(
+                    privacy=self.data_new['privacy']
+                )
+            update_object(response_changes,
                           Responses,
                           self.response.id)
             update_object(self.metadata_new,

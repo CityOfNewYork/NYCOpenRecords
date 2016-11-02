@@ -36,13 +36,18 @@ $(document).ready(function () {
             }
         }
         if (file_response_added) {
-            bindFileUpload()
+            bindFileUpload(
+                ".fileupload-update",
+                request_id,
+                true,
+                "template-upload-update",
+                "template-download-update"
+            );
         }
     }
 
     function createResponseRow(num, response) {
-        // Now this right here is a good case for a js framework
-        // If this is too nasty, we can try fetching and converting html files...
+        // TODO: make a single request instead that concatenates rendered_templates
         var row = sprintf(`
             <div class="row response-row" data-toggle="modal" data-target="#response-modal-%s">
                 <div class="col-md-1 response-row-num">%s</div>
@@ -65,18 +70,28 @@ $(document).ready(function () {
                         <button type="button" class="close" data-dismiss="modal" 
                         aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title">%s</h4>
+                        <span class="response-id" hidden>%s</span>
                     </div>
                     <div class="modal-body">`,
             response.id,
             response.id,
-            response.type.toUpperCase());
+            response.type.toUpperCase(),
+            response.id);
 
         switch(response.type) {
             case "file":
+                var args = {
+                    resp_id: response.id,
+                    filename: response.metadata.name,
+                    title: response.metadata.title,
+                    rpub: response.privacy == "release_public" ? "checked" : "",
+                    rpriv: response.privacy == "release_private" ? "checked" : "",
+                    priv: response.privacy == "private" ? "checked" : ""
+                };
                 modal += sprintf(`
-                    <form class="fileupload-update fileupload-form" action="/response/%s" method="POST">
+                    <form class="fileupload-update fileupload-form" action="/response/%(resp_id)s" method="POST">
                         <div>
-                            <a href="" id="uploaded-filename-%s">%s</a>
+                            <a href="" id="uploaded-filename-%(resp_id)s">%(filename)s</a>
                         </div>
                         <br>
                         <div class="fileupload-control">
@@ -98,38 +113,30 @@ $(document).ready(function () {
                         <label for="title">
                             <div class="input-group">
                                 <span class="input-group-addon" id="basic-addon1">Title</span>
-                                <input type="text" name="title" value="%s">
+                                <input type="text" name="title" value="%(title)s">
                             </div>
                         </label>
                         <div>
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="privacy" value="release_public" %s>
+                                    <input type="radio" name="privacy" value="release_public" %(rpub)s>
                                     Release and Public
                                 </label>
                             </div>
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="privacy" value="release_private" %s>
+                                    <input type="radio" name="privacy" value="release_private" %(rpriv)s>
                                     Release and Private
                                 </label>
                             </div>
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="privacy" value="private" %s>
+                                    <input type="radio" name="privacy" value="private" %(priv)s>
                                     Private
                                 </label>
                             </div>
                         </div>
-                    </form>`,
-                    response.id,
-                    response.id,
-                    response.metadata.name,
-                    response.metadata.title,
-                    response.privacy == "release_public" ? "checked" : "",
-                    response.privacy == "release_private" ? "checked" : "",
-                    response.privacy == "private" ? "checked" : ""
-                );
+                    </form>`, args);
                 break;
             default:
                 modal += "<p>Nothing to see here folks.</p>";
@@ -139,9 +146,9 @@ $(document).ready(function () {
         modal += `
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger pull-left">Delete</button>
+                        <button type="button" class="btn btn-danger pull-left disabled">Delete</button>
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-primary tmp-save-changes">Save Changes</button>
                     </div>
                 </div>
             </div>
@@ -182,77 +189,20 @@ $(document).ready(function () {
         showResponses();
     });
 
-    $('#request-responses').on('click', '.response-row', function() {
-
+    // TODO: div blocks instead of this:
+    $('#request-responses').on('click', '.tmp-save-changes', function() {
+        var form = $(this).parents('.modal-footer').siblings('.modal-body').children('form');
+        var response_id = $(this).parents('.modal-footer').siblings('.modal-header').children('.response-id').text();
+        $.ajax({
+            url: "/response/" + response_id,
+            type: "PUT",
+            data: form.serialize(),
+            success: function(response) {
+                console.log(response);
+            }
+        });
     });
 
-    function bindFileUpload() {
-        $('.fileupload-update').fileupload({
-            // Uncomment the following to send cross-domain cookies:
-            //xhrFields: {withCredentials: true},
-            uploadTemplateId: 'template-upload-update',
-            downloadTemplateId: 'template-download-update',
-            url: '/upload/' + '{{ request.id }}',
-            formData: {
-                update: true
-            },
-            maxChunkSize: 512000,  // 512 kb
-            maxFileSize: 500000000,  // 500 mb
-            // autoUpload: true,
-            chunksend: function (e, data) {
-                if (data.context[0].abortChunkSend) {
-                    return false;
-                }
-            },
-            chunkdone: function (e, data) {
-                // stop sending chunks on error
-                if (data.result) {
-                    if (data.result.files[0].error) {
-                        data.context[0].abortChunkSend = true;
-                        data.files[0].error = data.result.files[0].error
-                    }
-                }
-            },
-            chunkfail: function (e, data) {
-                // remove existing partial upload
-                $.ajax({
-                    type: "DELETE",
-                    url: '/upload/request/' +
-                    '{{ request.id }}/' +
-                    encodeName(data.files[0].name),
-                    data: {
-                        quarantined_only: true
-                    }
-                });
-            }
-        }).bind('fileuploaddone', function (e, data) {
-            var filename = data.result.files[0].name;
-            var htmlId = encodeName(filename);
-            data.result.files[0].identifier = htmlId;
-            setTimeout(
-                    pollUploadStatus.bind(null, filename, htmlId),
-                    4000); // McAfee Scanner min 3+ sec startup
-        }).bind('fileuploadadd', function (e, data) {
-            // Delete already added file
-            var elem_files = $('.fileupload-update').find('.files');
-            var templates_upload = elem_files.children('.template-upload');
-            var templates_download = elem_files.children('.template-download');
-            if (templates_upload.length > 0) {
-                templates_upload.remove();
-            }
-            if (templates_download.length > 0) {
-                for (var i = 0; i < templates_download.length; i++) {
-                    var file_identifier = $(templates_download[i]).attr('id');
-                    // if this template is for a successful upload
-                    if (typeof file_identifier != 'undefined') {
-                        deleteUpdated($(templates_download[i]));
-                    }
-                    $(templates_download[i]).remove();
-                }
-            }
-            $('.fileupload-loading').hide();
-            $('.fileupload-process').hide();
-        });
-    }
+    // TODO: DELETE updated on modal close and reset
 
 });

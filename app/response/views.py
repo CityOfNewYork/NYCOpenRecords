@@ -173,8 +173,12 @@ def edit_response(response_id):
     }
     Response body consists of both the old and updated data, or an error message.
     """
+    from app.models import Users
+    from flask_login import login_user
+    login_user(Users.query.first())
+
     if current_user.is_anonymous:
-        return {}, 403
+        return jsonify({}), 403
     # TODO: user permissions check
     resp = Responses.query.filter_by(id=response_id).first()
     editor_for_type = {
@@ -186,15 +190,13 @@ def edit_response(response_id):
     if editor.errors:
         http_response = {"errors": editor.errors}
     else:
-        http_response = {
-            "old": editor.data_old,
-            "new": editor.data_new
-        }
+        if editor.no_change:  # TODO: unittest
+            http_response = {
+                "message": "No changes detected."
+            }
+        else:
+            http_response = {
+                "old": editor.data_old,
+                "new": editor.data_new
+            }
     return jsonify(http_response), 200
-
-
-@response.route('/<response_id>', methods=['GET'])
-def test_edit_response_file(response_id):
-    response = Responses.query.filter_by(id=response_id).first()
-    request = Requests.query.filter_by(id=response.request_id).first()
-    return render_template('request/test_edit_response_file.html', request=request, response=response)

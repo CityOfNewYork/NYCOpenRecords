@@ -1,0 +1,186 @@
+"use strict";
+
+function bindFileUpload(target,
+                        request_id,
+                        for_update,
+                        uploadTemplateId,
+                        downloadTemplateId) {
+    /*
+    Binds jquery file upload to the element identified by 'target'
+
+    @param {string} target - jquery selector (ex. "#fileupload")
+    @param {string} request_id - FOIL request id
+    @param {bool} for_update - editing a file?
+    @param {string} uploadTemplateId - jquery file upload uploadTemplateId
+    @param {string} downloadTemplateId - jquery file upload downloadTemplateId
+    */
+
+    uploadTemplateId = uploadTemplateId || "template-upload";
+    downloadTemplateId = downloadTemplateId || "template-download";
+
+    $(target).fileupload({
+        //xhrFields: {withCredentials: true},  // send cross-domain cookies
+        url: "/upload/" + request_id,
+        formData: for_update ? {update: true} : {},
+        uploadTemplateId: uploadTemplateId,
+        downloadTemplateId: downloadTemplateId,
+        maxChunkSize: 512000,  // 512 kb
+        maxFileSize: 500000000, // 500 mb
+        // autoUpload: true, // TODO: include for update?
+        chunksend: function (e, data) {
+            // stop sending chunks if abort signaled
+            if (data.context[0].abortChunkSend) {
+                return false;
+            }
+        },
+        chunkdone: function (e, data) {
+            // on error, signal to stop sending chunks
+            if (data.result) {
+                if (data.result.files[0].error) {
+                    data.context[0].abortChunkSend = true;
+                    data.files[0].error = data.result.files[0].error
+                }
+            }
+        },
+        chunkfail: function (e, data) {
+            // remove existing partial upload
+            deleteUpload(request_id, encodeName(data.files[0].name), false, true);
+        }
+    }).bind("fileuploaddone", function (e, data) {
+        // start polling status endpoint after scanner startup
+        var filename = data.result.files[0].name;
+        var idVal = encodeName(filename);
+        data.result.files[0].identifier = idVal;
+        setTimeout(
+            pollUploadStatus.bind(null, filename, idVal, request_id, for_update),
+            4000);  // McAfee Scanner minimum 3+ second startup
+    }).bind("fileuploadadd", function (e, data) {
+        if (for_update) {
+            // Replace added file OR Delete uploaded file
+            var elem_files = $(target).find(".files");
+            var templates_upload = elem_files.children(".template-upload");
+            var templates_download = elem_files.children(".template-download");
+            if (templates_upload.length > 0) {
+                templates_upload.remove();
+            }
+            if (templates_download.length > 0) {
+                for (var i = 0; i < templates_download.length; i++) {
+                    var file_identifier = $(templates_download[i]).attr("id");
+                    if (typeof file_identifier != "undefined") {
+                        // if this template is for a successful upload
+                        deleteUpload(request_id, file_identifier, true);
+                    }
+                    $(templates_download[i]).remove();
+                }
+            }
+        }
+        else {
+            // Prevent duplicate files from being added
+            var currentFiles = [];
+            $(this).fileupload("option").filesContainer.children().each(function () {
+                currentFiles.push($.trim($(".original-name", this).text()));
+            });
+            data.files = $.map(data.files, function (file, i) {
+                if ($.inArray(file.name, currentFiles) >= 0) {
+                    alert("The file '" + file.name + "' has already been added.");
+                    return null;
+                }
+                return file;
+            });
+        }
+        $(".fileupload-loading").hide();
+        $(".fileupload-process").hide();
+    });
+    // TODO: for_update -> on start, disable Submit button
+}
+
+function encodeName(name) {
+    /*
+    Returns an encoded (base64 without padding) version of 'name' intended
+    for use as/in an html id attribute or for use in a url.
+    Padding is removed because '=' is an invalid character for an html id
+    and it is reserved character for urls.
+     */
+    return window.btoa(name).replace(/=/g, "");
+}
+
+function pollUploadStatus(upload_filename, htmlId, request_id, for_update) {
+    /*
+    Sends a request to the upload status endpoint
+    every 2 seconds until it receives a message indicating
+    the upload has completed or until it receives an error
+    message, then updates the download template.
+     */
+    $.ajax({
+        type: "GET",
+        url: "/upload/status",
+        data: {
+            request_id: request_id,
+            filename: upload_filename,
+            for_update: for_update
+        },
+        dataType: "json",
+        success: function(response) {
+            var tr = $("#".concat(htmlId));
+            if (response.error) {
+                // Reveal error message
+                tr.find(".error-post-fileupload").removeClass("hidden");
+                tr.find(".error-post-fileupload-msg").text("Error processing file.");  // scanning, really
+                tr.find(".processing-upload").remove();
+                setRemoveBtn(request_id, tr.find(".remove-post-fileupload"),
+                    false);  // file already deleted
+            }
+            else if (response.status != "ready") {
+                setTimeout(pollUploadStatus.bind(
+                    null, upload_filename, htmlId, request_id, for_update
+                ), 2000);
+            }
+            else {
+                // Reveal full template
+                tr.find(".fileupload-input-fields").removeClass("hidden");
+                tr.find(".processing-upload").remove();
+                setRemoveBtn(request_id, tr.find(".remove-post-fileupload"), true, for_update);
+                // TODO: for_update -> enable Submit button
+            }
+        }
+    });
+}
+
+function deleteUpload(request_id,
+                      filecode,
+                      updated_only,
+                      quarantined_only) {
+    /*
+    Send a DELETE request to the upload endpoint.
+     */
+    var data = {};
+    if (updated_only) {
+        data = {updated_only: true}
+    }
+    else if (quarantined_only) {
+        data = {quarantined_only: true}
+    }
+
+    $.ajax({
+        type: "DELETE",
+        url: sprintf("/upload/request/%s/%s",
+            request_id, filecode),
+        data: data
+    });
+}
+
+function setRemoveBtn(request_id, button, sendDelete, for_update) {
+    /*
+    Reveal remove button and set its click event handler.
+     */
+    sendDelete = sendDelete || true;
+    button.removeClass("hidden");
+    button.click(function(e) {
+        e.preventDefault();
+        var template = $(this).closest(".template-download");
+        if (sendDelete) {
+            deleteUpload(request_id, template.attr("id"), for_update);
+        }
+        template.remove();
+    });
+}
