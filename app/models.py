@@ -521,6 +521,14 @@ class Responses(db.Model):
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
         }
+        content.update(
+            preview=self.preview,
+            metadata=self.metadatas.as_dict()
+        )
+        return content
+
+    @property
+    def preview(self):
         metadata_preview_attr = {
             Notes: 'content',
             Files: 'title',
@@ -529,14 +537,8 @@ class Responses(db.Model):
             Extensions: 'reason',
             Emails: 'subject,'
         }
-        content.update(
-            preview=getattr(
-                self.metadatas,
-                metadata_preview_attr[type(self.metadatas)]
-            ),
-            metadata=self.metadatas.as_dict()
-        )
-        return content
+        return getattr(self.metadatas,
+                       metadata_preview_attr[type(self.metadatas)])
 
     def __repr__(self):
         return '<Responses %r>' % self.id

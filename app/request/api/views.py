@@ -7,10 +7,12 @@
 from sqlalchemy import desc
 from flask import (
     jsonify,
+    render_template,
     request as flask_request,
 )
 from app.request.api import request_api_blueprint
 from app.lib.db_utils import update_object
+from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
 
 
@@ -77,15 +79,45 @@ def get_request_responses():
     """
     Retrieves a JSON object of event objects to display the responses of a request on the view request page.
 
+    Request parameters:
+    - with_template: (default: False) include html (rows and modals) for each response
+
     :return: json object containing list of 50 response objects from request
     """
     start = int(flask_request.args['start'])
-    responses = [
-        r.as_dict() for r in
-        Responses.query.filter_by(
-            request_id=flask_request.args['request_id']
-        ).order_by(
-            desc(Responses.date_modified)
-        ).all()[start: start + 30]  # TODO: constant (50)
-    ]
-    return jsonify(responses=responses)
+
+    responses = Responses.query.filter_by(
+        request_id=flask_request.args['request_id']
+    ).order_by(
+        desc(Responses.date_modified)
+    ).all()[start: start + 20]  # FIXME: constant (20)
+
+    template_path = 'request/response/responses/'
+    response_jsons = []
+    for i, response in enumerate(responses):
+        # json = response.as_dict()
+        json = {
+            'id': response.id,
+            'type': response.type
+        }
+        if eval_request_bool(flask_request.args.get('with_template'), False):
+            row = render_template(
+                template_path + 'row.html',
+                response=response,
+                row_num = start + i + 1
+            )
+            modal = render_template(
+                template_path + 'modal.html',
+                response=response,
+                modal_body=render_template(
+                    "{}modal_body/{}.html".format(
+                        template_path, response.type
+                    ),
+                    response=response
+                )
+            )
+            json['template'] = row + modal
+
+        response_jsons.append(json)
+
+    return jsonify(responses=response_jsons)

@@ -1,0 +1,50 @@
+<form class="fileupload-update fileupload-form" action="/response/{{ response.id }}" method="POST">
+    <div>
+        <a href="" id="uploaded-filename-{{ response.id }}">{{ response.metadatas.name }}</a>
+    </div>
+    <br>
+    <div class="fileupload-control">
+        <div class="fileupload-error-messages"></div>
+        <div class="fileupload-divs">
+            <div class="row fileupload-buttonbar">
+                <span class="btn btn-default fileinput-button">
+                    <i class="glyphicon glyphicon-open-file"></i>
+                    <span>Replace File</span>
+                    <input type="file" name="file" id="add-files">
+                </span>
+                <span class="fileupload-process"></span>
+            </div>
+            <div role="presentation">
+                <div class="files"></div>
+            </div>
+        </div>
+    </div>
+    <div class="input-group">
+        <span class="input-group-addon" id="basic-addon1">Title</span>
+        <input type="text" name="title" value="{{ response.metadatas.title }}"
+               title="title" aria-describedby="title">
+    </div>
+    <div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="privacy" value="release_public"
+                       {% if response.privacy == "release_public" %}checked{% endif %}>
+                Release and Public
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="privacy" value="release_private"
+                       {% if response.privacy == "release_private" %}checked{% endif %}>
+                Release and Private
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="privacy" value="private"
+                       {% if response.privacy == "private" %}checked{% endif %}>
+                Private
+            </label>
+        </div>
+    </div>
+</form>
