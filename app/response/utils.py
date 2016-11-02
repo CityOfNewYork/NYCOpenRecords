@@ -732,6 +732,7 @@ def _process_response(request_id,
         user_guid = current_user.guid
         auth_user_type = current_user.auth_user_type
 
+    new_response_value.update(privacy=privacy)
     event = Events(request_id=request_id,
                    user_id=user_guid,
                    auth_user_type=auth_user_type,

@@ -111,8 +111,7 @@ class RequestsFactory(object):
             type=response_type.FILE,
             date_modified=datetime.utcnow(),
             metadata_id=file_meta.id,
-            privacy=PRIVATE,
-            release_date=None
+            privacy=PRIVATE
         )
         # TODO: add Events FILE_ADDED
         create_object(response)

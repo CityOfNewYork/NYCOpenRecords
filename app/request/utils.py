@@ -150,14 +150,14 @@ def create_request(title,
         create_object(obj=response)
 
         # 8. Create upload Event
+        metadata.update(privacy=RELEASE_AND_PRIVATE)
         upload_event = Events(user_id=user.guid,
                               auth_user_type=user.auth_user_type,
                               response_id=response.id,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_response_value=metadata.update(
-                                  privacy=RELEASE_AND_PRIVATE))
+                              new_response_value=metadata)
         create_object(upload_event)
 
     role_to_user = {
@@ -187,7 +187,7 @@ def create_request(title,
         agency_event = Events(user_id=current_user.guid,
                               auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
-                              type=event_type.REQ_CREATED,
+                              type=event_type.AGENCY_REQ_CREATED,
                               timestamp=timestamp)
         create_object(agency_event)
 
