@@ -516,8 +516,8 @@ class Responses(db.Model):
                  type,
                  metadata_id,
                  privacy,
-                 release_date,
-                 date_modified=datetime.utcnow()):
+                 date_modified=datetime.utcnow(),
+                 release_date=None):
         self.request_id = request_id
         self.type = type
         self.metadata_id = metadata_id

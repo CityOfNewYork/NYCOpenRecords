@@ -711,12 +711,10 @@ def _process_response(request_id,
 
     :return:
     """
+    # calculate response release_date (20 business days from today) if privacy is release and public
+    release_date = calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS) if privacy == RELEASE_AND_PUBLIC else None
+
     # create response object
-    if privacy == RELEASE_AND_PUBLIC:
-        # calculate response release_date (20 business days from today)
-        release_date = calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS)
-    else:
-        release_date = None
     response = Responses(request_id=request_id,
                          type=responses_type,
                          date_modified=datetime.utcnow(),
