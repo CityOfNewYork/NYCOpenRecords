@@ -142,11 +142,11 @@ def create_request(title,
         metadata_id, metadata = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        response = Responses(request_id=request_id,
-                             type=FILE,
-                             date_modified=datetime.utcnow(),
-                             metadata_id=metadata_id,
-                             privacy=RELEASE_AND_PRIVATE)
+        response = Responses(request_id,
+                             FILE,
+                             metadata_id,
+                             RELEASE_AND_PRIVATE,
+                             datetime.utcnow())
         create_object(obj=response)
 
         # 8. Create upload Event
@@ -157,7 +157,7 @@ def create_request(title,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_response_value=metadata)
+                              new_value=metadata)
         create_object(upload_event)
 
     role_to_user = {
@@ -181,7 +181,7 @@ def create_request(title,
                    request_id=request_id,
                    type=event_type.REQ_CREATED,
                    timestamp=timestamp,
-                   new_response_value=request_metadata)
+                   new_value=request_metadata)
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,

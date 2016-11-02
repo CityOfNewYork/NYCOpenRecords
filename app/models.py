@@ -450,8 +450,8 @@ class Events(db.Model):
     response_id - a foreign key that links to the primary key of a response
     type - a string containing the type of event that occurred
     timestamp - a datetime that keeps track of what time an event was performed
-    previous_response_value - a string containing the old response value
-    new_response_value - a string containing the new response value
+    previous_value - a string containing the old value of the event
+    new_value - a string containing the new value of the event
     """
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
@@ -471,8 +471,8 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_response_value = db.Column(JSON)
-    new_response_value = db.Column(JSON)
+    previous_value = db.Column(JSON)
+    new_value = db.Column(JSON)
 
     __table_args__ = (
         db.ForeignKeyConstraint(
@@ -513,13 +513,13 @@ class Responses(db.Model):
 
     def __init__(self,
                  request_id,
-                 type,
+                 request_type,
                  metadata_id,
                  privacy,
                  date_modified=datetime.utcnow(),
                  release_date=None):
         self.request_id = request_id
-        self.type = type
+        self.type = request_type
         self.metadata_id = metadata_id
         self.privacy = privacy
         self.date_modified = date_modified

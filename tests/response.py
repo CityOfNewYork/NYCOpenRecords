@@ -142,8 +142,8 @@ class ResponseViewsTests(BaseTestCase):
                 event.user_id,
                 event.auth_user_type,
                 event.type,
-                event.previous_response_value,
-                event.new_response_value,
+                event.previous_value,
+                event.new_value,
             ],
             [
                 rf.request.id,

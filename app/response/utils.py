@@ -271,7 +271,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
                       response_type.EMAIL,
                       event_type.EMAIL_NOTIFICATION_SENT,
                       email.id,
-                      new_response_value=email_content)
+                      new_value=email_content)
 
 
 def add_sms():
@@ -692,8 +692,8 @@ def _process_response(request_id,
                       responses_type,
                       events_type,
                       metadata_id,
-                      new_response_value,
-                      previous_response_value=None,
+                      new_value,
+                      previous_value=None,
                       privacy=PRIVATE):
     """
     Create and store response object with given arguments from separate response type functions to the database.
@@ -706,8 +706,8 @@ def _process_response(request_id,
     :param events_type: type of event to be stored in the events table
     :param metadata_id: metadata_id of the specific response to be stored in the responses table
     :param privacy: privacy of the response (default is 'private') to be stored in the responses table
-    :param new_response_value: string content of the new response, to be stored in the responses table
-    :param previous_response_value: string content of the previous response, to be stored in the responses table
+    :param new_value: string content of the new response, to be stored in the responses table
+    :param previous_value: string content of the previous response, to be stored in the responses table
 
     :return:
     """
@@ -715,12 +715,12 @@ def _process_response(request_id,
     release_date = calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS) if privacy == RELEASE_AND_PUBLIC else None
 
     # create response object
-    response = Responses(request_id=request_id,
-                         type=responses_type,
-                         date_modified=datetime.utcnow(),
-                         metadata_id=metadata_id,
-                         privacy=privacy,
-                         release_date=release_date)
+    response = Responses(request_id,
+                         responses_type,
+                         metadata_id,
+                         privacy,
+                         datetime.utcnow(),
+                         release_date)
     # store response object
     create_object(obj=response)
 
@@ -732,15 +732,15 @@ def _process_response(request_id,
         user_guid = current_user.guid
         auth_user_type = current_user.auth_user_type
 
-    new_response_value.update(privacy=privacy)
+    new_value.update(privacy=privacy)
     event = Events(request_id=request_id,
                    user_id=user_guid,
                    auth_user_type=auth_user_type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
-                   previous_response_value=previous_response_value,
-                   new_response_value=new_response_value)
+                   previous_value=previous_value,
+                   new_value=new_value)
     # store event object
     create_object(obj=event)
 
@@ -824,8 +824,8 @@ class ResponseEditor(metaclass=ABCMeta):
                 user_id=self.user.guid,
                 auth_user_type=self.user.auth_user_type,
                 timestamp=timestamp,
-                previous_response_value=self.data_old,
-                new_response_value=self.data_new)
+                previous_value=self.data_old,
+                new_value=self.data_new)
             create_object(event)
             update_object({'date_modified': timestamp,
                           'privacy': self.data_new['privacy']},
