@@ -43,7 +43,7 @@ def response_note(request_id):
     Call add_link to process the extension form data.
 
     :param request_id: FOIL request ID for the specific note.
-    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    :return: Redirect to view request page upon endpoint function completion.
     """
     note_data = flask_request.form
 
@@ -77,7 +77,7 @@ def response_file(request_id):
     Render specific tempalte and send email notification bcc agency users if privacy is private.
 
     :param request_id: FOIL request ID for the specific file.
-    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    :return: redirects to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
@@ -113,7 +113,7 @@ def response_extension(request_id):
 
     :param request_id: FOIL request ID for the specific extension.
 
-    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    :return: Redirect to view request page upon endpoint function completion.
     """
     extension_data = flask_request.form
 
@@ -148,7 +148,7 @@ def response_link(request_id):
 
     :param request_id: FOIL request ID for the specific link.
 
-    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    :return: Redirect to view request page upon endpoint function completion.
     """
     link_data = flask_request.form
 
@@ -183,7 +183,7 @@ def response_instructions(request_id):
 
     :param request_id: FOIL request ID for the specific note.
 
-    :return: Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    :return: Redirect to view request page upon endpoint function completion.
     """
     instruction_data = flask_request.form
 
@@ -210,8 +210,37 @@ def response_instructions(request_id):
 @response.route('/email', methods=['POST'])
 def response_email():
     """
-    Render email template onto response forms.
-    Call process_email_template_request to render specific response template with appropriate data.
+    Return email template for a particular response workflow step.
+
+    Request Parameters:
+    - request_id: FOIL request ID
+    - type: response type
+    - privacy: selected privacy option
+    - extension: data for populating html template
+        - length: selected value of extension length (-1, 20, 30, 60, 90)
+        - custom_due_date: new custom due date of request (default is current request due_date)
+        - reason: reason for extension
+    - link: data for populating html template
+        - url: url link inputted by user from front end
+    - offline_instructions: data for populating html template
+        - instruction: json object with key and values of content and privacy
+    - note: data for populating html template
+        - note: json object with key and values of content and privacy
+    - file: data for populating html template
+        - files: json object with key and values of filename and privacy
+    - email_content: (on second next click) html template of specific response which may include edits
+
+    Ex:
+    {
+         "request_id": "FOIL-XXX",
+         "type": "extension",
+         "extension": {
+               "length": "20",
+               "custom_due_date": "2016-11-14",
+               "reason": "We need more time to process your request."
+         }
+         "email_content": HTML
+    }
 
     :return: Returns the HTML of the rendered template
     """

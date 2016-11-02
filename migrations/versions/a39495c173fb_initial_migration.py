@@ -1,13 +1,13 @@
-"""Initial Migration
+"""Initial migration
 
-Revision ID: ba95e83c5e47
+Revision ID: a39495c173fb
 Revises: None
-Create Date: 2016-11-01 11:43:24.289778
+Create Date: 2016-11-02 18:19:55.868093
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'ba95e83c5e47'
+revision = 'a39495c173fb'
 down_revision = None
 
 from alembic import op
@@ -103,6 +103,7 @@ def upgrade():
     sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='status'), nullable=True),
     sa.Column('privacy', postgresql.JSON(), nullable=True),
     sa.Column('agency_description', sa.String(length=5000), nullable=True),
+    sa.Column('agency_description_release_date', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -127,10 +128,11 @@ def upgrade():
     op.create_table('responses',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('request_id', sa.String(length=19), nullable=True),
-    sa.Column('type', sa.String(length=30), nullable=True),
+    sa.Column('type', sa.Enum('note', 'file', 'link', 'offline_instructions', 'extension', 'email', 'push', 'sms', name='type'), nullable=True),
     sa.Column('metadata_id', sa.Integer(), nullable=False),
     sa.Column('privacy', sa.Enum('private', 'release_private', 'release_public', name='privacy'), nullable=True),
     sa.Column('date_modified', sa.DateTime(), nullable=True),
+    sa.Column('release_date', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['metadata_id'], ['metadatas.id'], ),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -153,8 +155,8 @@ def upgrade():
     sa.Column('response_id', sa.Integer(), nullable=True),
     sa.Column('type', sa.String(length=30), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
-    sa.Column('previous_response_value', postgresql.JSON(), nullable=True),
-    sa.Column('new_response_value', postgresql.JSON(), nullable=True),
+    sa.Column('previous_value', postgresql.JSON(), nullable=True),
+    sa.Column('new_value', postgresql.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.ForeignKeyConstraint(['response_id'], ['responses.id'], ),
     sa.ForeignKeyConstraint(['user_id', 'auth_user_type'], ['users.guid', 'users.auth_user_type'], ),

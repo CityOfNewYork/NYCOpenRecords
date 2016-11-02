@@ -17,6 +17,7 @@ from app.constants import (
     user_type_auth,
     user_type_request,
     request_status,
+    response_type,
     response_privacy,
     submission_methods,
 )
@@ -499,7 +500,16 @@ class Responses(db.Model):
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    type = db.Column(db.String(30))  # TODO: enum
+    type = db.Column(db.Enum(
+        response_type.NOTE,
+        response_type.FILE,
+        response_type.LINK,
+        response_type.INSTRUCTIONS,
+        response_type.EXTENSION,
+        response_type.EMAIL,
+        response_type.PUSH,
+        response_type.SMS,
+        name='type'))
     metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
     privacy = db.Column(db.Enum(
         response_privacy.PRIVATE,

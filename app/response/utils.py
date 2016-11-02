@@ -150,17 +150,19 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
         request_id)
     extension = Extensions(reason=reason, date=new_due_date)
     create_object(obj=extension)
+    privacy = RELEASE_AND_PUBLIC
     extension_metadata = {'reason': reason,
                           'date': new_due_date.isoformat(),
-                          'privacy': RELEASE_AND_PUBLIC}
+                          'privacy': privacy}
     _process_response(request_id,
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
                       extension.id,
                       extension_metadata,
-                      privacy=RELEASE_AND_PUBLIC)
-    _send_extension_email(request_id,
-                          email_content)
+                      privacy=privacy)
+    _send_response_email(request_id,
+                         privacy,
+                         email_content)
 
 
 def add_link(request_id, title, url_link, email_content, privacy):
@@ -356,11 +358,11 @@ def process_email_template_request(request_id, data):
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     # set a dictionary of email types to handler functions to handle the specific response type
     handler_for_type = {
-        response_type.EXTENSION_EMAIL: _extension_email_handler,
-        response_type.FILE_EMAIL: _file_email_handler,
-        response_type.LINK_EMAIL: _link_email_handler,
-        response_type.NOTE_EMAIL: _note_email_handler,
-        response_type.INSTRUCTION_EMAIL: _instruction_email_handler
+        response_type.EXTENSION: _extension_email_handler,
+        response_type.FILE: _file_email_handler,
+        response_type.LINK: _link_email_handler,
+        response_type.NOTE: _note_email_handler,
+        response_type.INSTRUCTIONS: _instruction_email_handler
     }
     return handler_for_type[data['type']](request_id, data, page, agency_name, email_template)
 
@@ -624,28 +626,6 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
                                   email_content,
                                   subject,
                                   bcc=bcc)
-
-
-def _send_extension_email(request_id, email_content):
-    """
-    Function that sends email detailing a extension has been added to a request.
-    Send email to the requester and bcc all agency users detailing an extension has been added to the request.
-
-    :param request_id: FOIL request ID
-    :param email_content: string of HTML email content that can be used as a message template
-
-    :return:
-    """
-    subject = 'Response Added'
-    bcc = get_agencies_emails(request_id)
-    requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                   request_user_type=REQUESTER).first().user.email
-    # Send email with files to requester and bcc agency users as privacy option is release
-    safely_send_and_add_email(request_id,
-                              email_content,
-                              subject,
-                              to=[requester_email],
-                              bcc=bcc)
 
 
 def _send_response_email(request_id, privacy, email_content):
