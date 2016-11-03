@@ -211,20 +211,20 @@ def edit_requester_info(request_id):
             }
         }, Users, (requester.guid, requester.auth_user_type))
 
-        update_object({
-            'email': flask_request.form.get('email') or requester.email,
-            'phone_number': flask_request.form.get('phone') or requester.phone_number,
-            'fax_number': flask_request.form.get('fax') or requester.fax_number,
-            'title': flask_request.form.get('title') or requester.title,
-            'organization': flask_request.form.get('organization') or requester.organization,
-            'mailing_address': {
-                'zip': flask_request.form.get('zipcode') or requester.mailing_address['zip'],
-                'city': flask_request.form.get('city') or requester.mailing_address['city'],
-                'state': flask_request.form.get('state') or requester.mailing_address['state'],
-                'address_one': flask_request.form.get('address_one') or requester.mailing_address['address_one'],
-                'address_two': flask_request.form.get('address_two') or requester.mailing_address['address_two'],
-
-            }
-        }, Users, (requester.guid, requester.auth_user_type))
+        # update_object({
+        #     'email': flask_request.form.get('email') or requester.email,
+        #     'phone_number': flask_request.form.get('phone') or requester.phone_number,
+        #     'fax_number': flask_request.form.get('fax') or requester.fax_number,
+        #     'title': flask_request.form.get('title') or requester.title,
+        #     'organization': flask_request.form.get('organization') or requester.organization,
+        #     'mailing_address': {
+        #         'zip': flask_request.form.get('zipcode') or requester.mailing_address['zip'],
+        #         'city': flask_request.form.get('city') or requester.mailing_address['city'],
+        #         'state': flask_request.form.get('state') or requester.mailing_address['state'],
+        #         'address_one': flask_request.form.get('address_one') or requester.mailing_address['address_one'],
+        #         'address_two': flask_request.form.get('address_two') or requester.mailing_address['address_two'],
+        #
+        #     }
+        # }, Users, (requester.guid, requester.auth_user_type))
 
     return jsonify({}), 200
