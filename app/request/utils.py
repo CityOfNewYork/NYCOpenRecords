@@ -383,7 +383,6 @@ def send_confirmation_email(request, agency, user):
     :param request: Requests object containing the new created request
     :param agency: Agencies object containing the agency of the new request
     :param user: Users object containing the user who created the request
-    :return: sends an email to the requester and agency containing all information related to the request
     """
     subject = 'New Request Created ({})'.format(request.id)
 

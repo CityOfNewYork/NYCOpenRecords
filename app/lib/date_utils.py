@@ -37,7 +37,7 @@ def generate_new_due_date(extension_length, request_id):
     :param extension_length: length the due date is being extended by (passed in as a string so we must parse to int)
     :param request_id: FOIL request ID, used to query the current due date
 
-    :return: Returns the new due date of the request
+    :return: the new due date of the request
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     current_due_date = current_request.due_date

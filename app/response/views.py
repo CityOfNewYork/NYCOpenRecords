@@ -43,7 +43,7 @@ def response_note(request_id):
     Call add_link to process the extension form data.
 
     :param request_id: FOIL request ID for the specific note.
-    :return: Redirect to view request page upon endpoint function completion.
+    :return: redirect to view request page
     """
     note_data = flask_request.form
 
@@ -77,7 +77,7 @@ def response_file(request_id):
     Render specific tempalte and send email notification bcc agency users if privacy is private.
 
     :param request_id: FOIL request ID for the specific file.
-    :return: redirects to view request page
+    :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
@@ -113,7 +113,7 @@ def response_extension(request_id):
 
     :param request_id: FOIL request ID for the specific extension.
 
-    :return: Redirect to view request page upon endpoint function completion.
+    :return: redirect to view request page
     """
     extension_data = flask_request.form
 
@@ -148,7 +148,7 @@ def response_link(request_id):
 
     :param request_id: FOIL request ID for the specific link.
 
-    :return: Redirect to view request page upon endpoint function completion.
+    :return: redirect to view request page
     """
     link_data = flask_request.form
 
@@ -183,7 +183,7 @@ def response_instructions(request_id):
 
     :param request_id: FOIL request ID for the specific note.
 
-    :return: Redirect to view request page upon endpoint function completion.
+    :return: redirect to view request page
     """
     instruction_data = flask_request.form
 
@@ -242,7 +242,7 @@ def response_email():
          "email_content": HTML
     }
 
-    :return: Returns the HTML of the rendered template
+    :return: the HTML of the rendered template
     """
     data = flask_request.form
     request_id = data['request_id']

@@ -55,8 +55,7 @@ def new():
     agency: agency selected for the request
     submission: submission method for the request
 
-    :return: redirects to homepage if form validates
-     uploaded file is stored in app/static
+    :return: redirect to homepage on successful form validation
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
     site_key = current_app.config['RECAPTCHA_SITE_KEY']
@@ -146,7 +145,7 @@ def view(request_id):
     """
     This function is for testing purposes of the view a request back until backend functionality is implemented.
 
-    :return: redirects to view_request.html which is the frame of the view a request page
+    :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     agency = current_request.agency

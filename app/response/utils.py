@@ -297,7 +297,7 @@ def process_upload_data(form):
 
     :param form: form object to be processed and separated into appropriate keys and values
 
-    :return: A dictionary, files, that contains the uploaded file(s)'s metadata.
+    :return: A dictionary that contains the uploaded file(s)'s metadata.
     """
     files = {}
     # re_obj is a regular expression that specifies a set of strings and allows you to check if a particular string
@@ -351,7 +351,7 @@ def process_email_template_request(request_id, data):
     :param data: Data from the frontend AJAX call
     :param request_id: FOIL request ID
 
-    :return: Returns the HTML of the rendered template
+    :return: the HTML of the rendered template
     """
     page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
@@ -379,7 +379,7 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: Returns the HTML of the rendered template of an extension response
+    :return: the HTML of the rendered template of an extension response
     """
     extension = data.get('extension')
     # if data['extension'] exists, use email_content as template with specific extension email template
@@ -420,7 +420,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: Returns the HTML of the rendered template of a file response
+    :return: the HTML of the rendered template of a file response
     """
     # create a dictionary of filenames to be passed through jinja to email template
     files_links = {}
@@ -462,7 +462,7 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: Returns the HTML of the rendered template of a file response
+    :return: the HTML of the rendered template of a file response
     """
     link = data.get('link')
     # if data['link'] exists, use email_content as template with specific link email template
@@ -505,7 +505,7 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: Returns the HTML of the rendered template of a note response
+    :return: the HTML of the rendered template of a note response
     """
     note = data.get('note')
     # if data['note'] exists, use email_content as template with specific link email template
@@ -549,7 +549,7 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: Returns the HTML of the rendered template of an instruction response
+    :return: the HTML of the rendered template of an instruction response
     """
     instruction = data.get('instruction')
     # if data['instructions'] exists, use email_content as template with specific instructions template
