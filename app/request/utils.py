@@ -150,7 +150,7 @@ def create_request(title,
         create_object(obj=response)
 
         # 8. Create upload Event
-        metadata.update(privacy=RELEASE_AND_PRIVATE)
+        metadata['privacy'] = RELEASE_AND_PRIVATE
         upload_event = Events(user_id=user.guid,
                               auth_user_type=user.auth_user_type,
                               response_id=response.id,
