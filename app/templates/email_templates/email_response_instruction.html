@@ -1,11 +1,11 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
-    {% if url %}
+    {% if instruction_content %}
         {% if privacy != response_privacy.PRIVATE %}
-            You can view the additional information at the following webpage: </p>
+            The following Offline Instructions has been added to request {{ request_id }}:
         {% endif %}
         <p>
-            <a href="{{ url }}">{{ url }}</a>
+            {{ instruction_content }}
         </p>
     {% endif %}
 {% endblock %}

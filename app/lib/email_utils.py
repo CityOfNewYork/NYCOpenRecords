@@ -41,7 +41,6 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_c
     :param template: HTML and TXT template of the email content
     :param email_content: string of HTML email content that can be used as a message template
     :param kwargs: Additional arguments the function may take in (ie: Message content)
-    :return: Sends email asynchronously
     """
     assert to or cc or bcc
     msg = Message(current_app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject,
@@ -60,7 +59,7 @@ def get_agencies_emails(request_id):
     Gets a list of the agencies emails by querying UserRequests by request_id and request_user_type
 
     :param request_id: FOIL request ID to query UserRequests
-    :return: Returns a list of agency emails or ['agency@email.com'] (for testing)
+    :return: list of agency emails or ['agency@email.com'] (for testing)
     """
     # Get list of agency users on the request
     agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,

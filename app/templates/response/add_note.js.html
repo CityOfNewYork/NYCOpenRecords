@@ -16,17 +16,15 @@ $(document).ready(function () {
 
         // If validation fields are valid, proceed with next click function
         if ($('#add-note-form').parsley().isValid()) {
-            var formData = {
-                request_id: "{{ request.id }}",
-                template_name: "email_response_link.html",
-                type: "note_email"
-            };
-
             $.ajax({
                 url: "/response/email",
                 type: 'POST',
-                data: JSON.stringify(formData),
-                contentType: false,
+                data: {
+                    request_id: "{{ request.id }}",
+                    template_name: "email_response_link.html",
+                    type: "note",
+                    privacy: $(".note-privacy:checked").val()
+                },
                 success: function (data) {
                     // Data should be html template page.
                     tinyMCE.get('email-note-content').setContent(data);
@@ -40,29 +38,19 @@ $(document).ready(function () {
     // Handles click events on the second next button
     $("#note-next-2").click(function () {
         tinyMCE.triggerSave();
-
-        // Store the values of note-url and note-privacy into variables
-        var content = $('#note-content').val();
-        var privacy = $(".note-privacy:checked").val();
-
-        // Create a dictionary called note with keys of content and privacy
-        note = {};
-        note["content"] = content;
-        note["privacy"] = privacy;
-
-        var formData = {
-            request_id: "{{ request.id }}",
-            template_name: "email_response_note.html",
-            type: "note_email",
-            note: note,
-            email_content: $('#email-note-content').val()
-        };
-
         $.ajax({
             url: "/response/email",
             type: 'POST',
-            data: JSON.stringify(formData),
-            contentType: false,
+            data: {
+                request_id: "{{ request.id }}",
+                template_name: "email_response_note.html",
+                type: "note",
+                note: JSON.stringify({
+                    content: $('#note-content').val(),
+                    privacy: $(".note-privacy:checked").val()
+                }),
+                email_content: $('#email-note-content').val()
+            },
             success: function (data) {
                 // Data should be html template page.
                 $("#email-note-summary").html(data);

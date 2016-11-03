@@ -17,6 +17,7 @@ from app.constants import (
     user_type_auth,
     user_type_request,
     request_status,
+    response_type,
     response_privacy,
     submission_methods,
 )
@@ -341,6 +342,7 @@ class Requests(db.Model):
                 name='status'))
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
+    agency_description_release_date = db.Column(db.DateTime)
 
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
@@ -449,8 +451,8 @@ class Events(db.Model):
     response_id - a foreign key that links to the primary key of a response
     type - a string containing the type of event that occurred
     timestamp - a datetime that keeps track of what time an event was performed
-    previous_response_value - a string containing the old response value
-    new_response_value - a string containing the new response value
+    previous_value - a string containing the old value of the event
+    new_value - a string containing the new value of the event
     """
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
@@ -470,8 +472,8 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_response_value = db.Column(JSON)
-    new_response_value = db.Column(JSON)
+    previous_value = db.Column(JSON)
+    new_value = db.Column(JSON)
 
     __table_args__ = (
         db.ForeignKeyConstraint(
@@ -479,7 +481,6 @@ class Events(db.Model):
             [Users.guid, Users.auth_user_type]
         ),
     )
-
 
     def __repr__(self):
         return '<Events %r>' % self.id
@@ -499,7 +500,16 @@ class Responses(db.Model):
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    type = db.Column(db.String(30))  # TODO: enum
+    type = db.Column(db.Enum(
+        response_type.NOTE,
+        response_type.FILE,
+        response_type.LINK,
+        response_type.INSTRUCTIONS,
+        response_type.EXTENSION,
+        response_type.EMAIL,
+        response_type.PUSH,
+        response_type.SMS,
+        name='type'))
     metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
     privacy = db.Column(db.Enum(
         response_privacy.PRIVATE,
@@ -507,21 +517,23 @@ class Responses(db.Model):
         response_privacy.RELEASE_AND_PUBLIC,
         name="privacy"))
     date_modified = db.Column(db.DateTime)
-
+    release_date = db.Column(db.DateTime)
     metadatas = db.relationship(  # 'metadata' is reserved
         'Metadatas', backref=db.backref('response', uselist=False))
 
     def __init__(self,
                  request_id,
-                 type,
+                 request_type,
                  metadata_id,
                  privacy,
-                 date_modified=datetime.utcnow()):
+                 date_modified=datetime.utcnow(),
+                 release_date=None):
         self.request_id = request_id
-        self.type = type
+        self.type = request_type
         self.metadata_id = metadata_id
         self.privacy = privacy
         self.date_modified = date_modified
+        self.release_date = release_date
 
     def __repr__(self):
         return '<Responses %r>' % self.id

@@ -24,6 +24,7 @@ from app.response.utils import (
     add_file,
     add_link,
     add_extension,
+    add_instruction,
     process_upload_data,
     send_file_email,
     process_privacy_options,
@@ -38,11 +39,11 @@ def response_note(request_id):
     """
     Note response endpoint that takes in the content of a note for a specific request from the frontend.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_link to process the extension form data.
 
     :param request_id: FOIL request ID for the specific note.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+    :return: redirect to view request page
     """
     note_data = flask_request.form
 
@@ -54,7 +55,7 @@ def response_note(request_id):
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
         if note_data.get(field) is None:
-            flash('Uh Oh, it looks like the link {} is missing! '
+            flash('Uh Oh, it looks like the instruction {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
@@ -76,7 +77,7 @@ def response_file(request_id):
     Render specific tempalte and send email notification bcc agency users if privacy is private.
 
     :param request_id: FOIL request ID for the specific file.
-    :return: redirects to view request page as of right now (IN DEVELOPMENT)
+    :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
@@ -107,11 +108,12 @@ def response_extension(request_id):
     """
     Extension response endpoint that takes in the metadata of an extension for a specific request from the frontend.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_extension to process the extension form data.
 
     :param request_id: FOIL request ID for the specific extension.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+
+    :return: redirect to view request page
     """
     extension_data = flask_request.form
 
@@ -141,11 +143,12 @@ def response_link(request_id):
     """
     Link response endpoint that takes in the metadata of a link for a specific request from the frontend.
     Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
     Call add_link to process the extension form data.
 
     :param request_id: FOIL request ID for the specific link.
-    :return: Flash error message if required form data is missing.
-             Redirect to view request page as of right now (IN DEVELOPMENT) upon endpoint function completion.
+
+    :return: redirect to view request page
     """
     link_data = flask_request.form
 
@@ -170,16 +173,78 @@ def response_link(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
-# TODO: Implement response route for email
-@response.route('/email', methods=['GET', 'POST'])
+@response.route('/instruction/<request_id>', methods=['POST'])
+def response_instructions(request_id):
+    """
+    Instruction response endpoint that takes in from the frontend, the content of a instruction for a specific request.
+    Check if required data from form is retrieved.
+    Flash error message if required form data is missing.
+    Call add_instruction to process the extension form data.
+
+    :param request_id: FOIL request ID for the specific note.
+
+    :return: redirect to view request page
+    """
+    instruction_data = flask_request.form
+
+    required_fields = ['content',
+                       'email-instruction-summary',
+                       'privacy']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if instruction_data.get(field) is None:
+            flash('Uh Oh, it looks like the instruction {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    current_request = Requests.query.filter_by(id=request_id).first()
+    add_instruction(current_request.id,
+                    instruction_data['content'],
+                    instruction_data['email-instruction-summary'],
+                    instruction_data['privacy'])
+    return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/email', methods=['POST'])
 def response_email():
     """
-    Render email template onto response forms.
-    Call process_email_template_request to render specific response template with appropriate data.
+    Return email template for a particular response workflow step.
 
-    :return: Returns the HTML of the rendered template
+    Request Parameters:
+    - request_id: FOIL request ID
+    - type: response type
+    - privacy: selected privacy option
+    - extension: data for populating html template
+        - length: selected value of extension length (-1, 20, 30, 60, 90)
+        - custom_due_date: new custom due date of request (default is current request due_date)
+        - reason: reason for extension
+    - link: data for populating html template
+        - url: url link inputted by user from front end
+    - offline_instructions: data for populating html template
+        - instruction: json object with key and values of content and privacy
+    - note: data for populating html template
+        - note: json object with key and values of content and privacy
+    - file: data for populating html template
+        - files: json object with key and values of filename and privacy
+    - email_content: (on second next click) html template of specific response which may include edits
+
+    Ex:
+    {
+         "request_id": "FOIL-XXX",
+         "type": "extension",
+         "extension": {
+               "length": "20",
+               "custom_due_date": "2016-11-14",
+               "reason": "We need more time to process your request."
+         }
+         "email_content": HTML
+    }
+
+    :return: the HTML of the rendered template
     """
-    data = json.loads(flask_request.data.decode())
+    data = flask_request.form
     request_id = data['request_id']
     email_template = process_email_template_request(request_id, data)
     return email_template

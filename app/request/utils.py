@@ -142,22 +142,22 @@ def create_request(title,
         metadata_id, metadata = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        response = Responses(request_id=request_id,
-                             type=FILE,
-                             date_modified=datetime.utcnow(),
-                             metadata_id=metadata_id,
-                             privacy=RELEASE_AND_PRIVATE)
+        response = Responses(request_id,
+                             FILE,
+                             metadata_id,
+                             RELEASE_AND_PRIVATE,
+                             datetime.utcnow())
         create_object(obj=response)
 
         # 8. Create upload Event
+        metadata.update(privacy=RELEASE_AND_PRIVATE)
         upload_event = Events(user_id=user.guid,
                               auth_user_type=user.auth_user_type,
                               response_id=response.id,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_response_value=metadata.update(
-                                  privacy=RELEASE_AND_PRIVATE))
+                              new_value=metadata)
         create_object(upload_event)
 
     role_to_user = {
@@ -181,13 +181,13 @@ def create_request(title,
                    request_id=request_id,
                    type=event_type.REQ_CREATED,
                    timestamp=timestamp,
-                   new_response_value=request_metadata)
+                   new_value=request_metadata)
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
                               auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
-                              type=event_type.REQ_CREATED,
+                              type=event_type.AGENCY_REQ_CREATED,
                               timestamp=timestamp)
         create_object(agency_event)
 
@@ -383,7 +383,6 @@ def send_confirmation_email(request, agency, user):
     :param request: Requests object containing the new created request
     :param agency: Agencies object containing the agency of the new request
     :param user: Users object containing the user who created the request
-    :return: sends an email to the requester and agency containing all information related to the request
     """
     subject = 'New Request Created ({})'.format(request.id)
 
