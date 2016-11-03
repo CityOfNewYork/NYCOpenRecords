@@ -110,8 +110,11 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/status.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/fileupload.js') }}"></script>
     {% include "request/fileupload_add_file.js.html" %}
+    {% include "request/fileupload_update_templates.js.html" %}
     {% include 'request/status.js.html' %}
     {% include 'request/_view_request_edit_visibility.js.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}

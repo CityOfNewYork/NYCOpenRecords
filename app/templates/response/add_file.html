@@ -2,7 +2,8 @@
       enctype="multipart/form-data">
     <div class="add-file col-sm-9">
         <div class="fileupload-control">
-            <legend class="extension-header">  <!-- FIXME: Legend not allowed here -->
+            <fieldset>
+            <legend class="extension-header">
                 Add File
             </legend>
             <div class="fileupload-error-messages"></div>
@@ -50,6 +51,9 @@
             </div>
             <!-- second div of the add-extension form containing email content -->
             <div class="fileupload-divs hide-div" id="fileupload-second">
+                <div class='alert alert-warning'>
+                    Files made Release and Public or Release and Private will be shown with links on the next page.
+                </div>
                 <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="fileupload-next-2">Next</button>
@@ -64,6 +68,7 @@
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>
+            </fieldset>
         </div>
     </div>
 </form>
@@ -111,19 +116,22 @@
                 </p>
 
                 {% if (!(file.error)) { %}
-                    <span class="fileupload-input-fields hidden">
+                    <div class="fileupload-input-fields hidden">
                         Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
                         <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
                         <div class="radio">
-                            <label><input type="radio" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="release_public">Release and Public</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="release_private">Release and Private</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="{%=file.name%}::privacy" value="private" checked>Private</label>
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="private" checked>Private</label>
                         </div>
-                    </span>
+                    </div>
                 {% } %}
 
                 {% if (file.error) { %}

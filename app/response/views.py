@@ -292,17 +292,20 @@ def response_visiblity():
 @response.route('/<response_id>', methods=['PUT'])
 def edit_response(response_id):
     """
-    Edit a response's privacy and its metadata.
+    Edit a response's privacy and its metadata and send a notification email.
 
-    Expects a request body containing field names and updated values.
+    Expects a request body containing field names and updated values,
+    as well as the body of the notification email.
     Ex:
     {
         'privacy': 'release_public',
         'title': 'new title'
         'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
+        'email_content': HTML
     }
     Response body consists of both the old and updated data, or an error message.
     """
+    # TODO: remove
     from app.models import Users
     from flask_login import login_user
     login_user(Users.query.first())
@@ -310,23 +313,27 @@ def edit_response(response_id):
     if current_user.is_anonymous:
         return jsonify({}), 403
     # TODO: user permissions check
-    resp = Responses.query.filter_by(id=response_id).first()
-    editor_for_type = {
-        response_type.FILE: RespFileEditor,
-        # response_type.NOTE: RespNoteEditor,
-        # ...
-    }
-    editor = editor_for_type[resp.type](current_user, resp, flask_request)
-    if editor.errors:
-        http_response = {"errors": editor.errors}
+
+    if flask_request.form.get("email_content") is None:
+        http_response = {"errors": "Missing 'email_content'"}
     else:
-        if editor.no_change:  # TODO: unittest
-            http_response = {
-                "message": "No changes detected."
-            }
+        resp = Responses.query.filter_by(id=response_id).first()
+        editor_for_type = {
+            response_type.FILE: RespFileEditor,
+            # response_type.NOTE: RespNoteEditor,
+            # ...
+        }
+        editor = editor_for_type[resp.type](current_user, resp, flask_request)
+        if editor.errors:
+            http_response = {"errors": editor.errors}
         else:
-            http_response = {
-                "old": editor.data_old,
-                "new": editor.data_new
-            }
+            if editor.no_change:  # TODO: unittest
+                http_response = {
+                    "message": "No changes detected."
+                }
+            else:
+                http_response = {
+                    "old": editor.data_old,
+                    "new": editor.data_new
+                }
     return jsonify(http_response), 200

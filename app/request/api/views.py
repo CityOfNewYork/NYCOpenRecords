@@ -14,6 +14,7 @@ from app.request.api import request_api_blueprint
 from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
+from app.constants import RESPONSES_INCREMENT
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -90,7 +91,7 @@ def get_request_responses():
         request_id=flask_request.args['request_id']
     ).order_by(
         desc(Responses.date_modified)
-    ).all()[start: start + 20]  # FIXME: constant (20)
+    ).all()[start: start + RESPONSES_INCREMENT]
 
     template_path = 'request/responses/'
     response_jsons = []

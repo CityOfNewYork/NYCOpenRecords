@@ -27,7 +27,7 @@
             </div>
             <div class ="second" hidden>
                 <div class="modal-body">
-                    SECOND
+                    <textarea class="tinymce-area" name="email-file-content-{{ response.id }}" title="email-content"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
@@ -43,7 +43,9 @@
             </div>
             <div class="third" hidden>
                 <div class="modal-body">
-                    THIRD
+                    <h4>The following will be Submitted to the request:</h4>
+                    <h5>Email:</h5>
+                    <div class="email-file-summary"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
@@ -53,48 +55,9 @@
                     </button>
                     <button type="button" class="btn btn-primary response-modal-submit">
                         Submit
-                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script type="text/javascript">
-    $(function() {
-        //TODO: make function, call here with (response.id, response.type)
-
-        var response_modal = $("#response-modal-{{ response.id }}");
-
-        var first = response_modal.find('.first');
-        var second = response_modal.find('.second');
-        var third = response_modal.find('.third');
-
-        var next1 = first.find('.response-modal-next');
-        var next2 = second.find('.response-modal-next');
-        var prev2 = second.find('.response-modal-prev');
-        var prev3 = third.find('.response-modal-prev');
-
-        next1.click(function() {
-            first.hide();
-            second.show();
-        });
-
-        next2.click(function() {
-            second.hide();
-            third.show();
-        });
-
-        prev2.click(function() {
-            second.hide();
-            first.show();
-        });
-
-        prev3.click(function(){
-            third.hide();
-            second.show();
-        });
-
-    });
-</script>

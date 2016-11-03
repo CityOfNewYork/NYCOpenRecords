@@ -647,8 +647,10 @@ def _send_response_email(request_id, privacy, email_content):
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
-    requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                   request_user_type=REQUESTER).first().user.email
+    requester_email = UserRequests.query.filter_by(
+        request_id=request_id,
+        request_user_type=REQUESTER
+    ).first().user.email
     # Send email with link to requester and bcc agency_ein users as privacy option is release
     kwargs = {
         'bcc': bcc,
@@ -775,13 +777,9 @@ class ResponseEditor(metaclass=ABCMeta):
         self.edit_metadata()
         if self.data_changed():
             self.add_event_and_update()
+            self.send_email()
         else:
             self.no_change = True
-
-        # TODO: self.email()
-        # What should be the email_content?
-        # Edit existing email response OR new response?
-        # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
 
     def set_data_values(self, key, old, new):
         if old != new:
@@ -867,6 +865,14 @@ class ResponseEditor(metaclass=ABCMeta):
                 update_object(self.metadata_new,
                               type(self.metadata),
                               self.metadata.id)
+
+    def send_email(self):
+        privacy = (self.data_new['privacy']
+                   if self.privacy_changed else self.response.privacy)
+        email_content = self.flask_request.form["email_content"]
+        _send_response_email(self.response.request_id,
+                             privacy,
+                             email_content)
 
 
 class RespFileEditor(ResponseEditor):
