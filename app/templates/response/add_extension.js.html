@@ -108,10 +108,15 @@
 
         function DisableSpecificDates(date) {
             var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
-            if (holiday_dates.indexOf(string) == -1) {
-                return [string];
-            } else {
+            console.log("Date: " + string + "; Day #: " + date.getDay());
+            if (
+                    ($.inArray(string, holiday_dates) > -1) ||
+                    (date.getDay() === 0) ||
+                    (date.getDay() === 6)
+            ) {
                 return [];
+            } else {
+                return [string];
             }
         }
 
@@ -119,6 +124,7 @@
         function disableHolidayAndWeekends(date) {
             // If current date is not a holiday, checks if date is a weekend
             var holiday = DisableSpecificDates(date);
+            console.log("Is Date: " + holiday)
             if (holiday != []) {
                 return holiday;
             }
@@ -136,7 +142,7 @@
         // Datepicker for extension date of a request
         $("#custom-extension").datepicker({
             dateFormat: "yy-mm-dd",
-            daysOfWeekDisabled: [0,6],
+            daysOfWeekDisabled: [0, 6],
             beforeShowDay: disableHolidayAndWeekends
         });
 
