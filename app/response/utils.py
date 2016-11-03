@@ -109,8 +109,7 @@ def add_note(request_id, note_content, email_content, privacy):
     """
     note = Notes(content=note_content)
     create_object(obj=note)
-    note_metadata = {'content': note_content,
-                     'privacy': privacy}
+    note_metadata = {'content': note_content}
     _process_response(request_id,
                       response_type.NOTE,
                       event_type.NOTE_ADDED,
@@ -155,8 +154,7 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     create_object(obj=extension)
     privacy = RELEASE_AND_PUBLIC
     extension_metadata = {'reason': reason,
-                          'date': new_due_date.isoformat(),
-                          'privacy': privacy}
+                          'date': new_due_date.isoformat()}
     _process_response(request_id,
                       response_type.EXTENSION,
                       event_type.REQ_EXTENDED,
@@ -186,8 +184,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     link = Links(title=title, url=url_link)
     create_object(obj=link)
     link_metadata = {'title': title,
-                     'url': url_link,
-                     'privacy': privacy}
+                     'url': url_link}
     _process_response(request_id,
                       response_type.LINK,
                       event_type.LINK_ADDED,
@@ -214,8 +211,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     """
     instruction = Instructions(content=instruction_content)
     create_object(obj=instruction)
-    instruction_metadata = {'content': instruction_content,
-                            'privacy': privacy}
+    instruction_metadata = {'content': instruction_content}
     _process_response(request_id,
                       response_type.INSTRUCTIONS,
                       event_type.INSTRUCTIONS_ADDED,
@@ -716,7 +712,8 @@ def _process_response(request_id,
     :return:
     """
     # calculate response release_date (20 business days from today) if privacy is release and public
-    release_date = calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS) if privacy == RELEASE_AND_PUBLIC else None
+    release_date = (calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS)
+                    if privacy == RELEASE_AND_PUBLIC else None)
 
     # create response object
     response = Responses(request_id,
@@ -729,14 +726,18 @@ def _process_response(request_id,
     create_object(obj=response)
 
     if current_user.is_anonymous:
-        user_guid = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
-                                                                                       request_user_type=REQUESTER)[0]
+        user_guid = UserRequests.query.with_entities(
+            UserRequests.user_guid
+        ).filter_by(
+            request_id=request_id,
+            request_user_type=REQUESTER
+        )[0]
         auth_user_type = ANONYMOUS_USER
     else:
         user_guid = current_user.guid
         auth_user_type = current_user.auth_user_type
 
-    new_value.update(privacy=privacy)
+    new_value['privacy'] = privacy
     event = Events(request_id=request_id,
                    user_id=user_guid,
                    auth_user_type=auth_user_type,
