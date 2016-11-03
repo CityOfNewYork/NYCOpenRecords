@@ -4,8 +4,8 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 
-import json
 from datetime import datetime
+from urllib.request import urlopen
 
 from flask import (
     flash,
@@ -17,10 +17,10 @@ from flask import (
 from flask_login import current_user
 
 from app import us_holidays
+from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
 from app.models import Requests, Responses
 from app.response import response
-from app.constants import response_type
 from app.response.utils import (
     add_note,
     add_file,
@@ -33,7 +33,6 @@ from app.response.utils import (
     process_email_template_request,
     RespFileEditor
 )
-from urllib.request import urlopen
 
 
 @response.route('/note/<request_id>', methods=['POST'])

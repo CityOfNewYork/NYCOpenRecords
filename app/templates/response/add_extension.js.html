@@ -1,161 +1,166 @@
 <script type="text/javascript">
-$(document).ready(function () {
-    // Hides all other divs except for the first
-    $(".extension-control .extension-divs").each(function (e) {
-        if (e != 0)
-            $(this).hide();
-    });
+    $(document).ready(function () {
+        // Hides all other divs except for the first
+        $(".extension-control .extension-divs").each(function (e) {
+            if (e != 0)
+                $(this).hide();
+        });
 
-    // Handles click events on the first next button
-    $("#extension-next-1").click(function (e) {
-        if ($("#custom-extension").is(':visible')) {
-            $("#custom-extension").parsley().validate();
-            if (!$('#custom-extension').parsley().isValid()) {
+        // Handles click events on the first next button
+        $("#extension-next-1").click(function (e) {
+            if ($("#custom-extension").is(':visible')) {
+                $("#custom-extension").parsley().validate();
+                if (!$('#custom-extension').parsley().isValid()) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            // Validate extension select field and reason textarea
+            $("#extension-select").parsley().validate();
+            $("#extension-reason").parsley().validate();
+            if (!$('#extension-select').parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
-        }
-        // Validate extension select field and reason textarea
-        $("#extension-select").parsley().validate();
-        $("#extension-reason").parsley().validate();
-        if (!$('#extension-select').parsley().isValid()) {
-            e.preventDefault();
-            return false;
-        }
-        if (!$('#extension-reason').parsley().isValid()) {
-            e.preventDefault();
-            return false;
-        }
+            if (!$('#extension-reason').parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
 
-        // If validation fields are valid, proceed with next click function
-        if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
+            // If validation fields are valid, proceed with next click function
+            if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
+                $.ajax({
+                    url: "/response/email",
+                    type: 'POST',
+                    data: {
+                        request_id: "{{ request.id }}",
+                        template_name: "email_response_extension.html",
+                        type: "extension"
+                    },
+                    success: function (data) {
+                        // Data should be html template page.
+                        tinyMCE.get('email-extension-content').setContent(data);
+                    }
+                });
+                document.getElementById("extension-first").style.display = "none";
+                document.getElementById("extension-second").style.display = "block";
+            }
+        });
+
+        // Handles click events on the second next button
+        $("#extension-next-2").click(function () {
+            tinyMCE.triggerSave();
+
+            // Store the values of from input fields into variables
+            var length = $('#extension-select').val();
+            var custom_due_date = $('#custom-extension').val();
+            var reason = $('#extension-reason').val();
+
             $.ajax({
                 url: "/response/email",
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
                     template_name: "email_response_extension.html",
-                    type: "extension"
+                    type: "extension",
+                    extension: JSON.stringify({
+                        length: length,
+                        custom_due_date: custom_due_date,
+                        reason: reason
+                    }),
+                    email_content: $('#email-extension-content').val()
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    tinyMCE.get('email-extension-content').setContent(data);
+                    $("#email-extension-summary").html(data);
+                    $("#email-extension-summary-hidden").val(data);
                 }
             });
-            document.getElementById("extension-first").style.display = "none";
+            document.getElementById("extension-second").style.display = "none";
+            document.getElementById("extension-third").style.display = "block";
+        });
+
+        // Handles click events on the first previous button
+        $("#extension-prev-1").click(function () {
+            document.getElementById("extension-first").style.display = "block";
+            document.getElementById("extension-second").style.display = "none";
+        });
+
+        // Handles click events on the second previous button
+        $("#extension-prev-2").click(function () {
+            document.getElementById("extension-third").style.display = "none";
             document.getElementById("extension-second").style.display = "block";
-        }
-    });
+        });
 
-    // Handles click events on the second next button
-    $("#extension-next-2").click(function () {
-        tinyMCE.triggerSave();
-
-        // Store the values of from input fields into variables
-        var length = $('#extension-select').val();
-        var custom_due_date = $('#custom-extension').val();
-        var reason = $('#extension-reason').val();
-
-        $.ajax({
-            url: "/response/email",
-            type: 'POST',
-            data: {
-                request_id: "{{ request.id }}",
-                template_name: "email_response_extension.html",
-                type: "extension",
-                extension: JSON.stringify({
-                    length: length,
-                    custom_due_date: custom_due_date,
-                    reason: reason
-                }),
-                email_content: $('#email-extension-content').val()
-            },
-            success: function (data) {
-                // Data should be html template page.
-                $("#email-extension-summary").html(data);
-                $("#email-extension-summary-hidden").val(data);
+        // Shows custom due date datepicker when Custom Due Date is selected
+        $("#extension-select").change(function () {
+            selected = $(this).val();
+            if (selected === "-1") {
+                $("#custom-due-date").show();
+            }
+            else {
+                $("#custom-due-date").hide();
             }
         });
-        document.getElementById("extension-second").style.display = "none";
-        document.getElementById("extension-third").style.display = "block";
-    });
 
-    // Handles click events on the first previous button
-    $("#extension-prev-1").click(function () {
-        document.getElementById("extension-first").style.display = "block";
-        document.getElementById("extension-second").style.display = "none";
-    });
+        // An array of holiday dates to be disabled
+        var holiday_dates = {{ holidays | safe }};
 
-    // Handles click events on the second previous button
-    $("#extension-prev-2").click(function () {
-        document.getElementById("extension-third").style.display = "none";
-        document.getElementById("extension-second").style.display = "block";
-    });
-
-    // Shows custom due date datepicker when Custom Due Date is selected
-    $("#extension-select").change(function () {
-        selected = $(this).val();
-        if (selected === "-1") {
-            $("#custom-due-date").show();
-        }
-        else {
-            $("#custom-due-date").hide();
-        }
-    });
-
-    // An array of holiday dates to be disabled
-    var holidayDays = ["2016-11-08", "2016-11-11", "2016-11-24", "2016-12-26"];
-
-    // Disables holidays and weekends in datepicker
-    function disableHolidayAndWeekends(date) {
-        // get current month, date, and year, and set them into variables
-        var m = date.getMonth();
-        var d = date.getDate();
-        var y = date.getFullYear();
-
-        // Convert the date into yyyy-mm-dd format and increment month by 1
-        var currentDate = y + '-' + (m + 1) + '-' + d;
-
-        // Check if date is a holiday
-        for (var i = 0; i < holidayDays.length; i++) {
-            // Check if the current date is in holidayDays array
-            if ($.inArray(currentDate, holidayDays) != -1) {
-                return [false];
+        function DisableSpecificDates(date) {
+            var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
+            if (holiday_dates.indexOf(string) == -1) {
+                return [string];
+            } else {
+                return [];
             }
         }
 
-        // If current date is not a holiday, checks if date is a weekend
-        var weekendDate = $.datepicker.noWeekends(date);
-        return weekendDate;
-    }
+        // Disables holidays and weekends in datepicker
+        function disableHolidayAndWeekends(date) {
+            // If current date is not a holiday, checks if date is a weekend
+            var holiday = DisableSpecificDates(date);
+            if (holiday != []) {
+                return holiday;
+            }
+        }
 
-    // Datepicker for extension date of a request
-    $("#custom-extension").datepicker({
-        dateFormat: "yy-mm-dd",
-        beforeShowDay: disableHolidayAndWeekends
+        // TODO: Implement parsley remote validator for is_holiday endpoint
+        {#    $('#custom-extension').attr('date-parsley-remote', '');#}
+        {#    $('#custom-extension').attr('data-parsley-remote-validator', 'is_holiday');#}
+        {##}
+        {#    window.Parsley.addAsyncValidator('is_holiday', function(xhr) {#}
+        {#        console.log(this.$element);#}
+        {#        return 400 == xhr.status;#}
+        {#    }, '/response/is_holiday');#}
+
+        // Datepicker for extension date of a request
+        $("#custom-extension").datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0,6],
+            beforeShowDay: disableHolidayAndWeekends
+        });
+
+        // Set datepicker text field to prevent keyboard input
+        $("#custom-extension").keydown(false);
+
+        // Strips time from and disables dates before the current due date
+        var current_due_date = "{{ request.due_date }}";
+        current_due_date = current_due_date.split(' ')[0];
+        $("#custom-extension").datepicker('option', 'minDate', current_due_date);
+
+        // Loop through required fields and apply a data-parsley-required attribute to them
+        var required_fields = ['custom-extension', 'extension-select', 'extension-reason'];
+        for (i = 0; i < required_fields.length; i++) {
+            $('#' + required_fields[i]).attr('data-parsley-required', '');
+        }
+
+        // Apply parsley minimum length validation to extension reason
+        $('#extension-reason').attr('data-parsley-minlength', '20');
+        $('#extension-reason').attr('data-parsley-maxlength', '5000');
+
+        // Apply custom validation messages
+        $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
+        $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
+        $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
     });
-
-    // Set datepicker text field to prevent keyboard input
-    $("#custom-extension").keydown(false);
-
-    // Strips time from and disables dates before the current due date
-    var current_due_date = "{{ request.due_date }}";
-    current_due_date = current_due_date.split(' ')[0];
-    $("#custom-extension").datepicker('option', 'minDate', current_due_date);
-
-    // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['custom-extension','extension-select', 'extension-reason'];
-    for (i = 0 ; i < required_fields.length ; i++){
-        $('#' + required_fields[i]).attr('data-parsley-required','');
-    }
-
-    // Apply parsley minimum length validation to extension reason
-    $('#extension-reason').attr('data-parsley-minlength','20');
-    $('#extension-reason').attr('data-parsley-maxlength','5000');
-
-    // Apply custom validation messages
-    $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
-    $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
-    $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
-});
 </script>

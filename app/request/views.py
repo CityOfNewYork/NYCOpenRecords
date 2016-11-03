@@ -3,6 +3,9 @@
 
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta as rd
 from flask import (
     render_template,
     redirect,
@@ -15,6 +18,14 @@ from flask import (
 )
 from flask_login import current_user
 
+from app.constants import (
+    user_type_request,
+    request_status
+)
+from app.lib.date_utils import (
+    DEFAULT_YEARS_HOLIDAY_LIST,
+    get_holidays_date_list,
+)
 from app.lib.db_utils import (
     get_agencies_list,
     update_object,
@@ -37,10 +48,6 @@ from app.request.utils import (
     handle_upload_no_id,
     get_address,
     send_confirmation_email
-)
-from app.constants import (
-    user_type_request,
-    request_status
 )
 
 
@@ -105,7 +112,7 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path)
-        else: # Anonymous User
+        else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         agency=form.request_agency.data,
@@ -158,6 +165,9 @@ def view(request_id):
     users = []
     for agency_user in agency_users:
         users.append(Users.query.filter_by(guid=agency_user.user_guid).first())
+
+    holidays = sorted(
+        get_holidays_date_list(datetime.now().year, (datetime.now() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year))
     return render_template('request/view_request.html',
                            request=current_request,
                            status=request_status,
@@ -165,7 +175,8 @@ def view(request_id):
                            requester=requester,
                            privacy=current_request.privacy,
                            users=users,
-                           edit_requester_form=edit_requester_form)
+                           edit_requester_form=edit_requester_form,
+                           holidays=holidays)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['PUT'])
