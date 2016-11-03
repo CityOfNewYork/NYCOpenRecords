@@ -1,107 +1,102 @@
-//  Switching to Modals
-$('#requesterModal').on('shown.bs.modal', function () {
-    $('#requesterInput').focus()
-});
+$(function () {
 
-$('#agencyModal').on('shown.bs.modal', function () {
-    $('#agencyInput').focus()
-});
+    //  Switching to Modals
+    $("#requesterModal").on('shown.bs.modal', function () {
+        $('#requesterInput').focus()
+    });
 
-$(document).ready(function() {
-    $("#inputTelephone").keydown(function (e) {
-        // Allow: backspace, delete, tab, escape, enter and .
-        if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
-             // Allow: Ctrl+A, Command+A
-            (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
-             // Allow: home, end, left, right, down, up
-            (e.keyCode >= 35 && e.keyCode <= 40)) {
-                 // let it happen, don't do anything
-                 return;
-        }
-        // Ensure that it is a number and stop the keypress
-        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-            e.preventDefault();
+    $("#agencyModal").on('shown.bs.modal', function () {
+        $('#agencyInput').focus()
+    });
+
+    var telephone = $("#inputTelephone");
+    var fax = $("#inputFax");
+    var zip = $("#inputZip");
+    var email = $("#inputEmail");
+    var state = $("#inputState");
+    var city = $("#inputCity");
+    var address_one = $("#inputAddressOne");
+    var address_two = $("#inputAddressTwo");
+    var organization = $("#inputOrganization");
+
+    telephone.keypress(function (key) {
+        if (key.charCode != 0) {
+            if (key.charCode < 48 || key.charCode > 57) {
+                key.preventDefault();
+            }
         }
     });
-});
 
-$(document).ready(function() {
-    $("#inputFax").keydown(function (e) {
-        // Allow: backspace, delete, tab, escape, enter and .
-        if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
-             // Allow: Ctrl+A, Command+A
-            (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
-             // Allow: home, end, left, right, down, up
-            (e.keyCode >= 35 && e.keyCode <= 40)) {
-                 // let it happen, don't do anything
-                 return;
-        }
-        // Ensure that it is a number and stop the keypress
-        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-            e.preventDefault();
+    fax.keypress(function (key) {
+        if (key.charCode != 0) {
+            if (key.charCode < 48 || key.charCode > 57) {
+                key.preventDefault();
+            }
         }
     });
+
+
+    telephone.mask("(999) 999-9999");
+    fax.mask("(999) 999-9999");
+    zip.mask("99999");
+
+    // Apply validators
+    var required = [
+        telephone,
+        email,
+        fax,
+        state,
+        city,
+        zip,
+        address_one
+    ];
+    for (var i = 0; i < required.length; i++) {
+        required[i].attr('data-parsley-required', '')
+    }
+    zip.attr('data-parsley-length', '[5,5]');
+    telephone.attr('data-parsley-length', '[14,14]');
+    fax.attr('data-parsley-length', '[14,14]');
+
+    // Apply custom validation messages
+    fax.attr('data-parsley-length-message', 'The fax number must be 10 digits long.');
+    telephone.attr('data-parsley-length-message', 'The phone number must be 10 digits long.');
+    zip.attr('data-parsley-length-message', 'The Zipcode must be 5 digits long.');
+    address_one.attr('data-parsley-length-message', 'Must be a valid address');
+    // Disable default error messages for email, phone, fax, and address
+    telephone.attr('data-parsley-required-message', '');
+    fax.attr('data-parsley-required-message', '');
+    address_one.attr('data-parsley-required-message', '');
+    city.attr('data-parsley-required-message', '');
+    email.attr('data-parsley-required-message', '');
+    zip.attr('data-parsley-required-message', '');
+
+    // ON VALIDATE
+    $('#user-info').parsley().subscribe('parsley:form:validate', function () {
+        // Checks that at least one of the contact information fields is filled
+        if (email.parsley().isValid() ||
+            telephone.parsley().isValid() ||
+            fax.parsley().isValid() ||
+            (address_one.parsley().isValid() &&  // mailing address
+            state.parsley().isValid() &&
+            zip.parsley().isValid() &&
+            city.parsley().isValid())
+        ) {
+            city.removeAttr('data-parsley-required');
+            state.removeAttr('data-parsley-required');
+            zip.removeAttr('data-parsley-required');
+            telephone.removeAttr('data-parsley-required');
+            fax.removeAttr('data-parsley-required');
+            address_one.removeAttr('data-parsley-required');
+            email.removeAttr('data-parsley-required');
+        }
+        else {
+            $('.contact-form-error-message').html(
+                "At least one of the following need to be filled: " +
+                "<strong>Email</strong>, <strong>Phone</strong>, <strong>Fax</strong>, " +
+                "and/or <strong>Address</strong> (with <strong>City</strong>, " +
+                "<strong>State</strong>, and <strong>Zipcode</strong>.)"
+            );
+        }
+    });
+
 });
-
-
-$('#inputTelephone').mask('(999) 999-9999');
-$('#inputFax').mask('(999) 999-9999');
-$('#inputZip').mask('99999');
-
-// Looping through required fields and applying a data-parsley-required attribute to them
-var required_fields = ['inputEmail', 'inputTelephone', 'inputAddressOne', 'inputAddressTwo', 'inputCity', 'inputZip', 'inputState', 'inputOrganization', 'inputFax'];
-for (i = 0; i < required_fields.length; i++) {
-    $('#' + required_fields[i]).attr('data-parsley-required', '')
-}
-
-//Apply parsley validation styles
-$('#inputZip').attr('data-parsley-length', '[5,5]');
-$('#inputTelephone').attr('data-parsley-length', '[14,14]');
-$('#inputFax').attr('data-parsley-length', '[14,14]');
-
-//Apply custom validation messages
-$('#inputFax').attr('data-parsley-length-message', 'The fax number must be 10 digits long.');
-$('#inputTelephone').attr('data-parsley-length-message', 'The phone number must be 10 digits long.');
-$('#inputZip').attr('data-parsley-length-message', 'The Zipcode must be 5 digits long.');
-$('#inputAddressOne').attr('data-parsley-length-message', 'The Zipcode must be 5 digits long.');
-
-//Disable default error messages for email, phone, fax, and address
-$('#inputTelephone').attr('data-parsley-required-message', '');
-$('#inputFax').attr('data-parsley-required-message', '');
-$('#inputAddressOne').attr('data-parsley-required-message', '');
-$('#inputCity').attr('data-parsley-required-message', '');
-$('#inputEmail').attr('data-parsley-required-message', '');
-$('#inputZip').attr('data-parsley-required-message', '');
-
-//Checks that at least one of the contact information fields is filled in addition to the rest of the form
-if ($('#inputEmail').parsley().isValid() ||
-    $('#inputPhone').parsley().isValid() ||
-    $('#inputFax').parsley().isValid() ||
-    $('#inputAddressOne').parsley().isValid() ||
-    $('#inputState').parsley().isValid() &&
-    $('#inputZip').parsley().isValid() &&
-    $('#inputCity').parsley().isValid()) {
-        $('#inputCity').removeAttr('data-parsley-required');
-        $('#inputState').removeAttr('data-parsley-required');
-        $('#inputZip').removeAttr('data-parsley-required');
-        $('#inputTelephone').removeAttr('data-parsley-required');
-        $('#inputFax').removeAttr('data-parsley-required');
-        $('#inputAddressTwo').removeAttr('data-parsley-required');
-        $('#inputAddressOne').removeAttr('data-parsley-required');
-        $('#inputOrganization').removeAttr('data-parsley-required');
-        $('#inputEmail').removeAttr('data-parsley-required');
-}
-else {
-    //If none of the fields are valid, then produce an error message for them
-    $('.contact-form-error-message').html("At least one of the following need to be filled: Email, Phone, Fax, and/or Address (with City, State, and Zipcode");
-    $('#inputFax').attr('data-parsley-required', '');
-    $('#inputTelephone').attr('data-parsley-required', '');
-    $('#inputZip').attr('data-parsley-required', '');
-    $('#inputCity').attr('data-parsley-required', '');
-    $('#inputState').attr('data-parsley-required', '');
-    $('#inputEmail').attr('data-parsley-required', '');
-}
-
-
-//Activating
-$('#user-info').parsley().validate();

@@ -105,7 +105,7 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path)
-        else: # Anonymous User
+        else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         agency=form.request_agency.data,
@@ -172,7 +172,7 @@ def view(request_id):
 def edit_requester_info(request_id):
     """
     Sample Request Body
-    {
+{
         "name": "new name"
         "email": "updated@email.com"
         ...
@@ -180,23 +180,51 @@ def edit_requester_info(request_id):
     :param request_id:
     :return:
     """
-    # TODO: backend validation
-
     requester = Requests.query.filter_by(id=request_id).first().user_requests.filter_by(
         request_user_type=user_type_request.REQUESTER).first().user
-    update_object({
-        'email': flask_request.form.get('email') or requester.email,
-        'phone_number': flask_request.form.get('phone') or requester.phone_number,
-        'fax_number': flask_request.form.get('fax') or requester.fax_number,
-        'title': flask_request.form.get('title') or requester.title,
-        'organization': flask_request.form.get('organization') or requester.organization,
-        'mailing_address': {
-            'zip': flask_request.form.get('zipcode') or requester.mailing_address['zip'],
-            'city': flask_request.form.get('city') or requester.mailing_address['city'],
-            'state': flask_request.form.get('state') or requester.mailing_address['state'],
-            'address_one': flask_request.form.get('address_one') or requester.mailing_address['address_one'],
-            'address_two': flask_request.form.get('address_two') or requester.mailing_address['address_two'],
 
-        }
-    }, Users, (requester.guid, requester.auth_user_type))
+    email = flask_request.form.get('email')
+    telephone = flask_request.form.get('phone_number')
+    fax = flask_request.form.get('fax_number')
+    zip = flask_request.form.get('fax_number')
+    title = flask_request.form.get('title')
+    organization = flask_request.form.get('organization')
+    address_one = flask_request.form.get('address_one')
+    address_two = flask_request.form.get('address_two')
+    city = flask_request.form.get('city')
+    state = flask_request.form.get('state')
+
+    if email or telephone or fax or (city and zip and state and address_one):
+        update_object({
+            'email': email,
+            'phone_number': telephone,
+            'fax_number': fax,
+            'title': title,
+            'organization': organization,
+            'mailing_address': {
+                'zip': zip,
+                'city': city,
+                'state': state,
+                'address_one': address_one,
+                'address_two': address_two,
+
+            }
+        }, Users, (requester.guid, requester.auth_user_type))
+
+        update_object({
+            'email': flask_request.form.get('email') or requester.email,
+            'phone_number': flask_request.form.get('phone') or requester.phone_number,
+            'fax_number': flask_request.form.get('fax') or requester.fax_number,
+            'title': flask_request.form.get('title') or requester.title,
+            'organization': flask_request.form.get('organization') or requester.organization,
+            'mailing_address': {
+                'zip': flask_request.form.get('zipcode') or requester.mailing_address['zip'],
+                'city': flask_request.form.get('city') or requester.mailing_address['city'],
+                'state': flask_request.form.get('state') or requester.mailing_address['state'],
+                'address_one': flask_request.form.get('address_one') or requester.mailing_address['address_one'],
+                'address_two': flask_request.form.get('address_two') or requester.mailing_address['address_two'],
+
+            }
+        }, Users, (requester.guid, requester.auth_user_type))
+
     return jsonify({}), 200

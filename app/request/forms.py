@@ -156,6 +156,7 @@ class EditRequesterForm(Form):
     state = SelectField('State', choices=STATES)
     organization = StringField('Organization')
     zipcode = StringField('Zip Code')
+    title = StringField('Title')
 
     submit = SubmitField('Confirm')
 

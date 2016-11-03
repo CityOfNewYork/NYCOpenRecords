@@ -28,9 +28,10 @@
                             aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title">Requester Information</h4>
                 </div>
-                <div class="modal-body">
-                    <form id="user-info" action="/request/edit_requester_info/{{ request.id }}" method="POST">
+                <form id="user-info" action="/request/edit_requester_info/{{ request.id }}" method="POST">
+                    <div class="modal-body">
                         <h3>{{ requester.name }}</h3>
+                        <div class="contact-form-error-message"></div>
                         {{ edit_requester_form.email.label }}
                         {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', value=requester.email) }}
 
@@ -52,19 +53,20 @@
                         {{ edit_requester_form.state.label }}
                         {{ edit_requester_form.state(id='inputState', class='form-control') }}
 
+                        {{ edit_requester_form.title.label }}
+                        {{ edit_requester_form.title(id='inputTitle', class='form-control', value=requester.title) }}
+
                         {{ edit_requester_form.organization.label }}
                         {{ edit_requester_form.organization(id='inputOrganization', class='form-control', value=requester.organization) }}
 
                         {{ edit_requester_form.fax.label }}
                         {{ edit_requester_form.fax(id='inputFax', class='form-control', value=requester.fax_number) }}
-
-                        {{ edit_requester_form.submit(id='submit', class='btn btn-primary') }}
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
