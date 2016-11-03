@@ -12,10 +12,13 @@ $(function () {
         data: {
             start: 0,
             request_id: request_id,
-            with_template: true,
+            with_template: true
         },
         success: function (data) {
             responses = data.responses;
+            if (responses.length > index_increment) {
+                $('#responses-nav-buttons').show();
+            }
             showResponses();
         },
         error: function (error) {
@@ -27,24 +30,22 @@ $(function () {
         var response_list = $('#request-responses');
         response_list.empty();
 
-        var file_response_added = false;
         var index_incremented = index + index_increment;
         var end = responses.length < index_incremented ? responses.length : index_incremented;
         for (var i = index; i < end; i++) {
             response_list.append(responses[i].template);
             setEditResponseWorkflow(responses[i].id, responses[i].type);
-            if (!file_response_added && responses[i].type === "file") {
-                file_response_added = true;
+            if (responses[i].type === "file") {
+                bindFileUpload(
+                    "#fileupload-update-" + responses[i].id,
+                    request_id,
+                    true,
+                    "template-upload-update",
+                    "template-download-update",
+                    $("#response-modal-" + responses[i].id).find(
+                        ".first").find(".response-modal-next")
+                );
             }
-        }
-        if (file_response_added) {
-            bindFileUpload(
-                ".fileupload-update",
-                request_id,
-                true,
-                "template-upload-update",
-                "template-download-update"
-            );
         }
     }
 
@@ -54,7 +55,7 @@ $(function () {
             data: {
                 start: responses.length,
                 request_id: request_id,
-                with_template: true,
+                with_template: true
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
@@ -80,6 +81,9 @@ $(function () {
         index += index_increment;
         if (index == responses.length - index_increment) {
             loadMoreResponses();
+        }
+        if (responses.length < index) {
+            index -= index_increment;
         }
         showResponses();
     });
@@ -115,23 +119,42 @@ $(function () {
                 var prev2 = second.find('.response-modal-prev');
                 var prev3 = third.find('.response-modal-prev');
 
-                next1.click(function () {
-                    first.hide();
-                    second.show();
+                next1.click(function (e) {
+                    // Validate fileupload form
+                    first.find(".fileupload-form").parsley().validate();
 
-                    $.ajax({
-                        url: "/response/email",
-                        type: "POST",
-                        data: {
-                            request_id: request_id,
-                            template_name: "email_response_file.html",
-                            type: "file"
-                        },
-                        success: function (data) {
-                            // Data should be html template page.
-                            tinyMCE.get("email-file-content-" + response_id).setContent(data);
-                        }
-                    });
+                    // Prevent default if file upload has not been completed
+                    if (first.find('.template-download').length === 0 && first.find('.template-upload').length != 0) {
+                        first.find(".fileupload-error-messages").text("The file upload has not been completed").show();
+                        e.preventDefault();
+                        return false;
+                    }
+
+                    // Prevent default if files with error are not removed
+                    if (first.find('.upload-error').length > 0 || first.find(".error-post-fileupload").is(':visible')) {
+                        first.find('.fileupload-error-messages').text("Files with Errors must be removed").show();
+                        e.preventDefault();
+                        return false;
+                    }
+
+                    if (first.find(".fileupload-form").parsley().isValid()) {
+                        first.hide();
+                        second.show();
+
+                        $.ajax({
+                            url: "/response/email",
+                            type: "POST",
+                            data: {
+                                request_id: request_id,
+                                template_name: "email_response_file.html",
+                                type: "file"
+                            },
+                            success: function (data) {
+                                // Data should be html template page.
+                                tinyMCE.get("email-file-content-" + response_id).setContent(data);
+                            }
+                        });
+                    }
                 });
 
                 next2.click(function () {
@@ -172,7 +195,7 @@ $(function () {
                 });
 
                 prev2.click(function () {
-                    // TODO: error message reset
+                    first.find('.fileupload-error-messages').hide();
                     second.hide();
                     first.show();
                 });
@@ -209,6 +232,10 @@ $(function () {
                     elementpath: false,
                     height: 180
                 });
+
+                // Apply parsley required validation for title
+                first.find("input[name=title]").attr('data-parsley-required', '');
+                first.find("input[name=title]").attr('data-parsley-errors-container', '.title-error');
 
                 break;
             default:

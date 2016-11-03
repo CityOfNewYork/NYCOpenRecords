@@ -4,15 +4,17 @@ function bindFileUpload(target,
                         request_id,
                         for_update,
                         uploadTemplateId,
-                        downloadTemplateId) {
+                        downloadTemplateId,
+                        nextButton) {
     /*
     Binds jquery file upload to the element identified by 'target'
 
-    @param {string} target - jquery selector (ex. "#fileupload")
+    @param {string} target - jquery selector string (ex. "#fileupload")
     @param {string} request_id - FOIL request id
     @param {bool} for_update - editing a file?
     @param {string} uploadTemplateId - jquery file upload uploadTemplateId
     @param {string} downloadTemplateId - jquery file upload downloadTemplateId
+    @param {selector} nextButton - jquery selector for next button of file response workflow
     */
 
     uploadTemplateId = uploadTemplateId || "template-upload";
@@ -26,7 +28,6 @@ function bindFileUpload(target,
         downloadTemplateId: downloadTemplateId,
         maxChunkSize: 512000,  // 512 kb
         maxFileSize: 500000000, // 500 mb
-        // autoUpload: true, // TODO: include for update?
         chunksend: function (e, data) {
             // stop sending chunks if abort signaled
             if (data.context[0].abortChunkSend) {
@@ -52,7 +53,7 @@ function bindFileUpload(target,
         var idVal = encodeName(filename);
         data.result.files[0].identifier = idVal;
         setTimeout(
-            pollUploadStatus.bind(null, filename, idVal, request_id, for_update),
+            pollUploadStatus.bind(null, filename, idVal, request_id, for_update, nextButton),
             4000);  // McAfee Scanner minimum 3+ second startup
     }).bind("fileuploadadd", function (e, data) {
         if (for_update) {
@@ -90,8 +91,11 @@ function bindFileUpload(target,
         }
         $(".fileupload-loading").hide();
         $(".fileupload-process").hide();
+    }).bind("fileuploadstarted", function (e, data) {
+        if (for_update) {
+            $(nextButton).attr('disabled', true);
+        }
     });
-    // TODO: for_update -> on start, disable Submit button
 }
 
 function encodeName(name) {
@@ -104,7 +108,7 @@ function encodeName(name) {
     return window.btoa(name).replace(/=/g, "");
 }
 
-function pollUploadStatus(upload_filename, htmlId, request_id, for_update) {
+function pollUploadStatus(upload_filename, htmlId, request_id, for_update, nextButton) {
     /*
     Sends a request to the upload status endpoint
     every 2 seconds until it receives a message indicating
@@ -132,7 +136,7 @@ function pollUploadStatus(upload_filename, htmlId, request_id, for_update) {
             }
             else if (response.status != "ready") {
                 setTimeout(pollUploadStatus.bind(
-                    null, upload_filename, htmlId, request_id, for_update
+                    null, upload_filename, htmlId, request_id, for_update, nextButton
                 ), 2000);
             }
             else {
@@ -140,7 +144,7 @@ function pollUploadStatus(upload_filename, htmlId, request_id, for_update) {
                 tr.find(".fileupload-input-fields").removeClass("hidden");
                 tr.find(".processing-upload").remove();
                 setRemoveBtn(request_id, tr.find(".remove-post-fileupload"), true, for_update);
-                // TODO: for_update -> enable Submit button
+                $(nextButton).attr('disabled', false)
             }
         }
     });

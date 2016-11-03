@@ -47,6 +47,7 @@
 
             // Proceed with next click function if validation fields are valid and no files are uploading
             if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
+                $('.fileupload-error-messages').html('');
                 $.ajax({
                     url: "/response/email",
                     type: 'POST',

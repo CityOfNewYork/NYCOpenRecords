@@ -105,7 +105,7 @@ def get_request_responses():
             row = render_template(
                 template_path + 'row.html',
                 response=response,
-                row_num = start + i + 1
+                row_num=start + i + 1
             )
             modal = render_template(
                 template_path + 'modal.html',

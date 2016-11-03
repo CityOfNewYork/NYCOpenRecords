@@ -552,7 +552,7 @@ class Responses(db.Model):
             Links: 'content',
             Instructions: 'content',
             Extensions: 'reason',
-            Emails: 'subject,'
+            Emails: 'subject'
         }
         return getattr(self.metadatas,
                        metadata_preview_attr[type(self.metadatas)])
