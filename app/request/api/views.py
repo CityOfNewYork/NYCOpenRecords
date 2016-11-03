@@ -92,7 +92,7 @@ def get_request_responses():
         desc(Responses.date_modified)
     ).all()[start: start + 20]  # FIXME: constant (20)
 
-    template_path = 'request/response/responses/'
+    template_path = 'request/responses/'
     response_jsons = []
     for i, response in enumerate(responses):
         # json = response.as_dict()

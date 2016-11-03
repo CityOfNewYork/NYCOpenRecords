@@ -382,7 +382,7 @@ class Requests(db.Model):
         self.agency_description = agency_description
 
     def es_update(self):
-        result = es.update(
+        es.update(
             index=INDEX,
             doc_type='request',
             id=self.id,
@@ -401,8 +401,6 @@ class Requests(db.Model):
             },
             # refresh='wait_for'
         )
-        import json
-        print(json.dumps(result, indent=2))
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
