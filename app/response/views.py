@@ -5,6 +5,7 @@
 """
 
 import json
+from datetime import datetime
 
 from flask import (
     flash,
@@ -15,6 +16,7 @@ from flask import (
 )
 from flask_login import current_user
 
+from app import us_holidays
 from app.constants.response_privacy import PRIVATE
 from app.models import Requests, Responses
 from app.response import response
@@ -321,3 +323,20 @@ def edit_response(response_id):
             "new": editor.data_new
         }
     return jsonify(http_response), 200
+
+
+@response.route('/is_holiday', methods=['GET'])
+def is_holiday():
+    """
+    Check if a given data is a holiday.
+
+    :param date: Date as a string in format 'YYYY-MM-DD'
+
+    :return: If date is a holiday, string '<date> is holiday.' and 200 status code is returned
+             If date is not a holiday, string '<date> is not holiday' and 400 status code is returned
+    """
+    date = datetime.strptime(flask_request.args['due-date'], '%Y-%m-%d').date()
+    if date in us_holidays:
+        return '{} is a holiday'.format(date.strftime('%Y-%m-%d')), 200
+    else:
+        return '{} is not a holiday'.format(date), 400
