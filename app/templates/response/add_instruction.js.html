@@ -1,0 +1,86 @@
+<script type="text/javascript">
+$(document).ready(function () {
+    // Hides all other divs except for the first
+    $(".instruction-control .instruction-divs").each(function (e) {
+        if (e != 0)
+            $(this).hide();
+    });
+
+    // Handles click events on the first next button
+    $("#instruction-next-1").click(function () {
+        // Onclick, changes button text from to Next
+        $(this).text("Next");
+
+        // Validate instruction form
+        $("#add-instruction-form").parsley().validate();
+
+        // If validation fields are valid, proceed with next click function
+        if ($('#add-instruction-form').parsley().isValid()) {
+            $.ajax({
+                url: "/response/email",
+                type: 'POST',
+                data: {
+                    request_id: "{{ request.id }}",
+                    template_name: "email_response_instruction.html",
+                    type: "offline_instructions",
+                    privacy: $(".instruction-privacy:checked").val()
+                },
+                success: function (data) {
+                    // Data should be html template page.
+                    tinyMCE.get('email-instruction-content').setContent(data);
+                }
+            });
+            document.getElementById("instruction-first").style.display = "none";
+            document.getElementById("instruction-second").style.display = "block";
+        }
+    });
+
+    // Handles click events on the second next button
+    $("#instruction-next-2").click(function () {
+        tinyMCE.triggerSave();
+        $.ajax({
+            url: "/response/email",
+            type: 'POST',
+            data: {
+                request_id: "{{ request.id }}",
+                template_name: "email_response_instruction.html",
+                type: "offline_instructions",
+                instruction: JSON.stringify({
+                    content: $('#instruction-content').val(),
+                    privacy: $(".instruction-privacy:checked").val()
+                }),
+                email_content: $('#email-instruction-content').val()
+            },
+            success: function (data) {
+                // Data should be html template page.
+                $("#email-instruction-summary").html(data);
+                $("#email-instruction-summary-hidden").val(data);
+            }
+        });
+        document.getElementById("instruction-second").style.display = "none";
+        document.getElementById("instruction-third").style.display = "block";
+    });
+
+    // Handles click events on the first previous button
+    $("#instruction-prev-1").click(function () {
+        document.getElementById("instruction-first").style.display = "block";
+        document.getElementById("instruction-second").style.display = "none";
+    });
+
+    // Handles click events on the second previous button
+    $("#instruction-prev-2").click(function () {
+        document.getElementById("instruction-third").style.display = "none";
+        document.getElementById("instruction-second").style.display = "block";
+    });
+
+    // Apply parsley data required validation to instruction title and url
+    $('#instruction-content').attr('data-parsley-required', '');
+
+    // Apply parsley max length validation to instruction title and url
+    $('#instruction-content').attr('data-parsley-maxlength', '500');
+
+    // Apply custom validation messages
+    $('#instruction-content').attr('data-parsley-required-message', 'Offline Instructions must be provided');
+    $('#instruction-content').attr('data-parsley-maxlength-message', 'Offline Instructions must be less than 500 characters');
+});
+</script>

@@ -1,0 +1,7 @@
+<p>Attention {{ agency_name }} Users,<p>
+
+<p>The following note was added as private to <a
+        href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+<p>
+    {{ note_content }}
+</p>

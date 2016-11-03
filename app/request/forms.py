@@ -144,3 +144,18 @@ class AnonymousRequestForm(Form):
     request_file = FileField('Upload File')
 
     submit = SubmitField('Submit Request')
+
+
+class EditRequesterForm(Form):
+    email = StringField('Email')
+    phone = StringField('Phone Number')
+    fax = StringField('Fax Number')
+    address_one = StringField('Address One')
+    address_two = StringField('Address Two')
+    city = StringField('City')
+    state = SelectField('State', choices=STATES)
+    organization = StringField('Organization')
+    zipcode = StringField('Zip Code')
+
+    submit = SubmitField('Confirm')
+

@@ -1,0 +1,40 @@
+<form id="add-note-form" class="note-form" action="/response/note/{{ request.id }}" method="POST">
+    <div class="add-note col-sm-9">
+        <div class="note-control">
+            <legend class="note-header">
+                Add Note
+            </legend>
+            <!-- first div of the add-note form -->
+            <div class="note-divs form-group" id="note-first">
+                <label class="note-label">Note Content</label>
+                <textarea class="input-block-level form-group" id="note-content" name="content" maxlength="500"></textarea>
+                <div class="radio">
+                    <label><input type="radio" class="note-privacy" name="privacy" value="release_public">Release and Public</label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" class="note-privacy" name="privacy" value="release_private">Release and Private</label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" class="note-privacy" name="privacy" value="private" checked="checked">Private</label>
+                </div>
+                <button type="button" class="next-btn btn btn-primary" id="note-next-1">Next</button>
+            </div>
+            <!-- second div of the add-note form containing email content -->
+            <div class="note-divs form-group" id="note-second">
+                <textarea class="tinymce-area" name="email-note-content"></textarea>
+                <button type="button" class="prev-btn btn btn-default" id="note-prev-1">Prev</button>
+                <button type="button" class="next-btn btn btn-primary" id="note-next-2">Next</button>
+            </div>
+            <!-- last div of the add-note form containing confirmation and submit -->
+            <div class="note-divs form-group" id="note-third">
+                <h4>The following will be Submitted to the request:</h4>
+                <h5>Email:</h5>
+                <div id="email-note-summary"></div>
+                <!-- hidden input to send email summary to backend -->
+                <input type="hidden" name="email-note-summary" id="email-note-summary-hidden">
+                <button type="button" class="prev-btn btn btn-default" id="note-prev-2">Prev</button>
+                <button type="submit" class="submit-btn btn btn-success">Submit</button>
+            </div>
+        </div>
+    </div>
+</form>

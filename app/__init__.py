@@ -90,6 +90,9 @@ def create_app(config_name):
     from .upload import upload
     app.register_blueprint(upload, url_prefix="/upload")
 
+    from .user import user
+    app.register_blueprint(user, url_prefix="/user")
+
     from .search import search
     app.register_blueprint(search, url_prefix="/search")
 

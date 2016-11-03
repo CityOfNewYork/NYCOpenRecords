@@ -2,18 +2,19 @@
 
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
-    <link rel=stylesheet type=text/css
-          href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/status.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_request.css') }}"/>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_extension.css') }}"/>
-    <link rel="stylesheet" type=text/css href="{{ url_for('static', filename='styles/upload.css') }}">
-    <link rel="stylesheet" type=text/css
-          href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
-    <link rel="stylesheet" type=text/css
-          href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_file.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_extension.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_link.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_note.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_instruction.css') }}"/>
 {% endblock %}
 
 {% block title %}
@@ -28,15 +29,11 @@
 
             <!-- Status Column -->
             <div class="col-sm-3">
-                <h3 class="wrap-text">Status</h3>
-                <h3 class="wrap-text">In Progress</h3>
-                <h3 class="wrap-text">Assigned Agency</h3>
-                <h3 class="wrap-text">Assigned User</h3>
-                <h3 class="wrap-text">Helpers</h3>
+                {% include 'request/status.html' %}
             </div>
 
             <!-- Action Button Column -->
-            <div class="col-md-12"><h3>Action Buttons</h3>
+            <div class="col-md-12"><h3>Actions</h3>
                 <div class="tabbable tabs-left" id="mobile-toggle">
                     <ul class="nav nav-tabs">
                         <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
@@ -51,19 +48,19 @@
                     </ul>
                     <div class="tab-content content-min-height">
                         <div class="tab-pane active" id="add-file">
-                            {% include "request/_view_request_add_file.html" %}
+                            {% include "response/add_file.html" %}
                         </div>
                         <div class="tab-pane" id="add-link">
-                            Add Link Content
+                            {% include "response/add_link.html" %}
                         </div>
                         <div class="tab-pane" id="add-instructions">
-                            Add Instructions Content
+                            {% include "response/add_instruction.html" %}
                         </div>
                         <div class="tab-pane" id="add-note">
-                            Add Note Content
+                            {% include "response/add_note.html" %}
                         </div>
                         <div class="tab-pane" id="extension">
-                            {% include "request/_view_extension.html" %}
+                            {% include "response/add_extension.html" %}
                         </div>
                         <div class="tab-pane" id="close-request">
                             Close Request Content
@@ -100,32 +97,27 @@
     <!-- TODO: plugins should be minified versions... really hope their standard versions have not been altered -->
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/sprintf.min.js') }}"
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static',filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/parsley.min.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
-    <script type="text/javascript"
-            src="{{ url_for('static',filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/fileupload.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/status.js') }}"></script>
     {% include "request/fileupload_add_file.js.html" %}
-    {% include "request/fileupload_update_templates.js.html" %}
-    {% include 'request/_view_request_edit_visibility.html' %}
+    {% include 'request/status.js.html' %}
+    {% include 'request/_view_request_edit_visibility.js.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}
-    {% include 'request/_view_extension.js.html' %}
-    {% include 'request/_view_request_add_file.js.html' %}
+    {% include 'response/add_extension.js.html' %}
+    {% include 'response/add_link.js.html' %}
+    {% include 'response/add_file.js.html' %}
+    {% include 'response/add_note.js.html' %}
+    {% include 'response/add_instruction.js.html' %}
 {% endblock %}

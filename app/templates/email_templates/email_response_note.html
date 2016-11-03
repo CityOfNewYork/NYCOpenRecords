@@ -1,0 +1,12 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if note_content %}
+        {% if privacy != response_privacy.PRIVATE %}
+            The following note has been added to <a
+                href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+        {% endif %}
+        <p>
+            {{ note_content }}
+        </p>
+    {% endif %}
+{% endblock %}

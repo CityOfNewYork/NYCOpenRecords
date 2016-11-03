@@ -48,17 +48,14 @@
             // Proceed with next click function if validation fields are valid and no files are uploading
             if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
                 $('.fileupload-error-messages').html("<div class='alert alert-warning'>Files made Release and Public or Release and Private will be shown with links on the next page</div>");
-                var formData = {
-                    request_id: "{{ request.id }}",
-                    template_name: "email_file_upload.html",
-                    type: "file_upload_email"
-                };
-
                 $.ajax({
                     url: "/response/email",
                     type: 'POST',
-                    data: JSON.stringify(formData),
-                    contentType: false,
+                    data: {
+                        request_id: "{{ request.id }}",
+                        template_name: "email_response_file.html",
+                        type: "file"
+                    },
                     success: function (data) {
                         // Data should be html template page.
                         tinyMCE.get('email-file-content').setContent(data);
@@ -76,40 +73,36 @@
 
             // Get list of both secured filenames and privacy option values, and store them into variables
             var filenames = $('.secured-name').map( function(){return $(this).text(); }).get();
-            var privacy = $('input[type="radio"]:checked').map( function(){return $(this).val(); }).get();
+            var privacy = $(".file-privacy:checked").map( function(){return $(this).val(); }).get();
 
-            // Create a list (called files) of dictionaries with keys of filename and privacy
+            // Create an array (called files) of objects with keys of filename and privacy
             var files = [];
             for( var i = 0; i < filenames.length; i++ ) {
-                file = {};
+                var file = {};
                 file["filename"] = filenames[i];
                 file["privacy"] = privacy[i];
 
                 files.push(file);
             }
 
-            var formData = {
+            $.ajax({
+                url: "/response/email",
+                type: 'POST',
+                data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_file_upload.html",
-                    type: "file_upload_email",
-                    files: files,
+                    template_name: "email_response_file.html",
+                    type: "file",
+                    files: JSON.stringify(files),
                     email_content: $('#email-file-content').val()
-                };
-
-                $.ajax({
-                    url: "/response/email",
-                    type: 'POST',
-                    data: JSON.stringify(formData),
-                    contentType: false,
-                    success: function (data) {
-                        // Data should be html template page.
-                        $("#email-file-summary").html(data);
-                        $("#email-file-summary-hidden").val(data);
-                    }
-                });
+                },
+                success: function (data) {
+                    // Data should be html template page.
+                    $("#email-file-summary").html(data);
+                    $("#email-file-summary-hidden").val(data);
+                }
+            });
             document.getElementById("fileupload-second").style.display = "none";
             document.getElementById("fileupload-third").style.display = "block";
-
         });
 
         // Handles click events on the first previous button
@@ -129,8 +122,8 @@
         });
 
         // Apply parsley required validation
-        $('#add-files').attr('data-parsley-required', '');
-        $('#add-files').attr('data-parsley-required-message', 'A file must be added.');
+        $('#add-files').attr('data-parsley-required', 'false');
+{#        $('#add-files').attr('data-parsley-required-message', 'A file must be added.');#}
 
         // Apply parsley error message to a specific container
         $('#add-files').attr('data-parsley-errors-container', '.fileupload-buttonbar');
@@ -141,6 +134,7 @@
             mode: "specific_textareas",
             // selector for tinymce textarea classes is set to 'tinymce-area'
             editor_selector: "tinymce-area",
+            elementpath: false,
             height: 180
         });
     });

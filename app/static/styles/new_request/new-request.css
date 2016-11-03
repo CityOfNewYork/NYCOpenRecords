@@ -70,3 +70,8 @@
 .g-recaptcha {
     display: inline-block;
 }
+
+.recaptcha-error {
+    text-align: center;
+    color: red;
+}

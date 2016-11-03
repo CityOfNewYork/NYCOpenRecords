@@ -1,0 +1,11 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if instruction_content %}
+        {% if privacy != response_privacy.PRIVATE %}
+            The following Offline Instructions has been added to request {{ request_id }}:
+        {% endif %}
+        <p>
+            {{ instruction_content }}
+        </p>
+    {% endif %}
+{% endblock %}
