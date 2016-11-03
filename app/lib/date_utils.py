@@ -41,6 +41,6 @@ def generate_new_due_date(extension_length, request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     current_due_date = current_request.due_date
-    calc_due_date = get_following_date(current_due_date)
+    calc_due_date = current_due_date
     new_due_date = get_due_date(calc_due_date, int(extension_length))
     return new_due_date

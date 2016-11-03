@@ -103,10 +103,41 @@ $(document).ready(function () {
         }
     });
 
+    // Holidays dates to be disabled
+    /** Days to be disabled as an array */
+    var holidayDays = ["2016-11-08", "2016-11-11", "2016-11-24", "2016-12-26"];
+
+    // Disables holidays and weekends in datepicker
+    function DisableSpecificDates(date) {
+        // get current month, date, and year, and set them into variables
+        var m = date.getMonth();
+        var d = date.getDate();
+        var y = date.getFullYear();
+
+        // Convert the date into yyyy-mm-dd format and increment month by 1
+        var currentdate = y + '-' + (m + 1) + '-' + d;
+
+        // Check if date is a holiday
+        for (var i = 0; i < holidayDays.length; i++) {
+            // Check if the current date is in holidayDays array
+            if ($.inArray(currentdate, holidayDays) != -1) {
+                return [false];
+            }
+        }
+
+        // If current date is not a holiday, checks if date is a weekend
+        var weekenddate = $.datepicker.noWeekends(date);
+        return weekenddate;
+    }
+
     // Datepicker for extension date of a request
     $("#custom-extension").datepicker({
-        dateFormat: "yy-mm-dd"
+        dateFormat: "yy-mm-dd",
+        beforeShowDay: DisableSpecificDates
     });
+
+    // Set datepicker text field to prevent keyboard input
+    $("#custom-extension").keydown(false);
 
     // Strips time from and disables dates before the current due date
     var current_due_date = "{{ request.due_date }}";
