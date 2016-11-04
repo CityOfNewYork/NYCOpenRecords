@@ -184,9 +184,9 @@ def edit_requester_info(request_id):
         request_user_type=user_type_request.REQUESTER).first().user
 
     email = flask_request.form.get('email')
-    telephone = flask_request.form.get('phone_number')
-    fax = flask_request.form.get('fax_number')
-    zip = flask_request.form.get('fax_number')
+    telephone = flask_request.form.get('phone')
+    fax = flask_request.form.get('fax')
+    zip = flask_request.form.get('zipcode')
     title = flask_request.form.get('title')
     organization = flask_request.form.get('organization')
     address_one = flask_request.form.get('address_one')
