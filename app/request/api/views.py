@@ -78,12 +78,13 @@ def get_request_history():
 @request_api_blueprint.route('/responses', methods=['GET'])
 def get_request_responses():
     """
-    Retrieves a JSON object of event objects to display the responses of a request on the view request page.
+    Returns a set of responses (id, type, and template),
+    ordered by date descending, and starting from a specified index.
 
     Request parameters:
+    - start: (int) starting index
+    - request_id: FOIL request id
     - with_template: (default: False) include html (rows and modals) for each response
-
-    :return: json object containing list of 50 response objects from request
     """
     start = int(flask_request.args['start'])
 
