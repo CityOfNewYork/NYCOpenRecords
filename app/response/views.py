@@ -4,7 +4,7 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 
-import json
+from urllib.request import urlopen
 
 from flask import (
     flash,
@@ -15,10 +15,11 @@ from flask import (
 )
 from flask_login import current_user
 
+from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
+from app.lib.date_utils import get_holidays_date_list
 from app.models import Requests, Responses
 from app.response import response
-from app.constants import response_type
 from app.response.utils import (
     add_note,
     add_file,
@@ -31,7 +32,6 @@ from app.response.utils import (
     process_email_template_request,
     RespFileEditor
 )
-from urllib.request import urlopen
 
 
 @response.route('/note/<request_id>', methods=['POST'])
@@ -337,3 +337,15 @@ def edit_response(response_id):
                     "new": editor.data_new
                 }
     return jsonify(http_response), 200
+
+
+@response.route('/get_yearly_holidays/<int:year>', methods=['GET'])
+def get_yearly_holidays(year):
+    """
+    Retrieve a list of dates that are holidays in the specified year
+
+    :param date: 4-digit year.
+
+    :return: List of strings ["YYYY-MM-DD"]
+    """
+    return jsonify(holidays=sorted(get_holidays_date_list(year)))
