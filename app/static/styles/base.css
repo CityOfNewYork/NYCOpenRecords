@@ -59,7 +59,8 @@
 	display:block;
 	-moz-box-sizing:content-box;
 	-webkit-box-sizing:content-box;
-	box-sizing:content-box
+	box-sizing:content-box;
+	resize: vertical;
 }
 
 .wrapper input[type=text],.wrapper select[type=text],.wrapper textarea[type=text]
