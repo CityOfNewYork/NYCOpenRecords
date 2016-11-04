@@ -104,60 +104,26 @@
         });
 
         // An array of holiday dates to be disabled
-        var holiday_dates = [''];
+        var holiday_dates = {{ holidays | safe }};
 
         function DisableSpecificDates(date) {
-            var year = date.getFullYear();
-            if (holiday_dates != [] && holiday_dates[0].split('-')[0] != year) {
-                $.ajax({
-                    url: '/response/get_yearly_holidays/' + year,
-                    dataType: "json",
-                    success: function (data) {
-                        holidays_dates = data['holidays'];
-                        var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
-                        console.log("Date: " + string + "; Day #: " + date.getDay());
-                        if (
-                                ($.inArray(string, holidays_dates) > -1) ||
-                                (date.getDay() === 0) ||
-                                (date.getDay() === 6)
-                        ) {
-                            return [];
-                        } else {
-                            return [string];
-                        }
-                    },
-                    error: function () {
-                        var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
-                        if (
-                                (date.getDay() === 0) ||
-                                (date.getDay() === 6)
-                        ) {
-                            return [];
-                        } else {
-                            return [string];
-                        }
-                    }
-                });
+            var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
+            if (
+                    ($.inArray(string, holiday_dates) > -1) ||
+                    (date.getDay() === 0) ||
+                    (date.getDay() === 6)
+            ) {
+                return [];
             } else {
-                var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
-                if (
-                        ($.inArray(string, holiday_dates) > -1) ||
-                        (date.getDay() === 0) ||
-                        (date.getDay() === 6)
-                ) {
-                    return [];
-                } else {
-                    return [string];
-                }
+                return [string];
             }
         }
-
 
         // Disables holidays and weekends in datepicker
         function disableHolidayAndWeekends(date) {
             // If current date is not a holiday, checks if date is a weekend
             var holiday = DisableSpecificDates(date);
-            if (holiday && holiday != []) {
+            if (holiday != []) {
                 return holiday;
             }
         }
@@ -200,6 +166,5 @@
         $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
         $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
         $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
-    })
-    ;
+    });
 </script>
