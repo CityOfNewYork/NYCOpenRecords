@@ -82,5 +82,17 @@ $(document).ready(function () {
     // Apply custom validation messages
     $('#note-content').attr('data-parsley-required-message', 'Note content must be provided');
     $('#note-content').attr('data-parsley-maxlength-message', 'Note content must be less than 500 characters');
+
+    // Set character counter for note content
+    $('#note-content').keyup(function () {
+        var contentLength = $(this).val().length;
+        var charLength = 500 - contentLength;
+        $('#note-content-character-count').text(charLength + " characters remaining");
+        if (charLength == 0) {
+            document.getElementById("note-content-character-count").style.color = "red";
+        } else {
+            document.getElementById("note-content-character-count").style.color = "black";
+        }
+    });
 });
 </script>
