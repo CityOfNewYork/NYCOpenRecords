@@ -150,13 +150,27 @@ class EditRequesterForm(Form):
     email = StringField('Email')
     phone = StringField('Phone Number')
     fax = StringField('Fax Number')
-    address_one = StringField('Address One')
-    address_two = StringField('Address Two')
+    address_one = StringField('Address Line 1')
+    address_two = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=STATES)
-    organization = StringField('Organization')
     zipcode = StringField('Zip Code')
     title = StringField('Title')
+    organization = StringField('Organization')
 
-    submit = SubmitField('Confirm')
+    def __init__(self, requester):
+        """
+        :type requester: app.models.Users
+        """
+        super(EditRequesterForm, self).__init__()
+        self.email.data = requester.email or ""
+        self.phone.data = requester.phone_number or ""
+        self.fax.data = requester.fax_number or ""
+        self.address_one.data = requester.mailing_address["address_one"] or ""
+        self.address_two.data = requester.mailing_address["address_two"] or ""
+        self.city.data = requester.mailing_address["city"] or ""
+        self.state.data = requester.mailing_address["state"] or ""
+        self.zipcode.data = requester.mailing_address["zip"] or ""
+        self.title.data = requester.title or ""
+        self.organization.data = requester.organization or ""
 

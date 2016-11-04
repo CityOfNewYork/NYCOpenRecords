@@ -127,8 +127,8 @@ def create_request(title,
             email=email,
             first_name=first_name,
             last_name=last_name,
-            title=user_title,
-            organization=organization,
+            title=user_title or None,
+            organization=organization or None,
             email_validated=False,
             terms_of_use_accepted=False,
             phone_number=phone,
@@ -234,10 +234,10 @@ def get_address(form):
                 app.request.forms.AnonymousRequestForm
     """
     return create_mailing_address(
-        form.address.data,
-        form.city.data,
-        form.state.data,
-        form.zipcode.data,
+        form.address.data or None,
+        form.city.data or None,
+        form.state.data or None,
+        form.zipcode.data or None,
         form.address_two.data or None
     )
 

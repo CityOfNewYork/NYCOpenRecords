@@ -43,7 +43,7 @@ $(document).ready(function () {
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
     $('#request-file').attr('data-parsley-max-file-size',"20");
 
-    $('#request-form').parsley().subscribe('parsley:form:validate', function () {
+    $('#request-form').parsley().on('form:validate', function () {
         // Do stuff when parsley validates
         // TODO: this or combine (see the other new-request-* js files)
     });

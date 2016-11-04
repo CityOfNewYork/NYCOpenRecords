@@ -148,25 +148,19 @@ def view(request_id):
     :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    agency = current_request.agency
-    requester = current_request.user_requests.filter_by(
-        request_user_type=user_type_request.REQUESTER).first().user
-    agency_users = UserRequests.query.filter_by(request_id=request_id,
-                                                request_user_type=user_type_request.AGENCY).all()
-    edit_requester_form = EditRequesterForm(state=requester.mailing_address['state']
-                                            if requester.mailing_address is None
-                                            else None)
+    requester = current_request.requester
+    agency_user_requests = UserRequests.query.filter_by(
+        request_id=request_id,
+        request_user_type=user_type_request.AGENCY).all()
+    edit_requester_form = EditRequesterForm(requester)
 
-    users = []
-    for agency_user in agency_users:
-        users.append(Users.query.filter_by(guid=agency_user.user_guid).first())
+    agency_users = [Users.query.filter_by(guid=agency_user_request.user_id).first()
+                    for agency_user_request in agency_user_requests]
+
     return render_template('request/view_request.html',
                            request=current_request,
                            status=request_status,
-                           agency_name=agency.name,
-                           requester=requester,
-                           privacy=current_request.privacy,
-                           users=users,
+                           agency_users=agency_users,
                            edit_requester_form=edit_requester_form)
 
 
@@ -174,7 +168,7 @@ def view(request_id):
 def edit_requester_info(request_id):
     """
     Sample Request Body
-{
+    {
         "name": "new name"
         "email": "updated@email.com"
         ...
@@ -182,51 +176,74 @@ def edit_requester_info(request_id):
     :param request_id:
     :return:
     """
-    requester = Requests.query.filter_by(id=request_id).first().user_requests.filter_by(
-        request_user_type=user_type_request.REQUESTER).first().user
+    requester = Requests.query.filter_by(id=request_id).first().requester
 
-    email = flask_request.form.get('email')
-    telephone = flask_request.form.get('phone')
-    fax = flask_request.form.get('fax')
-    zip = flask_request.form.get('zipcode')
-    title = flask_request.form.get('title')
-    organization = flask_request.form.get('organization')
-    address_one = flask_request.form.get('address_one')
-    address_two = flask_request.form.get('address_two')
-    city = flask_request.form.get('city')
-    state = flask_request.form.get('state')
+    user_attrs = ['email', 'phone_number', 'fax_number', 'title', 'organization']
+    address_attrs = ['zip', 'city', 'state', 'address_one', 'address_two']
 
-    if email or telephone or fax or (city and zip and state and address_one):
-        update_object({
-            'email': email,
-            'phone_number': telephone,
-            'fax_number': fax,
-            'title': title,
-            'organization': organization,
-            'mailing_address': {
-                'zip': zip,
-                'city': city,
-                'state': state,
-                'address_one': address_one,
-                'address_two': address_two,
+    user_attrs_val = {
+        'email': flask_request.form.get('email') or None,  # in case of empty string
+        'phone_number': flask_request.form.get('phone') or None,
+        'fax_number': flask_request.form.get('fax') or None,
+        'title': flask_request.form.get('title') or None,
+        'organization': flask_request.form.get('organization') or None
+    }
 
+    address_attrs_val = {
+        'address_one': flask_request.form.get('address_one') or None,
+        'address_two': flask_request.form.get('address_two') or None,
+        'zip': flask_request.form.get('zipcode') or None,
+        'city': flask_request.form.get('city') or None,
+        'state': flask_request.form.get('state') or None
+    }
+
+    if (user_attrs_val['email'] or
+        user_attrs_val['phone_number'] or
+        user_attrs_val['fax_number'] or (
+            address_attrs_val['city'] and
+            address_attrs_val['zip'] and
+            address_attrs_val['state'] and
+            address_attrs_val['address_one'])
+        ):
+
+        old = {}
+        old_address = {}
+        new = {}
+        new_address = {}
+
+        for attr in user_attrs:
+            cur_val = getattr(requester, attr)
+            new_val = user_attrs_val[attr]
+            if cur_val != new_val:
+                old[attr] = cur_val
+                new[attr] = new_val
+
+        for attr in address_attrs:
+            cur_val = requester.mailing_address[attr]
+            new_val = address_attrs_val[attr]
+            if cur_val != new_val:
+                old_address[attr] = cur_val
+                new_address[attr] = new_val
+
+        if new or new_address:
+            if new_address:
+                new['mailing_address'] = new_address
+            update_object(new,
+                          Users,
+                          (requester.guid, requester.auth_user_type))
+
+            if old_address:
+                old['mailing_address'] = old_address
+
+            response = {
+                "old": old,
+                "new": new
             }
-        }, Users, (requester.guid, requester.auth_user_type))
+        else:
+            response = {"message": "No changes detected."}
+        status_code = 200
+    else:
+        response = {"error": "Missing contact info."}
+        status_code = 400
 
-        # update_object({
-        #     'email': flask_request.form.get('email') or requester.email,
-        #     'phone_number': flask_request.form.get('phone') or requester.phone_number,
-        #     'fax_number': flask_request.form.get('fax') or requester.fax_number,
-        #     'title': flask_request.form.get('title') or requester.title,
-        #     'organization': flask_request.form.get('organization') or requester.organization,
-        #     'mailing_address': {
-        #         'zip': flask_request.form.get('zipcode') or requester.mailing_address['zip'],
-        #         'city': flask_request.form.get('city') or requester.mailing_address['city'],
-        #         'state': flask_request.form.get('state') or requester.mailing_address['state'],
-        #         'address_one': flask_request.form.get('address_one') or requester.mailing_address['address_one'],
-        #         'address_two': flask_request.form.get('address_two') or requester.mailing_address['address_two'],
-        #
-        #     }
-        # }, Users, (requester.guid, requester.auth_user_type))
-
-    return jsonify({}), 200
+    return jsonify(response), status_code
