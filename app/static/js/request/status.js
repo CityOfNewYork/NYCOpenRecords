@@ -3,11 +3,11 @@ $(function () {
     var requesterModal = $("#requesterModal");
     //  Switching to Modals
     requesterModal.on("shown.bs.modal", function () {
-        $("#requesterInput").focus()
+        $("#requesterInput").focus();
     });
 
     $("#agencyModal").on("shown.bs.modal", function () {
-        $("#agencyInput").focus()
+        $("#agencyInput").focus();
     });
 
     var telephone = $("#inputTelephone");
@@ -66,7 +66,7 @@ $(function () {
     ];
 
     // Apply validators on modal open
-    requesterModal.on('show.bs.modal', function () {
+    requesterModal.on("show.bs.modal", function () {
         for (var i = 0; i < required.length; i++) {
             required[i].attr("data-parsley-required", "");
             required[i].attr("data-parsley-required-message", "");
@@ -109,7 +109,7 @@ $(function () {
     });
 
     // Reset modal on close
-    requesterModal.on('hidden.bs.modal', function () {
+    requesterModal.on("hidden.bs.modal", function () {
         var i;
         for (i = 0; i < all.length; i++) {
             all[i].val(all[i].attr("value"));
