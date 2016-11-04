@@ -1,4 +1,5 @@
-<div class="row response-row" data-toggle="modal" data-target="#response-modal-{{ response.id }}">
+<div class="row response-row" data-toggle="modal" data-target="#response-modal-{{ response.id }}"
+     data-backdrop="static" data-keyboard="false">
     <div class="col-md-1 response-row-num">{{ row_num }}</div>
     <div class="col-md-2"><strong>{{ response.type | upper }}</strong></div>
     <div class="col-md-5 metadata-preview">{{ response.preview }}</div>

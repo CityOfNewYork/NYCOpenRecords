@@ -4,7 +4,7 @@ $(function () {
     var index = 0;
     var index_increment = 10;
 
-    var request_id = $('#request-id').text(); // TODO: (maybe) do this for js.html files.
+    var request_id = $('#request-id').text();
 
     // get first set of responses on page load
     $.ajax({
@@ -88,25 +88,30 @@ $(function () {
         showResponses();
     });
 
-    // TODO: remove (make tooltip for QA)
+    // TODO: remove after QA
     $('#request-responses').on('click', '.tmp-save-changes', function () {
         var form = $(this).parents('.modal-body').children('form');
         var response_id = $(this).parents('.modal-content').children('.response-id').text();
+        var data = form.serializeArray();
+        data.push({
+            name: "email_content",
+            value: "Why hello there..."
+        });
         $.ajax({
             url: "/response/" + response_id,
             type: "PUT",
-            data: form.serialize(),
+            data: data,
             success: function (response) {
                 console.log(response);
             }
         });
     });
 
-    // TODO: DELETE updated on modal close and reset
+    // TODO: DELETE updated on modal close and reset (or just refresh page)
 
     function setEditResponseWorkflow(response_id, response_type) {
 
-        switch (response_type) { // TODO: other response types
+        switch (response_type) {
             case "file":
                 var response_modal = $("#response-modal-" + response_id);
 
@@ -123,16 +128,20 @@ $(function () {
                     // Validate fileupload form
                     first.find(".fileupload-form").parsley().validate();
 
-                    // Prevent default if file upload has not been completed
-                    if (first.find('.template-download').length === 0 && first.find('.template-upload').length != 0) {
-                        first.find(".fileupload-error-messages").text("The file upload has not been completed").show();
+                    // Do not proceed if file upload has not been completed
+                    if (first.find('.template-download').length === 0 &&
+                        first.find('.template-upload').length != 0) {
+                        first.find(".fileupload-error-messages").text(
+                            "The file upload has not been completed").show();
                         e.preventDefault();
                         return false;
                     }
 
-                    // Prevent default if files with error are not removed
-                    if (first.find('.upload-error').length > 0 || first.find(".error-post-fileupload").is(':visible')) {
-                        first.find('.fileupload-error-messages').text("Files with Errors must be removed").show();
+                    // Do not proceed if files with error are not removed
+                    if (first.find('.upload-error').length > 0 ||
+                        first.find(".error-post-fileupload").is(':visible')) {
+                        first.find('.fileupload-error-messages').text(
+                            "Files with Errors must be removed").show();
                         e.preventDefault();
                         return false;
                     }

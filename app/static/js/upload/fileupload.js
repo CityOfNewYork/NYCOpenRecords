@@ -92,6 +92,7 @@ function bindFileUpload(target,
         $(".fileupload-loading").hide();
         $(".fileupload-process").hide();
     }).bind("fileuploadstarted", function (e, data) {
+        // Disable 'next' button
         if (for_update) {
             $(nextButton).attr('disabled', true);
         }
@@ -144,7 +145,10 @@ function pollUploadStatus(upload_filename, htmlId, request_id, for_update, nextB
                 tr.find(".fileupload-input-fields").removeClass("hidden");
                 tr.find(".processing-upload").remove();
                 setRemoveBtn(request_id, tr.find(".remove-post-fileupload"), true, for_update);
-                $(nextButton).attr('disabled', false)
+                if (for_update) {
+                    // Enable 'next' button
+                    $(nextButton).attr('disabled', false)
+                }
             }
         }
     });
