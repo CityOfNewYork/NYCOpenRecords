@@ -148,7 +148,7 @@ def generate_new_due_date(extension_length, request_id):
     return new_due_date
 
 
-def get_holidays_date_list(year_start, year_end):
+def get_holidays_date_list(year_start, year_end=None):
     """
     Generate a list of holiday dates in the range of specified years (including year_end)
 
@@ -157,5 +157,8 @@ def get_holidays_date_list(year_start, year_end):
 
     :return: List of dates formatted as strings ['YYYY-MM-DD']
     """
-    years = [year for year in range(year_start, year_end + 1)]
+    if year_end:
+        years = [year for year in range(year_start, year_end + 1)]
+    else:
+        years = year_start
     return [str(date) for date, name in NYCHolidays(years=years).items()]

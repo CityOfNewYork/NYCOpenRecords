@@ -4,7 +4,6 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 
-from datetime import datetime
 from urllib.request import urlopen
 
 from flask import (
@@ -16,9 +15,9 @@ from flask import (
 )
 from flask_login import current_user
 
-from app import us_holidays
 from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
+from app.lib.date_utils import get_holidays_date_list
 from app.models import Requests, Responses
 from app.response import response
 from app.response.utils import (
@@ -324,18 +323,13 @@ def edit_response(response_id):
     return jsonify(http_response), 200
 
 
-@response.route('/is_holiday', methods=['GET'])
-def is_holiday():
+@response.route('/get_yearly_holidays/<int:year>', methods=['GET'])
+def get_yearly_holidays(year):
     """
-    Check if a given data is a holiday.
+    Retrieve a list of dates that are holidays in the specified year
 
-    :param date: Date as a string in format 'YYYY-MM-DD'
+    :param date: 4-digit year.
 
-    :return: If date is a holiday, string '<date> is holiday.' and 200 status code is returned
-             If date is not a holiday, string '<date> is not holiday' and 400 status code is returned
+    :return: List of strings ["YYYY-MM-DD"]
     """
-    date = datetime.strptime(flask_request.args['due-date'], '%Y-%m-%d').date()
-    if date in us_holidays:
-        return '{} is a holiday'.format(date.strftime('%Y-%m-%d')), 200
-    else:
-        return '{} is not a holiday'.format(date), 400
+    return jsonify(holidays=sorted(get_holidays_date_list(year)))
