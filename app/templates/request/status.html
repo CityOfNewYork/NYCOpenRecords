@@ -102,8 +102,26 @@
 
                                     <div id="collapse_{{ user.guid }}" class="panel-collapse collapse out">
                                         <div class="panel-body">
-                                            Email: {{ user.email }}<br>
-                                            Phone Number: {{ user.phone_number }}<br>
+                                            {% if user.email %}
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        Email
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        {{ user.email }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            {% if user.phone_number %}
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        Phone
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        {{ user.phone_number }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>

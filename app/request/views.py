@@ -154,7 +154,7 @@ def view(request_id):
         request_user_type=user_type_request.AGENCY).all()
     edit_requester_form = EditRequesterForm(requester)
 
-    agency_users = [Users.query.filter_by(guid=agency_user_request.user_id).first()
+    agency_users = [Users.query.filter_by(guid=agency_user_request.user_guid).first()
                     for agency_user_request in agency_user_requests]
 
     return render_template('request/view_request.html',

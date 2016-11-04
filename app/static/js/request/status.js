@@ -81,7 +81,7 @@ $(function () {
     });
 
     var errorMessage = $(".contact-form-error-message");
-    // ON VALIDATE
+
     $("#user-info").parsley().on("form:validate", function () {
         // Checks that at least one of the contact information fields is filled
         if (email.parsley().isValid() ||
@@ -115,7 +115,7 @@ $(function () {
             all[i].val(all[i].attr("value"));
         }
         for (i = 0; i < required.length; i++) {
-            required[i].removeClass("parsley-error");
+            $("#user-info").parsley().reset();
         }
         errorMessage.html("");
     });
