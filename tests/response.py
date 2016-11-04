@@ -109,6 +109,7 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': new_privacy,
                     'title': new_title,
                     'filename': new_filename,
+                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         # check flask response
@@ -191,6 +192,7 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': RELEASE_AND_PUBLIC,
                     'title': 'The Cow Goes Quack',
                     'filename': new_filename,
+                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         self.assertEqual(
