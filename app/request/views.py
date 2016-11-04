@@ -153,7 +153,9 @@ def view(request_id):
         request_user_type=user_type_request.REQUESTER).first().user
     agency_users = UserRequests.query.filter_by(request_id=request_id,
                                                 request_user_type=user_type_request.AGENCY).all()
-    edit_requester_form = EditRequesterForm(state=requester.mailing_address['state'])
+    edit_requester_form = EditRequesterForm(state=requester.mailing_address['state']
+                                            if requester.mailing_address is None
+                                            else None)
 
     users = []
     for agency_user in agency_users:
