@@ -150,3 +150,7 @@ footer{
 .active{
 	min-height: 15px;
 }
+
+input[type="radio"] {
+	width: auto;
+}

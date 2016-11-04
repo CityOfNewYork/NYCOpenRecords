@@ -17,7 +17,10 @@ from app.lib.utils import (
     b64decode_lenient,
     eval_request_bool,
 )
-from app.models import Responses
+from app.models import (
+    Responses,
+    Files,
+)
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload import upload
 from app.upload.constants import (
@@ -198,11 +201,6 @@ def delete(r_id_type, r_id, filecode):
             response = {"error": "Failed to delete '{}'".format(filename)}
 
     return jsonify(response), 200
-
-
-@upload.route('/<request_id>', methods=['GET'])
-def get(request_id):
-    return jsonify({}), 200
 
 
 @upload.route('/status', methods=['GET'])
