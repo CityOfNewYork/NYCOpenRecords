@@ -160,7 +160,7 @@ $(function () {
                             },
                             success: function (data) {
                                 // Data should be html template page.
-                                tinyMCE.get("email-file-content-" + response_id).setContent(data);
+                                tinyMCE.get("email-content-" + response_id).setContent(data);
                             }
                         });
                     }
@@ -191,11 +191,11 @@ $(function () {
                             template_name: "email_response_file.html",
                             type: "file",
                             files: JSON.stringify(files),
-                            email_content: $("#email-file-content-" + response_id).val()
+                            email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
                             // Data should be html template page.
-                            third.find(".email-file-summary").html(data);
+                            third.find(".email-summary").html(data);
                         },
                         error: function (error) {
                             console.log(error);
@@ -220,7 +220,7 @@ $(function () {
                     var data = form.serializeArray();
                     data.push({
                         name: "email_content",
-                        value: third.find(".email-file-summary").html()
+                        value: third.find(".email-summary:hidden").html()
                     });
                     $.ajax({
                         url: "/response/" + response_id,
