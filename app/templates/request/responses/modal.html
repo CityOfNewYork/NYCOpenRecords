@@ -8,7 +8,7 @@
                 aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">{{ response.type | upper }}</h4>
             </div>
-            {% if response.type in ['file', 'note', 'link', 'extension', 'offline_instructions'] %}
+            {% if requires_workflow %}
                 <div class="first">
                     <div class="modal-body">
                         {% if response.type == 'file' %}

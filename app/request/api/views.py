@@ -15,6 +15,7 @@ from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
 from app.constants import RESPONSES_INCREMENT
+from app.constants.response_type import EMAIL_WORKFLOW_TYPES
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -111,6 +112,7 @@ def get_request_responses():
             modal = render_template(
                 template_path + 'modal.html',
                 response=response,
+                requires_workflow=response.type in EMAIL_WORKFLOW_TYPES,
                 modal_body=render_template(
                     "{}modal_body/{}.html".format(
                         template_path, response.type
