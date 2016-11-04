@@ -308,7 +308,7 @@ def edit_response(response_id):
     # TODO: remove
     from app.models import Users
     from flask_login import login_user
-    login_user(Users.query.first())
+    login_user(Users.query.first(), force=True)
 
     if current_user.is_anonymous:
         return jsonify({}), 403

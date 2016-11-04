@@ -15,7 +15,7 @@ from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
 from app.constants import RESPONSES_INCREMENT
-from app.constants.response_type import EMAIL_WORKFLOW_TYPES
+from app.constants.response_type import EMAIL_WORKFLOW_TYPES, EMAIL
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -89,8 +89,9 @@ def get_request_responses():
     """
     start = int(flask_request.args['start'])
 
-    responses = Responses.query.filter_by(
-        request_id=flask_request.args['request_id']
+    responses = Responses.query.filter(
+        Responses.request_id == flask_request.args['request_id'],
+        Responses.type != EMAIL
     ).order_by(
         desc(Responses.date_modified)
     ).all()[start: start + RESPONSES_INCREMENT]

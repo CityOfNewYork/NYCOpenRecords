@@ -3,5 +3,5 @@
     <div class="col-md-1 response-row-num">{{ row_num }}</div>
     <div class="col-md-2"><strong>{{ response.type | upper }}</strong></div>
     <div class="col-md-5 metadata-preview">{{ response.preview }}</div>
-    <div class="col-md-4">{{ response.date_modified }}</div>
+    <div class="col-md-4">{{ response.date_modified.strftime('%A, %B %d %Y at %I:%M %p') }}</div>
 </div>
