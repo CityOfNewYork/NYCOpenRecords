@@ -72,7 +72,6 @@ class DevelopmentConfig(Config):
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED')))
-    ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED')))
     MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
 
 

@@ -34,7 +34,7 @@ def create_object(obj):
         return None
     else:
         # create elasticsearch doc
-        if not isinstance(obj, Requests) and hasattr(obj, 'es_create') and current_app.config['ELASTICSEARCH_ENABLED']:
+        if not isinstance(obj, Requests) and hasattr(obj, 'es_create'):
             obj.es_create()
         return str(obj)
 
