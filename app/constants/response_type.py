@@ -1,10 +1,16 @@
 NOTE = "note"
-RECORD_TYPES = "record types"
 FILE = "file"
 LINK = "link"
-INSTRUCTIONS = "offline instructions"
+INSTRUCTIONS = "offline_instructions"
 EMAIL = "email"
 SMS = "sms"
 PUSH = "push"
 EXTENSION = "extension"
-STATUS = "status"
+
+EMAIL_WORKFLOW_TYPES = frozenset((
+    NOTE,
+    FILE,
+    LINK,
+    INSTRUCTIONS,
+    EXTENSION,
+))

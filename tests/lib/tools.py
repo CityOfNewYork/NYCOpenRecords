@@ -4,8 +4,8 @@ import random
 from itertools import product
 from string import ascii_lowercase, digits
 from datetime import datetime
-
 from flask import current_app
+from tests.lib.constants import NON_ANON_USER_GUID_LEN
 from app.constants import (
     ACKNOWLEDGEMENT_DAYS_DUE,
     response_type,
@@ -43,7 +43,12 @@ class RequestsFactory(object):
 
     filepaths = []
 
-    def __init__(self, request_id):
+    def __init__(self, request_id=None, clean=True):
+        """
+        :param request_id: request FOIL id
+        :param clean: reset data?
+        """
+        self.clean = clean
         date_created = datetime.utcnow()
         date_submitted = get_following_date(date_created)
         agency_ein = 2
@@ -107,11 +112,11 @@ class RequestsFactory(object):
         )
         create_object(file_meta)
         response = Responses(
-            request_id=self.request.id,
-            type=response_type.FILE,
-            date_modified=datetime.utcnow(),
-            metadata_id=file_meta.id,
-            privacy=PRIVATE,
+            self.request.id,
+            response_type.FILE,
+            file_meta.id,
+            PRIVATE,
+            datetime.utcnow(),
         )
         # TODO: add Events FILE_ADDED
         create_object(response)
@@ -126,9 +131,10 @@ class RequestsFactory(object):
         - remove any files created by this factory
         - ...
         """
-        for path in self.filepaths:
-            if os.path.exists(path):
-                os.remove(path)
+        if self.clean:
+            for path in self.filepaths:
+                if os.path.exists(path):
+                    os.remove(path)
 
 
 def create_user(auth_type=user_type_auth.PUBLIC_USER_NYC_ID):
@@ -161,9 +167,8 @@ def generate_user_guid(auth_type):
     if auth_type == user_type_auth.ANONYMOUS_USER:
         return generate_guid_anon()
     else:
-        non_anon_guid_length = 6  # TODO: make constant, is valid?
         return ''.join(random.choice(ascii_lowercase + digits)
-                       for _ in range(non_anon_guid_length))
+                       for _ in range(NON_ANON_USER_GUID_LEN))
 
 
 def create_requests_search_set(requester, other_requester):

@@ -7,10 +7,10 @@ from flask import jsonify, current_app
 from tests.lib.base import BaseTestCase
 from tests.lib.tools import RequestsFactory
 from tests.lib.constants import (
-    PNG_FILE_CONTENTS,
-    PNG_FILE_SIZE,
+    PNG_FILE_NAME,
+    PNG_FILE_PATH,
 )
-
+from app.lib.utils import get_file_hash
 from app.models import Events
 from app.constants import (
     UPDATED_FILE_DIRNAME,
@@ -71,26 +71,29 @@ class ResponseViewsTests(BaseTestCase):
             'name': old_filename,
             'mime_type': response.metadatas.mime_type,
             'size': response.metadatas.size,
+            'hash': response.metadatas.hash,
         }
 
         new_privacy = RELEASE_AND_PUBLIC
-        new_filename = 'scream.png'
+        new_filename = PNG_FILE_NAME
         new_title = "Updated Title, Shiny and Chrome"
         new_mime_type = 'image/png'
-        new_size = PNG_FILE_SIZE
+        new_size = os.path.getsize(PNG_FILE_PATH)
+        new_hash = get_file_hash(PNG_FILE_PATH)
         data_new = {
             'privacy': new_privacy,
             'title': new_title,
             'name': new_filename,
             'mime_type': new_mime_type,
             'size': new_size,
+            'hash': new_hash,
         }
 
+        # copy test file into proper directory
         path = os.path.join(self.upload_path, UPDATED_FILE_DIRNAME)
         os.makedirs(path)
         filepath = os.path.join(path, new_filename)
-        with open(filepath, 'wb') as fp:
-            fp.write(PNG_FILE_CONTENTS)
+        shutil.copyfile(PNG_FILE_PATH, filepath)
 
         # https://github.com/mattupstate/flask-security/issues/259
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
@@ -106,6 +109,7 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': new_privacy,
                     'title': new_title,
                     'filename': new_filename,
+                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         # check flask response
@@ -123,14 +127,16 @@ class ResponseViewsTests(BaseTestCase):
                 response.metadatas.title,
                 response.metadatas.name,
                 response.metadatas.mime_type,
-                response.metadatas.size
+                response.metadatas.size,
+                response.metadatas.hash,
             ],
             [
                 new_privacy,
                 new_title,
                 new_filename,
                 new_mime_type,
-                new_size
+                new_size,
+                new_hash,
             ])
         # check FILE_EDITED Event created
         events = Events.query.filter_by(response_id=response.id).all()
@@ -142,8 +148,8 @@ class ResponseViewsTests(BaseTestCase):
                 event.user_id,
                 event.auth_user_type,
                 event.type,
-                event.previous_response_value,
-                event.new_response_value,
+                event.previous_value,
+                event.new_value,
             ],
             [
                 rf.request.id,
@@ -186,6 +192,7 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': RELEASE_AND_PUBLIC,
                     'title': 'The Cow Goes Quack',
                     'filename': new_filename,
+                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         self.assertEqual(

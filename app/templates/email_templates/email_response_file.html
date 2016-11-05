@@ -1,0 +1,16 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if files_links %}
+    <p>
+        Download the request files at:
+        <br>
+        <ul>
+            {% for filename, link in files_links.items() %}
+                <li style="list-style: none">
+                    <a href='{{ link }}'>{{ filename }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </p>
+    {% endif %}
+{% endblock %}

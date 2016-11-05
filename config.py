@@ -14,7 +14,7 @@ class Config:
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
-                   os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data'), 'agencies.csv'))
+                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
 
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
@@ -31,7 +31,7 @@ class Config:
     # Flask-Mail Settings
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = os.environ.get('MAIL_PORT')
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS')
+    MAIL_USE_TLS = eval(str(os.environ.get('MAIL_USE_TLS'))) or True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = os.environ.get('SUBJECT_PREFIX')
@@ -42,7 +42,7 @@ class Config:
                                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/'))
-    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED')
+    VIRUS_SCAN_ENABLED = eval(str(os.environ.get('VIRUS_SCAN_ENABLED')))
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
     EMAIL_TEMPLATE_DIR = (os.environ.get('EMAIL_TEMPLATE_DIR') or 'email_templates/')
@@ -53,7 +53,7 @@ class Config:
 
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
-    ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') or True
+    ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED'))) or True
 
     @staticmethod
     def init_app(app):
@@ -62,7 +62,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') or False
+    VIRUS_SCAN_ENABLED = eval(str(os.environ.get('VIRUS_SCAN_ENABLED'))) or False
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
     MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
     MAIL_USE_TLS = False
@@ -71,7 +71,9 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
-    ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED'))) or False
+    ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED')))
+    ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED')))
+    MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
 
 
 class TestingConfig(Config):

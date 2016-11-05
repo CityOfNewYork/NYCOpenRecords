@@ -120,11 +120,11 @@
                         placeholder='12345') }}<br>
                     </div>
                 </div>
-
-{#                commented out recaptcha div because of NYC network proxy preventing it to send a #}
-{#                backend request to the API#}
 {#                <div class="col-sm-12 captcha">#}
 {#                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>#}
+{#                </div>#}
+{#                <div class="recaptcha-error" id="recaptcha-error" style="display: none">#}
+{#                    <p>*Please Complete reCAPTCHA</p>#}
 {#                </div>#}
 
                 {{ form.submit(id='submit', class='btn-primary') }}<br>
@@ -147,4 +147,6 @@
     <script src='https://www.google.com/recaptcha/api.js'></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/new-request-character-count.js') }}"></script>
+{#    <script type="text/javascript"#}
+{#            src="{{ url_for('static', filename='js/request/validate-recaptcha.js') }}"></script>#}
 {% endblock %}

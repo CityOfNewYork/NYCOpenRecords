@@ -1,0 +1,11 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if url %}
+        {% if privacy != response_privacy.PRIVATE %}
+            You can view the additional information at the following webpage: </p>
+        {% endif %}
+        <p>
+            <a href="{{ url }}">{{ url }}</a>
+        </p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+/* sets controlling div to relative position */
+.link-control {
+    position: relative;
+    padding-bottom: 5rem;
+}
+
+/* sets styles for the labels for the extension form */
+.link-label {
+    font-weight: 400;
+    line-height: 20px;
+}

@@ -1,13 +1,13 @@
 <form id="add-extension-form" class="extension-form" action="/response/extension/{{ request.id }}" method="POST">
-    <div class="add-extension col-sm-8">
+    <div class="add-extension col-sm-9">
         <div class="extension-control">
             <legend class="extension-header">
                 Extend Request
             </legend>
             <!-- first div of the add-extension form -->
-            <div class="extension-divs form-group" id="first">
+            <div class="extension-divs form-group" id="extension-first">
                 <label class="extension-label">Length</label>
-                <select id="extension-select" name="length" class="form-control">
+                <select id="extension-select" name="length" class="disable-enter-submit form-control">
                     <option value="0" selected="selected" disabled="disabled">None selected</option>
                     <option value="20">20 Business Days</option>
                     <option value="30">30 Business Days</option>
@@ -20,7 +20,7 @@
                 <!--  custom due date datepicker -->
                 <div class="form-group" style="display:none;" id="custom-due-date">
                     <label class="extension-label">Custom Due Date</label>
-                    <input type="text" id="custom-extension" name="due-date" value={{ request.due_date }}>
+                    <input type="text" id="custom-extension" name="due-date" class="disable-enter-submit" value={{ request.due_date }}>
                 </div>
                 <label class="extension-label">Extension Reason</label>
                 <textarea class="input-block-level form-group" id="extension-reason" name="reason"
@@ -28,16 +28,17 @@
                 <button type="button" class="next-btn btn btn-primary" id="extension-next-1">Next</button>
             </div>
             <!-- second div of the add-extension form containing email content -->
-            <div class="extension-divs hide-div form-group" id="second">
-                <textarea class="tinymce-area" name="email-extend-content"></textarea>
+            <div class="extension-divs hide-div form-group" id="extension-second">
+                <textarea class="tinymce-area" name="email-extension-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="extension-prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="extension-next-2">Next</button>
             </div>
             <!-- last div of the add-extension form containing confirmation and submit -->
-            <div class="extension-divs hide-div form-group" id="third">
+            <div class="extension-divs hide-div form-group" id="extension-third">
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
-                <div id="email-extend-summary"></div>
+                <div id="email-extension-summary"></div>
+                <input type="hidden" name="email-extension-summary" id="email-extension-summary-hidden">
                 <button type="button" class="prev-btn btn btn-default" id="extension-prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>
