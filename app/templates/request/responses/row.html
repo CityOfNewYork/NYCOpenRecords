@@ -2,7 +2,7 @@
      data-backdrop="static" data-keyboard="false">
     <div class="col-md-1 response-row-num">{{ row_num }}</div>
     <!-- to get rid of underscore in offline_instructions -->
-    {% if response.type == "offline_instructions" %}
+    {% if response.type == response_type.INSTRUCTIONS %}
         <div class="col-md-2 wrap-text offline-instructions-row"><strong>OFFLINE INSTRUCTION</strong></div>
     {% else %}
         <div class="col-md-2"><strong>{{ response.type | upper }}</strong></div>
