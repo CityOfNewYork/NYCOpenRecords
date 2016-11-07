@@ -30,7 +30,8 @@ from app.response.utils import (
     send_file_email,
     process_privacy_options,
     process_email_template_request,
-    RespFileEditor
+    RespFileEditor,
+    RespNoteEditor
 )
 
 
@@ -320,7 +321,7 @@ def edit_response(response_id):
         resp = Responses.query.filter_by(id=response_id).first()
         editor_for_type = {
             response_type.FILE: RespFileEditor,
-            # response_type.NOTE: RespNoteEditor,
+            response_type.NOTE: RespNoteEditor,
             # ...
         }
         editor = editor_for_type[resp.type](current_user, resp, flask_request)

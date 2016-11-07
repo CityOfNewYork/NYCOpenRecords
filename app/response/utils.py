@@ -944,6 +944,12 @@ class RespNoteEditor(ResponseEditor):
     def metadata_fields(self):
         return ['content']
 
+    def edit_metadata(self):
+        new_content = flask_request.form.get('content')
+        self.set_data_values('content',
+                             self.metadata.content,
+                             new_content)
+
 
 class RespLinkEditor(ResponseEditor):
     @property

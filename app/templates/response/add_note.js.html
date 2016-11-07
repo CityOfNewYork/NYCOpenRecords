@@ -21,7 +21,7 @@ $(document).ready(function () {
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_link.html",
+                    template_name: "email_response_note.html",
                     type: "note",
                     privacy: $(".note-privacy:checked").val()
                 },

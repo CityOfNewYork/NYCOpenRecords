@@ -30,7 +30,7 @@
             {% if requires_workflow %}
                 <div class="first">
                     <div class="modal-body">
-                        {% if response.type == 'file' %}
+                        {% if response.type == response_type.FILE %}
                             <button type="button" class="btn btn-primary pull-right tmp-save-changes"
                             data-toggle="tooltip" title="Sends a request to the Edit Response endpoint
                             using a dummy email body and without refreshing the page for faster testing.">

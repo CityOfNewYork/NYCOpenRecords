@@ -110,19 +110,39 @@ $(function () {
     // TODO: DELETE updated on modal close and reset (or just refresh page)
 
     function setEditResponseWorkflow(response_id, response_type) {
+        var response_modal = $("#response-modal-" + response_id);
+
+        var first = response_modal.find('.first');
+        var second = response_modal.find('.second');
+        var third = response_modal.find('.third');
+
+        var next1 = first.find('.response-modal-next');
+        var next2 = second.find('.response-modal-next');
+        var prev2 = second.find('.response-modal-prev');
+        var prev3 = third.find('.response-modal-prev');
+
+        // Initialize tinymce HTML editor
+        tinymce.init({
+            // sets tinymce to enable only on specific textareas classes
+            mode: "specific_textareas",
+            // selector for tinymce textarea classes is set to 'tinymce-area'
+            editor_selector: "tinymce-area",
+            elementpath: false,
+            height: 180
+        });
 
         switch (response_type) {
             case "file":
-                var response_modal = $("#response-modal-" + response_id);
-
-                var first = response_modal.find('.first');
-                var second = response_modal.find('.second');
-                var third = response_modal.find('.third');
-
-                var next1 = first.find('.response-modal-next');
-                var next2 = second.find('.response-modal-next');
-                var prev2 = second.find('.response-modal-prev');
-                var prev3 = third.find('.response-modal-prev');
+                // var response_modal = $("#response-modal-" + response_id);
+                //
+                // var first = response_modal.find('.first');
+                // var second = response_modal.find('.second');
+                // var third = response_modal.find('.third');
+                //
+                // var next1 = first.find('.response-modal-next');
+                // var next2 = second.find('.response-modal-next');
+                // var prev2 = second.find('.response-modal-prev');
+                // var prev3 = third.find('.response-modal-prev');
 
                 next1.click(function (e) {
                     // Validate fileupload form
@@ -232,19 +252,104 @@ $(function () {
                     });
                 });
 
-                // Initialize tinymce HTML editor
-                tinymce.init({
-                    // sets tinymce to enable only on specific textareas classes
-                    mode: "specific_textareas",
-                    // selector for tinymce textarea classes is set to 'tinymce-area'
-                    editor_selector: "tinymce-area",
-                    elementpath: false,
-                    height: 180
-                });
-
                 // Apply parsley required validation for title
                 first.find("input[name=title]").attr('data-parsley-required', '');
                 first.find("input[name=title]").attr('data-parsley-errors-container', '.title-error');
+
+                break;
+
+            case "note":
+                next1.click(function () {
+                    // Validate fileupload form
+                    first.find(".note-form").parsley().validate();
+
+                    if (first.find(".note-form").parsley().isValid()) {
+                        first.hide();
+                        second.show();
+
+                        $.ajax({
+                            url: "/response/email",
+                            type: "POST",
+                            data: {
+                                request_id: request_id,
+                                template_name: "email_response_note.html",
+                                type: "note",
+                                privacy: first.find("input[name=privacy]:checked").val()
+                            },
+                            success: function (data) {
+                                // Data should be html template page.
+                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                            }
+                        });
+                    }
+                });
+
+                next2.click(function () {
+                    second.hide();
+                    third.show();
+
+                    tinyMCE.triggerSave();
+
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: request_id,
+                            template_name: "email_response_note.html",
+                            type: "note",
+                            note: JSON.stringify({
+                                content: first.find('#note-content').val(),
+                                privacy: first.find("input[name=privacy]:checked").val()
+                            }),
+                            email_content: $("#email-content-" + response_id).val()
+                        },
+                        success: function (data) {
+                            // Data should be html template page.
+                            third.find(".email-summary").html(data);
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+                });
+
+                prev2.click(function () {
+                    second.hide();
+                    first.show();
+                });
+
+                prev3.click(function () {
+                    third.hide();
+                    second.show();
+                });
+
+                // SUBMIT!
+                third.find(".response-modal-submit").click(function() {
+                    var form = first.find("form");
+                    var data = form.serializeArray();
+                    data.push({
+                        name: "email_content",
+                        value: third.find(".email-summary:hidden").html()
+                    });
+                    $.ajax({
+                        url: "/response/" + response_id,
+                        type: "PUT",
+                        data: data,
+                        success: function (response) {
+                            location.reload();
+                        }
+                    });
+                });
+
+                // Apply parsley data required validation to note title and url
+                first.find('#note-content').attr('data-parsley-required', '');
+
+                // Apply parsley max length validation to note title and url
+                first.find('#note-content').attr('data-parsley-maxlength', '500');
+
+                // Apply custom validation messages
+                first.find('#note-content').attr('data-parsley-required-message', 'Note content must be provided');
+                first.find('#note-content').attr('data-parsley-maxlength-message', 'Note content must be less than 500 characters');
 
                 break;
             default:
