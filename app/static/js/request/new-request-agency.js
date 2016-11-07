@@ -92,7 +92,7 @@ $(document).ready(function () {
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
     // Called when validation is used and checks that at least one form of contact was filled out
-    $('#request-form').parsley().subscribe('parsley:form:validate', function (formInstance) {
+    $('#request-form').parsley().on('form:validate', function (formInstance) {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
         for (i = 0 ; i < required_fields.length ; i++){
            $('#' + required_fields[i]).attr('data-parsley-required','');
