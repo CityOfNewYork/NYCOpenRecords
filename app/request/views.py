@@ -47,7 +47,8 @@ from app.request.utils import (
 )
 from app.constants import (
     user_type_request,
-    request_status
+    request_status,
+    response_type
 )
 
 
@@ -175,6 +176,7 @@ def view(request_id):
     return render_template('request/view_request.html',
                            request=current_request,
                            status=request_status,
+                           response_type=response_type,
                            agency_name=agency.name,
                            requester=requester,
                            privacy=current_request.privacy,
