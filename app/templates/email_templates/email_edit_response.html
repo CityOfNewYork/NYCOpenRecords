@@ -1,0 +1,19 @@
+{#{% extends 'email_templates/email_response.html' %}#}
+{#{% block response_content %}#}
+    The following {{ response_type }} has been edited to <a
+        href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+    <p>
+        Old {{ response_type }}:<br>
+{#        {% for key, value in old_content.items() %}#}
+{#            {{ key }}:{{ value }} <br />#}
+{#        {% endfor %}#}
+        Content: {{ old_content }}
+    </p>
+    <p>
+        New {{ response_type }}:<br>
+{#        {% for key, value in new_content.items() %}#}
+{#            {{ key }}:{{ value }} <br />#}
+{#        {% endfor %}#}
+        Content: {{ new_content }}
+    </p>
+{#{% endblock %}#}

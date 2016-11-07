@@ -133,17 +133,6 @@ $(function () {
 
         switch (response_type) {
             case "file":
-                // var response_modal = $("#response-modal-" + response_id);
-                //
-                // var first = response_modal.find('.first');
-                // var second = response_modal.find('.second');
-                // var third = response_modal.find('.third');
-                //
-                // var next1 = first.find('.response-modal-next');
-                // var next2 = second.find('.response-modal-next');
-                // var prev2 = second.find('.response-modal-prev');
-                // var prev3 = third.find('.response-modal-prev');
-
                 next1.click(function (e) {
                     // Validate fileupload form
                     first.find(".fileupload-form").parsley().validate();
@@ -272,8 +261,10 @@ $(function () {
                             type: "POST",
                             data: {
                                 request_id: request_id,
-                                template_name: "email_response_note.html",
-                                type: "note",
+                                response_id: response_id,
+                                template_name: "email_edit_response.html",
+                                type: "edit",
+                                content: first.find('#note-content').val(),
                                 privacy: first.find("input[name=privacy]:checked").val()
                             },
                             success: function (data) {
@@ -295,7 +286,7 @@ $(function () {
                         type: "POST",
                         data: {
                             request_id: request_id,
-                            template_name: "email_response_note.html",
+                            template_name: "email_edit_response.html",
                             type: "note",
                             note: JSON.stringify({
                                 content: first.find('#note-content').val(),

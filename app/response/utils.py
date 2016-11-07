@@ -342,7 +342,7 @@ def process_privacy_options(files):
     return files_privacy_options
 
 
-def process_email_template_request(request_id, data):
+def process_email_template_request(request_id, response_id, data):
     """
     Process the email template for responses. Determine the type of response from passed in data and follows
     the appropriate execution path to render the email template.
@@ -361,9 +361,10 @@ def process_email_template_request(request_id, data):
         response_type.FILE: _file_email_handler,
         response_type.LINK: _link_email_handler,
         response_type.NOTE: _note_email_handler,
-        response_type.INSTRUCTIONS: _instruction_email_handler
+        response_type.INSTRUCTIONS: _instruction_email_handler,
+        "edit": _edit_email_handler
     }
-    return handler_for_type[data['type']](request_id, data, page, agency_name, email_template)
+    return handler_for_type[data['type']](request_id, response_id, data, page, agency_name, email_template)
 
 
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
@@ -579,6 +580,23 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
                            response_privacy=response_privacy)
 
 
+def _edit_email_handler(request_id, response_id, data, page, agency_name, email_template):
+    resp = Responses.query.filter_by(id=response_id).first()
+    editor_for_type = {
+        response_type.FILE: RespFileEditor,
+        response_type.NOTE: RespNoteEditor,
+        # ...
+    }
+    editor = editor_for_type[resp.type](current_user, resp, flask_request, False)
+    return render_template(email_template,
+                           request_id=request_id,
+                           agency_name=agency_name,
+                           response_type=resp.type,
+                           old_content=editor.data_old['content'],
+                           new_content=editor.data_new['content'],
+                           page=page)
+
+
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     """
     Function that sends email detailing a file response has been uploaded to a request.
@@ -758,12 +776,13 @@ class ResponseEditor(metaclass=ABCMeta):
     should override the `edit_metadata` method with any additional logic.
     """
 
-    def __init__(self, user, response, flask_request):
+    def __init__(self, user, response, flask_request, update=True):
         self.user = user
         self.response = response
         self.flask_request = flask_request
         self.metadata = response.metadatas
 
+        self.update = update
         self.no_change = False
         self.data_old = {}
         self.data_new = {}
@@ -776,7 +795,7 @@ class ResponseEditor(metaclass=ABCMeta):
             self.privacy_changed = True
 
         self.edit_metadata()
-        if self.data_changed():
+        if self.data_changed() and update:
             self.add_event_and_update()
             self.send_email()
         else:
@@ -910,7 +929,8 @@ class RespFileEditor(ResponseEditor):
                 self.set_data_values('hash',
                                      self.metadata.hash,
                                      get_file_hash(filepath))
-                self.replace_old_file(filepath)
+                if self.update:
+                    self.replace_old_file(filepath)
             else:
                 self.errors.append(
                     "File '{}' not found.".format(new_filename))
@@ -943,12 +963,6 @@ class RespNoteEditor(ResponseEditor):
     @property
     def metadata_fields(self):
         return ['content']
-
-    def edit_metadata(self):
-        new_content = flask_request.form.get('content')
-        self.set_data_values('content',
-                             self.metadata.content,
-                             new_content)
 
 
 class RespLinkEditor(ResponseEditor):

@@ -247,7 +247,8 @@ def response_email():
     """
     data = flask_request.form
     request_id = data['request_id']
-    email_template = process_email_template_request(request_id, data)
+    response_id = data['response_id']
+    email_template = process_email_template_request(request_id, response_id, data)
     return email_template
 
 
