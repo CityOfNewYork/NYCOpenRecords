@@ -32,6 +32,7 @@ from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.file_utils import get_mime_type
 from app.lib.user_information import create_mailing_address
+from app.lib.utils import get_file_hash
 from app.models import (
     Requests,
     Agencies,
@@ -325,7 +326,8 @@ def _move_validated_upload(request_id, tmp_path):
         'name': valid_name,
         'mime_type': mime_type,
         'title': '',
-        'size': size
+        'size': size,
+        'hash': get_file_hash(valid_path)
     }
     return file_obj.id, file_metadata
 

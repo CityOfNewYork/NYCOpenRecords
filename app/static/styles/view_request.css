@@ -20,3 +20,29 @@
 .hide-div {
     display: none;
 }
+
+#request-responses .response-row {
+    border-top: 1px solid lightgray;
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+#request-responses .response-row:hover {
+    cursor: pointer;
+    background-color: lightgray;
+}
+
+#responses-nav-buttons {
+    padding-bottom: 2em;
+}
+
+.metadata-preview {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.offline-instructions-row {
+    font-size:x-small;
+    padding-right: 1em;
+}

@@ -1,16 +1,11 @@
 <div class="request-info">
     <div class="well col-sm-9">
-        <h3 class="control-widget">
-            <div class="text-muted" id="request_id">{{ request.id }}</div>
-            <br>
+        <div class="control-widget">
+            <h3 class="text-muted" id="request-id">{{ request.id }}</h3>
             <div class="row">
                 <div class="request-label lead col-sm-1">Title:</div>
-                <div class="request-title-text lead col-sm-8">
-                    <!-- editable area for request title -->
-                    <a href="#" class="xedit" id="title">{{ request.title }}</a>
-                </div>
                 <!-- privacy options for request title -->
-                <div class="btn-group" data-toggle="buttons">
+                <div class="btn-group col-sm-push-8" data-toggle="buttons">
                     {% if request.privacy['title'] %}
                         <label class="title-privacy-btn btn btn-default" data-active-class="primary">
                             <input type="radio" value="false">Public
@@ -27,10 +22,14 @@
                         </label>
                     {% endif %}
                 </div>
+                <div class="request-title-text lead">
+                    <!-- editable area for request title -->
+                    <a href="#" class="xedit" id="title">{{ request.title }}</a>
+                </div>
             </div>
             <br>
             <div class="request-label lead">Description:</div>
-            <div class="lead">{{ request.description }}</div>
+            <div class="request-description-text lead">{{ request.description }}</div>
             <br>
             <div class="request-label lead col-sm-4">Agency Description:</div>
             <!-- privacy options for agency description -->
@@ -55,6 +54,6 @@
                 <!-- editable area for agency description -->
                 <a href="#" class="xedit" id="agency_description">{{ request.agency_description or "" }}</a>
             </div>
-        </h3>
+        </div>
     </div>
 </div>

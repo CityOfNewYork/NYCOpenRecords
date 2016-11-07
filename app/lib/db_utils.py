@@ -56,8 +56,10 @@ def update_object(data, obj_type, obj_id):
         for attr, value in data.items():
             if type(value) == dict:
                 # update json values
+                attr_json = getattr(obj, attr) or {}
                 for key, val in value.items():
-                    getattr(obj, attr)[key] = val
+                    attr_json[key] = val
+                setattr(obj, attr, attr_json)
                 flag_modified(obj, attr)
             else:
                 setattr(obj, attr, value)

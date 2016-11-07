@@ -391,7 +391,7 @@ class Requests(db.Model):
         return self.due_date.strftime('%m/%d/%Y')
 
     def es_update(self):
-        result = es.update(
+        es.update(
             index=INDEX,
             doc_type='request',
             id=self.id,
@@ -410,8 +410,6 @@ class Requests(db.Model):
             },
             # refresh='wait_for'
         )
-        import json
-        print(json.dumps(result, indent=2))
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
@@ -535,6 +533,30 @@ class Responses(db.Model):
         self.date_modified = date_modified
         self.release_date = release_date
 
+    def as_dict(self):
+        content = {
+            c.name: getattr(self, c.name)
+            for c in self.__table__.columns
+        }
+        content.update(
+            preview=self.preview,
+            metadata=self.metadatas.as_dict()
+        )
+        return content
+
+    @property
+    def preview(self):
+        metadata_preview_attr = {
+            Notes: 'content',
+            Files: 'title',
+            Links: 'content',
+            Instructions: 'content',
+            Extensions: 'reason',
+            Emails: 'subject'
+        }
+        return getattr(self.metadatas,
+                       metadata_preview_attr[type(self.metadatas)])
+
     def __repr__(self):
         return '<Responses %r>' % self.id
 
@@ -622,6 +644,12 @@ class Metadatas(db.Model):
     ))
     __mapper_args__ = {'polymorphic_on': type}
 
+    def as_dict(self):
+        return {
+            c.name: getattr(self, c.name)
+            for c in self.__table__.columns
+        }
+
 
 class Notes(Metadatas):
     """
@@ -653,6 +681,7 @@ class Files(Metadatas):
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
     size = db.Column(db.Integer)
+    hash = db.Column(db.String)  # sha1
 
 
 class Links(Metadatas):

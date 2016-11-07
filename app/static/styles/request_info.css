@@ -3,12 +3,10 @@
     min-height: 130px;
 }
 
-/* sets the styles for h3 in the html */
-h3.control-widget {
-    font-size: 24.5px;
+/* sets the styles for the request id header in the html */
+.control-widget h3{
     font-weight: 600;
-    line-height: 20px !important;
-    display: inline !important
+    margin-top: 0;
 }
 
 /* remove padding and margin from lead elements in the well*/
@@ -26,7 +24,7 @@ h3.control-widget {
 
 /* sets privacy buttons (public, private) to a certain size */
 .request-info .privacy-btn {
-    padding: 3.5px 9px;
+    padding: 3px 9px;
 }
 
 /* removes url hyperlink styling */
@@ -42,21 +40,42 @@ h3.control-widget {
     border-bottom: none;
 }
 
+/* wrap and break word on request title */
+.request-title-text {
+    word-wrap: break-word;
+}
+
+/* wrap and break word on request description */
+.request-description-text {
+    word-wrap: break-word;
+}
+
+/* wrap and break word on agency description */
+.agency-desc-text {
+    word-wrap: break-word;
+}
+
 /* sets width and font size of request title text input (called in xeditable js) */
-#request-title.request-editable {
-    width: 280px;
+#request-title {
+    width: 480px;
     font-size: 21px;
     max-height: 10rem;
+    resize: none;
+}
+
+/* sets padding on xeditable request title textarea */
+.request-title-text .editable-container {
+    padding-top: 10px;
 }
 
 /* sets width and font size of agency description text area input (called in xeditable js) */
-#agency-descr.request-editable {
+#agency-descr {
     width: 480px;
     font-size: 21px;
-    max-height: 20rem;
+    max-height: 17rem;
 }
 
-/* edits agency description xeditable text area input */
+/* sets padding on xeditable agency description textarea */
 .agency-desc-text .editable-container {
     padding-top: 10px;
 }
@@ -69,7 +88,7 @@ h3.control-widget {
 /* sets the div of the agency description to a max height and enables scrolling if overflow */
 .request-info .agency-desc-text {
     max-height: 20rem;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 /* disables clear button in xeditable textarea */

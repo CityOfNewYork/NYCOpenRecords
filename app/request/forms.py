@@ -166,11 +166,11 @@ class EditRequesterForm(Form):
         self.email.data = requester.email or ""
         self.phone.data = requester.phone_number or ""
         self.fax.data = requester.fax_number or ""
-        self.address_one.data = requester.mailing_address["address_one"] or ""
-        self.address_two.data = requester.mailing_address["address_two"] or ""
-        self.city.data = requester.mailing_address["city"] or ""
-        self.state.data = requester.mailing_address["state"] or ""
-        self.zipcode.data = requester.mailing_address["zip"] or ""
         self.title.data = requester.title or ""
         self.organization.data = requester.organization or ""
-
+        if requester.mailing_address is not None:
+            self.address_one.data = requester.mailing_address.get("address_one") or ""
+            self.address_two.data = requester.mailing_address.get("address_two") or ""
+            self.city.data = requester.mailing_address.get("city") or ""
+            self.state.data = requester.mailing_address.get("state") or ""
+            self.zipcode.data = requester.mailing_address.get("zip") or ""

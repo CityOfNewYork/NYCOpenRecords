@@ -4,6 +4,10 @@
     padding-bottom: 5rem;
 }
 
+.fileupload-update .fileupload-control {
+    padding-bottom: 2rem;
+}
+
 /* sets spacing for uploaded files table */
 .upload-row-spacer {
     margin-top: 3rem;

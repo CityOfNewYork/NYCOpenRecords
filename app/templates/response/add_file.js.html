@@ -47,7 +47,7 @@
 
             // Proceed with next click function if validation fields are valid and no files are uploading
             if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
-                $('.fileupload-error-messages').html("<div class='alert alert-warning'>Files made Release and Public or Release and Private will be shown with links on the next page</div>");
+                $('.fileupload-error-messages').html('');
                 $.ajax({
                     url: "/response/email",
                     type: 'POST',
@@ -114,14 +114,12 @@
 
         // Handles click events on the second previous button
         $("#fileupload-prev-2").click(function () {
-            $('.fileupload-error-messages').html("<div class='alert alert-warning'>Files made Release and Public or Release and Private will be shown with links on the next page</div>");
             document.getElementById("fileupload-third").style.display = "none";
             document.getElementById("fileupload-second").style.display = "block";
         });
 
         // Apply parsley required validation
         $('#add-files').attr('data-parsley-required', 'false');
-{#        $('#add-files').attr('data-parsley-required-message', 'A file must be added.');#}
 
         // Apply parsley error message to a specific container
         $('#add-files').attr('data-parsley-errors-container', '.fileupload-buttonbar');

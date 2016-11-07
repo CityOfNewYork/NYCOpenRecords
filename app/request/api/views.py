@@ -4,13 +4,18 @@
    :synopsis: Handles the API request URL endpoints for the OpenRecords application
 """
 
-from app.request.api import request_api_blueprint
+from sqlalchemy import desc
 from flask import (
     jsonify,
+    render_template,
     request as flask_request,
 )
+from app.request.api import request_api_blueprint
 from app.lib.db_utils import update_object
-from app.models import Requests
+from app.lib.utils import eval_request_bool
+from app.models import Requests, Responses
+from app.constants import RESPONSES_INCREMENT
+from app.constants import response_type
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -71,17 +76,56 @@ def get_request_history():
     return jsonify(request_history=request_history)
 
 
-@request_api_blueprint.route('/responses', methods=['GET', 'POST'])
+@request_api_blueprint.route('/responses', methods=['GET'])
 def get_request_responses():
     """
-    Retrieves a JSON object of event objects to display the responses of a request on the view request page.
+    Returns a set of responses (id, type, and template),
+    ordered by date descending, and starting from a specified index.
 
-    :return: json object containing list of 50 response objects from request
+    Request parameters:
+    - start: (int) starting index
+    - request_id: FOIL request id
+    - with_template: (default: False) include html (rows and modals) for each response
     """
-    request_responses_index = int(flask_request.form['request_responses_reload_index'])
-    request_responses_index_end = (request_responses_index + 1) * 50 + 1
-    request_responses = []
-    # TODO: Query responses table.
-    for i in range(1, request_responses_index_end):
-        request_responses.append(str(i))
-    return jsonify(request_responses=request_responses)
+    start = int(flask_request.args['start'])
+
+    responses = Responses.query.filter(
+        Responses.request_id == flask_request.args['request_id'],
+        Responses.type != response_type.EMAIL
+    ).order_by(
+        desc(Responses.date_modified)
+    ).all()[start: start + RESPONSES_INCREMENT]
+
+    template_path = 'request/responses/'
+    response_jsons = []
+    for i, response in enumerate(responses):
+        # json = response.as_dict()
+        json = {
+            'id': response.id,
+            'type': response.type
+        }
+        if eval_request_bool(flask_request.args.get('with_template'), False):
+            row = render_template(
+                template_path + 'row.html',
+                response=response,
+                row_num=start + i + 1,
+                response_type=response_type,
+            )
+            modal = render_template(
+                template_path + 'modal.html',
+                response=response,
+                requires_workflow=response.type
+                                  in response_type.EMAIL_WORKFLOW_TYPES,
+                modal_body=render_template(
+                    "{}modal_body/{}.html".format(
+                        template_path, response.type
+                    ),
+                    response=response
+                ),
+                response_type=response_type,
+            )
+            json['template'] = row + modal
+
+        response_jsons.append(json)
+
+    return jsonify(responses=response_jsons)

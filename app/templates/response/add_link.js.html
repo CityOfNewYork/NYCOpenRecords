@@ -98,5 +98,29 @@ $(document).ready(function () {
     $('#link-url').attr('data-parsley-required-message', 'URL link must be provided');
     $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters');
     $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters');
+
+    // Set character counter for link title
+    $('#link-title').keyup(function () {
+        var contentLength = $(this).val().length;
+        var charLength = 90 - contentLength;
+        $('#link-title-character-count').text(charLength + " characters remaining");
+        if (charLength == 0) {
+            document.getElementById("link-title-character-count").style.color = "red";
+        } else {
+            document.getElementById("link-title-character-count").style.color = "black";
+        }
+    });
+
+    // Set character counter for link url
+    $('#link-url').keyup(function () {
+        var contentLength = $(this).val().length;
+        var charLength = 254 - contentLength;
+        $('#link-url-character-count').text(charLength + " characters remaining");
+        if (charLength == 0) {
+            document.getElementById("link-url-character-count").style.color = "red";
+        } else {
+            document.getElementById("link-url-character-count").style.color = "black";
+        }
+    });
 });
 </script>

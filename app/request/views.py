@@ -3,6 +3,9 @@
 
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
+from datetime import datetime
+from dateutil.relativedelta import relativedelta as rd
+
 from flask import (
     render_template,
     redirect,
@@ -15,6 +18,10 @@ from flask import (
 )
 from flask_login import current_user
 
+from app.lib.date_utils import (
+    DEFAULT_YEARS_HOLIDAY_LIST,
+    get_holidays_date_list,
+)
 from app.lib.db_utils import (
     get_agencies_list,
     update_object,
@@ -40,7 +47,8 @@ from app.request.utils import (
 )
 from app.constants import (
     user_type_request,
-    request_status
+    request_status,
+    response_type
 )
 
 
@@ -148,20 +156,24 @@ def view(request_id):
     :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    requester = current_request.requester
     agency_user_requests = UserRequests.query.filter_by(
         request_id=request_id,
         request_user_type=user_type_request.AGENCY).all()
-    edit_requester_form = EditRequesterForm(requester)
+    edit_requester_form = EditRequesterForm(current_request.requester)
 
     agency_users = [Users.query.filter_by(guid=agency_user_request.user_guid).first()
                     for agency_user_request in agency_user_requests]
 
+    holidays = sorted(get_holidays_date_list(
+        datetime.now().year,
+        (datetime.now() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
+    )
     return render_template('request/view_request.html',
                            request=current_request,
                            status=request_status,
                            agency_users=agency_users,
-                           edit_requester_form=edit_requester_form)
+                           edit_requester_form=edit_requester_form,
+                           holidays=holidays)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['PUT'])
@@ -219,7 +231,8 @@ def edit_requester_info(request_id):
                 new[attr] = new_val
 
         for attr in address_attrs:
-            cur_val = requester.mailing_address[attr]
+            cur_val = (requester.mailing_address.get(attr)
+                       if requester.mailing_address else None)
             new_val = address_attrs_val[attr]
             if cur_val != new_val:
                 old_address[attr] = cur_val
