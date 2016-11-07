@@ -41,3 +41,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.offline-instructions-row {
+    font-size:x-small;
+    padding-right: 1em;
+}
