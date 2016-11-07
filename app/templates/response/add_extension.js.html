@@ -162,9 +162,36 @@
         $('#extension-reason').attr('data-parsley-minlength', '20');
         $('#extension-reason').attr('data-parsley-maxlength', '5000');
 
-        // Apply custom validation messages
-        $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
-        $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
-        $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
+    // Strips time from and disables dates before the current due date
+    var current_due_date = "{{ request.due_date }}";
+    current_due_date = current_due_date.split(' ')[0];
+    $("#custom-extension").datepicker('option', 'minDate', current_due_date);
+
+    // Loop through required fields and apply a data-parsley-required attribute to them
+    var required_fields = ['custom-extension','extension-select', 'extension-reason'];
+    for (i = 0 ; i < required_fields.length ; i++){
+        $('#' + required_fields[i]).attr('data-parsley-required','');
+    }
+
+    // Apply parsley minimum length validation to extension reason
+    $('#extension-reason').attr('data-parsley-minlength','20');
+    $('#extension-reason').attr('data-parsley-maxlength','5000');
+
+    // Apply custom validation messages
+    $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
+    $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
+    $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
+
+    // Set character counter for extension reason
+    $('#extension-reason').keyup(function () {
+        var contentLength = $(this).val().length;
+        var charLength = 5000 - contentLength;
+        $('#extension-reason-character-count').text(charLength + " characters remaining");
+        if (charLength == 0) {
+            document.getElementById("extension-reason-character-count").style.color = "red";
+        } else {
+            document.getElementById("extension-reason-character-count").style.color = "black";
+        }
     });
+});
 </script>
