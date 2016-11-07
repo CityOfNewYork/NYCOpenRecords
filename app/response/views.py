@@ -3,7 +3,8 @@
 
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
-
+import os
+from datetime import datetime
 from urllib.request import urlopen
 
 from flask import (
@@ -12,14 +13,22 @@ from flask import (
     url_for,
     redirect,
     jsonify,
+    current_app,
+    send_from_directory,
 )
 from flask_login import current_user
 
 from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
 from app.lib.date_utils import get_holidays_date_list
-from app.models import Requests, Responses
+from app.lib.db_utils import delete_object
 from app.response import response
+from app.models import (
+    Requests,
+    Responses,
+    ResponseTokens,
+    UserRequests,
+)
 from app.response.utils import (
     add_note,
     add_file,
@@ -349,3 +358,55 @@ def get_yearly_holidays(year):
     :return: List of strings ["YYYY-MM-DD"]
     """
     return jsonify(holidays=sorted(get_holidays_date_list(year)))
+
+
+@response.route('/<response_id>', methods=["GET"])
+def get_response_content(response_id):
+    """
+
+    NOTE: Currently only supports File Responses
+
+    Request Parameters:
+    - token: (optional) ...
+
+    :return: stream of data...
+    """
+    # from flask_login import login_user
+    # from app.models import Users
+    # user = Users.query.first()
+    # login_user(user, force=True)
+
+    response = Responses.query.filter_by(id=response_id).first()
+    if response is not None and response.type == response_type.FILE:
+        upload_path = os.path.join(
+            current_app.config["UPLOAD_DIRECTORY"],
+            response.request_id
+        )
+        filepath_parts = (
+            upload_path,
+            response.metadatas.name
+        )
+        token = flask_request.args.get('token')
+        if token is not None:
+            resptok = ResponseTokens.query.filter_by(
+                token=token, response_id=response_id)
+            if datetime.utcnow() < resptok.expiration_date:
+                if os.path.exists(os.path.join(*filepath_parts)):
+                    return send_from_directory(*filepath_parts)
+            else:
+                delete_object(resptok)
+        else:
+            if current_user.is_authenticated:
+                if ((current_user.is_public or current_user.is_agency)
+                   and UserRequests.query.filter_by(
+                        request_id=response.request_id,
+                        user_guid=current_user.guid,
+                        auth_user_type=current_user.auth_user_type
+                   ) is not None):
+                        return send_from_directory(*filepath_parts)
+            else:
+                return redirect(url_for(
+                    'auth.index',
+                    sso2=True,
+                    return_to=flask_request.base_url))
+    return '', 400  # TODO: error pages
