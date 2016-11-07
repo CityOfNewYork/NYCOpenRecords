@@ -4,7 +4,7 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 
-import json
+from urllib.request import urlopen
 
 from flask import (
     flash,
@@ -15,10 +15,11 @@ from flask import (
 )
 from flask_login import current_user
 
+from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
+from app.lib.date_utils import get_holidays_date_list
 from app.models import Requests, Responses
 from app.response import response
-from app.constants import response_type
 from app.response.utils import (
     add_note,
     add_file,
@@ -31,7 +32,6 @@ from app.response.utils import (
     process_email_template_request,
     RespFileEditor
 )
-from urllib.request import urlopen
 
 
 @response.route('/note/<request_id>', methods=['POST'])
@@ -292,32 +292,60 @@ def response_visiblity():
 @response.route('/<response_id>', methods=['PUT'])
 def edit_response(response_id):
     """
-    Edit a response's privacy and its metadata.
+    Edit a response's privacy and its metadata and send a notification email.
 
-    Expects a request body containing field names and updated values.
+    Expects a request body containing field names and updated values,
+    as well as the body of the notification email.
     Ex:
     {
         'privacy': 'release_public',
         'title': 'new title'
         'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
+        'email_content': HTML
     }
     Response body consists of both the old and updated data, or an error message.
     """
+    # TODO: remove
+    from app.models import Users
+    from flask_login import login_user
+    login_user(Users.query.first(), force=True)
+
     if current_user.is_anonymous:
-        return {}, 403
+        return jsonify({}), 403
     # TODO: user permissions check
-    resp = Responses.query.filter_by(id=response_id).first()
-    editor_for_type = {
-        response_type.FILE: RespFileEditor,
-        # response_type.NOTE: RespNoteEditor,
-        # ...
-    }
-    editor = editor_for_type[resp.type](current_user, resp, flask_request)
-    if editor.errors:
-        http_response = {"errors": editor.errors}
+
+    if flask_request.form.get("email_content") is None:
+        http_response = {"errors": "Missing 'email_content'"}
     else:
-        http_response = {
-            "old": editor.data_old,
-            "new": editor.data_new
+        resp = Responses.query.filter_by(id=response_id).first()
+        editor_for_type = {
+            response_type.FILE: RespFileEditor,
+            # response_type.NOTE: RespNoteEditor,
+            # ...
         }
+        editor = editor_for_type[resp.type](current_user, resp, flask_request)
+        if editor.errors:
+            http_response = {"errors": editor.errors}
+        else:
+            if editor.no_change:  # TODO: unittest
+                http_response = {
+                    "message": "No changes detected."
+                }
+            else:
+                http_response = {
+                    "old": editor.data_old,
+                    "new": editor.data_new
+                }
     return jsonify(http_response), 200
+
+
+@response.route('/get_yearly_holidays/<int:year>', methods=['GET'])
+def get_yearly_holidays(year):
+    """
+    Retrieve a list of dates that are holidays in the specified year
+
+    :param date: 4-digit year.
+
+    :return: List of strings ["YYYY-MM-DD"]
+    """
+    return jsonify(holidays=sorted(get_holidays_date_list(year)))

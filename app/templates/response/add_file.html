@@ -2,23 +2,25 @@
       enctype="multipart/form-data">
     <div class="add-file col-sm-9">
         <div class="fileupload-control">
+            <fieldset>
             <legend class="extension-header">
                 Add File
             </legend>
             <div class="fileupload-error-messages"></div>
+            <!-- first div of the add-extension form containing uploads -->
             <div class="fileupload-divs" id="fileupload-first">
                 <div class="row fileupload-buttonbar">
                     <div class="col-lg-7">
-                <span class="btn btn-success fileinput-button">
-                    <i class="glyphicon glyphicon-plus"></i>
-                    <span>Add files...</span>
-                    <input type="file" name="file" id="add-files" multiple>
-                </span>
+                        <span class="btn btn-success fileinput-button">
+                            <i class="glyphicon glyphicon-plus"></i>
+                            <span>Add files...</span>
+                            <input type="file" name="file" id="add-files" multiple>
+                        </span>
                         <button type="submit" class="btn btn-primary start">
                             <i class="glyphicon glyphicon-upload"></i>
                             <span>Start All</span>
                         </button>
-                        <!-- TODO: global cancellation / deletion
+                        <!-- TODO: (maybe) global cancellation / deletion
                         <button type="reset" class="btn btn-warning cancel">
                             <i class="glyphicon glyphicon-ban-circle"></i>
                             <span>Cancel upload</span>
@@ -35,21 +37,24 @@
                     <div class="col-lg-5 fileupload-progress fade">
                         <div class="progress progress-striped active" role="progressbar" aria-valuemin="0"
                              aria-valuemax="100">
-                            <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                            <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
                         </div>
                         <!-- The extended global progress state -->
                         <div class="progress-extended">&nbsp;</div>
                     </div>
                 </div>
                 <!-- The table listing the files available for upload/download -->
-                <div role="presentation" class="table-striped">
+                <div role="presentation">
                     <div class="files"></div>
                 </div>
                 <button type="button" class="next-btn btn btn-primary" id="fileupload-next-1">Next</button>
             </div>
             <!-- second div of the add-extension form containing email content -->
             <div class="fileupload-divs hide-div" id="fileupload-second">
-                <textarea class="tinymce-area" name="email-file-content"></textarea>
+                <div class='alert alert-warning'>
+                    Files made Release and Public or Release and Private will be shown with links on the next page.
+                </div>
+                <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="fileupload-next-2">Next</button>
             </div>
@@ -63,6 +68,7 @@
                 <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-2">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success">Submit</button>
             </div>
+            </fieldset>
         </div>
     </div>
 </form>
@@ -98,12 +104,8 @@
             </div>
         </div>
     {% } %}
-
-
-
-
 </script>
-<!-- The template to display files available for download -->
+<!-- The template to display files after upload -->
 <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
@@ -114,19 +116,22 @@
                 </p>
 
                 {% if (!(file.error)) { %}
-                    <span class="fileupload-input-fields hidden">
-                    Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
-                    <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
-                    <div class="radio">
-                        <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy" value="release_public">Release and Public</label>
+                    <div class="fileupload-input-fields hidden">
+                        Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
+                        <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
+                        <div class="radio">
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="release_public">Release and Public</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="release_private">Release and Private</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="private" checked>Private</label>
+                        </div>
                     </div>
-                    <div class="radio">
-                        <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy" value="release_private">Release and Private</label>
-                    </div>
-                    <div class="radio">
-                        <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy" value="private" checked>Private</label>
-                    </div>
-                    </span>
                 {% } %}
 
                 {% if (file.error) { %}
@@ -159,12 +164,8 @@
                         <span>Remove</span>
                     </button>
                 {% } %}
-
-
             </div>
         </div>
     {% } %}
-
-
 </script>
 {% endraw %}

@@ -9,10 +9,11 @@ from datetime import datetime
 
 import os
 import re
-from abc import ABCMeta, abstractmethod
-from app import calendar
-import magic
 import json
+import magic
+from abc import ABCMeta, abstractmethod
+from cached_property import cached_property
+from app import calendar
 from werkzeug.utils import secure_filename
 from flask_login import current_user
 from flask import (
@@ -35,6 +36,7 @@ from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.file_utils import get_mime_type
+from app.lib.utils import get_file_hash
 from app.models import (
     Responses,
     Events,
@@ -63,13 +65,15 @@ def add_file(request_id, filename, title, privacy):
 
     :return:
     """
-    size = os.path.getsize(os.path.join(current_app.config['UPLOAD_DIRECTORY'] + request_id, filename))
+    path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
+    size = os.path.getsize(path)
     mime_type = get_mime_type(request_id, filename)
     file_ = Files(name=filename, mime_type=mime_type, title=title, size=size)
     file_metadata = {'name': filename,
                      'mime_type': mime_type,
                      'title': title,
-                     'size': size}
+                     'size': size,
+                     'hash': get_file_hash(path)}
     create_object(obj=file_)
     _process_response(request_id,
                       response_type.FILE,
@@ -639,8 +643,10 @@ def _send_response_email(request_id, privacy, email_content):
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
-    requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                   request_user_type=REQUESTER).first().user.email
+    requester_email = UserRequests.query.filter_by(
+        request_id=request_id,
+        request_user_type=REQUESTER
+    ).first().user.email
     # Send email with link to requester and bcc agency_ein users as privacy option is release
     kwargs = {
         'bcc': bcc,
@@ -758,24 +764,28 @@ class ResponseEditor(metaclass=ABCMeta):
         self.flask_request = flask_request
         self.metadata = response.metadatas
 
+        self.no_change = False
         self.data_old = {}
         self.data_new = {}
         self.errors = []
 
+        self.privacy_changed = False
         privacy = flask_request.form.get('privacy')
-        if privacy and privacy != self.response.privacy:
+        if privacy is not None and privacy != self.response.privacy:
             self.set_data_values('privacy', self.response.privacy, privacy)
+            self.privacy_changed = True
 
         self.edit_metadata()
-        self.add_event_and_update()
-        # TODO: self.email()
-        # What should be the email_content?
-        # Edit existing email response OR new response?
-        # EMAIL_NOTIFICATION_SENT + EMAIL_EDITED?
+        if self.data_changed():
+            self.add_event_and_update()
+            self.send_email()
+        else:
+            self.no_change = True
 
     def set_data_values(self, key, old, new):
-        self.data_old[key] = old
-        self.data_new[key] = new
+        if old != new:
+            self.data_old[key] = old
+            self.data_new[key] = new
 
     @property
     def event_type(self):
@@ -786,11 +796,13 @@ class ResponseEditor(metaclass=ABCMeta):
             Instructions: event_type.INSTRUCTIONS_ADDED,
         }[type(self.metadata)]
 
-    @property
+    @cached_property
     def metadata_new(self):
-        data = dict(self.data_new)
-        data.pop('privacy')
-        return data
+        if 'privacy' in self.data_new:
+            data = dict(self.data_new)
+            data.pop('privacy')
+            return data
+        return self.data_new
 
     @property
     @abstractmethod
@@ -806,8 +818,22 @@ class ResponseEditor(metaclass=ABCMeta):
         for field in self.metadata_fields:
             value_new = self.flask_request.form.get(field)
             value_orig = getattr(self.metadata, field)
-            if value_new and value_new != value_orig:
+            if value_new is not None:
                 self.set_data_values(field, value_orig, value_new)
+
+    def data_changed(self):
+        """
+        Checks for a difference between new data values and their
+        corresponding database fields.
+
+        :returns: is the data different from what is stored in the db?
+        """
+        if self.privacy_changed:
+            return True
+        for key, value in self.metadata_new.items():
+            if value != getattr(self.metadata, key):
+                return True
+        return False
 
     def add_event_and_update(self):
         """
@@ -826,13 +852,28 @@ class ResponseEditor(metaclass=ABCMeta):
                 previous_value=self.data_old,
                 new_value=self.data_new)
             create_object(event)
-            update_object({'date_modified': timestamp,
-                          'privacy': self.data_new['privacy']},
+            response_changes = {
+                'date_modified': timestamp
+            }
+            if self.privacy_changed:
+                response_changes.update(
+                    privacy=self.data_new['privacy']
+                )
+            update_object(response_changes,
                           Responses,
                           self.response.id)
-            update_object(self.metadata_new,
-                          type(self.metadata),
-                          self.metadata.id)
+            if self.metadata_new:
+                update_object(self.metadata_new,
+                              type(self.metadata),
+                              self.metadata.id)
+
+    def send_email(self):
+        privacy = (self.data_new['privacy']
+                   if self.privacy_changed else self.response.privacy)
+        email_content = self.flask_request.form["email_content"]
+        _send_response_email(self.response.request_id,
+                             privacy,
+                             email_content)
 
 
 class RespFileEditor(ResponseEditor):
@@ -866,6 +907,9 @@ class RespFileEditor(ResponseEditor):
                 self.set_data_values('mime_type',
                                      self.metadata.mime_type,
                                      magic.from_file(filepath, mime=True))
+                self.set_data_values('hash',
+                                     self.metadata.hash,
+                                     get_file_hash(filepath))
                 self.replace_old_file(filepath)
             else:
                 self.errors.append(
