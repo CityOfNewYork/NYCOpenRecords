@@ -91,6 +91,9 @@
             </div>
         </div>
     </div>
+
+
+    {% include 'request/_edit_requester_info.html' %}
 {% endblock %}
 
 {% block custom_script %}
@@ -111,11 +114,11 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/request/status.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/edit_requester_info.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload/fileupload.js') }}"></script>
     {% include "request/fileupload_add_file.js.html" %}
     {% include "request/fileupload_update_templates.js.html" %}
-    {% include 'request/status.js.html' %}
+    {% include 'request/edit_requester_info.js.html' %}
     {% include 'request/_view_request_edit_visibility.js.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}
     {% include 'response/add_extension.js.html' %}
