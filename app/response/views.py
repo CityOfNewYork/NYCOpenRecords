@@ -363,19 +363,15 @@ def get_yearly_holidays(year):
 @response.route('/<response_id>', methods=["GET"])
 def get_response_content(response_id):
     """
-
-    NOTE: Currently only supports File Responses
+    Currently only supports File Responses.
 
     Request Parameters:
-    - token: (optional) ...
+    - token: (optional) ephemeral access token
 
-    :return: stream of data...
+    :return: response file contents or
+             redirect to login if user not authenticated and no token provided or
+             400 error if response/file not found
     """
-    # from flask_login import login_user
-    # from app.models import Users
-    # user = Users.query.first()
-    # login_user(user, force=True)
-
     response = Responses.query.filter_by(id=response_id).first()
     if response is not None and response.type == response_type.FILE:
         upload_path = os.path.join(
@@ -389,12 +385,14 @@ def get_response_content(response_id):
         token = flask_request.args.get('token')
         if token is not None:
             resptok = ResponseTokens.query.filter_by(
-                token=token, response_id=response_id)
-            if datetime.utcnow() < resptok.expiration_date:
-                if os.path.exists(os.path.join(*filepath_parts)):
-                    return send_from_directory(*filepath_parts)
-            else:
-                delete_object(resptok)
+                token=token, response_id=response_id).first()
+            if resptok is not None:
+                if datetime.utcnow() < resptok.expiration_date:
+                    if os.path.exists(os.path.join(*filepath_parts)):
+                        return send_from_directory(*filepath_parts,
+                                                   as_attachment=True)
+                else:
+                    delete_object(resptok)
         else:
             if current_user.is_authenticated:
                 if ((current_user.is_public or current_user.is_agency)
@@ -403,7 +401,8 @@ def get_response_content(response_id):
                         user_guid=current_user.guid,
                         auth_user_type=current_user.auth_user_type
                    ) is not None):
-                        return send_from_directory(*filepath_parts)
+                        return send_from_directory(*filepath_parts,
+                                                   as_attachment=True)
             else:
                 return redirect(url_for(
                     'auth.index',
