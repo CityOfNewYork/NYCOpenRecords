@@ -280,6 +280,6 @@ class ResponseViewsTests(BaseTestCase):
 
         rf = RequestsFactory()
         response = rf.add_note()
-        # wrong Resonse type
+        # wrong Response type
         resp = self.client.get('/response/' + str(response.id))
         self.assertEqual(resp.status_code, 400)
