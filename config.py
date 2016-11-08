@@ -14,7 +14,7 @@ class Config:
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
-                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
+                   os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data'), 'agencies.csv'))
 
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or

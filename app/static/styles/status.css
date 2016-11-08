@@ -36,14 +36,29 @@ h1 span{
 .closed {
     background-color: black;
 }
-.reopened{
+.reopened {
     background-color: #cc1278;
 }
 
-#requester-popover .popover{
+#requester-popover .popover {
     width: 200px;
 }
 
-#user-popover .popover{
+#user-popover .popover {
     width: 200px;
+}
+
+#requesterModal label {
+    margin-top: 1em;
+}
+
+#requester-name {
+    font-size: 24px;
+
+}
+
+#user-info .message {
+    text-align: right;
+    padding-top: 1em;
+    font-weight: bold;
 }

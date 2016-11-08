@@ -191,17 +191,17 @@ class Users(UserMixin, db.Model):
                 name='auth_user_type'),
         primary_key=True)
     agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
-    email = db.Column(db.String(254))
     first_name = db.Column(db.String(32), nullable=False)
     middle_initial = db.Column(db.String(1))
     last_name = db.Column(db.String(64), nullable=False)
+    email = db.Column(db.String(254))
     email_validated = db.Column(db.Boolean(), nullable=False)
-    terms_of_use_accepted = db.Column(db.String(16), nullable=True)
+    terms_of_use_accepted = db.Column(db.String(16))
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
-    mailing_address = db.Column(JSON)  # need to define validation for minimum acceptable mailing address
+    mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
     user_requests = db.relationship("UserRequests", backref="user")
 
     @property

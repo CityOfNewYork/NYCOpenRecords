@@ -14,60 +14,9 @@
     {% endif %}
 
     <hr>
-    <h4>{{ agency_name }} </h4>
+    <h4>{{ request.agency.name }} </h4>
 
-
-    <h4><a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
-           href="#requesterModal">{{ requester.name }}</a></h4>
-    {# Modal content for anon requesters #}
-    <div class="modal fade" id="requesterModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Requester Information</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="user-info" action="/request/edit_requester_info/{{ request.id }}" method="POST">
-                        <h3>{{ requester.name }}</h3>
-                        {{ edit_requester_form.email.label }}
-                        {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', value=requester.email) }}
-
-                        {{ edit_requester_form.phone.label }}
-                        {{ edit_requester_form.phone(id='inputTelephone', class='form-control', value=requester.phone_number) }}
-
-                        {{ edit_requester_form.address_one.label }}
-                        {{ edit_requester_form.address_one(id='inputAddressOne', class='form-control', value=requester.mailing_address['address_one']) }}
-
-                        {{ edit_requester_form.address_two.label }}
-                        {{ edit_requester_form.address_two(id='inputAddressTwo', class='form-control', value=requester.mailing_address['address_two']) }}
-
-                        {{ edit_requester_form.city.label }}
-                        {{ edit_requester_form.city(id='inputCity', class='form-control', value=requester.mailing_address['city']) }}
-
-                        {{ edit_requester_form.zipcode.label }}
-                        {{ edit_requester_form.zipcode(id='inputZip', class='form-control', value=requester.mailing_address['zip']) }}
-
-                        {{ edit_requester_form.state.label }}
-                        {{ edit_requester_form.state(id='inputState', class='form-control') }}
-
-                        {{ edit_requester_form.organization.label }}
-                        {{ edit_requester_form.organization(id='inputOrganization', class='form-control', value=requester.organization) }}
-
-                        {{ edit_requester_form.fax.label }}
-                        {{ edit_requester_form.fax(id='inputFax', class='form-control', value=requester.fax_number) }}
-
-                        {{ edit_requester_form.submit(id='submit', class='btn btn-primary') }}
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'request/_edit_requester_info.html' %}
 
     {% if current_user.is_agency %}
         <hr>
@@ -86,7 +35,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="panel-group" id="accordion">
-                            {% for user in users %}
+                            {% for user in agency_users %}
                                 <div class="panel panel-default" id="panel_{{ user.guid }}">
                                     <div class="panel-heading">
                                         <h4 class="panel-title">
@@ -99,8 +48,26 @@
 
                                     <div id="collapse_{{ user.guid }}" class="panel-collapse collapse out">
                                         <div class="panel-body">
-                                            Email: {{ user.email }}<br>
-                                            Phone Number: {{ user.phone_number }}<br>
+                                            {% if user.email %}
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        Email
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        {{ user.email }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            {% if user.phone_number %}
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        Phone
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        {{ user.phone_number }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -109,11 +76,8 @@
                     </div>
                 </div>
             </div>
-
         </div>
     {% endif %}
 
     <p>Due Date: {{ request.get_formatted_due_date() }}</p>
-
-
 </div>

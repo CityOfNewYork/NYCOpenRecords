@@ -3,12 +3,10 @@
     min-height: 130px;
 }
 
-/* sets the styles for h3 in the html */
-h3.control-widget {
-    font-size: 24.5px;
+/* sets the styles for the request id header */
+.control-widget h3{
     font-weight: 600;
-    line-height: 20px !important;
-    display: inline !important
+    margin-top: 0;
 }
 
 /* remove padding and margin from lead elements in the well*/
@@ -26,7 +24,7 @@ h3.control-widget {
 
 /* sets privacy buttons (public, private) to a certain size */
 .request-info .privacy-btn {
-    padding: 3.5px 9px;
+    padding: 3px 9px;
 }
 
 /* removes url hyperlink styling */

@@ -1,0 +1,58 @@
+<h4>
+    <a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp" href="#requesterModal">
+        {{ request.requester.name }}
+    </a>
+</h4>
+
+<div class="modal fade" id="requesterModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Requester Information</h4>
+            </div>
+            <form id="user-info" action="/request/edit_requester_info/{{ request.id }}" method="POST">
+                <div class="modal-body">
+                    <div id="requester-name">{{ request.requester.name }}</div>
+                    <div class="contact-form-error-message"></div>
+                    {{ edit_requester_form.email.label }}
+                    {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control') }}
+
+                    {{ edit_requester_form.title.label }}
+                    {{ edit_requester_form.title(id='inputTitle', class='form-control') }}
+
+                    {{ edit_requester_form.organization.label }}
+                    {{ edit_requester_form.organization(id='inputOrganization', class='form-control') }}
+
+                    {{ edit_requester_form.phone.label }}
+                    {{ edit_requester_form.phone(id='inputTelephone', class='form-control') }}
+
+                    {{ edit_requester_form.fax.label }}
+                    {{ edit_requester_form.fax(id='inputFax', class='form-control') }}
+
+                    {{ edit_requester_form.address_one.label }}
+                    {{ edit_requester_form.address_one(id='inputAddressOne', class='form-control') }}
+
+                    {{ edit_requester_form.address_two.label }}
+                    {{ edit_requester_form.address_two(id='inputAddressTwo', class='form-control') }}
+
+                    {{ edit_requester_form.city.label }}
+                    {{ edit_requester_form.city(id='inputCity', class='form-control') }}
+
+                    {{ edit_requester_form.zipcode.label }}
+                    {{ edit_requester_form.zipcode(id='inputZip', class='form-control') }}
+
+                    {{ edit_requester_form.state.label }}
+                    {{ edit_requester_form.state(id='inputState', class='form-control') }}
+
+                    <div class="message"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
