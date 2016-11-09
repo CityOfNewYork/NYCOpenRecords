@@ -256,6 +256,9 @@ class ResponseViewsTests(BaseTestCase):
         # expired token (400)
         resp = self.client.get(path, query_string={'token': expired_token.token})
         self.assertEqual(resp.status_code, 400)
+        self.assertTrue(ResponseTokens.query.filter_by(
+            token=expired_token.token
+        ).first() is None) # assert response token has been deleted
 
         # valid token (success)
         resp = self.client.get(path, query_string={'token': valid_token.token})
