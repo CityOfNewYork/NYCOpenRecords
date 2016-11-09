@@ -18,6 +18,7 @@ from flask_login import current_user
 from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
 from app.lib.date_utils import get_holidays_date_list
+from app.lib.db_utils import update_object
 from app.models import Requests, Responses
 from app.response import response
 from app.response.utils import (
@@ -290,7 +291,7 @@ def response_visiblity():
 
 
 @response.route('/<response_id>', methods=['PUT'])
-def edit_response(response_id):
+def put(response_id):
     """
     Edit a response's privacy and its metadata and send a notification email.
 
@@ -305,13 +306,8 @@ def edit_response(response_id):
     }
     Response body consists of both the old and updated data, or an error message.
     """
-    # TODO: remove
-    from app.models import Users
-    from flask_login import login_user
-    login_user(Users.query.first(), force=True)
-
     if current_user.is_anonymous:
-        return jsonify({}), 403
+        return '', 403
     # TODO: user permissions check
 
     if flask_request.form.get("email_content") is None:
@@ -337,6 +333,31 @@ def edit_response(response_id):
                     "new": editor.data_new
                 }
     return jsonify(http_response), 200
+
+
+# FIXME: should this be PUT or does that give away too much info?
+@response.route('/<response_id>', methods=['DELETE'])
+def delete(response_id):
+    """
+    Delete a response (mark it as deleted) and send a notification email.
+
+    Request Parameters:
+    - confirmation: string checked against '<request_id>:<response_id>'
+        if the strings do not match, deletion will fail
+
+    """
+    if current_user.is_anonymous:
+        return '', 403
+
+    response = Responses.query.filter_by(id=response_id).first()
+    if response is not None:
+        confirmation = flask_request.form.get("confirmation")
+        valid_confirmation = ':'.join((response.request_id, response_id))
+        if confirmation is not None and confirmation == valid_confirmation:
+            update_object({"deleted": True}, Responses, response_id)
+            # TODO: send email
+            return jsonify({"deleted": response_id}), 200
+    return '', 400
 
 
 @response.route('/get_yearly_holidays/<int:year>', methods=['GET'])

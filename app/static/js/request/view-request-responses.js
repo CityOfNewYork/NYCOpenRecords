@@ -35,6 +35,7 @@ $(function () {
         for (var i = index; i < end; i++) {
             response_list.append(responses[i].template);
             setEditResponseWorkflow(responses[i].id, responses[i].type);
+            setDeleteResponseWorkflow(responses[i].id);
             if (responses[i].type === "file") {
                 bindFileUpload(
                     "#fileupload-update-" + responses[i].id,
@@ -88,36 +89,17 @@ $(function () {
         showResponses();
     });
 
-    // TODO: remove after QA
-    $('#request-responses').on('click', '.tmp-save-changes', function () {
-        var form = $(this).parents('.modal-body').children('form');
-        var response_id = $(this).parents('.modal-content').children('.response-id').text();
-        var data = form.serializeArray();
-        data.push({
-            name: "email_content",
-            value: "Why hello there..."
-        });
-        $.ajax({
-            url: "/response/" + response_id,
-            type: "PUT",
-            data: data,
-            success: function (response) {
-                console.log(response);
-            }
-        });
-    });
-
-    // TODO: DELETE updated on modal close and reset (or just refresh page)
+    // TODO: DELETE 'updated' on modal close and reset / refresh page
 
     function setEditResponseWorkflow(response_id, response_type) {
 
         switch (response_type) {
             case "file":
-                var response_modal = $("#response-modal-" + response_id);
+                var responseModal = $("#response-modal-" + response_id);
 
-                var first = response_modal.find('.first');
-                var second = response_modal.find('.second');
-                var third = response_modal.find('.third');
+                var first = responseModal.find('.first');
+                var second = responseModal.find('.second');
+                var third = responseModal.find('.third');
 
                 var next1 = first.find('.response-modal-next');
                 var next2 = second.find('.response-modal-next');
@@ -250,6 +232,58 @@ $(function () {
             default:
                 break;
         }
+    }
+
+    function setDeleteResponseWorkflow(response_id) {
+        var responseModal = $("#response-modal-" + response_id);
+        var deleteSection = responseModal.find(".delete");
+        var defaultSection = responseModal.find(".default");
+
+        var deleteConfirmCheck = responseModal.find("input[name=delete-confirm-string]");
+        var deleteConfirm = responseModal.find(".delete-confirm");
+
+        deleteConfirmCheck.on('paste', function(e) {
+            e.preventDefault();
+        });
+
+        var deleteConfirmString = sprintf("%s:%s", request_id, response_id);
+        deleteConfirmCheck.on("input", function() {
+            if ($(this).val() === deleteConfirmString) {
+                deleteConfirm.attr("disabled", false);
+            }
+            else {
+                deleteConfirm.attr("disabled", true);
+            }
+        });
+
+        responseModal.find(".delete-select").click(function () {
+            defaultSection.hide();
+            deleteSection.show();
+        });
+
+        responseModal.find(".delete-cancel").click(function() {
+            deleteSection.hide();
+            defaultSection.show();
+
+            deleteConfirmCheck.val('');
+        });
+
+        responseModal.find(".delete-confirm").click(function() {
+            deleteConfirm.attr("disabled", true);
+            $.ajax({
+                url: "/response/" + response_id,
+                type: "DELETE",
+                data: {
+                    confirmation: deleteConfirmCheck.val()
+                },
+                success: function() {
+                    location.reload();
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            })
+        });
     }
 
 });

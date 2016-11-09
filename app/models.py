@@ -516,6 +516,8 @@ class Responses(db.Model):
         name="privacy"))
     date_modified = db.Column(db.DateTime)
     release_date = db.Column(db.DateTime)
+    deleted = db.Column(db.Boolean, default=False, nullable=False)
+
     metadatas = db.relationship(  # 'metadata' is reserved
         'Metadatas', backref=db.backref('response', uselist=False))
 
