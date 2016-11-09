@@ -630,7 +630,7 @@ class UserRequests(db.Model):
 
 class ResponseTokens(db.Model):
     """
-    Define the ResponseTokens class with teh following columns and relationships:
+    Define the ResponseTokens class with the following columns and relationships:
 
     id - an integer that is the primary key of ResponseTokens
     token - a string consisting of a randomly-generated, unique token

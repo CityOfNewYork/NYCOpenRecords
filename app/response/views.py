@@ -388,10 +388,9 @@ def get_response_content(response_id):
             resptok = ResponseTokens.query.filter_by(
                 token=token, response_id=response_id).first()
             if resptok is not None:
-                if datetime.utcnow() < resptok.expiration_date:
-                    if os.path.exists(filepath):
-                        return send_from_directory(
-                            *filepath_parts, as_attachment=True)
+                if (datetime.utcnow() < resptok.expiration_date
+                   and os.path.exists(filepath)):
+                    return send_from_directory(*filepath_parts, as_attachment=True)
                 else:
                     delete_object(resptok)
         else:
@@ -402,8 +401,7 @@ def get_response_content(response_id):
                         user_guid=current_user.guid,
                         auth_user_type=current_user.auth_user_type).first() is not None
                    and os.path.exists(filepath)):
-                        return send_from_directory(
-                            *filepath_parts, as_attachment=True)
+                    return send_from_directory(*filepath_parts, as_attachment=True)
             else:
                 return redirect(url_for(
                     'auth.index',
