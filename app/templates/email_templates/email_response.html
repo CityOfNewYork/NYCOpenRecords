@@ -8,10 +8,8 @@
     </p>
 {% else %}
     {{ content | safe }}
-    {% if show %}
         {% block response_content %}
         {% endblock %}
-    {% endif %}
     <p>
         You can view the request and take any necessary action at the following webpage:
         <a href='{{ page }}'>{{ page }}</a>.

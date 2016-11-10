@@ -14,6 +14,7 @@ import magic
 from abc import ABCMeta, abstractmethod
 from cached_property import cached_property
 from app import calendar
+from app import email_redis
 from werkzeug.utils import secure_filename
 from flask_login import current_user
 from flask import (
@@ -342,7 +343,7 @@ def process_privacy_options(files):
     return files_privacy_options
 
 
-def process_email_template_request(request_id, response_id, data):
+def process_email_template_request(request_id, data):
     """
     Process the email template for responses. Determine the type of response from passed in data and follows
     the appropriate execution path to render the email template.
@@ -364,7 +365,7 @@ def process_email_template_request(request_id, response_id, data):
         response_type.INSTRUCTIONS: _instruction_email_handler,
         "edit": _edit_email_handler
     }
-    return handler_for_type[data['type']](request_id, response_id, data, page, agency_name, email_template)
+    return handler_for_type[data['type']](request_id, data, page, agency_name, email_template)
 
 
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
@@ -580,7 +581,43 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
                            response_privacy=response_privacy)
 
 
-def _edit_email_handler(request_id, response_id, data, page, agency_name, email_template):
+def _edit_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for editing a response.
+    Checks if confirmation is true. If not, renders default response email template and renders default private response
+    email template if privacy option is private.
+    If confirmation is true, pass in content and privacy into Editor class and get editor object to be passed in as a
+    kwarg to render_template. Store email_summary into email_redis with key of response_id.
+
+
+    :param request_id: FOIL request ID of the response being edited
+    :param data: data from the frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency on the request
+    :param email_template: raw HTML email template of a response
+
+    Ex:
+    {
+         "request_id": "FOIL-XXX",
+         "data": {
+                "request_id": "FOIL-XXX",
+                "template_name": "email_edit_response.html",
+                "type": "edit",
+                "response_id": response_id,
+                "content": "This is a note",
+                "privacy": "release_public",
+                "confirmation": "false" (can be true or false),
+                "email_content": HTML (only passed in when confirmation is true)
+         }
+         "page": "localhost:5000/request/view/FOIL-XXX"
+         "agency_name": "Department of Records and Information Services"
+         "email_template": "email_templates/email_edit_response.html"
+    }
+
+    :return: the HTML of the rendered template of an edited response
+    """
+    response_id = data['response_id']
+    confirmation = data.get('confirmation')
     resp = Responses.query.filter_by(id=response_id).first()
     editor_for_type = {
         response_type.FILE: RespFileEditor,
@@ -588,13 +625,150 @@ def _edit_email_handler(request_id, response_id, data, page, agency_name, email_
         # ...
     }
     editor = editor_for_type[resp.type](current_user, resp, flask_request, False)
-    return render_template(email_template,
-                           request_id=request_id,
-                           agency_name=agency_name,
-                           response_type=resp.type,
-                           old_content=editor.data_old['content'],
-                           new_content=editor.data_new['content'],
-                           page=page)
+    resp_type = resp.type
+    privacy = data['privacy']
+    if confirmation == "true":
+        default_content = False
+        content = data['email_content']
+        data_content = editor.data_new.get('content') if editor.data_new.get(
+            'content') is not None else resp.metadatas.content
+    else:
+        content = None
+        data_content = None
+        # If privacy changes from private to release, use default template
+        if editor.data_old.get('privacy') == PRIVATE:
+            default_content = True
+        elif data['privacy'] == PRIVATE or (editor.privacy_changed is True and editor.data_old.get('content') is None):
+            email_template = 'email_templates/email_edit_private_response.html'
+            default_content = None
+        else:
+            default_content = True
+    # 1) if privacy is release everyone gets response EDITED email
+        if (editor.data_new.get('privacy') != PRIVATE or privacy != PRIVATE) and editor.data_new.get('content') is not None:
+            default_content = True
+    # 2) if privacy is private, only agency gets response EDITED email
+        if privacy == PRIVATE:
+
+    # 3) email summary added (which is what requester gets):
+    # if privacy becomes release, requester gets email saying response ADDED and agency gets email saying response EDITED
+
+    # occurs for all cases, email summary edited is always created
+    email_summary_edited = render_template(email_template,
+                                           default_content=default_content,
+                                           content=content,
+                                           request_id=request_id,
+                                           agency_name=agency_name,
+                                           response_type=resp_type,
+                                           response_data=editor,
+                                           page=page,
+                                           privacy=privacy,
+                                           response_privacy=response_privacy,
+                                           data_content=data_content)
+    email_summary_agency = None
+    if data['privacy'] == PRIVATE or editor.privacy_changed is True:
+        email_summary_add = render_template(email_template,
+                                            default_content=default_content,
+                                            content=content,
+                                            request_id=request_id,
+                                            agency_name=agency_name,
+                                            response_type=resp_type,
+                                            response_data=editor,
+                                            page=page,
+                                            privacy=privacy,
+                                            response_privacy=response_privacy,
+                                            agency=True)
+    if confirmation == "true":
+        email_redis.set(response_id, email_summary_edited)
+        email_redis.set(response_id + '_add', email_summary_agency)
+    return email_summary_edited if email_summary_add else email_summary_agency
+
+# def _edit_email_handler(request_id, data, page, agency_name, email_template):
+#     """
+#     Process email template for editing a response.
+#     Checks if confirmation is true. If not, renders default response email template and renders default private response
+#     email template if privacy option is private.
+#     If confirmation is true, pass in content and privacy into Editor class and get editor object to be passed in as a
+#     kwarg to render_template. Store email_summary into email_redis with key of response_id.
+#
+#
+#     :param request_id: FOIL request ID of the response being edited
+#     :param data: data from the frontend AJAX call
+#     :param page: string url link of the request
+#     :param agency_name: string name of the agency on the request
+#     :param email_template: raw HTML email template of a response
+#
+#     Ex:
+#     {
+#          "request_id": "FOIL-XXX",
+#          "data": {
+#                 "request_id": "FOIL-XXX",
+#                 "template_name": "email_edit_response.html",
+#                 "type": "edit",
+#                 "response_id": response_id,
+#                 "content": "This is a note",
+#                 "privacy": "release_public",
+#                 "confirmation": "false" (can be true or false),
+#                 "email_content": HTML (only passed in when confirmation is true)
+#          }
+#          "page": "localhost:5000/request/view/FOIL-XXX"
+#          "agency_name": "Department of Records and Information Services"
+#          "email_template": "email_templates/email_edit_response.html"
+#     }
+#
+#     :return: the HTML of the rendered template of an edited response
+#     """
+#     response_id = data['response_id']
+#     confirmation = data.get('confirmation')
+#     if confirmation == "true":
+#         resp = Responses.query.filter_by(id=response_id).first()
+#         editor_for_type = {
+#             response_type.FILE: RespFileEditor,
+#             response_type.NOTE: RespNoteEditor,
+#             # ...
+#         }
+#         editor = editor_for_type[resp.type](current_user, resp, flask_request, False)
+#         default_content = False
+#         content = data['email_content']
+#         resp_type = resp.type
+#         privacy = data['privacy']
+#         current_content = resp.metadatas.content
+#     else:
+#         content = None
+#         editor = None
+#         resp_type = None
+#         privacy = None
+#         current_content = None
+#         if data['privacy'] == PRIVATE:
+#             email_template = 'email_templates/email_edit_private_response.html'
+#             default_content = None
+#         else:
+#             default_content = True
+#     email_summary_requester = render_template(email_template,
+#                                               default_content=default_content,
+#                                               content=content,
+#                                               request_id=request_id,
+#                                               agency_name=agency_name,
+#                                               response_type=resp_type,
+#                                               response_data=editor,
+#                                               page=page,
+#                                               current_content=current_content,
+#                                               privacy=privacy,
+#                                               response_privacy=response_privacy)
+#     email_summary_agency = render_template(email_template,
+#                                            default_content=default_content,
+#                                            content=content,
+#                                            request_id=request_id,
+#                                            agency_name=agency_name,
+#                                            response_type=resp_type,
+#                                            response_data=editor,
+#                                            page=page,
+#                                            current_content=current_content,
+#                                            privacy=privacy,
+#                                            response_privacy=response_privacy)
+#     if confirmation == "true":
+#         email_redis.set(response_id + '_requester', email_summary_requester)
+#         email_redis.set(response_id + '_agency', email_summary_agency)
+#     return email_summary_requester
 
 
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
@@ -817,11 +991,19 @@ class ResponseEditor(metaclass=ABCMeta):
 
     @cached_property
     def metadata_new(self):
-        if 'privacy' in self.data_new:
-            data = dict(self.data_new)
+        return self.get_metadata_dict(self.data_new)
+
+    @cached_property
+    def metadata_old(self):
+        return self.get_metadata_dict(self.data_old)
+
+    @staticmethod
+    def get_metadata_dict(data_dict):
+        if 'privacy' in data_dict:
+            data = dict(data_dict)
             data.pop('privacy')
             return data
-        return self.data_new
+        return data_dict
 
     @property
     @abstractmethod
@@ -889,7 +1071,8 @@ class ResponseEditor(metaclass=ABCMeta):
     def send_email(self):
         privacy = (self.data_new['privacy']
                    if self.privacy_changed else self.response.privacy)
-        email_content = self.flask_request.form["email_content"]
+        email_content = email_redis.get(self.response.id).decode()
+        email_redis.delete(self.response.id)
         _send_response_email(self.response.request_id,
                              privacy,
                              email_content)

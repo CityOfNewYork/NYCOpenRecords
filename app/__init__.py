@@ -25,6 +25,7 @@ prefixed_store = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
 
 upload_redis = redis.StrictRedis(db=2)
+email_redis = redis.StrictRedis(db=3)
 
 mail = Mail()
 

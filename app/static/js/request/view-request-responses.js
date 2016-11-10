@@ -261,11 +261,12 @@ $(function () {
                             type: "POST",
                             data: {
                                 request_id: request_id,
-                                response_id: response_id,
                                 template_name: "email_edit_response.html",
                                 type: "edit",
+                                response_id: response_id,
                                 content: first.find('#note-content').val(),
-                                privacy: first.find("input[name=privacy]:checked").val()
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                confirmation: false
                             },
                             success: function (data) {
                                 // Data should be html template page.
@@ -287,11 +288,11 @@ $(function () {
                         data: {
                             request_id: request_id,
                             template_name: "email_edit_response.html",
-                            type: "note",
-                            note: JSON.stringify({
-                                content: first.find('#note-content').val(),
-                                privacy: first.find("input[name=privacy]:checked").val()
-                            }),
+                            type: "edit",
+                            response_id: response_id,
+                            content: first.find('#note-content').val(),
+                            privacy: first.find("input[name=privacy]:checked").val(),
+                            confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
