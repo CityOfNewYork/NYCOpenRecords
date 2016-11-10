@@ -1,67 +1,39 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
-    {% if privacy != response_privacy.PRIVATE and not response_data.privacy_changed %}
-        <p>
-        A {{ response_type }} in request <a
-            href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a> has been edited.
-        </p>
-    {% endif %}
-
-    {% if data_content %}
-        The following note has been added to <a
-                href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
-        <p>
-            {{ data_content }}
-        </p>
-    {% endif %}
-
-    <!-- if response content is edited and original privacy is not private, display old and new response content -->
-{#    {% if response_data.data_old['content'] and response_data.data_old['privacy'] != response_privacy.PRIVATE %}#}
-{#        Old {{ response_type|title }}:<br>#}
-{#        Content: {{ response_data.data_old['content'] }}#}
-{#        </p>#}
-{#        <p>#}
-{#        New {{ response_type|title }}:<br>#}
-{#        Content: {{ response_data.data_new['content'] }}#}
-{#        </p>#}
-{#    {% endif %}#}
-
-    <!-- if response content is not edited and original privacy is private, display original response content or
-    if response content is not edited and new privacy option changes to private, display current response content -->
-{#    {% if (not response_data.data_old['content'] and response_data.data_old['privacy'] == response_privacy.PRIVATE)#}
-{#            or (not response_data.data_old['content'] and privacy == response_privacy.PRIVATE) %}#}
-{#        <p>{{ response_type|title }} Content: {{ current_content }}</p>#}
-{#    {% endif %}#}
-
-    {% if response_data is not none %}
-        {% for key, value in response_data.metadata_old.items() %}
+    {% if not agency %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             <p>
-                The <strong>{{ key }}</strong> was changed from:
+                A {{ response_type }} in request <a
+                    href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a> has been edited.
             </p>
-            <p style="padding-left: 30px;"> {{ value }} </p>
-            <p> to: </p>
-            <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
-        {% endfor %}
-        {% if agency %}
-            {% for key, value in response_data.data_old.items() %}
+        {% else %}
             <p>
-                The <strong>{{ key }}</strong> was changed from:
+                A {{ response_type }} in request <a
+                    href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a> has been added.
             </p>
-            <p style="padding-left: 30px;"> {{ value }} </p>
-            <p> to: </p>
-            <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
-            {% endfor %}
         {% endif %}
     {% endif %}
 
-{#    {% if agency is True %}#}
-    <!-- if response content is not edited and new privacy option changes to private, display current response content -->
-{#    {% if not response_data.data_old['content'] and privacy == response_privacy.PRIVATE %}#}
-{#        <p>{{ response_type|title }} Content: {{ current_content }}</p>#}
-{#    {% endif %}#}
-
-    <!-- if response content is edited and original privacy is private, display the new response content -->
-{#    {% if response_data.data_old['content'] and response_data.data_old['privacy'] == response_privacy.PRIVATE %}#}
-{#        <p>{{ response_type|title }} Content: {{ response_data.data_new['content'] }}</p>#}
-{#    {% endif %}#}
+    {% if response_data is not none %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency%}
+            {% for key, value in response_data.metadata_old.items() %}
+                <p>
+                    The <strong>{{ key }}</strong> was changed from:
+                </p>
+                <p style="padding-left: 30px;"> {{ value }} </p>
+                <p> to: </p>
+                <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+            {% endfor %}
+        {% endif %}
+        {% if agency %}
+            {% for key, value in response_data.data_old.items() %}
+                <p>
+                    The <strong>{{ key }}</strong> was changed from:
+                </p>
+                <p style="padding-left: 30px;"> {{ value }} </p>
+                <p> to: </p>
+                <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+            {% endfor %}
+        {% endif %}
+    {% endif %}
 {% endblock %}
