@@ -2,7 +2,11 @@ import os
 import uuid
 import random
 from itertools import product
-from string import ascii_lowercase, digits
+from string import (
+    ascii_letters,
+    ascii_lowercase,
+    digits,
+)
 from datetime import datetime
 from flask import current_app
 from tests.lib.constants import NON_ANON_USER_GUID_LEN
@@ -20,6 +24,7 @@ from app.models import (
     Requests,
     Responses,
     Files,
+    Notes,
     Users,
     Agencies,
     UserRequests,
@@ -88,6 +93,7 @@ class RequestsFactory(object):
     def add_file(self,
                  filepath=None,
                  mime_type='text/plain',
+                 contents=None,
                  title=None):
         if filepath is None:
             filename = str(uuid.uuid4())
@@ -102,7 +108,10 @@ class RequestsFactory(object):
         # create an empty file if the specified path does not exist
         if not os.path.exists(filepath):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            open(filepath, 'w').close()
+            with open(filepath, 'w') as fp:
+                fp.write(contents or
+                         ''.join(random.choice(ascii_letters)
+                                 for _ in range(random.randrange(100, 500))))
 
         file_meta = Files(
             name=filename,
@@ -122,8 +131,23 @@ class RequestsFactory(object):
         create_object(response)
         return response
 
-    def add_note(self):
-        pass
+    def add_note(self, content=None):
+        note_meta = Notes(
+            content=content or ''.join(
+                random.choice(ascii_letters)
+                for _ in range(random.randrange(10, 50)))
+        )
+        create_object(note_meta)
+        response = Responses(
+            self.request.id,
+            response_type.NOTE,
+            note_meta.id,
+            PRIVATE,
+            datetime.utcnow()
+        )
+        # TODO: add Events NOTE_ADDED
+        create_object(response)
+        return response
 
     def __del__(self):
         """

@@ -88,25 +88,6 @@ $(function () {
         showResponses();
     });
 
-    // TODO: remove after QA
-    $('#request-responses').on('click', '.tmp-save-changes', function () {
-        var form = $(this).parents('.modal-body').children('form');
-        var response_id = $(this).parents('.modal-content').children('.response-id').text();
-        var data = form.serializeArray();
-        data.push({
-            name: "email_content",
-            value: "Why hello there..."
-        });
-        $.ajax({
-            url: "/response/" + response_id,
-            type: "PUT",
-            data: data,
-            success: function (response) {
-                console.log(response);
-            }
-        });
-    });
-
     // TODO: DELETE updated on modal close and reset (or just refresh page)
 
     function setEditResponseWorkflow(response_id, response_type) {
