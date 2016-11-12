@@ -583,13 +583,17 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
 
 def _edit_email_handler(request_id, data, page, agency_name, email_template):
     """
+    Process email template for a editing a response.
+    Checks if confirmation is true. If not, renders the default edit response email template.
+    If confirmation is true, renders the edit response template with provided arguments.
 
-    :param request_id:
-    :param data:
-    :param page:
-    :param agency_name:
-    :param email_template:
-    :return:
+    :param request_id: FOIL request ID of the request the response is being edited to
+    :param data: data from the frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the request
+    :param email_template: raw HTML email template of the edit response
+
+    :return: the HTML of the rendered template of an edited response
     """
     response_id = data['response_id']
     confirmation = data['confirmation']
@@ -628,8 +632,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
             default_content = None
         else:
             default_content = True
-
-    # email_summary_edited rendered every time for agency
+    # email_summary_edited rendered every time for email that agency receives
     email_summary_edited = render_template(email_template,
                                            default_content=default_content,
                                            content=content,
@@ -720,10 +723,14 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
     """
+    Send email detailing a response has been edited.
+    Always sends email to agency users on the request.
+    Requester is emailed only if email_content_requester is provided.
 
-    :param request_id:
-    :param email_content_agency:
-    :param email_content_requester:
+    :param request_id: FOIL request ID
+    :param email_content_agency: required, string email body of email being sent to agency users
+    :param email_content_requester: optional, string email body of email being sent to requester
+
     :return:
     """
     subject = 'Response Edited'

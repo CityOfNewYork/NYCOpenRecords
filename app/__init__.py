@@ -1,5 +1,6 @@
 import redis
 import holidays
+import jinja_filters
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask
@@ -55,6 +56,7 @@ def create_app(config_name):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
+    app.jinja_env.filters['privacy_format'] = jinja_filters.privacy_format(privacy=None)
 
     with app.app_context():
         from app.models import Anonymous
