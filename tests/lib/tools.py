@@ -2,13 +2,16 @@ import os
 import uuid
 import random
 from itertools import product
-from string import ascii_lowercase, digits
+from string import (
+    ascii_lowercase,
+    ascii_letters,
+    digits,
+)
 from datetime import datetime
 from flask import current_app
 from tests.lib.constants import NON_ANON_USER_GUID_LEN
 from app.constants import (
     ACKNOWLEDGEMENT_DAYS_DUE,
-    response_type,
     user_type_auth,
     user_type_request,
     submission_methods,
@@ -16,10 +19,11 @@ from app.constants import (
 )
 from app.constants.response_privacy import PRIVATE
 from app.constants.role_name import PUBLIC_REQUESTER
+from app.lib.utils import get_file_hash
 from app.models import (
     Requests,
-    Responses,
     Files,
+    Notes,
     Users,
     Agencies,
     UserRequests,
@@ -104,26 +108,30 @@ class RequestsFactory(object):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             open(filepath, 'w').close()
 
-        file_meta = Files(
-            name=filename,
-            mime_type=mime_type,
-            title=title or filename,
-            size=os.path.getsize(filepath)
-        )
-        create_object(file_meta)
-        response = Responses(
+        response = Files(
             self.request.id,
-            response_type.FILE,
-            file_meta.id,
             PRIVATE,
-            datetime.utcnow(),
+            title or filename,
+            filename,
+            mime_type,
+            os.path.getsize(filepath),
+            get_file_hash(filepath)
         )
         # TODO: add Events FILE_ADDED
         create_object(response)
         return response
 
-    def add_note(self):
-        pass
+    def add_note(self, content=None):
+        response = Notes(
+            self.request.id,
+            PRIVATE,
+            content=content or ''.join(
+                random.choice(ascii_letters)
+                for _ in range(random.randrange(10, 50)))
+        )
+        # TODO: add Events NOTE_ADDED
+        create_object(response)
+        return response
 
     def __del__(self):
         """

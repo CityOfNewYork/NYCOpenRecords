@@ -1,7 +1,7 @@
 <form id="fileupload-update-{{ response.id }}" class="fileupload-update fileupload-form" action="/response/{{ response.id }}" method="POST">
     <div class="fileupload-error-messages alert alert-danger" hidden></div>
     <div>
-        <a href="" class="uploaded-filename">{{ response.metadatas.name }}</a>
+        <a href="" class="uploaded-filename">{{ response.name }}</a>
     </div>
     <br>
     <div class="fileupload-control">
@@ -21,7 +21,7 @@
     </div>
     <div class="input-group">
         <span class="input-group-addon">Title</span>
-        <input type="text" name="title" value="{{ response.metadatas.title }}"
+        <input type="text" name="title" value="{{ response.title }}"
                title="title" aria-describedby="title">
     </div>
     <div class="title-error pull-right"></div>

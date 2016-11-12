@@ -35,43 +35,19 @@ class ResponseViewsTests(BaseTestCase):
             shutil.rmtree(self.upload_path)
         super(ResponseViewsTests, self).tearDown()
 
-    def test_post_extension(self):
-        with patch(
-            'app.response.views.add_extension'
-        ) as add_extension_patch, patch(
-            'app.response.views.redirect', return_value=jsonify({})
-        ), patch(
-            'app.response.views.url_for'
-        ):
-            self.client.post(
-                '/response/extension/' + 'fake request id',  # self.request.id,
-                data={
-                    'length': 'foo',
-                    'reason': 'bar',
-                    'due-date': 'baz',
-                    'email-extend-content': 'qux'
-                }
-            )
-            add_extension_patch.assert_called_once_with(
-                'fake request id',
-                'foo',
-                'bar',
-                'baz',
-                'qux'
-            )
 
-    def test_edit_file(self):
+    def test_edit_response_file(self):
         rf = RequestsFactory(self.request_id)
         response = rf.add_file()
 
-        old_filename = response.metadatas.name
+        old_filename = response.name
         data_old = {
             'privacy': response.privacy,
-            'title': response.metadatas.title,
+            'title': response.title,
             'name': old_filename,
-            'mime_type': response.metadatas.mime_type,
-            'size': response.metadatas.size,
-            'hash': response.metadatas.hash,
+            'mime_type': response.mime_type,
+            'size': response.size,
+            'hash': response.hash,
         }
 
         new_privacy = RELEASE_AND_PUBLIC
@@ -99,17 +75,15 @@ class ResponseViewsTests(BaseTestCase):
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
         with self.client as client:
             with client.session_transaction() as session:
-                session['user_id'] = USER_ID_DELIMITER.join((
-                    rf.requester.guid, rf.requester.auth_user_type))
+                session['user_id'] = rf.requester.get_id()
                 session['_fresh'] = True
             # PUT it in there!
-            resp = self.client.put(
+            resp = self.client.patch(
                 '/response/' + str(response.id),
                 data={
                     'privacy': new_privacy,
                     'title': new_title,
                     'filename': new_filename,
-                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         # check flask response
@@ -124,11 +98,11 @@ class ResponseViewsTests(BaseTestCase):
         self.assertEqual(
             [
                 response.privacy,
-                response.metadatas.title,
-                response.metadatas.name,
-                response.metadatas.mime_type,
-                response.metadatas.size,
-                response.metadatas.hash,
+                response.title,
+                response.name,
+                response.mime_type,
+                response.size,
+                response.hash,
             ],
             [
                 new_privacy,
@@ -171,28 +145,29 @@ class ResponseViewsTests(BaseTestCase):
             os.path.join(self.upload_path, new_filename)
         ))
 
-    def test_edit_missing_file(self):
+        # TODO: test proper email sent
+
+    def test_edit_response_file_missing_file(self):
         rf = RequestsFactory(self.request_id)
         response = rf.add_file()
-        old_filename = response.metadatas.name
+        old_filename = response.name
         old = [response.privacy,
-               response.metadatas.title,
+               response.title,
                old_filename,
-               response.metadatas.mime_type,
-               response.metadatas.size]
+               response.mime_type,
+               response.size,
+               response.deleted]
         new_filename = 'bovine.txt'
         with self.client as client:
             with client.session_transaction() as session:
-                session['user_id'] = USER_ID_DELIMITER.join((
-                    rf.requester.guid, rf.requester.auth_user_type))
+                session['user_id'] = rf.requester.get_id()
                 session['_fresh'] = True
-            resp = self.client.put(
+            resp = self.client.patch(
                 '/response/' + str(response.id),
                 data={
                     'privacy': RELEASE_AND_PUBLIC,
                     'title': 'The Cow Goes Quack',
                     'filename': new_filename,
-                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         self.assertEqual(
@@ -204,10 +179,11 @@ class ResponseViewsTests(BaseTestCase):
             old,
             [
                 response.privacy,
-                response.metadatas.title,
+                response.title,
                 old_filename,
-                response.metadatas.mime_type,
-                response.metadatas.size
+                response.mime_type,
+                response.size,
+                response.deleted,
             ]
         )
         self.assertTrue(os.path.exists(
@@ -215,3 +191,62 @@ class ResponseViewsTests(BaseTestCase):
         ))
         events = Events.query.filter_by(response_id=response.id).all()
         self.assertFalse(events)
+
+    def test_delete_response(self):
+        rf = RequestsFactory(self.request_id)
+        response = rf.add_note()
+
+        with self.client as client:
+            with client.session_transaction() as session:
+                session['user_id'] = rf.requester.get_id()
+                session['_fresh'] = True
+            resp_bad_1 = self.client.patch(
+                '/response/' + str(response.id),
+                data={
+                    'deleted': True,
+                    'confirmation': 'invalid'
+                }
+            )
+
+            self.assertEqual(
+                json.loads(resp_bad_1.data.decode()),
+                {"message": "No changes detected."}
+            )
+            self.assertFalse(response.deleted)
+
+            resp_bad_2 = self.client.patch(
+                '/response/' + str(response.id),
+                data={
+                    'deleted': True,
+                    # confirmation missing
+                }
+            )
+
+            self.assertEqual(
+                json.loads(resp_bad_2.data.decode()),
+                {"message": "No changes detected."}
+            )
+            self.assertFalse(response.deleted)
+
+            resp_good = self.client.patch(
+                '/response/' + str(response.id),
+                data={
+                    'deleted': True,
+                    'confirmation': ':'.join((rf.request.id, str(response.id)))
+                }
+            )
+
+            self.assertEquals(
+                json.loads(resp_good.data.decode()),
+                {
+                    'old': {
+                        'deleted': 'False'
+                    },
+                    'new': {
+                        'deleted': 'True'
+                    }
+                }
+            )
+            self.assertTrue(response.deleted)
+
+        # TODO: test proper email sent

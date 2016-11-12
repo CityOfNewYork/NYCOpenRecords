@@ -8,24 +8,17 @@
                 aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <!-- Select proper glyphicon based on response type -->
                 {% if response.type == response_type.FILE %}
-                    <span class="glyphicon glyphicon-folder_open" aria-hidden="true"></span>
-                    <strong class="modal-title" style="padding-right: 5px;">{{ response.type | upper }}</strong>
+                    <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                 {% elif response.type == response_type.LINK %}
                     <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
                 {% elif response.type == response_type.INSTRUCTIONS %}
-                    <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
-                    <!-- to get rid of the underscore -->
-                    <strong class="modal-title">OFFLINE INSTRUCTION</strong>
+                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
                 {% elif response.type == response_type.NOTE %}
                     <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
                 {% elif response.type == response_type.EXTENSION %}
                     <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
-                {% else %}
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
                 {% endif %}
+                <strong class="modal-title">{{ response.type | format_response_type }}</strong>
             </div>
             <div class="default">
                 {% if requires_workflow %}
@@ -99,9 +92,7 @@
                     <p class="text-center">
                         {{ response.request_id }}:{{ response.id }}
                     </p>
-                    <form>  <!-- PROPER FORM! -->
-                        <input type="text" class="text-center" name="delete-confirm-string" title="delete-confirm">
-                    </form>
+                    <input type="text" class="text-center" name="delete-confirm-string" title="delete-confirm">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left delete-cancel">Cancel</button>
@@ -110,7 +101,7 @@
             </div>
             <div class="close" hidden>
                 <div class="modal-body">
-                    <!-- TODO: Confirm loss of changes. -->
+                    <!-- TODO: Confirm loss of changes and reset modal (wait until all responses ready). -->
                 </div>
             </div>
         </div>

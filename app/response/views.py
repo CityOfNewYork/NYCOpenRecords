@@ -15,11 +15,14 @@ from flask import (
 )
 from flask_login import current_user
 
-from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
 from app.lib.date_utils import get_holidays_date_list
-from app.lib.db_utils import update_object
-from app.models import Requests, Responses
+from app.models import (
+    Requests,
+    Responses,
+    Files,
+    Notes,
+)
 from app.response import response
 from app.response.utils import (
     add_note,
@@ -31,7 +34,8 @@ from app.response.utils import (
     send_file_email,
     process_privacy_options,
     process_email_template_request,
-    RespFileEditor
+    RespFileEditor,
+    RespNoteEditor,
 )
 
 
@@ -290,74 +294,58 @@ def response_visiblity():
     pass
 
 
-@response.route('/<response_id>', methods=['PUT'])
-def put(response_id):
+@response.route('/<response_id>', methods=['PATCH'])
+def patch(response_id):
     """
-    Edit a response's privacy and its metadata and send a notification email.
+    Edit a response's privacy, deleted status, and its metadata and send a notification email.
 
-    Expects a request body containing field names and updated values,
-    as well as the body of the notification email.
+    Expects a request body containing field names and updated values.
     Ex:
     {
         'privacy': 'release_public',
         'title': 'new title'
         'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
-        'email_content': HTML
     }
-    Response body consists of both the old and updated data, or an error message.
+    Ex (for delete):
+    {
+        'deleted': true,
+        'confirmation': string checked against '<request_id>:<response_id>'
+            if the strings do not match, the 'deleted' field will not be updated
+    }
+
+    :return: on success:
+    {
+        'old': { original attributes and their values }
+        'new': { updated attributes and their values }
+    }
+
     """
+    from flask_login import login_user
+    from app.models import Users
+    login_user(Users.query.first(), force=True)
     if current_user.is_anonymous:
         return '', 403
-    # TODO: user permissions check
 
-    if flask_request.form.get("email_content") is None:
-        http_response = {"errors": "Missing 'email_content'"}
+    resp = Responses.query.filter_by(id=response_id).one()
+    editor_for_type = {
+        Files: RespFileEditor,
+        Notes: RespNoteEditor,
+        # ...
+    }
+    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
+    if editor.errors:
+        http_response = {"errors": editor.errors}
     else:
-        resp = Responses.query.filter_by(id=response_id).first()
-        editor_for_type = {
-            response_type.FILE: RespFileEditor,
-            # response_type.NOTE: RespNoteEditor,
-            # ...
-        }
-        editor = editor_for_type[resp.type](current_user, resp, flask_request)
-        if editor.errors:
-            http_response = {"errors": editor.errors}
+        if editor.no_change:  # TODO: unittest
+            http_response = {
+                "message": "No changes detected."
+            }
         else:
-            if editor.no_change:  # TODO: unittest
-                http_response = {
-                    "message": "No changes detected."
-                }
-            else:
-                http_response = {
-                    "old": editor.data_old,
-                    "new": editor.data_new
-                }
+            http_response = {
+                "old": editor.data_old,
+                "new": editor.data_new
+            }
     return jsonify(http_response), 200
-
-
-# FIXME: should this be PUT or does that give away too much info?
-@response.route('/<response_id>', methods=['DELETE'])
-def delete(response_id):
-    """
-    Delete a response (mark it as deleted) and send a notification email.
-
-    Request Parameters:
-    - confirmation: string checked against '<request_id>:<response_id>'
-        if the strings do not match, deletion will fail
-
-    """
-    if current_user.is_anonymous:
-        return '', 403
-
-    response = Responses.query.filter_by(id=response_id).first()
-    if response is not None:
-        confirmation = flask_request.form.get("confirmation")
-        valid_confirmation = ':'.join((response.request_id, response_id))
-        if confirmation is not None and confirmation == valid_confirmation:
-            update_object({"deleted": True}, Responses, response_id)
-            # TODO: send email
-            return jsonify({"deleted": response_id}), 200
-    return '', 400
 
 
 @response.route('/get_yearly_holidays/<int:year>', methods=['GET'])

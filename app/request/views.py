@@ -48,7 +48,6 @@ from app.request.utils import (
 from app.constants import (
     user_type_request,
     request_status,
-    response_type
 )
 
 

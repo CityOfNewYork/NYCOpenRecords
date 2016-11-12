@@ -35,7 +35,7 @@
                     data: {
                         request_id: "{{ request.id }}",
                         template_name: "email_response_extension.html",
-                        type: "extension"
+                        type: "extensions"
                     },
                     success: function (data) {
                         // Data should be html template page.
@@ -62,7 +62,7 @@
                 data: {
                     request_id: "{{ request.id }}",
                     template_name: "email_response_extension.html",
-                    type: "extension",
+                    type: "extensions",
                     extension: JSON.stringify({
                         length: length,
                         custom_due_date: custom_due_date,

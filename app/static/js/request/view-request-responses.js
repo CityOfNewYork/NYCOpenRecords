@@ -89,12 +89,12 @@ $(function () {
         showResponses();
     });
 
-    // TODO: DELETE 'updated' on modal close and reset / refresh page
+    // TODO: DELETE 'updated' on modal close and reset / refresh page (wait until all responses ready)
 
     function setEditResponseWorkflow(response_id, response_type) {
 
         switch (response_type) {
-            case "file":
+            case "files":  // TODO: constants?
                 var responseModal = $("#response-modal-" + response_id);
 
                 var first = responseModal.find('.first');
@@ -138,7 +138,7 @@ $(function () {
                             data: {
                                 request_id: request_id,
                                 template_name: "email_response_file.html",
-                                type: "file"
+                                type: "files"
                             },
                             success: function (data) {
                                 // Data should be html template page.
@@ -171,7 +171,7 @@ $(function () {
                         data: {
                             request_id: request_id,
                             template_name: "email_response_file.html",
-                            type: "file",
+                            type: "files",
                             files: JSON.stringify(files),
                             email_content: $("#email-content-" + response_id).val()
                         },
@@ -206,7 +206,7 @@ $(function () {
                     });
                     $.ajax({
                         url: "/response/" + response_id,
-                        type: "PUT",
+                        type: "PATCH",
                         data: data,
                         success: function (response) {
                             location.reload();
@@ -272,8 +272,9 @@ $(function () {
             deleteConfirm.attr("disabled", true);
             $.ajax({
                 url: "/response/" + response_id,
-                type: "DELETE",
+                type: "PATCH",
                 data: {
+                    deleted: true,
                     confirmation: deleteConfirmCheck.val()
                 },
                 success: function() {

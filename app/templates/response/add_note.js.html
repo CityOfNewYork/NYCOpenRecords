@@ -22,7 +22,7 @@ $(document).ready(function () {
                 data: {
                     request_id: "{{ request.id }}",
                     template_name: "email_response_link.html",
-                    type: "note",
+                    type: "notes",
                     privacy: $(".note-privacy:checked").val()
                 },
                 success: function (data) {
@@ -44,7 +44,7 @@ $(document).ready(function () {
             data: {
                 request_id: "{{ request.id }}",
                 template_name: "email_response_note.html",
-                type: "note",
+                type: "notes",
                 note: JSON.stringify({
                     content: $('#note-content').val(),
                     privacy: $(".note-privacy:checked").val()

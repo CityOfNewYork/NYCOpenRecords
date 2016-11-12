@@ -1,5 +1,6 @@
 import redis
 import holidays
+import jinja_filters
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask
@@ -46,6 +47,8 @@ def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+
+    app.jinja_env.filters['format_response_type'] = jinja_filters.format_response_type
 
     recaptcha.init_app(app)
     bootstrap.init_app(app)
