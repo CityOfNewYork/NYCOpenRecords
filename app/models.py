@@ -3,15 +3,16 @@ Models for OpenRecords database
 """
 import csv
 from datetime import datetime
+from uuid import uuid4
 
 from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
-from flask_login import current_user
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
-from app import db, es
+from app import db, es, calendar
 from app.constants import (
     USER_ID_DELIMITER,
+    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
     role_name,
     user_type_auth,
@@ -627,6 +628,36 @@ class UserRequests(db.Model):
         return bool(self.permissions & permission)
 
 
+class ResponseTokens(db.Model):
+    """
+    Define the ResponseTokens class with the following columns and relationships:
+
+    id - an integer that is the primary key of ResponseTokens
+    token - a string consisting of a randomly-generated, unique token
+    response_id - a foreign key that links to a response's primary key
+    expiration_date - a datetime object containing the date at which this token becomes invalid
+    """
+    __tablename__ = 'response_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String, nullable=False)
+    response_id = db.Column(db.Integer, db.ForeignKey("responses.id"), nullable=False)
+    expiration_date = db.Column(db.DateTime)
+
+    response = db.relationship("Responses", backref=db.backref("token", uselist=False))
+
+    def __init__(self,
+                 response_id,
+                 expiration_date=None):
+        self.token = self.generate_token()
+        self.response_id = response_id
+        self.expiration_date = expiration_date or calendar.addbusdays(
+            datetime.now(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
+
+    @staticmethod
+    def generate_token():
+        return uuid4().hex
+
+
 class Metadatas(db.Model):
     """
     Parent class of response metadata classes (defined below this class).
@@ -673,15 +704,16 @@ class Files(Metadatas):
     mime_type - a string containing the mime_type of a file
     title - a string containing the title of a file (user defined)
     size - a string containing the size of a file
+    hash - a string containing the sha1 hash of a file
     """
     __tablename__ = 'files'
     __mapper_args__ = {'polymorphic_identity': 'files'}
     id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
-    name = db.Column(db.String)  # secured filename
+    name = db.Column(db.String)
     mime_type = db.Column(db.String)
     title = db.Column(db.String)
     size = db.Column(db.Integer)
-    hash = db.Column(db.String)  # sha1
+    hash = db.Column(db.String)
 
 
 class Links(Metadatas):

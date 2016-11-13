@@ -38,7 +38,7 @@ class Config:
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
 
     # Flask-SQLAlchemy
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False  # remove once this becomes the default
 
     # Upload Settings
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
