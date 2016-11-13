@@ -31,7 +31,7 @@
             <label>
                 <input type="radio" name="privacy" value="{{ privacy }}"
                    {% if response.privacy == privacy %}checked{% endif %}>
-            {{ response.privacy | format_response_privacy }}
+            {{ privacy | format_response_privacy }}
             </label>
         </div>
     {% endfor %}

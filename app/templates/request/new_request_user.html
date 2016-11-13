@@ -57,7 +57,12 @@
                 </div>
                 <br><br>
 
-                {{ form.submit(id='submit', class='btn-primary') }}<br>
+                {{ form.submit(id='submit', class='btn-primary') }}
+                <span id="processing-submission" hidden>
+                    <img src="{{ url_for("static", filename="img/loading.gif") }}"
+                         alt="Processing" height="40" width="40">
+                </span>
+                <br>
             </form>
         </div>
     </div>

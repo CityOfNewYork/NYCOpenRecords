@@ -276,7 +276,7 @@ class ResponseViewsTests(BaseTestCase):
             )
             self.assertTrue(response.deleted)
 
-        # TODO: remove patch, test proper email sent
+        # TODO: remove send_email patch, test proper email sent
 
 def test_get_content(self):
     rf = RequestsFactory(self.request_id)

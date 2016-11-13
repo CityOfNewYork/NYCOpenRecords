@@ -304,7 +304,7 @@ def response_visiblity(request_id):
 @response.route('/<response_id>', methods=['PATCH'])
 def patch(response_id):
     """
-    Edit a response's privacy, deleted status, and its metadata and send a notification email.
+    Edit a response's fields and send a notification email.
 
     Expects a request body containing field names and updated values.
     Ex:
@@ -327,10 +327,6 @@ def patch(response_id):
     }
 
     """
-    # from flask_login import login_user
-    # from app.models import Users
-    # login_user(Users.query.first(), force=True)
-
     if current_user.is_anonymous:
         return '', 403
 

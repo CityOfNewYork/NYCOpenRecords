@@ -405,7 +405,7 @@ class Requests(db.Model):
         return {
             'title': self.title,
             'description': self.description,
-            'due_date': self.due_date,
+            'due_date': self.due_date.isoformat(),
         }
 
     def es_update(self):

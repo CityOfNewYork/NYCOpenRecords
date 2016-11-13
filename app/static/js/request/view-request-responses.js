@@ -36,6 +36,7 @@ $(function () {
             for (var i = index; i < end; i++) {
                 response_list.append(responses[i].template);
                 setEditResponseWorkflow(responses[i].id, responses[i].type);
+                setDeleteResponseWorkflow(responses[i].id);
                 if (responses[i].type === "files") {
                     bindFileUpload(
                         "#fileupload-update-" + responses[i].id,

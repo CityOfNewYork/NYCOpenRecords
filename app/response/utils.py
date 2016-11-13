@@ -560,7 +560,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         default_content = False
         content = data['email_content']
         # If privacy is release and requester-viewable data is edited or privacy has changed from private, requester gets email
-        if ((privacy != PRIVATE and editor.requester_viewable())
+        if ((privacy != PRIVATE and editor.requester_viewable)
             or (editor.data_old['privacy'] == PRIVATE)):
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
@@ -858,7 +858,8 @@ class ResponseEditor(metaclass=ABCMeta):
 
     def validate_deleted(self):
         """
-        ...
+        Removes the 'deleted' key-value pair from the data containers
+        if the confirmation string (see response PATCH) is not valid.
         """
         confirmation = flask_request.form.get("confirmation")
         valid_confirmation = ':'.join((self.response.request_id,
@@ -890,30 +891,32 @@ class ResponseEditor(metaclass=ABCMeta):
                       type(self.response),
                       self.response.id)
 
+    @property
     def deleted(self):
         return self.data_new.get('deleted', False)
 
     def send_email(self):
         """
-        TODO:
-        if self.deleted(), only send delete email and only to agency users
-        else email according to privacy
-        (fetch the email content from email_redis)
-        unittest deletion and emails sent
+        Send an email to all relevant request participants.
+        Email content varies according to which response fields have changed.
         """
-        key_agency = get_email_key(self.response.id)
-        email_content_agency = email_redis.get(key_agency).decode()
-        email_redis.delete(key_agency)
+        if self.deleted:
+            # TODO: _send_delete_response_email()
+            pass
+        else:
+            key_agency = get_email_key(self.response.id)
+            email_content_agency = email_redis.get(key_agency).decode()
+            email_redis.delete(key_agency)
 
-        key_requester = get_email_key(self.response.id, requester=True)
-        email_content_requester = email_redis.get(key_requester)
-        if email_content_requester is not None:
-            email_content_requester = email_content_requester.decode()
-            email_redis.delete(key_requester)
+            key_requester = get_email_key(self.response.id, requester=True)
+            email_content_requester = email_redis.get(key_requester)
+            if email_content_requester is not None:
+                email_content_requester = email_content_requester.decode()
+                email_redis.delete(key_requester)
 
-        _send_edit_response_email(self.response.request_id,
-                                  email_content_agency,
-                                  email_content_requester)
+            _send_edit_response_email(self.response.request_id,
+                                      email_content_agency,
+                                      email_content_requester)
 
 
 class RespFileEditor(ResponseEditor):
