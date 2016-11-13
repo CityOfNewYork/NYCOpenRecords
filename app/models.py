@@ -550,7 +550,7 @@ class Responses(db.Model):
         metadata_preview_attr = {
             Notes: 'content',
             Files: 'title',
-            Links: 'content',
+            Links: 'title',
             Instructions: 'content',
             Extensions: 'reason',
             Emails: 'subject'

@@ -39,7 +39,8 @@ from app.response.utils import (
     send_file_email,
     process_privacy_options,
     process_email_template_request,
-    RespFileEditor
+    RespFileEditor,
+    RespNoteEditor
 )
 
 
@@ -323,28 +324,25 @@ def edit_response(response_id):
         return jsonify({}), 403
     # TODO: user permissions check
 
-    if flask_request.form.get("email_content") is None:
-        http_response = {"errors": "Missing 'email_content'"}
+    resp = Responses.query.filter_by(id=response_id).one()
+    editor_for_type = {
+        response_type.FILE: RespFileEditor,
+        response_type.NOTE: RespNoteEditor,
+        # ...
+    }
+    editor = editor_for_type[resp.type](current_user, resp, flask_request)
+    if editor.errors:
+        http_response = {"errors": editor.errors}
     else:
-        resp = Responses.query.filter_by(id=response_id).first()
-        editor_for_type = {
-            response_type.FILE: RespFileEditor,
-            # response_type.NOTE: RespNoteEditor,
-            # ...
-        }
-        editor = editor_for_type[resp.type](current_user, resp, flask_request)
-        if editor.errors:
-            http_response = {"errors": editor.errors}
+        if editor.no_change:  # TODO: unittest
+            http_response = {
+                "message": "No changes detected."
+            }
         else:
-            if editor.no_change:  # TODO: unittest
-                http_response = {
-                    "message": "No changes detected."
-                }
-            else:
-                http_response = {
-                    "old": editor.data_old,
-                    "new": editor.data_new
-                }
+            http_response = {
+                "old": editor.data_old,
+                "new": editor.data_new
+            }
     return jsonify(http_response), 200
 
 

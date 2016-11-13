@@ -19,6 +19,8 @@ from tests.lib.constants import (
     PNG_FILE_NAME,
     PNG_FILE_PATH,
 )
+from app import email_redis
+from app.response.utils import get_email_key
 from app.lib.utils import get_file_hash
 from app.lib.db_utils import create_object
 from app.models import (
@@ -44,7 +46,6 @@ class ResponseViewsTests(BaseTestCase):
         if os.path.exists(self.upload_path):
             shutil.rmtree(self.upload_path)
         super(ResponseViewsTests, self).tearDown()
-
 
     def test_edit_file(self):
         rf = RequestsFactory(self.request_id)
@@ -81,10 +82,16 @@ class ResponseViewsTests(BaseTestCase):
         filepath = os.path.join(path, new_filename)
         shutil.copyfile(PNG_FILE_PATH, filepath)
 
+        # set email redis object
+        email_body = "<p>Email Body</p>"
+        redis_key = get_email_key(response.id)
+        email_redis.set(redis_key, email_body)
+
         # https://github.com/mattupstate/flask-security/issues/259
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
         with self.client as client, patch(
-                'app.response.utils.ResponseEditor.send_email'):
+            'app.response.utils._send_edit_response_email'
+        ) as send_email_patch:
             with client.session_transaction() as session:
                 session['user_id'] = rf.requester.get_id()
                 session['_fresh'] = True
@@ -95,9 +102,15 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': new_privacy,
                     'title': new_title,
                     'filename': new_filename,
-                    'email_content': '<p>Email Stuff</p>',
                 }
             )
+            # check email sent
+            send_email_patch.assert_called_once_with(rf.request.id,
+                                                     email_body,
+                                                     None)
+            # check redis object deleted
+            self.assertTrue(email_redis.get(redis_key) is None)
+
         # check flask response
         self.assertEqual(
             json.loads(resp.data.decode()),
@@ -167,8 +180,7 @@ class ResponseViewsTests(BaseTestCase):
                response.metadatas.mime_type,
                response.metadatas.size]
         new_filename = 'bovine.txt'
-        with self.client as client, patch(
-                'app.response.utils.ResponseEditor.send_email'):
+        with self.client as client:
             with client.session_transaction() as session:
                 session['user_id'] = rf.requester.get_id()
                 session['_fresh'] = True
@@ -178,7 +190,6 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': RELEASE_AND_PUBLIC,
                     'title': 'The Cow Goes Quack',
                     'filename': new_filename,
-                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         self.assertEqual(
