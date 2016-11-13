@@ -3,7 +3,8 @@
 
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
-
+import os
+from datetime import datetime
 from urllib.request import urlopen
 
 from flask import (
@@ -12,18 +13,24 @@ from flask import (
     url_for,
     redirect,
     jsonify,
+    current_app,
+    send_from_directory,
 )
 from flask_login import current_user
 
 from app.constants.response_privacy import PRIVATE
+from app.constants.response_type import FILE
 from app.lib.date_utils import get_holidays_date_list
+from app.lib.db_utils import delete_object
+from app.response import response
 from app.models import (
     Requests,
     Responses,
+    ResponseTokens,
+    UserRequests,
     Files,
     Notes,
 )
-from app.response import response
 from app.response.utils import (
     add_note,
     add_file,
@@ -35,7 +42,7 @@ from app.response.utils import (
     process_privacy_options,
     process_email_template_request,
     RespFileEditor,
-    RespNoteEditor,
+    RespNoteEditor
 )
 
 
@@ -278,19 +285,19 @@ def check_url():
 
 # TODO: Implement response route for sms
 @response.route('/sms/<request_id>', methods=['GET', 'POST'])
-def response_sms():
+def response_sms(request_id):
     pass
 
 
 # TODO: Implement response route for push
 @response.route('/push/<request_id>', methods=['GET', 'POST'])
-def response_push():
+def response_push(request_id):
     pass
 
 
 # TODO: Implement response route for visiblity
 @response.route('/visiblity/<request_id>', methods=['GET', 'POST'])
-def response_visiblity():
+def response_visiblity(request_id):
     pass
 
 
@@ -320,13 +327,14 @@ def patch(response_id):
     }
 
     """
-    from flask_login import login_user
-    from app.models import Users
-    login_user(Users.query.first(), force=True)
+    # from flask_login import login_user
+    # from app.models import Users
+    # login_user(Users.query.first(), force=True)
+
     if current_user.is_anonymous:
         return '', 403
 
-    resp = Responses.query.filter_by(id=response_id).one()
+    resp = Responses.query.filter_by(id=response_id, deleted=False).one()
     editor_for_type = {
         Files: RespFileEditor,
         Notes: RespNoteEditor,
@@ -353,8 +361,58 @@ def get_yearly_holidays(year):
     """
     Retrieve a list of dates that are holidays in the specified year
 
-    :param date: 4-digit year.
+    :param year: 4-digit year.
 
     :return: List of strings ["YYYY-MM-DD"]
     """
     return jsonify(holidays=sorted(get_holidays_date_list(year)))
+
+
+@response.route('/<response_id>', methods=["GET"])
+def get_response_content(response_id):
+    """
+    Currently only supports File Responses.
+
+    Request Parameters:
+    - token: (optional) ephemeral access token
+
+    :return: response file contents or
+             redirect to login if user not authenticated and no token provided or
+             400 error if response/file not found
+    """
+    response = Responses.query.filter_by(id=response_id, deleted=False).one()
+    if response is not None and response.type == FILE:
+        upload_path = os.path.join(
+            current_app.config["UPLOAD_DIRECTORY"],
+            response.request_id
+        )
+        filepath_parts = (
+            upload_path,
+            response.name
+        )
+        filepath = os.path.join(*filepath_parts)
+        token = flask_request.args.get('token')
+        if token is not None:
+            resptok = ResponseTokens.query.filter_by(
+                token=token, response_id=response_id).first()
+            if resptok is not None:
+                if (datetime.utcnow() < resptok.expiration_date
+                   and os.path.exists(filepath)):
+                    return send_from_directory(*filepath_parts, as_attachment=True)
+                else:
+                    delete_object(resptok)
+        else:
+            if current_user.is_authenticated:
+                if ((current_user.is_public or current_user.is_agency)
+                   and UserRequests.query.filter_by(
+                        request_id=response.request_id,
+                        user_guid=current_user.guid,
+                        auth_user_type=current_user.auth_user_type).first() is not None
+                   and os.path.exists(filepath)):
+                    return send_from_directory(*filepath_parts, as_attachment=True)
+            else:
+                return redirect(url_for(
+                    'auth.index',
+                    sso2=True,
+                    return_to=flask_request.base_url))
+    return '', 400  # TODO: error pages

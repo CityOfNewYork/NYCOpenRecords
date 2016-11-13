@@ -15,7 +15,10 @@ from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
 from app.constants import RESPONSES_INCREMENT
-from app.constants import response_type
+from app.constants import (
+    response_type,
+    response_privacy,
+)
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -91,7 +94,8 @@ def get_request_responses():
 
     responses = Responses.query.filter(
         Responses.request_id == flask_request.args['request_id'],
-        Responses.type != response_type.EMAIL
+        Responses.type != response_type.EMAIL,
+        Responses.deleted == False
     ).order_by(
         desc(Responses.date_modified)
     ).all()[start: start + RESPONSES_INCREMENT]
@@ -120,7 +124,10 @@ def get_request_responses():
                     "{}modal_body/{}.html".format(
                         template_path, response.type
                     ),
-                    response=response
+                    response=response,
+                    privacies=[response_privacy.RELEASE_AND_PUBLIC,
+                               response_privacy.RELEASE_AND_PRIVATE,
+                               response_privacy.PRIVATE]
                 ),
                 response_type=response_type,
             )

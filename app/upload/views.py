@@ -163,7 +163,7 @@ def delete(r_id_type, r_id, filecode):
     else:
         try:
             if r_id_type == "response":
-                response = Responses.query.filter(id=r_id)
+                response = Responses.query.filter_by(id=r_id, deleted=False)
                 r_id = response.request_id
 
             path = ''

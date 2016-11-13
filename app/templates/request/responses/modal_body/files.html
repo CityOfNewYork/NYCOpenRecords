@@ -26,26 +26,14 @@
     </div>
     <div class="title-error pull-right"></div>
     <div>
+    {% for privacy in privacies %}
         <div class="radio">
             <label>
-                <input type="radio" name="privacy" value="release_public"
-                       {% if response.privacy == "release_public" %}checked{% endif %}>
-                Release and Public
+                <input type="radio" name="privacy" value="{{ privacy }}"
+                   {% if response.privacy == privacy %}checked{% endif %}>
+            {{ response.privacy | format_response_privacy }}
             </label>
         </div>
-        <div class="radio">
-            <label>
-                <input type="radio" name="privacy" value="release_private"
-                       {% if response.privacy == "release_private" %}checked{% endif %}>
-                Release and Private
-            </label>
-        </div>
-        <div class="radio">
-            <label>
-                <input type="radio" name="privacy" value="private"
-                       {% if response.privacy == "private" %}checked{% endif %}>
-                Private
-            </label>
-        </div>
+    {% endfor %}
     </div>
 </form>

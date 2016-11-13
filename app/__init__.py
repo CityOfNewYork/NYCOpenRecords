@@ -26,6 +26,7 @@ prefixed_store = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
 
 upload_redis = redis.StrictRedis(db=2)
+email_redis = redis.StrictRedis(db=3)
 
 mail = Mail()
 
@@ -49,6 +50,7 @@ def create_app(config_name):
     config[config_name].init_app(app)
 
     app.jinja_env.filters['format_response_type'] = jinja_filters.format_response_type
+    app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
 
     recaptcha.init_app(app)
     bootstrap.init_app(app)

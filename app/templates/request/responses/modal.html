@@ -6,7 +6,6 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"
                 aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <!-- Select proper glyphicon based on response type -->
                 {% if response.type == response_type.FILE %}
                     <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                 {% elif response.type == response_type.LINK %}
@@ -57,6 +56,7 @@
                     <div class="third" hidden>
                         <div class="modal-body">
                             <h4>The following will be emailed to all relevant participants:</h4>
+                            <!-- TODO: change (to the requester, to all agency users...) -->
                             <div class="email-summary"></div>
                             <div class="email-summary" hidden></div>
                         </div>

@@ -12,6 +12,8 @@ import re
 import json
 import magic
 from abc import ABCMeta, abstractmethod
+from cached_property import cached_property
+from app import email_redis
 from werkzeug.utils import secure_filename
 from flask_login import current_user
 from flask import (
@@ -33,7 +35,10 @@ from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.file_utils import get_mime_type
-from app.lib.utils import get_file_hash
+from app.lib.utils import (
+    get_file_hash,
+    eval_request_bool
+)
 from app.models import (
     Events,
     Notes,
@@ -41,6 +46,7 @@ from app.models import (
     Links,
     Instructions,
     Requests,
+    Responses,
     UserRequests,
     Extensions,
     Emails
@@ -303,7 +309,8 @@ def process_email_template_request(request_id, data):
         response_type.FILE: _file_email_handler,
         response_type.LINK: _link_email_handler,
         response_type.NOTE: _note_email_handler,
-        response_type.INSTRUCTIONS: _instruction_email_handler
+        response_type.INSTRUCTIONS: _instruction_email_handler,
+        "edit": _edit_email_handler
     }
     return handler_for_type[data['type']](request_id, data, page, agency_name, email_template)
 
@@ -521,6 +528,95 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
                            response_privacy=response_privacy)
 
 
+def _edit_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for a editing a response.
+    Checks if confirmation is true. If not, renders the default edit response email template.
+    If confirmation is true, renders the edit response template with provided arguments.
+
+    :param request_id: FOIL request ID of the request the response is being edited to
+    :param data: data from the frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the request
+    :param email_template: raw HTML email template of the edit response
+
+    :return: the HTML of the rendered template of an edited response
+    """
+    response_id = data['response_id']
+    confirmation = eval_request_bool(data['confirmation'])
+    privacy = data['privacy']
+    email_summary_requester = None
+    agency = False
+    resp = Responses.query.filter_by(id=response_id, deleted=False).one()
+    editor = None
+
+    if confirmation:
+        editor_for_type = {
+            response_type.FILE: RespFileEditor,
+            response_type.NOTE: RespNoteEditor,
+            # ...
+        }
+        editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
+        default_content = False
+        content = data['email_content']
+        # If privacy is release and requester-viewable data is edited or privacy has changed from private, requester gets email
+        if ((privacy != PRIVATE and editor.requester_viewable())
+            or (editor.data_old['privacy'] == PRIVATE)):
+            email_summary_requester = render_template(email_template,
+                                                      default_content=default_content,
+                                                      content=content,
+                                                      request_id=request_id,
+                                                      agency_name=agency_name,
+                                                      response_type=resp.type,
+                                                      response_data=editor,
+                                                      page=page,
+                                                      privacy=privacy,
+                                                      response_privacy=response_privacy)
+        agency = True
+    else:
+        content = None
+        if privacy == PRIVATE:
+            email_template = 'email_templates/email_edit_private_response.html'
+            default_content = None
+        else:
+            default_content = True
+    # email_summary_edited rendered every time for email that agency receives
+    email_summary_edited = render_template(email_template,
+                                           default_content=default_content,
+                                           content=content,
+                                           request_id=request_id,
+                                           agency_name=agency_name,
+                                           response_type=resp.type,
+                                           response_data=editor,
+                                           page=page,
+                                           privacy=privacy,
+                                           response_privacy=response_privacy,
+                                           agency=agency)
+
+    # if confirmation is true, store email templates into redis
+    if confirmation:
+        email_redis.set(get_email_key(response_id), email_summary_edited)
+        if email_summary_requester is not None:
+            email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
+    return email_summary_requester or email_summary_edited
+
+
+def get_email_key(response_id, requester=False):
+    """
+    Returns a formatted key for an email.
+    Intended for storing the body of an email.
+
+    :param response_id: id of the response
+    :param requester: will the stored content be emailed to a requester?
+
+    :return: the formatted key
+        Ex.
+            1_requester
+            1_agency
+    """
+    return '_'.join((str(response_id), 'requester' if requester else 'agency'))
+
+
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     """
     Function that sends email detailing a file response has been uploaded to a request.
@@ -544,8 +640,7 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     if privacy == 'release':
         # Query for the requester's email information
-        requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                       request_user_type=REQUESTER).first().user.email
+        requester_email = Requests.query.filter_by(id=request_id).one().requester.email
         # Send email with files to requester and bcc agency_ein users as privacy option is release
         safely_send_and_add_email(request_id,
                                   email_content,
@@ -567,6 +662,32 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
                                   bcc=bcc)
 
 
+def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
+    """
+    Send email detailing a response has been edited.
+    Always sends email to agency users on the request.
+    Requester is emailed only if email_content_requester is provided.
+
+    :param request_id: FOIL request ID
+    :param email_content_agency: body of email being sent to agency users
+    :param email_content_requester: body of email being sent to requester
+
+    :type email_content_agency: str
+    :type email_content_requester: str
+
+    :return:
+    """
+    subject = 'Response Edited'
+    bcc = get_agencies_emails(request_id)
+    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
+    safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
+    if email_content_requester is not None:
+        safely_send_and_add_email(request_id,
+                                  email_content_requester,
+                                  subject,
+                                  to=[requester_email])
+
+
 def _send_response_email(request_id, privacy, email_content):
     """
     Function that sends email detailing a specific response has been added to a request.
@@ -582,10 +703,7 @@ def _send_response_email(request_id, privacy, email_content):
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
-    requester_email = UserRequests.query.filter_by(
-        request_id=request_id,
-        request_user_type=REQUESTER
-    ).first().user.email
+    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     # Send email with link to requester and bcc agency_ein users as privacy option is release
     kwargs = {
         'bcc': bcc,
@@ -674,18 +792,19 @@ class ResponseEditor(metaclass=ABCMeta):
     should override the `set_edited_data` method with any additional logic.
     """
 
-    def __init__(self, user, response, flask_request):
+    def __init__(self, user, response, flask_request, update=True):
         self.user = user
         self.response = response
         self.flask_request = flask_request
 
+        self.update = update
         self.no_change = False
         self.data_old = {}
         self.data_new = {}
         self.errors = []
 
         self.set_edited_data()
-        if self.data_new and not self.errors:
+        if update and self.data_new and not self.errors:
             self.add_event_and_update()
             self.send_email()
         else:
@@ -710,6 +829,18 @@ class ResponseEditor(metaclass=ABCMeta):
     def editable_fields(self):
         """ List of fields that can be edited directly. """
         return list()
+
+    @cached_property
+    def requester_viewable_keys(self):
+        """ List of keys for edited data that can be viewed by a requester. """
+        viewable = dict(self.data_old)
+        viewable.pop('privacy', None)
+        return [k for k in viewable]
+
+    @cached_property
+    def requester_viewable(self):
+        """ Can a requester view the changes made to the response? """
+        return bool(self.requester_viewable_keys)
 
     def set_edited_data(self):
         """
@@ -770,7 +901,19 @@ class ResponseEditor(metaclass=ABCMeta):
         (fetch the email content from email_redis)
         unittest deletion and emails sent
         """
-        pass
+        key_agency = get_email_key(self.response.id)
+        email_content_agency = email_redis.get(key_agency).decode()
+        email_redis.delete(key_agency)
+
+        key_requester = get_email_key(self.response.id, requester=True)
+        email_content_requester = email_redis.get(key_requester)
+        if email_content_requester is not None:
+            email_content_requester = email_content_requester.decode()
+            email_redis.delete(key_requester)
+
+        _send_edit_response_email(self.response.request_id,
+                                  email_content_agency,
+                                  email_content_requester)
 
 
 class RespFileEditor(ResponseEditor):
@@ -807,7 +950,8 @@ class RespFileEditor(ResponseEditor):
                 self.set_data_values('hash',
                                      self.response.hash,
                                      get_file_hash(filepath))
-                self.replace_old_file(filepath)
+                if self.update:
+                    self.replace_old_file(filepath)
             else:
                 self.errors.append(
                     "File '{}' not found.".format(new_filename))
