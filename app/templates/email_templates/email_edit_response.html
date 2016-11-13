@@ -3,13 +3,17 @@
     {% if not agency %}
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             <p>
-                A {{ response_type }} in request <a
-                    href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a> has been edited.
+                A {{ response_type }} in request
+                <a href="{{ url_for('request.view', request_id=request_id) }}">
+                    {{ request_id }}
+                </a> has been edited.
             </p>
         {% else %}
             <p>
-                A {{ response_type }} in request <a
-                    href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a> has been added.
+                A {{ response_type }} in request
+                <a href="{{ url_for('request.view', request_id=request_id) }}">
+                    {{ request_id }}
+                </a> is available for you to view.
             </p>
         {% endif %}
     {% endif %}

@@ -15,7 +15,10 @@ from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
 from app.constants import RESPONSES_INCREMENT
-from app.constants import response_type
+from app.constants import (
+    response_type,
+    response_privacy,
+)
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -120,7 +123,10 @@ def get_request_responses():
                     "{}modal_body/{}.html".format(
                         template_path, response.type
                     ),
-                    response=response
+                    response=response,
+                    privacies=[response_privacy.RELEASE_AND_PUBLIC,
+                               response_privacy.RELEASE_AND_PRIVATE,
+                               response_privacy.PRIVATE]
                 ),
                 response_type=response_type,
             )

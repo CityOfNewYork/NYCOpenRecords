@@ -49,6 +49,8 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
+
     recaptcha.init_app(app)
     bootstrap.init_app(app)
     es.init_app(app)
@@ -56,7 +58,6 @@ def create_app(config_name):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
-    app.jinja_env.filters['privacy_format'] = jinja_filters.privacy_format(privacy=None)
 
     with app.app_context():
         from app.models import Anonymous

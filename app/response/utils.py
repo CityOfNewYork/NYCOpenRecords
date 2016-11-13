@@ -37,7 +37,10 @@ from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
 from app.lib.file_utils import get_mime_type
-from app.lib.utils import get_file_hash
+from app.lib.utils import (
+    get_file_hash,
+    eval_request_bool
+)
 from app.models import (
     Responses,
     Events,
@@ -596,19 +599,20 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of an edited response
     """
     response_id = data['response_id']
-    confirmation = data['confirmation']
+    confirmation = eval_request_bool(data['confirmation'])
     privacy = data['privacy']
     email_summary_requester = None
     agency = False
     resp = Responses.query.filter_by(id=response_id).one()
     editor = None
-    if confirmation == "true":
+
+    if confirmation:
         editor_for_type = {
             response_type.FILE: RespFileEditor,
             response_type.NOTE: RespNoteEditor,
             # ...
         }
-        editor = editor_for_type[resp.type](current_user, resp, flask_request, False)
+        editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
         default_content = False
         content = data['email_content']
         # If privacy is release and metadata is edited or privacy has changed from private, requester gets email
@@ -646,31 +650,27 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
                                            agency=agency)
 
     # if confirmation is true, store email templates into redis
-    if confirmation == 'true':
-        email_redis.set(get_email_key(response_id, edited=False), email_summary_edited)
+    if confirmation:
+        email_redis.set(get_email_key(response_id), email_summary_edited)
         if email_summary_requester is not None:
-            email_redis.set(get_email_key(response_id, edited=True), email_summary_requester)
-    return email_summary_requester if email_summary_requester else email_summary_edited
+            email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
+    return email_summary_requester or email_summary_edited
 
 
-def get_email_key(response_id, edited=False):
+def get_email_key(response_id, requester=False):
     """
-    Returns a formatted key for an upload.
-    Intended for tracking the status of an upload.
+    Returns a formatted key for an email.
+    Intended for storing the body of an email.
 
-    :param request_id: id of the request associated with the upload
-    :param upload_filename: the name of the uploaded file
-    :param for_update: will the uploaded file replace an existing file?
-        (this is required to make keys unique, as the uploaded file
-        may share the same name as the existing file)
+    :param response_id: id of the response
+    :param requester: will the stored content be emailed to a requester?
 
     :return: the formatted key
         Ex.
-            FOIL-ID_filename.ext_new
-            FOIL_ID_filename.ext_update
+            1_requester
+            1_agency
     """
-    return '_'.join((response_id,
-                     'requester' if edited else 'agency'))
+    return '_'.join((str(response_id), 'requester' if requester else 'agency'))
 
 
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
@@ -698,8 +698,7 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     if privacy == 'release':
         # Query for the requester's email information
-        requester_email = UserRequests.query.filter_by(request_id=request_id,
-                                                       request_user_type=REQUESTER).first().user.email
+        requester_email = Requests.query.filter_by(id=request_id).one().requester.email
         # Send email with files to requester and bcc agency_ein users as privacy option is release
         safely_send_and_add_email(request_id,
                                   email_content,
@@ -728,17 +727,17 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     Requester is emailed only if email_content_requester is provided.
 
     :param request_id: FOIL request ID
-    :param email_content_agency: required, string email body of email being sent to agency users
-    :param email_content_requester: optional, string email body of email being sent to requester
+    :param email_content_agency: body of email being sent to agency users
+    :param email_content_requester: body of email being sent to requester
+
+    :type email_content_agency: str
+    :type email_content_requester: str
 
     :return:
     """
     subject = 'Response Edited'
     bcc = get_agencies_emails(request_id)
-    requester_email = UserRequests.query.filter_by(
-        request_id=request_id,
-        request_user_type=REQUESTER
-    ).first().user.email
+    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
         safely_send_and_add_email(request_id,
@@ -763,10 +762,7 @@ def _send_response_email(request_id, privacy, email_content):
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
-    requester_email = UserRequests.query.filter_by(
-        request_id=request_id,
-        request_user_type=REQUESTER
-    ).first().user.email
+    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     # Send email with link to requester and bcc agency_ein users as privacy option is release
     kwargs = {
         'bcc': bcc,
@@ -897,7 +893,7 @@ class ResponseEditor(metaclass=ABCMeta):
             self.privacy_changed = True
 
         self.edit_metadata()
-        if self.data_changed() and update:
+        if self.data_changed() and not self.errors and update:
             self.add_event_and_update()
             self.send_email()
         else:
@@ -972,44 +968,43 @@ class ResponseEditor(metaclass=ABCMeta):
         Creates an 'edited' event and updates the
         response and metadata records.
         """
-        if not self.errors:
-            timestamp = datetime.utcnow()
-            event = Events(
-                type=self.event_type,
-                request_id=self.response.request_id,
-                response_id=self.response.id,
-                user_id=self.user.guid,
-                auth_user_type=self.user.auth_user_type,
-                timestamp=timestamp,
-                previous_value=self.data_old,
-                new_value=self.data_new)
-            create_object(event)
-            response_changes = {
-                'date_modified': timestamp
-            }
-            if self.privacy_changed:
-                response_changes.update(
-                    privacy=self.data_new['privacy']
-                )
-            update_object(response_changes,
-                          Responses,
-                          self.response.id)
-            if self.metadata_new:
-                update_object(self.metadata_new,
-                              type(self.metadata),
-                              self.metadata.id)
+        timestamp = datetime.utcnow()
+        event = Events(
+            type=self.event_type,
+            request_id=self.response.request_id,
+            response_id=self.response.id,
+            user_id=self.user.guid,
+            auth_user_type=self.user.auth_user_type,
+            timestamp=timestamp,
+            previous_value=self.data_old,
+            new_value=self.data_new)
+        create_object(event)
+        response_changes = {
+            'date_modified': timestamp
+        }
+        if self.privacy_changed:
+            response_changes.update(
+                privacy=self.data_new['privacy']
+            )
+        update_object(response_changes,
+                      Responses,
+                      self.response.id)
+        if self.metadata_new:
+            update_object(self.metadata_new,
+                          type(self.metadata),
+                          self.metadata.id)
 
     def send_email(self):
-        email_content_agency = email_redis.get(get_email_key(str(self.response.id), edited=False)).decode()
-        email_redis.delete(get_email_key(str(self.response.id), edited=False))
-        email_content_requester = email_redis.get(get_email_key(str(self.response.id), edited=True))
-        if email_content_requester:
+        key_agency = get_email_key(self.response.id)
+        email_content_agency = email_redis.get(key_agency).decode()
+        email_redis.delete(key_agency)
+
+        key_requester = get_email_key(self.response.id, requester=True)
+        email_content_requester = email_redis.get(key_requester)
+        if email_content_requester is not None:
             email_content_requester = email_content_requester.decode()
-            email_redis.delete(get_email_key(str(self.response.id), edited=True))
-        else:
-            # TODO: Raise error here
-            email_content_requester = None
-            # pass
+            email_redis.delete(key_requester)
+
         _send_edit_response_email(self.response.request_id,
                                   email_content_agency,
                                   email_content_requester)

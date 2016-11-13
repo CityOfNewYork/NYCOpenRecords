@@ -10,6 +10,8 @@ from tests.lib.constants import (
     PNG_FILE_NAME,
     PNG_FILE_PATH,
 )
+from app import email_redis
+from app.response.utils import get_email_key
 from app.lib.utils import get_file_hash
 from app.models import Events
 from app.constants import (
@@ -34,31 +36,6 @@ class ResponseViewsTests(BaseTestCase):
         if os.path.exists(self.upload_path):
             shutil.rmtree(self.upload_path)
         super(ResponseViewsTests, self).tearDown()
-
-    def test_post_extension(self):
-        with patch(
-            'app.response.views.add_extension'
-        ) as add_extension_patch, patch(
-            'app.response.views.redirect', return_value=jsonify({})
-        ), patch(
-            'app.response.views.url_for'
-        ):
-            self.client.post(
-                '/response/extension/' + 'fake request id',  # self.request.id,
-                data={
-                    'length': 'foo',
-                    'reason': 'bar',
-                    'due-date': 'baz',
-                    'email-extend-content': 'qux'
-                }
-            )
-            add_extension_patch.assert_called_once_with(
-                'fake request id',
-                'foo',
-                'bar',
-                'baz',
-                'qux'
-            )
 
     def test_edit_file(self):
         rf = RequestsFactory(self.request_id)
@@ -95,9 +72,16 @@ class ResponseViewsTests(BaseTestCase):
         filepath = os.path.join(path, new_filename)
         shutil.copyfile(PNG_FILE_PATH, filepath)
 
+        # set email redis object
+        email_body = "<p>Email Body</p>"
+        redis_key = get_email_key(response.id)
+        email_redis.set(redis_key, email_body)
+
         # https://github.com/mattupstate/flask-security/issues/259
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
-        with self.client as client:
+        with self.client as client, patch(
+                'app.response.utils._send_edit_response_email'
+        ) as send_email_patch:
             with client.session_transaction() as session:
                 session['user_id'] = USER_ID_DELIMITER.join((
                     rf.requester.guid, rf.requester.auth_user_type))
@@ -109,9 +93,15 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': new_privacy,
                     'title': new_title,
                     'filename': new_filename,
-                    'email_content': '<p>Email Stuff</p>',
                 }
             )
+            # check email sent
+            send_email_patch.assert_called_once_with(rf.request.id,
+                                                     email_body,
+                                                     None)
+            # check redis object deleted
+            self.assertTrue(email_redis.get(redis_key) is None)
+
         # check flask response
         self.assertEqual(
             json.loads(resp.data.decode()),
@@ -192,7 +182,6 @@ class ResponseViewsTests(BaseTestCase):
                     'privacy': RELEASE_AND_PUBLIC,
                     'title': 'The Cow Goes Quack',
                     'filename': new_filename,
-                    'email_content': '<p>Email Stuff</p>',
                 }
             )
         self.assertEqual(
