@@ -75,7 +75,7 @@ $(function () {
 
     // replaces currently displayed responses with previous 10 responses
     nav_buttons.find('.prev').click(function () {
-        if (index != 0) {
+        if (index !== 0) {
             index -= index_increment;
             showResponses();
         }
@@ -99,11 +99,11 @@ $(function () {
 
         // FIXME: if response_type does not need email workflow, some of these elements won't be found!
 
-        var response_modal = $("#response-modal-" + response_id);
+        var responseModal = $("#response-modal-" + response_id);
 
-        var first = response_modal.find(".first");
-        var second = response_modal.find(".second");
-        var third = response_modal.find(".third");
+        var first = responseModal.find(".first");
+        var second = responseModal.find(".second");
+        var third = responseModal.find(".third");
 
         var next1 = first.find(".response-modal-next");
         var next2 = second.find(".response-modal-next");
@@ -128,7 +128,7 @@ $(function () {
 
                     // Do not proceed if file upload has not been completed
                     if (first.find(".template-download").length === 0 &&
-                        first.find(".template-upload").length != 0) {
+                        first.find(".template-upload").length !== 0) {
                         first.find(".fileupload-error-messages").text(
                             "The file upload has not been completed").show();
                         e.preventDefault();
