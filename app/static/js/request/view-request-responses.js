@@ -195,6 +195,7 @@ $(function () {
                         success: function (data) {
                             // Data should be html template page.
                             third.find(".email-summary").html(data);
+                            // TODO: data should also return email confirmation header
                         },
                         error: function (error) {
                             console.log(error);
