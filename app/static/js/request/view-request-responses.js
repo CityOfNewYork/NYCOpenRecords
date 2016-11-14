@@ -112,6 +112,7 @@ $(function () {
 
         // Initialize tinymce HTML editor
         tinymce.init({
+            menubar: false,
             // sets tinymce to enable only on specific textareas classes
             mode: "specific_textareas",
             // selector for tinymce textarea classes is set to 'tinymce-area'
@@ -247,7 +248,7 @@ $(function () {
                                 template_name: "email_edit_response.html",
                                 type: "edit",
                                 response_id: response_id,
-                                content: first.find('#note-content').val(),
+                                content: first.find('.note-content').val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
                                 confirmation: false
                             },
@@ -273,7 +274,7 @@ $(function () {
                             template_name: "email_edit_response.html",
                             type: "edit",
                             response_id: response_id,
-                            content: first.find("#note-content").val(),
+                            content: first.find(".note-content").val(),
                             privacy: first.find("input[name=privacy]:checked").val(),
                             confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
@@ -303,7 +304,7 @@ $(function () {
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
-                        type: "PUT",
+                        type: "PATCH",
                         data: form.serializeArray(),
                         success: function (response) {
                             location.reload();
@@ -312,15 +313,15 @@ $(function () {
                 });
 
                 // Apply parsley data required validation to note title and url
-                first.find('#note-content').attr("data-parsley-required", "");
+                first.find('.note-content').attr("data-parsley-required", "");
 
                 // Apply parsley max length validation to note title and url
-                first.find('#note-content').attr("data-parsley-maxlength", "500");
+                first.find('.note-content').attr("data-parsley-maxlength", "500");
 
                 // Apply custom validation messages
-                first.find('#note-content').attr("data-parsley-required-message",
+                first.find('.note-content').attr("data-parsley-required-message",
                     "Note content must be provided");
-                first.find('#note-content').attr("data-parsley-maxlength-message",
+                first.find('.note-content').attr("data-parsley-maxlength-message",
                     "Note content must be less than 500 characters");
 
                 break;

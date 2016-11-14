@@ -365,10 +365,7 @@ def send_confirmation_email(request, agency, user):
     subject = 'New Request Created ({})'.format(request.id)
 
     # get the agency's default email and adds it to the bcc list
-    agency_default_email = agency.default_email
-    agency_emails = []  # FIXME: Can this be empty?
-    agency_emails.append(agency_default_email)
-    bcc = agency_emails or ['agency@email.com']
+    bcc = [agency.default_email]
 
     # gets the email and address information from the requester
     requester_email = user.email

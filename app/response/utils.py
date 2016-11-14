@@ -5,15 +5,14 @@
     synopsis: Handles the functions for responses
 
 """
-from datetime import datetime
-
 import os
 import re
 import json
-import magic
+from datetime import datetime
 from abc import ABCMeta, abstractmethod
+
+import magic
 from cached_property import cached_property
-from app import email_redis
 from werkzeug.utils import secure_filename
 from flask_login import current_user
 from flask import (
@@ -22,12 +21,14 @@ from flask import (
     render_template,
     url_for
 )
+from app import email_redis, calendar
 from app.constants import (
     event_type,
     response_type,
     UPDATED_FILE_DIRNAME,
     response_privacy,
 )
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.user_type_request import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
@@ -887,9 +888,20 @@ class ResponseEditor(metaclass=ABCMeta):
 
         data = dict(self.data_new)
         data['date_modified'] = timestamp
+        if self.data_new.get('privacy') is not None:
+            data['release_date'] = self.get_response_release_date()
         update_object(data,
                       type(self.response),
                       self.response.id)
+
+    def get_response_release_date(self):
+        return {
+            response_privacy.RELEASE_AND_PUBLIC: calendar.addbusdays(
+                datetime.now(), RELEASE_PUBLIC_DAYS),
+            response_privacy.RELEASE_AND_PRIVATE: None,
+            response_privacy.PRIVATE: None,
+        }[self.data_new['privacy']]
+
 
     @property
     def deleted(self):

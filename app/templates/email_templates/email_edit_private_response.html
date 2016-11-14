@@ -1,5 +1,5 @@
 <p>Attention {{ agency_name }} Users,<p>
-    A {{ response_type }} in request
+    A {{ response_type | format_response_type }} in request
     <a href="{{ url_for('request.view', request_id=request_id) }}">
         {{ request_id }}
     </a> has been edited.

@@ -362,6 +362,7 @@ class Requests(db.Model):
         viewonly=True,
         uselist=False
     )
+    # TODO: agency_users (see email_utils.py L65)
 
     PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
 

@@ -1,6 +1,5 @@
 import redis
 import holidays
-import jinja_filters
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask
@@ -13,6 +12,7 @@ from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
+from app.lib import jinja_filters
 
 from config import config, Config
 

@@ -66,13 +66,13 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     VIRUS_SCAN_ENABLED = eval(str(os.environ.get('VIRUS_SCAN_ENABLED'))) or False
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or '10.132.41.148'
     MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Development]'
     MAIL_SENDER = 'OpenRecords - Dev Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
-                               'postgresql://localhost:5432/openrecords_v2_0_dev')
+                               'postgresql://vagrant@/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED')))
     MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
@@ -84,7 +84,7 @@ class TestingConfig(Config):
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
-                               'postgresql://localhost:5432/openrecords_v2_0_test')
+                               'postgresql://vagrant@/openrecords_v2_0_test')
 
 
 class ProductionConfig(Config):

@@ -11,6 +11,6 @@
 }
 
 /* sets the style for the note content textarea */
-#note-content {
+#note-content, .note-content {
     height: 10rem;
 }

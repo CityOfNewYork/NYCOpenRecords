@@ -53,7 +53,8 @@ def upload_exists(request_id, filename):
     existing_filenames = [
         file_.name for file_ in
         Files.query.filter_by(
-            request_id=request_id
+            request_id=request_id,
+            deleted=False,
         ).all()
     ]
     return filename in existing_filenames
