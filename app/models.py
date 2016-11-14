@@ -538,7 +538,7 @@ class Responses(db.Model):
         content = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-            }
+        }
         content.update(
             preview=self.preview,
             metadata=self.metadatas.as_dict()
@@ -680,7 +680,7 @@ class Metadatas(db.Model):
         return {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-            }
+        }
 
 
 class Notes(Metadatas):

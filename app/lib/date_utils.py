@@ -43,10 +43,7 @@ def generate_new_due_date(extension_length, request_id):
 
     :return: the new due date of the request
     """
-    current_due_date = Requests.query.filter_by(id=request_id).first().due_date
-    # calc_due_date = current_due_date
-    new_due_date = get_due_date(current_due_date, int(extension_length))
-    return new_due_date
+    return get_due_date(Requests.query.filter_by(id=request_id).one().due_date, int(extension_length))
 
 
 def get_holidays_date_list(year_start, year_end=None):
