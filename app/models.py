@@ -9,7 +9,7 @@ from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
-from app import db, es, calendar
+from app import db, es
 from app.constants import (
     USER_ID_DELIMITER,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
@@ -396,7 +396,7 @@ class Requests(db.Model):
             index=INDEX,
             doc_type='request',
             id=self.id,
-            body = {
+            body={
                 'doc': {
                     'title': self.title,
                     'description': self.description,
@@ -418,7 +418,7 @@ class Requests(db.Model):
             index=INDEX,
             doc_type='request',
             id=self.id,
-            body = {
+            body={
                 'title': self.title,
                 'description': self.description,
                 'agency_description': self.agency_description,
@@ -538,7 +538,7 @@ class Responses(db.Model):
         content = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-        }
+            }
         content.update(
             preview=self.preview,
             metadata=self.metadatas.as_dict()
@@ -648,6 +648,7 @@ class ResponseTokens(db.Model):
     def __init__(self,
                  response_id,
                  expiration_date=None):
+        from app.lib.date_utils import calendar
         self.token = self.generate_token()
         self.response_id = response_id
         self.expiration_date = expiration_date or calendar.addbusdays(
@@ -679,7 +680,7 @@ class Metadatas(db.Model):
         return {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-        }
+            }
 
 
 class Notes(Metadatas):
