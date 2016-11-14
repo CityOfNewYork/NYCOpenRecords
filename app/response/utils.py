@@ -26,6 +26,7 @@ from app.constants import (
     event_type,
     response_type,
     UPDATED_FILE_DIRNAME,
+    DELETED_FILE_DIRNAME,
     response_privacy,
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
@@ -717,6 +718,23 @@ def _send_response_email(request_id, privacy, email_content):
                               **kwargs)
 
 
+def _send_delete_response_email(request_id, response):
+    """
+    Send an email notification to all agency users regarding
+    a deleted response.
+
+    """
+    safely_send_and_add_email(
+        request_id,
+        render_template(
+            'email_templates/email_response_deleted.html',
+            request_id=request_id,
+            response=response,
+            response_type=response_type),
+        'Response Deleted',
+        to=get_agencies_emails(request_id))
+
+
 def safely_send_and_add_email(request_id,
                               email_content,
                               subject,
@@ -913,22 +931,23 @@ class ResponseEditor(metaclass=ABCMeta):
         Email content varies according to which response fields have changed.
         """
         if self.deleted:
-            # TODO: _send_delete_response_email()
-            pass
+            _send_delete_response_email(self.response.request_id, self.response)
         else:
-            key_agency = get_email_key(self.response.id)
-            email_content_agency = email_redis.get(key_agency).decode()
-            email_redis.delete(key_agency)
+            # TODO: remove condition once edit File email handled, test will fail with this
+            if self.response.type != response_type.FILE:
+                key_agency = get_email_key(self.response.id)
+                email_content_agency = email_redis.get(key_agency).decode()
+                email_redis.delete(key_agency)
 
-            key_requester = get_email_key(self.response.id, requester=True)
-            email_content_requester = email_redis.get(key_requester)
-            if email_content_requester is not None:
-                email_content_requester = email_content_requester.decode()
-                email_redis.delete(key_requester)
+                key_requester = get_email_key(self.response.id, requester=True)
+                email_content_requester = email_redis.get(key_requester)
+                if email_content_requester is not None:
+                    email_content_requester = email_content_requester.decode()
+                    email_redis.delete(key_requester)
 
-            _send_edit_response_email(self.response.request_id,
-                                      email_content_agency,
-                                      email_content_requester)
+                _send_edit_response_email(self.response.request_id,
+                                          email_content_agency,
+                                          email_content_requester)
 
 
 class RespFileEditor(ResponseEditor):
@@ -943,33 +962,36 @@ class RespFileEditor(ResponseEditor):
         and 'hash' fields are determined by the new file.
         """
         super(RespFileEditor, self).set_edited_data()
-        new_filename = flask_request.form.get('filename')
-        if new_filename is not None:
-            new_filename = secure_filename(new_filename)
-            filepath = os.path.join(
-                current_app.config['UPLOAD_DIRECTORY'],
-                self.response.request_id,
-                UPDATED_FILE_DIRNAME,
-                new_filename
-            )
-            if os.path.exists(filepath):
-                self.set_data_values('size',
-                                     self.response.size,
-                                     os.path.getsize(filepath))
-                self.set_data_values('name',
-                                     self.response.name,
-                                     new_filename)
-                self.set_data_values('mime_type',
-                                     self.response.mime_type,
-                                     magic.from_file(filepath, mime=True))
-                self.set_data_values('hash',
-                                     self.response.hash,
-                                     get_file_hash(filepath))
-                if self.update:
-                    self.replace_old_file(filepath)
-            else:
-                self.errors.append(
-                    "File '{}' not found.".format(new_filename))
+        if self.deleted and self.update:
+            self.move_deleted_file()
+        else:
+            new_filename = flask_request.form.get('filename')
+            if new_filename is not None:
+                new_filename = secure_filename(new_filename)
+                filepath = os.path.join(
+                    current_app.config['UPLOAD_DIRECTORY'],
+                    self.response.request_id,
+                    UPDATED_FILE_DIRNAME,
+                    new_filename
+                )
+                if os.path.exists(filepath):
+                    self.set_data_values('size',
+                                         self.response.size,
+                                         os.path.getsize(filepath))
+                    self.set_data_values('name',
+                                         self.response.name,
+                                         new_filename)
+                    self.set_data_values('mime_type',
+                                         self.response.mime_type,
+                                         magic.from_file(filepath, mime=True))
+                    self.set_data_values('hash',
+                                         self.response.hash,
+                                         get_file_hash(filepath))
+                    if self.update:
+                        self.replace_old_file(filepath)
+                else:
+                    self.errors.append(
+                        "File '{}' not found.".format(new_filename))
 
     def replace_old_file(self, updated_filepath):
         """
@@ -991,6 +1013,32 @@ class RespFileEditor(ResponseEditor):
             os.path.join(
                 upload_path,
                 os.path.basename(updated_filepath)
+            )
+        )
+
+    def move_deleted_file(self):
+        """
+        Move the file to the 'deleted' directory
+        and rename it to its hash.
+        """
+        upload_path = os.path.join(
+            current_app.config['UPLOAD_DIRECTORY'],
+            self.response.request_id,
+        )
+        dir_deleted = os.path.join(
+            upload_path,
+            DELETED_FILE_DIRNAME
+        )
+        if not os.path.exists(dir_deleted):
+            os.mkdir(dir_deleted)
+        os.rename(
+            os.path.join(
+                upload_path,
+                self.response.name
+            ),
+            os.path.join(
+                dir_deleted,
+                self.response.hash
             )
         )
 

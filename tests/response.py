@@ -27,7 +27,10 @@ from app.models import (
     Events,
     ResponseTokens,
 )
-from app.constants import UPDATED_FILE_DIRNAME
+from app.constants import (
+    UPDATED_FILE_DIRNAME,
+    DELETED_FILE_DIRNAME,
+)
 from app.constants.event_type import FILE_EDITED
 from app.constants.response_privacy import RELEASE_AND_PUBLIC
 
@@ -90,7 +93,7 @@ class ResponseViewsTests(BaseTestCase):
         # https://github.com/mattupstate/flask-security/issues/259
         # http://stackoverflow.com/questions/16238462/flask-unit-test-how-to-test-request-from-logged-in-user/16238537#16238537
         with self.client as client, patch(
-            'app.response.utils._send_edit_response_email'
+            'app.response.utils._send_edit_response_email'  # NOTE: can just set TESTING = True
         ) as send_email_patch:
             with client.session_transaction() as session:
                 session['user_id'] = rf.requester.get_id()
@@ -105,9 +108,8 @@ class ResponseViewsTests(BaseTestCase):
                 }
             )
             # check email sent
-            send_email_patch.assert_called_once_with(rf.request.id,
-                                                     email_body,
-                                                     None)
+            send_email_patch.assert_called_once_with(
+                rf.request.id, email_body, None)
             # check redis object deleted
             self.assertTrue(email_redis.get(redis_key) is None)
 
@@ -170,7 +172,6 @@ class ResponseViewsTests(BaseTestCase):
             os.path.join(self.upload_path, new_filename)
         ))
 
-        # TODO: test proper email sent
 
     def test_edit_file_missing_file(self):
         rf = RequestsFactory(self.request_id)
@@ -219,11 +220,11 @@ class ResponseViewsTests(BaseTestCase):
 
     def test_delete(self):
         rf = RequestsFactory(self.request_id)
-        response = rf.add_note()
+        response = rf.add_file()
 
         with self.client as client, patch(
-            'app.response.utils.ResponseEditor.send_email'
-        ):
+            'app.response.utils._send_delete_response_email'
+        ) as send_email_patch:
             with client.session_transaction() as session:
                 session['user_id'] = rf.requester.get_id()
                 session['_fresh'] = True
@@ -275,8 +276,24 @@ class ResponseViewsTests(BaseTestCase):
                 }
             )
             self.assertTrue(response.deleted)
+            # Check file moved to 'deleted' directory
+            self.assertFalse(os.path.exists(
+                os.path.join(
+                    self.upload_path,
+                    response.name
+                )
+            ))
+            self.assertTrue(os.path.exists(
+                os.path.join(
+                    self.upload_path,
+                    DELETED_FILE_DIRNAME,
+                    response.hash
+                )
+            ))
 
-        # TODO: remove send_email patch, test proper email sent
+            # check email sent
+            send_email_patch.assert_called_once_with(rf.request.id, response)
+
 
 def test_get_content(self):
     rf = RequestsFactory(self.request_id)
