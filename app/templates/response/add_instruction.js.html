@@ -84,15 +84,8 @@ $(document).ready(function () {
     $('#instruction-content').attr('data-parsley-maxlength-message', 'Offline Instructions must be less than 500 characters');
 
     // Set character counter for instruction content
-    $('#instruction-content').keyup(function () {
-        var contentLength = $(this).val().length;
-        var charLength = 500 - contentLength;
-        $('#instruction-content-character-count').text(charLength + " characters remaining");
-        if (charLength == 0) {
-            document.getElementById("instruction-content-character-count").style.color = "red";
-        } else {
-            document.getElementById("instruction-content-character-count").style.color = "black";
-        }
+    $("#instruction-content").keyup(function() {
+        characterCounter("#instruction-content-character-count", 500, $(this).val().length)
     });
 });
 </script>

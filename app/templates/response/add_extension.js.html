@@ -183,15 +183,8 @@
     $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
 
     // Set character counter for extension reason
-    $('#extension-reason').keyup(function () {
-        var contentLength = $(this).val().length;
-        var charLength = 5000 - contentLength;
-        $('#extension-reason-character-count').text(charLength + " characters remaining");
-        if (charLength == 0) {
-            document.getElementById("extension-reason-character-count").style.color = "red";
-        } else {
-            document.getElementById("extension-reason-character-count").style.color = "black";
-        }
+    $("#extension-reason").keyup(function () {
+        characterCounter("#extension-reason-character-count", 5000, $(this).val().length)
     });
 });
 </script>

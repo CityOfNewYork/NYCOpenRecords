@@ -324,6 +324,10 @@ $(function () {
                 first.find('.note-content').attr("data-parsley-maxlength-message",
                     "Note content must be less than 500 characters");
 
+                $(first.find(".note-content")).keyup(function () {
+                    characterCounter(first.find(".note-content-character-count"), 500, $(this).val().length)
+                });
+
                 break;
             default:
                 break;
