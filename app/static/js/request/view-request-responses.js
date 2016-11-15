@@ -159,7 +159,7 @@ $(function () {
                             },
                             success: function (data) {
                                 // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                                tinyMCE.get("email-content-" + response_id).setContent(data.template);
                             }
                         });
                     }
@@ -194,7 +194,7 @@ $(function () {
                         },
                         success: function (data) {
                             // Data should be html template page.
-                            third.find(".email-summary").html(data);
+                            third.find(".email-summary").html(data.template);
                             // TODO: data should also return email confirmation header
                         },
                         error: function (error) {
@@ -287,8 +287,8 @@ $(function () {
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
-                            // Data should be html template page.
-                            third.find(".email-summary").html(data);
+                            third.find(".confirmation-header").text(data.header);
+                            third.find(".email-summary").html(data.template);
                         },
                         error: function (error) {
                             console.log(error);
@@ -391,8 +391,8 @@ $(function () {
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
-                            // Data should be html template page.
-                            third.find(".email-summary").html(data);
+                            third.find(".confirmation-header").text(data.header);
+                            third.find(".email-summary").html(data.template);
                         },
                         error: function (error) {
                             console.log(error);

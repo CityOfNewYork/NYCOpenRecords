@@ -265,6 +265,8 @@ def response_email():
     {
         "json_resp": {
             "error": "No changes detected',
+            "template": HTML rendered response template,
+            "header": "The following will be emailed to all associated participants:"
         }
         "status_code": 200
     }

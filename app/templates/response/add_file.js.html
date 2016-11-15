@@ -58,7 +58,7 @@
                     },
                     success: function (data) {
                         // Data should be html template page.
-                        tinyMCE.get('email-file-content').setContent(data);
+                        tinyMCE.get('email-file-content').setContent(data.template);
                     }
                 });
                 document.getElementById("fileupload-first").style.display = "none";
@@ -97,8 +97,8 @@
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    $("#email-file-summary").html(data);
-                    $("#email-file-summary-hidden").val(data);
+                    $("#email-file-summary").html(data.template);
+                    $("#email-file-summary-hidden").val(data.template);
                 }
             });
             document.getElementById("fileupload-second").style.display = "none";
