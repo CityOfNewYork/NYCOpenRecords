@@ -915,7 +915,7 @@ class ResponseEditor(metaclass=ABCMeta):
     def get_response_release_date(self):
         return {
             response_privacy.RELEASE_AND_PUBLIC: calendar.addbusdays(
-                datetime.now(), RELEASE_PUBLIC_DAYS),
+                datetime.utcnow(), RELEASE_PUBLIC_DAYS),
             response_privacy.RELEASE_AND_PRIVATE: None,
             response_privacy.PRIVATE: None,
         }[self.data_new['privacy']]

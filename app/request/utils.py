@@ -94,7 +94,7 @@ def create_request(title,
     # 3b. Send Email Notification Text for Requester
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
-    date_created = datetime.now()
+    date_created = datetime.utcnow()
     date_submitted = (agency_date_submitted
                       if current_user.is_agency
                       else get_following_date(date_created))
@@ -329,7 +329,7 @@ def generate_request_id(agency_ein):
                       Agencies,
                       agency_ein)
         request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(
-            datetime.now().strftime("%Y"), int(agency_ein), int(next_request_number))
+            datetime.utcnow().strftime("%Y"), int(agency_ein), int(next_request_number))
         return request_id
     return None
 

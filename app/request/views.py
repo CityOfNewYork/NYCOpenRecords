@@ -164,8 +164,8 @@ def view(request_id):
                     for agency_user_request in agency_user_requests]
 
     holidays = sorted(get_holidays_date_list(
-        datetime.now().year,
-        (datetime.now() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
+        datetime.utcnow().year,
+        (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
     return render_template('request/view_request.html',
                            request=current_request,

@@ -1,5 +1,6 @@
+from datetime import date
+
 import redis
-import holidays
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask
@@ -12,7 +13,7 @@ from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
-from app.lib import jinja_filters
+from app.lib import NYCHolidays, jinja_filters
 
 from config import config, Config
 
@@ -30,10 +31,12 @@ email_redis = redis.StrictRedis(db=3)
 
 mail = Mail()
 
+holidays = NYCHolidays(years=[year for year in range(date.today().year, date.today().year + 5)])
+
 calendar = Calendar(
-    workdays=[MO, TU, WE, TH, FR]
+    workdays=[MO, TU, WE, TH, FR],
+    holidays=[str(key) for key in holidays.keys()]
 )
-us_holidays = holidays.UnitedStates(state='NY')
 
 
 def create_app(config_name):

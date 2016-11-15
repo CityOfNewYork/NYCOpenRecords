@@ -414,7 +414,7 @@ class Requests(db.Model):
             index=INDEX,
             doc_type='request',
             id=self.id,
-            body = {
+            body={
                 'doc': {
                     'title': self.title,
                     'description': self.description,
@@ -436,7 +436,7 @@ class Requests(db.Model):
             index=INDEX,
             doc_type='request',
             id=self.id,
-            body = {
+            body={
                 'title': self.title,
                 'description': self.description,
                 'agency_description': self.agency_description,
@@ -545,7 +545,7 @@ class Responses(db.Model):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
-        self.release_date = (calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS)
+        self.release_date = (calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
                              if privacy == response_privacy.RELEASE_AND_PUBLIC
                              else None)
 
@@ -660,7 +660,7 @@ class ResponseTokens(db.Model):
         self.token = self.generate_token()
         self.response_id = response_id
         self.expiration_date = expiration_date or calendar.addbusdays(
-            datetime.now(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
+            datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
 
     @staticmethod
     def generate_token():
