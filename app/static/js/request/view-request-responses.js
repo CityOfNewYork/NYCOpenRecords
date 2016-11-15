@@ -238,9 +238,6 @@ $(function () {
                     first.find(".note-form").parsley().validate();
 
                     if (first.find(".note-form").parsley().isValid()) {
-                        first.hide();
-                        second.show();
-
                         $.ajax({
                             url: "/response/email",
                             type: "POST",
@@ -254,8 +251,17 @@ $(function () {
                                 confirmation: false
                             },
                             success: function (data) {
-                                // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                                if (data.error) {
+                                    first.find(".note-error-messages").text(
+                                        data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".note-error-messages").text(
+                                        data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
                             }
                         });
                     }
@@ -336,9 +342,6 @@ $(function () {
                     first.find(".instruction-form").parsley().validate();
 
                     if (first.find(".instruction-form").parsley().isValid()) {
-                        first.hide();
-                        second.show();
-
                         $.ajax({
                             url: "/response/email",
                             type: "POST",
@@ -352,8 +355,17 @@ $(function () {
                                 confirmation: false
                             },
                             success: function (data) {
-                                // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                                if (data.error) {
+                                    first.find(".instruction-error-messages").text(
+                                        data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".instruction-error-messages").text(
+                                        data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
                             }
                         });
                     }
@@ -420,7 +432,7 @@ $(function () {
                 // Apply custom validation messages
                 first.find('.instruction-content').attr("data-parsley-required-message",
                     "Instruction content must be provided");
-                first.find('.Instruction-content').attr("data-parsley-maxlength-message",
+                first.find('.instruction-content').attr("data-parsley-maxlength-message",
                     "Instruction content must be less than 500 characters");
 
                 $(first.find(".instruction-content")).keyup(function () {

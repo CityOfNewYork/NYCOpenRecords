@@ -19,7 +19,8 @@ from flask import (
     current_app,
     request as flask_request,
     render_template,
-    url_for
+    url_for,
+    jsonify
 )
 from app import email_redis, calendar
 from app.constants import (
@@ -550,16 +551,15 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
     email_summary_requester = None
     agency = False
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
-    editor = None
+    editor_for_type = {
+        response_type.FILE: RespFileEditor,
+        response_type.NOTE: RespNoteEditor,
+        response_type.INSTRUCTIONS: RespInstructionsEditor,
+        # ...
+    }
+    editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
 
     if confirmation:
-        editor_for_type = {
-            response_type.FILE: RespFileEditor,
-            response_type.NOTE: RespNoteEditor,
-            response_type.INSTRUCTIONS: RespInstructionsEditor,
-            # ...
-        }
-        editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
         default_content = False
         content = data['email_content']
         # If privacy is release and requester-viewable data is edited or privacy has changed from private, requester gets email
@@ -577,6 +577,10 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
                                                       response_privacy=response_privacy)
         agency = True
     else:
+        if editor.no_change:
+            return jsonify({"error": "No changes detected."}), 200
+
+        editor = None  # email_summary_edited template expects None
         content = None
         if privacy == PRIVATE:
             email_template = 'email_templates/email_edit_private_response.html'
@@ -601,7 +605,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         email_redis.set(get_email_key(response_id), email_summary_edited)
         if email_summary_requester is not None:
             email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
-    return email_summary_requester or email_summary_edited
+    return jsonify({"template": email_summary_requester or email_summary_edited}), 200
 
 
 def get_email_key(response_id, requester=False):
@@ -824,9 +828,10 @@ class ResponseEditor(metaclass=ABCMeta):
         self.errors = []
 
         self.set_edited_data()
-        if update and self.data_new and not self.errors:
-            self.add_event_and_update()
-            self.send_email()
+        if self.data_new and not self.errors:
+            if update:
+                self.add_event_and_update()
+                self.send_email()
         else:
             self.no_change = True
 
