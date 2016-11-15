@@ -27,7 +27,7 @@ $(document).ready(function () {
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    tinyMCE.get('email-instruction-content').setContent(data);
+                    tinyMCE.get('email-instruction-content').setContent(data.template);
                 }
             });
             document.getElementById("instruction-first").style.display = "none";
@@ -53,8 +53,8 @@ $(document).ready(function () {
             },
             success: function (data) {
                 // Data should be html template page.
-                $("#email-instruction-summary").html(data);
-                $("#email-instruction-summary-hidden").val(data);
+                $("#email-instruction-summary").html(data.template);
+                $("#email-instruction-summary-hidden").val(data.template);
             }
         });
         document.getElementById("instruction-second").style.display = "none";

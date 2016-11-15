@@ -27,7 +27,7 @@ $(document).ready(function () {
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    tinyMCE.get('email-note-content').setContent(data);
+                    tinyMCE.get('email-note-content').setContent(data.template);
                 }
             });
             document.getElementById("note-first").style.display = "none";
@@ -53,8 +53,8 @@ $(document).ready(function () {
             },
             success: function (data) {
                 // Data should be html template page.
-                $("#email-note-summary").html(data);
-                $("#email-note-summary-hidden").val(data);
+                $("#email-note-summary").html(data.template);
+                $("#email-note-summary-hidden").val(data.template);
             }
         });
         document.getElementById("note-second").style.display = "none";

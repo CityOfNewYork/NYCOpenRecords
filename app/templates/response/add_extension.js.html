@@ -39,7 +39,7 @@
                     },
                     success: function (data) {
                         // Data should be html template page.
-                        tinyMCE.get('email-extension-content').setContent(data);
+                        tinyMCE.get('email-extension-content').setContent(data.template);
                     }
                 });
                 document.getElementById("extension-first").style.display = "none";
@@ -72,8 +72,8 @@
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    $("#email-extension-summary").html(data);
-                    $("#email-extension-summary-hidden").val(data);
+                    $("#email-extension-summary").html(data.template);
+                    $("#email-extension-summary-hidden").val(data.template);
                 }
             });
             document.getElementById("extension-second").style.display = "none";
