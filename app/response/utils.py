@@ -20,7 +20,8 @@ from flask import (
     current_app,
     request as flask_request,
     render_template,
-    url_for
+    url_for,
+    jsonify
 )
 from app import email_redis, calendar
 from app.constants import (
@@ -362,14 +363,14 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         content = None
         new_due_date = ''
         reason = ''
-    return render_template(email_template,
-                           default_content=default_content,
-                           content=content,
-                           request_id=request_id,
-                           agency_name=agency_name,
-                           new_due_date=new_due_date,
-                           reason=reason,
-                           page=page)
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                new_due_date=new_due_date,
+                                                reason=reason,
+                                                page=page)}), 200
 
 
 def _file_email_handler(request_id, data, page, agency_name, email_template):
@@ -405,13 +406,13 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         if file_['privacy'] != PRIVATE:
             filename = file_['filename']
             files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
-    return render_template(email_template,
-                           default_content=default_content,
-                           content=content,
-                           request_id=request_id,
-                           page=page,
-                           agency_name=agency_name,
-                           files_links=files_links)
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                page=page,
+                                                agency_name=agency_name,
+                                                files_links=files_links)}), 200
 
 
 def _link_email_handler(request_id, data, page, agency_name, email_template):
@@ -446,15 +447,15 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
             default_content = None
         else:
             default_content = True
-    return render_template(email_template,
-                           default_content=default_content,
-                           content=content,
-                           request_id=request_id,
-                           agency_name=agency_name,
-                           url=url,
-                           page=page,
-                           privacy=privacy,
-                           response_privacy=response_privacy)
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                url=url,
+                                                page=page,
+                                                privacy=privacy,
+                                                response_privacy=response_privacy)}), 200
 
 
 def _note_email_handler(request_id, data, page, agency_name, email_template):
@@ -490,15 +491,15 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
             default_content = None
         else:
             default_content = True
-    return render_template(email_template,
-                           default_content=default_content,
-                           content=content,
-                           request_id=request_id,
-                           agency_name=agency_name,
-                           note_content=note_content,
-                           page=page,
-                           privacy=privacy,
-                           response_privacy=response_privacy)
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                note_content=note_content,
+                                                page=page,
+                                                privacy=privacy,
+                                                response_privacy=response_privacy)}), 200
 
 
 def _instruction_email_handler(request_id, data, page, agency_name, email_template):
@@ -533,15 +534,15 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
             default_content = None
         else:
             default_content = True
-    return render_template(email_template,
-                           default_content=default_content,
-                           content=content,
-                           request_id=request_id,
-                           agency_name=agency_name,
-                           instruction_content=instruction_content,
-                           page=page,
-                           privacy=privacy,
-                           response_privacy=response_privacy)
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                instruction_content=instruction_content,
+                                                page=page,
+                                                privacy=privacy,
+                                                response_privacy=response_privacy)}), 200
 
 
 def _edit_email_handler(request_id, data, page, agency_name, email_template):
@@ -564,20 +565,22 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
     email_summary_requester = None
     agency = False
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
-    editor = None
-
+    editor_for_type = {
+        response_type.FILE: RespFileEditor,
+        response_type.NOTE: RespNoteEditor,
+        response_type.INSTRUCTIONS: RespInstructionsEditor,
+        # ...
+    }
+    editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
+    header = None
     if confirmation:
-        editor_for_type = {
-            response_type.FILE: RespFileEditor,
-            response_type.NOTE: RespNoteEditor,
-            # ...
-        }
-        editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
         default_content = False
         content = data['email_content']
-        # If privacy is release and requester-viewable data is edited or privacy has changed from private, requester gets email
-        if ((privacy != PRIVATE and editor.requester_viewable)
-           or (editor.data_old.get('privacy') == PRIVATE)):
+
+        release_and_viewable = privacy != PRIVATE and editor.requester_viewable
+        was_private = editor.data_old.get('privacy') == PRIVATE
+
+        if release_and_viewable or was_private:
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
                                                       content=content,
@@ -588,8 +591,20 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
                                                       page=page,
                                                       privacy=privacy,
                                                       response_privacy=response_privacy)
+        if release_and_viewable:
+            recipient = "all associated participants"
+        elif was_private:
+            recipient = "the Requester"
+        else:
+            recipient = "all Assigned Users"
+        header = "The following will be emailed to {}:".format(recipient)
+
         agency = True
     else:
+        if editor.no_change:
+            return jsonify({"error": "No changes detected."}), 200
+
+        editor = None  # email_summary_edited template expects None
         content = None
         if privacy == PRIVATE:
             email_template = 'email_templates/email_edit_private_response.html'
@@ -614,7 +629,10 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         email_redis.set(get_email_key(response_id), email_summary_edited)
         if email_summary_requester is not None:
             email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
-    return email_summary_requester or email_summary_edited
+    return jsonify({
+        "template": email_summary_requester or email_summary_edited,
+        "header": header
+    }), 200
 
 
 def get_email_key(response_id, requester=False):
@@ -820,9 +838,10 @@ class ResponseEditor(metaclass=ABCMeta):
         self.errors = []
 
         self.set_edited_data()
-        if update and self.data_new and not self.errors:
-            self.add_event_and_update()
-            self.send_email()
+        if self.data_new and not self.errors:
+            if update:
+                self.add_event_and_update()
+                self.send_email()
         else:
             self.no_change = True
 

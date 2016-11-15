@@ -27,7 +27,7 @@ $(document).ready(function () {
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    tinyMCE.get('email-link-content').setContent(data);
+                    tinyMCE.get('email-link-content').setContent(data.template);
                 }
             });
             document.getElementById("link-first").style.display = "none";
@@ -53,8 +53,8 @@ $(document).ready(function () {
             },
             success: function (data) {
                 // Data should be html template page.
-                $("#email-link-summary").html(data);
-                $("#email-link-summary-hidden").val(data);
+                $("#email-link-summary").html(data.template);
+                $("#email-link-summary-hidden").val(data.template);
             }
         });
         document.getElementById("link-second").style.display = "none";

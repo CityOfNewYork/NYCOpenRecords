@@ -159,7 +159,7 @@ $(function () {
                             },
                             success: function (data) {
                                 // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                                tinyMCE.get("email-content-" + response_id).setContent(data.template);
                             }
                         });
                     }
@@ -194,7 +194,7 @@ $(function () {
                         },
                         success: function (data) {
                             // Data should be html template page.
-                            third.find(".email-summary").html(data);
+                            third.find(".email-summary").html(data.template);
                             // TODO: data should also return email confirmation header
                         },
                         error: function (error) {
@@ -238,9 +238,6 @@ $(function () {
                     first.find(".note-form").parsley().validate();
 
                     if (first.find(".note-form").parsley().isValid()) {
-                        first.hide();
-                        second.show();
-
                         $.ajax({
                             url: "/response/email",
                             type: "POST",
@@ -254,8 +251,17 @@ $(function () {
                                 confirmation: false
                             },
                             success: function (data) {
-                                // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                                if (data.error) {
+                                    first.find(".note-error-messages").text(
+                                        data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".note-error-messages").text(
+                                        data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
                             }
                         });
                     }
@@ -281,8 +287,8 @@ $(function () {
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
-                            // Data should be html template page.
-                            third.find(".email-summary").html(data);
+                            third.find(".confirmation-header").text(data.header);
+                            third.find(".email-summary").html(data.template);
                         },
                         error: function (error) {
                             console.log(error);
@@ -330,6 +336,112 @@ $(function () {
                 });
 
                 break;
+
+            // TODO: call common function, stop copying code
+            case "instructions":
+                next1.click(function () {
+                    first.find(".instruction-form").parsley().validate();
+
+                    if (first.find(".instruction-form").parsley().isValid()) {
+                        $.ajax({
+                            url: "/response/email",
+                            type: "POST",
+                            data: {
+                                request_id: request_id,
+                                template_name: "email_edit_response.html",
+                                type: "edit",
+                                response_id: response_id,
+                                content: first.find('.instruction-content').val(),
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                confirmation: false
+                            },
+                            success: function (data) {
+                                if (data.error) {
+                                    first.find(".instruction-error-messages").text(
+                                        data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".instruction-error-messages").text(
+                                        data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
+                            }
+                        });
+                    }
+                });
+
+                next2.click(function () {
+                    second.hide();
+                    third.show();
+
+                    tinyMCE.triggerSave();
+
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: request_id,
+                            template_name: "email_edit_response.html",
+                            type: "edit",
+                            response_id: response_id,
+                            content: first.find(".instruction-content").val(),
+                            privacy: first.find("input[name=privacy]:checked").val(),
+                            confirmation: true,
+                            email_content: $("#email-content-" + response_id).val()
+                        },
+                        success: function (data) {
+                            third.find(".confirmation-header").text(data.header);
+                            third.find(".email-summary").html(data.template);
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+                });
+
+                prev2.click(function () {
+                    second.hide();
+                    first.show();
+                });
+
+                prev3.click(function () {
+                    third.hide();
+                    second.show();
+                });
+
+                // SUBMIT!
+                third.find(".response-modal-submit").click(function() {
+                    var form = first.find("form");
+                    $.ajax({
+                        url: "/response/" + response_id,
+                        type: "PATCH",
+                        data: form.serializeArray(),
+                        success: function (response) {
+                            location.reload();
+                        }
+                    });
+                });
+
+                // Apply parsley data required validation to note title and url
+                first.find('.instruction-content').attr("data-parsley-required", "");
+
+                // Apply parsley max length validation to note title and url
+                first.find('.instruction-content').attr("data-parsley-maxlength", "500");
+
+                // Apply custom validation messages
+                first.find('.instruction-content').attr("data-parsley-required-message",
+                    "Instruction content must be provided");
+                first.find('.instruction-content').attr("data-parsley-maxlength-message",
+                    "Instruction content must be less than 500 characters");
+
+                $(first.find(".instruction-content")).keyup(function () {
+                    characterCounter(first.find(".instruction-content-character-count"), 500, $(this).val().length)
+                });
+
+                break;
+
             default:
                 break;
         }

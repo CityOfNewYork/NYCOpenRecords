@@ -30,6 +30,7 @@ from app.models import (
     UserRequests,
     Files,
     Notes,
+    Instructions
 )
 from app.response.utils import (
     add_note,
@@ -42,7 +43,8 @@ from app.response.utils import (
     process_privacy_options,
     process_email_template_request,
     RespFileEditor,
-    RespNoteEditor
+    RespNoteEditor,
+    RespInstructionsEditor
 )
 
 
@@ -254,12 +256,21 @@ def response_email():
          "email_content": HTML
     }
 
-    :return: the HTML of the rendered template
+    :return: the json response and HTTP status code
+    Ex1:
+    {
+        "template": HTML rendered response template,
+        "header": "The following will be emailed to all associated participants:"
+    }
+
+    Ex2:
+    {
+        "error": "No changes detected."
+    }
     """
     data = flask_request.form
     request_id = data['request_id']
-    email_template = process_email_template_request(request_id, data)
-    return email_template
+    return process_email_template_request(request_id, data)
 
 
 @response.route('/url_checker', methods=['GET'])
@@ -334,6 +345,7 @@ def patch(response_id):
     editor_for_type = {
         Files: RespFileEditor,
         Notes: RespNoteEditor,
+        Instructions: RespInstructionsEditor,
         # ...
     }
     editor = editor_for_type[type(resp)](current_user, resp, flask_request)
