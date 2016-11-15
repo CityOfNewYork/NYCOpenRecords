@@ -67,7 +67,7 @@ class RequestsFactory(object):
             due_date=get_due_date(date_submitted,
                                   ACKNOWLEDGEMENT_DAYS_DUE),
             submission=submission_methods.DIRECT_INPUT,
-            current_status=request_status.OPEN)
+            status=request_status.OPEN)
         create_object(self.request)
         self.requester = Users(
             guid=generate_user_guid(user_type_auth.PUBLIC_USER_NYC_ID),
@@ -202,7 +202,7 @@ def create_requests_search_set(requester, other_requester):
             due_date=get_due_date(date_submitted,
                                   ACKNOWLEDGEMENT_DAYS_DUE),
             submission=submission_methods.DIRECT_INPUT,
-            current_status=request_status.OPEN,
+            status=request_status.OPEN,
             privacy={
                 'title': bool(title_private),
                 'agency_description': bool(agency_desc_private)

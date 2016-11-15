@@ -17,7 +17,7 @@
                 {% elif response.type == response_type.EXTENSION %}
                     <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
                 {% endif %}
-                <strong class="modal-title">{{ response.type | format_response_type }}</strong>
+                <strong class="modal-title">{{ response | format_response_type }}</strong>
             </div>
             <div class="default">
                 {% if requires_workflow %}

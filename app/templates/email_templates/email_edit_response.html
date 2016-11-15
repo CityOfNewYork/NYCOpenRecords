@@ -3,14 +3,14 @@
     {% if not agency %}
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             <p>
-                A {{ response_type | format_response_type }} in request  <!-- FIXME: An extensiont/offline inst...-->
+                A {{ response | format_response_type }} in request  <!-- FIXME: An extensiont/offline inst...-->
                 <a href="{{ url_for('request.view', request_id=request_id) }}">
                     {{ request_id }}
                 </a> has been edited.
             </p>
         {% else %}
             <p>
-                A {{ response_type | format_response_type }} in request
+                A {{ response | format_response_type }} in request
                 <a href="{{ url_for('request.view', request_id=request_id) }}">
                     {{ request_id }}
                 </a> is available for you to view.

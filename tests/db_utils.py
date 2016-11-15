@@ -44,7 +44,7 @@ class CreateObjectTests(BaseTestCase):
                 date_submitted=datetime.utcnow(),
                 due_date=datetime.utcnow(),
                 submission=IN_PERSON,
-                current_status=OVERDUE
+                status=OVERDUE
             )
         )
         self.assertFalse(es_create_patch.called)

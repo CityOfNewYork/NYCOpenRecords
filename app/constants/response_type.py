@@ -12,12 +12,12 @@ INSTRUCTIONS = "instructions"
 EMAIL = "emails"
 SMS = "sms"
 PUSH = "pushes"
-EXTENSION = "extensions"
+DETERMINATION = "determinations"
 
 EMAIL_WORKFLOW_TYPES = frozenset((
     NOTE,
     FILE,
     LINK,
     INSTRUCTIONS,
-    EXTENSION,
+    DETERMINATION,
 ))

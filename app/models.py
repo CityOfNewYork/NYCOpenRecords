@@ -20,6 +20,7 @@ from app.constants import (
     user_type_request,
     request_status,
     response_type,
+    determination_type,
     response_privacy,
     submission_methods,
 )
@@ -311,9 +312,12 @@ class Requests(db.Model):
     description - a string containing a full description of what is needed from the request
     date_created - the actual creation time of the request
     date_submitted - a date that rolls forward to the next business day based on date_created
-    due_date - the date that is set five days after date_submitted, the agency has to acknowledge the request by the due date
+    due_date - the date that is set five days after date_submitted,
+        this has 2 meanings depending on the current status of a request:
+            OPEN - the agency has to acknowledge the request by this date
+            not OPEN - the request must be completed by this date
     submission - a Enum that selects from a list of submission methods
-    current_status - a Enum that selects from a list of different statuses a request can have
+    status - an Enum that selects from a list of different statuses a request can have
     privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
               (True = Private, False = Public)
     """
@@ -334,7 +338,7 @@ class Requests(db.Model):
                 submission_methods.IN_PERSON,
                 submission_methods.THREE_ONE_ONE,
                 name='submission'))
-    current_status = db.Column(
+    status = db.Column(
         db.Enum(request_status.OPEN,
                 request_status.IN_PROGRESS,
                 request_status.DUE_SOON,  # within the next 5 business days
@@ -350,6 +354,7 @@ class Requests(db.Model):
 
     user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
     agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
+    responses = db.relationship('Responses', backref=db.backref('request', uselist=False), lazy='dynamic')
     requester = db.relationship(
         'Users',
         secondary='user_requests',  # expects table name
@@ -377,7 +382,7 @@ class Requests(db.Model):
             date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
             submission=None,
-            current_status=request_status.OPEN,
+            status=request_status.OPEN,
             agency_description=None
     ):
         self.id = id
@@ -389,7 +394,7 @@ class Requests(db.Model):
         self.date_submitted = date_submitted
         self.due_date = due_date
         self.submission = submission
-        self.current_status = current_status
+        self.status = status
         self.agency_description = agency_description
 
     def get_formatted_due_date(self):
@@ -423,7 +428,7 @@ class Requests(db.Model):
                     'agency_description_private': self.privacy['agency_description'],
                     'date_due': self.due_date,
                     'submission': self.submission,
-                    'status': self.current_status,
+                    'status': self.status,
                     'public_title': 'Private' if self.privacy['title'] else self.title
                 }
             },
@@ -445,7 +450,7 @@ class Requests(db.Model):
                 'date_submitted': self.date_submitted,
                 'date_due': self.due_date,
                 'submission': self.submission,
-                'status': self.current_status,
+                'status': self.status,
                 'requester_id': (self.requester.get_id()
                                  if not self.requester.is_anonymous_requester
                                  else ''),
@@ -530,7 +535,7 @@ class Responses(db.Model):
         response_type.LINK,
         response_type.FILE,
         response_type.INSTRUCTIONS,
-        response_type.EXTENSION,
+        response_type.DETERMINATION,
         response_type.EMAIL,
         name='type'
     ))
@@ -795,29 +800,49 @@ class Instructions(Responses):
         return self.content
 
 
-class Extensions(Responses):
+class Determinations(Responses):
     """
-    Define the Extensions class with the following columns and relationships:
+    Define the Determinations class with the following columns and relationships:
 
-    id - an integer that is the primary key of Extensions
-    reason - a string containing the reason for an extension
-    date - a datetime object containing the extended date of a request
+    id - an integer that is the primary key of Determinations
+    dtype - a string (enum) containing the type of a determination
+    reason - a string containing the reason for a determination
+    date - a datetime object containing an appropriate date for a determination
+
+    ext_type        | date significance                | reason significance
+    ----------------|----------------------------------|------------------------------------------
+    denial          | date request was denied          | why the request was denied
+    acknowledgement | estimated date of completion     | why the date was chosen / additional info
+    extension       | new estimated date of completion | why the request extended
+    closing         | date request was closed          | why the request closed
+
     """
-    __tablename__ = response_type.EXTENSION
-    __mapper_args__ = {'polymorphic_identity': response_type.EXTENSION}
+    __tablename__ = response_type.DETERMINATION
+    __mapper_args__ = {'polymorphic_identity': response_type.DETERMINATION}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    reason = db.Column(db.String)
-    date = db.Column(db.DateTime)
+    dtype = db.Column(db.Enum(
+        determination_type.DENIAL,
+        determination_type.ACKNOWLEDGEMENT,
+        determination_type.EXTENSION,
+        determination_type.CLOSING,
+        name="determination_type"
+    ), nullable=False)
+    reason = db.Column(db.String)  # nullable only for acknowledge
+    date = db.Column(db.DateTime, nullable=False)
 
     def __init__(self,
                  request_id,
-                 privacy,
+                 privacy,  # TODO: always RELEASE_AND_PUBLIC?
+                 dtype,
                  reason,
                  date,
                  date_modified=datetime.utcnow()):
-        super(Extensions, self).__init__(request_id,
-                                         privacy,
-                                         date_modified)
+        super(Determinations, self).__init__(request_id,
+                                             privacy,
+                                             date_modified)
+        self.dtype = dtype
+        if dtype != determination_type.ACKNOWLEDGEMENT:
+            assert reason is not None
         self.reason = reason
         self.date = date
 

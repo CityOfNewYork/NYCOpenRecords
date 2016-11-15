@@ -2,7 +2,7 @@
      data-backdrop="static" data-keyboard="false">
     <div class="col-md-1 response-row-num">{{ row_num }}</div>
     <div class="col-md-2 {% if response.type == response_type.INSTRUCTIONS %}offline-instructions-row{% endif %}">
-        <strong>{{ response.type | format_response_type }}</strong>
+        <strong>{{ response | format_response_type }}</strong>
     </div>
     <div class="col-md-5 metadata-preview">{{ response.preview }}</div>
     <div class="col-md-4">{{ response.date_modified.strftime('%A, %B %d %Y at %I:%M %p') }}</div>
