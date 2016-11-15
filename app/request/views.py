@@ -154,14 +154,6 @@ def view(request_id):
 
     :return: redirect to view request page
     """
-
-    from flask_login import login_user
-    from app.models import Users
-    from app.constants import user_type_auth
-    login_user(Users.query.filter_by(
-        auth_user_type=user_type_auth.AGENCY_USER  # PUBLIC_USER_NYC_ID
-    ).first(), force=True)
-
     current_request = Requests.query.filter_by(id=request_id).first()
     agency_user_requests = UserRequests.query.filter_by(
         request_id=request_id,
