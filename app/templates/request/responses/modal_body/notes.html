@@ -1,7 +1,6 @@
 <form id="note-update-{{ response.id }}" class="note-update note-form"
       action="/response/{{ response.id }}" method="POST">
-    <div class="note-error-messages alert alert-danger" hidden></div>
-    <br>
+    <p class="wrap-text">{{ response.content }}</p><br>
     <div class="note-modal-control">
         <div class="note-divs">
             <textarea class="input-block-level form-group note-content"

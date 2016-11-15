@@ -11,6 +11,6 @@
 }
 
 /* sets the style for the note content textarea */
-#instruction-content {
+#instruction-content, .instruction-content {
     height: 10rem;
 }
