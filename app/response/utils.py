@@ -563,7 +563,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
         # If privacy is release and requester-viewable data is edited or privacy has changed from private, requester gets email
         if ((privacy != PRIVATE and editor.requester_viewable)
-            or (editor.data_old['privacy'] == PRIVATE)):
+           or (editor.data_old.get('privacy') == PRIVATE)):
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
                                                       content=content,
