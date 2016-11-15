@@ -5,16 +5,14 @@
     synopsis: Handles the functions for responses
 
 """
-from datetime import datetime
-
 import os
 import re
 import json
-import magic
+from datetime import datetime
 from abc import ABCMeta, abstractmethod
+
+import magic
 from cached_property import cached_property
-from app import calendar
-from app import email_redis
 from werkzeug.utils import secure_filename
 from flask_login import current_user
 from flask import (
@@ -23,16 +21,18 @@ from flask import (
     render_template,
     url_for
 )
+from app import email_redis, calendar
 from app.constants import (
     event_type,
     response_type,
     UPDATED_FILE_DIRNAME,
+    DELETED_FILE_DIRNAME,
     response_privacy,
 )
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.user_type_request import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
-from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agencies_emails
@@ -42,22 +42,24 @@ from app.lib.utils import (
     eval_request_bool
 )
 from app.models import (
-    Responses,
     Events,
     Notes,
     Files,
     Links,
     Instructions,
     Requests,
+    Responses,
     UserRequests,
     Extensions,
     Emails
 )
 
 
+# TODO: class ResponseProducer()
+
 def add_file(request_id, filename, title, privacy):
     """
-    Create and store the file object for the specified request.
+    Create and store the file response object for the specified request.
     Gets the file mimetype and magic file check from a helper function in lib.file_utils
     File privacy options can be either Release and Public, Release and Private, or Private.
     Provides parameters for the process_response function to create and store responses and events object.
@@ -67,35 +69,23 @@ def add_file(request_id, filename, title, privacy):
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
 
-    :return:
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
     size = os.path.getsize(path)
     mime_type = get_mime_type(request_id, filename)
-    file_ = Files(name=filename, mime_type=mime_type, title=title, size=size)
-    file_metadata = {'name': filename,
-                     'mime_type': mime_type,
-                     'title': title,
-                     'size': size,
-                     'hash': get_file_hash(path)}
-    create_object(obj=file_)
-    _process_response(request_id,
-                      response_type.FILE,
-                      event_type.FILE_ADDED,
-                      file_.id,
-                      file_metadata,
-                      privacy=privacy)
+    hash_ = get_file_hash(path)
 
-
-def delete_file():
-    """
-    Will delete a file in the database for the specified request.
-    :return:
-    """
-    # TODO: Implement deleting a file
-    print("delete_file function")
-
-    return None
+    response = Files(
+        request_id,
+        privacy,
+        title,
+        filename,
+        mime_type,
+        size,
+        hash_,
+    )
+    create_object(response)
+    _process_response(request_id, event_type.FILE_ADDED, response)
 
 
 def add_note(request_id, note_content, email_content, privacy):
@@ -109,29 +99,11 @@ def add_note(request_id, note_content, email_content, privacy):
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the note
 
-    :return:
     """
-    note = Notes(content=note_content)
-    create_object(obj=note)
-    note_metadata = {'content': note_content}
-    _process_response(request_id,
-                      response_type.NOTE,
-                      event_type.NOTE_ADDED,
-                      note.id,
-                      note_metadata,
-                      privacy=privacy)
-    _send_response_email(request_id,
-                         privacy,
-                         email_content)
-
-
-def delete_note():
-    """
-    Will delete a note in the database for the specified request.
-    :return:
-    """
-    # TODO: Implement deleting a note
-    print("delete_note function")
+    response = Notes(request_id, privacy, note_content)
+    create_object(response)
+    _process_response(request_id, event_type.NOTE_ADDED, response)
+    _send_response_email(request_id, privacy, email_content)
 
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
@@ -147,27 +119,17 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param email_content: email body content of the email to be created and stored as a email object
 
-    :return:
     """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date)
     update_object(
         {'due_date': new_due_date},
         Requests,
         request_id)
-    extension = Extensions(reason=reason, date=new_due_date)
-    create_object(obj=extension)
     privacy = RELEASE_AND_PUBLIC
-    extension_metadata = {'reason': reason,
-                          'date': new_due_date.isoformat()}
-    _process_response(request_id,
-                      response_type.EXTENSION,
-                      event_type.REQ_EXTENDED,
-                      extension.id,
-                      extension_metadata,
-                      privacy=privacy)
-    _send_response_email(request_id,
-                         privacy,
-                         email_content)
+    response = Extensions(request_id, privacy, reason, new_due_date)
+    create_object(response)
+    _process_response(request_id, event_type.REQ_EXTENDED, response)
+    _send_response_email(request_id, privacy, email_content)
 
 
 def add_link(request_id, title, url_link, email_content, privacy):
@@ -183,21 +145,11 @@ def add_link(request_id, title, url_link, email_content, privacy):
     :param email_content: string of HTML email content to be created and stored as a email object
     :param privacy: The privacy option of the link
 
-    :return:
     """
-    link = Links(title=title, url=url_link)
-    create_object(obj=link)
-    link_metadata = {'title': title,
-                     'url': url_link}
-    _process_response(request_id,
-                      response_type.LINK,
-                      event_type.LINK_ADDED,
-                      link.id,
-                      link_metadata,
-                      privacy=privacy)
-    _send_response_email(request_id,
-                         privacy,
-                         email_content)
+    response = Links(request_id, privacy, title, url_link)
+    create_object(response)
+    _process_response(request_id, event_type.LINK_ADDED, response)
+    _send_response_email(request_id, privacy, email_content)
 
 
 def add_instruction(request_id, instruction_content, email_content, privacy):
@@ -211,20 +163,60 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the instruction
 
+    """
+    response = Instructions(request_id, privacy, instruction_content)
+    create_object(response)
+    _process_response(request_id, event_type.INSTRUCTIONS_ADDED, response)
+    _send_response_email(request_id, privacy, email_content)
+
+
+def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
+    """
+    Create and store the email object for the specified request.
+    Store the email metadata into the Emails table.
+    Provides parameters for the process_response function to create and store responses and events object.
+
+    :param request_id: takes in FOIL request ID as an argument for the process_response function
+    :param subject: subject of the email to be created and stored as a email object
+    :param email_content: string of HTML email content to be created and stored as a email object
+    :param to: list of person(s) email is being sent to
+    :param cc: list of person(s) email is being cc'ed to
+    :param bcc: list of person(s) email is being bcc'ed
+
+    """
+    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None  # TODO: see why
+    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
+    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
+
+    response = Emails(
+        request_id,
+        PRIVATE,
+        to,
+        cc,
+        bcc,
+        subject,
+        body=email_content
+    )
+    create_object(response)
+    _process_response(request_id, event_type.EMAIL_NOTIFICATION_SENT, response)
+
+
+def add_sms():
+    """
+    Will add an SMS to the database for the specified request.
     :return:
     """
-    instruction = Instructions(content=instruction_content)
-    create_object(obj=instruction)
-    instruction_metadata = {'content': instruction_content}
-    _process_response(request_id,
-                      response_type.INSTRUCTIONS,
-                      event_type.INSTRUCTIONS_ADDED,
-                      instruction.id,
-                      instruction_metadata,
-                      privacy=privacy)
-    _send_response_email(request_id,
-                         privacy,
-                         email_content)
+    # TODO: Implement adding an SMS
+    pass
+
+
+def add_push():
+    """
+    Will add a push to the database for the specified request.
+    :return:
+    """
+    # TODO: Implement adding a push
+    pass
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date):
@@ -245,52 +237,6 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     else:
         new_due_date = generate_new_due_date(extension_length, request_id)
     return new_due_date
-
-
-def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
-    """
-    Create and store the email object for the specified request.
-    Store the email metadata into the Emails table.
-    Provides parameters for the process_response function to create and store responses and events object.
-
-    :param request_id: takes in FOIL request ID as an argument for the process_response function
-    :param subject: subject of the email to be created and stored as a email object
-    :param email_content: string of HTML email content to be created and stored as a email object
-    :param to: list of person(s) email is being sent to
-    :param cc: list of person(s) email is being cc'ed to
-    :param bcc: list of person(s) email is being bcc'ed
-
-    :return:
-    """
-    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
-    cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
-    bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
-    email = Emails(to=to, cc=cc, bcc=bcc, subject=subject, email_content=email_content)
-    create_object(obj=email)
-    email_content = {'email_content': email_content}
-    _process_response(request_id,
-                      response_type.EMAIL,
-                      event_type.EMAIL_NOTIFICATION_SENT,
-                      email.id,
-                      new_value=email_content)
-
-
-def add_sms():
-    """
-    Will add an SMS to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement adding an SMS
-    print("add_sms function")
-
-
-def add_push():
-    """
-    Will add a push to the database for the specified request.
-    :return:
-    """
-    # TODO: Implement adding a push
-    print("add_push function")
 
 
 def process_upload_data(form):
@@ -603,7 +549,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
     privacy = data['privacy']
     email_summary_requester = None
     agency = False
-    resp = Responses.query.filter_by(id=response_id).one()
+    resp = Responses.query.filter_by(id=response_id, deleted=False).one()
     editor = None
 
     if confirmation:
@@ -615,9 +561,9 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
         default_content = False
         content = data['email_content']
-        # If privacy is release and metadata is edited or privacy has changed from private, requester gets email
-        if (privacy != PRIVATE and editor.metadata_changed()) or \
-                (editor.privacy_changed and editor.data_old['privacy'] == PRIVATE):
+        # If privacy is release and requester-viewable data is edited or privacy has changed from private, requester gets email
+        if ((privacy != PRIVATE and editor.requester_viewable)
+           or (editor.data_old.get('privacy') == PRIVATE)):
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
                                                       content=content,
@@ -684,8 +630,6 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     :param privacy: privacy option of the uploaded file
     :param filenames: list of secured filenames
     :param email_content: string of HTML email content that can be used as a message template
-
-    :return:
 
     """
     # TODO: make subject constants
@@ -758,7 +702,6 @@ def _send_response_email(request_id, privacy, email_content):
     :param email_content: content body of the email notification being sent
     :param privacy: privacy option of link
 
-    :return:
     """
     subject = 'Response Added'
     bcc = get_agencies_emails(request_id)
@@ -773,6 +716,23 @@ def _send_response_email(request_id, privacy, email_content):
                               email_content,
                               subject,
                               **kwargs)
+
+
+def _send_delete_response_email(request_id, response):
+    """
+    Send an email notification to all agency users regarding
+    a deleted response.
+
+    """
+    safely_send_and_add_email(
+        request_id,
+        render_template(
+            'email_templates/email_response_deleted.html',
+            request_id=request_id,
+            response=response,
+            response_type=response_type),
+        'Response Deleted',
+        to=get_agencies_emails(request_id))
 
 
 def safely_send_and_add_email(request_id,
@@ -793,7 +753,6 @@ def safely_send_and_add_email(request_id,
     :param to: list of person(s) email is being sent to
     :param bcc: list of person(s) email is being bcc'ed
 
-    :return:
     """
     try:
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
@@ -804,13 +763,8 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def _process_response(request_id,
-                      responses_type,
-                      events_type,
-                      metadata_id,
-                      new_value,
-                      previous_value=None,
-                      privacy=PRIVATE):
+# TODO: FIX DOCSTRINGS after testing
+def _process_response(request_id, events_type, response):
     """
     Create and store response object with given arguments from separate response type functions to the database.
     Calculates response release_date (20 business days from today) if privacy option is release and public.
@@ -825,22 +779,7 @@ def _process_response(request_id,
     :param new_value: string content of the new response, to be stored in the responses table
     :param previous_value: string content of the previous response, to be stored in the responses table
 
-    :return:
     """
-    # calculate response release_date (20 business days from today) if privacy is release and public
-    release_date = (calendar.addbusdays(datetime.now(), RELEASE_PUBLIC_DAYS)
-                    if privacy == RELEASE_AND_PUBLIC else None)
-
-    # create response object
-    response = Responses(request_id,
-                         responses_type,
-                         metadata_id,
-                         privacy,
-                         datetime.utcnow(),
-                         release_date)
-    # store response object
-    create_object(obj=response)
-
     if current_user.is_anonymous:
         user_guid = UserRequests.query.with_entities(
             UserRequests.user_guid
@@ -853,32 +792,29 @@ def _process_response(request_id,
         user_guid = current_user.guid
         auth_user_type = current_user.auth_user_type
 
-    new_value['privacy'] = privacy
     event = Events(request_id=request_id,
                    user_id=user_guid,
                    auth_user_type=auth_user_type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
-                   previous_value=previous_value,
-                   new_value=new_value)
+                   new_value=response.val_for_events)
     # store event object
-    create_object(obj=event)
+    create_object(event)
 
 
 class ResponseEditor(metaclass=ABCMeta):
     """
-    Abstract base class for editing a response and its metadata.
+    Abstract base class for editing a response.
 
-    All derived classes must implement the 'metadata_fields' method and
-    should override the `edit_metadata` method with any additional logic.
+    All derived classes must implement the 'editable_fields' method and
+    should override the `set_edited_data` method with any additional logic.
     """
 
     def __init__(self, user, response, flask_request, update=True):
         self.user = user
         self.response = response
         self.flask_request = flask_request
-        self.metadata = response.metadatas
 
         self.update = update
         self.no_change = False
@@ -886,14 +822,8 @@ class ResponseEditor(metaclass=ABCMeta):
         self.data_new = {}
         self.errors = []
 
-        self.privacy_changed = False
-        privacy = flask_request.form.get('privacy')
-        if privacy is not None and privacy != self.response.privacy:
-            self.set_data_values('privacy', self.response.privacy, privacy)
-            self.privacy_changed = True
-
-        self.edit_metadata()
-        if self.data_changed() and not self.errors and update:
+        self.set_edited_data()
+        if update and self.data_new and not self.errors:
             self.add_event_and_update()
             self.send_email()
         else:
@@ -910,65 +840,59 @@ class ResponseEditor(metaclass=ABCMeta):
             Files: event_type.FILE_EDITED,
             Notes: event_type.NOTE_EDITED,
             Links: event_type.LINK_EDITED,
-            Instructions: event_type.INSTRUCTIONS_ADDED,
-        }[type(self.metadata)]
-
-    @cached_property
-    def metadata_new(self):
-        return self.get_metadata_dict(self.data_new)
-
-    @cached_property
-    def metadata_old(self):
-        return self.get_metadata_dict(self.data_old)
-
-    @staticmethod
-    def get_metadata_dict(data_dict):
-        if 'privacy' in data_dict:
-            data = dict(data_dict)
-            data.pop('privacy')
-            return data
-        return data_dict
+            Instructions: event_type.INSTRUCTIONS_EDITED,
+        }[type(self.response)]
 
     @property
     @abstractmethod
-    def metadata_fields(self):
+    def editable_fields(self):
         """ List of fields that can be edited directly. """
         return list()
 
-    def edit_metadata(self):
+    @cached_property
+    def requester_viewable_keys(self):
+        """ List of keys for edited data that can be viewed by a requester. """
+        viewable = dict(self.data_old)
+        viewable.pop('privacy', None)
+        return [k for k in viewable]
+
+    @cached_property
+    def requester_viewable(self):
+        """ Can a requester view the changes made to the response? """
+        return bool(self.requester_viewable_keys)
+
+    def set_edited_data(self):
         """
-        For the editable fields, populates the
-        old and new data containers.
+        For the editable fields, populates the old and new data containers
+        if the field values differ from their database counterparts.
         """
-        for field in self.metadata_fields:
+        for field in self.editable_fields + ['privacy', 'deleted']:
             value_new = self.flask_request.form.get(field)
-            value_orig = getattr(self.metadata, field)
             if value_new is not None:
-                self.set_data_values(field, value_orig, value_new)
+                value_orig = str(getattr(self.response, field))
+                if value_new != value_orig:
+                    self.set_data_values(field, value_orig, value_new)
+        if self.data_new.get('deleted') is not None:
+            self.validate_deleted()
 
-    def data_changed(self):
+    def validate_deleted(self):
         """
-        Checks for a difference between new data values and their
-        corresponding database fields.
-
-        :returns: is the data different from what is stored in the db?
+        Removes the 'deleted' key-value pair from the data containers
+        if the confirmation string (see response PATCH) is not valid.
         """
-        if self.privacy_changed:
-            return True
-        return self.metadata_changed()
-
-    def metadata_changed(self):
-        for key, value in self.metadata_new.items():
-            if value != getattr(self.metadata, key):
-                return True
-        return False
+        confirmation = flask_request.form.get("confirmation")
+        valid_confirmation = ':'.join((self.response.request_id,
+                                       str(self.response.id)))
+        if confirmation is None or confirmation != valid_confirmation:
+            self.data_old.pop('deleted')
+            self.data_new.pop('deleted')
 
     def add_event_and_update(self):
         """
-        Creates an 'edited' event and updates the
-        response and metadata records.
+        Creates an 'edited' Event and updates the response record.
         """
         timestamp = datetime.utcnow()
+
         event = Events(
             type=self.event_type,
             request_id=self.response.request_id,
@@ -979,76 +903,95 @@ class ResponseEditor(metaclass=ABCMeta):
             previous_value=self.data_old,
             new_value=self.data_new)
         create_object(event)
-        response_changes = {
-            'date_modified': timestamp
-        }
-        if self.privacy_changed:
-            response_changes.update(
-                privacy=self.data_new['privacy']
-            )
-        update_object(response_changes,
-                      Responses,
+
+        data = dict(self.data_new)
+        data['date_modified'] = timestamp
+        if self.data_new.get('privacy') is not None:
+            data['release_date'] = self.get_response_release_date()
+        update_object(data,
+                      type(self.response),
                       self.response.id)
-        if self.metadata_new:
-            update_object(self.metadata_new,
-                          type(self.metadata),
-                          self.metadata.id)
+
+    def get_response_release_date(self):
+        return {
+            response_privacy.RELEASE_AND_PUBLIC: calendar.addbusdays(
+                datetime.utcnow(), RELEASE_PUBLIC_DAYS),
+            response_privacy.RELEASE_AND_PRIVATE: None,
+            response_privacy.PRIVATE: None,
+        }[self.data_new['privacy']]
+
+
+    @property
+    def deleted(self):
+        return self.data_new.get('deleted', False)
 
     def send_email(self):
-        key_agency = get_email_key(self.response.id)
-        email_content_agency = email_redis.get(key_agency).decode()
-        email_redis.delete(key_agency)
+        """
+        Send an email to all relevant request participants.
+        Email content varies according to which response fields have changed.
+        """
+        if self.deleted:
+            _send_delete_response_email(self.response.request_id, self.response)
+        else:
+            # TODO: remove condition once edit File email handled, test will fail with this
+            if self.response.type != response_type.FILE:
+                key_agency = get_email_key(self.response.id)
+                email_content_agency = email_redis.get(key_agency).decode()
+                email_redis.delete(key_agency)
 
-        key_requester = get_email_key(self.response.id, requester=True)
-        email_content_requester = email_redis.get(key_requester)
-        if email_content_requester is not None:
-            email_content_requester = email_content_requester.decode()
-            email_redis.delete(key_requester)
+                key_requester = get_email_key(self.response.id, requester=True)
+                email_content_requester = email_redis.get(key_requester)
+                if email_content_requester is not None:
+                    email_content_requester = email_content_requester.decode()
+                    email_redis.delete(key_requester)
 
-        _send_edit_response_email(self.response.request_id,
-                                  email_content_agency,
-                                  email_content_requester)
+                _send_edit_response_email(self.response.request_id,
+                                          email_content_agency,
+                                          email_content_requester)
 
 
 class RespFileEditor(ResponseEditor):
     @property
-    def metadata_fields(self):
+    def editable_fields(self):
         return ['title']
 
-    def edit_metadata(self):
+    def set_edited_data(self):
         """
-        If the file itself is being edited, gathers
-        its metadata. The values of the 'size', 'name', and
-        'mimetype' fields are determined by the new file.
+        If the file itself is being edited, gather
+        its metadata. The values of the 'size', 'name', 'mime_type',
+        and 'hash' fields are determined by the new file.
         """
-        super(RespFileEditor, self).edit_metadata()
-        new_filename = flask_request.form.get('filename')
-        if new_filename is not None:
-            new_filename = secure_filename(new_filename)
-            filepath = os.path.join(
-                current_app.config['UPLOAD_DIRECTORY'],
-                self.response.request_id,
-                UPDATED_FILE_DIRNAME,
-                new_filename
-            )
-            if os.path.exists(filepath):
-                self.set_data_values('size',
-                                     self.metadata.size,
-                                     os.path.getsize(filepath))
-                self.set_data_values('name',
-                                     self.metadata.name,
-                                     new_filename)
-                self.set_data_values('mime_type',
-                                     self.metadata.mime_type,
-                                     magic.from_file(filepath, mime=True))
-                self.set_data_values('hash',
-                                     self.metadata.hash,
-                                     get_file_hash(filepath))
-                if self.update:
-                    self.replace_old_file(filepath)
-            else:
-                self.errors.append(
-                    "File '{}' not found.".format(new_filename))
+        super(RespFileEditor, self).set_edited_data()
+        if self.deleted and self.update:
+            self.move_deleted_file()
+        else:
+            new_filename = flask_request.form.get('filename')
+            if new_filename is not None:
+                new_filename = secure_filename(new_filename)
+                filepath = os.path.join(
+                    current_app.config['UPLOAD_DIRECTORY'],
+                    self.response.request_id,
+                    UPDATED_FILE_DIRNAME,
+                    new_filename
+                )
+                if os.path.exists(filepath):
+                    self.set_data_values('size',
+                                         self.response.size,
+                                         os.path.getsize(filepath))
+                    self.set_data_values('name',
+                                         self.response.name,
+                                         new_filename)
+                    self.set_data_values('mime_type',
+                                         self.response.mime_type,
+                                         magic.from_file(filepath, mime=True))
+                    self.set_data_values('hash',
+                                         self.response.hash,
+                                         get_file_hash(filepath))
+                    if self.update:
+                        self.replace_old_file(filepath)
+                else:
+                    self.errors.append(
+                        "File '{}' not found.".format(new_filename))
 
     def replace_old_file(self, updated_filepath):
         """
@@ -1062,7 +1005,7 @@ class RespFileEditor(ResponseEditor):
         os.remove(
             os.path.join(
                 upload_path,
-                self.metadata.name
+                self.response.name
             )
         )
         os.rename(
@@ -1073,26 +1016,52 @@ class RespFileEditor(ResponseEditor):
             )
         )
 
+    def move_deleted_file(self):
+        """
+        Move the file to the 'deleted' directory
+        and rename it to its hash.
+        """
+        upload_path = os.path.join(
+            current_app.config['UPLOAD_DIRECTORY'],
+            self.response.request_id,
+        )
+        dir_deleted = os.path.join(
+            upload_path,
+            DELETED_FILE_DIRNAME
+        )
+        if not os.path.exists(dir_deleted):
+            os.mkdir(dir_deleted)
+        os.rename(
+            os.path.join(
+                upload_path,
+                self.response.name
+            ),
+            os.path.join(
+                dir_deleted,
+                self.response.hash
+            )
+        )
+
 
 class RespNoteEditor(ResponseEditor):
     @property
-    def metadata_fields(self):
+    def editable_fields(self):
         return ['content']
 
 
 class RespLinkEditor(ResponseEditor):
     @property
-    def metadata_fields(self):
+    def editable_fields(self):
         return ['title', 'url']
 
 
 class RespInstructionsEditor(ResponseEditor):
     @property
-    def metadata_fields(self):
+    def editable_fields(self):
         return ['content']
 
 
 class RespExtensionEditor(ResponseEditor):
     @property
-    def metadata_fields(self):
+    def editable_fields(self):
         return ['reason']

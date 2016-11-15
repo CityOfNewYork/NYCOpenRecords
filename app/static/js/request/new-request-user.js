@@ -59,6 +59,7 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $('#request-form').submit(function() {
-        $('#submit').prop('disabled', true);  // TODO: display a spinner
+        $('#submit').hide();
+        $('#processing-submission').show()
     });
 });

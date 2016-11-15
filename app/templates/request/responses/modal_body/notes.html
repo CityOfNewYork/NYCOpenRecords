@@ -4,11 +4,9 @@
     <br>
     <div class="note-modal-control">
         <div class="note-divs">
-            <textarea class="input-block-level form-group" id="note-content"
-                      title="content" name="content" maxlength="500">
-                {{ response.metadatas.content }}
-            </textarea>
-            <h5 id="note-content-character-count" class="required">
+            <textarea class="input-block-level form-group note-content"
+                      title="content" name="content" maxlength="500">{{ response.content }}</textarea>
+            <h5 class="required note-content-character-count">
                 500 characters remaining
             </h5>
         </div>

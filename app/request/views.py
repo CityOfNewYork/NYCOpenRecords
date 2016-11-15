@@ -48,7 +48,6 @@ from app.request.utils import (
 from app.constants import (
     user_type_request,
     request_status,
-    response_type
 )
 
 
@@ -128,7 +127,7 @@ def new():
                                         upload_path=upload_path)
 
         current_request = Requests.query.filter_by(id=request_id).first()
-        requester = current_request.user_requests.filter_by(request_user_type=user_type_request.REQUESTER).first().user
+        requester = current_request.requester
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
         if requester.email:
@@ -165,8 +164,8 @@ def view(request_id):
                     for agency_user_request in agency_user_requests]
 
     holidays = sorted(get_holidays_date_list(
-        datetime.now().year,
-        (datetime.now() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
+        datetime.utcnow().year,
+        (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
     return render_template('request/view_request.html',
                            request=current_request,

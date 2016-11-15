@@ -25,8 +25,6 @@ from app.constants import (
 )
 from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
-from app.constants.response_type import FILE
-from app.constants.request_status import OPEN
 from app.constants.submission_methods import DIRECT_INPUT
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
@@ -96,7 +94,7 @@ def create_request(title,
     # 3b. Send Email Notification Text for Requester
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
-    date_created = datetime.now()
+    date_created = datetime.utcnow()
     date_submitted = (agency_date_submitted
                       if current_user.is_agency
                       else get_following_date(date_created))
@@ -114,7 +112,6 @@ def create_request(title,
         date_submitted=date_submitted,
         due_date=due_date,
         submission=submission,
-        current_status=OPEN
     )
     create_object(request)
 
@@ -140,25 +137,32 @@ def create_request(title,
 
     if upload_path is not None:
         # 7. Move file to upload directory
-        metadata_id, metadata = _move_validated_upload(request_id, upload_path)
+        upload_path = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        response = Responses(request_id,
-                             FILE,
-                             metadata_id,
-                             RELEASE_AND_PRIVATE,
-                             datetime.utcnow())
+        title = ''  # TODO: add title field to new-request page?
+        name = os.path.basename(upload_path)
+        mime_type = get_mime_type(request_id, upload_path)
+        size = os.path.getsize(upload_path)
+        hash_ = get_file_hash(upload_path)
+
+        response = Files(request_id,
+                         RELEASE_AND_PRIVATE,
+                         title,
+                         name,
+                         mime_type,
+                         size,
+                         hash_)
         create_object(obj=response)
 
         # 8. Create upload Event
-        metadata['privacy'] = RELEASE_AND_PRIVATE
         upload_event = Events(user_id=user.guid,
                               auth_user_type=user.auth_user_type,
                               response_id=response.id,
                               request_id=request_id,
                               type=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
-                              new_value=metadata)
+                              new_value=response.val_for_events)
         create_object(upload_event)
 
     role_to_user = {
@@ -171,18 +175,12 @@ def create_request(title,
 
     # 9. Create Event
     timestamp = datetime.utcnow()
-    request_metadata = {
-        'title': request.title,
-        'description': request.description,
-        'current_status': request.current_status,
-        'due_date': request.due_date.isoformat()
-    }
     event = Events(user_id=user.guid,
                    auth_user_type=user.auth_user_type,
                    request_id=request_id,
                    type=event_type.REQ_CREATED,
                    timestamp=timestamp,
-                   new_value=request_metadata)
+                   new_value=request.val_for_events)
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_id=current_user.guid,
@@ -315,21 +313,7 @@ def _move_validated_upload(request_id, tmp_path):
     upload_redis.set(
         get_upload_key(request_id, valid_name),
         upload_status.READY)
-
-    # Store File Object
-    size = os.path.getsize(valid_path)
-    mime_type = get_mime_type(request_id, valid_name)
-    file_obj = Files(name=valid_name, mime_type=mime_type, title='', size=size)
-    create_object(obj=file_obj)
-
-    file_metadata = {
-        'name': valid_name,
-        'mime_type': mime_type,
-        'title': '',
-        'size': size,
-        'hash': get_file_hash(valid_path)
-    }
-    return file_obj.id, file_metadata
+    return valid_path
 
 
 def generate_request_id(agency_ein):
@@ -345,7 +329,7 @@ def generate_request_id(agency_ein):
                       Agencies,
                       agency_ein)
         request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(
-            datetime.now().strftime("%Y"), int(agency_ein), int(next_request_number))
+            datetime.utcnow().strftime("%Y"), int(agency_ein), int(next_request_number))
         return request_id
     return None
 
@@ -369,14 +353,6 @@ def generate_guid():
     return str(uuid.uuid4())
 
 
-def generate_request_metadata(request):
-    """
-
-    :return:
-    """
-    pass
-
-
 def send_confirmation_email(request, agency, user):
     """
     Sends out a confirmation email to requester and bcc the agency default email associated with the request.
@@ -389,10 +365,7 @@ def send_confirmation_email(request, agency, user):
     subject = 'New Request Created ({})'.format(request.id)
 
     # get the agency's default email and adds it to the bcc list
-    agency_default_email = agency.default_email
-    agency_emails = []  # FIXME: Can this be empty?
-    agency_emails.append(agency_default_email)
-    bcc = agency_emails or ['agency@email.com']
+    bcc = [agency.default_email]
 
     # gets the email and address information from the requester
     requester_email = user.email

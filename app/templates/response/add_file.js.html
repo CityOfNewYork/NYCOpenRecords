@@ -54,7 +54,7 @@
                     data: {
                         request_id: "{{ request.id }}",
                         template_name: "email_response_file.html",
-                        type: "file"
+                        type: "files"
                     },
                     success: function (data) {
                         // Data should be html template page.
@@ -91,7 +91,7 @@
                 data: {
                     request_id: "{{ request.id }}",
                     template_name: "email_response_file.html",
-                    type: "file",
+                    type: "files",
                     files: JSON.stringify(files),
                     email_content: $('#email-file-content').val()
                 },
@@ -126,6 +126,7 @@
 
         // Initialize tinymce HTML editor
         tinymce.init({
+            menubar: false,
             // sets tinymce to enable only on specific textareas classes
             mode: "specific_textareas",
             // selector for tinymce textarea classes is set to 'tinymce-area'

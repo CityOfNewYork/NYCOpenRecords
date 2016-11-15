@@ -18,8 +18,8 @@ from flask import (
 )
 from flask_login import current_user
 
-from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
+from app.constants.response_type import FILE
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object
 from app.response import response
@@ -28,6 +28,8 @@ from app.models import (
     Responses,
     ResponseTokens,
     UserRequests,
+    Files,
+    Notes,
 )
 from app.response.utils import (
     add_note,
@@ -283,54 +285,58 @@ def check_url():
 
 # TODO: Implement response route for sms
 @response.route('/sms/<request_id>', methods=['GET', 'POST'])
-def response_sms():
+def response_sms(request_id):
     pass
 
 
 # TODO: Implement response route for push
 @response.route('/push/<request_id>', methods=['GET', 'POST'])
-def response_push():
+def response_push(request_id):
     pass
 
 
 # TODO: Implement response route for visiblity
 @response.route('/visiblity/<request_id>', methods=['GET', 'POST'])
-def response_visiblity():
+def response_visiblity(request_id):
     pass
 
 
-@response.route('/<response_id>', methods=['PUT'])
-def edit_response(response_id):
+@response.route('/<response_id>', methods=['PATCH'])
+def patch(response_id):
     """
-    Edit a response's privacy and its metadata and send a notification email.
+    Edit a response's fields and send a notification email.
 
-    Expects a request body containing field names and updated values,
-    as well as the body of the notification email.
+    Expects a request body containing field names and updated values.
     Ex:
     {
         'privacy': 'release_public',
         'title': 'new title'
         'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
-        'email_content': HTML
     }
-    Response body consists of both the old and updated data, or an error message.
+    Ex (for delete):
+    {
+        'deleted': true,
+        'confirmation': string checked against '<request_id>:<response_id>'
+            if the strings do not match, the 'deleted' field will not be updated
+    }
+
+    :return: on success:
+    {
+        'old': { original attributes and their values }
+        'new': { updated attributes and their values }
+    }
+
     """
-    # TODO: remove
-    from app.models import Users
-    from flask_login import login_user
-    login_user(Users.query.first(), force=True)
-
     if current_user.is_anonymous:
-        return jsonify({}), 403
-    # TODO: user permissions check
+        return '', 403
 
-    resp = Responses.query.filter_by(id=response_id).one()
+    resp = Responses.query.filter_by(id=response_id, deleted=False).one()
     editor_for_type = {
-        response_type.FILE: RespFileEditor,
-        response_type.NOTE: RespNoteEditor,
+        Files: RespFileEditor,
+        Notes: RespNoteEditor,
         # ...
     }
-    editor = editor_for_type[resp.type](current_user, resp, flask_request)
+    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
     if editor.errors:
         http_response = {"errors": editor.errors}
     else:
@@ -351,7 +357,7 @@ def get_yearly_holidays(year):
     """
     Retrieve a list of dates that are holidays in the specified year
 
-    :param date: 4-digit year.
+    :param year: 4-digit year.
 
     :return: List of strings ["YYYY-MM-DD"]
     """
@@ -370,15 +376,15 @@ def get_response_content(response_id):
              redirect to login if user not authenticated and no token provided or
              400 error if response/file not found
     """
-    response = Responses.query.filter_by(id=response_id).first()
-    if response is not None and response.type == response_type.FILE:
+    response = Responses.query.filter_by(id=response_id, deleted=False).one()
+    if response is not None and response.type == FILE:
         upload_path = os.path.join(
             current_app.config["UPLOAD_DIRECTORY"],
             response.request_id
         )
         filepath_parts = (
             upload_path,
-            response.metadatas.name
+            response.name
         )
         filepath = os.path.join(*filepath_parts)
         token = flask_request.args.get('token')
