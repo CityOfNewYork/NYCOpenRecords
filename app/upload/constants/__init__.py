@@ -36,8 +36,10 @@ ALLOWED_MIMETYPES = [
     'image/tif',
     'audio/x-wav',
     'audio/wav',
+    'audio/mp3',
     'video/x-ms-asf',
     'video/x-ms-wma',
+    'video/x-ms-wmv',
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 ]
