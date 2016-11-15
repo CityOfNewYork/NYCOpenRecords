@@ -349,15 +349,14 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         content = None
         new_due_date = ''
         reason = ''
-    email_add_extension = render_template(email_template,
-                                          default_content=default_content,
-                                          content=content,
-                                          request_id=request_id,
-                                          agency_name=agency_name,
-                                          new_due_date=new_due_date,
-                                          reason=reason,
-                                          page=page)
-    return jsonify({"template": email_add_extension}), 200
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                new_due_date=new_due_date,
+                                                reason=reason,
+                                                page=page)}), 200
 
 
 def _file_email_handler(request_id, data, page, agency_name, email_template):
@@ -393,14 +392,13 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         if file_['privacy'] != PRIVATE:
             filename = file_['filename']
             files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
-    email_add_file = render_template(email_template,
-                                     default_content=default_content,
-                                     content=content,
-                                     request_id=request_id,
-                                     page=page,
-                                     agency_name=agency_name,
-                                     files_links=files_links)
-    return jsonify({"template": email_add_file}), 200
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                page=page,
+                                                agency_name=agency_name,
+                                                files_links=files_links)}), 200
 
 
 def _link_email_handler(request_id, data, page, agency_name, email_template):
@@ -435,16 +433,15 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
             default_content = None
         else:
             default_content = True
-    email_add_link = render_template(email_template,
-                                     default_content=default_content,
-                                     content=content,
-                                     request_id=request_id,
-                                     agency_name=agency_name,
-                                     url=url,
-                                     page=page,
-                                     privacy=privacy,
-                                     response_privacy=response_privacy)
-    return jsonify({"template": email_add_link}), 200
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                url=url,
+                                                page=page,
+                                                privacy=privacy,
+                                                response_privacy=response_privacy)}), 200
 
 
 def _note_email_handler(request_id, data, page, agency_name, email_template):
@@ -480,16 +477,15 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
             default_content = None
         else:
             default_content = True
-    email_add_note = render_template(email_template,
-                                     default_content=default_content,
-                                     content=content,
-                                     request_id=request_id,
-                                     agency_name=agency_name,
-                                     note_content=note_content,
-                                     page=page,
-                                     privacy=privacy,
-                                     response_privacy=response_privacy)
-    return jsonify({"template": email_add_note}), 200
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                note_content=note_content,
+                                                page=page,
+                                                privacy=privacy,
+                                                response_privacy=response_privacy)}), 200
 
 
 def _instruction_email_handler(request_id, data, page, agency_name, email_template):
@@ -524,16 +520,15 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
             default_content = None
         else:
             default_content = True
-    email_add_instruction = render_template(email_template,
-                                            default_content=default_content,
-                                            content=content,
-                                            request_id=request_id,
-                                            agency_name=agency_name,
-                                            instruction_content=instruction_content,
-                                            page=page,
-                                            privacy=privacy,
-                                            response_privacy=response_privacy)
-    return jsonify({"template": email_add_instruction}), 200
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                instruction_content=instruction_content,
+                                                page=page,
+                                                privacy=privacy,
+                                                response_privacy=response_privacy)}), 200
 
 
 def _edit_email_handler(request_id, data, page, agency_name, email_template):

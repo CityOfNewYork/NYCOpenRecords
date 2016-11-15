@@ -337,6 +337,7 @@ $(function () {
 
                 break;
 
+            // TODO: call common function, stop copying code
             case "instructions":
                 next1.click(function () {
                     first.find(".instruction-form").parsley().validate();

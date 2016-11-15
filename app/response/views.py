@@ -256,25 +256,21 @@ def response_email():
          "email_content": HTML
     }
 
-    :return: the json_resp and HTTP status code
-    Response Parameters:
-    - json_resp: json response data from process_email_template_request
-    - status_code: HTTP status code
-
-    Ex:
+    :return: the json response and HTTP status code
+    Ex1:
     {
-        "json_resp": {
-            "error": "No changes detected',
-            "template": HTML rendered response template,
-            "header": "The following will be emailed to all associated participants:"
-        }
-        "status_code": 200
+        "template": HTML rendered response template,
+        "header": "The following will be emailed to all associated participants:"
+    }
+
+    Ex2:
+    {
+        "error": "No changes detected."
     }
     """
     data = flask_request.form
     request_id = data['request_id']
-    json_resp, status_code = process_email_template_request(request_id, data)
-    return json_resp, status_code
+    return process_email_template_request(request_id, data)
 
 
 @response.route('/url_checker', methods=['GET'])
