@@ -556,6 +556,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         editor_for_type = {
             response_type.FILE: RespFileEditor,
             response_type.NOTE: RespNoteEditor,
+            response_type.INSTRUCTIONS: RespInstructionsEditor,
             # ...
         }
         editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)

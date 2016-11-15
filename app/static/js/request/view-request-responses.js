@@ -330,6 +330,105 @@ $(function () {
                 });
 
                 break;
+
+            case "instructions":
+                next1.click(function () {
+                    first.find(".instruction-form").parsley().validate();
+
+                    if (first.find(".instruction-form").parsley().isValid()) {
+                        first.hide();
+                        second.show();
+
+                        $.ajax({
+                            url: "/response/email",
+                            type: "POST",
+                            data: {
+                                request_id: request_id,
+                                template_name: "email_edit_response.html",
+                                type: "edit",
+                                response_id: response_id,
+                                content: first.find('.instruction-content').val(),
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                confirmation: false
+                            },
+                            success: function (data) {
+                                // Data should be html template page.
+                                tinyMCE.get("email-content-" + response_id).setContent(data);
+                            }
+                        });
+                    }
+                });
+
+                next2.click(function () {
+                    second.hide();
+                    third.show();
+
+                    tinyMCE.triggerSave();
+
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: request_id,
+                            template_name: "email_edit_response.html",
+                            type: "edit",
+                            response_id: response_id,
+                            content: first.find(".instruction-content").val(),
+                            privacy: first.find("input[name=privacy]:checked").val(),
+                            confirmation: true,
+                            email_content: $("#email-content-" + response_id).val()
+                        },
+                        success: function (data) {
+                            // Data should be html template page.
+                            third.find(".email-summary").html(data);
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+                });
+
+                prev2.click(function () {
+                    second.hide();
+                    first.show();
+                });
+
+                prev3.click(function () {
+                    third.hide();
+                    second.show();
+                });
+
+                // SUBMIT!
+                third.find(".response-modal-submit").click(function() {
+                    var form = first.find("form");
+                    $.ajax({
+                        url: "/response/" + response_id,
+                        type: "PATCH",
+                        data: form.serializeArray(),
+                        success: function (response) {
+                            location.reload();
+                        }
+                    });
+                });
+
+                // Apply parsley data required validation to note title and url
+                first.find('.instruction-content').attr("data-parsley-required", "");
+
+                // Apply parsley max length validation to note title and url
+                first.find('.instruction-content').attr("data-parsley-maxlength", "500");
+
+                // Apply custom validation messages
+                first.find('.instruction-content').attr("data-parsley-required-message",
+                    "Instruction content must be provided");
+                first.find('.Instruction-content').attr("data-parsley-maxlength-message",
+                    "Instruction content must be less than 500 characters");
+
+                $(first.find(".instruction-content")).keyup(function () {
+                    characterCounter(first.find(".instruction-content-character-count"), 500, $(this).val().length)
+                });
+
+                break;
+
             default:
                 break;
         }
