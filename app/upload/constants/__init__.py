@@ -12,9 +12,11 @@ ALLOWED_MIMETYPES = [
     'image/x-ms-bmp',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
     'video/x-flv',
     'image/gif',
     'image/jpeg',
+    'image/bmp',
     'video/quicktime',
     'audio/mpeg',
     'video/mp4',
@@ -33,7 +35,11 @@ ALLOWED_MIMETYPES = [
     'image/tiff',
     'image/tif',
     'audio/x-wav',
+    'audio/wav',
+    'audio/mp3',
     'video/x-ms-asf',
+    'video/x-ms-wma',
+    'video/x-ms-wmv',
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 ]
