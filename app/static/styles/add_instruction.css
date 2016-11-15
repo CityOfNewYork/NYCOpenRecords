@@ -10,7 +10,7 @@
     line-height: 20px;
 }
 
-/* sets the style for the note content textarea */
+/* sets the style for the instruction content textarea */
 #instruction-content, .instruction-content {
     height: 10rem;
 }
