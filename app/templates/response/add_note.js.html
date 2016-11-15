@@ -21,8 +21,8 @@ $(document).ready(function () {
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_link.html",
-                    type: "note",
+                    template_name: "email_response_note.html",
+                    type: "notes",
                     privacy: $(".note-privacy:checked").val()
                 },
                 success: function (data) {
@@ -44,7 +44,7 @@ $(document).ready(function () {
             data: {
                 request_id: "{{ request.id }}",
                 template_name: "email_response_note.html",
-                type: "note",
+                type: "notes",
                 note: JSON.stringify({
                     content: $('#note-content').val(),
                     privacy: $(".note-privacy:checked").val()
@@ -84,15 +84,8 @@ $(document).ready(function () {
     $('#note-content').attr('data-parsley-maxlength-message', 'Note content must be less than 500 characters');
 
     // Set character counter for note content
-    $('#note-content').keyup(function () {
-        var contentLength = $(this).val().length;
-        var charLength = 500 - contentLength;
-        $('#note-content-character-count').text(charLength + " characters remaining");
-        if (charLength == 0) {
-            document.getElementById("note-content-character-count").style.color = "red";
-        } else {
-            document.getElementById("note-content-character-count").style.color = "black";
-        }
+    $("#note-content").keyup(function() {
+        characterCounter("#note-content-character-count", 500, $(this).val().length)
     });
 });
 </script>

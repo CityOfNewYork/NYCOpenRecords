@@ -3,7 +3,8 @@
 
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
-
+import os
+from datetime import datetime
 from urllib.request import urlopen
 
 from flask import (
@@ -12,14 +13,24 @@ from flask import (
     url_for,
     redirect,
     jsonify,
+    current_app,
+    send_from_directory,
 )
 from flask_login import current_user
 
-from app.constants import response_type
 from app.constants.response_privacy import PRIVATE
+from app.constants.response_type import FILE
 from app.lib.date_utils import get_holidays_date_list
-from app.models import Requests, Responses
+from app.lib.db_utils import delete_object
 from app.response import response
+from app.models import (
+    Requests,
+    Responses,
+    ResponseTokens,
+    UserRequests,
+    Files,
+    Notes,
+)
 from app.response.utils import (
     add_note,
     add_file,
@@ -30,7 +41,8 @@ from app.response.utils import (
     send_file_email,
     process_privacy_options,
     process_email_template_request,
-    RespFileEditor
+    RespFileEditor,
+    RespNoteEditor
 )
 
 
@@ -273,69 +285,70 @@ def check_url():
 
 # TODO: Implement response route for sms
 @response.route('/sms/<request_id>', methods=['GET', 'POST'])
-def response_sms():
+def response_sms(request_id):
     pass
 
 
 # TODO: Implement response route for push
 @response.route('/push/<request_id>', methods=['GET', 'POST'])
-def response_push():
+def response_push(request_id):
     pass
 
 
 # TODO: Implement response route for visiblity
 @response.route('/visiblity/<request_id>', methods=['GET', 'POST'])
-def response_visiblity():
+def response_visiblity(request_id):
     pass
 
 
-@response.route('/<response_id>', methods=['PUT'])
-def edit_response(response_id):
+@response.route('/<response_id>', methods=['PATCH'])
+def patch(response_id):
     """
-    Edit a response's privacy and its metadata and send a notification email.
+    Edit a response's fields and send a notification email.
 
-    Expects a request body containing field names and updated values,
-    as well as the body of the notification email.
+    Expects a request body containing field names and updated values.
     Ex:
     {
         'privacy': 'release_public',
         'title': 'new title'
         'filename': 'uploaded_file_name.ext'  # REQUIRED for updates to Files metadata
-        'email_content': HTML
     }
-    Response body consists of both the old and updated data, or an error message.
+    Ex (for delete):
+    {
+        'deleted': true,
+        'confirmation': string checked against '<request_id>:<response_id>'
+            if the strings do not match, the 'deleted' field will not be updated
+    }
+
+    :return: on success:
+    {
+        'old': { original attributes and their values }
+        'new': { updated attributes and their values }
+    }
+
     """
-    # TODO: remove
-    from app.models import Users
-    from flask_login import login_user
-    login_user(Users.query.first(), force=True)
-
     if current_user.is_anonymous:
-        return jsonify({}), 403
-    # TODO: user permissions check
+        return '', 403
 
-    if flask_request.form.get("email_content") is None:
-        http_response = {"errors": "Missing 'email_content'"}
+    resp = Responses.query.filter_by(id=response_id, deleted=False).one()
+    editor_for_type = {
+        Files: RespFileEditor,
+        Notes: RespNoteEditor,
+        # ...
+    }
+    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
+    if editor.errors:
+        http_response = {"errors": editor.errors}
     else:
-        resp = Responses.query.filter_by(id=response_id).first()
-        editor_for_type = {
-            response_type.FILE: RespFileEditor,
-            # response_type.NOTE: RespNoteEditor,
-            # ...
-        }
-        editor = editor_for_type[resp.type](current_user, resp, flask_request)
-        if editor.errors:
-            http_response = {"errors": editor.errors}
+        if editor.no_change:  # TODO: unittest
+            http_response = {
+                "message": "No changes detected."
+            }
         else:
-            if editor.no_change:  # TODO: unittest
-                http_response = {
-                    "message": "No changes detected."
-                }
-            else:
-                http_response = {
-                    "old": editor.data_old,
-                    "new": editor.data_new
-                }
+            http_response = {
+                "old": editor.data_old,
+                "new": editor.data_new
+            }
     return jsonify(http_response), 200
 
 
@@ -344,8 +357,58 @@ def get_yearly_holidays(year):
     """
     Retrieve a list of dates that are holidays in the specified year
 
-    :param date: 4-digit year.
+    :param year: 4-digit year.
 
     :return: List of strings ["YYYY-MM-DD"]
     """
     return jsonify(holidays=sorted(get_holidays_date_list(year)))
+
+
+@response.route('/<response_id>', methods=["GET"])
+def get_response_content(response_id):
+    """
+    Currently only supports File Responses.
+
+    Request Parameters:
+    - token: (optional) ephemeral access token
+
+    :return: response file contents or
+             redirect to login if user not authenticated and no token provided or
+             400 error if response/file not found
+    """
+    response = Responses.query.filter_by(id=response_id, deleted=False).one()
+    if response is not None and response.type == FILE:
+        upload_path = os.path.join(
+            current_app.config["UPLOAD_DIRECTORY"],
+            response.request_id
+        )
+        filepath_parts = (
+            upload_path,
+            response.name
+        )
+        filepath = os.path.join(*filepath_parts)
+        token = flask_request.args.get('token')
+        if token is not None:
+            resptok = ResponseTokens.query.filter_by(
+                token=token, response_id=response_id).first()
+            if resptok is not None:
+                if (datetime.utcnow() < resptok.expiration_date
+                   and os.path.exists(filepath)):
+                    return send_from_directory(*filepath_parts, as_attachment=True)
+                else:
+                    delete_object(resptok)
+        else:
+            if current_user.is_authenticated:
+                if ((current_user.is_public or current_user.is_agency)
+                   and UserRequests.query.filter_by(
+                        request_id=response.request_id,
+                        user_guid=current_user.guid,
+                        auth_user_type=current_user.auth_user_type).first() is not None
+                   and os.path.exists(filepath)):
+                    return send_from_directory(*filepath_parts, as_attachment=True)
+            else:
+                return redirect(url_for(
+                    'auth.index',
+                    sso2=True,
+                    return_to=flask_request.base_url))
+    return '', 400  # TODO: error pages

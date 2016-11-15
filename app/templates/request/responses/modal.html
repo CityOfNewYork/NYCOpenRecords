@@ -6,96 +6,103 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"
                 aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <!-- Select proper glyphicon based on response type -->
                 {% if response.type == response_type.FILE %}
-                    <span class="glyphicon glyphicon-folder_open" aria-hidden="true"></span>
-                    <strong class="modal-title" style="padding-right: 5px;">{{ response.type | upper }}</strong>
+                    <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                 {% elif response.type == response_type.LINK %}
                     <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
                 {% elif response.type == response_type.INSTRUCTIONS %}
-                    <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
-                    <!-- to get rid of the underscore -->
-                    <strong class="modal-title">OFFLINE INSTRUCTION</strong>
+                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
                 {% elif response.type == response_type.NOTE %}
                     <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
                 {% elif response.type == response_type.EXTENSION %}
                     <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
-                {% else %}
-                    <strong class="modal-title">{{ response.type | upper }}</strong>
                 {% endif %}
+                <strong class="modal-title">{{ response.type | format_response_type }}</strong>
             </div>
-            {% if requires_workflow %}
-                <div class="first">
+            <div class="default">
+                {% if requires_workflow %}
+                    <div class="first">
+                        <div class="modal-body">
+                            {{ modal_body | safe }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-danger pull-left delete-select">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                Delete
+                            </button>
+                            <button type="button" class="btn btn-primary response-modal-next">
+                                Next
+                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class ="second" hidden>
+                        <div class="modal-body">
+                            <textarea class="tinymce-area" name="email-content-{{ response.id }}" title="email-content"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-default response-modal-prev">
+                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                                Prev
+                            </button>
+                            <button type="button" class="btn btn-primary response-modal-next">
+                                Next
+                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="third" hidden>
+                        <div class="modal-body">
+                            <h4>The following will be emailed to all relevant participants:</h4>
+                            <!-- TODO: change (to the requester, to all agency users...) -->
+                            <div class="email-summary"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-default response-modal-prev">
+                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                                Prev
+                            </button>
+                            <button type="button" class="btn btn-primary response-modal-submit">
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                {% else %}
                     <div class="modal-body">
-                        {% if response.type == 'file' %}
-                            <button type="button" class="btn btn-primary pull-right tmp-save-changes"
-                            data-toggle="tooltip" title="Sends a request to the Edit Response endpoint
-                            using a dummy email body and without refreshing the page for faster testing.">
-                                Save Changes (Remove Me)</button>
-                            <script type="text/javascript">
-                                $(function(){
-                                    $(".tmp-save-changes").tooltip();
-                                });
-                            </script>
-                        {% endif %}
                         {{ modal_body | safe }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-danger pull-left disabled">
+                        <button type="button" class="btn btn-danger pull-left delete-select">
                             <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                             Delete
                         </button>
-                        <button type="button" class="btn btn-primary response-modal-next">
-                            Next
-                            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                        </button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     </div>
-                </div>
-                <div class ="second" hidden>
-                    <div class="modal-body">
-                        <textarea class="tinymce-area" name="email-content-{{ response.id }}" title="email-content"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-default response-modal-prev">
-                            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                            Prev
-                        </button>
-                        <button type="button" class="btn btn-primary response-modal-next">
-                            Next
-                            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                        </button>
-                    </div>
-                </div>
-                <div class="third" hidden>
-                    <div class="modal-body">
-                        <h4>The following will be emailed to all relevant participants:</h4>
-                        <div class="email-summary"></div>
-                        <div class="email-summary" hidden></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-default response-modal-prev">
-                            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                            Prev
-                        </button>
-                        <button type="button" class="btn btn-primary response-modal-submit">
-                            Submit
-                        </button>
-                    </div>
-                </div>
-            {% else %}
-                <div class="modal-header">
-                    {{ modal_body | safe }}
+                {% endif %}
+            </div>
+            <div class="delete" hidden>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this response?</p>
+                    <p>If yes, please enter the following and then press DELETE.</p>
+                    <br>
+                    <p class="text-center">
+                        {{ response.request_id }}:{{ response.id }}
+                    </p>
+                    <input type="text" class="text-center" name="delete-confirm-string" title="delete-confirm">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default pull-left delete-cancel">Cancel</button>
+                    <button type="button" class="btn btn-danger delete-confirm" disabled>DELETE</button>
                 </div>
-            {% endif %}
+            </div>
+            <div class="close" hidden>
+                <div class="modal-body">
+                    <!-- TODO: Confirm loss of changes and reset modal (wait until all responses ready). -->
+                </div>
+            </div>
         </div>
     </div>
 </div>

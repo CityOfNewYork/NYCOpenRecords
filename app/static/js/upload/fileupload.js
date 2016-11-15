@@ -48,13 +48,23 @@ function bindFileUpload(target,
             deleteUpload(request_id, encodeName(data.files[0].name), false, true);
         }
     }).bind("fileuploaddone", function (e, data) {
-        // start polling status endpoint after scanner startup
-        var filename = data.result.files[0].name;
-        var idVal = encodeName(filename);
-        data.result.files[0].identifier = idVal;
-        setTimeout(
-            pollUploadStatus.bind(null, filename, idVal, request_id, for_update, nextButton),
-            4000);  // McAfee Scanner minimum 3+ second startup
+        // blueimp says that this will only be called on a successful upload
+        // so I'm not sure why I have to check for errors here!
+        var file = data.result.files[0];
+        if (file.errors === undefined) {
+            // start polling status endpoint after scanner startup
+            var idVal = encodeName(file.name);
+            data.result.files[0].identifier = idVal;
+            setTimeout(
+                pollUploadStatus.bind(null, file.name, idVal, request_id, for_update, nextButton),
+                4000);  // McAfee Scanner minimum 3+ second startup
+        }
+        else {
+            // Re-enable 'next' button
+            if (for_update) {
+                $(nextButton).attr('enabled', true);
+            }
+        }
     }).bind("fileuploadadd", function (e, data) {
         if (for_update) {
             // Replace added file OR Delete uploaded file

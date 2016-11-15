@@ -3,15 +3,17 @@ Models for OpenRecords database
 """
 import csv
 from datetime import datetime
+from uuid import uuid4
 
 from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
-from flask_login import current_user
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
-from app import db, es
+from app import db, es, calendar
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     USER_ID_DELIMITER,
+    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
     role_name,
     user_type_auth,
@@ -339,7 +341,9 @@ class Requests(db.Model):
                 request_status.OVERDUE,
                 request_status.CLOSED,
                 request_status.RE_OPENED,
-                name='status'))
+                name='status'),
+        nullable=False
+    )
     privacy = db.Column(JSON)
     agency_description = db.Column(db.String(5000))
     agency_description_release_date = db.Column(db.DateTime)
@@ -358,6 +362,7 @@ class Requests(db.Model):
         viewonly=True,
         uselist=False
     )
+    # TODO: agency_users (see email_utils.py L65)
 
     PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
 
@@ -369,10 +374,10 @@ class Requests(db.Model):
             agency_ein,
             date_created,
             privacy=None,
-            date_submitted=None,
+            date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
             submission=None,
-            current_status=None,
+            current_status=request_status.OPEN,
             agency_description=None
     ):
         self.id = id
@@ -390,12 +395,26 @@ class Requests(db.Model):
     def get_formatted_due_date(self):
         return self.due_date.strftime('%m/%d/%Y')
 
+    @property
+    def val_for_events(self):
+        """
+        JSON to store in Events 'new_value' field.
+
+        Values that will not change or that will always
+        be the same on Request creation are not included.
+        """
+        return {
+            'title': self.title,
+            'description': self.description,
+            'due_date': self.due_date.isoformat(),
+        }
+
     def es_update(self):
         es.update(
             index=INDEX,
             doc_type='request',
             id=self.id,
-            body = {
+            body={
                 'doc': {
                     'title': self.title,
                     'description': self.description,
@@ -417,7 +436,7 @@ class Requests(db.Model):
             index=INDEX,
             doc_type='request',
             id=self.id,
-            body = {
+            body={
                 'title': self.title,
                 'description': self.description,
                 'agency_description': self.agency_description,
@@ -498,17 +517,6 @@ class Responses(db.Model):
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    type = db.Column(db.Enum(
-        response_type.NOTE,
-        response_type.FILE,
-        response_type.LINK,
-        response_type.INSTRUCTIONS,
-        response_type.EXTENSION,
-        response_type.EMAIL,
-        response_type.PUSH,
-        response_type.SMS,
-        name='type'))
-    metadata_id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), nullable=False)
     privacy = db.Column(db.Enum(
         response_privacy.PRIVATE,
         response_privacy.RELEASE_AND_PRIVATE,
@@ -516,46 +524,48 @@ class Responses(db.Model):
         name="privacy"))
     date_modified = db.Column(db.DateTime)
     release_date = db.Column(db.DateTime)
-    metadatas = db.relationship(  # 'metadata' is reserved
-        'Metadatas', backref=db.backref('response', uselist=False))
+    deleted = db.Column(db.Boolean, default=False, nullable=False)
+    type = db.Column(db.Enum(
+        response_type.NOTE,
+        response_type.LINK,
+        response_type.FILE,
+        response_type.INSTRUCTIONS,
+        response_type.EXTENSION,
+        response_type.EMAIL,
+        name='type'
+    ))
+    __mapper_args__ = {'polymorphic_on': type}
+
+    # TODO: overwrite filter to automatically check if deleted=False
 
     def __init__(self,
                  request_id,
-                 request_type,
-                 metadata_id,
                  privacy,
-                 date_modified=datetime.utcnow(),
-                 release_date=None):
+                 date_modified=None):
         self.request_id = request_id
-        self.type = request_type
-        self.metadata_id = metadata_id
         self.privacy = privacy
-        self.date_modified = date_modified
-        self.release_date = release_date
+        self.date_modified = date_modified or datetime.utcnow()
+        self.release_date = (calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+                             if privacy == response_privacy.RELEASE_AND_PUBLIC
+                             else None)
 
-    def as_dict(self):
-        content = {
+    # NOTE: If you can find a way to make this class work with abc,
+    # you're welcome to make the necessary changes to the following method:
+    @property
+    def preview(self):
+        """ Designated preview attribute value. """
+        raise NotImplementedError
+
+    @property
+    def val_for_events(self):
+        """ JSON to store in Events 'new_value' field. """
+        val = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
         }
-        content.update(
-            preview=self.preview,
-            metadata=self.metadatas.as_dict()
-        )
-        return content
-
-    @property
-    def preview(self):
-        metadata_preview_attr = {
-            Notes: 'content',
-            Files: 'title',
-            Links: 'content',
-            Instructions: 'content',
-            Extensions: 'reason',
-            Emails: 'subject'
-        }
-        return getattr(self.metadatas,
-                       metadata_preview_attr[type(self.metadatas)])
+        val.pop('id')
+        val['privacy'] = self.privacy
+        return val
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -627,44 +637,64 @@ class UserRequests(db.Model):
         return bool(self.permissions & permission)
 
 
-class Metadatas(db.Model):
+class ResponseTokens(db.Model):
     """
-    Parent class of response metadata classes (defined below this class).
+    Define the ResponseTokens class with the following columns and relationships:
+
+    id - an integer that is the primary key of ResponseTokens
+    token - a string consisting of a randomly-generated, unique token
+    response_id - a foreign key that links to a response's primary key
+    expiration_date - a datetime object containing the date at which this token becomes invalid
     """
-    __tablename__ = 'metadatas'
+    __tablename__ = 'response_tokens'
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.Enum(
-        'notes',
-        'links',
-        'files',
-        'instructions',
-        'extensions',
-        'emails',
-        name='metadata_type'
-    ))
-    __mapper_args__ = {'polymorphic_on': type}
+    token = db.Column(db.String, nullable=False)
+    response_id = db.Column(db.Integer, db.ForeignKey("responses.id"), nullable=False)
+    expiration_date = db.Column(db.DateTime)
 
-    def as_dict(self):
-        return {
-            c.name: getattr(self, c.name)
-            for c in self.__table__.columns
-        }
+    response = db.relationship("Responses", backref=db.backref("token", uselist=False))
+
+    def __init__(self,
+                 response_id,
+                 expiration_date=None):
+        self.token = self.generate_token()
+        self.response_id = response_id
+        self.expiration_date = expiration_date or calendar.addbusdays(
+            datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
+
+    @staticmethod
+    def generate_token():
+        return uuid4().hex
 
 
-class Notes(Metadatas):
+class Notes(Responses):
     """
     Define the Notes class with the following columns and relationships:
 
     id - an integer that is the primary key of Notes
     content - a string that contains the content of a note
     """
-    __tablename__ = 'notes'
-    __mapper_args__ = {'polymorphic_identity': 'notes'}
-    id = db.Column(db.Integer, db.ForeignKey(Metadatas.id), primary_key=True)
+    __tablename__ = response_type.NOTE
+    __mapper_args__ = {'polymorphic_identity': response_type.NOTE}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String(5000))
 
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 content,
+                 date_modified=datetime.utcnow()):
+        super(Notes, self).__init__(request_id,
+                                    privacy,
+                                    date_modified)
+        self.content = content
 
-class Files(Metadatas):
+    @property
+    def preview(self):
+        return self.content
+
+
+class Files(Responses):
     """
     Define the Files class with the following columns and relationships:
 
@@ -673,18 +703,41 @@ class Files(Metadatas):
     mime_type - a string containing the mime_type of a file
     title - a string containing the title of a file (user defined)
     size - a string containing the size of a file
+    hash - a string containing the sha1 hash of a file
     """
-    __tablename__ = 'files'
-    __mapper_args__ = {'polymorphic_identity': 'files'}
-    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
-    name = db.Column(db.String)  # secured filename
-    mime_type = db.Column(db.String)
+    __tablename__ = response_type.FILE
+    __mapper_args__ = {'polymorphic_identity': response_type.FILE}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String)
+    name = db.Column(db.String)
+    mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
-    hash = db.Column(db.String)  # sha1
+    hash = db.Column(db.String)
+
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 title,
+                 name,
+                 mime_type,
+                 size,
+                 hash_,
+                 date_modified=datetime.utcnow()):
+        super(Files, self).__init__(request_id,
+                                    privacy,
+                                    date_modified)
+        self.name = name
+        self.mime_type = mime_type
+        self.title = title
+        self.size = size
+        self.hash = hash_
+
+    @property
+    def preview(self):
+        return self.title
 
 
-class Links(Metadatas):
+class Links(Responses):
     """
     Define the Links class with the following columns and relationships:
 
@@ -692,27 +745,57 @@ class Links(Metadatas):
     title - a string containing the title of a link
     url - a string containing the url link
     """
-    __tablename__ = 'links'
-    __mapper_args__ = {'polymorphic_identity': 'links'}
-    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
+    __tablename__ = response_type.LINK
+    __mapper_args__ = {'polymorphic_identity': response_type.LINK}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String)
     url = db.Column(db.String)
 
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 title,
+                 url,
+                 date_modified=datetime.utcnow()):
+        super(Links, self).__init__(request_id,
+                                    privacy,
+                                    date_modified)
+        self.title = title
+        self.url = url
 
-class Instructions(Metadatas):
+    @property
+    def preview(self):
+        return self.title
+
+
+class Instructions(Responses):
     """
     Define the Instructions class with the following columns and relationships:
 
     id - an integer that is the primary key of Instructions
     content - a string containing the content of an instruction
     """
-    __tablename__ = 'instructions'
-    __mapper_args__ = {'polymorphic_identity': 'instructions'}
-    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
+    __tablename__ = response_type.INSTRUCTIONS
+    __mapper_args__ = {'polymorphic_identity': response_type.INSTRUCTIONS}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
 
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 content,
+                 date_modified=datetime.utcnow()):
+        super(Instructions, self).__init__(request_id,
+                                           privacy,
+                                           date_modified)
+        self.content = content
 
-class Extensions(Metadatas):
+    @property
+    def preview(self):
+        return self.content
+
+
+class Extensions(Responses):
     """
     Define the Extensions class with the following columns and relationships:
 
@@ -720,14 +803,30 @@ class Extensions(Metadatas):
     reason - a string containing the reason for an extension
     date - a datetime object containing the extended date of a request
     """
-    __tablename__ = 'extensions'
-    __mapper_args__ = {'polymorphic_identity': 'extensions'}
-    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
+    __tablename__ = response_type.EXTENSION
+    __mapper_args__ = {'polymorphic_identity': response_type.EXTENSION}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     reason = db.Column(db.String)
     date = db.Column(db.DateTime)
 
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 reason,
+                 date,
+                 date_modified=datetime.utcnow()):
+        super(Extensions, self).__init__(request_id,
+                                         privacy,
+                                         date_modified)
+        self.reason = reason
+        self.date = date
 
-class Emails(Metadatas):
+    @property
+    def preview(self):
+        return self.reason
+
+
+class Emails(Responses):
     """
     Define the Emails class with the following columns and relationships:
 
@@ -737,14 +836,41 @@ class Emails(Metadatas):
     bcc -  a string containing who is bcc'd in an email
     subject - a string containing the subject of an email
     email_content - a string containing the content of an email
-    linked_files - an array of strings containing the links to the files
     """
-    __tablename__ = 'emails'
-    __mapper_args__ = {'polymorphic_identity': 'emails'}
-    id = db.Column(db.Integer, db.ForeignKey('metadatas.id'), primary_key=True)
+    __tablename__ = response_type.EMAIL
+    __mapper_args__ = {'polymorphic_identity': response_type.EMAIL}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     to = db.Column(db.String)
     cc = db.Column(db.String)
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
-    email_content = db.Column(db.String)
-    linked_files = db.Column(ARRAY(db.String))
+    body = db.Column(db.String)
+
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 to,
+                 cc,
+                 bcc,
+                 subject,
+                 body,
+                 date_modified=datetime.utcnow()):
+        super(Emails, self).__init__(request_id,
+                                     privacy,
+                                     date_modified)
+        self.to = to
+        self.cc = cc
+        self.bcc = bcc
+        self.subject = subject
+        self.body = body
+
+    @property
+    def preview(self):
+        return self.subject
+
+    @property
+    def val_for_events(self):
+        return {
+            'privacy': self.privacy,
+            'body': self.body,
+        }

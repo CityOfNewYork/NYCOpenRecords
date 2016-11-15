@@ -12,19 +12,13 @@ from app import (
     celery,
     upload_redis as redis
 )
-from app.constants import (
-    response_type,
-    UPDATED_FILE_DIRNAME,
-)
+from app.constants import UPDATED_FILE_DIRNAME
 from app.upload.constants import (
     ALLOWED_MIMETYPES,
     MAX_CHUNKSIZE,
     upload_status,
 )
-from app.models import (
-    Responses,
-    Files
-)
+from app.models import Files
 
 
 def parse_content_range(header):
@@ -56,26 +50,14 @@ def upload_exists(request_id, filename):
     :param filename: the name of the uploaded file
     :return: whether the file exists or not
     """
-    file_ids = [
-        id_[0] for id_ in
-        Responses.query.with_entities(
-            Responses.metadata_id
-        ).filter_by(
-            request_id=request_id, type=response_type.FILE
+    existing_filenames = [
+        file_.name for file_ in
+        Files.query.filter_by(
+            request_id=request_id,
+            deleted=False,
         ).all()
     ]
-    if file_ids:
-        existing_filenames = [
-            name[0] for name in
-            Files.query.with_entities(
-                Files.name
-            ).filter(
-                Files.id.in_(file_ids)
-            ).all()
-        ]
-        return filename in existing_filenames
-    else:
-        return False
+    return filename in existing_filenames
 
 
 def is_valid_file_type(obj):

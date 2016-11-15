@@ -1,5 +1,6 @@
+from datetime import date
+
 import redis
-import holidays
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask
@@ -12,6 +13,7 @@ from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
+from app.lib import NYCHolidays, jinja_filters
 
 from config import config, Config
 
@@ -25,13 +27,16 @@ prefixed_store = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
 
 upload_redis = redis.StrictRedis(db=2)
+email_redis = redis.StrictRedis(db=3)
 
 mail = Mail()
 
+holidays = NYCHolidays(years=[year for year in range(date.today().year, date.today().year + 5)])
+
 calendar = Calendar(
-    workdays=[MO, TU, WE, TH, FR]
+    workdays=[MO, TU, WE, TH, FR],
+    holidays=[str(key) for key in holidays.keys()]
 )
-us_holidays = holidays.UnitedStates(state='NY')
 
 
 def create_app(config_name):
@@ -46,6 +51,9 @@ def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+
+    app.jinja_env.filters['format_response_type'] = jinja_filters.format_response_type
+    app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
 
     recaptcha.init_app(app)
     bootstrap.init_app(app)

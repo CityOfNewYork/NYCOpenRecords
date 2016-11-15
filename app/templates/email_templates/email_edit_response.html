@@ -1,0 +1,49 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if not agency %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            <p>
+                A {{ response_type | format_response_type }} in request  <!-- FIXME: An extensiont/offline inst...-->
+                <a href="{{ url_for('request.view', request_id=request_id) }}">
+                    {{ request_id }}
+                </a> has been edited.
+            </p>
+        {% else %}
+            <p>
+                A {{ response_type | format_response_type }} in request
+                <a href="{{ url_for('request.view', request_id=request_id) }}">
+                    {{ request_id }}
+                </a> is available for you to view.
+            </p>
+        {% endif %}
+    {% endif %}
+
+    {% if response_data is not none %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency%}
+            {% for key in response_data.requester_viewable_keys %}
+                <p>
+                    The <strong>{{ key }}</strong> was changed from:
+                </p>
+                <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                <p> to: </p>
+                <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+            {% endfor %}
+        {% endif %}
+        {% if agency %}
+            {% for key, value in response_data.data_old.items() %}
+                <p>
+                    The <strong>{{ key }}</strong> was changed from:
+                </p>
+                {% if key == 'privacy' %}
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] | format_response_privacy }} </p>
+                    <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
+                {% else %}
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                        <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

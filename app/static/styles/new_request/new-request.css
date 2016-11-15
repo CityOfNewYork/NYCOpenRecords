@@ -1,4 +1,5 @@
 /*CSS page shared by new_request.html, new_request_agency.html, new_request_user.html*/
+
 #request-description {
     height: 15rem
 }
@@ -59,7 +60,7 @@
 }
 
 .no-padding-left {
-    padding-left: 0px;
+    padding-left: 0;
 }
 
 .captcha {
@@ -74,4 +75,10 @@
 .recaptcha-error {
     text-align: center;
     color: red;
+}
+
+#processing-submission img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }

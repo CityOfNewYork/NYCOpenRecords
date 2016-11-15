@@ -1,7 +1,7 @@
 <form id="fileupload-update-{{ response.id }}" class="fileupload-update fileupload-form" action="/response/{{ response.id }}" method="POST">
     <div class="fileupload-error-messages alert alert-danger" hidden></div>
     <div>
-        <a href="" class="uploaded-filename">{{ response.metadatas.name }}</a>
+        <a href="" class="uploaded-filename">{{ response.name }}</a>
     </div>
     <br>
     <div class="fileupload-control">
@@ -21,31 +21,19 @@
     </div>
     <div class="input-group">
         <span class="input-group-addon">Title</span>
-        <input type="text" name="title" value="{{ response.metadatas.title }}"
+        <input type="text" name="title" value="{{ response.title }}"
                title="title" aria-describedby="title">
     </div>
     <div class="title-error pull-right"></div>
     <div>
+    {% for privacy in privacies %}
         <div class="radio">
             <label>
-                <input type="radio" name="privacy" value="release_public"
-                       {% if response.privacy == "release_public" %}checked{% endif %}>
-                Release and Public
+                <input type="radio" name="privacy" value="{{ privacy }}"
+                   {% if response.privacy == privacy %}checked{% endif %}>
+            {{ privacy | format_response_privacy }}
             </label>
         </div>
-        <div class="radio">
-            <label>
-                <input type="radio" name="privacy" value="release_private"
-                       {% if response.privacy == "release_private" %}checked{% endif %}>
-                Release and Private
-            </label>
-        </div>
-        <div class="radio">
-            <label>
-                <input type="radio" name="privacy" value="private"
-                       {% if response.privacy == "private" %}checked{% endif %}>
-                Private
-            </label>
-        </div>
+    {% endfor %}
     </div>
 </form>
