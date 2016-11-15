@@ -1,6 +1,5 @@
 import redis
 import holidays
-import jinja_filters
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask
@@ -13,6 +12,7 @@ from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
+from app.lib import jinja_filters
 
 from config import config, Config
 
@@ -49,6 +49,7 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    app.jinja_env.filters['format_response_type'] = jinja_filters.format_response_type
     app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
 
     recaptcha.init_app(app)

@@ -26,7 +26,11 @@ from app.constants.user_type_auth import AGENCY_USER
 
 @celery.task
 def send_async_email(msg):
-    mail.send(msg)
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print("Error sending email:", e)
+        # TODO: we ought to email ourselves
 
 
 def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_content=None, **kwargs):

@@ -36,7 +36,8 @@ $(function () {
             for (var i = index; i < end; i++) {
                 response_list.append(responses[i].template);
                 setEditResponseWorkflow(responses[i].id, responses[i].type);
-                if (responses[i].type === "file") {
+                setDeleteResponseWorkflow(responses[i].id);
+                if (responses[i].type === "files") {
                     bindFileUpload(
                         "#fileupload-update-" + responses[i].id,
                         request_id,
@@ -93,10 +94,9 @@ $(function () {
         showResponses();
     });
 
-    // TODO: DELETE updated on modal close and reset (or just refresh page)
+    // TODO: DELETE 'updated' on modal close and reset / refresh page (wait until all responses ready)
 
     function setEditResponseWorkflow(response_id, response_type) {
-
         // FIXME: if response_type does not need email workflow, some of these elements won't be found!
 
         var responseModal = $("#response-modal-" + response_id);
@@ -112,6 +112,7 @@ $(function () {
 
         // Initialize tinymce HTML editor
         tinymce.init({
+            menubar: false,
             // sets tinymce to enable only on specific textareas classes
             mode: "specific_textareas",
             // selector for tinymce textarea classes is set to 'tinymce-area'
@@ -121,7 +122,7 @@ $(function () {
         });
 
         switch (response_type) {
-            case "file":
+            case "files":  // TODO: constants?
                 next1.click(function (e) {
                     // Validate fileupload form
                     first.find(".fileupload-form").parsley().validate();
@@ -154,7 +155,7 @@ $(function () {
                             data: {
                                 request_id: request_id,
                                 template_name: "email_response_file.html",
-                                type: "file"
+                                type: "files"
                             },
                             success: function (data) {
                                 // Data should be html template page.
@@ -187,13 +188,14 @@ $(function () {
                         data: {
                             request_id: request_id,
                             template_name: "email_response_file.html",
-                            type: "file",
+                            type: "files",
                             files: JSON.stringify(files),
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
                             // Data should be html template page.
                             third.find(".email-summary").html(data);
+                            // TODO: data should also return email confirmation header
                         },
                         error: function (error) {
                             console.log(error);
@@ -217,9 +219,9 @@ $(function () {
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
-                        type: "PUT",
+                        type: "PATCH",
                         data: form.serializeArray(), // TODO: remove hidden email summaries
-                        success: function (response) {
+                        success: function () {
                             location.reload();
                         }
                     });
@@ -231,7 +233,7 @@ $(function () {
 
                 break;
 
-            case "note":
+            case "notes":
                 next1.click(function () {
                     first.find(".note-form").parsley().validate();
 
@@ -247,7 +249,7 @@ $(function () {
                                 template_name: "email_edit_response.html",
                                 type: "edit",
                                 response_id: response_id,
-                                content: first.find('#note-content').val(),
+                                content: first.find('.note-content').val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
                                 confirmation: false
                             },
@@ -273,7 +275,7 @@ $(function () {
                             template_name: "email_edit_response.html",
                             type: "edit",
                             response_id: response_id,
-                            content: first.find("#note-content").val(),
+                            content: first.find(".note-content").val(),
                             privacy: first.find("input[name=privacy]:checked").val(),
                             confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
@@ -303,7 +305,7 @@ $(function () {
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
-                        type: "PUT",
+                        type: "PATCH",
                         data: form.serializeArray(),
                         success: function (response) {
                             location.reload();
@@ -312,21 +314,78 @@ $(function () {
                 });
 
                 // Apply parsley data required validation to note title and url
-                first.find('#note-content').attr("data-parsley-required", "");
+                first.find('.note-content').attr("data-parsley-required", "");
 
                 // Apply parsley max length validation to note title and url
-                first.find('#note-content').attr("data-parsley-maxlength", "500");
+                first.find('.note-content').attr("data-parsley-maxlength", "500");
 
                 // Apply custom validation messages
-                first.find('#note-content').attr("data-parsley-required-message",
+                first.find('.note-content').attr("data-parsley-required-message",
                     "Note content must be provided");
-                first.find('#note-content').attr("data-parsley-maxlength-message",
+                first.find('.note-content').attr("data-parsley-maxlength-message",
                     "Note content must be less than 500 characters");
+
+                $(first.find(".note-content")).keyup(function () {
+                    characterCounter(first.find(".note-content-character-count"), 500, $(this).val().length)
+                });
 
                 break;
             default:
                 break;
         }
+    }
+
+    function setDeleteResponseWorkflow(response_id) {
+        var responseModal = $("#response-modal-" + response_id);
+        var deleteSection = responseModal.find(".delete");
+        var defaultSection = responseModal.find(".default");
+
+        var deleteConfirmCheck = responseModal.find("input[name=delete-confirm-string]");
+        var deleteConfirm = responseModal.find(".delete-confirm");
+
+        deleteConfirmCheck.on('paste', function(e) {
+            e.preventDefault();
+        });
+
+        var deleteConfirmString = sprintf("%s:%s", request_id, response_id);
+        deleteConfirmCheck.on("input", function() {
+            if ($(this).val() === deleteConfirmString) {
+                deleteConfirm.attr("disabled", false);
+            }
+            else {
+                deleteConfirm.attr("disabled", true);
+            }
+        });
+
+        responseModal.find(".delete-select").click(function () {
+            defaultSection.hide();
+            deleteSection.show();
+        });
+
+        responseModal.find(".delete-cancel").click(function() {
+            deleteSection.hide();
+            defaultSection.show();
+
+            deleteConfirmCheck.val('');
+        });
+
+        responseModal.find(".delete-confirm").click(function() {
+            deleteConfirm.attr("disabled", true);
+            $.ajax({
+                url: "/response/" + response_id,
+                type: "PATCH",
+                data: {
+                    deleted: true,
+                    confirmation: deleteConfirmCheck.val()
+                },
+                success: function() {
+                    location.reload();
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            })
+        });
     }
 
 });

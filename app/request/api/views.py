@@ -94,7 +94,8 @@ def get_request_responses():
 
     responses = Responses.query.filter(
         Responses.request_id == flask_request.args['request_id'],
-        Responses.type != response_type.EMAIL
+        Responses.type != response_type.EMAIL,
+        Responses.deleted == False
     ).order_by(
         desc(Responses.date_modified)
     ).all()[start: start + RESPONSES_INCREMENT]

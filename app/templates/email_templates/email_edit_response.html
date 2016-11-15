@@ -3,14 +3,14 @@
     {% if not agency %}
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             <p>
-                A {{ response_type }} in request
+                A {{ response_type | format_response_type }} in request  <!-- FIXME: An extensiont/offline inst...-->
                 <a href="{{ url_for('request.view', request_id=request_id) }}">
                     {{ request_id }}
                 </a> has been edited.
             </p>
         {% else %}
             <p>
-                A {{ response_type }} in request
+                A {{ response_type | format_response_type }} in request
                 <a href="{{ url_for('request.view', request_id=request_id) }}">
                     {{ request_id }}
                 </a> is available for you to view.
@@ -20,11 +20,11 @@
 
     {% if response_data is not none %}
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency%}
-            {% for key, value in response_data.metadata_old.items() %}
+            {% for key in response_data.requester_viewable_keys %}
                 <p>
                     The <strong>{{ key }}</strong> was changed from:
                 </p>
-                <p style="padding-left: 30px;"> {{ value }} </p>
+                <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
                 <p> to: </p>
                 <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
             {% endfor %}
@@ -34,9 +34,15 @@
                 <p>
                     The <strong>{{ key }}</strong> was changed from:
                 </p>
-                <p style="padding-left: 30px;"> {{ value }} </p>
-                <p> to: </p>
-                <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+                {% if key == 'privacy' %}
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] | format_response_privacy }} </p>
+                    <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
+                {% else %}
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                        <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+                {% endif %}
             {% endfor %}
         {% endif %}
     {% endif %}
