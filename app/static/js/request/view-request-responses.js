@@ -545,7 +545,7 @@ $(function () {
 
                 // Set character counter for link url
                 first.find('.url').keyup(function () {
-                    characterCounter(first.find(".link-url-character-count"), 500, $(this).val().length)
+                    characterCounter(first.find(".link-url-character-count"), 254, $(this).val().length)
                 });
 
                 break;
