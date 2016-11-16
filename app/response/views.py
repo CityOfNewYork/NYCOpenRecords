@@ -273,28 +273,6 @@ def response_email():
     return process_email_template_request(request_id, data)
 
 
-# TODO: Implement route to check for valid URL link by status code
-# @response.route('/url_checker', methods=['GET'])
-# def check_url():
-#     """
-#     Check the incoming url link's HTTP code status.
-#
-#     :return: If url link is valid, string 'Valid URL' and 200 status code is returned
-#              If url link is invalid, string 'Invalid URL' and 400 status code is returned
-#     """
-#     url_link = flask_request.args['url']
-#     try:
-#         url_status = urlopen(url_link).getcode()
-#     except ValueError as e:
-#         print(e)
-#         return 'Invalid URL', 400
-#
-#     if url_status == 200:
-#         return 'Valid URL', 200
-#     else:
-#         return 'Invalid URL', 400
-
-
 # TODO: Implement response route for sms
 @response.route('/sms/<request_id>', methods=['GET', 'POST'])
 def response_sms(request_id):

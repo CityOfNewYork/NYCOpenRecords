@@ -78,28 +78,16 @@ $(document).ready(function () {
     $('#link-title').attr('data-parsley-maxlength', '90');
     $('#link-url').attr('data-parsley-maxlength', '254');
 
-    // TODO: Implement parsley remote validator for url_checker endpoint
-    // Apply parsley remote validation to link url
-    {#    $('#link-url').attr('data-parsley-remote', '');#}
-    {#    $('#link-url').attr('data-parsley-remote-validator', 'url_checker');#}
-        // Create parsley asynchronous remote validator
-    {#    window.Parsley.addAsyncValidator('url_checker', function(xhr) {#}
-    {#        console.log(this.$element);#}
-    {#        return 200 === xhr.status;#}
-    {#    }, '/response/url_checker');#}
-
     // Apply custom validation messages
     $('#link-title').attr('data-parsley-required-message', 'Link title must be provided.');
     $('#link-url').attr('data-parsley-required-message', 'URL link must be provided.');
     $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters.');
     $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters.');
 
-    // Custom validator to validate strict url with one of the following allowed protocols: http, https, ftp, git
+    // Custom validator to validate strict url using regexUrlChecker
     $('#link-url').attr('data-parsley-urlstrict', '');
     window.Parsley.addValidator('urlstrict', function (value) {
-            var regExp = /^(https?|s?ftp|git):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
-
-            return '' !== value ? regExp.test( value ) : false;
+            return '' !== value ? regexUrlChecker(value) : false;
         }).addMessage('en', 'urlstrict', 'This value should be a valid url.');
 
     // Set character counter for link title
