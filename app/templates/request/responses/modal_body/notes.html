@@ -1,16 +1,11 @@
 <form id="note-update-{{ response.id }}" class="note-update note-form"
       action="/response/{{ response.id }}" method="POST">
     <div class="note-error-messages alert alert-danger" hidden></div>
-    <div class="note-modal-control">
-        <div class="note-divs">
-            <textarea class="input-block-level form-group note-content"
-                      title="content" name="content" maxlength="500">{{ response.content }}</textarea>
-            <h5 class="required note-content-character-count">
-                500 characters remaining
-            </h5>
-        </div>
-    </div>
-    <br>
+    <textarea class="input-block-level form-group note-content"
+              title="content" name="content" maxlength="500">{{ response.content }}</textarea>
+    <h5 class="required note-content-character-count">
+        500 characters remaining
+    </h5>
     <div>
     {% for privacy in privacies %}
         <div class="radio">
