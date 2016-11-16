@@ -11,7 +11,7 @@ from datetime import datetime
 from flask import current_app
 from tests.lib.constants import NON_ANON_USER_GUID_LEN
 from app.constants import (
-    ACKNOWLEDGEMENT_DAYS_DUE,
+    ACKNOWLEDGMENT_DAYS_DUE,
     user_type_auth,
     user_type_request,
     submission_methods,
@@ -65,7 +65,7 @@ class RequestsFactory(object):
             date_created=date_created,
             date_submitted=date_submitted,
             due_date=get_due_date(date_submitted,
-                                  ACKNOWLEDGEMENT_DAYS_DUE),
+                                  ACKNOWLEDGMENT_DAYS_DUE),
             submission=submission_methods.DIRECT_INPUT,
             status=request_status.OPEN)
         create_object(self.request)
@@ -200,7 +200,7 @@ def create_requests_search_set(requester, other_requester):
             date_created=date_created,
             date_submitted=date_submitted,
             due_date=get_due_date(date_submitted,
-                                  ACKNOWLEDGEMENT_DAYS_DUE),
+                                  ACKNOWLEDGMENT_DAYS_DUE),
             submission=submission_methods.DIRECT_INPUT,
             status=request_status.OPEN,
             privacy={

@@ -1,11 +1,11 @@
 DENIAL = 'denial'
-ACKNOWLEDGEMENT = 'acknowledgement'
+ACKNOWLEDGMENT = 'acknowledgment'
 EXTENSION = 'extension'
 CLOSING = 'closing'
 
 ALL = frozenset((
     DENIAL,
-    ACKNOWLEDGEMENT,
+    ACKNOWLEDGMENT,
     EXTENSION,
     CLOSING,
 ))

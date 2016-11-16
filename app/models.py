@@ -809,12 +809,12 @@ class Determinations(Responses):
     reason - a string containing the reason for a determination
     date - a datetime object containing an appropriate date for a determination
 
-    ext_type        | date significance                | reason significance
-    ----------------|----------------------------------|------------------------------------------
-    denial          | date request was denied          | why the request was denied
-    acknowledgement | estimated date of completion     | why the date was chosen / additional info
-    extension       | new estimated date of completion | why the request extended
-    closing         | date request was closed          | why the request closed
+    ext_type       | date significance                | reason significance
+    ---------------|----------------------------------|------------------------------------------
+    denial         | date request was denied          | why the request was denied
+    acknowledgment | estimated date of completion     | why the date was chosen / additional info
+    extension      | new estimated date of completion | why the request extended
+    closing        | date request was closed          | why the request closed
 
     """
     __tablename__ = response_type.DETERMINATION
@@ -822,28 +822,33 @@ class Determinations(Responses):
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     dtype = db.Column(db.Enum(
         determination_type.DENIAL,
-        determination_type.ACKNOWLEDGEMENT,
+        determination_type.ACKNOWLEDGMENT,
         determination_type.EXTENSION,
         determination_type.CLOSING,
         name="determination_type"
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge
-    date = db.Column(db.DateTime, nullable=False)
+    date = db.Column(db.DateTime)  # nullable only for denial, closing
 
     def __init__(self,
                  request_id,
                  privacy,  # TODO: always RELEASE_AND_PUBLIC?
                  dtype,
                  reason,
-                 date,
+                 date=None,
                  date_modified=datetime.utcnow()):
         super(Determinations, self).__init__(request_id,
                                              privacy,
                                              date_modified)
         self.dtype = dtype
-        if dtype != determination_type.ACKNOWLEDGEMENT:
+
+        if dtype != determination_type.ACKNOWLEDGMENT:
             assert reason is not None
         self.reason = reason
+
+        if dtype not in (determination_type.DENIAL,
+                         determination_type.CLOSING):
+            assert date is not None
         self.date = date
 
     @property

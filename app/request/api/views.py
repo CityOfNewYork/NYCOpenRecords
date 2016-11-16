@@ -16,6 +16,7 @@ from app.lib.utils import eval_request_bool
 from app.models import Requests, Responses
 from app.constants import RESPONSES_INCREMENT
 from app.constants import (
+    determination_type,
     response_type,
     response_privacy,
 )
@@ -130,6 +131,7 @@ def get_request_responses():
                                response_privacy.PRIVATE]
                 ),
                 response_type=response_type,
+                determination_type=determination_type,
             )
             json['template'] = row + modal
 

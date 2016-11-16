@@ -48,10 +48,10 @@
                         <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
                         <li><a href="#add-instructions" data-toggle="tab">Add Instructions</a></li>
                         <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
-                        {% if request.status != status.OPEN %}
+{#                        {% if request.status != status.OPEN %}#}
                             <li><a href="#extend-request" data-toggle="tab">EXTEND</a></li>
                             <li><a href="#close-request" data-toggle="tab">CLOSE</a></li>
-                        {% endif %}
+{#                        {% endif %}#}
                         <li><a href="#add-user" data-toggle="tab">Add User</a></li>
                         <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
                         <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
@@ -71,19 +71,19 @@
                         </div>
                         {% if request.status == status.OPEN  %}
                             <div class="tab-pane active" id="acknowledge-request">
-                                Acknowledge Request
+                                {% include "response/add_acknowledgment.html" %}
                             </div>
                             <div class="tab-pane" id="deny-request">
                                 Deny Request Content
                             </div>
-                        {% else %}
-                            <div class="tab-pane" id="extend-request">
-                                {% include "response/add_extension.html" %}
-                            </div>
-                            <div class="tab-pane" id="close-request">
-                                Close Request Content
-                            </div>
                         {% endif %}
+                        <div class="tab-pane" id="extend-request">
+                            {% include "response/add_extension.html" %}
+                        </div>
+                        <div class="tab-pane" id="close-request">
+                            Close Request Content
+                        </div>
+{#                        {% endif %}#}
                         <div class="tab-pane" id="add-user">
                             Add User Content
                         </div>
@@ -129,10 +129,8 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/edit_requester_info.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload/fileupload.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/request/character-count.js') }}"></script>
     {% include "request/fileupload_add_file.js.html" %}
     {% include "request/fileupload_update_templates.js.html" %}
     {% include 'request/edit_requester_info.js.html' %}
@@ -143,4 +141,5 @@
     {% include 'response/add_file.js.html' %}
     {% include 'response/add_note.js.html' %}
     {% include 'response/add_instruction.js.html' %}
+    {% include 'response/add_acknowledgment.js.html' %}
 {% endblock %}

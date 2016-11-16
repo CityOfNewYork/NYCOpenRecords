@@ -19,7 +19,11 @@
 	-webkit-transition:border linear .2s,box-shadow linear .2s;
 	-moz-transition:border linear .2s,box-shadow linear .2s;
 	-o-transition:border linear .2s,box-shadow linear .2s;
-	transition:border linear .2s,box-shadow linear .2s
+	transition:border linear .2s,box-shadow linear .2s;
+}
+
+.gray-solid-border {
+	border:1px solid #ccc;
 }
 
 .wrapper

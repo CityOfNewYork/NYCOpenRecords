@@ -37,6 +37,7 @@ from app.response.utils import (
     add_file,
     add_link,
     add_extension,
+    add_acknowledgment,
     add_instruction,
     process_upload_data,
     send_file_email,
@@ -115,6 +116,28 @@ def response_file(request_id):
                             files,
                             email_content)
     return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/acknowledgment/<request_id>', methods=['POST'])
+def response_acknowledgment(request_id):
+    flash("flashing")
+    return redirect(url_for('request.view', request_id=request_id))
+
+    # required_fields = ['info',
+    #                    'due-date',
+    #                    'email-extenion-summary']
+    #
+    # for field in required_fields:
+    #     if flask_request.form.get(field) is None:
+    #         flash('Uh Oh, it looks like the extension {} is missing! '
+    #               'This is probably NOT your fault.'.format(field), category='danger')
+    #         return redirect(url_for('request.view', request_id=request_id))
+    #
+    # add_acknowledgment(request_id,
+    #                     flask_request.form['info'],
+    #                     flask_request.form['due-date'],
+    #                     flask_request.form['email-extension-comment'])
+    # return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/extension/<request_id>', methods=['POST'])

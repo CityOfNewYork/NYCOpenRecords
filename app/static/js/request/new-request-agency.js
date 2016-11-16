@@ -152,4 +152,13 @@ $(document).ready(function () {
         $('#processing-submission').show()
     });
 
+    // Character count for creating a new request
+    $('#request-title').keyup(function () {
+        characterCounter("#title-character-count", 90, $(this).val().length)
+    });
+
+    $('#request-description').keyup(function () {
+        characterCounter("#description-character-count", 5000, $(this).val().length)
+    });
+
 });

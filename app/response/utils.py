@@ -107,6 +107,30 @@ def add_note(request_id, note_content, email_content, privacy):
     _send_response_email(request_id, privacy, email_content)
 
 
+def add_acknowledgment(request_id, info, days, date, email_content):
+    new_due_date = _get_new_due_date(request_id, days, date)
+    update_object(
+        {'due_date': new_due_date},
+        Requests,
+        request_id
+    )
+    privacy = RELEASE_AND_PUBLIC
+    response = Determinations(
+        request_id,
+        privacy,
+        determination_type.ACKNOWLEDGMENT,
+        info,
+        new_due_date,
+    )
+    create_object(response)
+    _create_response_event(response, event_type.REQ_ACKNOWLEDGED)
+    _send_response_email(request_id, privacy, email_content)
+
+
+def add_denial(request_id, reason, email_content):
+    pass
+
+
 def add_extension(request_id, length, reason, custom_due_date, email_content):
     """
     Create and store the extension object for the specified request.
@@ -127,11 +151,13 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
         Requests,
         request_id)
     privacy = RELEASE_AND_PUBLIC
-    response = Determinations(request_id,
-                              privacy,
-                              determination_type.EXTENSION,
-                              reason,
-                              new_due_date)
+    response = Determinations(
+        request_id,
+        privacy,
+        determination_type.EXTENSION,
+        reason,
+        new_due_date
+    )
     create_object(response)
     _create_response_event(response, event_type.REQ_EXTENDED)
     _send_response_email(request_id, privacy, email_content)
@@ -316,7 +342,7 @@ def process_email_template_request(request_id, data):
     if rtype in determination_type.ALL:
         handler_for_type = {
             determination_type.EXTENSION: _extension_email_handler,
-            determination_type.ACKNOWLEDGEMENT: _acknowledgement_email_handler
+            determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler
         }
     else:
         handler_for_type = {
@@ -329,9 +355,34 @@ def process_email_template_request(request_id, data):
     return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
 
 
-def _acknowledgement_email_handler(request_id, data, page, agency_name, email_template):
-    pass
-    
+def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
+    acknowledgment = data.get('acknowledgment')
+
+    if acknowledgment is not None:
+        acknowledgment = json.loads(acknowledgment)
+        default_content = False
+        content = data['email_content']
+        date = _get_new_due_date(
+            request_id,
+            acknowledgment['days'],
+            acknowledgment['date']
+        ).strftime('%A, %b, %d,%Y')
+        info = acknowledgment['info'].strip() or None
+    else:
+        default_content = True
+        content = None
+        date = ''
+        info = ''
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                date=date,
+                                                info=info,
+                                                page=page)}), 200
+
+
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an extension.

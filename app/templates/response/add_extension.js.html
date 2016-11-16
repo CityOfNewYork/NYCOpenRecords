@@ -103,30 +103,7 @@
             }
         });
 
-        // An array of holiday dates to be disabled
-        var holiday_dates = {{ holidays | safe }};
-
-        function DisableSpecificDates(date) {
-            var string = jQuery.datepicker.formatDate('yy-mm-dd', date);
-            if (
-                    ($.inArray(string, holiday_dates) > -1) ||
-                    (date.getDay() === 0) ||
-                    (date.getDay() === 6)
-            ) {
-                return [];
-            } else {
-                return [string];
-            }
-        }
-
-        // Disables holidays and weekends in datepicker
-        function disableHolidayAndWeekends(date) {
-            // If current date is not a holiday, checks if date is a weekend
-            var holiday = DisableSpecificDates(date);
-            if (holiday != []) {
-                return holiday;
-            }
-        }
+        holiday_dates = {{ holidays | safe }};  // safe: string -> array
 
         // TODO: Implement parsley remote validator for is_holiday endpoint
         {#    $('#custom-extension').attr('date-parsley-remote', '');#}
@@ -141,7 +118,7 @@
         $("#custom-extension").datepicker({
             dateFormat: "yy-mm-dd",
             daysOfWeekDisabled: [0, 6],
-            beforeShowDay: disableHolidayAndWeekends
+            beforeShowDay: beforeShowDayNotHolidayOrWeekend
         });
 
         // Set datepicker text field to prevent keyboard input
@@ -162,29 +139,29 @@
         $('#extension-reason').attr('data-parsley-minlength', '20');
         $('#extension-reason').attr('data-parsley-maxlength', '5000');
 
-    // Strips time from and disables dates before the current due date
-    var current_due_date = "{{ request.due_date }}";
-    current_due_date = current_due_date.split(' ')[0];
-    $("#custom-extension").datepicker('option', 'minDate', current_due_date);
+        // Strips time from and disables dates before the current due date
+        var current_due_date = "{{ request.due_date }}";
+        current_due_date = current_due_date.split(' ')[0];
+        $("#custom-extension").datepicker('option', 'minDate', current_due_date);
 
-    // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['custom-extension','extension-select', 'extension-reason'];
-    for (i = 0 ; i < required_fields.length ; i++){
-        $('#' + required_fields[i]).attr('data-parsley-required','');
-    }
+        // Loop through required fields and apply a data-parsley-required attribute to them
+        var required_fields = ['custom-extension','extension-select', 'extension-reason'];
+        for (i = 0 ; i < required_fields.length ; i++){
+            $('#' + required_fields[i]).attr('data-parsley-required','');
+        }
 
-    // Apply parsley minimum length validation to extension reason
-    $('#extension-reason').attr('data-parsley-minlength','20');
-    $('#extension-reason').attr('data-parsley-maxlength','5000');
+        // Apply parsley minimum length validation to extension reason
+        $('#extension-reason').attr('data-parsley-minlength','20');
+        $('#extension-reason').attr('data-parsley-maxlength','5000');
 
-    // Apply custom validation messages
-    $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
-    $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
-    $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters')
+        // Apply custom validation messages
+        $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
+        $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
+        $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters');
 
-    // Set character counter for extension reason
-    $("#extension-reason").keyup(function () {
-        characterCounter("#extension-reason-character-count", 5000, $(this).val().length)
+        // Set character counter for extension reason
+        $("#extension-reason").keyup(function () {
+            characterCounter("#extension-reason-character-count", 5000, $(this).val().length)
+        });
     });
-});
 </script>
