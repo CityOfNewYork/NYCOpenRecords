@@ -633,6 +633,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         response_type.FILE: RespFileEditor,
         response_type.NOTE: RespNoteEditor,
         response_type.INSTRUCTIONS: RespInstructionsEditor,
+        response_type.LINK: RespLinkEditor,
         # ...
     }
     editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)

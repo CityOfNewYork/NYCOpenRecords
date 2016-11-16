@@ -5,7 +5,6 @@
 """
 import os
 from datetime import datetime
-from urllib.request import urlopen
 
 from flask import (
     flash,
@@ -30,7 +29,8 @@ from app.models import (
     UserRequests,
     Files,
     Notes,
-    Instructions
+    Instructions,
+    Links
 )
 from app.response.utils import (
     add_note,
@@ -45,7 +45,8 @@ from app.response.utils import (
     process_email_template_request,
     RespFileEditor,
     RespNoteEditor,
-    RespInstructionsEditor
+    RespInstructionsEditor,
+    RespLinkEditor
 )
 
 
@@ -346,6 +347,7 @@ def patch(response_id):
         Files: RespFileEditor,
         Notes: RespNoteEditor,
         Instructions: RespInstructionsEditor,
+        Links: RespLinkEditor,
         # ...
     }
     editor = editor_for_type[type(resp)](current_user, resp, flask_request)

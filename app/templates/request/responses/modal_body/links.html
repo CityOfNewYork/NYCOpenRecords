@@ -1,13 +1,13 @@
 <form id="link-update-{{ response.id }}" class="link-update link-form"
       action="/response/{{ response.id }}" method="POST">
-    <div class="link-error-messages alert alert danger" hidden></div>
+    <div class="link-error-messages alert alert-danger" hidden></div>
     <div class="form-group">
         <label for="title">Title</label>
-        <input type="text" class="disable-enter-submit" id="title" name="title" maxlength="90" value="{{ response.title }}">
+        <input type="text" class="disable-enter-submit title" name="title" maxlength="90" value="{{ response.title }}">
     </div>
     <div class="form-group">
         <label for="url">URL Link</label>
-        <input type="text" class="disable-enter-submit" id="url" name="url" maxlength="90" value="{{ response.url }}">
+        <input type="text" class="disable-enter-submit url" name="url" maxlength="90" value="{{ response.url }}">
     </div>
     <div>
     {% for privacy in privacies %}
