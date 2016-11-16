@@ -8,9 +8,6 @@ $(document).ready(function () {
 
     // Handles click events on the first next button
     $("#link-next-1").click(function () {
-        // Onclick, changes button text from to Next
-        $(this).text("Next");
-
         // Validate link form
         $("#add-link-form").parsley().validate();
 
@@ -81,46 +78,38 @@ $(document).ready(function () {
     $('#link-title').attr('data-parsley-maxlength', '90');
     $('#link-url').attr('data-parsley-maxlength', '254');
 
-    $('#link-url').attr('data-parsley-type', 'url');
-
+    // TODO: Implement parsley remote validator for url_checker endpoint
     // Apply parsley remote validation to link url
-    $('#link-url').attr('data-parsley-remote', '');
-    $('#link-url').attr('data-parsley-remote-validator', 'url_checker');
-
-    // Create parsley asynchronous remote validator
-    window.Parsley.addAsyncValidator('url_checker', function(xhr) {
-        console.log(this.$element);
-        return 200 === xhr.status;
-    }, '/response/url_checker');
+    {#    $('#link-url').attr('data-parsley-remote', '');#}
+    {#    $('#link-url').attr('data-parsley-remote-validator', 'url_checker');#}
+        // Create parsley asynchronous remote validator
+    {#    window.Parsley.addAsyncValidator('url_checker', function(xhr) {#}
+    {#        console.log(this.$element);#}
+    {#        return 200 === xhr.status;#}
+    {#    }, '/response/url_checker');#}
 
     // Apply custom validation messages
-    $('#link-title').attr('data-parsley-required-message', 'Link title must be provided');
-    $('#link-url').attr('data-parsley-required-message', 'URL link must be provided');
-    $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters');
-    $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters');
+    $('#link-title').attr('data-parsley-required-message', 'Link title must be provided.');
+    $('#link-url').attr('data-parsley-required-message', 'URL link must be provided.');
+    $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters.');
+    $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters.');
+
+    // Custom validator to validate strict url with one of the following allowed protocols: http, https, ftp, git
+    $('#link-url').attr('data-parsley-urlstrict', '');
+    window.Parsley.addValidator('urlstrict', function (value) {
+            var regExp = /^(https?|s?ftp|git):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
+
+            return '' !== value ? regExp.test( value ) : false;
+        }).addMessage('en', 'urlstrict', 'This value should be a valid url.');
 
     // Set character counter for link title
     $('#link-title').keyup(function () {
-        var contentLength = $(this).val().length;
-        var charLength = 90 - contentLength;
-        $('#link-title-character-count').text(charLength + " characters remaining");
-        if (charLength == 0) {
-            document.getElementById("link-title-character-count").style.color = "red";
-        } else {
-            document.getElementById("link-title-character-count").style.color = "black";
-        }
+        characterCounter("#link-title-character-count", 90, $(this).val().length)
     });
 
     // Set character counter for link url
     $('#link-url').keyup(function () {
-        var contentLength = $(this).val().length;
-        var charLength = 254 - contentLength;
-        $('#link-url-character-count').text(charLength + " characters remaining");
-        if (charLength == 0) {
-            document.getElementById("link-url-character-count").style.color = "red";
-        } else {
-            document.getElementById("link-url-character-count").style.color = "black";
-        }
+        characterCounter("#link-url-character-count", 500, $(this).val().length)
     });
 });
 </script>
