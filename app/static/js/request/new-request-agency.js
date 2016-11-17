@@ -89,6 +89,17 @@ $(document).ready(function () {
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
     $('#request-file').attr('data-parsley-max-file-size',"20");
 
+    // Set name of the file to filename div
+    $("#request-file").on('change', function () {
+        $("#filename").text((this.files[0].name));
+    });
+
+    // Clear the file from input and the name from filename div
+    $("#clear-file").click(function () {
+        $('#request-file').val("");
+        $("#filename").text("");
+    });
+
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
     // Called when validation is used and checks that at least one form of contact was filled out
