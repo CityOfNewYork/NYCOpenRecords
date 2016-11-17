@@ -28,6 +28,7 @@ from app.constants import (
     event_type,
     response_type,
     response_privacy,
+    request_status,
     determination_type,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
@@ -50,7 +51,6 @@ from app.models import (
     Instructions,
     Requests,
     Responses,
-    UserRequests,
     Determinations,
     Emails
 )
@@ -108,23 +108,36 @@ def add_note(request_id, note_content, email_content, privacy):
 
 
 def add_acknowledgment(request_id, info, days, date, email_content):
-    new_due_date = _get_new_due_date(request_id, days, date)
-    update_object(
-        {'due_date': new_due_date},
-        Requests,
-        request_id
-    )
-    privacy = RELEASE_AND_PUBLIC
-    response = Determinations(
-        request_id,
-        privacy,
-        determination_type.ACKNOWLEDGMENT,
-        info,
-        new_due_date,
-    )
-    create_object(response)
-    _create_response_event(response, event_type.REQ_ACKNOWLEDGED)
-    _send_response_email(request_id, privacy, email_content)
+    """
+    Create and store an acknowledgement-determination response for
+    the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param info: additional information pertaining to the acknowledgment
+    :param days: days until request completion
+    :param date: date of request completion
+    :param email_content: email body associated with this action
+
+    """
+    if not Requests.query.filter_by(id=request_id).one().was_acknowledged:
+        new_due_date = _get_new_due_date(request_id, days, date)
+        update_object(
+            {'due_date': new_due_date,
+             'status': request_status.IN_PROGRESS},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.ACKNOWLEDGMENT,
+            info,
+            new_due_date,
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_ACKNOWLEDGED)
+        _send_response_email(request_id, privacy, email_content)
 
 
 def add_denial(request_id, reason, email_content):

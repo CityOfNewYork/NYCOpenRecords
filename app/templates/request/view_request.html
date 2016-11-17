@@ -48,10 +48,10 @@
                         <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
                         <li><a href="#add-instructions" data-toggle="tab">Add Instructions</a></li>
                         <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
-{#                        {% if request.status != status.OPEN %}#}
+                        {% if request.status != status.OPEN %}
                             <li><a href="#extend-request" data-toggle="tab">EXTEND</a></li>
                             <li><a href="#close-request" data-toggle="tab">CLOSE</a></li>
-{#                        {% endif %}#}
+                        {% endif %}
                         <li><a href="#add-user" data-toggle="tab">Add User</a></li>
                         <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
                         <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
@@ -76,14 +76,14 @@
                             <div class="tab-pane" id="deny-request">
                                 Deny Request Content
                             </div>
+                        {% else %}
+                            <div class="tab-pane" id="extend-request">
+                                {% include "response/add_extension.html" %}
+                            </div>
+                            <div class="tab-pane" id="close-request">
+                                Close Request Content
+                            </div>
                         {% endif %}
-                        <div class="tab-pane" id="extend-request">
-                            {% include "response/add_extension.html" %}
-                        </div>
-                        <div class="tab-pane" id="close-request">
-                            Close Request Content
-                        </div>
-{#                        {% endif %}#}
                         <div class="tab-pane" id="add-user">
                             Add User Content
                         </div>

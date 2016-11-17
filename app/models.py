@@ -414,6 +414,13 @@ class Requests(db.Model):
             'due_date': self.due_date.isoformat(),
         }
 
+    @property
+    def was_acknowledged(self):
+        return self.responses.filter(
+            Responses.type == response_type.DETERMINATION,
+            Determinations.dtype == determination_type.ACKNOWLEDGMENT
+        ).first() is not None
+
     def es_update(self):
         es.update(
             index=INDEX,
@@ -811,10 +818,10 @@ class Determinations(Responses):
 
     ext_type       | date significance                | reason significance
     ---------------|----------------------------------|------------------------------------------
-    denial         | date request was denied          | why the request was denied
+    denial         | NA                               | why the request was denied
     acknowledgment | estimated date of completion     | why the date was chosen / additional info
     extension      | new estimated date of completion | why the request extended
-    closing        | date request was closed          | why the request closed
+    closing        | NA                               | why the request closed
 
     """
     __tablename__ = response_type.DETERMINATION
@@ -854,6 +861,16 @@ class Determinations(Responses):
     @property
     def preview(self):
         return self.reason
+
+    @property
+    def val_for_events(self):
+        val = {
+            'reason': self.reason
+        }
+        if self.dtype in (determination_type.ACKNOWLEDGMENT,
+                          determination_type.EXTENSION):
+            val['date'] = self.date.isoformat()
+        return val
 
 
 class Emails(Responses):
