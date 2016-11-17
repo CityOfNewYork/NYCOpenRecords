@@ -1,0 +1,49 @@
+<form id="add-acknowledgment" action="/response/acknowledgment/{{ request.id }}" method="POST">
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Acknowledge Request
+            </legend>
+            <div class="first">
+                <div class="form-group">
+                    <label for="acknowledgment-days">Days until Completion</label>
+                    <select id="acknowledgment-days" name="days" class="disable-enter-submit form-control">
+                        <option value="0" selected="selected" disabled="disabled">None selected</option>
+                        <option value="20">20 Business Days</option>
+                        <option value="30">30 Business Days</option>
+                        <option value="60">60 Business Days</option>
+                        <option value="90">90 Business Days</option>
+                        <option value="-1">Custom Due Date</option>
+                    </select>
+                    <div hidden>
+                        <input type="text" id="acknowledgment-date" name="date"
+                               class="disable-enter-submit" title="date" value={{ request.due_date }}>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="acknowledgment-info">Additional Information</label>
+                    <textarea id="acknowledgment-info" class="gray-solid-border" name="info"
+                    maxlength="5000" rows="5"></textarea>
+                    <p id="acknowledgment-info-character-count" class="required">5000 characters remaining</p>
+                </div>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="second" hidden>
+                <div class="form-group">
+                    <p>Email body</p>
+                    <textarea title="acknowledgment-email-body" name="acknowledgment-email-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="third" hidden>
+                <h4>The following will be emailed to the requester:</h4>
+                <div class="wrap-text email-summary"></div>
+                <input type="hidden" name="email-summary">
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="submit" class="submit pull-right btn btn-success">Submit</button>
+            </div>
+        </fieldset>
+    </div>
+</form>

@@ -14,10 +14,12 @@
                     <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
                 {% elif response.type == response_type.NOTE %}
                     <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
-                {% elif response.type == response_type.EXTENSION %}
-                    <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
+                {% elif response.type == response_type.DETERMINATION %}
+                    {% if response.dtype == determination_type.EXTENSION %}
+                        <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
+                    {% endif %}
                 {% endif %}
-                <strong class="modal-title">{{ response.type | format_response_type }}</strong>
+                <strong class="modal-title">{{ response | format_response_type }}</strong>
             </div>
             <div class="default">
                 {% if requires_workflow %}
@@ -27,10 +29,12 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-danger pull-left delete-select">
-                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                Delete
-                            </button>
+                            {% if response.type  != response_type.DETERMINATION %}
+                                <button type="button" class="btn btn-danger pull-left delete-select">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                    Delete
+                                </button>
+                            {% endif %}
                             <button type="button" class="btn btn-primary response-modal-next">
                                 Next
                                 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
@@ -74,10 +78,12 @@
                         {{ modal_body | safe }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger pull-left delete-select">
-                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                            Delete
-                        </button>
+                        {% if response.type  != response_type.DETERMINATION %}
+                            <button type="button" class="btn btn-danger pull-left delete-select">
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                Delete
+                            </button>
+                        {% endif %}
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     </div>
                 {% endif %}

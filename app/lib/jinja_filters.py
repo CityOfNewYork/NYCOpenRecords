@@ -9,14 +9,17 @@ def format_response_privacy(privacy):
     }[privacy]
 
 
-def format_response_type(type_):
-    return {
-        response_type.NOTE: 'NOTE',
-        response_type.EMAIL: 'EMAIL',
-        response_type.FILE: 'FILE',
-        response_type.INSTRUCTIONS: 'OFFLINE INSTRUCTIONS',
-        response_type.EXTENSION: 'EXTENSION',
-        response_type.LINK: 'LINK',
-        response_type.PUSH: 'PUSH NOTIFICATION',
-        response_type.SMS: 'SMS',
-    }[type_]
+def format_response_type(response):
+    if response.type == response_type.DETERMINATION:
+        formatted_type = response.dtype.upper()
+    else:
+        formatted_type = {
+            response_type.NOTE: 'NOTE',
+            response_type.EMAIL: 'EMAIL',
+            response_type.FILE: 'FILE',
+            response_type.INSTRUCTIONS: 'OFFLINE INSTRUCTIONS',
+            response_type.LINK: 'LINK',
+            response_type.PUSH: 'PUSH NOTIFICATION',
+            response_type.SMS: 'SMS',
+        }[response.type]
+    return formatted_type

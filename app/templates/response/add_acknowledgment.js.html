@@ -1,0 +1,129 @@
+<script type="text/javascript">
+    $(function() {
+        var dateSelectVal = "-1";
+
+        var form = $("#add-acknowledgment");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third");
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+
+        var days = first.find("#acknowledgment-days");
+        var date = first.find("#acknowledgment-date");
+        var info = first.find("#acknowledgment-info");
+
+        // Parsley
+        var required = [date, days];
+        for (i = 0; i < required.length; i++ ) {
+            required[i].attr("data-parsley-required", "");
+        }
+        info.attr("data-parsley-minlength", "20");
+        info.attr("data-parsley-maxlength", "5000");
+
+        info.keyup(function() {
+            characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
+        });
+
+        // Date Picker
+        holiday_dates = {{ holidays | safe }};
+        date.datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: beforeShowDayNotHolidayOrWeekend,
+            minDate: "{{ request.due_date }}".split()[0]
+        });
+        date.keydown(false);
+
+        // Reveal/Hide Date Picker
+        days.change(function() {
+            if ($(this).val() === dateSelectVal) {
+                date.parent().show();
+            }
+            else {
+                date.parent().hide();
+            }
+        });
+
+        next1.click(function(e) {
+            if (date.is(":visible")) {
+                date.parsley().validate();
+                if (!date.parsley().isValid()) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            days.parsley().validate();
+            info.parsley().validate();
+
+            if (!days.parsley().isValid() ||
+                !info.parsley().isValid()
+            ) {
+                e.preventDefault();
+                return false;
+            }
+
+            if (days.parsley().isValid() ||
+                date.parsley().isValid()
+            ) {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        // FIXME: this can be inferred by server through 'type'
+                        template_name: "email_response_acknowledgment.html",
+                        type: "acknowledgment",
+                    },
+                    success: function(data) {
+                        tinyMCE.get("acknowledgment-email-body").setContent(data.template);
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        next2.click(function() {
+            tinyMCE.triggerSave();
+
+            $.ajax({
+                url: "/response/email",
+                type: "POST",
+                data: {
+                    request_id: "{{ request.id }}",
+                    template_name: "email_response_acknowledgment.html",
+                    type: "acknowledgment",
+                    acknowledgment: JSON.stringify({
+                        days: days.val(),
+                        date: date.val(),
+                        info: info.val(),
+                    }),
+                    email_content: second.find("#acknowledgment-email-body").val()
+                },
+                success: function(data) {
+                    third.find(".email-summary").html(data.template);
+                    third.find("input[name='email-summary']").val(data.template);
+                }
+            });
+
+            second.hide();
+            third.show();
+        });
+
+        prev2.click(function() {
+            second.hide();
+            first.show();
+        });
+
+        prev3.click(function() {
+            third.hide();
+            second.show();
+        });
+
+    });
+</script>

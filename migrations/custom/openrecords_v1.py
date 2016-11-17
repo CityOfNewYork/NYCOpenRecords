@@ -68,9 +68,9 @@ def transfer_row(row_v1, cur_v1, cur_v2):
                  "description,"
                  "date_created,"
                  "date_submitted,"
-                 "due_date,"  # TODO: why not `date_due`?
+                 "due_date,"
                  "submission,"  # FIXME: not nullable
-                 "current_status,"  # TODO: why not just `status`?
+                 "status,"
                  "privacy,"
                  "agency_description)"
                  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
@@ -84,7 +84,7 @@ def transfer_row(row_v1, cur_v1, cur_v2):
             row_v1.date_received,  # date_submitted
             row_v1.due_date,  # due_date
             row_v1.offline_submission_type,  # submission
-            status,  # current_status
+            status,  # status
             json.dumps(privacy),  # privacy
             row_v1.agency_description  # agency_description
             # FIXME: agency_description_due_date missing

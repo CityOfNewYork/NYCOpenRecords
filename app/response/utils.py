@@ -10,6 +10,7 @@ import re
 import json
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
+from urllib.parse import urljoin
 
 import magic
 from cached_property import cached_property
@@ -26,13 +27,13 @@ from app import email_redis, calendar
 from app.constants import (
     event_type,
     response_type,
+    response_privacy,
+    request_status,
+    determination_type,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
-    response_privacy,
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
-from app.constants.user_type_auth import ANONYMOUS_USER
-from app.constants.user_type_request import REQUESTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
@@ -50,8 +51,7 @@ from app.models import (
     Instructions,
     Requests,
     Responses,
-    UserRequests,
-    Extensions,
+    Determinations,
     Emails
 )
 
@@ -86,7 +86,7 @@ def add_file(request_id, filename, title, privacy):
         hash_,
     )
     create_object(response)
-    _process_response(request_id, event_type.FILE_ADDED, response)
+    _create_response_event(response, event_type.FILE_ADDED)
 
 
 def add_note(request_id, note_content, email_content, privacy):
@@ -103,8 +103,45 @@ def add_note(request_id, note_content, email_content, privacy):
     """
     response = Notes(request_id, privacy, note_content)
     create_object(response)
-    _process_response(request_id, event_type.NOTE_ADDED, response)
+    _create_response_event(response, event_type.NOTE_ADDED)
     _send_response_email(request_id, privacy, email_content)
+
+
+def add_acknowledgment(request_id, info, days, date, email_content):
+    """
+    Create and store an acknowledgement-determination response for
+    the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param info: additional information pertaining to the acknowledgment
+    :param days: days until request completion
+    :param date: date of request completion
+    :param email_content: email body associated with this action
+
+    """
+    if not Requests.query.filter_by(id=request_id).one().was_acknowledged:
+        new_due_date = _get_new_due_date(request_id, days, date)
+        update_object(
+            {'due_date': new_due_date,
+             'status': request_status.IN_PROGRESS},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.ACKNOWLEDGMENT,
+            info,
+            new_due_date,
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_ACKNOWLEDGED)
+        _send_response_email(request_id, privacy, email_content)
+
+
+def add_denial(request_id, reason, email_content):
+    pass
 
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
@@ -127,9 +164,15 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
         Requests,
         request_id)
     privacy = RELEASE_AND_PUBLIC
-    response = Extensions(request_id, privacy, reason, new_due_date)
+    response = Determinations(
+        request_id,
+        privacy,
+        determination_type.EXTENSION,
+        reason,
+        new_due_date
+    )
     create_object(response)
-    _process_response(request_id, event_type.REQ_EXTENDED, response)
+    _create_response_event(response, event_type.REQ_EXTENDED)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -149,7 +192,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     """
     response = Links(request_id, privacy, title, url_link)
     create_object(response)
-    _process_response(request_id, event_type.LINK_ADDED, response)
+    _create_response_event(response, event_type.LINK_ADDED)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -167,7 +210,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     """
     response = Instructions(request_id, privacy, instruction_content)
     create_object(response)
-    _process_response(request_id, event_type.INSTRUCTIONS_ADDED, response)
+    _create_response_event(response, event_type.INSTRUCTIONS_ADDED)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -199,7 +242,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
         body=email_content
     )
     create_object(response)
-    _process_response(request_id, event_type.EMAIL_NOTIFICATION_SENT, response)
+    _create_response_event(response, event_type.EMAIL_NOTIFICATION_SENT)
 
 
 def add_sms():
@@ -303,19 +346,54 @@ def process_email_template_request(request_id, data):
 
     :return: the HTML of the rendered template
     """
-    page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request_id)
+    page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     # set a dictionary of email types to handler functions to handle the specific response type
-    handler_for_type = {
-        response_type.EXTENSION: _extension_email_handler,
-        response_type.FILE: _file_email_handler,
-        response_type.LINK: _link_email_handler,
-        response_type.NOTE: _note_email_handler,
-        response_type.INSTRUCTIONS: _instruction_email_handler,
-        "edit": _edit_email_handler
-    }
-    return handler_for_type[data['type']](request_id, data, page, agency_name, email_template)
+
+    rtype = data['type']
+    if rtype in determination_type.ALL:
+        handler_for_type = {
+            determination_type.EXTENSION: _extension_email_handler,
+            determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler
+        }
+    else:
+        handler_for_type = {
+            response_type.FILE: _file_email_handler,
+            response_type.LINK: _link_email_handler,
+            response_type.NOTE: _note_email_handler,
+            response_type.INSTRUCTIONS: _instruction_email_handler,
+            "edit": _edit_email_handler
+        }
+    return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
+
+
+def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
+    acknowledgment = data.get('acknowledgment')
+
+    if acknowledgment is not None:
+        acknowledgment = json.loads(acknowledgment)
+        default_content = False
+        content = data['email_content']
+        date = _get_new_due_date(
+            request_id,
+            acknowledgment['days'],
+            acknowledgment['date']
+        ).strftime('%A, %b, %d,%Y')
+        info = acknowledgment['info'].strip() or None
+    else:
+        default_content = True
+        content = None
+        date = ''
+        info = ''
+    return jsonify({"template": render_template(email_template,
+                                                default_content=default_content,
+                                                content=content,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                date=date,
+                                                info=info,
+                                                page=page)}), 200
 
 
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
@@ -572,7 +650,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
                                                       content=content,
                                                       request_id=request_id,
                                                       agency_name=agency_name,
-                                                      response_type=resp.type,
+                                                      response=resp,
                                                       response_data=editor,
                                                       page=page,
                                                       privacy=privacy,
@@ -603,7 +681,7 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
                                            content=content,
                                            request_id=request_id,
                                            agency_name=agency_name,
-                                           response_type=resp.type,
+                                           response=resp,
                                            response_data=editor,
                                            page=page,
                                            privacy=privacy,
@@ -781,38 +859,21 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-# TODO: FIX DOCSTRINGS after testing
-def _process_response(request_id, events_type, response):
+def _create_response_event(response, events_type):
     """
-    Create and store response object with given arguments from separate response type functions to the database.
-    Calculates response release_date (20 business days from today) if privacy option is release and public.
-    Check and determine user type for event object as per request.
-    Create and store events object to the database.
+    Create and store event object for given response.
 
-    :param request_id: FOIL request ID to be stored into the responses and events tables
-    :param responses_type: type of response to be stored in the responses table
-    :param events_type: type of event to be stored in the events table
-    :param metadata_id: metadata_id of the specific response to be stored in the responses table
-    :param privacy: privacy of the response (default is 'private') to be stored in the responses table
-    :param new_value: string content of the new response, to be stored in the responses table
-    :param previous_value: string content of the previous response, to be stored in the responses table
+    :param response: response object
+    :param events_type: one of app.constants.event_type
 
     """
-    if current_user.is_anonymous:
-        user_guid = UserRequests.query.with_entities(
-            UserRequests.user_guid
-        ).filter_by(
-            request_id=request_id,
-            request_user_type=REQUESTER
-        )[0]
-        auth_user_type = ANONYMOUS_USER
-    else:
-        user_guid = current_user.guid
-        auth_user_type = current_user.auth_user_type
+    user = response.request.requester \
+        if current_user.is_anonymous else current_user
+    # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
 
-    event = Events(request_id=request_id,
-                   user_id=user_guid,
-                   auth_user_type=auth_user_type,
+    event = Events(request_id=response.request_id,
+                   user_id=user.guid,
+                   auth_user_type=user.auth_user_type,
                    type=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,

@@ -1,15 +1,15 @@
 <div class="container-fluid">
-    {% if request.current_status == status.IN_PROGRESS %}
+    {% if request.status == status.IN_PROGRESS %}
         <h1><span class="in-progress">In Progress</span></h1>
-    {% elif request.current_status == status.OVERDUE %}
+    {% elif request.status == status.OVERDUE %}
         <h1><span class="overdue">Overdue</span></h1>
-    {% elif request.current_status == status.DUE_SOON %}
+    {% elif request.status == status.DUE_SOON %}
         <h1><span class="duesoon">Due Soon</span></h1>
-    {% elif request.current_status == status.OPEN %}
+    {% elif request.status == status.OPEN %}
         <h1><span class="open">Open</span></h1>
-    {% elif request.current_status == status.RE_OPENED %}
+    {% elif request.status == status.RE_OPENED %}
         <h1><span class="reopened">Re-Opened</span></h1>
-    {% elif request.current_status == status.CLOSED %}
+    {% elif request.status == status.CLOSED %}
         <h1><span class="closed">Closed</span></h1>
     {% endif %}
 
@@ -79,5 +79,11 @@
         </div>
     {% endif %}
 
-    <p>Due Date: {{ request.get_formatted_due_date() }}</p>
+
+    <p>
+        {% if request.status == status.OPEN %}
+            Acknowledgment<br>
+        {% endif %}
+        Due Date: {{ request.get_formatted_due_date() }}
+    </p>
 </div>

@@ -1,5 +1,5 @@
 <p>
-    The following {{ response.type | format_response_type }} response in request
+    The following {{ response | format_response_type }} response in request
     <a href="{{ url_for('request.view', request_id=request_id) }}">
         {{ request_id }}
     </a> has been DELETED.

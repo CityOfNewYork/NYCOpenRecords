@@ -20,7 +20,7 @@ from app import upload_redis
 from app.constants import (
     event_type,
     role_name as role,
-    ACKNOWLEDGEMENT_DAYS_DUE,
+    ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request
 )
 from app.constants.user_type_auth import ANONYMOUS_USER
@@ -100,7 +100,7 @@ def create_request(title,
                       else get_following_date(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = get_due_date(date_submitted, ACKNOWLEDGEMENT_DAYS_DUE)
+    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE)
 
     # 5. Create Request
     request = Requests(
@@ -140,7 +140,7 @@ def create_request(title,
         upload_path = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        title = ''  # TODO: add title field to new-request page?
+        title = ''  # TODO: add optional title field to new-request page?
         name = os.path.basename(upload_path)
         mime_type = get_mime_type(request_id, upload_path)
         size = os.path.getsize(upload_path)
