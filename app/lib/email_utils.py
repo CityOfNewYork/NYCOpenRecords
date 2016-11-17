@@ -58,22 +58,12 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_c
     send_async_email.delay(msg)
 
 
-def get_agencies_emails(request_id):
+def get_agency_emails(request_id):
     """
-    Gets a list of the agencies emails by querying UserRequests by request_id and request_user_type
+    Gets a list of the agency emails (assigned users and default email)
 
     :param request_id: FOIL request ID to query UserRequests
     :return: list of agency emails or ['agency@email.com'] (for testing)
     """
-    # Get list of agency users on the request
-    agency_user_guids = UserRequests.query.with_entities(UserRequests.user_guid).filter_by(request_id=request_id,
-                                                                                           request_user_type=AGENCY).all()
-    # Query for the agency email information
-    agency_emails = []  # FIXME: Can this be empty?
-    for user_guid in agency_user_guids:
-        agency_user_email = Users.query.filter_by(guid=user_guid, auth_user_type=AGENCY_USER).first().email
-        agency_emails.append(agency_user_email)
-    # get the agency_ein's default email and adds it to the bcc list
-    agency_default_email = Requests.query.filter_by(id=request_id).first().agency.default_email
-    agency_emails.append(agency_default_email)
-    return agency_emails or ['agency@email.com']
+    request = Requests.filter_by(id=request_id)
+    return [user.email for user in request.agency_users] + [request.agency.default_email] or ['agency@email.com']

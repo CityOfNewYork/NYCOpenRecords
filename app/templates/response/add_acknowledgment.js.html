@@ -21,7 +21,6 @@
         for (i = 0; i < required.length; i++ ) {
             required[i].attr("data-parsley-required", "");
         }
-        info.attr("data-parsley-minlength", "20");
         info.attr("data-parsley-maxlength", "5000");
 
         info.keyup(function() {
@@ -60,16 +59,12 @@
             days.parsley().validate();
             info.parsley().validate();
 
-            if (!days.parsley().isValid() ||
-                !info.parsley().isValid()
+            if (!(days.parsley().isValid() && info.parsley().isValid())
             ) {
                 e.preventDefault();
                 return false;
             }
-
-            if (days.parsley().isValid() ||
-                date.parsley().isValid()
-            ) {
+            else {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",

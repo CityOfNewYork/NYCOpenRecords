@@ -38,6 +38,7 @@ from app.response.utils import (
     add_link,
     add_extension,
     add_acknowledgment,
+    add_denial,
     add_instruction,
     process_upload_data,
     send_file_email,
@@ -136,6 +137,22 @@ def response_acknowledgment(request_id):
                        flask_request.form['days'],
                        flask_request.form['date'],
                        flask_request.form['email-summary'])
+    return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/denial/<request_id>', methods=['POST'])
+def response_denial(request_id):
+    required_fields= ['reason', 'email-summary']
+
+    for field in required_fields:
+        if flask_request.form.get(field) is None:
+            flash('Uh Oh, it loogs like the denial {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    add_denial(request_id,
+               flask_request.form['reason'],
+               flask_request.form['email-summary'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

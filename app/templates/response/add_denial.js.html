@@ -1,0 +1,47 @@
+<script type="text/javascript">
+    $(function() {
+        var form = $("#add-denial");
+        var first = form.find(".first");
+        var second = form.find(".second");
+
+        var next = first.find(".next");
+        var prev = second.find(".prev");
+
+        var reason = first.find("#denial-reason");
+
+        // Parsley
+        reason.attr("data-parsley-required", "");
+
+        next.click(function(e) {
+            reason.parsley().validate();
+
+            if (!reason.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        template_name: "email_response_denial.html",
+                        type: "denial",
+                        reason: reason.val(),
+                    },
+                    success: function(data) {
+                        second.find(".email-summary").html(data.template);
+                        second.find("input[name='email-summary']").val(data.template);
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        prev.click(function() {
+            second.hide();
+            first.show();
+        })
+    });
+</script>
