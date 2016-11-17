@@ -5,7 +5,6 @@
 """
 import os
 from datetime import datetime
-from urllib.request import urlopen
 
 from flask import (
     flash,
@@ -30,7 +29,8 @@ from app.models import (
     UserRequests,
     Files,
     Notes,
-    Instructions
+    Instructions,
+    Links
 )
 from app.response.utils import (
     add_note,
@@ -45,7 +45,8 @@ from app.response.utils import (
     process_email_template_request,
     RespFileEditor,
     RespNoteEditor,
-    RespInstructionsEditor
+    RespInstructionsEditor,
+    RespLinkEditor
 )
 
 
@@ -338,17 +339,20 @@ def patch(response_id):
     }
 
     """
-    if current_user.is_anonymous:
-        return '', 403
-
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
+
+    user = resp.request.requester \
+        if current_user.is_anonymous else current_user
+    # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
+
     editor_for_type = {
         Files: RespFileEditor,
         Notes: RespNoteEditor,
         Instructions: RespInstructionsEditor,
+        Links: RespLinkEditor,
         # ...
     }
-    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
+    editor = editor_for_type[type(resp)](user, resp, flask_request)
     if editor.errors:
         http_response = {"errors": editor.errors}
     else:

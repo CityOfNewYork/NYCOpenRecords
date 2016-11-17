@@ -70,6 +70,12 @@ $(document).ready(function () {
         document.getElementById("link-second").style.display = "block";
     });
 
+    // Disable button on submit click and submit form
+    $("#link-submit").click(function () {
+        $(this).attr("disabled", true);
+        $("#add-link-form").submit();
+    });
+
     // Apply parsley data required validation to link title and url
     $('#link-title').attr('data-parsley-required', '');
     $('#link-url').attr('data-parsley-required', '');
@@ -97,7 +103,7 @@ $(document).ready(function () {
 
     // Set character counter for link url
     $('#link-url').keyup(function () {
-        characterCounter("#link-url-character-count", 500, $(this).val().length)
+        characterCounter("#link-url-character-count", 254, $(this).val().length)
     });
 });
 </script>

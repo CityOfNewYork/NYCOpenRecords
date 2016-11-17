@@ -110,6 +110,8 @@ $(function () {
         var prev2 = second.find(".response-modal-prev");
         var prev3 = third.find(".response-modal-prev");
 
+        var submitBtn = third.find(".response-modal-submit");
+
         // Initialize tinymce HTML editor
         tinymce.init({
             menubar: false,
@@ -196,9 +198,6 @@ $(function () {
                             // Data should be html template page.
                             third.find(".email-summary").html(data.template);
                             // TODO: data should also return email confirmation header
-                        },
-                        error: function (error) {
-                            console.log(error);
                         }
                     });
                 });
@@ -215,7 +214,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function() {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
@@ -289,9 +289,6 @@ $(function () {
                         success: function (data) {
                             third.find(".confirmation-header").text(data.header);
                             third.find(".email-summary").html(data.template);
-                        },
-                        error: function (error) {
-                            console.log(error);
                         }
                     });
                 });
@@ -307,7 +304,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function() {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
@@ -319,10 +317,10 @@ $(function () {
                     });
                 });
 
-                // Apply parsley data required validation to note title and url
+                // Apply parsley data required validation to note content
                 first.find('.note-content').attr("data-parsley-required", "");
 
-                // Apply parsley max length validation to note title and url
+                // Apply parsley max length validation to note content
                 first.find('.note-content').attr("data-parsley-maxlength", "500");
 
                 // Apply custom validation messages
@@ -412,7 +410,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function() {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
@@ -424,10 +423,10 @@ $(function () {
                     });
                 });
 
-                // Apply parsley data required validation to note title and url
+                // Apply parsley data required validation to instructions content
                 first.find('.instruction-content').attr("data-parsley-required", "");
 
-                // Apply parsley max length validation to note title and url
+                // Apply parsley max length validation to instructions content
                 first.find('.instruction-content').attr("data-parsley-maxlength", "500");
 
                 // Apply custom validation messages
@@ -438,6 +437,126 @@ $(function () {
 
                 $(first.find(".instruction-content")).keyup(function () {
                     characterCounter(first.find(".instruction-content-character-count"), 500, $(this).val().length)
+                });
+
+                break;
+
+            case "links":
+                first.find("input[name='url']").on('input', function () {
+                    var urlVal = $(this).val();
+                    first.find(".edit-link-href").attr("href", urlVal).text(urlVal);
+                });
+
+                next1.click(function () {
+                    first.find(".link-form").parsley().validate();
+
+                    if (first.find(".link-form").parsley().isValid()) {
+                        $.ajax({
+                            url: "/response/email",
+                            type: "POST",
+                            data: {
+                                request_id: request_id,
+                                template_name: "email_edit_response.html",
+                                type: "edit",
+                                response_id: response_id,
+                                title: first.find(".title").val(),
+                                url: first.find(".url").val(),
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                confirmation: false
+                            },
+                            success: function (data) {
+                                if (data.error) {
+                                    first.find(".link-error-messages").text(
+                                        data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".link-error-messages").text(
+                                        data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
+                            }
+                        });
+                    }
+                });
+
+                next2.click(function () {
+                    second.hide();
+                    third.show();
+
+                    tinyMCE.triggerSave();
+
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: request_id,
+                            template_name: "email_edit_response.html",
+                            type: "edit",
+                            response_id: response_id,
+                            title: first.find(".title").val(),
+                            url: first.find(".url").val(),
+                            privacy: first.find("input[name=privacy]:checked").val(),
+                            confirmation: true,
+                            email_content: $("#email-content-" + response_id).val()
+                        },
+                        success: function (data) {
+                            third.find(".confirmation-header").text(data.header);
+                            third.find(".email-summary").html(data.template);
+                        }
+                    });
+                });
+
+                prev2.click(function() {
+                    second.hide();
+                    first.show()
+                });
+
+                prev3.click(function () {
+                    third.hide();
+                    second.show();
+                });
+
+                // SUBMIT!
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
+                    var form = first.find("form");
+                    $.ajax({
+                        url: "/response/" + response_id,
+                        type: "PATCH",
+                        data: form.serializeArray(),
+                        success: function (response) {
+                            location.reload();
+                        }
+                    });
+                });
+
+                // Apply parsley data required validation to link-form fields
+                first.find(".title").attr("data-parsley-required", "");
+                first.find(".url").attr("data-parsley-required", "");
+
+                // Apply parsley max length validation to link-form fields
+                first.find(".title").attr("data-parsley-maxlength", "90");
+                first.find(".url").attr("data-parsley-required", "254");
+
+                // Apply custom validation messages
+                first.find('.title').attr('data-parsley-required-message', 'Link title must be provided.');
+                first.find('.url').attr('data-parsley-required-message', 'URL link must be provided.');
+                first.find('.title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters.');
+                first.find('.url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters.');
+
+                // Custom validator to validate strict url using regexUrlChecker
+                first.find('.url').attr('data-parsley-urlstrict', '');
+
+                // Set character counter for link title
+                first.find('.title').keyup(function () {
+                    characterCounter(first.find(".link-title-character-count"), 90, $(this).val().length)
+                });
+
+                // Set character counter for link url
+                first.find('.url').keyup(function () {
+                    characterCounter(first.find(".link-url-character-count"), 254, $(this).val().length)
                 });
 
                 break;

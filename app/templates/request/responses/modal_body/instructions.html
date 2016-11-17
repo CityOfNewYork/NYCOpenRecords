@@ -1,15 +1,11 @@
 <form id="instruction-update-{{ response.id }}" class="instruction-update instruction-form"
       action="/response/{{ response.id }}" method="POST">
     <div class="instruction-error-messages alert alert-danger" hidden></div>
-    <div class="instruction-modal-control">
-        <div class="instruction-divs">
-            <textarea class="input-block-level form-group instruction-content"
-                      title="content" name="content" maxlength="500">{{ response.content }}</textarea>
-            <h5 class="required instruction-content-character-count">
-                500 characters remaining
-            </h5>
-        </div>
-    </div>
+    <textarea class="input-block-level form-group instruction-content"
+              title="content" name="content" maxlength="500">{{ response.content }}</textarea>
+    <h5 class="required instruction-content-character-count">
+        500 characters remaining
+    </h5>
     <div>
     {% for privacy in privacies %}
         <div class="radio">
