@@ -110,6 +110,8 @@ $(function () {
         var prev2 = second.find(".response-modal-prev");
         var prev3 = third.find(".response-modal-prev");
 
+        var submitBtn = third.find(".response-modal-submit");
+
         // Initialize tinymce HTML editor
         tinymce.init({
             menubar: false,
@@ -212,7 +214,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function () {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
@@ -301,7 +304,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function () {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
@@ -406,7 +410,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function () {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,
@@ -437,6 +442,11 @@ $(function () {
                 break;
 
             case "links":
+                first.find("input[name='url']").on('input', function () {
+                    var urlVal = $(this).val();
+                    first.find(".edit-link-href").attr("href", urlVal).text(urlVal);
+                });
+
                 next1.click(function () {
                     first.find(".link-form").parsley().validate();
 
@@ -509,7 +519,8 @@ $(function () {
                 });
 
                 // SUBMIT!
-                third.find(".response-modal-submit").click(function () {
+                submitBtn.click(function () {
+                    $(this).attr("disabled", true);
                     var form = first.find("form");
                     $.ajax({
                         url: "/response/" + response_id,

@@ -339,10 +339,12 @@ def patch(response_id):
     }
 
     """
-    if current_user.is_anonymous:
-        return '', 403
-
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
+
+    user = resp.request.requester \
+        if current_user.is_anonymous else current_user
+    # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
+
     editor_for_type = {
         Files: RespFileEditor,
         Notes: RespNoteEditor,
@@ -350,7 +352,7 @@ def patch(response_id):
         Links: RespLinkEditor,
         # ...
     }
-    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
+    editor = editor_for_type[type(resp)](user, resp, flask_request)
     if editor.errors:
         http_response = {"errors": editor.errors}
     else:

@@ -1,6 +1,9 @@
 {% if response.dtype == determination_type.ACKNOWLEDGMENT %}
-    <p>Expected date of completion: <strong>{{ response.date.strftime('%A, %B %d %Y at %I:%M %p') }}</strong></p>
+    <p>Expected date of completion: <strong>{{ response.date.strftime('%A, %B %d, %Y at %I:%M %p') }}</strong></p>
     {% if response.reason %}
         <p>{{ response.reason }}</p>
     {% endif %}
+{% elif response.dtype == determination_type.EXTENSION %}
+    <p>Due date changed to: <strong>{{ response.date.strftime('%A, %B %d, %Y at %I:%M %p') }}</strong></p>
+    <p>{{ response.reason }}</p>
 {% endif %}

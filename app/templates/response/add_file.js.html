@@ -118,6 +118,12 @@
             document.getElementById("fileupload-second").style.display = "block";
         });
 
+        // Disable button on submit click and submit form
+        $("#file-submit").click(function () {
+            $(this).attr("disabled", true);
+            $("#fileupload").submit();
+        });
+
         // Apply parsley required validation
         $('#add-files').attr('data-parsley-required', 'false');
 
