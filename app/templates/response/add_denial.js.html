@@ -1,0 +1,55 @@
+<script type="text/javascript">
+    $(function() {
+        var form = $("#add-denial");
+        var first = form.find(".first");
+        var second = form.find(".second");
+
+        var next = first.find(".next");
+        var prev = second.find(".prev");
+
+        var reason_ids = first.find("#denial-reason-ids");
+
+        // Do not reset on click
+        reason_ids.find('option').mousedown(function(e) {
+            e.preventDefault();
+            reason_ids.focus();
+            $(this).prop('selected', !$(this).prop('selected'));
+            return false;
+        });
+
+        // Parsley
+        reason_ids.attr("data-parsley-required", "");
+
+        next.click(function(e) {
+            reason_ids.parsley().validate();
+
+            if (!reason_ids.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        template_name: "email_response_denial.html",
+                        type: "denial",
+                        reason_ids: reason_ids.val(),
+                    },
+                    success: function(data) {
+                        second.find(".email-summary").html(data.template);
+                        second.find("input[name='email-summary']").val(data.template);
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        prev.click(function() {
+            second.hide();
+            first.show();
+        })
+    });
+</script>

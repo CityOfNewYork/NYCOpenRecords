@@ -13,8 +13,11 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
+
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
-                   os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data'), 'agencies.csv'))
+                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
+    REASON_DATA = (os.environ.get('REASONS_DATA') or
+                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
 
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or

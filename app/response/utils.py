@@ -37,7 +37,7 @@ from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import generate_new_due_date
 from app.lib.db_utils import create_object, update_object
-from app.lib.email_utils import send_email, get_agencies_emails
+from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.file_utils import get_mime_type
 from app.lib.utils import (
     get_file_hash,
@@ -51,6 +51,7 @@ from app.models import (
     Instructions,
     Requests,
     Responses,
+    Reasons,
     Determinations,
     Emails
 )
@@ -116,7 +117,7 @@ def add_acknowledgment(request_id, info, days, date, email_content):
     :param info: additional information pertaining to the acknowledgment
     :param days: days until request completion
     :param date: date of request completion
-    :param email_content: email body associated with this action
+    :param email_content: email body associated with the acknowledgment
 
     """
     if not Requests.query.filter_by(id=request_id).one().was_acknowledged:
@@ -140,8 +141,33 @@ def add_acknowledgment(request_id, info, days, date, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
-def add_denial(request_id, reason, email_content):
-    pass
+def add_denial(request_id, reason_ids, email_content):
+    """
+    Create and store a denial-determination response for
+    the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param reason: reason for denial
+    :param email_content: email body associated with the denial
+
+    """
+    if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
+        update_object(
+            {'status': request_status.CLOSED},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.DENIAL,
+            ",".join(Reasons.query.filter_by(id=reason_id).one().content
+                     for reason_id in reason_ids)
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_CLOSED)  # FIXME: REQ_DENIED?
+        _send_response_email(request_id, privacy, email_content)
 
 
 def add_extension(request_id, length, reason, custom_due_date, email_content):
@@ -355,7 +381,8 @@ def process_email_template_request(request_id, data):
     if rtype in determination_type.ALL:
         handler_for_type = {
             determination_type.EXTENSION: _extension_email_handler,
-            determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler
+            determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
+            determination_type.DENIAL: _denial_email_handler,
         }
     else:
         handler_for_type = {
@@ -394,6 +421,18 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
                                                 date=date,
                                                 info=info,
                                                 page=page)}), 200
+
+
+def _denial_email_handler(request_id, data, page, agency_name, email_template):
+    return jsonify({"template": render_template(
+        email_template,
+        request_id=request_id,
+        agency_name=agency_name,
+        reasons=[Reasons.query.filter_by(id=reason_id).one().content
+                 for reason_id in data.getlist('reason_ids[]')],
+        page=page
+    )}), 200
+
 
 
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
@@ -731,7 +770,7 @@ def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
     """
     # TODO: make subject constants
     subject = 'Response Added'
-    bcc = get_agencies_emails(request_id)
+    bcc = get_agency_emails(request_id)
     # create a dictionary of filenames to be passed through jinja to email template
     file_to_link = {}
     for filename in filenames:
@@ -777,7 +816,7 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     :return:
     """
     subject = 'Response Edited'
-    bcc = get_agencies_emails(request_id)
+    bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
@@ -801,7 +840,7 @@ def _send_response_email(request_id, privacy, email_content):
 
     """
     subject = 'Response Added'
-    bcc = get_agencies_emails(request_id)
+    bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     # Send email with link to requester and bcc agency_ein users as privacy option is release
     kwargs = {
@@ -829,7 +868,7 @@ def _send_delete_response_email(request_id, response):
             response=response,
             response_type=response_type),
         'Response Deleted',
-        to=get_agencies_emails(request_id))
+        to=get_agency_emails(request_id))
 
 
 def safely_send_and_add_email(request_id,
