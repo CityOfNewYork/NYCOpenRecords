@@ -1,13 +1,13 @@
-"""initial
+"""Initial Migration
 
-Revision ID: fe020577865e
+Revision ID: ab1a59fd2469
 Revises: None
-Create Date: 2016-11-14 19:27:23.991754
+Create Date: 2016-11-18 16:10:49.394992
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'fe020577865e'
+revision = 'ab1a59fd2469'
 down_revision = None
 
 from alembic import op
@@ -35,9 +35,10 @@ def upgrade():
     )
     op.create_table('reasons',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('agency', sa.Integer(), nullable=True),
-    sa.Column('deny_reason', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['agency'], ['agencies.ein'], ),
+    sa.Column('type', sa.Enum('closing', 'denial', name='reason_type'), nullable=False),
+    sa.Column('agency_ein', sa.Integer(), nullable=True),
+    sa.Column('content', sa.String(), nullable=False),
+    sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('requests',
@@ -49,7 +50,7 @@ def upgrade():
     sa.Column('date_submitted', sa.DateTime(), nullable=True),
     sa.Column('due_date', sa.DateTime(), nullable=True),
     sa.Column('submission', sa.Enum('Direct Input', 'Fax', 'Phone', 'Email', 'Mail', 'In-Person', '311', name='submission'), nullable=True),
-    sa.Column('current_status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', 'Re-Opened', name='status'), nullable=False),
+    sa.Column('status', sa.Enum('Open', 'In Progress', 'Due Soon', 'Overdue', 'Closed', name='status'), nullable=False),
     sa.Column('privacy', postgresql.JSON(), nullable=True),
     sa.Column('agency_description', sa.String(length=5000), nullable=True),
     sa.Column('agency_description_release_date', sa.DateTime(), nullable=True),
@@ -81,7 +82,7 @@ def upgrade():
     sa.Column('date_modified', sa.DateTime(), nullable=True),
     sa.Column('release_date', sa.DateTime(), nullable=True),
     sa.Column('deleted', sa.Boolean(), nullable=False),
-    sa.Column('type', sa.Enum('notes', 'links', 'files', 'instructions', 'extensions', 'emails', name='type'), nullable=True),
+    sa.Column('type', sa.Enum('notes', 'links', 'files', 'instructions', 'determinations', 'emails', name='type'), nullable=True),
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -94,6 +95,14 @@ def upgrade():
     sa.ForeignKeyConstraint(['request_id'], ['requests.id'], ),
     sa.ForeignKeyConstraint(['user_guid', 'auth_user_type'], ['users.guid', 'users.auth_user_type'], ),
     sa.PrimaryKeyConstraint('user_guid', 'auth_user_type', 'request_id')
+    )
+    op.create_table('determinations',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('dtype', sa.Enum('denial', 'acknowledgment', 'extension', 'closing', name='determination_type'), nullable=False),
+    sa.Column('reason', sa.String(), nullable=True),
+    sa.Column('date', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['id'], ['responses.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('emails',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -119,13 +128,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['response_id'], ['responses.id'], ),
     sa.ForeignKeyConstraint(['user_id', 'auth_user_type'], ['users.guid', 'users.auth_user_type'], ),
     sa.PrimaryKeyConstraint('id', 'auth_user_type')
-    )
-    op.create_table('extensions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('reason', sa.String(), nullable=True),
-    sa.Column('date', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['id'], ['responses.id'], ),
-    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('files',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -174,9 +176,9 @@ def downgrade():
     op.drop_table('links')
     op.drop_table('instructions')
     op.drop_table('files')
-    op.drop_table('extensions')
     op.drop_table('events')
     op.drop_table('emails')
+    op.drop_table('determinations')
     op.drop_table('user_requests')
     op.drop_table('responses')
     op.drop_table('users')

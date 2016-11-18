@@ -146,7 +146,7 @@ def response_denial(request_id):
 
     for field in required_fields:
         if flask_request.form.get(field) is None:
-            flash('Uh Oh, it loogs like the denial {} is missing! '
+            flash('Uh Oh, it looks like the denial {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
