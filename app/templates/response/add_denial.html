@@ -6,8 +6,8 @@
             </legend>
             <div class="first">
                 <div class="form-group">
-                    {{ deny_request_form.reason.label }}
-                    {{ deny_request_form.reason(id="denial-reason", class="form-control") }}
+                    {{ deny_request_form.reasons.label }}<br>
+                    {{ deny_request_form.reasons(id="denial-reason-ids", class="form-control", size=10) }}
                 </div>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>

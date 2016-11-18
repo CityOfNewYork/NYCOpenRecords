@@ -7,15 +7,23 @@
         var next = first.find(".next");
         var prev = second.find(".prev");
 
-        var reason = first.find("#denial-reason");
+        var reason_ids = first.find("#denial-reason-ids");
+
+        // Do not reset on click
+        reason_ids.find('option').mousedown(function(e) {
+            e.preventDefault();
+            reason_ids.focus();
+            $(this).prop('selected', !$(this).prop('selected'));
+            return false;
+        });
 
         // Parsley
-        reason.attr("data-parsley-required", "");
+        reason_ids.attr("data-parsley-required", "");
 
         next.click(function(e) {
-            reason.parsley().validate();
+            reason_ids.parsley().validate();
 
-            if (!reason.parsley().isValid()) {
+            if (!reason_ids.parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
@@ -27,7 +35,7 @@
                         request_id: "{{ request.id }}",
                         template_name: "email_response_denial.html",
                         type: "denial",
-                        reason: reason.val(),
+                        reason_ids: reason_ids.val(),
                     },
                     success: function(data) {
                         second.find(".email-summary").html(data.template);

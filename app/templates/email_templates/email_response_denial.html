@@ -3,8 +3,10 @@
     information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
 </p>
 <p>
-    The {{ agency_name }} has DENIED your request for the following reason:
+    The {{ agency_name }} has DENIED your request for the following reason{% if reasons|length > 1 %}s{% endif %}:
 </p>
-<p>
-    {{ reason }}
-</p>
+<ul>
+    {% for reason in reasons %}
+        <li>{{ reason }}</li>
+    {% endfor %}
+</ul>

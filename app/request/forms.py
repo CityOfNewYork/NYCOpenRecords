@@ -8,7 +8,14 @@ from datetime import datetime
 
 from flask_wtf import Form
 from flask_wtf.file import FileField
-from wtforms import StringField, SelectField, TextAreaField, SubmitField, DateTimeField
+from wtforms import (
+    StringField,
+    SelectField,
+    TextAreaField,
+    SubmitField,
+    DateTimeField,
+    SelectMultipleField,
+)
 from sqlalchemy import or_
 
 from app.constants import (
@@ -180,11 +187,11 @@ class EditRequesterForm(Form):
 
 
 class DenyRequestForm(Form):
-    reason = SelectField('Reason for Denial')
+    reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
 
     def __init__(self, agency_ein):
         super(DenyRequestForm, self).__init__()
-        self.reason.choices = [("", "Choose one")] + [
+        self.reasons.choices = [
             (reason.id, reason.content)
             for reason in Reasons.query.filter(
                 Reasons.type == determination_type.DENIAL,

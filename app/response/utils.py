@@ -141,7 +141,7 @@ def add_acknowledgment(request_id, info, days, date, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
-def add_denial(request_id, reason_id, email_content):
+def add_denial(request_id, reason_ids, email_content):
     """
     Create and store a denial-determination response for
     the specified request and update the request accordingly.
@@ -162,7 +162,8 @@ def add_denial(request_id, reason_id, email_content):
             request_id,
             privacy,
             determination_type.DENIAL,
-            Reasons.query.filter_by(id=reason_id).one().content
+            ",".join(Reasons.query.filter_by(id=reason_id).one().content
+                     for reason_id in reason_ids)
         )
         create_object(response)
         _create_response_event(response, event_type.REQ_CLOSED)  # FIXME: REQ_DENIED?
@@ -427,7 +428,8 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         email_template,
         request_id=request_id,
         agency_name=agency_name,
-        reason=Reasons.query.filter_by(id=data['reason']).one().content,
+        reasons=[Reasons.query.filter_by(id=reason_id).one().content
+                 for reason_id in data.getlist('reason_ids[]')],
         page=page
     )}), 200
 

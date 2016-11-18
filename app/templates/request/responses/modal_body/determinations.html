@@ -7,5 +7,5 @@
     <p>Due date changed to: <strong>{{ response.date.strftime('%A, %B %d, %Y at %I:%M %p') }}</strong></p>
     <p>{{ response.reason }}</p>
 {% elif  response.dtype == determination_type.DENIAL %}
-    <p>{{ response.reason }}</p>
+    {{ response.reason | format_denial_reason | safe }}
 {% endif %}
