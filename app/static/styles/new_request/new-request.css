@@ -38,8 +38,12 @@
     width: 45px;
 }
 
-#request-file {
-    padding-bottom: 30px;
+#upload-control {
+    padding-bottom: 3rem;
+}
+
+#filename {
+    padding-top: 1rem;
 }
 
 .new-request-description-tooltip {
