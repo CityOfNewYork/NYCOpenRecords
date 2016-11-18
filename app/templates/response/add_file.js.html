@@ -1,5 +1,7 @@
 <script type="text/javascript">
-    $(document).ready(function () {
+    $(function () {
+{#        var form = $("#fileupload");#}
+
         // Hides all other divs except for the first. Also hides previous button on the first div.
         $(".fileupload-control .fileupload-divs").each(function (e) {
             if (e != 0)
@@ -7,6 +9,7 @@
             else
                 $("#previous").hide();
         });
+
 
         // Handles click events on the first next button
         $("#fileupload-next-1").click(function (e) {
@@ -48,13 +51,20 @@
             // Proceed with next click function if validation fields are valid and no files are uploading
             if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
                 $('.fileupload-error-messages').html('');
+                var privacy = $(".file-privacy:checked").map(function(){return $(this).val(); }).get();
+                for (var i = 1; i < privacy.length; i++) {
+                    var is_private = privacy[i] === privacy[0];
+                    if (is_private && privacy[0] === 'private')
+                        is_private = true;
+                }
                 $.ajax({
                     url: "/response/email",
                     type: 'POST',
                     data: {
                         request_id: "{{ request.id }}",
                         template_name: "email_response_file.html",
-                        type: "files"
+                        type: "files",
+                        is_private: is_private
                     },
                     success: function (data) {
                         // Data should be html template page.

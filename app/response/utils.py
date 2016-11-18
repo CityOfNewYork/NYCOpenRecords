@@ -503,6 +503,8 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         files = []
         default_content = True
         content = None
+        if eval_request_bool(data['is_private']):
+            email_template = 'email_templates/email_private_file_upload.html'
     # iterate through files dictionary to create and append links of files with privacy option of not private
     for file_ in files:
         if file_['privacy'] != PRIVATE:
