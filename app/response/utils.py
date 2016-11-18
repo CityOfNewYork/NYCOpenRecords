@@ -507,9 +507,8 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
             email_template = 'email_templates/email_private_file_upload.html'
     # iterate through files dictionary to create and append links of files with privacy option of not private
     for file_ in files:
-        if file_['privacy'] != PRIVATE:
-            filename = file_['filename']
-            files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
+        filename = file_['filename']
+        files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
