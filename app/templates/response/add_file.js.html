@@ -1,7 +1,5 @@
 <script type="text/javascript">
     $(function () {
-{#        var form = $("#fileupload");#}
-
         // Hides all other divs except for the first. Also hides previous button on the first div.
         $(".fileupload-control .fileupload-divs").each(function (e) {
             if (e != 0)
@@ -52,10 +50,15 @@
             if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
                 $('.fileupload-error-messages').html('');
                 var privacy = $(".file-privacy:checked").map(function(){return $(this).val(); }).get();
-                for (var i = 1; i < privacy.length; i++) {
-                    var is_private = privacy[i] === privacy[0];
-                    if (is_private && privacy[0] === 'private')
+                var is_private;
+                for (var i = 0; i < privacy.length; i++) {
+                    // 1. Check if current value === 'private'
+                    if (privacy[i] === 'private') {
                         is_private = true;
+                    } else {
+                        is_private = false;
+                        break;
+                    }
                 }
                 $.ajax({
                     url: "/response/email",
