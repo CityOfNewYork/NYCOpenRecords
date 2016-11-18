@@ -4,19 +4,19 @@
 
 .home-page-description {
     font-size: 1.8rem;
-    padding-top: 10px;
+    padding-top: 1rem;
 }
 
-.looking-for-something-ese {
-    padding-top: 0px;
-    padding-bottom: 10px;
+.looking-for-something-else {
+    padding-top: 0rem;
+    padding-bottom: 1rem;
 }
 
 .nyc-gov-links {
-    padding-left: 15px;
+    padding-left: 1.5rem;
 }
 
 .request-record-button {
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
 }
