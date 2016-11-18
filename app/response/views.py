@@ -142,7 +142,7 @@ def response_acknowledgment(request_id):
 
 @response.route('/denial/<request_id>', methods=['POST'])
 def response_denial(request_id):
-    required_fields= ['reason', 'email-summary']
+    required_fields = ['reason', 'email-summary']
 
     for field in required_fields:
         if flask_request.form.get(field) is None:

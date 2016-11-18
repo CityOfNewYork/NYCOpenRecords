@@ -51,6 +51,7 @@ from app.models import (
     Instructions,
     Requests,
     Responses,
+    Reasons,
     Determinations,
     Emails
 )
@@ -140,7 +141,7 @@ def add_acknowledgment(request_id, info, days, date, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
-def add_denial(request_id, reason, email_content):
+def add_denial(request_id, reason_id, email_content):
     """
     Create and store a denial-determination response for
     the specified request and update the request accordingly.
@@ -151,12 +152,17 @@ def add_denial(request_id, reason, email_content):
 
     """
     if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
+        update_object(
+            {'status': request_status.CLOSED},
+            Requests,
+            request_id
+        )
         privacy = RELEASE_AND_PUBLIC
         response = Determinations(
             request_id,
             privacy,
             determination_type.DENIAL,
-            reason
+            Reasons.query.filter_by(id=reason_id).one().content
         )
         create_object(response)
         _create_response_event(response, event_type.REQ_CLOSED)  # FIXME: REQ_DENIED?
@@ -421,7 +427,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         email_template,
         request_id=request_id,
         agency_name=agency_name,
-        reason=data['reason'].strip(),
+        reason=Reasons.query.filter_by(id=data['reason']).one().content,
         page=page
     )}), 200
 

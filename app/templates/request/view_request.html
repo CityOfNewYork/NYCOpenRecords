@@ -57,7 +57,7 @@
                             <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
                             <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
                         {% else %}
-                            <li><a href="#reopen-request" data-toggle="tab">RE-OPEN</a></li>
+                            <li class="active"><a href="#reopen-request" data-toggle="tab">RE-OPEN</a></li>
                         {% endif %}
                     </ul>
                     <div class="tab-content content-min-height">
@@ -79,7 +79,7 @@
                                     {% include "response/add_acknowledgment.html" %}
                                 </div>
                                 <div class="tab-pane" id="deny-request">
-                                    Deny Request Content
+                                    {% include "response/add_denial.html" %}
                                 </div>
                             {% else %}
                                 <div class="tab-pane" id="extend-request">
@@ -99,7 +99,7 @@
                                 Remove User Content
                             </div>
                         {% else %}
-                            <div class="tab-pane" id="reopen-request">
+                            <div class="tab-pane active" id="reopen-request">
                                 Re-Open Request Content
                             </div>
                         {% endif %}
@@ -152,4 +152,5 @@
     {% include 'response/add_note.js.html' %}
     {% include 'response/add_instruction.js.html' %}
     {% include 'response/add_acknowledgment.js.html' %}
+    {% include 'response/add_denial.js.html' %}
 {% endblock %}

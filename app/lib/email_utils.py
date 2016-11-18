@@ -65,5 +65,5 @@ def get_agency_emails(request_id):
     :param request_id: FOIL request ID to query UserRequests
     :return: list of agency emails or ['agency@email.com'] (for testing)
     """
-    request = Requests.filter_by(id=request_id)
+    request = Requests.query.filter_by(id=request_id).one()
     return [user.email for user in request.agency_users] + [request.agency.default_email] or ['agency@email.com']

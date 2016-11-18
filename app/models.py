@@ -344,7 +344,6 @@ class Requests(db.Model):
                 request_status.DUE_SOON,  # within the next 5 business days
                 request_status.OVERDUE,
                 request_status.CLOSED,
-                request_status.RE_OPENED,
                 name='status'),
         nullable=False
     )

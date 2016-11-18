@@ -184,7 +184,7 @@ class DenyRequestForm(Form):
 
     def __init__(self, agency_ein):
         super(DenyRequestForm, self).__init__()
-        self.reason.choices = [
+        self.reason.choices = [("", "Choose one")] + [
             (reason.id, reason.content)
             for reason in Reasons.query.filter(
                 Reasons.type == determination_type.DENIAL,
