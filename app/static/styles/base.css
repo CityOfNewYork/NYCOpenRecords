@@ -28,7 +28,6 @@
 
 .wrapper
 {
-	min-height:100%;
     max-width:calc(940px + 20px);
     margin-left:auto;
     margin-right:auto;
