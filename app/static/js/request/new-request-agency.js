@@ -108,7 +108,7 @@ $(document).ready(function () {
 
     // Clear the file from input and the name from filename div
     $("#clear-file").click(function () {
-        $('#request-file').val("");
+        $("#request-file").val("");
         $("#filename").text("");
     });
 
