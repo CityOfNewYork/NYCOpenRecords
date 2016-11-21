@@ -37,7 +37,7 @@
             }
 
             // Prevent default if one more more upload has not been completed
-            if (templateDownload.length === 0 && (templateUpload.length != 0)) {
+            if (templateDownload.length === 0 && (templateUpload.length !== 0)) {
                 errorMessage.text("One or more uploads has not completed").show();
                 e.preventDefault();
                 return false;
