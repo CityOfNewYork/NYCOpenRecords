@@ -40,6 +40,7 @@ from app.response.utils import (
     add_acknowledgment,
     add_denial,
     add_instruction,
+    get_file_links,
     process_upload_data,
     send_file_email,
     process_privacy_options,
@@ -98,25 +99,33 @@ def response_file(request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
+    agency_links = []
+    requester_links = []
     for file_data in files:
         add_file(current_request.id,
                  file_data,
                  files[file_data]['title'],
                  files[file_data]['privacy'])
+        response_obj = add_file
+        agency_link, requester_link = get_file_links(response_obj)
+        agency_links.append(agency_link)
+        requester_links.append(requester_link)
+
     file_options = process_privacy_options(files)
     email_content = flask_request.form['email-file-summary']
-    for privacy, files in file_options.items():
-        if privacy == PRIVATE:
-            send_file_email(request_id,
-                            privacy,
-                            files,
-                            None,
-                            email_template='email_templates/email_private_file_upload.html')
-        else:
-            send_file_email(request_id,
-                            privacy,
-                            files,
-                            email_content)
+    send_file_email(request_id, file_options, files, email_content)
+    # for privacy, files in file_options.items():
+    #     if privacy == PRIVATE:
+    #         send_file_email(request_id,
+    #                         privacy,
+    #                         files,
+    #                         None,
+    #                         email_template='email_templates/email_private_file_upload.html')
+    #     else:
+    #         send_file_email(request_id,
+    #                         privacy,
+    #                         files,
+    #                         email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 

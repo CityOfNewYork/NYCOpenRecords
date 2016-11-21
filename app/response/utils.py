@@ -10,6 +10,7 @@ import re
 import json
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
+import urllib.parse
 from urllib.parse import urljoin
 
 import magic
@@ -30,6 +31,7 @@ from app.constants import (
     response_privacy,
     request_status,
     determination_type,
+    user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
 )
@@ -89,10 +91,9 @@ def add_file(request_id, filename, title, privacy):
     )
     create_object(response)
 
-    resptok = ResponseTokens(response.id)
-    create_object(resptok)
-
     _create_response_event(response, event_type.FILE_ADDED)
+
+    return response
 
 
 def add_note(request_id, note_content, email_content, privacy):
@@ -769,6 +770,28 @@ def get_email_key(response_id, requester=False):
             1_agency
     """
     return '_'.join((str(response_id), 'requester' if requester else 'agency'))
+
+
+def get_file_links(response):
+    """
+
+    :param response:
+    :return:
+    """
+    resp = Responses.query.filter_by(id=response.id).one()
+    path = '/response/' + str(response.id)
+    requester_link = None
+    if resp.privacy != PRIVATE:
+        if resp.request.requester is user_type_auth.ANONYMOUS_USER:
+            resptoken = ResponseTokens(response.id)
+            create_object(resptoken)
+            params = urllib.parse.urlencode({'token': resptoken.token})
+            requester_url = urljoin(flask_request.url_root, path)# link with token
+            requester_link = requester_url % params
+        else:
+            requester_link = urljoin(flask_request.url_root, path)
+    agency_link = urljoin(flask_request.url_root, path)
+    return agency_link, requester_link
 
 
 def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
