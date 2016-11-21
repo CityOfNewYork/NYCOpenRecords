@@ -53,7 +53,8 @@ from app.models import (
     Responses,
     Reasons,
     Determinations,
-    Emails
+    Emails,
+    ResponseTokens
 )
 
 
@@ -87,6 +88,10 @@ def add_file(request_id, filename, title, privacy):
         hash_,
     )
     create_object(response)
+
+    resptok = ResponseTokens(response.id)
+    create_object(resptok)
+
     _create_response_event(response, event_type.FILE_ADDED)
 
 
@@ -396,6 +401,17 @@ def process_email_template_request(request_id, data):
 
 
 def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for an acknowledgement.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered template of an acknowledgement
+    """
     acknowledgment = data.get('acknowledgment')
 
     if acknowledgment is not None:
