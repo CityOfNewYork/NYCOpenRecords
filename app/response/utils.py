@@ -782,12 +782,12 @@ def get_file_links(response):
     path = '/response/' + str(response.id)
     requester_link = None
     if resp.privacy != PRIVATE:
-        if resp.request.requester is user_type_auth.ANONYMOUS_USER:
+        if resp.request.requester.is_anonymous_requester:
             resptoken = ResponseTokens(response.id)
             create_object(resptoken)
             params = urllib.parse.urlencode({'token': resptoken.token})
             requester_url = urljoin(flask_request.url_root, path)# link with token
-            requester_link = requester_url % params
+            requester_link = requester_url + "?%s" % params
         else:
             requester_link = urljoin(flask_request.url_root, path)
     agency_link = urljoin(flask_request.url_root, path)

@@ -102,15 +102,14 @@ def response_file(request_id):
     agency_links = []
     requester_links = []
     for file_data in files:
-        add_file(current_request.id,
-                 file_data,
-                 files[file_data]['title'],
-                 files[file_data]['privacy'])
-        response_obj = add_file
+        response_obj = add_file(current_request.id,
+                                file_data,
+                                files[file_data]['title'],
+                                files[file_data]['privacy'])
         agency_link, requester_link = get_file_links(response_obj)
         agency_links.append(agency_link)
-        requester_links.append(requester_link)
-
+        if requester_link is not None:
+            requester_links.append(requester_link)
     file_options = process_privacy_options(files)
     email_content = flask_request.form['email-file-summary']
     send_file_email(request_id, file_options, files, email_content)
