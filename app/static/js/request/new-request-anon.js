@@ -2,7 +2,7 @@
  * Created by atan on 9/14/16.
  */
 $(document).ready(function () {
-    $('[data-toggle="popover"]').popover();
+    $("[data-toggle='popover']").popover();
 
     // Prevent user from entering a non numeric value into phone and fax field
     $('#phone').keypress(function(key) {
@@ -153,6 +153,7 @@ $(document).ready(function () {
     $('#request-description').keyup(function () {
         characterCounter("#description-character-count", 5000, $(this).val().length)
     });
+
 });
 
 
