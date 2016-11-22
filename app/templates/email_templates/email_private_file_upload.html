@@ -13,9 +13,18 @@
 
     {% if agency_file_links %}
         <ul>
-        {% for filename, link in agency_file_links.items() %}
+            Private Files:
+            {% for filename, link in agency_file_links['private'].items() %}
+                <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
+            {% endfor %}
+        </ul>
+        <p>
+        <ul>
+            Release Files sent to the Requester:
+            {% for filename, link in agency_file_links['release'].items() %}
             <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
-        {% endfor %}
+            {% endfor %}
+        </p>
         </ul>
     {% else %}
         <ul>
