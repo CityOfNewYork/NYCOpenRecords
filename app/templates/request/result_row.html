@@ -1,0 +1,23 @@
+{% for request in requests %}
+    <!-- TODO: color code, css .row ...-->
+    <div class="row" style="border-bottom: 1px solid darkgrey; padding-top: 1em; padding-bottom: 1em;">
+        <div class="col-sm-2">
+            {{ request._id }}
+        </div>
+        <div class="col-sm-1">
+            {{ request._source.date_submitted }}
+        </div>
+        <div class="col-sm-4">
+            {{ request._source.public_title }}
+        </div>
+        <div class="col-sm-2">
+            {{ request._source.agency_name }}
+        </div>
+        <div class="col-sm-1">
+            {{ request._source.date_due }}
+        </div>
+        <div class="col-sm-2">
+            {{ request._source.requester_name }}
+        </div>
+    </div>
+{% endfor %}

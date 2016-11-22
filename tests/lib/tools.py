@@ -184,38 +184,40 @@ def generate_user_guid(auth_type):
 
 
 def create_requests_search_set(requester, other_requester):
+    """Generate XXX unique requests. """
     agency_eins = [ein[0] for ein in
                    Agencies.query.with_entities(Agencies.ein).all()]
 
     for title_private, agency_desc_private, is_requester in product(range(2), repeat=3):
-        agency_ein = random.choice(agency_eins)
-        date_created = datetime.utcnow()
-        date_submitted = get_following_date(date_created)
-        request = Requests(
-            generate_request_id(agency_ein),
-            title="Test",
-            description="Test",
-            agency_description="Test",
-            agency_ein=agency_ein,
-            date_created=date_created,
-            date_submitted=date_submitted,
-            due_date=get_due_date(date_submitted,
-                                  ACKNOWLEDGMENT_DAYS_DUE),
-            submission=submission_methods.DIRECT_INPUT,
-            status=request_status.OPEN,
-            privacy={
-                'title': bool(title_private),
-                'agency_description': bool(agency_desc_private)
-            }
-        )
-        create_object(request)
-        user_request = UserRequests(
-            user_guid=(requester.guid if is_requester
-                       else other_requester.guid),
-            auth_user_type=(requester.auth_user_type if is_requester
-                            else other_requester.auth_user_type),
-            request_id=request.id,
-            request_user_type=user_type_request.REQUESTER,
-            permissions=11
-        )
-        create_object(user_request)
+        for title, description, agency_description in product(("foo", "bar", "baz"), repeat=3):
+            agency_ein = random.choice(agency_eins)
+            date_created = datetime.utcnow()
+            date_submitted = get_following_date(date_created)
+            request = Requests(
+                generate_request_id(agency_ein),
+                title=title,
+                description=description,
+                agency_description=agency_description,
+                agency_ein=agency_ein,
+                date_created=date_created,
+                date_submitted=date_submitted,
+                due_date=get_due_date(date_submitted,
+                                      ACKNOWLEDGMENT_DAYS_DUE),
+                submission=submission_methods.DIRECT_INPUT,
+                status=request_status.OPEN,
+                privacy={
+                    'title': bool(title_private),
+                    'agency_description': bool(agency_desc_private)
+                }
+            )
+            create_object(request)
+            user_request = UserRequests(
+                user_guid=(requester.guid if is_requester
+                           else other_requester.guid),
+                auth_user_type=(requester.auth_user_type if is_requester
+                                else other_requester.auth_user_type),
+                request_id=request.id,
+                request_user_type=user_type_request.REQUESTER,
+                permissions=11
+            )
+            create_object(user_request)

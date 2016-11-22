@@ -260,6 +260,14 @@ class Users(UserMixin, db.Model):
     def name(self):
         return ' '.join((self.first_name, self.last_name))
 
+    def es_update(self):
+        """
+        Call es_update for any request where this user is the requester
+        since the request es doc relies on the requester's name.
+        """
+        for request in self.requests:
+            request.es_update()
+
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
@@ -362,6 +370,7 @@ class Requests(db.Model):
                       "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(
                           user_type_request.REQUESTER),
+        backref="requests",
         viewonly=True,
         uselist=False
     )
@@ -442,8 +451,9 @@ class Requests(db.Model):
                     'title_private': self.privacy['title'],
                     'agency_description_private': self.privacy['agency_description'],
                     'date_due': self.due_date,
-                    'submission': self.submission,
+                    'submission': self.submission,  # TODO: does this ever change?
                     'status': self.status,
+                    'requester_name': self.requester.name,
                     'public_title': 'Private' if self.privacy['title'] else self.title
                 }
             },
@@ -460,6 +470,8 @@ class Requests(db.Model):
                 'title': self.title,
                 'description': self.description,
                 'agency_description': self.agency_description,
+                'agency_ein': self.agency_ein,
+                'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
                 'agency_description_private': self.privacy['agency_description'],
                 'date_submitted': self.date_submitted,
@@ -469,6 +481,7 @@ class Requests(db.Model):
                 'requester_id': (self.requester.get_id()
                                  if not self.requester.is_anonymous_requester
                                  else ''),
+                'requester_name': self.requester.name,
                 'public_title': 'Private' if self.privacy['title'] else self.title,
             }
         )

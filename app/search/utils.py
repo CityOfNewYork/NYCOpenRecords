@@ -34,6 +34,27 @@ def create_index():
                         "agency_description_private": {
                             "type": "boolean",
                             "index": "not_analyzed"
+                        },
+                        "agency_ein": {
+                            "type": "integer",
+                            "index": "not_analyzed"
+                        },
+                        "agency_name": {
+                            "type": "string",
+                            "index": "not_analyzed"
+                        },
+                        "status": {
+                            "type": "string",
+                            "analyzer": "not_analyzed"
+                        },
+                        "date_submitted": {
+                            "type": "date",
+                            "format": "",
+                        },
+                        "date_due": {
+                            "type": "date",
+                            "format": "",
+                            # will have to convert to datetime object and then to appropriate timezone
                         }
                     }
                 }
@@ -55,6 +76,7 @@ def create_docs():
             'title': r.title,
             'description': r.description,
             'agency_description': r.agency_description,
+            'requester_name': r.requester.name,
             'title_private': r.privacy['title'],
             'agency_description_private': r.privacy['agency_description'],
             'date_submitted': r.date_submitted,
@@ -62,6 +84,8 @@ def create_docs():
             'submission': r.submission,
             'status': r.status,
             'requester_id': r.requester.get_id(),
+            'agency_ein': r.agency_ein,
+            'agency_name': r.agency.name,
             'public_title': 'Private' if r.privacy['title'] else r.title,
             # public_agency_description
         })

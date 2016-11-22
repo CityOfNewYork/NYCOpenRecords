@@ -1,5 +1,193 @@
-<ul>
-    {% for request_id in requests %}
-    <li><a href="{{ url_for('request.view', request_id=request_id[0]) }}">{{ request_id[0] }}</a></li>
-    {% endfor %}
-</ul>
+{% extends "base.html" %}
+
+{% block title %}
+    View Requests
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-8">
+                <h1>Explore OpenRecords Requests</h1>
+                <p>
+                    NYC Open Gov makes every public records request available to the public,
+                    including messages or documents uploaded by agency staff.
+                    By searching the requests, you may find the information you are interested in,
+                    which will save time for you and for the City of New York. Yay.
+                </p>
+            </div>
+            <div class="col-sm-4 text-right">
+                <button type="button" class="btn btn-lg btn-primary">Request a New Record</button>
+            </div>
+        </div>
+        <br>
+        <!-- Search & Filters -->
+        <div class="row">
+            <div class="well col-sm-12">
+                <div class="col-sm-4">
+                    <h4><label for="query">Search By</label></h4>
+                    <input type="text" id="query">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="foil-id">
+                            FOIL ID
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="title" checked>
+                            Title
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="description">
+                            Description
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="agency-desc">
+                            Agency Description
+                        </label>
+                    </div>
+{#                    {% if current_user.is_agency %}#}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="requester-name">
+                                Requester Name
+                            </label>
+                        </div>
+{#                    {% endif %}#}
+                    <br>
+                    <select id="size" title="size" class="input-block-level" style="width: 4em; display: inline;">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <strong>&nbsp;Results Per Page</strong>
+                </div>
+                <div class="col-sm-4">
+{#                    {% if current_user.is_agency %}#}
+                        <div class="row">
+                            <h4><label>Date Received</label></h4>
+                            <div class="col-sm-6">
+                                <label for="date-rec-from">From:</label>
+                                <input type="text" id="date-rec-from">
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="date-rec-to">To:</label>
+                                <input type="text" id="date-rec-to">
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <h4><label>Date Due</label></h4>
+                            <div class="col-sm-6">
+                                <label for="date-due-from">From:</label>
+                                <input type="text" id="date-due-from">
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="date-due-to">To:</label>
+                                <input type="text" id="date-due-to">
+                            </div>
+                        </div>
+{#                    {% else %}#}
+{#                        <h4><label>Date Received</label></h4>#}
+{#                        <label for="date-rec-from">From:</label>#}
+{#                        <input type="text" id="date-rec-from">#}
+{#                        <label for="date-rec-to">To:</label>#}
+{#                        <input type="text" id="date-rec-to">#}
+{#                    {% endif %}#}
+                </div>
+                <div class="col-sm-4">
+                    <h4><label for="agency">Agency</label></h4>
+                    <select id="agency" class="input-block-level">
+                        <option>WTForms Needed</option>
+                    </select>
+                    <br>
+                    <h4><label>Status</label></h4>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="open" checked>
+                            Open
+                        </label>
+                    </div>
+{#                    {% if current_user.is_agency %}#}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="due-soon" checked>
+                                Due Soon
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="overdue" checked>
+                                Overdue
+                            </label>
+                        </div>
+{#                    {% endif %}#}
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="closed">
+                            Closed
+                        </label>
+                    </div>
+                    <div class="text-right">
+                        <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row" style="font-weight: bold;">
+                        <div class="col-sm-2">
+                            ID
+                        </div>
+                        <div class="col-sm-1">
+                            Date Received
+                        </div>
+                        <div class="col-sm-4">
+                            Title
+                        </div>
+                        <div class="col-sm-2">
+                            Assigned Agency
+                        </div>
+                        <div class="col-sm-1">
+                            Date Due
+                        </div>
+                        <div class="col-sm-2">
+                            Requester Name  <!-- TODO: only for agency users, col change -->
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-body" id="results"></div>
+            </div>
+        </div>
+        <!-- Pagination -->
+        <div class="row">
+            <div class="col-sm-3">
+                <button type="button" id="prev" class="btn btn-default">
+                    <span class="glyphicon glyphicon-chevron-left"></span>
+                    Prev
+                </button>
+            </div>
+            <div class="col-sm-6 text-center">
+                X - X of X
+            </div>
+            <div class="col-sm-3 text-right">
+                <button type="button" id="next" class="btn btn-default">
+                    Next
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static',filename='js/request/search.js') }}"></script>
+{% endblock %}

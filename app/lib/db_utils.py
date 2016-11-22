@@ -6,7 +6,7 @@
 import sys
 from flask import current_app
 from app import db
-from app.models import Agencies, Requests
+from app.models import Agencies, Requests, Users
 from sqlalchemy.orm.attributes import flag_modified
 
 
@@ -35,7 +35,9 @@ def create_object(obj):
         return None
     else:
         # create elasticsearch doc
-        if not isinstance(obj, Requests) and hasattr(obj, 'es_create'):
+        if (not isinstance(obj, Requests)
+           and hasattr(obj, 'es_create')
+           and current_app.config['ELASTICSEARCH_ENABLED']):
             obj.es_create()
         return str(obj)
 
@@ -55,7 +57,7 @@ def update_object(data, obj_type, obj_id):
 
     if obj:
         for attr, value in data.items():
-            if type(value) == dict:
+            if isinstance(value, dict):
                 # update json values
                 attr_json = getattr(obj, attr) or {}
                 for key, val in value.items():

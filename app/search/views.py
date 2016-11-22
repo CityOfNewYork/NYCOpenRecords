@@ -26,19 +26,46 @@ def test():
 def requests():
     """
     Query string parameters:
-    - query: what is typed into the search box
-    - foil_id: (optional, default: false) search by id?
-    - title: (optional, default: true) search by title?
-    - description: (optional, default: true) search by description?
-    - agency_description: (optional, default: true) search by agency description?
-    - by_phrase: (optional, default: false) use phrase matching instead of standard full-text?
-    - size: (optional, default: 10) number of results to return
-    - highlight: (optional, default: false) show highlights?
+    - query:
+        what is typed into the search box
+    - foil_id: (optional, default: false)
+        search by id?
+    - title: (optional, default: true)
+        search by title?
+    - description: (optional, default: true)
+        search by description?
+    - agency_description: (optional, default: true)
+        search by agency description?
+    - requester_name: (optional: default: false)
+
+    - date_rec_from: (optional)
+
+    - date_rec_to: (optional)
+
+    - date_due_from: (optional)
+
+    - date_due_to: (optional)
+
+    - agency: (optional)
+
+    - open: (optional, default: True)
+
+    - closed: (optional, default: False)
+
+    - due_soon: (optional, default: True if agency user)
+
+    - overdue: (optional, default: True if agency user)
+
+    - size: (optional, default: 10)
+        number of results to return
+    - by_phrase: (optional, default: false)
+        use phrase matching instead of standard full-text?
+    - highlight: (optional, default: false)
+        show highlights?
         NOTE: if true, will come at a slight performance cost (in order to
         restrict highlights to public fields, iterating over elasticsearch
         query results is required)
 
-    - TODO: agency filter
 
     Anonymous Users can search by:
     - Title (public only)
@@ -53,6 +80,13 @@ def requests():
     - Title
     - Agency Description
     - Description
+    - Requester Name
+
+    Only Agency users can filter by:
+    - Status, Due Soon
+    - Status, Overdue
+    - Date Due
+
     """
 
     # FOR USER TESTING
@@ -61,27 +95,32 @@ def requests():
     # login_user(user, force=True)
 
     query = request.args.get('query')
-    if query is None:
-        return jsonify({"error": "'query' field missing"}), 422
+    if query is not None:
+        query = query.strip()
 
+    # if query:  # TODO: no matching on fields if no query, just return all docs
     use_id = eval_request_bool(request.args.get('foil_id'), False)
     use_title = eval_request_bool(request.args.get('title'))
     use_agency_desc = eval_request_bool(request.args.get('agency_description'))
     use_description = (eval_request_bool(request.args.get('description'))
                        if not current_user.is_anonymous
                        else False)
+    use_requester_name = (eval_request_bool(request.args.get('requester_name'))
+                          if current_user.is_agency
+                          else False)
+    highlight = eval_request_bool(request.args.get('highlight'), False)
 
-    if not any((use_id, use_title, use_agency_desc, use_description)):
+    if not any((use_id, use_title, use_agency_desc, use_description, use_requester_name)):
         # nothing to query on
         return jsonify({}), 200
 
-    highlight = eval_request_bool(request.args.get('highlight'), False)
-
+    # Size
     try:
         size = int(request.args.get('size', DEFAULT_HITS_SIZE))
     except ValueError:
         size = DEFAULT_HITS_SIZE
 
+    # Matching Type
     if request.args.get('by_phrase', False):
         match_type = 'match_phrase'
     else:
@@ -90,8 +129,11 @@ def requests():
     fields = {
         'title': use_title,
         'description': use_description,
-        'agency_description': use_agency_desc
+        'agency_description': use_agency_desc,
+        'requester_name': use_requester_name,
     }
+
+    # TODO: user terms (plural) for status
 
     es_requester_id = None
     if use_id:
@@ -203,11 +245,17 @@ def requests():
                 }
             )
 
-    result = es.search(
+    results = es.search(
         index=INDEX,
         doc_type='request',
         body=dsl,
         _source=['requester_id',
+                 'date_submitted',
+                 'date_due',
+                 'status',
+                 'agency_ein',
+                 'agency_name',
+                 'requester_name',
                  'title_private',
                  'agency_description_private',
                  'public_title'],
@@ -215,9 +263,18 @@ def requests():
     )
 
     if highlight and not use_id:
-        _process_highlights(result, es_requester_id)
+        _process_highlights(results, es_requester_id)
 
-    return jsonify(result), 200
+    total = results["hits"]["total"]
+    formatted_results = None
+    if total != 0:
+        formatted_results = render_template("request/result_row.html",
+                                            requests=results["hits"]["hits"])
+
+    return jsonify({
+        "total": total,
+        "results": formatted_results
+    }), 200
 
 
 def _process_highlights(results, requester_id=None):
