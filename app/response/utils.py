@@ -784,6 +784,7 @@ def get_file_links(response, agency_file_links, requester_file_links):
     resp = Responses.query.filter_by(id=response.id).one()
     path = '/response/' + str(response.id)
 
+    agency_link = urljoin(flask_request.url_root, path)
     if resp.privacy != PRIVATE:
         if resp.request.requester.is_anonymous_requester:
             resptoken = ResponseTokens(response.id)
@@ -794,10 +795,9 @@ def get_file_links(response, agency_file_links, requester_file_links):
         else:
             requester_link = urljoin(flask_request.url_root, path)
         requester_file_links[resp.name] = requester_link
-
-    agency_link = urljoin(flask_request.url_root, path)
-    agency_file_links[resp.name] = agency_link
-
+        agency_file_links['release'][resp.name] = agency_link
+    else:
+        agency_file_links['private'][resp.name] = agency_link
     return agency_file_links, requester_file_links
 
 

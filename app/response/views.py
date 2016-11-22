@@ -100,6 +100,8 @@ def response_file(request_id):
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
     agency_file_links = dict()
+    agency_file_links['private'] = dict()
+    agency_file_links['release'] = dict()
     requester_file_links = dict()
     for file_data in files:
         response_obj = add_file(current_request.id,
