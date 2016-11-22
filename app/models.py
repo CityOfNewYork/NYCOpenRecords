@@ -124,7 +124,7 @@ class Agencies(db.Model):
                           request number sequence
     default_email - a string containing the default email of the agency regarding general inquiries about requests
     appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
-    administrators - an array of guid::auth_user_type strings that identify default admins for an agencies requests
+    administrators - an array of user id strings that identify default admins for an agencies requests
     """
     __tablename__ = 'agencies'
     ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
@@ -140,20 +140,20 @@ class Agencies(db.Model):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        data = open(current_app.config['AGENCY_DATA'], 'r')
-        dictreader = csv.DictReader(data)
+        with open(current_app.config['AGENCY_DATA'], 'r') as data:
+            dictreader = csv.DictReader(data)
 
-        for row in dictreader:
-            agency = cls(
-                ein=row['ein'],
-                category=row['category'],
-                name=row['name'],
-                next_request_number=row['next_request_number'],
-                default_email=row['default_email'],
-                appeals_email=row['appeals_email']
-            )
-            db.session.add(agency)
-        db.session.commit()
+            for row in dictreader:
+                agency = cls(
+                    ein=row['ein'],
+                    category=row['category'],
+                    name=row['name'],
+                    next_request_number=row['next_request_number'],
+                    default_email=row['default_email'],
+                    appeals_email=row['appeals_email']
+                )
+                db.session.add(agency)
+            db.session.commit()
 
     def __repr__(self):
         return '<Agencies %r>' % self.name
@@ -344,7 +344,6 @@ class Requests(db.Model):
                 request_status.DUE_SOON,  # within the next 5 business days
                 request_status.OVERDUE,
                 request_status.CLOSED,
-                request_status.RE_OPENED,
                 name='status'),
         nullable=False
     )
@@ -362,12 +361,21 @@ class Requests(db.Model):
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(
-            user_type_request.REQUESTER),
-        backref=db.backref('request', uselist=False),
+                          user_type_request.REQUESTER),
         viewonly=True,
         uselist=False
     )
-    # TODO: agency_users (see email_utils.py L65)
+    # any agency user associated with a request is considered an assigned user
+    agency_users = db.relationship(
+        'Users',
+        secondary='user_requests',
+        primaryjoin=lambda: Requests.id == UserRequests.request_id,
+        secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
+                      "Users.auth_user_type == UserRequests.auth_user_type, "
+                      "UserRequests.request_user_type == '{}')".format(
+                           user_type_request.AGENCY),
+        viewonly=True
+    )
 
     PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
 
@@ -588,13 +596,36 @@ class Reasons(db.Model):
     Define the Reason class with the following columns and relationships:
 
     id - an integer that is the primary key of a Reasons
-    agency - a foreign key that links to the a agency's primary key which is the EIN number
-    deny_reason - a string containing the message that will be shown when a request is denied
+    type - an enum representing the type of determination this reason corresponds to
+    agency_ein - a foreign key that links to the a agency's primary key
+        if null, this reason applies to all agencies
+    content - a string describing the reason
+
+    Reason are based off the Law Department's responses.
+
     """
     __tablename__ = 'reasons'
     id = db.Column(db.Integer, primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'), nullable=True)
-    deny_reason = db.Column(db.String)  # reasons for denying a request based off law dept's responses
+    type = db.Column(db.Enum(
+        determination_type.CLOSING,
+        determination_type.DENIAL,
+        name="reason_type"
+    ), nullable=False)
+    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    content = db.Column(db.String, nullable=False)
+
+    @classmethod
+    def populate(cls):
+        with open(current_app.config['REASON_DATA'], 'r') as data:
+            dictreader = csv.DictReader(data)
+
+            for row in dictreader:
+                reason = cls(
+                    type=row['type'],
+                    content=row['content']
+                )
+                db.session.add(reason)
+            db.session.commit()
 
 
 class UserRequests(db.Model):

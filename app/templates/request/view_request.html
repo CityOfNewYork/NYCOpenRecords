@@ -3,12 +3,12 @@
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/status.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/status.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_request.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_file.css') }}">
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_extension.css') }}"/>
@@ -36,63 +36,73 @@
             <div class="col-md-12"><h3>Actions</h3>
                 <div class="tabbable tabs-left" id="mobile-toggle">
                     <ul class="nav nav-tabs">
-                        {% if request.status == status.OPEN  %}
-                            <li class="active"><a href="#acknowledge-request" data-toggle="tab">ACKNOWLEDGE</a></li>
-                            <li><a href="#deny-request" data-toggle="tab">DENY</a></li>
-                            <li>
+                        {% if request.status != status.CLOSED %}
+                            {% if request.status == status.OPEN  %}
+                                <li class="active"><a href="#acknowledge-request" data-toggle="tab">ACKNOWLEDGE</a></li>
+                                <li><a href="#deny-request" data-toggle="tab">DENY</a></li>
+                                <li>
+                            {% else %}
+                                <li class="active">
+                            {% endif %}
+                                <a href="#add-file" data-toggle="tab">Add File</a>
+                            </li>
+                            <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
+                            <li><a href="#add-instructions" data-toggle="tab">Add Instructions</a></li>
+                            <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
+                            {% if request.status != status.OPEN %}
+                                <li><a href="#extend-request" data-toggle="tab">EXTEND</a></li>
+                                <li><a href="#close-request" data-toggle="tab">CLOSE</a></li>
+                            {% endif %}
+                            <li><a href="#add-user" data-toggle="tab">Add User</a></li>
+                            <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
+                            <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
                         {% else %}
-                            <li class="active">
+                            <li class="active"><a href="#reopen-request" data-toggle="tab">RE-OPEN</a></li>
                         {% endif %}
-                            <a href="#add-file" data-toggle="tab">Add File</a>
-                        </li>
-                        <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
-                        <li><a href="#add-instructions" data-toggle="tab">Add Instructions</a></li>
-                        <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
-                        {% if request.status != status.OPEN %}
-                            <li><a href="#extend-request" data-toggle="tab">EXTEND</a></li>
-                            <li><a href="#close-request" data-toggle="tab">CLOSE</a></li>
-                        {% endif %}
-                        <li><a href="#add-user" data-toggle="tab">Add User</a></li>
-                        <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
-                        <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
                     </ul>
                     <div class="tab-content content-min-height">
-                        <div class="tab-pane {% if request.status != status.OPEN %}active{% endif %}" id="add-file">
-                            {% include "response/add_file.html" %}
-                        </div>
-                        <div class="tab-pane" id="add-link">
-                            {% include "response/add_link.html" %}
-                        </div>
-                        <div class="tab-pane" id="add-instructions">
-                            {% include "response/add_instruction.html" %}
-                        </div>
-                        <div class="tab-pane" id="add-note">
-                            {% include "response/add_note.html" %}
-                        </div>
-                        {% if request.status == status.OPEN  %}
-                            <div class="tab-pane active" id="acknowledge-request">
-                                {% include "response/add_acknowledgment.html" %}
+                        {% if request.status != status.CLOSED %}
+                            <div class="tab-pane {% if request.status != status.OPEN %}active{% endif %}" id="add-file">
+                                {% include "response/add_file.html" %}
                             </div>
-                            <div class="tab-pane" id="deny-request">
-                                Deny Request Content
+                            <div class="tab-pane" id="add-link">
+                                {% include "response/add_link.html" %}
+                            </div>
+                            <div class="tab-pane" id="add-instructions">
+                                {% include "response/add_instruction.html" %}
+                            </div>
+                            <div class="tab-pane" id="add-note">
+                                {% include "response/add_note.html" %}
+                            </div>
+                            {% if request.status == status.OPEN  %}
+                                <div class="tab-pane active" id="acknowledge-request">
+                                    {% include "response/add_acknowledgment.html" %}
+                                </div>
+                                <div class="tab-pane" id="deny-request">
+                                    {% include "response/add_denial.html" %}
+                                </div>
+                            {% else %}
+                                <div class="tab-pane" id="extend-request">
+                                    {% include "response/add_extension.html" %}
+                                </div>
+                                <div class="tab-pane" id="close-request">
+                                    Close Request Content
+                                </div>
+                            {% endif %}
+                            <div class="tab-pane" id="add-user">
+                                Add User Content
+                            </div>
+                            <div class="tab-pane" id="edit-user">
+                                Edit User Content
+                            </div>
+                            <div class="tab-pane" id="remove-user">
+                                Remove User Content
                             </div>
                         {% else %}
-                            <div class="tab-pane" id="extend-request">
-                                {% include "response/add_extension.html" %}
-                            </div>
-                            <div class="tab-pane" id="close-request">
-                                Close Request Content
+                            <div class="tab-pane active" id="reopen-request">
+                                Re-Open Request Content
                             </div>
                         {% endif %}
-                        <div class="tab-pane" id="add-user">
-                            Add User Content
-                        </div>
-                        <div class="tab-pane" id="edit-user">
-                            Edit User Content
-                        </div>
-                        <div class="tab-pane" id="remove-user">
-                            Remove User Content
-                        </div>
                     </div>
                 </div>
             </div>
@@ -142,4 +152,5 @@
     {% include 'response/add_note.js.html' %}
     {% include 'response/add_instruction.js.html' %}
     {% include 'response/add_acknowledgment.js.html' %}
+    {% include 'response/add_denial.js.html' %}
 {% endblock %}

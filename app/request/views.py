@@ -38,6 +38,7 @@ from app.request.forms import (
     AgencyUserRequestForm,
     AnonymousRequestForm,
     EditRequesterForm,
+    DenyRequestForm,
 )
 from app.request.utils import (
     create_request,
@@ -155,24 +156,19 @@ def view(request_id):
     :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
-    agency_user_requests = UserRequests.query.filter_by(
-        request_id=request_id,
-        request_user_type=user_type_request.AGENCY).all()
-    edit_requester_form = EditRequesterForm(current_request.requester)
-
-    agency_users = [Users.query.filter_by(guid=agency_user_request.user_guid).first()
-                    for agency_user_request in agency_user_requests]
 
     holidays = sorted(get_holidays_date_list(
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
-    return render_template('request/view_request.html',
-                           request=current_request,
-                           status=request_status,
-                           agency_users=agency_users,
-                           edit_requester_form=edit_requester_form,
-                           holidays=holidays)
+    return render_template(
+        'request/view_request.html',
+        request=current_request,
+        status=request_status,
+        agency_users=current_request.agency_users,
+        edit_requester_form=EditRequesterForm(current_request.requester),
+        deny_request_form=DenyRequestForm(current_request.agency.ein),
+        holidays=holidays)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['PUT'])

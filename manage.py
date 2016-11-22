@@ -1,7 +1,7 @@
 # manage.py
-import subprocess
 
 import os
+import subprocess
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -90,16 +90,19 @@ def profile(length=25, profile_dir=None):
 def deploy():
     """Run deployment tasks."""
     from flask_migrate import upgrade
-    from app.models import Roles, Agencies
+    from app.models import Roles, Agencies, Reasons
 
     # migrate database to latest revision
     upgrade()
 
-    # create user roles
-    Roles.populate()
+    # pre-populate
+    list(map(lambda x: x.populate(), (
+        Roles,
+        Agencies,
+        Reasons
+    )))
 
-    # create agencies
-    Agencies.populate()
+
 
 
 if __name__ == "__main__":

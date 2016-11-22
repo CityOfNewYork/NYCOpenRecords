@@ -51,22 +51,27 @@
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include provide information such as a social security # or credit card.",
                         maxlength="5000") }}
-                <h5 id="description-character-count" class="required">5000 characters remaining</h5>
+                <h5 id="description-character-count">5000 characters remaining</h5>
 
                 <div class="alert alert-info">
                     <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
                 </div>
+
                 {# Upload field for user to add files #}
-                <div class="col-sm-12">
+                <div id="upload-control" class="col-sm-12">
                     {{ form.request_file.label(class='request-heading') }}
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
-                    {{ form.request_file(id='request-file') }}
+                    <br>
+                    <label class="btn btn-info">Choose File
+                        {{ form.request_file(id='request-file', style="display:none") }}
+                    </label>
+                    <button type="button" id="clear-file" class="btn btn-danger pull-right">Clear File</button>
+                    <div id="filename"></div>
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
                             <div class="alert alert-danger upload-error">{{ error }}</div>
                         {% endfor %}
                     {% endif %}
-                    <br>
                 </div>
                 <br><br>
 

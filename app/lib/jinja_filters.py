@@ -23,3 +23,9 @@ def format_response_type(response):
             response_type.SMS: 'SMS',
         }[response.type]
     return formatted_type
+
+
+def format_denial_reason(reason):
+    reasons = reason.split(",")
+    reason_li = "".join("<li>{}</li>".format(r) for r in reasons)
+    return "<ul>{}</ul>".format(reason_li)
