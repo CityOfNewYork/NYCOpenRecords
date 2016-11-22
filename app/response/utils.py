@@ -524,8 +524,9 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
             email_template = 'email_templates/email_private_file_upload.html'
     # iterate through files dictionary to create and append links of files with privacy option of not private
     for file_ in files:
-        filename = file_['filename']
-        files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
+        if file_['privacy'] != PRIVATE or eval_request_bool(data['is_private']) is True:
+            filename = file_['filename']
+            files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
@@ -772,71 +773,71 @@ def get_email_key(response_id, requester=False):
     return '_'.join((str(response_id), 'requester' if requester else 'agency'))
 
 
-def get_file_links(response):
+def get_file_links(response, agency_file_links, requester_file_links):
     """
 
     :param response:
+    :param agency_file_links:
+    :param requester_file_links:
     :return:
     """
     resp = Responses.query.filter_by(id=response.id).one()
     path = '/response/' + str(response.id)
-    requester_link = None
+
     if resp.privacy != PRIVATE:
         if resp.request.requester.is_anonymous_requester:
             resptoken = ResponseTokens(response.id)
             create_object(resptoken)
             params = urllib.parse.urlencode({'token': resptoken.token})
-            requester_url = urljoin(flask_request.url_root, path)# link with token
+            requester_url = urljoin(flask_request.url_root, path)
             requester_link = requester_url + "?%s" % params
         else:
             requester_link = urljoin(flask_request.url_root, path)
+        requester_file_links[resp.name] = requester_link
+
     agency_link = urljoin(flask_request.url_root, path)
-    return agency_link, requester_link
+    agency_file_links[resp.name] = agency_link
+
+    return agency_file_links, requester_file_links
 
 
-def send_file_email(request_id, privacy, filenames, email_content, **kwargs):
+def send_file_email(request_id, agency_file_links, requester_file_links, email_content):
     """
-    Function that sends email detailing a file response has been uploaded to a request.
-    If the file privacy is private, only agency_ein users are emailed.
-    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
-    Send email notification detailing a file response has been uploaded to the request.
 
-    :param request_id: FOIL request ID
-    :param privacy: privacy option of the uploaded file
-    :param filenames: list of secured filenames
-    :param email_content: string of HTML email content that can be used as a message template
-
+    :param request_id:
+    :param agency_file_links:
+    :param requester_file_links:
+    :param email_content:
+    :return:
     """
-    # TODO: make subject constants
+    is_anon = None
+    if Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester:
+        is_anon = True
     subject = 'Response Added'
     bcc = get_agency_emails(request_id)
-    # create a dictionary of filenames to be passed through jinja to email template
-    file_to_link = {}
-    for filename in filenames:
-        file_to_link[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    if privacy == 'release':
-        # Query for the requester's email information
-        requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-        # Send email with files to requester and bcc agency_ein users as privacy option is release
+    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
+    if requester_file_links:
+        email_content_requester = render_template('email_templates/email_response_file.html',
+                                                  request_id=request_id,
+                                                  email_file_content=email_content,
+                                                  agency_name=agency_name,
+                                                  requester_file_links=requester_file_links,
+                                                  is_anon=is_anon)
         safely_send_and_add_email(request_id,
-                                  email_content,
+                                  email_content_requester,
                                   subject,
-                                  to=[requester_email],
-                                  bcc=bcc,
-                                  agency_name=agency_name,
-                                  files_links=file_to_link)
-
-    if privacy == 'private':
-        # Send email with files to agency_ein users only as privacy option is private
-        email_content = render_template(kwargs['email_template'],
-                                        request_id=request_id,
-                                        agency_name=agency_name,
-                                        files_links=file_to_link)
-        safely_send_and_add_email(request_id,
-                                  email_content,
-                                  subject,
-                                  bcc=bcc)
+                                  to=[requester_email])
+        email_content = None
+    email_content_agency = render_template('email_templates/email_private_file_upload.html',
+                                           request_id=request_id,
+                                           email_file_content=email_content,
+                                           agency_name=agency_name,
+                                           agency_file_links=agency_file_links)
+    safely_send_and_add_email(request_id,
+                              email_content_agency,
+                              subject,
+                              bcc=bcc)
 
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):

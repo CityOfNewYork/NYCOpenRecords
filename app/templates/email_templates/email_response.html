@@ -7,9 +7,15 @@
         Please visit <a href='{{ page }}'>{{ page }}</a> to view the additional information.
     </p>
 {% else %}
-    {{ content | safe }}
-    {% block response_content %}
-    {% endblock %}
+    {% if email_file_content %}
+        {{ email_file_content | safe }}
+        {% block response_file_content %}
+        {% endblock %}
+    {% else %}
+        {{ content | safe }}
+        {% block response_content %}
+        {% endblock %}
+    {% endif %}
     <p>
         You can view the request and take any necessary action at the following webpage:
         <a href='{{ page }}'>{{ page }}</a>.

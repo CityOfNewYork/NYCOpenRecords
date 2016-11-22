@@ -92,39 +92,23 @@ def response_file(request_id):
     Call process_upload_data to process the uploaded file form data.
     Pass data into helper function in response.utils to update changes into database.
     Send email notification to requester and bcc agency users if privacy is release.
-    Render specific tempalte and send email notification bcc agency users if privacy is private.
+    Render specific template and send email notification bcc agency users if privacy is private.
 
     :param request_id: FOIL request ID for the specific file.
     :return: redirect to view request page
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
-    agency_links = []
-    requester_links = []
+    agency_file_links = dict()
+    requester_file_links = dict()
     for file_data in files:
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],
                                 files[file_data]['privacy'])
-        agency_link, requester_link = get_file_links(response_obj)
-        agency_links.append(agency_link)
-        if requester_link is not None:
-            requester_links.append(requester_link)
-    file_options = process_privacy_options(files)
-    email_content = flask_request.form['email-file-summary']
-    send_file_email(request_id, file_options, files, email_content)
-    # for privacy, files in file_options.items():
-    #     if privacy == PRIVATE:
-    #         send_file_email(request_id,
-    #                         privacy,
-    #                         files,
-    #                         None,
-    #                         email_template='email_templates/email_private_file_upload.html')
-    #     else:
-    #         send_file_email(request_id,
-    #                         privacy,
-    #                         files,
-    #                         email_content)
+        agency_file_links, requester_file_links = get_file_links(response_obj, agency_file_links, requester_file_links)
+    email_content = flask_request.form['email-file-content']
+    send_file_email(request_id, agency_file_links, requester_file_links, email_content)
     return redirect(url_for('request.view', request_id=request_id))
 
 

@@ -1,9 +1,27 @@
-<p>Attention {{ agency_name }} Users,<p>
+{% if email_file_content %}
+    {{ email_file_content | safe}}
 
-<p>The following files were uploaded as private to <a href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+    <ul>
+        {% for filename, link in agency_file_links.items() %}
+            <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Attention {{ agency_name }} Users,<p>
 
-<ul>
-    {% for filename, link in files_links.items() %}
-        <li style="list-style: none"><a href="#">{{ filename }}</a></li>
-    {% endfor %}
-</ul>
+    <p>The following files were uploaded to <a href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+
+    {% if agency_file_links %}
+        <ul>
+        {% for filename, link in agency_file_links.items() %}
+            <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <ul>
+            {% for filename, link in files_links.items() %}
+                <li style="list-style: none"><a href="#">{{ filename }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endif %}
