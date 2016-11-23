@@ -149,20 +149,30 @@ $(function () {
                     }
 
                     if (first.find(".fileupload-form").parsley().isValid()) {
-                        first.hide();
-                        second.show();
-
                         $.ajax({
                             url: "/response/email",
                             type: "POST",
                             data: {
                                 request_id: request_id,
                                 template_name: "email_response_file.html",
-                                type: "files"
+                                type: "edit",
+                                response_id: response_id,
+                                title: first.find("input[name=title]").val(),
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
+                                    first.find(".uploaded-filename").text(),
+                                confirmation: false
                             },
                             success: function (data) {
-                                // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                if (data.error) {
+                                    first.find(".fileupload-error-messages").text(data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".fileupload-error-messages").text(data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
                             }
                         });
                     }
@@ -191,7 +201,7 @@ $(function () {
                         data: {
                             request_id: request_id,
                             template_name: "email_response_file.html",
-                            type: "files",
+                            type: "edit",
                             files: JSON.stringify(files),
                             email_content: $("#email-content-" + response_id).val()
                         },
@@ -247,7 +257,7 @@ $(function () {
                                 template_name: "email_edit_response.html",
                                 type: "edit",
                                 response_id: response_id,
-                                content: first.find('.note-content').val(),
+                                content: first.find(".note-content").val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
                                 confirmation: false
                             },
