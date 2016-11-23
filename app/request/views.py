@@ -143,7 +143,7 @@ def new():
 def view_all():
     return render_template(
         'request/all.html',
-        form=SearchRequestsForm(first_choice=('', 'All')),
+        form=SearchRequestsForm(),
         holidays=sorted(get_holidays_date_list(
             datetime.utcnow().year,
             (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)

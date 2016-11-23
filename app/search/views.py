@@ -11,11 +11,15 @@ from app.search import search
 from app.search.constants import (
     INDEX,
     DEFAULT_HITS_SIZE,
-    DATETIME_FORMAT,
 )
 from app.lib.utils import (
     eval_request_bool,
     InvalidUserException,
+)
+
+from app.search.utils import (
+    _process_highlights,
+    _convert_dates
 )
 
 
@@ -320,9 +324,9 @@ def requests():
                             'should': [
                                 {'term': {'requester_id': es_requester_id}},
                                 {'term': {'title_private': False}},
-                                {'terms': {'status': statuses}}
                             ]
-                        }}
+                        }},
+                        {'terms': {'status': statuses}}
                     ]
                     if date_range is not None:
                         filters.append(date_range)
@@ -442,40 +446,4 @@ def requests():
     }), 200
 
 
-def _convert_dates(results):
-    """
-    Replace 'date_submitted' and 'date_due' of the request search results
-    (with the elasticsearch builtin date format: basic_date) with a
-    datetime object.
-    """
-    for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due"):
-            hit["_source"][field] = datetime.strptime(hit["_source"][field], DATETIME_FORMAT)
 
-
-def _process_highlights(results, requester_id=None):
-    """
-    Removes highlights for private and non-requester fields.
-    Used for non-agency users.
-
-    Why this is necessary:
-    https://github.com/elastic/elasticsearch/issues/6787
-
-    :param results: elasticsearch json search results
-    :param requester_id: id of requester as it is exists in results
-    """
-    if not current_user.is_agency:
-        for hit in results['hits']['hits']:
-            is_requester = (requester_id == hit['_source']['requester_id']
-                            if requester_id
-                            else False)
-            if ('title' in hit['highlight']
-                and hit['_source']['title_private']
-                and (current_user.is_anonymous or not is_requester)):
-                hit['highlight'].pop('title')
-            if ('agency_description' in hit['highlight']
-                and hit['_source']['agency_description_private']):
-                hit['highlight'].pop('agency_description')
-            if ('description' in hit['highlight']
-                and not is_requester):
-                hit['highlight'].pop('description')

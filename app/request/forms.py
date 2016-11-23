@@ -52,6 +52,11 @@ class PublicUserRequestForm(Form):
     # Submit Button
     submit = SubmitField('Submit Request')
 
+    def __init__(self):
+        super(PublicUserRequestForm, self).__init__()
+        self.request_agency.choices = get_agency_choices()
+        self.request_agency.choices.insert(0, ('', ''))
+
 
 class AgencyUserRequestForm(Form):
     """
@@ -156,6 +161,11 @@ class AnonymousRequestForm(Form):
 
     submit = SubmitField('Submit Request')
 
+    def __init__(self):
+        super(AnonymousRequestForm, self).__init__()
+        self.request_agency.choices = get_agency_choices()
+        self.request_agency.choices.insert(0, ('', ''))
+
 
 class EditRequesterForm(Form):
     email = StringField('Email')
@@ -207,8 +217,8 @@ class SearchRequestsForm(Form):
     agency = SelectField('Agency')  #, choices=get_agency_choices())
     # category = SelectField('Category', get_categories())
 
-    def __init__(self, first_choice=('', '')):
+    def __init__(self):
         super(SearchRequestsForm, self).__init__()
         self.agency.choices = get_agency_choices()
-        self.agency.choices.insert(0, first_choice)
+        self.agency.choices.insert(0, ('', 'All'))
         # Why choices must be set in constructor I do not know... some db issue
