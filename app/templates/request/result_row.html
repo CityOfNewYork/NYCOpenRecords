@@ -1,23 +1,48 @@
 {% for request in requests %}
-    <!-- TODO: color code, css .row ...-->
-    <div class="row" style="border-bottom: 1px solid darkgrey; padding-top: 1em; padding-bottom: 1em;">
-        <div class="col-sm-2">
-            {{ request._id }}
+    <!-- Inline styles because I cannot get the css to work! -->
+    <a href="{{ url_for("request.view", request_id=request._id) }}"
+{#    {% if current_user.is_agency %}#}
+        {% if request._source.status == "Open" %}
+            class="list-group-item open" style="border-left: 5px solid dodgerblue;">
+        {% elif request._source.status == "In Progress" %}
+            class="list-group-item in-progress" style="border-left: 5px solid forestgreen;">
+        {% elif request._source.status == "Due Soon" %}
+            class="list-group-item due-soon" style="border-left: 5px solid darkorange;">
+        {% elif request._source.status == "Overdue" %}
+            class="list-group-item overdue" style="border-left: 5px solid red;">
+        {% elif request._source.status == "Closed" %}
+            class="list-group-item closed" style="border-left: 5px solid dimgray;">
+        {% endif %}
+{#    {% else %}#}
+{#        {% if request._source.status == "Closed" %}#}
+{#            class="list-group-item closed" style="border-left: 5px solid dimgray;">#}
+{#        {% else %}#}
+{#            class="list-group-item open" style="border-left: 5px solid dodgerblue;">#}
+{#        {% endif %}#}
+{#    {% endif %}#}
+        <div class="row">
+            <div class="col-sm-2">
+                {{ request._id }}
+            </div>
+            <div class="col-sm-2">
+                {{ request._source.date_submitted.strftime("%b %d, %Y") }}
+            </div>
+            <div class="col-sm-2">
+                {% if current_user.is_agency %}
+                    {{ request._source.title }}
+                {% else %}
+                    {{ request._source.public_title }}
+                {% endif %}
+            </div>
+            <div class="col-sm-2">
+                {{ request._source.agency_name }}
+            </div>
+            <div class="col-sm-2">
+                {{ request._source.date_due.strftime("%b %d, %Y") }}
+            </div>
+            <div class="col-sm-2">
+                {{ request._source.requester_name }}
+            </div>
         </div>
-        <div class="col-sm-1">
-            {{ request._source.date_submitted }}
-        </div>
-        <div class="col-sm-4">
-            {{ request._source.public_title }}
-        </div>
-        <div class="col-sm-2">
-            {{ request._source.agency_name }}
-        </div>
-        <div class="col-sm-1">
-            {{ request._source.date_due }}
-        </div>
-        <div class="col-sm-2">
-            {{ request._source.requester_name }}
-        </div>
-    </div>
+    </a>
 {% endfor %}

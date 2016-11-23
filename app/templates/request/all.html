@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_all.css') }}"/>
+{% endblock %}
+
 {% block title %}
     View Requests
 {% endblock %}
@@ -16,7 +20,7 @@
                     which will save time for you and for the City of New York. Yay.
                 </p>
             </div>
-            <div class="col-sm-4 text-right">
+            <div class="col-sm-4 text-right" id="new-request">
                 <button type="button" class="btn btn-lg btn-primary">Request a New Record</button>
             </div>
         </div>
@@ -64,7 +68,6 @@
                         <option value="10">10</option>
                         <option value="20">20</option>
                         <option value="50">50</option>
-                        <option value="100">100</option>
                     </select>
                     <strong>&nbsp;Results Per Page</strong>
                 </div>
@@ -104,31 +107,37 @@
                 <div class="col-sm-4">
                     <h4><label for="agency">Agency</label></h4>
                     <select id="agency" class="input-block-level">
-                        <option>WTForms Needed</option>
+                        <option>WTForms Needed</option> <!-- TODO: auto search on change -->
                     </select>
                     <br>
                     <h4><label>Status</label></h4>
-                    <div class="checkbox">
+                    <div class="status open checkbox">
                         <label>
                             <input type="checkbox" id="open" checked>
                             Open
                         </label>
                     </div>
 {#                    {% if current_user.is_agency %}#}
-                        <div class="checkbox">
+                        <div class="status in-progress checkbox">
+                            <label>
+                                <input type="checkbox" id="in-progress" checked>
+                                In Progress
+                            </label>
+                        </div>
+                        <div class="status due-soon checkbox">
                             <label>
                                 <input type="checkbox" id="due-soon" checked>
                                 Due Soon
                             </label>
                         </div>
-                        <div class="checkbox">
+                        <div class="status overdue checkbox">
                             <label>
                                 <input type="checkbox" id="overdue" checked>
                                 Overdue
                             </label>
                         </div>
 {#                    {% endif %}#}
-                    <div class="checkbox">
+                    <div class=" status closed checkbox">
                         <label>
                             <input type="checkbox" id="closed">
                             Closed
@@ -143,28 +152,28 @@
         <div class="row">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <div class="row" style="font-weight: bold;">
+                    <div class="row result-fields">
                         <div class="col-sm-2">
                             ID
                         </div>
-                        <div class="col-sm-1">
-                            Date Received
+                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort-date-rec">
+                            Date Received <span class="glyphicon" aria-hidden="true"></span>
                         </div>
-                        <div class="col-sm-4">
-                            Title
+                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort-title">
+                            Title <span class="glyphicon" aria-hidden="true"></span>
                         </div>
                         <div class="col-sm-2">
                             Assigned Agency
                         </div>
-                        <div class="col-sm-1">
-                            Date Due
+                        <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort-date-due">
+                            Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
                         </div>
                         <div class="col-sm-2">
                             Requester Name  <!-- TODO: only for agency users, col change -->
                         </div>
                     </div>
                 </div>
-                <div class="panel-body" id="results"></div>
+                <ul class="list-group" id="results"></ul>
             </div>
         </div>
         <!-- Pagination -->
@@ -175,9 +184,7 @@
                     Prev
                 </button>
             </div>
-            <div class="col-sm-6 text-center">
-                X - X of X
-            </div>
+            <div class="col-sm-6 text-center" id="page-info"></div>
             <div class="col-sm-3 text-right">
                 <button type="button" id="next" class="btn btn-default">
                     Next

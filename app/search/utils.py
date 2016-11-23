@@ -4,6 +4,13 @@ from elasticsearch.helpers import bulk
 from app.search.constants import INDEX
 
 
+def recreate():
+    """ For when you feel lazy. """
+    es.indices.delete(INDEX, ignore=[400, 404])
+    create_index()
+    create_docs()
+
+
 def create_index():
     es.indices.create(
         index=INDEX,
@@ -45,22 +52,12 @@ def create_index():
                         },
                         "status": {
                             "type": "string",
-                            "analyzer": "not_analyzed"
+                            "index": "not_analyzed"
                         },
-                        "date_submitted": {
-                            "type": "date",
-                            "format": "",
-                        },
-                        "date_due": {
-                            "type": "date",
-                            "format": "",
-                            # will have to convert to datetime object and then to appropriate timezone
-                        }
                     }
                 }
             }
         },
-        ignore=400
     )
 
 
@@ -90,7 +87,7 @@ def create_docs():
             # public_agency_description
         })
 
-    success, _ = bulk(
+    num_success, _ = bulk(
         es,
         operations,
         index=INDEX,
@@ -98,7 +95,7 @@ def create_docs():
         chunk_size=100,
         raise_on_error=True
     )
-    print("Actions performed:", success)
+    print("Actions performed:", num_success)
 
 
 def update_docs():

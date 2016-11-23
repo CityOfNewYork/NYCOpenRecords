@@ -1,46 +1,10 @@
-// success: function(resp){
-//     // uncomment for full raw json response
-//     // $('#results-raw').text(JSON.stringify(resp, null, 4));
-//     var hits = typeof resp.hits != 'undefined' ? resp.hits.hits : resp;
-//     if (hits.length > 0) {
-//         for (var i = 0; i < hits.length; i++) {
-//             var content = "";
-//             if (typeof hits[i].highlight != 'undefined') {
-//                 var keys = Object.keys(hits[i].highlight);
-//                 for (var j = 0; j < keys.length; j++) {
-//                     var key_private = null;
-//                     if (keys[j] == "title") {
-//                         key_private = hits[i]._source.title_private ?
-//                                 "private" : "public";
-//                     }
-//                     else if (keys[j] == "agency_description") {
-//                         key_private = hits[i]._source.agency_description_private ?
-//                                 "private" : "public";
-//                     }
-//                     content += "<p><strong>" + keys[j] + "</strong>";
-//
-//                     if (key_private != null) {
-//                         content += " <em>" + key_private + "</em>";
-//                     }
-//                     content += "<br>" + hits[i].highlight[keys[j]] + "</p>";
-//                 }
-//             }
-//             var raw = JSON.stringify(hits[i], null, 4);
-//             $('#results').append(
-//                     "<li>" +
-//                     "<a href='" + "/request/view/" + hits[i]._id + "'>" +
-//                     hits[i]._id + "</a> : " + hits[i]._source.public_title +
-//                     "<br>" + content +
-//                     "<div class='show-raw'>{...}</div>" +
-//                     "<div class='raw'>" + raw + "</div></li>");
-//         }
-//     }
-// }
-
-
-
 $(function() {
-    function search(sortBy, start) {
+    var start = 0;
+    var end = 0;
+    var total = 0;
+
+    function search() {
+
         var results = $("#results");
         results.children().remove();  // clear rows
 
@@ -56,10 +20,14 @@ $(function() {
         var dateDueTo = $("#date-due-to").val();
         var agency = $("#agency").val();
         var statusOpen = $("#open").prop("checked");
+        var statusInProg = $("#in-progress").prop("checked");
         var statusClosed = $("#closed").prop("checked");
         var statusDueSoon = $("#due-soon").prop("checked");
         var statusOverdue = $("#overdue").prop("checked");
         var pageSize = $("#size").val();
+        var sortDateRec = $("#sort-date-rec").attr("data-sort-order");
+        var sortDateDue = $("#sort-date-due").attr("data-sort-order");
+        var sortTitle = $("#sort-title").attr("data-sort-order");
 
         $.ajax({
             url: "/search/requests",
@@ -77,13 +45,26 @@ $(function() {
                 agency: agency,
                 open: statusOpen,
                 closed: statusClosed,
+                in_progress: statusInProg,
                 due_soon: statusDueSoon,
                 overdue: statusOverdue,
                 size: pageSize,
+                start: start,
+                sort_date_submitted: sortDateRec,
+                sort_date_due: sortDateDue,
+                sort_title: sortTitle
             },
             success: function(data) {
                 if (data.total != 0) {
                     results.html(data.results);
+                    $("#page-info").text(
+                        (start + 1) + " - " +
+                        (start + data.count) +
+                        " of " + data.total
+                    );
+                    total = data.total;
+                    count = data.count;
+                    end = start + data.count;
                 }
                 else {
                     results.text("No results found.")
@@ -95,8 +76,6 @@ $(function() {
             }
         });
     }
-
-    // TODO: cannot uncheck search filter if only 1 selected (both query and status)
 
     // disable other filters if searching by FOIL-ID
     $("#foil-id").click(function() {
@@ -117,7 +96,58 @@ $(function() {
         }
     });
 
-    // TODO: order by filters, next/prev
-    $("#search").click(search);
-    $("#size").change(search);
+    $(".status").click(function() {
+        start = 0;
+        search();
+    });
+
+    $("#search").click(function() {
+        start = 0;
+        search();
+    });
+    $("#size").change(function() {
+        start = 0;
+        search();
+    });
+    $("#next").click(function() {
+        if (end < total) {
+            start += parseInt($("#size").val());
+            search();
+        }
+    });
+    $("#prev").click(function() {
+        if (start > 0) {
+            start -= parseInt($("#size").val());
+            search();
+        }
+    });
+
+    // SORTING
+
+    $(".sort-field").click(function() {
+        start = 0;
+        toggleSort($(this));
+        search();
+    });
+
+    var sortOrderToGlyphicon = {
+        desc: "glyphicon-triangle-bottom",
+        asc: "glyphicon-triangle-top",
+        none: "",
+    };
+
+    var sortSequence = ["none", "desc", "asc"];
+
+    function toggleSort(elem) {
+        var icon = elem.find(".glyphicon");
+        icon.removeClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
+
+        elem.attr(
+            "data-sort-order",
+            sortSequence[
+                (sortSequence.indexOf(elem.attr("data-sort-order")) + 1 + sortSequence.length)
+                % sortSequence.length]);
+
+        icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")])
+    }
 });

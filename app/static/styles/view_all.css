@@ -1,0 +1,41 @@
+#new-request {
+    /* it would be nice to vertical-align with other
+    columns in row instead of resorting to this */
+    padding-top: 4em;
+}
+
+.panel-heading {
+    padding: 10px 0;
+}
+
+.list-group-item {
+    padding: 10px 0;
+}
+
+.list-group-item, .status {
+    border-left: 5px solid;
+}
+
+.open {
+    border-left-color: dodgerblue;
+}
+.closed {
+    border-left-color: dimgray;
+}
+.in-progress {
+    border-left-color: forestgreen;
+}
+.due-soon {
+    border-left-color: darkorange;
+}
+.overdue {
+    border-left-color: red;
+}
+
+.sort-field {
+    color: #337ab7;
+}
+.sort-field:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}

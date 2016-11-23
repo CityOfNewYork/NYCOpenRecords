@@ -7,7 +7,7 @@ from string import (
     ascii_letters,
     digits,
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import current_app
 from tests.lib.constants import NON_ANON_USER_GUID_LEN
 from app.constants import (
@@ -191,7 +191,7 @@ def create_requests_search_set(requester, other_requester):
     for title_private, agency_desc_private, is_requester in product(range(2), repeat=3):
         for title, description, agency_description in product(("foo", "bar", "baz"), repeat=3):
             agency_ein = random.choice(agency_eins)
-            date_created = datetime.utcnow()
+            date_created = get_random_date(datetime(2015, 1, 1), datetime(2016, 1, 1))
             date_submitted = get_following_date(date_created)
             request = Requests(
                 generate_request_id(agency_ein),
@@ -204,7 +204,11 @@ def create_requests_search_set(requester, other_requester):
                 due_date=get_due_date(date_submitted,
                                       ACKNOWLEDGMENT_DAYS_DUE),
                 submission=submission_methods.DIRECT_INPUT,
-                status=request_status.OPEN,
+                status=random.choice((request_status.OPEN,
+                                      request_status.CLOSED,
+                                      request_status.OVERDUE,
+                                      request_status.IN_PROGRESS,
+                                      request_status.DUE_SOON)),
                 privacy={
                     'title': bool(title_private),
                     'agency_description': bool(agency_desc_private)
@@ -221,3 +225,14 @@ def create_requests_search_set(requester, other_requester):
                 permissions=11
             )
             create_object(user_request)
+
+
+def get_random_date(start, end):
+    """
+    :type start: datetime
+    :type end: datetime
+    """
+    return start + timedelta(
+        seconds=random.randint(
+            0, int((end - start).total_seconds())
+        ))

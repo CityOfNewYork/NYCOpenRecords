@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import (
     request,
     jsonify,
@@ -5,22 +6,25 @@ from flask import (
 )
 from flask_login import current_user, login_user
 from app import es
+from app.constants import request_status
 from app.search import search
 from app.search.constants import (
     INDEX,
     DEFAULT_HITS_SIZE,
+    DATETIME_FORMAT,
 )
 from app.lib.utils import (
     eval_request_bool,
     InvalidUserException,
 )
-# TODO: HOW TO DENY ACCESS TO ES PORT FOR ANYTHING BUT APP?
 
 
 @search.route("/", methods=['GET'])
 def test():
     return render_template('search/test.html')
 
+
+# TODO: move what should be in utils into utils!!!
 
 @search.route("/requests", methods=['GET'])
 def requests():
@@ -52,12 +56,24 @@ def requests():
 
     - closed: (optional, default: False)
 
-    - due_soon: (optional, default: True if agency user)
+    - in_progress (optional, default: True)
 
-    - overdue: (optional, default: True if agency user)
+    - due_soon: (optional, default: True)
+
+    - overdue: (optional, default: True)
 
     - size: (optional, default: 10)
         number of results to return
+    - start: (optional, default: 0)
+        starting offset
+    - sort_id
+
+    - sort_date_submitted
+
+    - sort_date_due
+
+    - sort_title
+
     - by_phrase: (optional, default: false)
         use phrase matching instead of standard full-text?
     - highlight: (optional, default: false)
@@ -99,6 +115,8 @@ def requests():
         query = query.strip()
 
     # if query:  # TODO: no matching on fields if no query, just return all docs
+
+    # Query fields
     use_id = eval_request_bool(request.args.get('foil_id'), False)
     use_title = eval_request_bool(request.args.get('title'))
     use_agency_desc = eval_request_bool(request.args.get('agency_description'))
@@ -108,11 +126,53 @@ def requests():
     use_requester_name = (eval_request_bool(request.args.get('requester_name'))
                           if current_user.is_agency
                           else False)
-    highlight = eval_request_bool(request.args.get('highlight'), False)
 
     if not any((use_id, use_title, use_agency_desc, use_description, use_requester_name)):
         # nothing to query on
         return jsonify({}), 200
+
+    # Highlight
+    highlight = eval_request_bool(request.args.get('highlight'), False)
+
+    # Sort
+    # TODO: sort_id special
+    sort = []
+    for field in ('sort_date_submitted', 'sort_date_due', 'sort_title'):
+        val = request.args.get(field)
+        if val in ("desc", "asc"):
+            sort.append(':'.join((field.replace('sort_', ''), val)))
+
+    # Status
+    open = eval_request_bool(request.args.get('open'), True)
+    closed = eval_request_bool(request.args.get('closed'), False)
+    in_progress = eval_request_bool(request.args.get('in_progress'), True)
+    due_soon = eval_request_bool(request.args.get('due_soon'), True)
+    overdue = eval_request_bool(request.args.get('overdue'), True)
+    # if current_user.is_agency:
+    statuses = {
+        request_status.OPEN: open,
+        request_status.CLOSED: closed,
+        request_status.IN_PROGRESS: in_progress,
+        request_status.DUE_SOON: due_soon,
+        request_status.OVERDUE: overdue
+    }
+    statuses = [s for s, b in statuses.items() if b]
+    # else:
+    #     # Any request that isn't closed is considered open
+    #     statuses = [
+    #         request_status.OPEN,
+    #         request_status.IN_PROGRESS,
+    #         request_status.DUE_SOON,
+    #         request_status.OVERDUE
+    #     ] if open else [
+    #         request_status.CLOSED
+    #     ]
+
+    # Start
+    try:
+        start = int(request.args.get('start'), 0)
+    except ValueError:
+        start = 0
 
     # Size
     try:
@@ -133,7 +193,7 @@ def requests():
         'requester_name': use_requester_name,
     }
 
-    # TODO: user terms (plural) for status
+    # TODO: use terms (plural) for status
 
     es_requester_id = None
     if use_id:
@@ -146,11 +206,17 @@ def requests():
         }
     else:
         conditions = []
+        # AGENCY USERS --------------------------------------------------------
         if current_user.is_agency:
-            for name, add in fields.items():
-                if add:
+            for name, use in fields.items():
+                if use:
                     conditions.append({
-                        match_type: {name: query}
+                        'bool': {
+                            'must': [
+                                {match_type: {name: query}},
+                                {'terms': {'status': statuses}}
+                            ]
+                        }
                     })
             dsl = {
                 'query': {
@@ -159,13 +225,15 @@ def requests():
                     }
                 }
             }
+        # ANONYMOUS USERS -----------------------------------------------------
         elif current_user.is_anonymous:
             if use_title:
                 conditions.append({
                     'bool': {
                         'must': [
                             {match_type: {'title': query}},
-                            {'term': {'title_private': False}}
+                            {'term': {'title_private': False}},
+                            {'terms': {'status': statuses}}
                         ]
                     }
                 })
@@ -174,17 +242,19 @@ def requests():
                     'bool': {
                         'must': [
                             {match_type: {'agency_description': query}},
-                            {'term': {'agency_description_private': False}}
+                            {'term': {'agency_description_private': False}},
+                            {'terms': {'status': statuses}}
                         ]
                     }
                 })
             dsl = {
                 'query': {
                     'bool': {
-                        'should': conditions
+                        'should': conditions,
                     }
                 }
             }
+        # PUBLIC USERS --------------------------------------------------------
         elif current_user.is_public:
             es_requester_id = current_user.get_id()
             if use_title:
@@ -195,7 +265,8 @@ def requests():
                             {'bool': {
                                 'should': [
                                     {'term': {'requester_id': es_requester_id}},
-                                    {'term': {'title_private': False}}
+                                    {'term': {'title_private': False}},
+                                    {'terms': {'status': statuses}}
                                 ]
                             }}
                         ]
@@ -206,7 +277,8 @@ def requests():
                     'bool': {
                         'must': [
                             {match_type: {'agency_description': query}},
-                            {'term': {'agency_description_private': False}}
+                            {'term': {'agency_description_private': False}},
+                            {'terms': {'status': statuses}}
                         ]
                     }
                 })
@@ -215,7 +287,8 @@ def requests():
                     'bool': {
                         'must': [
                             {match_type: {'description': query}},
-                            {'term': {'requester_id': es_requester_id}}
+                            {'term': {'requester_id': es_requester_id}},
+                            {'terms': {'status': statuses}}
                         ]
                     }
                 })
@@ -258,23 +331,39 @@ def requests():
                  'requester_name',
                  'title_private',
                  'agency_description_private',
-                 'public_title'],
+                 'public_title',
+                 'title'],
         size=size,
+        from_=start,
+        sort=sort,
     )
 
     if highlight and not use_id:
         _process_highlights(results, es_requester_id)
 
     total = results["hits"]["total"]
+
     formatted_results = None
     if total != 0:
+        _convert_dates(results)
         formatted_results = render_template("request/result_row.html",
                                             requests=results["hits"]["hits"])
-
     return jsonify({
+        "count": len(results["hits"]["hits"]),
         "total": total,
         "results": formatted_results
     }), 200
+
+
+def _convert_dates(results):
+    """
+    Replace 'date_submitted' and 'date_due' of the request search results
+    (with the elasticsearch builtin date format: basic_date) with a
+    datetime object.
+    """
+    for hit in results["hits"]["hits"]:
+        for field in ("date_submitted", "date_due"):
+            hit["_source"][field] = datetime.strptime(hit["_source"][field], DATETIME_FORMAT)
 
 
 def _process_highlights(results, requester_id=None):
