@@ -434,7 +434,6 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     )}), 200
 
 
-
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an extension.

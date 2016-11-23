@@ -3,10 +3,11 @@
     {% if note_content %}
         {% if privacy != response_privacy.PRIVATE %}
             The following note has been added to <a
-                href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+                href="{{ page }}">{{ request_id }}</a>:</p>
         {% endif %}
         <p style="padding-left: 30px;">
             {{ note_content }}
         </p>
+
     {% endif %}
 {% endblock %}
