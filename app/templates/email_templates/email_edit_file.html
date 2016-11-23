@@ -1,0 +1,35 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if not agency %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            <p>
+                A FILE in request <a href="{{ page }}">{{ request_id }}</a> has been edited.
+            </p>
+        {% else %}
+            <p>
+                A FILE in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view
+            </p>
+        {% endif %}
+    {% endif %}
+
+    {% if response_data is not none %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency %}
+            {% if response_data.data_old['name'] and response_data.data_old['hash'] %}
+                <p>
+                    The file:
+                </p>
+                <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
+                <p> has been replaced with: </p>
+                <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
+            {% elif response_data.data_old['name'] and not response_data.data_old['hash'] %}
+                <p>
+                    The name of the file was changed from:
+                </p>
+                <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
+                <p> to: </p>
+                <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
+                <!-- TODO: same filename but hash changed means only file changed? -->
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

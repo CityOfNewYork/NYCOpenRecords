@@ -154,7 +154,7 @@ $(function () {
                             type: "POST",
                             data: {
                                 request_id: request_id,
-                                template_name: "email_response_file.html",
+                                template_name: "email_edit_file.html",
                                 type: "edit",
                                 response_id: response_id,
                                 title: first.find("input[name=title]").val(),
@@ -200,9 +200,14 @@ $(function () {
                         type: "POST",
                         data: {
                             request_id: request_id,
-                            template_name: "email_response_file.html",
+                            template_name: "email_edit_file.html",
                             type: "edit",
-                            files: JSON.stringify(files),
+                            response_id: response_id,
+                            title: first.find("input[name=title]").val(),
+                            privacy: first.find("input[name=privacy]:checked").val(),
+                            filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
+                                first.find(".uploaded-filename").text(),
+                            confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
