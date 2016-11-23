@@ -775,11 +775,17 @@ def get_email_key(response_id, requester=False):
 
 def get_file_links(response, agency_file_links, requester_file_links):
     """
+    Create file links for a file response based on privacy.
+    Add file link item to agency_file_links dictionary and to requester_file_links dictionary if file response is not
+    private.
 
-    :param response:
-    :param agency_file_links:
-    :param requester_file_links:
-    :return:
+    :param response: response object
+    :param agency_file_links: dictionary of agency file links containing nested dictionaries of private and release
+                              with both containing key, value of filename and file link
+    :param requester_file_links: dictionary of file links to the requester with key, value of filename and file link
+
+    :return: agency_file_links dictionary and requester_file_links (if file is not private) dictionary with
+             added file link item
     """
     resp = Responses.query.filter_by(id=response.id).one()
     path = '/response/' + str(response.id)
@@ -803,13 +809,19 @@ def get_file_links(response, agency_file_links, requester_file_links):
 
 def send_file_email(request_id, agency_file_links, requester_file_links, email_content):
     """
+    Send email with file links detailing a file response has been added to the request.
+    Requester receives email only if requester_file_links dictionary has key and value.
+    Agency users always receive email.
 
-    :param request_id:
-    :param agency_file_links:
-    :param requester_file_links:
-    :param email_content:
+    :param request_id: FOIL request ID
+    :param agency_file_links: dictionary of agency file links containing nested dictionaries of private and release
+                              with both containing key, value of filename and file link
+    :param requester_file_links: dictionary of file links to the requester with key, value of filename and file link
+    :param email_content: string body of email from tinymce textarea
+
     :return:
     """
+    page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     is_anon = None
     if Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester:
         is_anon = True
@@ -833,7 +845,8 @@ def send_file_email(request_id, agency_file_links, requester_file_links, email_c
                                            request_id=request_id,
                                            email_file_content=email_content,
                                            agency_name=agency_name,
-                                           agency_file_links=agency_file_links)
+                                           agency_file_links=agency_file_links,
+                                           page=page)
     safely_send_and_add_email(request_id,
                               email_content_agency,
                               subject,

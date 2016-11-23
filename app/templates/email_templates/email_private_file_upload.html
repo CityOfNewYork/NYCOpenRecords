@@ -2,14 +2,15 @@
     {{ email_file_content | safe}}
 
     <ul>
-        {% for filename, link in agency_file_links.items() %}
+        Private Files:
+        {% for filename, link in agency_file_links['private'].items() %}
             <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
         {% endfor %}
     </ul>
 {% else %}
     <p>Attention {{ agency_name }} Users,<p>
 
-    <p>The following files were uploaded to <a href="{{ url_for('request.view', request_id=request_id) }}">{{ request_id }}</a>:</p>
+    <p>The following files were uploaded to <a href="{{ page }}">{{ request_id }}</a>:</p>
 
     {% if agency_file_links %}
         <ul>
