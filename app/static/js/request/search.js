@@ -3,10 +3,112 @@ $(function() {
     var end = 0;
     var total = 0;
 
+    // Date
+    datepickerOptions = {
+        dateFormat: "mm/dd/yy",
+        daysOfWeekDisabled: [0, 6],
+        beforeShowDay: notHolidayOrWeekend,
+    };
+
+    var dateRecFromElem = $("#date-rec-from");
+    var dateRecToElem = $("#date-rec-to");
+    var dateDueFromElem = $("#date-due-from");
+    var dateDueToElem = $("#date-due-to");
+
+    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem];
+    for (var d in dates) {
+        dates[d].datepicker(datepickerOptions);
+        dates[d].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
+    }
+    dateRecFromElem.on("input change", function () {
+        valiDates(dateRecFromElem, dateRecToElem);
+    });
+    dateRecToElem.on("input change", function () {
+        valiDates(dateRecFromElem, dateRecToElem);
+    });
+    dateDueFromElem.on("input change", function () {
+        valiDates(dateDueFromElem, dateDueToElem);
+    });
+    dateDueToElem.on("input change", function () {
+        valiDates(dateDueFromElem, dateDueToElem);
+    });
+
+    function elemToDate(elem) {
+        /*
+        * Convert an element associated with a date input
+        * to a Date object
+        * */
+        var date = new Date();
+        date.setFullYear(parseInt(elem.val().substr(6, 4)));
+        date.setMonth(parseInt(elem.val().substr(0, 2)) - 1);
+        date.setDate(parseInt(elem.val().substr(3, 2)));
+        return date;
+    }
+
+    function valiDates(fromDateElem, toDateElem) {
+        /*
+        * Check that 'fromDateElem' is less than 'toDateElem'
+        * and that both dates are not holidays or weekends.
+        * */
+        valiDate(fromDateElem, toDateElem, true);
+        valiDate(toDateElem, fromDateElem, false);
+    }
+
+    function valiDate(checkDateElem, compDateElem, isLessThan) {
+        /*
+        * Check that 'checkDateElem' holds an empty value or
+        * that it is not a holiday or weekend and
+        * that it 'isLessThan' (or greater than if 'isLessThan' == false)
+        * compDateElem and style accordingly.
+        * */
+        if (checkDateElem.val()) {
+            if (checkDateElem.val().length == 10) {
+                var compDate = null;
+                if (compDateElem.val().length == 10) {
+                    try {
+                        compDate = elemToDate(compDateElem);
+                    }
+                    catch (err) {
+                        compDate = null;
+                    }
+                }
+                try {
+                    var checkDate = elemToDate(checkDateElem);
+                    var validComp = compDate !== null ?
+                        (isLessThan ? checkDate < compDate : checkDate > compDate) : true;
+                    if (!notHolidayOrWeekend(checkDate, false) || !validComp) {
+                        checkDateElem.addClass("bad-input-text");
+                    }
+                    else {
+                        checkDateElem.removeClass("bad-input-text");
+                    }
+                }
+                catch (err) {
+                    // failure parsing date string
+                    checkDateElem.addClass("bad-input-text");
+                }
+            }
+            else {
+                // missing character
+                checkDateElem.addClass("bad-input-text");
+            }
+        }
+        else {
+            // empty value is valid (no filtering)
+            checkDateElem.removeClass("bad-input-text");
+        }
+    }
+
+    // search on load
+    search();
+
     function search() {
 
+        // first clear out any bad input
+        $(".bad-input-text").removeClass("bad-input-text").val("");
+
         var results = $("#results");
-        results.children().remove();  // clear rows
+        var pageInfo = $("#page-info");
 
         var query = $("#query").val();
         var searchById = $("#foil-id").prop("checked");
@@ -42,7 +144,7 @@ $(function() {
                 date_rec_to: dateRecTo,
                 date_due_from: dateDueFrom,
                 date_due_to: dateDueTo,
-                agency: agency,
+                agency_ein: agency,
                 open: statusOpen,
                 closed: statusClosed,
                 in_progress: statusInProg,
@@ -57,7 +159,7 @@ $(function() {
             success: function(data) {
                 if (data.total != 0) {
                     results.html(data.results);
-                    $("#page-info").text(
+                    pageInfo.text(
                         (start + 1) + " - " +
                         (start + data.count) +
                         " of " + data.total
@@ -67,7 +169,8 @@ $(function() {
                     end = start + data.count;
                 }
                 else {
-                    results.text("No results found.")
+                    results.html("<li class='list-group-item text-center'>No results found.</li>");
+                    pageInfo.text("");
                 }
             },
             error: function(e) {
@@ -109,6 +212,11 @@ $(function() {
         start = 0;
         search();
     });
+    $("#agency").change(function() {
+        start = 0;
+        search();
+    });
+    // TODO: hide next/prev when appropriate
     $("#next").click(function() {
         if (end < total) {
             start += parseInt($("#size").val());

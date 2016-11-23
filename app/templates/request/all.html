@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_all.css') }}"/>
 {% endblock %}
 
@@ -9,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid">
+    <div class="container-fluid" id="main">
         <div class="row">
             <div class="col-sm-8">
                 <h1>Explore OpenRecords Requests</h1>
@@ -75,11 +76,11 @@
 {#                    {% if current_user.is_agency %}#}
                         <div class="row">
                             <h4><label>Date Received</label></h4>
-                            <div class="col-sm-6">
+                            <div class="col-sm-6 no-pad-left">
                                 <label for="date-rec-from">From:</label>
                                 <input type="text" id="date-rec-from">
                             </div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-6 no-pad-right">
                                 <label for="date-rec-to">To:</label>
                                 <input type="text" id="date-rec-to">
                             </div>
@@ -87,11 +88,11 @@
                         <br>
                         <div class="row">
                             <h4><label>Date Due</label></h4>
-                            <div class="col-sm-6">
+                            <div class="col-sm-6 no-pad-left">
                                 <label for="date-due-from">From:</label>
                                 <input type="text" id="date-due-from">
                             </div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-6 no-pad-right">
                                 <label for="date-due-to">To:</label>
                                 <input type="text" id="date-due-to">
                             </div>
@@ -105,10 +106,8 @@
 {#                    {% endif %}#}
                 </div>
                 <div class="col-sm-4">
-                    <h4><label for="agency">Agency</label></h4>
-                    <select id="agency" class="input-block-level">
-                        <option>WTForms Needed</option> <!-- TODO: auto search on change -->
-                    </select>
+                    <h4>{{ form.agency.label }}</h4>
+                    {{ form.agency(class="input-block-level") }}
                     <br>
                     <h4><label>Status</label></h4>
                     <div class="status open checkbox">
@@ -196,5 +195,7 @@
 {% endblock %}
 
 {% block custom_script %}
+    <script type="text/javascript">$(function() {holiday_dates = {{ holidays | safe }}; });</script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/request/search.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
 {% endblock %}

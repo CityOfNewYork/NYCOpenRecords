@@ -23,13 +23,11 @@ from app.lib.date_utils import (
     get_holidays_date_list,
 )
 from app.lib.db_utils import (
-    get_agencies_list,
     update_object,
 )
 from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
-    UserRequests,
     Users,
 )
 from app.request import request
@@ -39,6 +37,7 @@ from app.request.forms import (
     AnonymousRequestForm,
     EditRequesterForm,
     DenyRequestForm,
+    SearchRequestsForm,
 )
 from app.request.utils import (
     create_request,
@@ -70,11 +69,9 @@ def new():
 
     if current_user.is_public:
         form = PublicUserRequestForm()
-        form.request_agency.choices = get_agencies_list()
         template_suffix = 'user.html'
     elif current_user.is_anonymous:
         form = AnonymousRequestForm()
-        form.request_agency.choices = get_agencies_list()
         template_suffix = 'anon.html'
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
@@ -144,9 +141,14 @@ def new():
 
 @request.route('/view_all', methods=['GET'])
 def view_all():
-    # requests = Requests.query.with_entities(Requests.id).all()
-    # return render_template('request/all.html', requests=requests)
-    return render_template('request/all.html')
+    return render_template(
+        'request/all.html',
+        form=SearchRequestsForm(first_choice=('', 'All')),
+        holidays=sorted(get_holidays_date_list(
+            datetime.utcnow().year,
+            (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
+        )
+    )
 
 
 @request.route('/view/<request_id>', methods=['GET'])

@@ -1,3 +1,7 @@
+#main {
+    padding-bottom: 1em;
+}
+
 #new-request {
     /* it would be nice to vertical-align with other
     columns in row instead of resorting to this */
@@ -38,4 +42,16 @@
 .sort-field:hover {
     text-decoration: underline;
     cursor: pointer;
+}
+
+.bad-input-text {
+    outline: 1px solid red;
+}
+
+.no-pad-left {
+    padding-left: 0;
+}
+
+.no-pad-right {
+    padding-right: 0;
 }

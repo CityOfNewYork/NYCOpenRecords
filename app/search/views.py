@@ -50,7 +50,7 @@ def requests():
 
     - date_due_to: (optional)
 
-    - agency: (optional)
+    - agency_ein: (optional)
 
     - open: (optional, default: True)
 
@@ -114,8 +114,6 @@ def requests():
     if query is not None:
         query = query.strip()
 
-    # if query:  # TODO: no matching on fields if no query, just return all docs
-
     # Query fields
     use_id = eval_request_bool(request.args.get('foil_id'), False)
     use_title = eval_request_bool(request.args.get('title'))
@@ -127,15 +125,21 @@ def requests():
                           if current_user.is_agency
                           else False)
 
-    if not any((use_id, use_title, use_agency_desc, use_description, use_requester_name)):
+    if query and not any((use_id, use_title, use_agency_desc,
+                          use_description, use_requester_name)):
         # nothing to query on
-        return jsonify({}), 200
+        return jsonify({"total": 0}), 200
 
     # Highlight
     highlight = eval_request_bool(request.args.get('highlight'), False)
 
+    # Agency EIN
+    try:
+        agency_ein = int(request.args.get('agency_ein'))
+    except ValueError:
+        agency_ein = None
+
     # Sort
-    # TODO: sort_id special
     sort = []
     for field in ('sort_date_submitted', 'sort_date_due', 'sort_title'):
         val = request.args.get(field)
@@ -148,25 +152,27 @@ def requests():
     in_progress = eval_request_bool(request.args.get('in_progress'), True)
     due_soon = eval_request_bool(request.args.get('due_soon'), True)
     overdue = eval_request_bool(request.args.get('overdue'), True)
-    # if current_user.is_agency:
-    statuses = {
-        request_status.OPEN: open,
-        request_status.CLOSED: closed,
-        request_status.IN_PROGRESS: in_progress,
-        request_status.DUE_SOON: due_soon,
-        request_status.OVERDUE: overdue
-    }
-    statuses = [s for s, b in statuses.items() if b]
-    # else:
-    #     # Any request that isn't closed is considered open
-    #     statuses = [
-    #         request_status.OPEN,
-    #         request_status.IN_PROGRESS,
-    #         request_status.DUE_SOON,
-    #         request_status.OVERDUE
-    #     ] if open else [
-    #         request_status.CLOSED
-    #     ]
+    if current_user.is_agency:
+        statuses = {
+            request_status.OPEN: open,
+            request_status.CLOSED: closed,
+            request_status.IN_PROGRESS: in_progress,
+            request_status.DUE_SOON: due_soon,
+            request_status.OVERDUE: overdue
+        }
+        statuses = [s for s, b in statuses.items() if b]
+    else:
+        statuses = []
+        if open:
+            # Any request that isn't closed is considered open
+            statuses.extend([
+                request_status.OPEN,
+                request_status.IN_PROGRESS,
+                request_status.DUE_SOON,
+                request_status.OVERDUE
+            ])
+        if closed:
+            statuses.append(request_status.CLOSED)
 
     # Start
     try:
@@ -193,114 +199,195 @@ def requests():
         'requester_name': use_requester_name,
     }
 
-    # TODO: use terms (plural) for status
+    # Date
+    date_rec_from = request.args.get('date_rec_from')
+    date_rec_to = request.args.get('date_rec_to')
+    date_due_from = request.args.get('date_due_from')
+    date_due_to = request.args.get('date_due_to')
+    date_range = None
+    if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
+        range_filters = {}
+        if date_rec_from or date_rec_to:
+            range_filters['date_submitted'] = {'format': 'MM/dd/yyyy'}
+        if date_due_from or date_due_to:
+            range_filters['date_due'] = {'format': 'MM/dd/yyyy'}
+        if date_rec_from:
+            range_filters['date_submitted']['gte'] = date_rec_from
+        if date_rec_to:
+            range_filters['date_submitted']['lte'] = date_rec_to
+        if date_due_from:
+            range_filters['date_due']['gte'] = date_due_from
+        if date_due_to:
+            range_filters['date_due']['lte'] = date_due_to
+        date_range = {
+            'range': range_filters
+        }
 
     es_requester_id = None
     if use_id:
-        dsl = {
-            'query': {
+        filters = [
+            {
                 'wildcard': {
                     '_uid': 'request#FOIL-*{}*'.format(query)
+                }
+            },
+            {'terms': {'status': statuses}}
+        ]
+        if date_range is not None:
+            filters.append(date_range)
+        if agency_ein:
+            filters.append({'term': {'agency_ein': agency_ein}})
+        dsl = {
+            'query': {
+                'bool': {
+                    'must': filters
                 }
             }
         }
     else:
-        conditions = []
-        # AGENCY USERS --------------------------------------------------------
-        if current_user.is_agency:
-            for name, use in fields.items():
-                if use:
+        if query:
+            conditions = []
+            # AGENCY USERS --------------------------------------------------------
+            if current_user.is_agency:
+                for name, use in fields.items():
+                    filters = [
+                        {match_type: {name: query}},
+                        {'terms': {'status': statuses}}
+                    ]
+                    if date_range is not None:
+                        filters.append(date_range)
+                    if agency_ein:
+                        filters.append({'term': {'agency_ein': agency_ein}})
+                    if use:
+                        conditions.append({
+                            'bool': {
+                                'must': filters
+                            }
+                        })
+                dsl = {
+                    'query': {
+                        'bool': {
+                            'should': conditions
+                        }
+                    }
+                }
+            # ANONYMOUS USERS -----------------------------------------------------
+            elif current_user.is_anonymous:
+                if use_title:
+                    filters = [
+                        {match_type: {'title': query}},
+                        {'term': {'title_private': False}},
+                        {'terms': {'status': statuses}},
+                    ]
+                    if date_range is not None:
+                        filters.append(date_range)
+                    if agency_ein:
+                        filters.append({'term': {'agency_ein': agency_ein}})
                     conditions.append({
                         'bool': {
-                            'must': [
-                                {match_type: {name: query}},
-                                {'terms': {'status': statuses}}
-                            ]
+                            'must': filters
                         }
                     })
-            dsl = {
-                'query': {
-                    'bool': {
-                        'should': conditions
+                if use_agency_desc:
+                    filters = [
+                        {match_type: {'agency_description': query}},
+                        {'term': {'agency_description_private': False}},
+                        {'terms': {'status': statuses}}
+                    ]
+                    if date_range is not None:
+                        filters.append(date_range)
+                    if agency_ein:
+                        filters.append({'term': {'agency_ein': agency_ein}})
+                    conditions.append({
+                        'bool': {
+                            'must': filters
+                        }
+                    })
+                dsl = {
+                    'query': {
+                        'bool': {
+                            'should': conditions,
+                        }
                     }
                 }
-            }
-        # ANONYMOUS USERS -----------------------------------------------------
-        elif current_user.is_anonymous:
-            if use_title:
-                conditions.append({
-                    'bool': {
-                        'must': [
-                            {match_type: {'title': query}},
-                            {'term': {'title_private': False}},
-                            {'terms': {'status': statuses}}
-                        ]
-                    }
-                })
-            if use_agency_desc:
-                conditions.append({
-                    'bool': {
-                        'must': [
-                            {match_type: {'agency_description': query}},
-                            {'term': {'agency_description_private': False}},
-                            {'terms': {'status': statuses}}
-                        ]
-                    }
-                })
-            dsl = {
-                'query': {
-                    'bool': {
-                        'should': conditions,
-                    }
-                }
-            }
-        # PUBLIC USERS --------------------------------------------------------
-        elif current_user.is_public:
-            es_requester_id = current_user.get_id()
-            if use_title:
-                conditions.append({
-                    'bool': {
-                        'must': [
-                            {match_type: {'title': query}},
-                            {'bool': {
-                                'should': [
-                                    {'term': {'requester_id': es_requester_id}},
-                                    {'term': {'title_private': False}},
-                                    {'terms': {'status': statuses}}
-                                ]
-                            }}
-                        ]
-                    }
-                })
-            if use_agency_desc:
-                conditions.append({
-                    'bool': {
-                        'must': [
-                            {match_type: {'agency_description': query}},
-                            {'term': {'agency_description_private': False}},
-                            {'terms': {'status': statuses}}
-                        ]
-                    }
-                })
-            if use_description:
-                conditions.append({
-                    'bool': {
-                        'must': [
-                            {match_type: {'description': query}},
-                            {'term': {'requester_id': es_requester_id}},
-                            {'terms': {'status': statuses}}
-                        ]
-                    }
-                })
-            dsl = {
-                'query': {
-                    'bool': {
-                        'should': conditions
+            # PUBLIC USERS --------------------------------------------------------
+            elif current_user.is_public:
+                es_requester_id = current_user.get_id()
+                if use_title:
+                    filters = [
+                        {match_type: {'title': query}},
+                        {'bool': {
+                            'should': [
+                                {'term': {'requester_id': es_requester_id}},
+                                {'term': {'title_private': False}},
+                                {'terms': {'status': statuses}}
+                            ]
+                        }}
+                    ]
+                    if date_range is not None:
+                        filters.append(date_range)
+                    if agency_ein:
+                        filters.append({'term': {'agency_ein': agency_ein}})
+                    conditions.append({
+                        'bool': {
+                            'must': filters
+                        }
+                    })
+                if use_agency_desc:
+                    filters = [
+                        {match_type: {'agency_description': query}},
+                        {'term': {'agency_description_private': False}},
+                        {'terms': {'status': statuses}}
+                    ]
+                    if date_range is not None:
+                        filters.append(date_range)
+                    if agency_ein:
+                        filters.append({'term': {'agency_ein': agency_ein}})
+                    conditions.append({
+                        'bool': {
+                            'must': filters
+                        }
+                    })
+                if use_description:
+                    filters = [
+                        {match_type: {'description': query}},
+                        {'term': {'requester_id': es_requester_id}},
+                        {'terms': {'status': statuses}}
+                    ]
+                    if date_range is not None:
+                        filters.append(date_range)
+                    if agency_ein:
+                        filters.append({'term': {'agency_ein': agency_ein}})
+                    conditions.append({
+                        'bool': {
+                            'must': filters
+                        }
+                    })
+                dsl = {
+                    'query': {
+                        'bool': {
+                            'should': conditions
+                        }
                     }
                 }
-            }
+            else:
+                raise InvalidUserException(current_user)
         else:
-            raise InvalidUserException(current_user)
+            filters = [
+                {'match_all': {}},
+                {'terms': {'status': statuses}}
+            ]
+            if date_range is not None:
+                filters.append(date_range)
+            if agency_ein:
+                filters.append({'term': {'agency_ein': agency_ein}})
+            dsl = {
+                'query': {
+                    'bool': {
+                        'must': filters
+                    }
+                }
+            }
 
         # Add highlights
         if highlight:

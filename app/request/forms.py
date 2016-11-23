@@ -24,6 +24,7 @@ from app.constants import (
     submission_methods,
     determination_type,
 )
+from app.lib.db_utils import get_agency_choices
 from app.models import Reasons
 
 
@@ -200,3 +201,14 @@ class DenyRequestForm(Form):
                     Reasons.agency_ein == None
                 )
             )]
+
+
+class SearchRequestsForm(Form):
+    agency = SelectField('Agency')  #, choices=get_agency_choices())
+    # category = SelectField('Category', get_categories())
+
+    def __init__(self, first_choice=('', '')):
+        super(SearchRequestsForm, self).__init__()
+        self.agency.choices = get_agency_choices()
+        self.agency.choices.insert(0, first_choice)
+        # Why choices must be set in constructor I do not know... some db issue
