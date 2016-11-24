@@ -56,14 +56,14 @@
                             Agency Description
                         </label>
                     </div>
-{#                    {% if current_user.is_agency %}#}
+                    {% if current_user.is_agency %}
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="requester-name">
                                 Requester Name
                             </label>
                         </div>
-{#                    {% endif %}#}
+                    {% endif %}
                     <br>
                     <select id="size" title="size" class="input-block-level" style="width: 4em; display: inline;">
                         <option value="10">10</option>
@@ -73,7 +73,7 @@
                     <strong>&nbsp;Results Per Page</strong>
                 </div>
                 <div class="col-sm-4">
-{#                    {% if current_user.is_agency %}#}
+                    {% if current_user.is_agency %}
                         <div class="row">
                             <h4><label>Date Received</label></h4>
                             <div class="col-sm-6 no-pad-left">
@@ -97,13 +97,14 @@
                                 <input type="text" id="date-due-to">
                             </div>
                         </div>
-{#                    {% else %}#}
-{#                        <h4><label>Date Received</label></h4>#}
-{#                        <label for="date-rec-from">From:</label>#}
-{#                        <input type="text" id="date-rec-from">#}
-{#                        <label for="date-rec-to">To:</label>#}
-{#                        <input type="text" id="date-rec-to">#}
-{#                    {% endif %}#}
+                    {% else %}
+                        <h4><label>Date Received</label></h4>
+                        <label for="date-rec-from">From:</label>
+                        <input type="text" id="date-rec-from">
+                        <br>
+                        <label for="date-rec-to">To:</label>
+                        <input type="text" id="date-rec-to">
+                    {% endif %}
                 </div>
                 <div class="col-sm-4">
                     <h4>{{ form.agency.label }}</h4>
@@ -116,7 +117,7 @@
                             Open
                         </label>
                     </div>
-{#                    {% if current_user.is_agency %}#}
+                    {% if current_user.is_agency %}
                         <div class="status in-progress checkbox">
                             <label>
                                 <input type="checkbox" id="in-progress" checked>
@@ -135,7 +136,7 @@
                                 Overdue
                             </label>
                         </div>
-{#                    {% endif %}#}
+                    {% endif %}
                     <div class=" status closed checkbox">
                         <label>
                             <input type="checkbox" id="closed">
@@ -152,24 +153,30 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <div class="row result-fields">
-                        <div class="col-sm-2">
+                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
                             ID
                         </div>
-                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort-date-rec">
-                            Date Received <span class="glyphicon" aria-hidden="true"></span>
+                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %} sort-field"
+                             data-sort-order="{% if not current_user.is_agency %}desc{% else %}none{% endif %}"
+                             id="sort-date-rec">
+                            Date Received <span class="glyphicon {% if not current_user.is_agency %}
+                            glyphicon-triangle-bottom{% endif %}" aria-hidden="true"></span>
                         </div>
-                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort-title">
+                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %} sort-field"
+                             data-sort-order="none" id="sort-title">
                             Title <span class="glyphicon" aria-hidden="true"></span>
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
                             Assigned Agency
                         </div>
-                        <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort-date-due">
-                            Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
-                        </div>
-                        <div class="col-sm-2">
-                            Requester Name  <!-- TODO: only for agency users, col change -->
-                        </div>
+                        {% if current_user.is_agency %}
+                            <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort-date-due">
+                                Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
+                            </div>
+                            <div class="col-sm-2">
+                                Requester Name
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 <ul class="list-group" id="results"></ul>

@@ -160,6 +160,6 @@ footer{
 	min-height: 15px;
 }
 
-input[type="radio"] {
+input[type="radio"], input[type="checkbox"] {
 	width: auto;
 }

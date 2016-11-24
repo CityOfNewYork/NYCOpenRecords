@@ -24,7 +24,6 @@ from app.constants import (
     response_privacy,
     submission_methods,
 )
-from app.search.constants import INDEX
 
 
 class Roles(db.Model):
@@ -440,7 +439,7 @@ class Requests(db.Model):
 
     def es_update(self):
         es.update(
-            index=INDEX,
+            index=current_app.config["ELASTICSEARCH_INDEX"],
             doc_type='request',
             id=self.id,
             body={
@@ -463,7 +462,7 @@ class Requests(db.Model):
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
         es.create(
-            index=INDEX,
+            index=current_app.config["ELASTICSEARCH_INDEX"],
             doc_type='request',
             id=self.id,
             body={

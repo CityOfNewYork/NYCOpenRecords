@@ -3,7 +3,7 @@ $(function() {
     var end = 0;
     var total = 0;
 
-    // Date
+    // Date stuff
     datepickerOptions = {
         dateFormat: "mm/dd/yy",
         daysOfWeekDisabled: [0, 6],
@@ -89,7 +89,7 @@ $(function() {
                 }
             }
             else {
-                // missing character
+                // missing full date string length
                 checkDateElem.addClass("bad-input-text");
             }
         }
@@ -102,9 +102,12 @@ $(function() {
     // search on load
     search();
 
+    var next = $("#next");
+    var prev = $("#prev");
+
     function search() {
 
-        // first clear out any bad input
+        // first clear out any "bad" input
         $(".bad-input-text").removeClass("bad-input-text").val("");
 
         var results = $("#results");
@@ -165,17 +168,34 @@ $(function() {
                         " of " + data.total
                     );
                     total = data.total;
-                    count = data.count;
                     end = start + data.count;
+                    if (end == total) {
+                        next.hide();
+                    }
+                    else {
+                        next.show();
+                    }
+                    if (start == 0) {
+                        prev.hide();
+                    }
+                    else {
+                        prev.show();
+                    }
                 }
                 else {
-                    results.html("<li class='list-group-item text-center'>No results found.</li>");
+                    results.html("<li class='list-group-item text-center'>" +
+                        "No results found.</li>");
                     pageInfo.text("");
+                    next.hide();
+                    prev.hide();
                 }
             },
             error: function(e) {
-                results.text("Hmmmm.... Looks like something's gone wrong.");
-                console.log(e);
+                results.html("<li class='list-group-item text-center'>" +
+                    "Hmmmm.... Looks like something's gone wrong.</li>");
+                pageInfo.text("");
+                next.hide();
+                prev.hide();
             }
         });
     }
@@ -203,7 +223,6 @@ $(function() {
         start = 0;
         search();
     });
-
     $("#search").click(function() {
         start = 0;
         search();
@@ -216,22 +235,20 @@ $(function() {
         start = 0;
         search();
     });
-    // TODO: hide next/prev when appropriate
-    $("#next").click(function() {
+    next.click(function() {
         if (end < total) {
             start += parseInt($("#size").val());
             search();
         }
     });
-    $("#prev").click(function() {
+    prev.click(function() {
         if (start > 0) {
             start -= parseInt($("#size").val());
             search();
         }
     });
 
-    // SORTING
-
+    // Sorting
     $(".sort-field").click(function() {
         start = 0;
         toggleSort($(this));

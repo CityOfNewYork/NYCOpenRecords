@@ -1,19 +1,34 @@
+from datetime import datetime
+
+from flask import (
+    jsonify,
+    render_template,
+    current_app,
+)
+from flask_login import current_user
+from elasticsearch.helpers import bulk
+
 from app import es
 from app.models import Requests
-from elasticsearch.helpers import bulk
-from app.search.constants import INDEX  # FIXME: move out of search (used in models)
+from app.constants import request_status
+from app.search.constants import DATETIME_FORMAT
+from app.lib.utils import InvalidUserException
 
 
 def recreate():
     """ For when you feel lazy. """
-    es.indices.delete(INDEX, ignore=[400, 404])
+    es.indices.delete(current_app.config["ELASTICSEARCH_INDEX"],
+                      ignore=[400, 404])
     create_index()
     create_docs()
 
 
 def create_index():
+    """
+    Create elasticsearch index with mappings for request docs.
+    """
     es.indices.create(
-        index=INDEX,
+        index=current_app.config["ELASTICSEARCH_INDEX"],
         body={
             "mappings": {
                 "request": {
@@ -62,6 +77,9 @@ def create_index():
 
 
 def create_docs():
+    """
+    Create elasticsearch request docs for every request stored in our db.
+    """
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
 
@@ -90,12 +108,12 @@ def create_docs():
     num_success, _ = bulk(
         es,
         operations,
-        index=INDEX,
+        index=current_app.config["ELASTICSEARCH_INDEX"],
         doc_type='request',
         chunk_size=100,
         raise_on_error=True
     )
-    print("Actions performed:", num_success)
+    print("Successfully creted %s docs." % num_success)
 
 
 def update_docs():
@@ -103,14 +121,6 @@ def update_docs():
     requests = Requests.query.all()
     for r in requests:
         r.es_update()  # TODO: in bulk, if needed at some point
-
-
-from datetime import datetime
-from flask import jsonify, render_template
-from flask_login import current_user
-from app.constants import request_status
-from app.search.constants import DATETIME_FORMAT
-from app.lib.utils import InvalidUserException
 
 
 def search_requests(query,
@@ -124,7 +134,7 @@ def search_requests(query,
                     date_due_from,
                     date_due_to,
                     agency_ein,
-                    open,
+                    open_,
                     closed,
                     in_progress,
                     due_soon,
@@ -133,11 +143,47 @@ def search_requests(query,
                     start,
                     sort_date_submitted,
                     sort_date_due,
-                    sort_date_title,
+                    sort_title,
                     by_phrase=False,
                     highlight=False):
+    """
+    The arguments of this function match the request parameters
+    of the '/search/requests' endpoint.
+
+    All date related params expect strings in the format "mm/dd/yyyy"
+    All sort related params expect "desc" or "asc"; other strings ignored
+
+    :param query: string to query for
+    :param foil_id: search by request id?
+    :param title: search by title?
+    :param agency_description: search by agency description?
+    :param description: search by description?
+    :param requester_name: search by requester name?
+    :param date_rec_from: date received/submitted from
+    :param date_rec_to: date received/submitted to
+    :param date_due_from: date due from
+    :param date_due_to: date due to
+    :param agency_ein: agency ein to filter by
+    :param open_: filter by opened requests?
+    :param closed: filter by closed requests?
+    :param in_progress: filter by in-progress requests?
+    :param due_soon: filter by due-soon requests?
+    :param overdue: filter by overdue requests?
+    :param size: number of requests per page
+    :param start: starting index of request result set
+    :param sort_date_submitted: date received/submitted sort direction
+    :param sort_date_due: date due sort direction
+    :param sort_title: title sort direction
+    :param by_phrase: use phrase matching instead of full-text?
+    :param highlight: return highlights?
+        if True, will come at a slight performance cost (in order to
+        restrict highlights to public fields, iterating over elasticsearch
+        query results is required)
+    :return: json response with result information
+
+    """
+    # clean query trailing/leading whitespace
     if query is not None:
-        # clean query trailing/leading whitespace
         query = query.strip()
 
     # return no results if there is nothing to query by
@@ -145,17 +191,17 @@ def search_requests(query,
                           description, requester_name)):
         return jsonify({"total": 0}), 200
 
-    # set sort
-    sort = {
-        k: v for k, v in {
-        'date_submitted': sort_date_submitted,
-        'date_due': sort_date_due,
-        'date_title': sort_date_title}.items() if v in ("desc", "asc")}
+    # set sort (list of "field:direction" pairs)
+    sort = [
+        ':'.join((field, direction)) for field, direction in {
+            'date_submitted': sort_date_submitted,
+            'date_due': sort_date_due,
+            'title': sort_title}.items() if direction in ("desc", "asc")]
 
-    # set statuses
+    # set statuses (list of request statuses)
     if current_user.is_agency:
         statuses = {
-            request_status.OPEN: open,
+            request_status.OPEN: open_,
             request_status.CLOSED: closed,
             request_status.IN_PROGRESS: in_progress,
             request_status.DUE_SOON: due_soon,
@@ -164,7 +210,7 @@ def search_requests(query,
         statuses = [s for s, b in statuses.items() if b]
     else:
         statuses = []
-        if open:
+        if open_:
             # Any request that isn't closed is considered open
             statuses.extend([
                 request_status.OPEN,
@@ -175,7 +221,7 @@ def search_requests(query,
         if closed:
             statuses.append(request_status.CLOSED)
 
-    # set matching type
+    # set matching type (full-text or phrase matching)
     match_type = 'match_phrase' if by_phrase else 'match'
 
     # set date range
@@ -196,6 +242,7 @@ def search_requests(query,
             range_filters['date_due']['lte'] = date_due_to
         date_range = {'range': range_filters}
 
+    # generate query dsl body
     query_fields = {
         'title': title,
         'description': description,
@@ -210,17 +257,17 @@ def search_requests(query,
     else:
         if query:
             if current_user.is_agency:
-                dsl = dsl_gen.agency()
+                dsl = dsl_gen.agency_user()
             elif current_user.is_anonymous:
-                dsl = dsl_gen.anonymous()
+                dsl = dsl_gen.anonymous_user()
             elif current_user.is_public:
-                dsl = dsl_gen.public()
+                dsl = dsl_gen.public_user()
             else:
                 raise InvalidUserException(current_user)
         else:
             dsl = dsl_gen.queryless()
 
-    # add highlights
+    # add highlights to dsl
     if highlight:
         highlight_fields = {}
         for name, add in query_fields.items():
@@ -236,9 +283,9 @@ def search_requests(query,
             }
         )
 
-    # search
-    results =  es.search(
-        index=INDEX,
+    # search / run query
+    results = es.search(
+        index=current_app.config["ELASTICSEARCH_INDEX"],
         doc_type='request',
         body=dsl,
         _source=['requester_id',
@@ -276,9 +323,10 @@ def search_requests(query,
 
 
 class RequestsDSLGenerator(object):
+    """ Class for generating dicts representing query dsl bodies for searching request docs. """
 
     def __init__(self, query, query_fields, statuses, date_range, agency_ein, match_type):
-        self.__query = query,
+        self.__query = query
         self.__query_fields = query_fields
         self.__statuses = statuses
         self.__date_range = date_range
@@ -305,15 +353,16 @@ class RequestsDSLGenerator(object):
         }]
         return self.__must_query
 
-    def agency(self):
+    def agency_user(self):
         for name, use in self.__query_fields.items():
-            self.__filters = [
-                {self.__match_type: {name: self.__query}}
-            ]
-            self.__conditions.append(self.__must)
+            if use:
+                self.__filters = [
+                    {self.__match_type: {name: self.__query}}
+                ]
+                self.__conditions.append(self.__must)
         return self.__should
 
-    def anonymous(self):
+    def anonymous_user(self):
         if self.__query_fields['title']:
             self.__filters = [
                 {self.__match_type: {'title': self.__query}},
@@ -328,7 +377,7 @@ class RequestsDSLGenerator(object):
             self.__conditions.append(self.__must)
         return self.__should
 
-    def public(self):
+    def public_user(self):
         self.requester_id = current_user.get_id()
         if self.__query_fields['title']:
             self.__filters = [
@@ -391,9 +440,8 @@ class RequestsDSLGenerator(object):
 
 def _convert_dates(results):
     """
-    Replace 'date_submitted' and 'date_due' of the request search results
-    (with the elasticsearch builtin date format: basic_date) with a
-    datetime object.
+    Replace 'date_submitted' and 'date_due' of the request
+    search results with a datetime object.
     """
     for hit in results["hits"]["hits"]:
         for field in ("date_submitted", "date_due"):
@@ -417,12 +465,12 @@ def _process_highlights(results, requester_id=None):
                             if requester_id
                             else False)
             if ('title' in hit['highlight']
-                and hit['_source']['title_private']
-                and (current_user.is_anonymous or not is_requester)):
+               and hit['_source']['title_private']
+               and (current_user.is_anonymous or not is_requester)):
                 hit['highlight'].pop('title')
             if ('agency_description' in hit['highlight']
-                and hit['_source']['agency_description_private']):
+               and hit['_source']['agency_description_private']):
                 hit['highlight'].pop('agency_description')
             if ('description' in hit['highlight']
-                and not is_requester):
+               and not is_requester):
                 hit['highlight'].pop('description')
