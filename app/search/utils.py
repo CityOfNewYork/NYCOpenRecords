@@ -11,7 +11,10 @@ from elasticsearch.helpers import bulk
 from app import es
 from app.models import Requests
 from app.constants import request_status
-from app.search.constants import DATETIME_FORMAT
+from app.search.constants import (
+    ES_DATETIME_FORMAT,
+    DATE_RANGE_FORMAT,
+)
 from app.lib.utils import InvalidUserException
 
 
@@ -113,7 +116,7 @@ def create_docs():
         chunk_size=100,
         raise_on_error=True
     )
-    print("Successfully creted %s docs." % num_success)
+    print("Successfully created %s docs." % num_success)
 
 
 def update_docs():
@@ -228,10 +231,11 @@ def search_requests(query,
     date_range = None
     if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
         range_filters = {}
+        date_format = {'format': DATE_RANGE_FORMAT}
         if date_rec_from or date_rec_to:
-            range_filters['date_submitted'] = {'format': 'MM/dd/yyyy'}
+            range_filters['date_submitted'] = date_format
         if date_due_from or date_due_to:
-            range_filters['date_due'] = {'format': 'MM/dd/yyyy'}
+            range_filters['date_due'] = date_format
         if date_rec_from:
             range_filters['date_submitted']['gte'] = date_rec_from
         if date_rec_to:
@@ -445,7 +449,7 @@ def _convert_dates(results):
     """
     for hit in results["hits"]["hits"]:
         for field in ("date_submitted", "date_due"):
-            hit["_source"][field] = datetime.strptime(hit["_source"][field], DATETIME_FORMAT)
+            hit["_source"][field] = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
 
 
 def _process_highlights(results, requester_id=None):

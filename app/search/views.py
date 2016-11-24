@@ -1,32 +1,18 @@
 from flask import (
     request,
-    jsonify,
     render_template,
-    current_app
 )
-from flask_login import current_user, login_user
-from app import es
-from app.constants import request_status
+from flask_login import current_user
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE
-from app.lib.utils import (
-    eval_request_bool,
-    InvalidUserException,
-)
-
-from app.search.utils import (
-    search_requests,
-    _process_highlights,
-    _convert_dates
-)
+from app.lib.utils import eval_request_bool
+from app.search.utils import search_requests
 
 
 @search.route("/", methods=['GET'])
 def test():
     return render_template('search/test.html')
 
-
-# TODO: move what should be in utils into utils!!!
 
 @search.route("/requests", methods=['GET'])
 def requests():
@@ -62,6 +48,7 @@ def requests():
 
     """
 
+    # from flask_login import login_user
     # from app.models import Users
     # from app.constants.user_type_auth import PUBLIC_USER_NYC_ID, AGENCY_USER
     # user = Users.query.filter_by(auth_user_type=AGENCY_USER).first()
