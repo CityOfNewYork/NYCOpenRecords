@@ -251,7 +251,7 @@ $(function() {
     // Sorting
     $(".sort-field").click(function() {
         start = 0;
-        toggleSort($(this));
+        cycleSort($(this));
         search();
     });
 
@@ -263,7 +263,11 @@ $(function() {
 
     var sortSequence = ["none", "desc", "asc"];
 
-    function toggleSort(elem) {
+    function cycleSort(elem) {
+        /*
+        * Cycle through sortSequence and 'style' elem with triangle
+        * glyphicons representing sort direction.
+        * */
         var icon = elem.find(".glyphicon");
         icon.removeClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
 

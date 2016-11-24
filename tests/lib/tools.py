@@ -184,7 +184,7 @@ def generate_user_guid(auth_type):
 
 
 def create_requests_search_set(requester, other_requester):
-    """Generate XXX unique requests. """
+    """Generate 216 unique requests. """
     agency_eins = [ein[0] for ein in
                    Agencies.query.with_entities(Agencies.ein).all()]
 

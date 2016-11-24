@@ -253,8 +253,6 @@ def search_requests(query,
         'agency_description': agency_description,
         'requester_name': requester_name
     }
-
-    # generate query dsl body
     dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_range, agency_ein, match_type)
     if foil_id:
         dsl = dsl_gen.foil_id()
