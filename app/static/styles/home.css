@@ -1,6 +1,5 @@
 .home-page-header {
-    font-size: 3.5rem;
-    padding-top: 1.5rem;
+    font-weight: bold;
 }
 
 .home-page-description {
@@ -21,4 +20,10 @@
 .request-record-button {
     padding-top: 3.5rem;
     padding-bottom: 1.5rem;
+}
+
+.request-record-button-size {
+    padding-top: 1rem;
+    padding-botton: 2rem;
+    font-size: 2rem;
 }
