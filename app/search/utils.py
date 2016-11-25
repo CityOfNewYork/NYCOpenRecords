@@ -300,7 +300,9 @@ def search_requests(query,
                  'title_private',
                  'agency_description_private',
                  'public_title',
-                 'title'],
+                 'title',
+                 'agency_description',  # TODO: remove last 2 after testing
+                 'description'],
         size=size,
         from_=start,
         sort=sort,
@@ -316,7 +318,8 @@ def search_requests(query,
     if total != 0:
         _convert_dates(results)
         formatted_results = render_template("request/result_row.html",
-                                            requests=results["hits"]["hits"])
+                                            requests=results["hits"]["hits"],
+                                            query=query)  # TODO: remove after testing
     return jsonify({
         "count": len(results["hits"]["hits"]),
         "total": total,

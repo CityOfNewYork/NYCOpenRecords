@@ -184,12 +184,16 @@ def generate_user_guid(auth_type):
 
 
 def create_requests_search_set(requester, other_requester):
-    """Generate 216 unique requests. """
+    """
+    Generate 216 unique requests.
+    Every combination of title content, description content, agency description content,
+    title privacy, agency description privacy, and requester is guaranteed to be unique.
+    """
     agency_eins = [ein[0] for ein in
                    Agencies.query.with_entities(Agencies.ein).all()]
 
     for title_private, agency_desc_private, is_requester in product(range(2), repeat=3):
-        for title, description, agency_description in product(("foo", "bar", "baz"), repeat=3):
+        for title, description, agency_description in product(("foo", "bar", "qux"), repeat=3):
             agency_ein = random.choice(agency_eins)
             date_created = get_random_date(datetime(2015, 1, 1), datetime(2016, 1, 1))
             date_submitted = get_following_date(date_created)

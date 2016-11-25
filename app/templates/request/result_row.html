@@ -20,10 +20,10 @@
         {% endif %}
     {% endif %}
         <div class="row">
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+            <div class="col-sm-2">
                 {{ request._id }}
             </div>
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+            <div class="col-sm-2">
                 {{ request._source.date_submitted.strftime("%b %d, %Y") }}
             </div>
             <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
@@ -36,14 +36,64 @@
             <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
                 {{ request._source.agency_name }}
             </div>
+            <div class="col-sm-2">
+                {{ request._source.date_due.strftime("%b %d, %Y") }}
+            </div>
             {% if current_user.is_agency %}
-                <div class="col-sm-2">
-                    {{ request._source.date_due.strftime("%b %d, %Y") }}
-                </div>
                 <div class="col-sm-2">
                     {{ request._source.requester_name }}
                 </div>
             {% endif %}
+        </div>
+        <div class="test-info">
+            <div class="row">
+                <div class="col-sm-2">
+                    <strong>Title</strong>
+                </div>
+                <div class="col-sm-2">
+                    <strong>Description</strong>
+                </div>
+                <div class="col-sm-2">
+                    <strong>Agency Description</strong>
+                </div>
+                <div class="col-sm-2">
+                    <strong>Title Private?</strong>
+                </div>
+                <div class="col-sm-2">
+                    <strong>Agency Desc Private?</strong>
+                </div>
+                <div class="col-sm-2">
+                    <strong>Current User is Requester?</strong>
+                </div>
+            </div>
+        <!-- TODO: remove after testing -->
+            <div class="row">
+                <div class="col-sm-2">
+                    <span {% if request._source.title in query %}style="background-color: lawngreen;"{% endif %}>
+                    {{ request._source.title }}</span>
+                </div>
+                <div class="col-sm-2">
+                    <span {% if request._source.description in query %}style="background-color: lawngreen;"{% endif %}>
+                    {{ request._source.description }}</span>
+                </div>
+                <div class="col-sm-2">
+                    <span {% if request._source.agency_description in query %}style="background-color: lawngreen;"{% endif %}>
+                    {{ request._source.agency_description }}</span>
+                </div>
+                <div class="col-sm-2" style="color: {% if request._source.title_private %}red{% else %}lawngreen{% endif %}">
+                    {{ request._source.title_private }}
+                </div>
+                <div class="col-sm-2" style="color: {% if request._source.agency_description_private %}red{% else %}lawngreen{% endif %}">
+                    {{ request._source.agency_description_private }}
+                </div>
+                <div class="col-sm-2" style="color: {% if current_user.is_anonymous or request._source.requester_id != current_user.get_id() %}red{% else %}lawngreen{% endif %}">
+                    {% if current_user.is_anonymous %}
+                        False
+                    {% else %}
+                        {{  request._source.requester_id == current_user.get_id() }}
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </a>
 {% endfor %}
