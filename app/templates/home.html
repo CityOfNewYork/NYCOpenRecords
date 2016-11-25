@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/home.css') }}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="container col-sm-12">
+        <div class=" col-sm-8">
+            <h1 class="home-page-header">Welcome to NYC Government’s home for filing Freedom of Information Law(FOIL)
+                requests.</h1>
+            <p class="home-page-description">On this site you can file a records request with every agency of the
+                City of New York. Some government information is already available to the public and doesn’t require
+                a FOIL request. An example of public information is a report issued by a City agency.
+            </p>
+            <p class="home-page-description">The site you see today is the beginning of a new approach to making records
+                easily available. In the coming months, we will be adding many new features.
+            </p>
+        </div>
+        <div class="col-sm-4 well looking-for-something-else">
+            <h2>
+                Looking for Something Else?
+            </h2>
+            <ul class="nyc-gov-links">
+                <li><a href="http://www1.nyc.gov/">NYC.gov</a> The official website of the City of New York</li>
+                <li><a href="http://www1.nyc.gov/311/index.page">NYC 311</a> Get information about your neighborhood,
+                    and check the status of existing requests.</li>
+                <li><a href="http://nyc.gov/publications">NYC Government Publications Portal</a> An Open Data portal for
+                    the City of New York's publications</li>
+                <li><a href="https://data.cityofnewyork.us/">NYC OpenData
+                    Portal</a> Discover open datasets</li>
+            </ul>
+        </div>
+        <div class="col-sm-12 request-record-button">
+            <a href="{{ url_for('request.new') }}">
+                <button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record</button>
+            </a>
+        </div>
+    </div>
+{% endblock %}

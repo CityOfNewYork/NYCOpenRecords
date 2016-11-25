@@ -1,0 +1,29 @@
+.home-page-header {
+    font-weight: bold;
+}
+
+.home-page-description {
+    font-size: 1.8rem;
+    padding-top: 1rem;
+}
+
+.looking-for-something-else {
+    top: 2.5rem;
+    padding-top: 0rem;
+    padding-bottom: 1rem;
+}
+
+.nyc-gov-links {
+    padding-left: 1.5rem;
+}
+
+.request-record-button {
+    padding-top: 3.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.request-record-button-size {
+    padding-top: 1rem;
+    padding-botton: 2rem;
+    font-size: 2rem;
+}

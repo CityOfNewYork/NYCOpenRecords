@@ -1,6 +1,6 @@
 
 .nycidm-header .small-nyc-logo{
-	top:0px;
+	top: 0;
 }
 
 .input-block-level
@@ -28,12 +28,11 @@
 
 .wrapper
 {
-	min-height:100%;
     max-width:calc(940px + 20px);
     margin-left:auto;
     margin-right:auto;
     padding-left:20px;
-    padding-right:20px
+    padding-right:20px;
 }
 
 @media (max-width: 979px) and (min-width: 768px) {
@@ -162,4 +161,16 @@ footer{
 
 input[type="radio"] {
 	width: auto;
+}
+
+.page-wrap {
+  min-height: 100%;
+  /* equal to footer height */
+  margin-bottom: -180px;
+}
+.page-wrap:after {
+  display: block;
+}
+.site-footer, .page-wrap:after {
+  height: 180px;
 }
