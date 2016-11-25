@@ -4,35 +4,6 @@ $(function() {
     var total = 0;
 
     // Date stuff
-    datepickerOptions = {
-        dateFormat: "mm/dd/yy",
-        daysOfWeekDisabled: [0, 6],
-        beforeShowDay: notHolidayOrWeekend,
-    };
-
-    var dateRecFromElem = $("#date-rec-from");
-    var dateRecToElem = $("#date-rec-to");
-    var dateDueFromElem = $("#date-due-from");
-    var dateDueToElem = $("#date-due-to");
-
-    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem];
-    for (var d in dates) {
-        dates[d].datepicker(datepickerOptions);
-        dates[d].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
-    }
-    dateRecFromElem.on("input change", function () {
-        valiDates(dateRecFromElem, dateRecToElem);
-    });
-    dateRecToElem.on("input change", function () {
-        valiDates(dateRecFromElem, dateRecToElem);
-    });
-    dateDueFromElem.on("input change", function () {
-        valiDates(dateDueFromElem, dateDueToElem);
-    });
-    dateDueToElem.on("input change", function () {
-        valiDates(dateDueFromElem, dateDueToElem);
-    });
-
     function elemToDate(elem) {
         /*
         * Convert an element associated with a date input
@@ -62,9 +33,9 @@ $(function() {
         * compDateElem and style accordingly.
         * */
         if (checkDateElem.val()) {
-            if (checkDateElem.val().length == 10) {
+            if (checkDateElem.val().length === 10) {
                 var compDate = null;
-                if (compDateElem.val().length == 10) {
+                if (compDateElem.val().length === 10) {
                     try {
                         compDate = elemToDate(compDateElem);
                     }
@@ -99,12 +70,41 @@ $(function() {
         }
     }
 
+    var datepickerOptions = {
+        dateFormat: "mm/dd/yy",
+        daysOfWeekDisabled: [0, 6],
+        beforeShowDay: notHolidayOrWeekend,
+    };
+
+    var dateRecFromElem = $("#date-rec-from");
+    var dateRecToElem = $("#date-rec-to");
+    var dateDueFromElem = $("#date-due-from");
+    var dateDueToElem = $("#date-due-to");
+
+    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem];
+    for (var i = 0; i < dates.length; i++) {
+        dates[i].datepicker(datepickerOptions);
+        dates[i].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
+    }
+    dateRecFromElem.on("input change", function () {
+        valiDates(dateRecFromElem, dateRecToElem);
+    });
+    dateRecToElem.on("input change", function () {
+        valiDates(dateRecFromElem, dateRecToElem);
+    });
+    dateDueFromElem.on("input change", function () {
+        valiDates(dateDueFromElem, dateDueToElem);
+    });
+    dateDueToElem.on("input change", function () {
+        valiDates(dateDueFromElem, dateDueToElem);
+    });
+
     // search on load
     search();
 
     // search on 'Enter'
     $("#search-section").keyup(function(e){
-        if(e.keyCode == 13) {
+        if(e.keyCode === 13) {
             $("#search").click();
         }
     });
@@ -189,13 +189,13 @@ $(function() {
                     );
                     total = data.total;
                     end = start + data.count;
-                    if (end == total) {
+                    if (end === total) {
                         next.hide();
                     }
                     else {
                         next.show();
                     }
-                    if (start == 0) {
+                    if (start === 0) {
                         prev.hide();
                     }
                     else {
@@ -227,13 +227,13 @@ $(function() {
         var i;
         if ($(this).prop("checked")) {
             query.attr("placeholder", "0000-000-00000");
-            for (i in ids) {
+            for (i = 0; i < ids.length; i++) {
                 $("#".concat(ids[i])).prop("disabled", true);
             }
         }
         else {
             query.attr("placeholder", "");
-            for (i in ids) {
+            for (i = 0; i < ids.length; i++) {
                 $("#".concat(ids[i])).prop("disabled", false);
             }
         }
@@ -269,12 +269,6 @@ $(function() {
     });
 
     // Sorting
-    $(".sort-field").click(function() {
-        start = 0;
-        cycleSort($(this));
-        search();
-    });
-
     var sortOrderToGlyphicon = {
         desc: "glyphicon-triangle-bottom",
         asc: "glyphicon-triangle-top",
@@ -299,4 +293,10 @@ $(function() {
 
         icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")])
     }
+
+    $(".sort-field").click(function() {
+        start = 0;
+        cycleSort($(this));
+        search();
+    });
 });

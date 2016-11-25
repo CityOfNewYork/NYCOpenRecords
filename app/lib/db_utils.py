@@ -6,7 +6,7 @@
 import sys
 from flask import current_app
 from app import db
-from app.models import Agencies, Requests, Users
+from app.models import Agencies, Requests
 from sqlalchemy.orm.attributes import flag_modified
 
 
