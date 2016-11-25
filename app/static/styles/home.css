@@ -1,5 +1,6 @@
 .home-page-header {
     font-size: 3.5rem;
+    padding-top: 1.5rem;
 }
 
 .home-page-description {
@@ -8,6 +9,7 @@
 }
 
 .looking-for-something-else {
+    top: 2.5rem;
     padding-top: 0rem;
     padding-bottom: 1rem;
 }
@@ -17,6 +19,6 @@
 }
 
 .request-record-button {
-    padding-top: 1.5rem;
+    padding-top: 3.5rem;
     padding-bottom: 1.5rem;
 }
