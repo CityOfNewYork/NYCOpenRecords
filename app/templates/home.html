@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/home.css') }}"/>
+{% endblock %}
+
 {% block content %}
     <div class="container col-sm-12">
         <div class=" col-sm-8">
@@ -33,8 +37,4 @@
             </a>
         </div>
     </div>
-{% endblock %}
-
-{% block custom_css %}
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/home.css') }}"/>
 {% endblock %}
