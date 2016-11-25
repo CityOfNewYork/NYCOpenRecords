@@ -27,7 +27,7 @@
         </div>
         <br>
         <!-- Search & Filters -->
-        <div class="row">
+        <div class="row" id="search-section">
             <div class="well col-sm-12">
                 <div class="col-sm-4">
                     <h4><label for="query">Search By</label></h4>
@@ -44,12 +44,14 @@
                             Title
                         </label>
                     </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="description">
-                            Description
-                        </label>
-                    </div>
+                    {% if not current_user.is_anonymous %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="description">
+                                Description
+                            </label>
+                        </div>
+                    {% endif %}
                     <div class="checkbox">
                         <label>
                             <input type="checkbox" id="agency-desc">

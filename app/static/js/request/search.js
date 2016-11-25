@@ -102,6 +102,26 @@ $(function() {
     // search on load
     search();
 
+    // search on 'Enter'
+    $("#search-section").keyup(function(e){
+        if(e.keyCode == 13) {
+            $("#search").click();
+        }
+    });
+
+    // TODO: remove after testing
+    document.onkeypress = function (e) {
+        var testInfo = $(".test-info");
+        if (e.keyCode === 92) {
+            if (testInfo.is(":visible")) {
+                testInfo.hide();
+            }
+            else {
+                testInfo.show();
+            }
+        }
+    };
+
     var next = $("#next");
     var prev = $("#prev");
 
