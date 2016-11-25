@@ -49,8 +49,11 @@
 
         next1.click(function(e) {
             if (date.is(":visible")) {
+                info.attr("data-parsley-required", "");
+                info.attr("data-parsley-minlength", "20");
                 date.parsley().validate();
-                if (!date.parsley().isValid()) {
+                info.parsley().validate();
+                if (!(date.parsley().isValid() && date.parsley().isValid())) {
                     e.preventDefault();
                     return false;
                 }
