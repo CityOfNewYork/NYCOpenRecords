@@ -16,15 +16,6 @@ $(function() {
         return date;
     }
 
-    function valiDates(fromDateElem, toDateElem) {
-        /*
-        * Check that 'fromDateElem' is less than 'toDateElem'
-        * and that both dates are not holidays or weekends.
-        * */
-        valiDate(fromDateElem, toDateElem, true);
-        valiDate(toDateElem, fromDateElem, false);
-    }
-
     function valiDate(checkDateElem, compDateElem, isLessThan) {
         /*
         * Check that 'checkDateElem' holds an empty value or
@@ -70,6 +61,15 @@ $(function() {
         }
     }
 
+    function valiDates(fromDateElem, toDateElem) {
+        /*
+        * Check that 'fromDateElem' is less than 'toDateElem'
+        * and that both dates are not holidays or weekends.
+        * */
+        valiDate(fromDateElem, toDateElem, true);
+        valiDate(toDateElem, fromDateElem, false);
+    }
+
     var datepickerOptions = {
         dateFormat: "mm/dd/yy",
         daysOfWeekDisabled: [0, 6],
@@ -99,10 +99,7 @@ $(function() {
         valiDates(dateDueFromElem, dateDueToElem);
     });
 
-    // search on load
-    search();
-
-    // search on 'Enter'
+    // keypress 'Enter' = click search button
     $("#search-section").keyup(function(e){
         if(e.keyCode === 13) {
             $("#search").click();
@@ -180,7 +177,7 @@ $(function() {
                 sort_title: sortTitle
             },
             success: function(data) {
-                if (data.total != 0) {
+                if (data.total !== 0) {
                     results.html(data.results);
                     pageInfo.text(
                         (start + 1) + " - " +
@@ -219,6 +216,9 @@ $(function() {
             }
         });
     }
+
+    // search on load
+    search();
 
     // disable other filters if searching by FOIL-ID
     $("#foil-id").click(function() {
@@ -291,7 +291,7 @@ $(function() {
                 (sortSequence.indexOf(elem.attr("data-sort-order")) + 1 + sortSequence.length)
                 % sortSequence.length]);
 
-        icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")])
+        icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
     }
 
     $(".sort-field").click(function() {
