@@ -7,10 +7,11 @@
     synopsis: Handles the functions for requests
 
 """
+import os
 import uuid
 from datetime import datetime
+from urllib.parse import urljoin
 
-import os
 from flask import render_template, current_app, url_for, request as flask_request
 from flask_login import current_user
 from tempfile import NamedTemporaryFile
@@ -372,7 +373,7 @@ def send_confirmation_email(request, agency, user):
     address = user.mailing_address
 
     # generates the view request page URL for this request
-    page = flask_request.host_url.strip('/') + url_for('request.view', request_id=request.id)
+    page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,
