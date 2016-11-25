@@ -40,6 +40,7 @@
                     success: function (data) {
                         // Data should be html template page.
                         tinyMCE.get('email-extension-content').setContent(data.template);
+                        flask_moment_render_all();
                     }
                 });
                 document.getElementById("extension-first").style.display = "none";
@@ -74,6 +75,7 @@
                     // Data should be html template page.
                     $("#email-extension-summary").html(data.template);
                     $("#email-extension-summary-hidden").val(data.template);
+                    flask_moment_render_all();
                 }
             });
             document.getElementById("extension-second").style.display = "none";

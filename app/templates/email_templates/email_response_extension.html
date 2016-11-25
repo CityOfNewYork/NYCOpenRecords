@@ -6,7 +6,7 @@
             Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
         </p>
         <p>
-            You can expect a response on or about {{ new_due_date }}.
+            You can expect a response on or about {{ moment(new_due_date).format('dddd, MMMM D, YYYY') }}
         </p>
         <p>
             Additional Information: <br/>

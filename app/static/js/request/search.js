@@ -179,6 +179,7 @@ $(function() {
             success: function(data) {
                 if (data.total !== 0) {
                     results.html(data.results);
+                    flask_moment_render_all();
                     pageInfo.text(
                         (start + 1) + " - " +
                         (start + data.count) +

@@ -10,6 +10,10 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/base.css') }}"/>
 
     <link type="image/x-icon" rel="shortcut icon" href="{{ url_for('static', filename='img/favicon-32x32.png') }}"/>
+
+    {{ moment.include_jquery() }}
+    {{ moment.include_moment() }}
+
     {% block custom_css %}
     {% endblock %}
 </head>

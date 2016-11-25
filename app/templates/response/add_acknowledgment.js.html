@@ -83,6 +83,7 @@
                     },
                     success: function(data) {
                         tinyMCE.get("acknowledgment-email-body").setContent(data.template);
+                        flask_moment_render_all();
                     }
                 });
                 first.hide();
@@ -110,6 +111,7 @@
                 success: function(data) {
                     third.find(".email-summary").html(data.template);
                     third.find("input[name='email-summary']").val(data.template);
+                    flask_moment_render_all();
                 }
             });
 

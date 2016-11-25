@@ -396,8 +396,7 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
         date = _get_new_due_date(
             request_id,
             acknowledgment['days'],
-            acknowledgment['date']
-        ).strftime('%A, %b, %d,%Y')
+            acknowledgment['date'])
         info = acknowledgment['info'].strip() or None
     else:
         default_content = True
@@ -448,7 +447,7 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         # calculates new due date based on selected value if custom due date is not selected
         new_due_date = _get_new_due_date(request_id,
                                          extension['length'],
-                                         extension['custom_due_date']).strftime('%A, %b %d, %Y')
+                                         extension['custom_due_date'])
         reason = extension['reason']
     # use default_content in response template
     else:
