@@ -41,16 +41,20 @@
         days.change(function() {
             if ($(this).val() === dateSelectVal) {
                 date.parent().show();
+                info.attr("data-parsley-required", "");
+                info.attr("data-parsley-minlength", "20");
             }
             else {
                 date.parent().hide();
+                info.removeAttr("data-parsley-required", "");
+                info.removeAttr("data-parsley-minlength", "20");
+                info.removeClass("parsley-error");
+                first.find(".parsley-errors-list").children().remove();
             }
         });
 
         next1.click(function(e) {
             if (date.is(":visible")) {
-                info.attr("data-parsley-required", "");
-                info.attr("data-parsley-minlength", "20");
                 date.parsley().validate();
                 info.parsley().validate();
                 if (!(date.parsley().isValid() && date.parsley().isValid())) {
@@ -60,7 +64,7 @@
             }
 
             days.parsley().validate();
-            info.parsley().validate();
+            info.parsley().validate();  // for max length
 
             if (!(days.parsley().isValid() && info.parsley().isValid())
             ) {
