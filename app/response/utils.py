@@ -1077,21 +1077,19 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.deleted:
             _send_delete_response_email(self.response.request_id, self.response)
         else:
-            # # TODO: remove condition once edit File email handled, test will fail with this
-            # if self.response.type != response_type.FILE:
-                key_agency = get_email_key(self.response.id)
-                email_content_agency = email_redis.get(key_agency).decode()
-                email_redis.delete(key_agency)
+            key_agency = get_email_key(self.response.id)
+            email_content_agency = email_redis.get(key_agency).decode()
+            email_redis.delete(key_agency)
 
-                key_requester = get_email_key(self.response.id, requester=True)
-                email_content_requester = email_redis.get(key_requester)
-                if email_content_requester is not None:
-                    email_content_requester = email_content_requester.decode()
-                    email_redis.delete(key_requester)
+            key_requester = get_email_key(self.response.id, requester=True)
+            email_content_requester = email_redis.get(key_requester)
+            if email_content_requester is not None:
+                email_content_requester = email_content_requester.decode()
+                email_redis.delete(key_requester)
 
-                _send_edit_response_email(self.response.request_id,
-                                          email_content_agency,
-                                          email_content_requester)
+            _send_edit_response_email(self.response.request_id,
+                                      email_content_agency,
+                                      email_content_requester)
 
 
 class RespFileEditor(ResponseEditor):
