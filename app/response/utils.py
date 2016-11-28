@@ -339,35 +339,6 @@ def process_upload_data(form):
     return files
 
 
-def process_privacy_options(files):
-    """
-    Create a dictionary, files_privacy_options, containing lists of 'release' and 'private', with values of filenames.
-    Two empty lists: private_files and release_files are first created. Iterate through files dictionary to determine
-    the privacy options of file(s) and append to appropriate list. Create files_privacy_option dictionary with keys:
-    release, which holds release_files, and private, which holds private_files.
-
-    :param files: list of filenames
-
-    :return: Dictionary with 'release' and 'private' lists.
-    """
-    private_files = []
-    release_files = []
-    for filename in files:
-        if files[filename]['privacy'] == 'private':
-            private_files.append(filename)
-        else:
-            release_files.append(filename)
-
-    files_privacy_options = dict()
-
-    if release_files:
-        files_privacy_options['release'] = release_files
-
-    if private_files:
-        files_privacy_options['private'] = private_files
-    return files_privacy_options
-
-
 def process_email_template_request(request_id, data):
     """
     Process the email template for responses. Determine the type of response from passed in data and follows
@@ -524,7 +495,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
             email_template = 'email_templates/email_private_file_upload.html'
     # iterate through files dictionary to create and append links of files with privacy option of not private
     for file_ in files:
-        if file_['privacy'] != PRIVATE or eval_request_bool(data['is_private']) is True:
+        if file_['privacy'] != PRIVATE or eval_request_bool(data['is_private']):
             filename = file_['filename']
             files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
     return jsonify({"template": render_template(email_template,

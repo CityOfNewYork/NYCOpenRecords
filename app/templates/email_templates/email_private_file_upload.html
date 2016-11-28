@@ -14,10 +14,12 @@
 
     {% if agency_file_links %}
         <ul>
-            Private Files:
-            {% for filename, link in agency_file_links['private'].items() %}
-                <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
-            {% endfor %}
+            {% if agency_file_links['private'].items() %}
+                Private Files:
+                {% for filename, link in agency_file_links['private'].items() %}
+                    <li style="list-style: none"><a href="{{ link }}">{{ filename }}</a></li>
+                {% endfor %}
+            {% endif %}
         </ul>
         <p>
         <ul>

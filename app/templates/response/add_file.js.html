@@ -20,7 +20,7 @@
         // Apply parsley error message to a specific container
         addFile.attr('data-parsley-errors-container', '.fileupload-buttonbar');
 
-        var is_private;
+        var is_private = true;
 
         // Handles click events on the first next button
         next1.click(function (e) {
@@ -70,9 +70,7 @@
                 var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
                 for (var i = 0; i < privacy.length; i++) {
                     // Check if current value === 'private'
-                    if (privacy[i] === 'private') {
-                        is_private = true;
-                    } else {
+                    if (privacy[i] !== 'private') {
                         is_private = false;
                         break;
                     }

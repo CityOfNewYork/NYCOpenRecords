@@ -4,7 +4,7 @@
         information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
     </p>
     <p>
-        Please visit <a href='{{ page }}'>{{ page }}</a> to view the additional information.
+        Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
     </p>
 {% else %}
     {% if email_file_content %}
@@ -16,8 +16,4 @@
         {% block response_content %}
         {% endblock %}
     {% endif %}
-    <p>
-        You can view the request and take any necessary action at the following webpage:
-        <a href='{{ page }}'>{{ page }}</a>.
-    </p>
 {% endif %}
