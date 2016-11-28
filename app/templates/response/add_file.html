@@ -6,9 +6,9 @@
             <legend>
                 Add File
             </legend>
-            <div class="fileupload-error-messages"></div>
-            <!-- first div of the add-file form containing uploads -->
-            <div class="fileupload-divs" id="fileupload-first">
+            <div class="first">
+                <div class="fileupload-error-messages alert alert-danger" hidden></div>
+                <!-- first div of the add-file form containing uploads -->
                 <div class="row fileupload-buttonbar">
                     <div class="col-lg-7">
                         <span class="btn btn-success fileinput-button">
@@ -47,25 +47,25 @@
                 <div role="presentation">
                     <div class="files"></div>
                 </div>
-                <button type="button" class="next-btn btn btn-primary" id="fileupload-next-1">Next</button>
+                <button type="button" class="next next-btn btn btn-primary">Next</button>
             </div>
             <!-- second div of the add-file form containing email content -->
-            <div class="fileupload-divs hide-div" id="fileupload-second">
+            <div class="second" hidden>
                 <div class='alert alert-warning'>
                     Files made Release and Public or Release and Private will be shown with links on the next page.
                 </div>
                 <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
-                <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-1">Prev</button>
-                <button type="button" class="next-btn btn btn-primary" id="fileupload-next-2">Next</button>
+                <button type="button" class="prev prev-btn btn btn-default">Prev</button>
+                <button type="button" class="next next-btn btn btn-primary">Next</button>
             </div>
             <!-- last div of the add-file form containing confirmation and submit -->
-            <div class="fileupload-divs hide-div" id="fileupload-third">
+            <div class="third" hidden>
                 <h4>The following will be Submitted to the request:</h4>
                 <h5>Email:</h5>
                 <div class="wrap-text" id="email-file-summary"></div>
                 <!-- hidden input to send email summary to backend -->
                 <input type="hidden" name="email-file-summary" id="email-file-summary-hidden">
-                <button type="button" class="prev-btn btn btn-default" id="fileupload-prev-2">Prev</button>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success" id="file-submit">Submit</button>
             </div>
             </fieldset>
