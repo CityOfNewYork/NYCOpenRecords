@@ -119,9 +119,10 @@ def response_acknowledgment(request_id):
     required_fields = ['date',
                        'days',
                        'email-summary']
-
+    if flask_request.form.get('days', '-1') == '-1':
+        required_fields.append('info')
     for field in required_fields:
-        if flask_request.form.get(field) is None:
+        if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the acknowledgment {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
