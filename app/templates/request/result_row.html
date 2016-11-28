@@ -77,8 +77,10 @@
                     {{ request._source.description }}</span>
                 </div>
                 <div class="col-sm-2">
-                    <span {% if request._source.agency_description in query %}style="background-color: lawngreen;"{% endif %}>
-                    {{ request._source.agency_description }}</span>
+                    {% if request._source.agency_description %}
+                        <span {% if request._source.agency_description in query %}style="background-color: lawngreen;"{% endif %}>
+                        {{ request._source.agency_description }}</span>
+                    {% endif %}
                 </div>
                 <div class="col-sm-2" style="color: {% if request._source.title_private %}red{% else %}lawngreen{% endif %}">
                     {{ request._source.title_private }}

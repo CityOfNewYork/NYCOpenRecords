@@ -38,7 +38,8 @@ def create_index():
                     "properties": {
                         "title": {
                             "type": "string",
-                            "analyzer": "english"
+                            "analyzer": "english",
+                            "fielddata": "true"
                         },
                         "description": {
                             "type": "string",
@@ -228,14 +229,13 @@ def search_requests(query,
     match_type = 'match_phrase' if by_phrase else 'match'
 
     # set date range
-    date_range = None
+    date_ranges = []
     if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
         range_filters = {}
-        date_format = {'format': DATE_RANGE_FORMAT}
         if date_rec_from or date_rec_to:
-            range_filters['date_submitted'] = date_format
+            range_filters['date_submitted'] = {'format': DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
-            range_filters['date_due'] = date_format
+            range_filters['date_due'] = {'format': DATE_RANGE_FORMAT}
         if date_rec_from:
             range_filters['date_submitted']['gte'] = date_rec_from
         if date_rec_to:
@@ -244,7 +244,13 @@ def search_requests(query,
             range_filters['date_due']['gte'] = date_due_from
         if date_due_to:
             range_filters['date_due']['lte'] = date_due_to
-        date_range = {'range': range_filters}
+        if range_filters.get('date_due') is not None:
+            date_ranges.append({'range': {'date_due': range_filters['date_due']}})
+        if range_filters.get('date_submitted') is not None:
+            date_ranges.append({'range': {'date_submitted': range_filters['date_submitted']}})
+
+    import json
+    print(json.dumps(date_ranges, indent=2))
 
     # generate query dsl body
     query_fields = {
@@ -253,7 +259,7 @@ def search_requests(query,
         'agency_description': agency_description,
         'requester_name': requester_name
     }
-    dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_range, agency_ein, match_type)
+    dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, match_type)
     if foil_id:
         dsl = dsl_gen.foil_id()
     else:
@@ -330,17 +336,16 @@ def search_requests(query,
 class RequestsDSLGenerator(object):
     """ Class for generating dicts representing query dsl bodies for searching request docs. """
 
-    def __init__(self, query, query_fields, statuses, date_range, agency_ein, match_type):
+    def __init__(self, query, query_fields, statuses, date_ranges, agency_ein, match_type):
         self.__query = query
         self.__query_fields = query_fields
         self.__statuses = statuses
-        self.__date_range = date_range
         self.__agency_ein = agency_ein
         self.__match_type = match_type
 
         self.__default_filters = [{'terms': {'status': statuses}}]
-        if date_range:
-            self.__default_filters.append(date_range)
+        if date_ranges:
+            self.__default_filters += date_ranges
         if agency_ein:
             self.__default_filters.append({
                 'term': {'agency_ein': agency_ein}
