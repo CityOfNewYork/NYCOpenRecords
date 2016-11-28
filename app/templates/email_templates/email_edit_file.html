@@ -13,23 +13,56 @@
     {% endif %}
 
     {% if response_data is not none %}
-        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency %}
-            {% if response_data.data_old['name'] and response_data.data_old['hash'] %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            {% if response_data.data_old['hash'] %}
                 <p>
                     The file:
                 </p>
                 <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
                 <p> has been replaced with: </p>
                 <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
-            {% elif response_data.data_old['name'] and not response_data.data_old['hash'] %}
+            {% endif %}
+            {% if response_data.data_old['name'] and not response_data.data_old['hash'] %}
                 <p>
                     The name of the file was changed from:
                 </p>
                 <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
                 <p> to: </p>
                 <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
-                <!-- TODO: same filename but hash changed means only file changed? -->
             {% endif %}
+            {% if response_data.data_old['title'] %}
+                <p>
+                    The title was changed from :
+                </p>
+                <p style="padding-left: 30px;">{{ response_data.data_old['title'] }}</p>
+                <p> to: </p>
+                <p style="padding-left: 30px;">{{ response_data.data_new['title'] }}</p>
+            {% endif %}
+            {% if response_data.data_old['privacy'] and agency %}
+                <p>
+                    The privacy was changed from :
+                </p>
+                <p style="padding-left: 30px;">{{ response_data.data_old['privacy'] | format_response_privacy }}</p>
+                <p> to: </p>
+                <p style="padding-left: 30px;">{{ response_data.data_new['privacy'] | format_response_privacy }}</p>
+            {% endif %}
+
+{#            {% if response_data.data_old['name'] and response_data.data_old['hash'] %}#}
+{#                <p>#}
+{#                    The file:#}
+{#                </p>#}
+{#                <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>#}
+{#                <p> has been replaced with: </p>#}
+{#                <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>#}
+{#            {% elif response_data.data_old['name'] and not response_data.data_old['hash'] %}#}
+{#                <p>#}
+{#                    The name of the file was changed from:#}
+{#                </p>#}
+{#                <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>#}
+{#                <p> to: </p>#}
+{#                <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>#}
+{#                <!-- TODO: same filename but hash changed means only file changed? -->#}
+{#            {% endif %}#}
         {% endif %}
     {% endif %}
 {% endblock %}

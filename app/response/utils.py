@@ -1077,8 +1077,8 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.deleted:
             _send_delete_response_email(self.response.request_id, self.response)
         else:
-            # TODO: remove condition once edit File email handled, test will fail with this
-            if self.response.type != response_type.FILE:
+            # # TODO: remove condition once edit File email handled, test will fail with this
+            # if self.response.type != response_type.FILE:
                 key_agency = get_email_key(self.response.id)
                 email_content_agency = email_redis.get(key_agency).decode()
                 email_redis.delete(key_agency)
@@ -1109,8 +1109,8 @@ class RespFileEditor(ResponseEditor):
         if self.deleted and self.update:
             self.move_deleted_file()
         else:
-            new_filename = flask_request.form.get('filename')
-            if new_filename is not None:
+            new_filename = flask_request.form.get('filename', '')
+            if new_filename:
                 new_filename = secure_filename(new_filename)
                 filepath = os.path.join(
                     current_app.config['UPLOAD_DIRECTORY'],

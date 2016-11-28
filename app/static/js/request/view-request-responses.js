@@ -160,7 +160,7 @@ $(function () {
                                 title: first.find("input[name=title]").val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
                                 filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
-                                    first.find(".uploaded-filename").text(),
+                                    null,
                                 confirmation: false
                             },
                             success: function (data) {
@@ -206,14 +206,13 @@ $(function () {
                             title: first.find("input[name=title]").val(),
                             privacy: first.find("input[name=privacy]:checked").val(),
                             filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
-                                first.find(".uploaded-filename").text(),
+                                null,
                             confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
-                            // Data should be html template page.
+                            third.find(".confirmation-header").text(data.header);
                             third.find(".email-summary").html(data.template);
-                            // TODO: data should also return email confirmation header
                         }
                     });
                 });
@@ -236,8 +235,8 @@ $(function () {
                     $.ajax({
                         url: "/response/" + response_id,
                         type: "PATCH",
-                        data: form.serializeArray(), // TODO: remove hidden email summaries
-                        success: function () {
+                        data: form.serializeArray(),
+                        success: function (response) {
                             location.reload();
                         }
                     });
