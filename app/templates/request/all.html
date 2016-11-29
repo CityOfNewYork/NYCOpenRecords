@@ -1,5 +1,207 @@
-<ul>
-    {% for request_id in requests %}
-    <li><a href="{{ url_for('request.view', request_id=request_id[0]) }}">{{ request_id[0] }}</a></li>
-    {% endfor %}
-</ul>
+{% extends "base.html" %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_all.css') }}"/>
+{% endblock %}
+
+{% block title %}
+    View Requests
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" id="main">
+        <div class="row">
+            <div class="col-sm-8">
+                <h1>Explore OpenRecords Requests</h1>
+                <p>
+                    NYC Open Gov makes every public records request available to the public,
+                    including messages or documents uploaded by agency staff.
+                    By searching the requests, you may find the information you are interested in,
+                    which will save time for you and for the City of New York. Yay.
+                </p>
+            </div>
+            <div class="col-sm-4 text-right" id="new-request">
+                <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-primary">Request a New Record</a>
+            </div>
+        </div>
+        <br>
+        <!-- Search & Filters -->
+        <div class="row" id="search-section">
+            <div class="well col-sm-12">
+                <div class="col-sm-4">
+                    <h4><label for="query">Search By</label></h4>
+                    <input type="text" id="query">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="foil-id">
+                            FOIL ID
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="title" checked>
+                            Title
+                        </label>
+                    </div>
+                    {% if not current_user.is_anonymous %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="description">
+                                Description
+                            </label>
+                        </div>
+                    {% endif %}
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="agency-desc">
+                            Agency Description
+                        </label>
+                    </div>
+                    {% if current_user.is_agency %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="requester-name">
+                                Requester Name
+                            </label>
+                        </div>
+                    {% endif %}
+                    <br>
+                    <select id="size" title="size" class="input-block-level" style="width: 4em; display: inline;">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                    <strong>&nbsp;Results Per Page</strong>
+                </div>
+                <div class="col-sm-4">
+                    {% if current_user.is_agency %}
+                        <div class="row">
+                            <h4><label>Date Received</label></h4>
+                            <div class="col-sm-6 no-pad-left">
+                                <label for="date-rec-from">From:</label>
+                                <input type="text" id="date-rec-from">
+                            </div>
+                            <div class="col-sm-6 no-pad-right">
+                                <label for="date-rec-to">To:</label>
+                                <input type="text" id="date-rec-to">
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <h4><label>Date Due</label></h4>
+                            <div class="col-sm-6 no-pad-left">
+                                <label for="date-due-from">From:</label>
+                                <input type="text" id="date-due-from">
+                            </div>
+                            <div class="col-sm-6 no-pad-right">
+                                <label for="date-due-to">To:</label>
+                                <input type="text" id="date-due-to">
+                            </div>
+                        </div>
+                    {% else %}
+                        <h4><label>Date Received</label></h4>
+                        <label for="date-rec-from">From:</label>
+                        <input type="text" id="date-rec-from">
+                        <br>
+                        <label for="date-rec-to">To:</label>
+                        <input type="text" id="date-rec-to">
+                    {% endif %}
+                </div>
+                <div class="col-sm-4">
+                    <h4>{{ form.agency.label }}</h4>
+                    {{ form.agency(class="input-block-level") }}
+                    <br>
+                    <h4><label>Status</label></h4>
+                    <div class="status open checkbox">
+                        <label>
+                            <input type="checkbox" id="open" checked>
+                            Open
+                        </label>
+                    </div>
+                    {% if current_user.is_agency %}
+                        <div class="status in-progress checkbox">
+                            <label>
+                                <input type="checkbox" id="in-progress" checked>
+                                In Progress
+                            </label>
+                        </div>
+                        <div class="status due-soon checkbox">
+                            <label>
+                                <input type="checkbox" id="due-soon" checked>
+                                Due Soon
+                            </label>
+                        </div>
+                        <div class="status overdue checkbox">
+                            <label>
+                                <input type="checkbox" id="overdue" checked>
+                                Overdue
+                            </label>
+                        </div>
+                    {% endif %}
+                    <div class=" status closed checkbox">
+                        <label>
+                            <input type="checkbox" id="closed">
+                            Closed
+                        </label>
+                    </div>
+                    <div class="text-right">
+                        <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row result-fields">
+                        <div class="col-sm-2">
+                            ID
+                        </div>
+                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort-date-rec">
+                            Date Received <span class="glyphicon" aria-hidden="true"></span>
+                        </div>
+                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %} sort-field"
+                             data-sort-order="none" id="sort-title">
+                            Title <span class="glyphicon" aria-hidden="true"></span>
+                        </div>
+                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+                            Assigned Agency
+                        </div>
+                        <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort-date-due">
+                            Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
+                        </div>
+                        {% if current_user.is_agency %}
+                            <div class="col-sm-2">
+                                Requester Name
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <ul class="list-group" id="results"></ul>
+            </div>
+        </div>
+        <!-- Pagination -->
+        <div class="row">
+            <div class="col-sm-3">
+                <button type="button" id="prev" class="btn btn-default">
+                    <span class="glyphicon glyphicon-chevron-left"></span>
+                    Prev
+                </button>
+            </div>
+            <div class="col-sm-6 text-center" id="page-info"></div>
+            <div class="col-sm-3 text-right">
+                <button type="button" id="next" class="btn btn-default">
+                    Next
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript">$(function() {holiday_dates = {{ holidays | safe }}; });</script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/request/search.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
+{% endblock %}

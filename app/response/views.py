@@ -404,6 +404,7 @@ def get_response_content(response_id):
              redirect to login if user not authenticated and no token provided or
              400 error if response/file not found
     """
+    # TODO: response_; check if private first, send to "this file is private" page
     response = Responses.query.filter_by(id=response_id, deleted=False).one()
     if response is not None and response.type == FILE:
         upload_path = os.path.join(

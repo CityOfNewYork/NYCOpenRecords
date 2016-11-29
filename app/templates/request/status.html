@@ -16,9 +16,10 @@
     <hr>
     <h4>{{ request.agency.name }} </h4>
 
-    {% include 'request/_edit_requester_info.html' %}
-
     {% if current_user.is_agency %}
+        {% if request.requester.is_anonymous %}
+            {% include 'request/_edit_requester_info.html' %}
+        {% endif %}
         <hr>
         <h3>
             <a data-target="#assignedUserModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"

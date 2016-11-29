@@ -172,7 +172,6 @@ class ResponseViewsTests(BaseTestCase):
             os.path.join(self.upload_path, new_filename)
         ))
 
-
     def test_edit_file_missing_file(self):
         rf = RequestsFactory(self.request_id)
         response = rf.add_file()
