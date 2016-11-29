@@ -1,16 +1,45 @@
 {% extends 'email_templates/email_response.html' %}
-{% block response_content %}
-    {% if files_links %}
-    <p>
-        Download the request files at:
-        <br>
-        <ul>
-            {% for filename, link in files_links.items() %}
-                <li style="list-style: none">
-                    <a href='{{ link }}'>{{ filename }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    </p>
+{% block response_file_content %}
+    {% if email_file_content %}
+        {% if requester_file_links %}
+            {% if is_anon %}
+                <p>
+                You have 20 DAYS to download the following request files:
+                <br>
+                <ul>
+                    {% for filename, link in requester_file_links.items() %}
+                        <li style="list-style: none">
+                            {{ filename }}: <a href="{{ link }}">{{ link }}</a>
+                        </li>
+                    {% endfor %}
+            {% else %}
+                <p>
+                Download the request files at:
+                <br>
+                <ul>
+                    {% for filename, link in requester_file_links.items() %}
+                        <li style="list-style: none">
+                            <a href="{{ link }}">{{ filename }}</a>
+                        </li>
+                    {% endfor %}
+            {% endif %}
+            </ul>
+        </p>
+        {% endif %}
     {% endif %}
 {% endblock %}
+    {% block response_content %}
+        {% if files_links %}
+        <p>
+            Download the request files at:
+            <br>
+            <ul>
+                {% for filename, link in files_links.items() %}
+                    <li style="list-style: none">
+                        <a href="#">{{ filename }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </p>
+        {% endif %}
+    {% endblock %}

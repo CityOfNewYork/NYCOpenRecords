@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from app import db, es, calendar
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
+    ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
@@ -24,7 +25,6 @@ from app.constants import (
     response_privacy,
     submission_methods,
 )
-from app.search.constants import INDEX
 
 
 class Roles(db.Model):
@@ -260,6 +260,14 @@ class Users(UserMixin, db.Model):
     def name(self):
         return ' '.join((self.first_name, self.last_name))
 
+    def es_update(self):
+        """
+        Call es_update for any request where this user is the requester
+        since the request es doc relies on the requester's name.
+        """
+        for request in self.requests:
+            request.es_update()
+
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 
@@ -362,6 +370,7 @@ class Requests(db.Model):
                       "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(
                           user_type_request.REQUESTER),
+        backref="requests",
         viewonly=True,
         uselist=False
     )
@@ -431,7 +440,7 @@ class Requests(db.Model):
 
     def es_update(self):
         es.update(
-            index=INDEX,
+            index=current_app.config["ELASTICSEARCH_INDEX"],
             doc_type='request',
             id=self.id,
             body={
@@ -441,9 +450,10 @@ class Requests(db.Model):
                     'agency_description': self.agency_description,
                     'title_private': self.privacy['title'],
                     'agency_description_private': self.privacy['agency_description'],
-                    'date_due': self.due_date,
-                    'submission': self.submission,
+                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                    'submission': self.submission,  # TODO: does this ever change?
                     'status': self.status,
+                    'requester_name': self.requester.name,
                     'public_title': 'Private' if self.privacy['title'] else self.title
                 }
             },
@@ -453,22 +463,25 @@ class Requests(db.Model):
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
         es.create(
-            index=INDEX,
+            index=current_app.config["ELASTICSEARCH_INDEX"],
             doc_type='request',
             id=self.id,
             body={
                 'title': self.title,
                 'description': self.description,
                 'agency_description': self.agency_description,
+                'agency_ein': self.agency_ein,
+                'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
                 'agency_description_private': self.privacy['agency_description'],
-                'date_submitted': self.date_submitted,
-                'date_due': self.due_date,
+                'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': self.submission,
                 'status': self.status,
                 'requester_id': (self.requester.get_id()
                                  if not self.requester.is_anonymous_requester
                                  else ''),
+                'requester_name': self.requester.name,
                 'public_title': 'Private' if self.privacy['title'] else self.title,
             }
         )

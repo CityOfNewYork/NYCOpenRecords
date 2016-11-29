@@ -60,6 +60,8 @@ class Config:
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED'))) or True
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests"
+    # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod
     def init_app(app):
@@ -78,6 +80,7 @@ class DevelopmentConfig(Config):
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_ENABLED = eval(str(os.environ.get('ELASTICSEARCH_ENABLED')))
+    ELASTICSEARCH_INDEX = "requests_dev"
     MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
 
 

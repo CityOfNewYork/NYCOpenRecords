@@ -25,19 +25,16 @@ h1 span{
 }
 
 .duesoon {
-    background-color: orange;
+    background-color: darkorange;
 }
 
 .open {
-    background-color: #2688AD;
+    background-color: dodgerblue;
 
 }
 
 .closed {
-    background-color: black;
-}
-.reopened {
-    background-color: #cc1278;
+    background-color: dimgray;
 }
 
 #requester-popover .popover {

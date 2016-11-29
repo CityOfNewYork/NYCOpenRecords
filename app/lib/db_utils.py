@@ -35,7 +35,9 @@ def create_object(obj):
         return None
     else:
         # create elasticsearch doc
-        if not isinstance(obj, Requests) and hasattr(obj, 'es_create'):
+        if (not isinstance(obj, Requests)
+           and hasattr(obj, 'es_create')
+           and current_app.config['ELASTICSEARCH_ENABLED']):
             obj.es_create()
         return str(obj)
 
@@ -55,7 +57,7 @@ def update_object(data, obj_type, obj_id):
 
     if obj:
         for attr, value in data.items():
-            if type(value) == dict:
+            if isinstance(value, dict):
                 # update json values
                 attr_json = getattr(obj, attr) or {}
                 for key, val in value.items():
@@ -108,10 +110,8 @@ def get_obj(obj_type, obj_id):
     return obj_type.query.get(obj_id)
 
 
-def get_agencies_list():
-    agencies = sorted([(agencies.ein, agencies.name)
-                       for agencies in db.session.query(Agencies).all()],
+def get_agency_choices():
+    choices = sorted([(agencies.ein, agencies.name)
+                      for agencies in db.session.query(Agencies).all()],
                       key=lambda x: x[1])
-    agencies.insert(0, ('', ''))
-
-    return agencies
+    return choices

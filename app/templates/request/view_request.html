@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block title %}
-    View Request
+    {{ request.id }}
 {% endblock %}
 
 {% block content %}
@@ -125,7 +125,6 @@
 {% block custom_script %}
     <!-- TODO: plugins should be minified versions... really hope their standard versions have not been altered -->
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/sprintf.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
@@ -140,11 +139,15 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/request/edit_requester_info.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload/fileupload.js') }}"></script>
+    {% if current_user.is_agency and request.requester.is_anonymous %}
+        <script type="text/javascript" src="{{ url_for('static', filename='js/request/edit_requester_info.js') }}"></script>
+    {% endif %}
     {% include "request/fileupload_add_file.js.html" %}
     {% include "request/fileupload_update_templates.js.html" %}
-    {% include 'request/edit_requester_info.js.html' %}
+    {% if current_user.is_agency and request.requester.is_anonymous %}
+        {% include 'request/edit_requester_info.js.html' %}
+    {% endif %}
     {% include 'request/_view_request_edit_visibility.js.html' %}
     {% include 'request/_view_request_info_x-editable.html' %}
     {% include 'response/add_extension.js.html' %}

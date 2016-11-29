@@ -1,79 +1,105 @@
 <script type="text/javascript">
-    $(document).ready(function () {
-        // Hides all other divs except for the first. Also hides previous button on the first div.
-        $(".fileupload-control .fileupload-divs").each(function (e) {
-            if (e != 0)
-                $(this).hide();
-            else
-                $("#previous").hide();
-        });
+    $(function () {
+        var form = $(".fileupload-form");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third");
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+        var submit = third.find("#file-submit");
+
+        var addFile = first.find("#add-files");
+        var errorMessage = first.find(".fileupload-error-messages");
+
+        // Apply parsley required validation
+        addFile.attr('data-parsley-required', 'false');
+
+        // Apply parsley error message to a specific container
+        addFile.attr('data-parsley-errors-container', '.fileupload-buttonbar');
+
+        var is_private = true;
 
         // Handles click events on the first next button
-        $("#fileupload-next-1").click(function (e) {
+        next1.click(function (e) {
+            var templateDownload = first.find(".template-download");
+            var templateUpload = first.find(".template-upload");
+            var uploadError = first.find(".upload-error");
+            var errorPostUpload = first.find(".error-post-fileupload");
+
+
             // Validate file input field and file form
-            $('#fileupload').parsley().validate();
+            form.parsley().validate();
 
             // Removes parsley validator on file input field when a file has been successfully uploaded
-            if ($('.template-download').length > 0) {
-                $('#add-files').attr('data-parsley-required', 'false');
+            if (templateDownload.length > 0) {
+                addFile.attr('data-parsley-required', 'false');
             }
 
             // Prevent default if one more more upload has not been completed
-            if ($('.template-download').length === 0 && ($('.template-upload').length != 0)) {
-                $('.fileupload-error-messages').html("<div class='alert alert-danger'>One or more uploads has not completed</div>");
+            if (templateDownload.length === 0 && (templateUpload.length !== 0)) {
+                errorMessage.text("One or more uploads has not completed").show();
                 e.preventDefault();
                 return false;
             }
 
             // Prevent default if no file has been added or uploaded
-            if ($('.template-download').length === 0 && ($('.template-upload').length === 0)) {
-                $('.fileupload-error-messages').html("<div class='alert alert-danger'>A file must be added</div>");
+            if (templateDownload.length === 0 && (templateUpload.length === 0)) {
+                errorMessage.text("A file must be added").show();
                 e.preventDefault();
                 return false;
             }
 
             // Prevent default if files with error are not removed
-            if ($('.upload-error').length > 0 || $(".error-post-fileupload").is(':visible')) {
-                $('.fileupload-error-messages').html("<div class='alert alert-danger'>Files with Errors must be removed</div>");
+            if (uploadError.length > 0 || errorPostUpload.is(':visible')) {
+                errorMessage.text("Files with Errors must be removed").show();
                 e.preventDefault();
                 return false;
             }
 
             // Prevent default if fileupload form is in NOT valid
-            if (!$('#fileupload').parsley().isValid()) {
+            if (!form.parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
 
             // Proceed with next click function if validation fields are valid and no files are uploading
-            if ($("#fileupload").parsley().isValid() && ($('.template-upload').length === 0)) {
-                $('.fileupload-error-messages').html('');
+            if (form.parsley().isValid() && (templateUpload.length === 0)) {
+                var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
+                for (var i = 0; i < privacy.length; i++) {
+                    // Check if current value === 'private'
+                    if (privacy[i] !== 'private') {
+                        is_private = false;
+                        break;
+                    }
+                }
                 $.ajax({
                     url: "/response/email",
                     type: 'POST',
                     data: {
                         request_id: "{{ request.id }}",
                         template_name: "email_response_file.html",
-                        type: "files"
+                        type: "files",
+                        is_private: is_private
                     },
                     success: function (data) {
                         // Data should be html template page.
                         tinyMCE.get('email-file-content').setContent(data.template);
                     }
                 });
-                document.getElementById("fileupload-first").style.display = "none";
-                document.getElementById("fileupload-second").style.display = "block";
+                first.hide();
+                second.show();
             }
         });
 
         // Handles click events on the second next button
-        $("#fileupload-next-2").click(function () {
-            $('.fileupload-error-messages').html('');
+        next2.click(function () {
             tinyMCE.triggerSave();
 
-            // Get list of both secured filenames and privacy option values, and store them into variables
-            var filenames = $('.secured-name').map( function(){return $(this).text(); }).get();
-            var privacy = $(".file-privacy:checked").map( function(){return $(this).val(); }).get();
+            var filenames = first.find(".secured-name").map( function(){return $(this).text(); }).get();
+            var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
 
             // Create an array (called files) of objects with keys of filename and privacy
             var files = [];
@@ -93,42 +119,37 @@
                     template_name: "email_response_file.html",
                     type: "files",
                     files: JSON.stringify(files),
-                    email_content: $('#email-file-content').val()
+                    email_content: second.find("#email-file-content").val(),
+                    is_private: is_private
                 },
                 success: function (data) {
                     // Data should be html template page.
-                    $("#email-file-summary").html(data.template);
-                    $("#email-file-summary-hidden").val(data.template);
+                    third.find("#email-file-summary").html(data.template);
+                    third.find("#email-file-summary-hidden").val(data.template);
                 }
             });
-            document.getElementById("fileupload-second").style.display = "none";
-            document.getElementById("fileupload-third").style.display = "block";
+            second.hide();
+            third.show();
         });
 
         // Handles click events on the first previous button
-        $("#fileupload-prev-1").click(function () {
-            $('.fileupload-error-messages').html('');
-            document.getElementById("fileupload-first").style.display = "block";
-            document.getElementById("fileupload-second").style.display = "none";
+        prev2.click(function () {
+            errorMessage.hide();
+            second.hide();
+            first.show();
         });
 
         // Handles click events on the second previous button
-        $("#fileupload-prev-2").click(function () {
-            document.getElementById("fileupload-third").style.display = "none";
-            document.getElementById("fileupload-second").style.display = "block";
+        prev3.click(function () {
+            third.hide();
+            second.show();
         });
 
         // Disable button on submit click and submit form
-        $("#file-submit").click(function () {
+        submit.click(function () {
             $(this).attr("disabled", true);
-            $("#fileupload").submit();
+            form.submit();
         });
-
-        // Apply parsley required validation
-        $('#add-files').attr('data-parsley-required', 'false');
-
-        // Apply parsley error message to a specific container
-        $('#add-files').attr('data-parsley-errors-container', '.fileupload-buttonbar');
 
         // Initialize tinymce HTML editor
         tinymce.init({
@@ -138,6 +159,7 @@
             // selector for tinymce textarea classes is set to 'tinymce-area'
             editor_selector: "tinymce-area",
             elementpath: false,
+            convert_urls: false,
             height: 180
         });
     });

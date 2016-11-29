@@ -120,6 +120,7 @@ $(function () {
             // selector for tinymce textarea classes is set to 'tinymce-area'
             editor_selector: "tinymce-area",
             elementpath: false,
+            convert_urls: false,
             height: 180
         });
 

@@ -49,7 +49,7 @@ function regexUrlChecker (value) {
 // An array of holiday dates to be disabled
 var holiday_dates = null;
 
-function beforeShowDayNotHolidayOrWeekend(date) {
+function notHolidayOrWeekend(date, forPicker) {
     /*
      * http://api.jqueryui.com/datepicker/#option-beforeShowDay
      *
@@ -57,9 +57,12 @@ function beforeShowDayNotHolidayOrWeekend(date) {
      * --------
      * 'holiday_dates' must be set globally before calling this function.
      */
+    if (typeof(forPicker) === "undefined") {
+        forPicker = true;
+    }
     var formattedDate = $.datepicker.formatDate('yy-mm-dd', date);
     var holiday_or_weekend = $.inArray(formattedDate, holiday_dates) !== -1 ||
             date.getDay() === 0 || date.getDay() === 6;
     // TODO: would be nice to display the name of the holiday (tooltip)
-    return [!holiday_or_weekend];
+    return forPicker ? [!holiday_or_weekend] : !holiday_or_weekend;
 }
