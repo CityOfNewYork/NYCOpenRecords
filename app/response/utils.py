@@ -310,7 +310,7 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
+        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=21, minute=00, second=00)
     else:
         new_due_date = generate_new_due_date(extension_length, request_id)
     return new_due_date

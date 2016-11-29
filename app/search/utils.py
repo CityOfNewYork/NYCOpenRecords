@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask import (
     jsonify,
@@ -157,8 +157,7 @@ def search_requests(query,
                     sort_date_due,
                     sort_title,
                     by_phrase=False,
-                    highlight=False,
-                    timezone='UTC/'):
+                    highlight=False):
     """
     The arguments of this function match the request parameters
     of the '/search/requests' endpoint.
@@ -336,7 +335,7 @@ def search_requests(query,
     return jsonify({
         "count": len(results["hits"]["hits"]),
         "total": total,
-        "results": formatted_results,
+        "results": formatted_results
     }), 200
 
 

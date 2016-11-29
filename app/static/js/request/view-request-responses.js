@@ -16,7 +16,6 @@ $(function () {
         },
         success: function (data) {
             responses = data.responses;
-            flask_moment_render_all();
             if (responses.length > index_increment) {
                 $('#responses-nav-buttons').show();
             }
@@ -50,6 +49,7 @@ $(function () {
                     );
                 }
             }
+            flask_moment_render_all();
         }
         else {
             response_list.text("None");
@@ -66,7 +66,6 @@ $(function () {
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
-                flask_moment_render_all();
             },
             error: function (error) {
                 console.log(error);
