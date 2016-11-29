@@ -10,11 +10,11 @@ from elasticsearch.helpers import bulk
 
 from app import es
 from app.models import Requests
-from app.constants import request_status
-from app.search.constants import (
+from app.constants import (
     ES_DATETIME_FORMAT,
-    DATE_RANGE_FORMAT,
+    request_status
 )
+from app.search.constants import DATE_RANGE_FORMAT
 from app.lib.utils import InvalidUserException
 
 
@@ -37,42 +37,49 @@ def create_index():
                 "request": {
                     "properties": {
                         "title": {
-                            "type": "string",
+                            "type": "text",
                             "analyzer": "english",
-                            "fielddata": "true"
+                            "fields": {
+                                # for sorting by title
+                                "keyword": {
+                                    "type": "keyword",
+                                }
+                            }
                         },
                         "description": {
-                            "type": "string",
+                            "type": "text",
                             "analyzer": "english"
                         },
                         "agency_description": {
-                            "type": "string",
+                            "type": "text",
                             "analyzer": "english"
                         },
                         "requester_id": {
-                            "type": "string",
-                            "index": "not_analyzed"
+                            "type": "keyword",
                         },
                         "title_private": {
                             "type": "boolean",
-                            "index": "not_analyzed"
                         },
                         "agency_description_private": {
                             "type": "boolean",
-                            "index": "not_analyzed"
                         },
                         "agency_ein": {
                             "type": "integer",
-                            "index": "not_analyzed"
                         },
                         "agency_name": {
-                            "type": "string",
-                            "index": "not_analyzed"
+                            "type": "keyword",
                         },
                         "status": {
-                            "type": "string",
-                            "index": "not_analyzed"
+                            "type": "keyword",
                         },
+                        "date_submitted": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
+                        },
+                        "date_due": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
+                        }
                     }
                 }
             }
@@ -98,8 +105,8 @@ def create_docs():
             'requester_name': r.requester.name,
             'title_private': r.privacy['title'],
             'agency_description_private': r.privacy['agency_description'],
-            'date_submitted': r.date_submitted,
-            'date_due': r.due_date,
+            'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
+            'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
             'submission': r.submission,
             'status': r.status,
             'requester_id': r.requester.get_id(),
@@ -200,7 +207,7 @@ def search_requests(query,
         ':'.join((field, direction)) for field, direction in {
             'date_submitted': sort_date_submitted,
             'date_due': sort_date_due,
-            'title': sort_title}.items() if direction in ("desc", "asc")]
+            'title.keyword': sort_title}.items() if direction in ("desc", "asc")]
 
     # set statuses (list of request statuses)
     if current_user.is_agency:
@@ -228,7 +235,7 @@ def search_requests(query,
     # set matching type (full-text or phrase matching)
     match_type = 'match_phrase' if by_phrase else 'match'
 
-    # set date range
+    # set date ranges
     date_ranges = []
     if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
         range_filters = {}
@@ -244,13 +251,10 @@ def search_requests(query,
             range_filters['date_due']['gte'] = date_due_from
         if date_due_to:
             range_filters['date_due']['lte'] = date_due_to
-        if range_filters.get('date_due') is not None:
-            date_ranges.append({'range': {'date_due': range_filters['date_due']}})
-        if range_filters.get('date_submitted') is not None:
+        if date_rec_from or date_rec_to:
             date_ranges.append({'range': {'date_submitted': range_filters['date_submitted']}})
-
-    import json
-    print(json.dumps(date_ranges, indent=2))
+        if date_due_from or date_due_to:
+            date_ranges.append({'range': {'date_due': range_filters['date_due']}})
 
     # generate query dsl body
     query_fields = {

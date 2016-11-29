@@ -38,7 +38,7 @@ def requests():
     - Requester Name
 
     All Users can filter by:
-    - Status, Open
+    - Status, Open (anything not Closed if not agency user)
     - Status, Closed
     - Date Received
     - Agency

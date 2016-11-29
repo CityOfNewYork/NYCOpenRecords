@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from app import db, es, calendar
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
+    ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
@@ -449,7 +450,7 @@ class Requests(db.Model):
                     'agency_description': self.agency_description,
                     'title_private': self.privacy['title'],
                     'agency_description_private': self.privacy['agency_description'],
-                    'date_due': self.due_date,
+                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                     'submission': self.submission,  # TODO: does this ever change?
                     'status': self.status,
                     'requester_name': self.requester.name,
@@ -473,8 +474,8 @@ class Requests(db.Model):
                 'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
                 'agency_description_private': self.privacy['agency_description'],
-                'date_submitted': self.date_submitted,
-                'date_due': self.due_date,
+                'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': self.submission,
                 'status': self.status,
                 'requester_id': (self.requester.get_id()

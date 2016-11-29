@@ -78,3 +78,5 @@ DELETED_FILE_DIRNAME = 'deleted'
 RESPONSES_INCREMENT = 20
 
 DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS = 20
+
+ES_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"  # strict_date_hour_minute_second
