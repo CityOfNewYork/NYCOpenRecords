@@ -1142,6 +1142,7 @@ class RespFileEditor(ResponseEditor):
                         "File '{}' not found.".format(new_filename))
             if self.update:
                 self.handle_response_token(bool(new_filename))
+            # self.get_file_link()
 
     def replace_old_file(self, updated_filepath):
         """
@@ -1187,6 +1188,24 @@ class RespFileEditor(ResponseEditor):
                         ResponseTokens,
                         self.response.token.id
                     )
+
+    @cached_property
+    def get_file_link(self):
+        file_links = dict()
+        path = '/response/' + str(self.response.id)
+
+        requester_link = None
+        if self.response.privacy != PRIVATE:
+            if self.response.request.requester.is_anonymous_requester:
+                params = urllib.parse.urlencode({'token': self.response.token.token})
+                requester_url = urljoin(flask_request.url_root, path)
+                requester_link = requester_url + "?%s" % params
+            else:
+                requester_link = urljoin(flask_request.url_root, path)
+            file_links['requester'] = requester_link
+        agency_link = urljoin(flask_request.url_root, path)
+        file_links['agency'] = agency_link
+        return file_links
 
     def move_deleted_file(self):
         """
