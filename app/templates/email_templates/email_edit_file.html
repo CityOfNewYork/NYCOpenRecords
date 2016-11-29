@@ -9,6 +9,13 @@
             <p>
                 A FILE in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view
             </p>
+            {% if response_data.response.request.requester.is_anonymous_requester %}
+                {% for key in response_data.get_file_link %}
+                    <p>
+                        Link to file: <a href="{{ response_data.get_file_link[key]['requester'] }}">{{ key }}</a>
+                    </p>
+                {% endfor %}
+            {% endif %}
         {% endif %}
     {% endif %}
 
@@ -16,53 +23,57 @@
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             {% if response_data.data_old['hash'] %}
                 <p>
-                    The file:
+                    The <strong>file</strong>:
                 </p>
                 <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
                 <p> has been replaced with: </p>
                 <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
             {% endif %}
+
             {% if response_data.data_old['name'] and not response_data.data_old['hash'] %}
                 <p>
-                    The name of the file was changed from:
+                    The <strong>name</strong> of the file was changed from:
                 </p>
                 <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
                 <p> to: </p>
                 <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
             {% endif %}
+
             {% if response_data.data_old['title'] %}
                 <p>
-                    The title was changed from :
+                    The <strong>title</strong> was changed from :
                 </p>
                 <p style="padding-left: 30px;">{{ response_data.data_old['title'] }}</p>
                 <p> to: </p>
                 <p style="padding-left: 30px;">{{ response_data.data_new['title'] }}</p>
             {% endif %}
-            {% if response_data.data_old['privacy'] and agency %}
+
+            {% if not agency %}
+                {% if response_data.response.request.requester.is_anonymous_requester %}
+                    {% for key in response_data.get_file_link %}
+                        <p>
+                            Link to file: <a href="{{ response_data.get_file_link[key]['requester'] }}">{{ key }}</a>
+                        </p>
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+        {% if agency %}
+            {% if response_data.data_old['privacy'] %}
                 <p>
-                    The privacy was changed from :
+                    The <strong>privacy</strong> was changed from :
                 </p>
                 <p style="padding-left: 30px;">{{ response_data.data_old['privacy'] | format_response_privacy }}</p>
                 <p> to: </p>
                 <p style="padding-left: 30px;">{{ response_data.data_new['privacy'] | format_response_privacy }}</p>
             {% endif %}
 
-{#            {% if response_data.data_old['name'] and response_data.data_old['hash'] %}#}
-{#                <p>#}
-{#                    The file:#}
-{#                </p>#}
-{#                <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>#}
-{#                <p> has been replaced with: </p>#}
-{#                <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>#}
-{#            {% elif response_data.data_old['name'] and not response_data.data_old['hash'] %}#}
-{#                <p>#}
-{#                    The name of the file was changed from:#}
-{#                </p>#}
-{#                <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>#}
-{#                <p> to: </p>#}
-{#                <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>#}
-{#                <!-- TODO: same filename but hash changed means only file changed? -->#}
-{#            {% endif %}#}
+            {% for key in response_data.get_file_link %}
+                <p>
+                    Link to file: <a href="{{ response_data.get_file_link[key]['agency'] }}">{{ key }}</a>
+                </p>
+            {% endfor %}
         {% endif %}
     {% endif %}
 {% endblock %}

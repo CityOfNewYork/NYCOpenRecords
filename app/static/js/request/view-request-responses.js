@@ -161,7 +161,6 @@ $(function () {
                                 privacy: first.find("input[name=privacy]:checked").val(),
                                 filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
                                     null,
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {
@@ -189,11 +188,6 @@ $(function () {
                         filename = first.find(".uploaded-filename").text();
                     }
                     var privacy = first.find("input[name=privacy]:checked").val();
-
-                    var files = [{
-                        "filename": filename,
-                        "privacy": privacy
-                    }];
 
                     $.ajax({
                         url: "/response/email",
@@ -231,11 +225,13 @@ $(function () {
                 // SUBMIT!
                 submitBtn.click(function () {
                     $(this).attr("disabled", true);
-                    var form = first.find("form");
+                    var form = first.find("form").serializeArray();
+                    var email_content = second.find("#email-content-" + response_id).val();
+                    form.push({ name: "email_content", value: email_content });
                     $.ajax({
                         url: "/response/" + response_id,
                         type: "PATCH",
-                        data: form.serializeArray(),
+                        data: form,
                         success: function (response) {
                             location.reload();
                         }
@@ -263,7 +259,6 @@ $(function () {
                                 response_id: response_id,
                                 content: first.find(".note-content").val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {
@@ -366,7 +361,6 @@ $(function () {
                                 response_id: response_id,
                                 content: first.find('.instruction-content').val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {
@@ -477,7 +471,6 @@ $(function () {
                                 title: first.find(".title").val(),
                                 url: first.find(".url").val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {
