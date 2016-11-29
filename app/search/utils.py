@@ -5,7 +5,6 @@ from flask import (
     render_template,
     current_app,
 )
-from app import moment
 from flask_login import current_user
 from elasticsearch.helpers import bulk
 
@@ -331,7 +330,6 @@ def search_requests(query,
         formatted_results = render_template("request/result_row.html",
                                             requests=results["hits"]["hits"],
                                             query=query)  # TODO: remove after testing
-
     return jsonify({
         "count": len(results["hits"]["hits"]),
         "total": total,

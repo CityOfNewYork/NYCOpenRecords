@@ -1,4 +1,3 @@
-from datetime import timedelta
 from pytz import timezone
 from business_calendar import FOLLOWING
 from app import calendar
