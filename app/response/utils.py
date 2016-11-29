@@ -34,11 +34,12 @@ from app.constants import (
     user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
+    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import generate_new_due_date
-from app.lib.db_utils import create_object, update_object
+from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.file_utils import get_mime_type
 from app.lib.utils import (
@@ -1052,6 +1053,8 @@ class ResponseEditor(metaclass=ABCMeta):
         data['date_modified'] = timestamp
         if self.data_new.get('privacy') is not None:
             data['release_date'] = self.get_response_release_date()
+        # if self.response.request.requester.is_anonymous_requester and self.response.token:
+        #     data['expiration_date'] = self.get_token_expiration_date()
         update_object(data,
                       type(self.response),
                       self.response.id)
@@ -1064,6 +1067,8 @@ class ResponseEditor(metaclass=ABCMeta):
             response_privacy.PRIVATE: None,
         }[self.data_new['privacy']]
 
+    # def get_token_expiration_date(self):
+    #     return calendar.addbusdays(datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
 
     @property
     def deleted(self):
@@ -1106,6 +1111,7 @@ class RespFileEditor(ResponseEditor):
         super(RespFileEditor, self).set_edited_data()
         if self.deleted and self.update:
             self.move_deleted_file()
+            delete_object(self.response.token)
         else:
             new_filename = flask_request.form.get('filename', '')
             if new_filename:
@@ -1134,6 +1140,8 @@ class RespFileEditor(ResponseEditor):
                 else:
                     self.errors.append(
                         "File '{}' not found.".format(new_filename))
+            if self.update:
+                self.handle_response_token(bool(new_filename))
 
     def replace_old_file(self, updated_filepath):
         """
@@ -1157,6 +1165,28 @@ class RespFileEditor(ResponseEditor):
                 os.path.basename(updated_filepath)
             )
         )
+
+    def handle_response_token(self, file_changed):
+        """
+        Handle the response token based on privacy option and if file has been replaced
+        """
+        if self.response.request.requester.is_anonymous_requester:
+            # privacy changed to private
+            if self.data_new.get('privacy') == PRIVATE:
+                delete_object(self.response.token)
+            # privacy changed from private or file was changed and the response is public
+            elif self.data_old.get('privacy') == PRIVATE or (file_changed and self.response.privacy != PRIVATE):
+                if not self.response.token:
+                    # create new token
+                    resptoken = ResponseTokens(self.response.id)
+                    create_object(resptoken)
+                else:
+                    # extend expiration date
+                    update_object(
+                        calendar.addbusdays(datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS),
+                        ResponseTokens,
+                        self.response.token.id
+                    )
 
     def move_deleted_file(self):
         """
