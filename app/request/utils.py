@@ -55,6 +55,7 @@ from app.upload.utils import (
 
 def create_request(title,
                    description,
+                   tz_name,
                    agency=None,
                    first_name=None,
                    last_name=None,
@@ -72,6 +73,7 @@ def create_request(title,
 
     :param title: request title
     :param description: detailed description of the request
+    :param tz_name: client's timezone name
     :param agency: agency_ein selected for the request
     :param first_name: first name of the requester
     :param last_name: last name of the requester
@@ -102,7 +104,7 @@ def create_request(title,
                       else get_following_date(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE)
+    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE, tz_name)
 
     # 5. Create Request
     request = Requests(
