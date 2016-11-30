@@ -358,6 +358,7 @@ def process_email_template_request(request_id, data):
     rtype = data['type']
     if rtype == "edit":
         return _edit_email_handler(data)
+
     if rtype in determination_type.ALL:
         handler_for_type = {
             determination_type.EXTENSION: _extension_email_handler,
@@ -370,7 +371,6 @@ def process_email_template_request(request_id, data):
             response_type.LINK: _link_email_handler,
             response_type.NOTE: _note_email_handler,
             response_type.INSTRUCTIONS: _instruction_email_handler,
-            "edit": _edit_email_handler
         }
     return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
 
@@ -1125,7 +1125,8 @@ class RespFileEditor(ResponseEditor):
         super(RespFileEditor, self).set_edited_data()
         if self.deleted and self.update:
             self.move_deleted_file()
-            delete_object(self.response.token)
+            if self.response.token is not None:
+                delete_object(self.response.token)
         else:
             new_filename = flask_request.form.get('filename', '')
             if new_filename:
