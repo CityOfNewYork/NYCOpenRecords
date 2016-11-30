@@ -38,8 +38,8 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
-from app.lib.date_utils import generate_new_due_date
-from app.lib.db_utils import create_object, update_object, delete_object
+from app.lib.date_utils import get_due_date, process_due_date
+from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.file_utils import get_mime_type
 from app.lib.utils import (
@@ -115,7 +115,7 @@ def add_note(request_id, note_content, email_content, privacy):
     _send_response_email(request_id, privacy, email_content)
 
 
-def add_acknowledgment(request_id, info, days, date, email_content):
+def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
     """
     Create and store an acknowledgement-determination response for
     the specified request and update the request accordingly.
@@ -124,11 +124,12 @@ def add_acknowledgment(request_id, info, days, date, email_content):
     :param info: additional information pertaining to the acknowledgment
     :param days: days until request completion
     :param date: date of request completion
+    :param tz_name: client's timezone name
     :param email_content: email body associated with the acknowledgment
 
     """
     if not Requests.query.filter_by(id=request_id).one().was_acknowledged:
-        new_due_date = _get_new_due_date(request_id, days, date)
+        new_due_date = _get_new_due_date(request_id, days, date, tz_name)
         update_object(
             {'due_date': new_due_date,
              'status': request_status.IN_PROGRESS},
@@ -177,7 +178,7 @@ def add_denial(request_id, reason_ids, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
-def add_extension(request_id, length, reason, custom_due_date, email_content):
+def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
     """
     Create and store the extension object for the specified request.
     Extension's privacy is always Release and Public.
@@ -188,10 +189,11 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     :param length: length in business days that the request is being extended by
     :param reason: reason for the extension of the request
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
+    :param tz_name: client's timezone name
     :param email_content: email body content of the email to be created and stored as a email object
 
     """
-    new_due_date = _get_new_due_date(request_id, length, custom_due_date)
+    new_due_date = _get_new_due_date(request_id, length, custom_due_date, tz_name)
     update_object(
         {'due_date': new_due_date},
         Requests,
@@ -296,7 +298,7 @@ def add_push():
     pass
 
 
-def _get_new_due_date(request_id, extension_length, custom_due_date):
+def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
     """
     Gets the new due date from either generating with extension length, or setting from an inputted custom due date.
     If the extension length is -1, then we use the custom_due_date to determine the new_due_date.
@@ -304,15 +306,21 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     generate_due_date.
 
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
-    :param extension_length: length the due date is being extended by
-    :param custom_due_date: new custom due date of the request
+    :param extension_length: number of days the due date is being extended by
+    :param custom_due_date: custom due date of the request (string in format '%Y-%m-%d')
+    :param tz_name: client's timezone name
 
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
+        new_due_date = process_due_date(datetime.strptime(custom_due_date, '%Y-%m-%d'),
+                                        tz_name)
     else:
-        new_due_date = generate_new_due_date(extension_length, request_id)
+        new_due_date = get_due_date(
+            Requests.query.filter_by(id=request_id).one().due_date,
+            int(extension_length),
+            tz_name
+        )
     return new_due_date
 
 
@@ -396,8 +404,8 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
         date = _get_new_due_date(
             request_id,
             acknowledgment['days'],
-            acknowledgment['date']
-        ).strftime('%A, %b, %d,%Y')
+            acknowledgment['date'],
+            data['tz_name'])
         info = acknowledgment['info'].strip() or None
     else:
         default_content = True
@@ -446,9 +454,11 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         default_content = False
         content = data['email_content']
         # calculates new due date based on selected value if custom due date is not selected
-        new_due_date = _get_new_due_date(request_id,
-                                         extension['length'],
-                                         extension['custom_due_date']).strftime('%A, %b %d, %Y')
+        new_due_date = _get_new_due_date(
+            request_id,
+            extension['length'],
+            extension['custom_due_date'],
+            data['tz_name'])
         reason = extension['reason']
     # use default_content in response template
     else:

@@ -131,6 +131,7 @@ def response_acknowledgment(request_id):
                        flask_request.form['info'].strip() or None,
                        flask_request.form['days'],
                        flask_request.form['date'],
+                       flask_request.form['tz-name'],
                        flask_request.form['email-summary'])
     return redirect(url_for('request.view', request_id=request_id))
 
@@ -182,6 +183,7 @@ def response_extension(request_id):
                   extension_data['length'],
                   extension_data['reason'],
                   extension_data['due-date'],
+                  extension_data['tz-name'],
                   extension_data['email-extension-summary'])
     return redirect(url_for('request.view', request_id=request_id))
 

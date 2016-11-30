@@ -414,9 +414,6 @@ class Requests(db.Model):
         self.status = status
         self.agency_description = agency_description
 
-    def get_formatted_due_date(self):
-        return self.due_date.strftime('%m/%d/%Y')
-
     @property
     def val_for_events(self):
         """

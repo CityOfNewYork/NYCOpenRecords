@@ -61,7 +61,7 @@
                     {% endif %}
                 </div>
                 <br><br>
-
+                <input type="hidden" name="tz-name">
                 {{ form.submit(id='submit', class='btn-primary') }}
                 <span id="processing-submission" hidden>
                     <img src="{{ url_for("static", filename="img/loading.gif") }}"

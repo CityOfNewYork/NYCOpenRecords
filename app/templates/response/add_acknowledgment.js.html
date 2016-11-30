@@ -83,6 +83,7 @@
                     },
                     success: function(data) {
                         tinyMCE.get("acknowledgment-email-body").setContent(data.template);
+                        flask_moment_render_all();
                     }
                 });
                 first.hide();
@@ -103,13 +104,16 @@
                     acknowledgment: JSON.stringify({
                         days: days.val(),
                         date: date.val(),
-                        info: info.val(),
+                        info: info.val()
                     }),
-                    email_content: second.find("#acknowledgment-email-body").val()
+                    email_content: second.find("#acknowledgment-email-body").val(),
+                    tz_name: jstz.determine().name()
                 },
                 success: function(data) {
                     third.find(".email-summary").html(data.template);
                     third.find("input[name='email-summary']").val(data.template);
+                    third.find("input[name='tz-name']").val(jstz.determine().name());
+                    flask_moment_render_all();
                 }
             });
 

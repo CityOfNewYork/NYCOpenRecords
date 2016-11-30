@@ -95,7 +95,8 @@ def new():
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         agency=form.request_agency.data,
-                                        upload_path=upload_path)
+                                        upload_path=upload_path,
+                                        tz_name=flask_request.form['tz-name'])
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -109,7 +110,8 @@ def new():
                                         phone=form.phone.data,
                                         fax=form.fax.data,
                                         address=get_address(form),
-                                        upload_path=upload_path)
+                                        upload_path=upload_path,
+                                        tz_name=flask_request.form['tz-name'])
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -122,7 +124,8 @@ def new():
                                         phone=form.phone.data,
                                         fax=form.fax.data,
                                         address=get_address(form),
-                                        upload_path=upload_path)
+                                        upload_path=upload_path,
+                                        tz_name=flask_request.form['tz-name'])
 
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester

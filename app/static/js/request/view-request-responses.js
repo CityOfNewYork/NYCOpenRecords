@@ -49,6 +49,7 @@ $(function () {
                     );
                 }
             }
+            flask_moment_render_all();
         }
         else {
             response_list.text("None");

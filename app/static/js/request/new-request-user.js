@@ -3,6 +3,8 @@
  */
 $(document).ready(function () {
 
+    $("input[name='tz-name']").val(jstz.determine().name());
+
     $('[data-toggle="popover"]').popover();
 
     // javascript to add tooltip popovers when selecting the title and description
