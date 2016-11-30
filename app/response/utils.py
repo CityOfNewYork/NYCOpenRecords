@@ -356,6 +356,8 @@ def process_email_template_request(request_id, data):
     # set a dictionary of email types to handler functions to handle the specific response type
 
     rtype = data['type']
+    if rtype == "edit":
+        return _edit_email_handler(data)
     if rtype in determination_type.ALL:
         handler_for_type = {
             determination_type.EXTENSION: _extension_email_handler,
@@ -370,10 +372,7 @@ def process_email_template_request(request_id, data):
             response_type.INSTRUCTIONS: _instruction_email_handler,
             "edit": _edit_email_handler
         }
-    if handler_for_type["edit"]:
-        return handler_for_type["edit"](data)
-    else:
-        return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
+    return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
 
 
 def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
@@ -1241,8 +1240,6 @@ class RespFileEditor(ResponseEditor):
             _send_delete_response_email(self.response.request_id, self.response)
         else:
             email_content_requester, email_content_agency, _ = _get_edit_response_template(self)
-            if email_content_requester is not None:
-                email_content_requester = email_content_requester
             _send_edit_response_email(self.response.request_id,
                                       email_content_agency,
                                       email_content_requester)

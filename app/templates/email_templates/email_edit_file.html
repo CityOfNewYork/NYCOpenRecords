@@ -7,7 +7,7 @@
             </p>
         {% else %}
             <p>
-                A FILE in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view
+                A FILE in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view.
             </p>
             {% if response_data.response.request.requester.is_anonymous_requester %}
                 {% for key in response_data.get_file_link %}
