@@ -372,6 +372,7 @@ def process_email_template_request(request_id, data):
             determination_type.EXTENSION: _extension_email_handler,
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
+            determination_type.CLOSING: _closing_email_handler
         }
     else:
         handler_for_type = {
@@ -429,6 +430,36 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=[Reasons.query.filter_by(id=reason_id).one().content
                  for reason_id in data.getlist('reason_ids[]')],
+        page=page
+    )}), 200
+
+
+def _closing_email_handler(request_id, data, page, agency_name, email_template):
+    """
+
+    :param request_id:
+    :param data:
+    :param page:
+    :param agency_name:
+    :param email_template:
+
+    :return:
+    """
+    reasons = [Reasons.query.filter_by(id=reason_id).one().content
+               for reason_id in data.getlist('reason_ids[]')]
+    if eval_request_bool(data['confirmation']):
+        default_content = False
+        content = data['email_content']
+    else:
+        default_content = True
+        content = None
+    return jsonify({"template": render_template(
+        email_template,
+        default_content=default_content,
+        content=content,
+        request_id=request_id,
+        agency_name=agency_name,
+        reasons=reasons,
         page=page
     )}), 200
 

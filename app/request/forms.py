@@ -213,6 +213,22 @@ class DenyRequestForm(Form):
             )]
 
 
+class CloseRequestForm(Form):
+    reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
+
+    def __init__(self, agency_ein):
+        super(CloseRequestForm, self).__init__()
+        self.reasons.choices = [
+            (reason.id, reason.content)
+            for reason in Reasons.query.filter(
+                Reasons.type == determination_type.CLOSING,
+                or_(
+                    Reasons.agency_ein == agency_ein,
+                    Reasons.agency_ein == None
+                )
+            )]
+
+
 class SearchRequestsForm(Form):
     agency = SelectField('Agency')  #, choices=get_agency_choices())
     # category = SelectField('Category', get_categories())

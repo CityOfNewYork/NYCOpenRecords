@@ -38,6 +38,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
+    CloseRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -174,6 +175,7 @@ def view(request_id):
         agency_users=current_request.agency_users,
         edit_requester_form=EditRequesterForm(current_request.requester),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
+        close_request_form=CloseRequestForm(current_request.agency.ein),
         holidays=holidays)
 
 
