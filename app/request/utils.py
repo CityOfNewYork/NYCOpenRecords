@@ -41,6 +41,7 @@ from app.models import (
     UserRequests,
     Roles,
     Files,
+    ResponseTokens
 )
 from app.response.utils import safely_send_and_add_email
 from app.upload.constants import upload_status
@@ -166,6 +167,10 @@ def create_request(title,
                               timestamp=datetime.utcnow(),
                               new_value=response.val_for_events)
         create_object(upload_event)
+
+        # Create response token if requester is anonymous
+        if current_user.is_anonymous or current_user.is_agency:
+            create_object(ResponseTokens(response.id))
 
     role_to_user = {
         role.PUBLIC_REQUESTER: current_user.is_public,

@@ -1204,7 +1204,7 @@ class RespFileEditor(ResponseEditor):
                     )
 
     @cached_property
-    def get_file_link(self):
+    def file_link_for_user(self):
         """
         Get the link(s) of the file being edited.
 
@@ -1212,24 +1212,21 @@ class RespFileEditor(ResponseEditor):
         respective file link(s).
         File link to the requester is not created if privacy is private.
         """
-        filename = self.data_new['name'] if self.data_new.get('name') else self.response.name
-        file_links = {
-            filename: {}
-        }
+        file_links = dict()
         if self.update:
             path = '/response/' + str(self.response.id)
-            if self.data_new.get('privacy') is not None and self.data_new['privacy'] != PRIVATE:
+            if self.response.privacy != PRIVATE:
                 if self.response.request.requester.is_anonymous_requester:
                     params = urllib.parse.urlencode({'token': self.response.token.token})
                     requester_url = urljoin(flask_request.url_root, path)
                     requester_link = requester_url + "?%s" % params
                 else:
                     requester_link = urljoin(flask_request.url_root, path)
-                file_links[filename]['requester'] = requester_link
+                file_links['requester'] = requester_link
             agency_link = urljoin(flask_request.url_root, path)
-            file_links[filename]['agency'] = agency_link
+            file_links['agency'] = agency_link
         else:
-            file_links[filename] = {'requester': '#', 'agency': '#'}
+            file_links = {'requester': '#', 'agency': '#'}
         return file_links
 
     def send_email(self):
