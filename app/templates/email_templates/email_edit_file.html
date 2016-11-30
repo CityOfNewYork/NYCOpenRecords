@@ -1,0 +1,91 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if not agency %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            <p>
+                A FILE in request <a href="{{ page }}">{{ request_id }}</a> has been edited.
+            </p>
+        {% else %}
+            <p>
+                A FILE in request <a href="{{ page }}">{{ request_id }}</a> is available for you to view.
+            </p>
+            {% if response_data.response.request.requester.is_anonymous_requester %}
+                <p>
+                    Link to file: <a href="{{ response_data.file_link_for_user['requester'] }}">
+                    {% if response_data.data_new['name'] %}
+                        {{ response_data.data_new['name'] }}
+                    {% else %}
+                        {{ response_data.response.name }}</a>
+                    {% endif %}
+                </p>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+
+    {% if response_data is not none %}
+        {% if agency or response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            {% if response_data.data_old['hash'] %}
+                {% if response_data.data_old['name'] %}
+                    <p>
+                        The <strong>file</strong>:
+                    </p>
+                    <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
+                    <p> has been replaced with: </p>
+                    <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
+                {% else %}
+                    <p>The <strong>contents</strong> of {{ response_data.response.name }} have been changed.</p>
+                {% endif %}
+            {% else %} <!-- If the file has only been renamed -->
+                {% if response_data.data_old['name'] %}
+                    <p>
+                        The file's <strong>name</strong> was changed from:
+                    </p>
+                    <p style="padding-left: 30px;">{{ response_data.data_old['name'] }}</p>
+                    <p> to: </p>
+                    <p style="padding-left: 30px;">{{ response_data.data_new['name'] }}</p>
+                {% endif %}
+            {% endif %}
+
+            {% if response_data.data_old['title'] %}
+                <p>
+                    The <strong>title</strong> was changed from :
+                </p>
+                <p style="padding-left: 30px;">{{ response_data.data_old['title'] }}</p>
+                <p> to: </p>
+                <p style="padding-left: 30px;">{{ response_data.data_new['title'] }}</p>
+            {% endif %}
+
+            {% if not agency %}
+                {% if response_data.response.request.requester.is_anonymous_requester %}
+                    <p>
+                        Link to file: <a href="{{ response_data.file_link_for_user['requester'] }}">
+                        {% if response_data.data_new['name'] %}
+                            {{ response_data.data_new['name'] }}
+                        {% else %}
+                            {{ response_data.response.name }}</a>
+                        {% endif %}
+                    </p>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+        {% if agency %}
+            {% if response_data.data_old['privacy'] %}
+                <p>
+                    The <strong>privacy</strong> was changed from :
+                </p>
+                <p style="padding-left: 30px;">{{ response_data.data_old['privacy'] | format_response_privacy }}</p>
+                <p> to: </p>
+                <p style="padding-left: 30px;">{{ response_data.data_new['privacy'] | format_response_privacy }}</p>
+            {% endif %}
+            <p>
+                Link to file: <a href="{{ response_data.file_link_for_user['agency'] }}">
+                {% if response_data.data_new['name'] %}
+                    {{ response_data.data_new['name'] }}
+                {% else %}
+                    {{ response_data.response.name }}</a>
+                {% endif %}
+            </p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -41,6 +41,7 @@ from app.models import (
     UserRequests,
     Roles,
     Files,
+    ResponseTokens
 )
 from app.response.utils import safely_send_and_add_email
 from app.upload.constants import upload_status
@@ -141,8 +142,9 @@ def create_request(title,
         upload_path = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        title = ''  # TODO: add optional title field to new-request page?
-        name = os.path.basename(upload_path)
+        filename = os.path.basename(upload_path)
+        title = filename
+        name = filename
         mime_type = get_mime_type(request_id, upload_path)
         size = os.path.getsize(upload_path)
         hash_ = get_file_hash(upload_path)
@@ -165,6 +167,10 @@ def create_request(title,
                               timestamp=datetime.utcnow(),
                               new_value=response.val_for_events)
         create_object(upload_event)
+
+        # Create response token if requester is anonymous
+        if current_user.is_anonymous or current_user.is_agency:
+            create_object(ResponseTokens(response.id))
 
     role_to_user = {
         role.PUBLIC_REQUESTER: current_user.is_public,

@@ -19,7 +19,7 @@
     {% endif %}
 
     {% if response_data is not none %}
-        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency%}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency %}
             {% for key in response_data.requester_viewable_keys %}
                 <p>
                     The <strong>{{ key }}</strong> was changed from:
