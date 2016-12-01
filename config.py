@@ -19,6 +19,13 @@ class Config:
     REASON_DATA = (os.environ.get('REASONS_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
 
+    # SFTP
+    USE_SFTP = os.environ.get('USE_SFTP') == "True"
+    SFTP_HOSTNAME = os.environ.get('SFTP_HOSTNAME')
+    SFTP_PORT = os.environ.get('SFTP_PORT')
+    SFTP_USERNAME = os.environ.get('SFTP_USERNAME')
+    SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
+
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
@@ -61,6 +68,7 @@ class Config:
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') == "True"
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests"
+    ELASTICSEARCH_AUTH = (os.environ.get('ELASTICSEARCH_USERNAME'), os.environ.get('ELASTICSEARCH_PASSWORD')) or None
     # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod

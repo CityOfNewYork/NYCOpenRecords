@@ -23,6 +23,7 @@ bootstrap = Bootstrap()
 es = FlaskElasticsearch()
 db = SQLAlchemy()
 moment = Moment()
+mail = Mail()
 login_manager = LoginManager()
 store = RedisStore(redis.StrictRedis(db=1))
 prefixed_store = PrefixDecorator('session_', store)
@@ -31,10 +32,7 @@ celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
 upload_redis = redis.StrictRedis(db=2)
 email_redis = redis.StrictRedis(db=3)
 
-mail = Mail()
-
 holidays = NYCHolidays(years=[year for year in range(date.today().year, date.today().year + 5)])
-
 calendar = Calendar(
     workdays=[MO, TU, WE, TH, FR],
     holidays=[str(key) for key in holidays.keys()]
