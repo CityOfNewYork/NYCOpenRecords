@@ -90,5 +90,6 @@ EMAIL_TEMPLATE_FOR_TYPE = {
     response_type.INSTRUCTIONS: "email_response_instruction.html",
     determination_type.ACKNOWLEDGMENT: "email_response_acknowledgment.html",
     determination_type.DENIAL: "email_response_denial.html",
-    determination_type.CLOSING: "email_response_closing.html"
+    determination_type.CLOSING: "email_response_closing.html",
+    determination_type.EXTENSION: "email_response_extension.html",
 }

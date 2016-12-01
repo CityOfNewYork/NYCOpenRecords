@@ -399,11 +399,10 @@ def process_email_template_request(request_id, data):
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], EMAIL_TEMPLATE_FOR_TYPE[data['type']])
-    # set a dictionary of email types to handler functions to handle the specific response type
-
     rtype = data['type']
-    if rtype == "edit":
+    if rtype != "edit":
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], EMAIL_TEMPLATE_FOR_TYPE[data['type']])
+    else:
         return _edit_email_handler(data)
 
     if rtype in determination_type.ALL:
