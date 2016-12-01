@@ -37,10 +37,11 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function(data) {
-                        second.find(".email-summary").html(data.template);
-                        second.find("input[name='email-summary']").val(data.template);
-                        first.find("input[name='tz-name']").val(jstz.determine().name());
+                        var emailSummary = second.find(".email-summary");
+                        emailSummary.html(data.template);
                         flask_moment_render_all();
+                        second.find("input[name='email-summary']").val(emailSummary.html());
+                        first.find("input[name='tz-name']").val(jstz.determine().name());
                     }
                 });
                 first.hide();
