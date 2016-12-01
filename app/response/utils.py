@@ -175,7 +175,7 @@ def add_denial(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)  # FIXME: REQ_DENIED?
+        _create_response_event(response, event_type.REQ_CLOSED)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
