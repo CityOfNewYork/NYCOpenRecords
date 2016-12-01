@@ -11,6 +11,7 @@
         var next2 = second.find(".next");
         var prev2 = second.find(".prev");
         var prev3 = third.find(".prev");
+        var submit = third.find(".submit");
 
         var days = first.find("#acknowledgment-days");
         var date = first.find("#acknowledgment-date");
@@ -127,6 +128,11 @@
         prev3.click(function() {
             third.hide();
             second.show();
+        });
+
+        submit.click(function() {
+            $(this).attr("disabled", true);
+            form.submit();
         });
 
     });
