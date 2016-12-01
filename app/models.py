@@ -400,7 +400,8 @@ class Requests(db.Model):
             due_date=None,
             submission=None,
             status=request_status.OPEN,
-            agency_description=None
+            agency_description=None,
+            agency_description_release_date=None
     ):
         self.id = id
         self.title = title
@@ -413,6 +414,7 @@ class Requests(db.Model):
         self.submission = submission
         self.status = status
         self.agency_description = agency_description
+        self.agency_description_release_date = agency_description_release_date
 
     @property
     def val_for_events(self):

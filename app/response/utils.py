@@ -236,11 +236,18 @@ def add_reopened(request_id, date, tz_name, email_content):
             request_id,
             privacy,
             determination_type.REOPENED,
-            date=date
+            None,
+            date
         )
         create_object(response)
         _create_response_event(response, event_type.REQ_REOPENED)
         _send_response_email(request_id, privacy, email_content)
+        update_object(
+            {'status': request_status.IN_PROGRESS,
+             'agency_description_release_date': None},
+            Requests,
+            request_id
+        )
 
 
 def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
