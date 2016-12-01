@@ -218,11 +218,13 @@ def add_closing(request_id, reason_ids, email_content):
 
 def add_reopened(request_id, date, tz_name, email_content):
     """
+    Create and store a re-opened-determination for the specified request and update the request accordingly.
 
-    :param request_id:
-    :param date:
-    :param tz_name:
-    :param email_content:
+    :param request_id: FOIL request ID
+    :param date: date of request completion
+    :param tz_name: client's timezone name
+    :param email_content: email body associated with the reopened request
+
     """
     if Requests.query.filter_by(id=request_id).one().status == request_status.CLOSED:
         new_due_date = process_due_date(datetime.strptime(date, '%Y-%m-%d'), tz_name)
@@ -237,7 +239,7 @@ def add_reopened(request_id, date, tz_name, email_content):
             privacy,
             determination_type.REOPENED,
             None,
-            date
+            new_due_date
         )
         create_object(response)
         _create_response_event(response, event_type.REQ_REOPENED)

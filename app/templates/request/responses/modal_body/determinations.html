@@ -1,4 +1,4 @@
-{% if response.dtype == determination_type.ACKNOWLEDGMENT %}
+{% if response.dtype in (determination_type.ACKNOWLEDGMENT, determination_type.REOPENED) %}
     <p>Expected date of completion: <strong>{{ moment(response.date).format('dddd, MMMM D, YYYY [at] h:mm A')}}</strong></p>
     {% if response.reason %}
         <p>{{ response.reason }}</p>
