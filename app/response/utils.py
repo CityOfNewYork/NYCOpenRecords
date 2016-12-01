@@ -410,6 +410,7 @@ def process_email_template_request(request_id, data):
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
             determination_type.CLOSING: _closing_email_handler
+            determination_type.REOPENED: _reopened_email_handler
         }
     else:
         handler_for_type = {
@@ -498,6 +499,16 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         request_id=request_id,
         agency_name=agency_name,
         reasons=reasons,
+        page=page
+    )}), 200
+
+
+def _reopened_email_handler(request_id, data, page, agency_name, email_template):
+    return jsonify({"template": render_template(
+        email_template,
+        request_id=request_id,
+        agency_name=agency_name,
+        date=process_due_date(datetime.strptime(data['date'], '%Y-%m-%d'), data['tz_name']),
         page=page
     )}), 200
 

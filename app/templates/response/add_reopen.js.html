@@ -19,10 +19,11 @@
             dateFormat: "yy-mm-dd",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
+            minDate: 0
         });
         date.keydown(false);
 
-        next.click(function(e) {
+        next.click(function() {
             date.parsley().validate();
 
             if (date.parsley().isValid()) {
@@ -32,12 +33,15 @@
                     data: {
                         request_id: "{{ request.id }}",
                         template_name: "email_response_reopen.html",
-                        type: "reopen",
-                        date: date.val()
+                        type: "re-opened",
+                        date: date.val(),
+                        tz_name: jstz.determine().name()
                     },
                     success: function(data) {
                         second.find(".email-summary").html(data.template);
                         second.find("input[name='email-summary']").val(data.template);
+                        first.find("input[name='tz-name']").val(jstz.determine().name());
+                        flask_moment_render_all();
                     }
                 });
                 first.hide();
