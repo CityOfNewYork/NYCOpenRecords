@@ -221,7 +221,7 @@ def add_reopened(request_id, date, tz_name, email_content):
     Create and store a re-opened-determination for the specified request and update the request accordingly.
 
     :param request_id: FOIL request ID
-    :param date: date of request completion
+    :param date: string of new date of request completion
     :param tz_name: client's timezone name
     :param email_content: email body associated with the reopened request
 
@@ -540,6 +540,17 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
 
 def _reopened_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
     return jsonify({"template": render_template(
         email_template,
         request_id=request_id,

@@ -185,7 +185,7 @@ def response_reopen(request_id):
     """
     Endpoint for reopening a request that takes in form data from the frontend.
     Required form data include:
-        -date: date object of the new due date for the reopened request
+        -date: string of new date of request completion
         -tz-name: name of the timezone the user is accessing the application in
         -email-summary: string email body from the confirmation page
 
