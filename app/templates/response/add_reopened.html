@@ -1,4 +1,4 @@
-<form id="add-reopen" action="/response/reopen/{{ request.id }}" method="POST">
+<form id="add-reopened" action="/response/reopened/{{ request.id }}" method="POST">
     <div class="col-sm-9">
         <fieldset>
             <legend>
@@ -6,8 +6,8 @@
             </legend>
             <div class="first">
                 <div class="form-group">
-                    <label for="reopen-date">New Due Date</label>
-                    <input type="text" id="reopen-date" name="date"
+                    <label for="reopened-date">New Due Date</label>
+                    <input type="text" id="reopened-date" name="date"
                            class="disable-enter-submit">
                     <input type="hidden" name="tz-name">
                 </div>

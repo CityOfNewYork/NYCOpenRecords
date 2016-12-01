@@ -180,8 +180,8 @@ def response_closing(request_id):
         return redirect(url_for('request.view', request_id=request_id))
 
 
-@response.route('/reopen/<request_id>', methods=['POST'])
-def response_reopen(request_id):
+@response.route('/reopened/<request_id>', methods=['POST'])
+def response_reopened(request_id):
     """
     Endpoint for reopening a request that takes in form data from the frontend.
     Required form data include:
