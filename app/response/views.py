@@ -169,6 +169,19 @@ def response_closing(request_id):
         return redirect(url_for('request.view', request_id=request_id))
 
 
+@response.route('reopen/<request_id>', methods=['POST'])
+def response_reopen(request_id):
+    required_fields = ['date', 'email-summary']
+
+    for field in required_fields:
+        if not flask_request.form.get(field, ''):
+            flash('Uh Oh, it looks like the acknowledgement {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    # add_reopened
+
+
 @response.route('/extension/<request_id>', methods=['POST'])
 def response_extension(request_id):
     """

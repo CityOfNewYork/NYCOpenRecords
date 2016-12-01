@@ -216,6 +216,33 @@ def add_closing(request_id, reason_ids, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
+def add_reopened(request_id, date, tz_name, email_content):
+    """
+
+    :param request_id:
+    :param date:
+    :param tz_name:
+    :param email_content:
+    """
+    if Requests.query.filter_by(id=request_id).one().status == request_status.CLOSED:
+        new_due_date = process_due_date(datetime.strptime(date, '%Y-%m-%d'), tz_name)
+        update_object(
+            {'due_date': new_due_date},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.REOPENED,
+            date=date
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_REOPENED)
+        _send_response_email(request_id, privacy, email_content)
+
+
 def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
     """
     Create and store the extension object for the specified request.

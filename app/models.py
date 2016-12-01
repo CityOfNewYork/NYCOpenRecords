@@ -863,6 +863,7 @@ class Determinations(Responses):
     acknowledgment | estimated date of completion     | why the date was chosen / additional info
     extension      | new estimated date of completion | why the request extended
     closing        | NA                               | why the request closed
+    reopened       | new estimated date of completion | NA
 
     """
     __tablename__ = response_type.DETERMINATION
@@ -873,6 +874,7 @@ class Determinations(Responses):
         determination_type.ACKNOWLEDGMENT,
         determination_type.EXTENSION,
         determination_type.CLOSING,
+        determination_type.REOPENED,
         name="determination_type"
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge
@@ -890,7 +892,7 @@ class Determinations(Responses):
                                              date_modified)
         self.dtype = dtype
 
-        if dtype != determination_type.ACKNOWLEDGMENT:
+        if dtype != determination_type.ACKNOWLEDGMENT and dtype != determination_type.REOPENED:
             assert reason is not None
         self.reason = reason
 

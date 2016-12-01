@@ -98,7 +98,7 @@ def upgrade():
     )
     op.create_table('determinations',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('dtype', sa.Enum('denial', 'acknowledgment', 'extension', 'closing', name='determination_type'), nullable=False),
+    sa.Column('dtype', sa.Enum('denial', 'acknowledgment', 'extension', 'closing', 're-opened', name='determination_type'), nullable=False),
     sa.Column('reason', sa.String(), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['id'], ['responses.id'], ),
