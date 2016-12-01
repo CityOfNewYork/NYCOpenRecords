@@ -32,7 +32,6 @@
                     type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
-                        template_name: "email_response_reopen.html",
                         type: "re-opened",
                         date: date.val(),
                         tz_name: jstz.determine().name()

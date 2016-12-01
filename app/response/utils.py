@@ -436,7 +436,7 @@ def process_email_template_request(request_id, data):
             determination_type.EXTENSION: _extension_email_handler,
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
-            determination_type.CLOSING: _closing_email_handler
+            determination_type.CLOSING: _closing_email_handler,
             determination_type.REOPENED: _reopened_email_handler
         }
     else:
