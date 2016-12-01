@@ -35,7 +35,7 @@ from app.constants import (
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
-    email_template_for_type
+    EMAIL_TEMPLATE_FOR_TYPE
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
@@ -399,7 +399,7 @@ def process_email_template_request(request_id, data):
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], email_template_for_type.template(data['type']))
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], EMAIL_TEMPLATE_FOR_TYPE[data['type']])
     # set a dictionary of email types to handler functions to handle the specific response type
 
     rtype = data['type']
@@ -475,14 +475,15 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
 def _closing_email_handler(request_id, data, page, agency_name, email_template):
     """
+    Process email template for closing a request.
 
-    :param request_id:
-    :param data:
-    :param page:
-    :param agency_name:
-    :param email_template:
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
 
-    :return:
+    :return: the HTML of the rendered template of a closing
     """
     reasons = [Reasons.query.filter_by(id=reason_id).one().content
                for reason_id in data.getlist('reason_ids[]')]
