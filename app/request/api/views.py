@@ -115,8 +115,10 @@ def get_request_responses():
                 response=response,
                 row_num=start + i + 1,
                 response_type=response_type,
+                determination_type=determination_type,
                 show_preview=not (response.type == response_type.DETERMINATION and
-                                  response.dtype == determination_type.ACKNOWLEDGMENT)
+                                  (response.dtype == determination_type.ACKNOWLEDGMENT or
+                                   response.dtype == determination_type.REOPENED))
             )
             modal = render_template(
                 template_path + 'modal.html',

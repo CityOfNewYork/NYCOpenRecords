@@ -46,3 +46,7 @@
     font-size:x-small;
     padding-right: 1em;
 }
+
+.re-opened-row {
+    white-space: nowrap;
+}

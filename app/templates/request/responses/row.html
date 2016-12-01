@@ -1,7 +1,8 @@
 <div class="row response-row" data-toggle="modal" data-target="#response-modal-{{ response.id }}"
      data-backdrop="static" data-keyboard="false">
     <div class="col-md-1 response-row-num">{{ row_num }}</div>
-    <div class="col-md-2 {% if response.type == response_type.INSTRUCTIONS %}offline-instructions-row{% endif %}">
+    <div class="col-md-2 {% if response.type == response_type.INSTRUCTIONS %}offline-instructions-row{% endif %}
+    {% if response.dtype == determination_type.REOPENED %}re-opened-row{% endif %}">
         <strong>{{ response | format_response_type }}</strong>
     </div>
     <div class="col-md-5 metadata-preview">
