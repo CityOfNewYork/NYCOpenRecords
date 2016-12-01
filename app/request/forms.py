@@ -197,20 +197,39 @@ class EditRequesterForm(Form):
             self.zipcode.data = requester.mailing_address.get("zip") or ""
 
 
-class DenyRequestForm(Form):
-    reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
+class FinishRequestForm(Form):
 
     def __init__(self, agency_ein):
-        super(DenyRequestForm, self).__init__()
+        super(FinishRequestForm, self).__init__()
         self.reasons.choices = [
             (reason.id, reason.content)
             for reason in Reasons.query.filter(
-                Reasons.type == determination_type.DENIAL,
+                Reasons.type == self.ultimate_determination_type,
                 or_(
                     Reasons.agency_ein == agency_ein,
                     Reasons.agency_ein == None
                 )
             )]
+
+    @property
+    def reasons(self):
+        """ SelectMultipleField """
+        raise NotImplementedError
+
+    @property
+    def ultimate_determination_type(self):
+        """ Closing or Denial """
+        raise NotImplementedError
+
+
+class DenyRequestForm(FinishRequestForm):
+    reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
+    ultimate_determination_type = determination_type.DENIAL
+
+
+class CloseRequestForm(FinishRequestForm):
+    reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
+    ultimate_determination_type = determination_type.CLOSING
 
 
 class SearchRequestsForm(Form):

@@ -34,7 +34,8 @@ from app.constants import (
     user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
-    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS
+    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
+    EMAIL_TEMPLATE_FOR_TYPE
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
@@ -155,7 +156,7 @@ def add_denial(request_id, reason_ids, email_content):
     the specified request and update the request accordingly.
 
     :param request_id: FOIL request ID
-    :param reason: reason for denial
+    :param reason_ids: reason for denial
     :param email_content: email body associated with the denial
 
     """
@@ -174,7 +175,45 @@ def add_denial(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)  # FIXME: REQ_DENIED?
+        _create_response_event(response, event_type.REQ_CLOSED)
+        update_object(
+            {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
+            Requests,
+            request_id
+        )
+        _send_response_email(request_id, privacy, email_content)
+
+
+def add_closing(request_id, reason_ids, email_content):
+    """
+    Create and store a closing-determination response for the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param reason_ids: reason(s) for closing
+    :param email_content: email body associated with the closing
+
+    """
+    if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
+        update_object(
+            {'status': request_status.CLOSED},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.CLOSING,
+            ",".join(Reasons.query.filter_by(id=reason_id).one().content
+                     for reason_id in reason_ids)
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_CLOSED)
+        update_object(
+            {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
+            Requests,
+            request_id
+        )
         _send_response_email(request_id, privacy, email_content)
 
 
@@ -360,7 +399,7 @@ def process_email_template_request(request_id, data):
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], EMAIL_TEMPLATE_FOR_TYPE[data['type']])
     # set a dictionary of email types to handler functions to handle the specific response type
 
     rtype = data['type']
@@ -372,6 +411,7 @@ def process_email_template_request(request_id, data):
             determination_type.EXTENSION: _extension_email_handler,
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
+            determination_type.CLOSING: _closing_email_handler
         }
     else:
         handler_for_type = {
@@ -429,6 +469,37 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=[Reasons.query.filter_by(id=reason_id).one().content
                  for reason_id in data.getlist('reason_ids[]')],
+        page=page
+    )}), 200
+
+
+def _closing_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for closing a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered template of a closing
+    """
+    reasons = [Reasons.query.filter_by(id=reason_id).one().content
+               for reason_id in data.getlist('reason_ids[]')]
+    if eval_request_bool(data['confirmation']):
+        default_content = False
+        content = data['email_content']
+    else:
+        default_content = True
+        content = None
+    return jsonify({"template": render_template(
+        email_template,
+        default_content=default_content,
+        content=content,
+        request_id=request_id,
+        agency_name=agency_name,
+        reasons=reasons,
         page=page
     )}), 200
 

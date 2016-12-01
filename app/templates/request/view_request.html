@@ -82,7 +82,7 @@
                                     {% include "response/add_extension.html" %}
                                 </div>
                                 <div class="tab-pane" id="close-request">
-                                    Close Request Content
+                                    {% include "response/add_closing.html" %}
                                 </div>
                                 <div class="tab-pane" id="add-user">
                                     Add User Content
@@ -152,4 +152,5 @@
     {% include 'response/add_instruction.js.html' %}
     {% include 'response/add_acknowledgment.js.html' %}
     {% include 'response/add_denial.js.html' %}
+    {% include 'response/add_closing.js.html' %}
 {% endblock %}

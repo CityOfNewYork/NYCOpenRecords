@@ -6,6 +6,7 @@
 
         var next = first.find(".next");
         var prev = second.find(".prev");
+        var submit = second.find(".submit");
 
         var reason_ids = first.find("#denial-reason-ids");
 
@@ -33,7 +34,6 @@
                     type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
-                        template_name: "email_response_denial.html",
                         type: "denial",
                         reason_ids: reason_ids.val(),
                     },
@@ -50,6 +50,12 @@
         prev.click(function() {
             second.hide();
             first.show();
-        })
+        });
+
+        submit.click(function() {
+            $(this).attr("disabled", true);
+            form.submit();
+        });
+
     });
 </script>

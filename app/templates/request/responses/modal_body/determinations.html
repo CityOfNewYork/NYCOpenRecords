@@ -6,6 +6,6 @@
 {% elif response.dtype == determination_type.EXTENSION %}
     <p>Due date changed to: <strong>{{ moment(response.date).format('dddd, MMMM D, YYYY [at] h:mm A') }}</strong></p>
     <p>{{ response.reason }}</p>
-{% elif  response.dtype == determination_type.DENIAL %}
-    {{ response.reason | format_denial_reason | safe }}
+{% elif response.dtype in (determination_type.DENIAL, determination_type.CLOSING) %}
+    {{ response.reason | format_ultimate_determination_reason | safe }}
 {% endif %}
