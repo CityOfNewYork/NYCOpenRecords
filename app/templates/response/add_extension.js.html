@@ -34,7 +34,6 @@
                     type: 'POST',
                     data: {
                         request_id: "{{ request.id }}",
-                        template_name: "email_response_extension.html",
                         type: "extension"
                     },
                     success: function (data) {
@@ -62,7 +61,6 @@
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_extension.html",
                     type: "extension",
                     extension: JSON.stringify({
                         length: length,

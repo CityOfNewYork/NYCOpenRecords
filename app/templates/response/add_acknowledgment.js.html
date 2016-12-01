@@ -78,7 +78,6 @@
                     data: {
                         request_id: "{{ request.id }}",
                         // FIXME: this can be inferred by server through 'type'
-                        template_name: "email_response_acknowledgment.html",
                         type: "acknowledgment",
                     },
                     success: function(data) {
@@ -99,7 +98,6 @@
                 type: "POST",
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_acknowledgment.html",
                     type: "acknowledgment",
                     acknowledgment: JSON.stringify({
                         days: days.val(),

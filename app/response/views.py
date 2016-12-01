@@ -38,6 +38,7 @@ from app.response.utils import (
     add_extension,
     add_acknowledgment,
     add_denial,
+    add_closing,
     add_instruction,
     get_file_links,
     process_upload_data,
@@ -150,6 +151,22 @@ def response_denial(request_id):
                flask_request.form.getlist('reasons'),
                flask_request.form['email-summary'])
     return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/closing/<request_id>', methods=['POST'])
+def response_closing(request_id):
+    required_fields = ['reasons', 'email-summary']
+
+    for field in required_fields:
+        if flask_request.form.get(field) is None:
+            flash('Uh Oh, it looks like the closing {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+        add_closing(request_id,
+                    flask_request.form.getlist('reasons'),
+                    flask_request.form['email-summary'])
+        return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/extension/<request_id>', methods=['POST'])

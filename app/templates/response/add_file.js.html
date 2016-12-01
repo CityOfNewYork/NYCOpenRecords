@@ -80,7 +80,6 @@
                     type: 'POST',
                     data: {
                         request_id: "{{ request.id }}",
-                        template_name: "email_response_file.html",
                         type: "files",
                         is_private: is_private
                     },
@@ -116,7 +115,6 @@
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_file.html",
                     type: "files",
                     files: JSON.stringify(files),
                     email_content: second.find("#email-file-content").val(),
