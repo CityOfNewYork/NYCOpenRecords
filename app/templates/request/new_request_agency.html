@@ -21,13 +21,15 @@
                     respond to your request.</p>
                 {# Categories to filter out agencies #}
                 {{ form.request_category.label(class='request-heading') }}
-                <big data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field" data-content="Selecting a category helps clarify which agency will receive the request">
+                <big data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
+                     data-content="Selecting a category helps clarify which agency will receive the request">
                         <span class="glyphicon glyphicon-question-sign"></span>
                 </big>
                 {{ form.request_category(id='request-category', class='input-block-level') }}<br>
                 {# Title of the request #}
                 {{ form.request_title.label(class='request-heading') }}
-                <big data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field" data-content="Enter a brief title for your request, title will be made public and limited to 90 characters.
+                <big data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
+                     data-content="Enter a brief title for your request, title will be made public and limited to 90 characters.
 ">
                         <span class="glyphicon glyphicon-question-sign"></span>
                 </big>
@@ -40,7 +42,8 @@
                 </div>
                 {# Description of the request #}
                 {{ form.request_description.label(class='request-heading') }}
-                <big data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field" data-content="Enter a detailed description of the request">
+                <big data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
+                     data-content="Enter a detailed description of the request">
                         <span class="glyphicon glyphicon-question-sign"></span>
                 </big>
                 {{ form.request_description(id='request-description', class='input-block-level',
@@ -80,7 +83,8 @@
                 {{ form.request_date(id='request-date', class='input-block-level dtpick') }}
 
                 <h1>Personal Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Personal Information" data-content="First and last name fields are required. The Email field is optional but recommended.">
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Personal Information"
+                           data-content="First and last name fields are required. The Email field is optional but recommended.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
                 </h1>
@@ -102,7 +106,8 @@
 
                 <div class="contact-form-error-message"></div>
                 <h1>Alternate Contact Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Alternate Contact Information" data-content="Fields are included in case alternate contact method is needed">
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Alternate Contact Information"
+                           data-content="Fields are included in case alternate contact method is needed">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
                 </h1>
