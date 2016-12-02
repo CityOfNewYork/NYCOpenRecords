@@ -73,6 +73,7 @@
                     </label>
                     <button type="button" id="clear-file" class="btn btn-danger pull-right">Clear File</button>
                     <br>
+                    <div class="file-error"></div>
                     <div id="filename"></div>
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
