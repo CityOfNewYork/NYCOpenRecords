@@ -31,7 +31,6 @@ from app.constants import (
     response_privacy,
     request_status,
     determination_type,
-    user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
@@ -40,7 +39,7 @@ from app.constants import (
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import get_due_date, process_due_date
-from app.lib.db_utils import create_object, update_object
+from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.file_utils import get_mime_type
 from app.lib.utils import (
