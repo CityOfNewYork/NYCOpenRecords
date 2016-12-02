@@ -586,7 +586,7 @@ $(function () {
             e.preventDefault();
         });
 
-        var deleteConfirmString = sprintf("%s:%s", request_id, response_id);
+        var deleteConfirmString = "DELETE";
         deleteConfirmCheck.on("input", function() {
             if ($(this).val() === deleteConfirmString) {
                 deleteConfirm.attr("disabled", false);
