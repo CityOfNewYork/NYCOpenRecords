@@ -237,7 +237,6 @@
 
 {% block custom_script %}
     <script type="text/javascript">$(function() {holiday_dates = {{ holidays | safe }}; });</script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/request/search.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
 {% endblock %}
