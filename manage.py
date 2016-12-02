@@ -103,6 +103,11 @@ def deploy():
     )))
 
 
+@manager.command
+def recreate():
+    """Recreate elasticsearch index"""
+    from app.search.utils import recreate
+    recreate()
 
 
 if __name__ == "__main__":
