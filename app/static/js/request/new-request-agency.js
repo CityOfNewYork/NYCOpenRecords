@@ -5,8 +5,6 @@ $(document).ready(function () {
 
     $("input[name='tz-name']").val(jstz.determine().name());
 
-    $('[data-toggle="popover"]').popover();
-
     // Prevent user from entering a non numeric value into phone and fax field
     $('#phone').keypress(function(key) {
         if (key.charCode != 0){

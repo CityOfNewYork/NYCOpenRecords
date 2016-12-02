@@ -120,6 +120,7 @@
 
 {% block custom_script %}
     <!-- TODO: plugins should be minified versions... really hope their standard versions have not been altered -->
+    <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/sprintf.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
@@ -131,7 +132,6 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-info.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
