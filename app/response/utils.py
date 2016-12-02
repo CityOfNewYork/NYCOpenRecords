@@ -31,14 +31,15 @@ from app.constants import (
     response_privacy,
     request_status,
     determination_type,
-    user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
+    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
+    EMAIL_TEMPLATE_FOR_TYPE
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
-from app.lib.date_utils import generate_new_due_date
-from app.lib.db_utils import create_object, update_object
+from app.lib.date_utils import get_due_date, process_due_date
+from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.file_utils import get_mime_type
 from app.lib.utils import (
@@ -114,7 +115,7 @@ def add_note(request_id, note_content, email_content, privacy):
     _send_response_email(request_id, privacy, email_content)
 
 
-def add_acknowledgment(request_id, info, days, date, email_content):
+def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
     """
     Create and store an acknowledgement-determination response for
     the specified request and update the request accordingly.
@@ -123,11 +124,12 @@ def add_acknowledgment(request_id, info, days, date, email_content):
     :param info: additional information pertaining to the acknowledgment
     :param days: days until request completion
     :param date: date of request completion
+    :param tz_name: client's timezone name
     :param email_content: email body associated with the acknowledgment
 
     """
     if not Requests.query.filter_by(id=request_id).one().was_acknowledged:
-        new_due_date = _get_new_due_date(request_id, days, date)
+        new_due_date = _get_new_due_date(request_id, days, date, tz_name)
         update_object(
             {'due_date': new_due_date,
              'status': request_status.IN_PROGRESS},
@@ -153,7 +155,7 @@ def add_denial(request_id, reason_ids, email_content):
     the specified request and update the request accordingly.
 
     :param request_id: FOIL request ID
-    :param reason: reason for denial
+    :param reason_ids: reason for denial
     :param email_content: email body associated with the denial
 
     """
@@ -172,11 +174,49 @@ def add_denial(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)  # FIXME: REQ_DENIED?
+        _create_response_event(response, event_type.REQ_CLOSED)
+        update_object(
+            {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
+            Requests,
+            request_id
+        )
         _send_response_email(request_id, privacy, email_content)
 
 
-def add_extension(request_id, length, reason, custom_due_date, email_content):
+def add_closing(request_id, reason_ids, email_content):
+    """
+    Create and store a closing-determination response for the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param reason_ids: reason(s) for closing
+    :param email_content: email body associated with the closing
+
+    """
+    if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
+        update_object(
+            {'status': request_status.CLOSED},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.CLOSING,
+            ",".join(Reasons.query.filter_by(id=reason_id).one().content
+                     for reason_id in reason_ids)
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_CLOSED)
+        update_object(
+            {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
+            Requests,
+            request_id
+        )
+        _send_response_email(request_id, privacy, email_content)
+
+
+def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
     """
     Create and store the extension object for the specified request.
     Extension's privacy is always Release and Public.
@@ -187,10 +227,11 @@ def add_extension(request_id, length, reason, custom_due_date, email_content):
     :param length: length in business days that the request is being extended by
     :param reason: reason for the extension of the request
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
+    :param tz_name: client's timezone name
     :param email_content: email body content of the email to be created and stored as a email object
 
     """
-    new_due_date = _get_new_due_date(request_id, length, custom_due_date)
+    new_due_date = _get_new_due_date(request_id, length, custom_due_date, tz_name)
     update_object(
         {'due_date': new_due_date},
         Requests,
@@ -295,7 +336,7 @@ def add_push():
     pass
 
 
-def _get_new_due_date(request_id, extension_length, custom_due_date):
+def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
     """
     Gets the new due date from either generating with extension length, or setting from an inputted custom due date.
     If the extension length is -1, then we use the custom_due_date to determine the new_due_date.
@@ -303,15 +344,21 @@ def _get_new_due_date(request_id, extension_length, custom_due_date):
     generate_due_date.
 
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
-    :param extension_length: length the due date is being extended by
-    :param custom_due_date: new custom due date of the request
+    :param extension_length: number of days the due date is being extended by
+    :param custom_due_date: custom due date of the request (string in format '%Y-%m-%d')
+    :param tz_name: client's timezone name
 
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        new_due_date = datetime.strptime(custom_due_date, '%Y-%m-%d').replace(hour=17, minute=00, second=00)
+        new_due_date = process_due_date(datetime.strptime(custom_due_date, '%Y-%m-%d'),
+                                        tz_name)
     else:
-        new_due_date = generate_new_due_date(extension_length, request_id)
+        new_due_date = get_due_date(
+            Requests.query.filter_by(id=request_id).one().due_date,
+            int(extension_length),
+            tz_name
+        )
     return new_due_date
 
 
@@ -351,15 +398,18 @@ def process_email_template_request(request_id, data):
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
-    # set a dictionary of email types to handler functions to handle the specific response type
-
     rtype = data['type']
+    if rtype != "edit":
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], EMAIL_TEMPLATE_FOR_TYPE[data['type']])
+    else:
+        return _edit_email_handler(data)
+
     if rtype in determination_type.ALL:
         handler_for_type = {
             determination_type.EXTENSION: _extension_email_handler,
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
+            determination_type.CLOSING: _closing_email_handler
         }
     else:
         handler_for_type = {
@@ -367,7 +417,6 @@ def process_email_template_request(request_id, data):
             response_type.LINK: _link_email_handler,
             response_type.NOTE: _note_email_handler,
             response_type.INSTRUCTIONS: _instruction_email_handler,
-            "edit": _edit_email_handler
         }
     return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
 
@@ -393,8 +442,8 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
         date = _get_new_due_date(
             request_id,
             acknowledgment['days'],
-            acknowledgment['date']
-        ).strftime('%A, %b, %d,%Y')
+            acknowledgment['date'],
+            data['tz_name'])
         info = acknowledgment['info'].strip() or None
     else:
         default_content = True
@@ -422,6 +471,37 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     )}), 200
 
 
+def _closing_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for closing a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered template of a closing
+    """
+    reasons = [Reasons.query.filter_by(id=reason_id).one().content
+               for reason_id in data.getlist('reason_ids[]')]
+    if eval_request_bool(data['confirmation']):
+        default_content = False
+        content = data['email_content']
+    else:
+        default_content = True
+        content = None
+    return jsonify({"template": render_template(
+        email_template,
+        default_content=default_content,
+        content=content,
+        request_id=request_id,
+        agency_name=agency_name,
+        reasons=reasons,
+        page=page
+    )}), 200
+
+
 def _extension_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an extension.
@@ -443,9 +523,11 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         default_content = False
         content = data['email_content']
         # calculates new due date based on selected value if custom due date is not selected
-        new_due_date = _get_new_due_date(request_id,
-                                         extension['length'],
-                                         extension['custom_due_date']).strftime('%A, %b %d, %Y')
+        new_due_date = _get_new_due_date(
+            request_id,
+            extension['length'],
+            extension['custom_due_date'],
+            data['tz_name'])
         reason = extension['reason']
     # use default_content in response template
     else:
@@ -637,25 +719,17 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
                                                 response_privacy=response_privacy)}), 200
 
 
-def _edit_email_handler(request_id, data, page, agency_name, email_template):
+def _edit_email_handler(data):
     """
     Process email template for a editing a response.
     Checks if confirmation is true. If not, renders the default edit response email template.
     If confirmation is true, renders the edit response template with provided arguments.
 
-    :param request_id: FOIL request ID of the request the response is being edited to
     :param data: data from the frontend AJAX call
-    :param page: string url link of the request
-    :param agency_name: string name of the request
-    :param email_template: raw HTML email template of the edit response
 
     :return: the HTML of the rendered template of an edited response
     """
     response_id = data['response_id']
-    confirmation = eval_request_bool(data['confirmation'])
-    privacy = data['privacy']
-    email_summary_requester = None
-    agency = False
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
     editor_for_type = {
         response_type.FILE: RespFileEditor,
@@ -665,24 +739,62 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
         # ...
     }
     editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
-    header = None
-    if confirmation:
-        default_content = False
-        content = data['email_content']
+    if editor.no_change:
+        return jsonify({"error": "No changes detected."}), 200
+    else:
+        email_summary_requester, email_summary_edited, header = _get_edit_response_template(editor)
 
-        release_and_viewable = privacy != PRIVATE and editor.requester_viewable
+    # if confirmation is not empty and response type is not FILE, store email templates into redis
+    if eval_request_bool(data.get('confirmation'), False) and resp.type != response_type.FILE:
+        email_redis.set(get_email_key(response_id), email_summary_edited)
+        if email_summary_requester is not None:
+            email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
+    return jsonify({
+        "template": email_summary_requester or email_summary_edited,
+        "header": header
+    }), 200
+
+
+def _get_edit_response_template(editor):
+    """
+    Get the email template(s) and header for confirmation page, for the edit response workflow, based on privacy options.
+
+    :param editor: editor object from class ResponseEditor
+
+    :return: email template for agency users.
+             email template for requester if privacy is not private.
+             header for confirmation page
+
+    """
+    header = None
+    data = editor.flask_request.form
+    agency_name = Requests.query.filter_by(id=editor.response.request.id).first().agency.name
+    page = urljoin(flask_request.host_url, url_for('request.view', request_id=editor.response.request.id))
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], "email_edit_file.html") \
+        if editor.response.type == response_type.FILE \
+        else os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
+    email_summary_requester = None
+    agency = False
+
+    if eval_request_bool(data.get('confirmation'), False) or editor.update:
+        default_content = False
+        agency_content = data['email_content']
+
+        release_and_viewable = data['privacy'] != PRIVATE and editor.requester_viewable
         was_private = editor.data_old.get('privacy') == PRIVATE
 
         if release_and_viewable or was_private:
+            requester_content = data['email_content']
+            agency_content = None
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
-                                                      content=content,
-                                                      request_id=request_id,
+                                                      content=requester_content,
+                                                      request_id=editor.response.request.id,
                                                       agency_name=agency_name,
-                                                      response=resp,
+                                                      response=editor.response,
                                                       response_data=editor,
                                                       page=page,
-                                                      privacy=privacy,
+                                                      privacy=data['privacy'],
                                                       response_privacy=response_privacy)
         if release_and_viewable:
             recipient = "all associated participants"
@@ -694,12 +806,8 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
 
         agency = True
     else:
-        if editor.no_change:
-            return jsonify({"error": "No changes detected."}), 200
-
-        editor = None  # email_summary_edited template expects None
-        content = None
-        if privacy == PRIVATE:
+        agency_content = None
+        if data['privacy'] == PRIVATE:
             email_template = 'email_templates/email_edit_private_response.html'
             default_content = None
         else:
@@ -707,25 +815,16 @@ def _edit_email_handler(request_id, data, page, agency_name, email_template):
     # email_summary_edited rendered every time for email that agency receives
     email_summary_edited = render_template(email_template,
                                            default_content=default_content,
-                                           content=content,
-                                           request_id=request_id,
+                                           content=agency_content,
+                                           request_id=editor.response.request.id,
                                            agency_name=agency_name,
-                                           response=resp,
+                                           response=editor.response,
                                            response_data=editor,
                                            page=page,
-                                           privacy=privacy,
+                                           privacy=data['privacy'],
                                            response_privacy=response_privacy,
                                            agency=agency)
-
-    # if confirmation is true, store email templates into redis
-    if confirmation:
-        email_redis.set(get_email_key(response_id), email_summary_edited)
-        if email_summary_requester is not None:
-            email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
-    return jsonify({
-        "template": email_summary_requester or email_summary_edited,
-        "header": header
-    }), 200
+    return email_summary_requester, email_summary_edited, header
 
 
 def get_email_key(response_id, requester=False):
@@ -1064,7 +1163,6 @@ class ResponseEditor(metaclass=ABCMeta):
             response_privacy.PRIVATE: None,
         }[self.data_new['privacy']]
 
-
     @property
     def deleted(self):
         return self.data_new.get('deleted', False)
@@ -1077,21 +1175,19 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.deleted:
             _send_delete_response_email(self.response.request_id, self.response)
         else:
-            # TODO: remove condition once edit File email handled, test will fail with this
-            if self.response.type != response_type.FILE:
-                key_agency = get_email_key(self.response.id)
-                email_content_agency = email_redis.get(key_agency).decode()
-                email_redis.delete(key_agency)
+            key_agency = get_email_key(self.response.id)
+            email_content_agency = email_redis.get(key_agency).decode()
+            email_redis.delete(key_agency)
 
-                key_requester = get_email_key(self.response.id, requester=True)
-                email_content_requester = email_redis.get(key_requester)
-                if email_content_requester is not None:
-                    email_content_requester = email_content_requester.decode()
-                    email_redis.delete(key_requester)
+            key_requester = get_email_key(self.response.id, requester=True)
+            email_content_requester = email_redis.get(key_requester)
+            if email_content_requester is not None:
+                email_content_requester = email_content_requester.decode()
+                email_redis.delete(key_requester)
 
-                _send_edit_response_email(self.response.request_id,
-                                          email_content_agency,
-                                          email_content_requester)
+            _send_edit_response_email(self.response.request_id,
+                                      email_content_agency,
+                                      email_content_requester)
 
 
 class RespFileEditor(ResponseEditor):
@@ -1108,9 +1204,11 @@ class RespFileEditor(ResponseEditor):
         super(RespFileEditor, self).set_edited_data()
         if self.deleted and self.update:
             self.move_deleted_file()
+            if self.response.token is not None:
+                delete_object(self.response.token)
         else:
-            new_filename = flask_request.form.get('filename')
-            if new_filename is not None:
+            new_filename = flask_request.form.get('filename', '')
+            if new_filename:
                 new_filename = secure_filename(new_filename)
                 filepath = os.path.join(
                     current_app.config['UPLOAD_DIRECTORY'],
@@ -1136,6 +1234,8 @@ class RespFileEditor(ResponseEditor):
                 else:
                     self.errors.append(
                         "File '{}' not found.".format(new_filename))
+            if self.update:
+                self.handle_response_token(bool(new_filename))
 
     def replace_old_file(self, updated_filepath):
         """
@@ -1159,6 +1259,67 @@ class RespFileEditor(ResponseEditor):
                 os.path.basename(updated_filepath)
             )
         )
+
+    def handle_response_token(self, file_changed):
+        """
+        Handle the response token based on privacy option and if file has been replaced
+        """
+        if self.response.request.requester.is_anonymous_requester:
+            # privacy changed to private
+            if self.data_new.get('privacy') == PRIVATE:
+                delete_object(self.response.token)
+            # privacy changed from private or file was changed and the response is public
+            elif self.data_old.get('privacy') == PRIVATE or (file_changed and self.response.privacy != PRIVATE):
+                if not self.response.token:
+                    # create new token
+                    resptoken = ResponseTokens(self.response.id)
+                    create_object(resptoken)
+                else:
+                    # extend expiration date
+                    update_object(
+                        {'expiration_date': calendar.addbusdays(datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
+                        ResponseTokens,
+                        self.response.token.id
+                    )
+
+    @cached_property
+    def file_link_for_user(self):
+        """
+        Get the link(s) of the file being edited.
+
+        :return: dictionary with a nested dictionary, filename, with key of requester and agency and values of the
+        respective file link(s).
+        File link to the requester is not created if privacy is private.
+        """
+        file_links = dict()
+        if self.update:
+            path = '/response/' + str(self.response.id)
+            if self.response.privacy != PRIVATE:
+                if self.response.request.requester.is_anonymous_requester:
+                    params = urllib.parse.urlencode({'token': self.response.token.token})
+                    requester_url = urljoin(flask_request.url_root, path)
+                    requester_link = requester_url + "?%s" % params
+                else:
+                    requester_link = urljoin(flask_request.url_root, path)
+                file_links['requester'] = requester_link
+            agency_link = urljoin(flask_request.url_root, path)
+            file_links['agency'] = agency_link
+        else:
+            file_links = {'requester': '#', 'agency': '#'}
+        return file_links
+
+    def send_email(self):
+        """
+        Send an email to all relevant request participants for editing a file.
+        Email content varies according to which response fields have changed.
+        """
+        if self.deleted:
+            _send_delete_response_email(self.response.request_id, self.response)
+        else:
+            email_content_requester, email_content_agency, _ = _get_edit_response_template(self)
+            _send_edit_response_email(self.response.request_id,
+                                      email_content_agency,
+                                      email_content_requester)
 
     def move_deleted_file(self):
         """

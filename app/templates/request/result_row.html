@@ -24,7 +24,7 @@
                 {{ request._id }}
             </div>
             <div class="col-sm-2">
-                {{ request._source.date_submitted.strftime("%b %d, %Y") }}
+                {{ moment(request._source.date_submitted).format('MMM DD, YYYY') }}
             </div>
             <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
                 {% if current_user.is_agency %}
@@ -37,7 +37,7 @@
                 {{ request._source.agency_name }}
             </div>
             <div class="col-sm-2">
-                {{ request._source.date_due.strftime("%b %d, %Y") }}
+                {{ moment(request._source.date_due).format('MMM DD, YYYY') }}
             </div>
             {% if current_user.is_agency %}
                 <div class="col-sm-2">

@@ -34,12 +34,12 @@
                     type: 'POST',
                     data: {
                         request_id: "{{ request.id }}",
-                        template_name: "email_response_extension.html",
                         type: "extension"
                     },
                     success: function (data) {
                         // Data should be html template page.
                         tinyMCE.get('email-extension-content').setContent(data.template);
+                        flask_moment_render_all();
                     }
                 });
                 document.getElementById("extension-first").style.display = "none";
@@ -61,19 +61,21 @@
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_extension.html",
                     type: "extension",
                     extension: JSON.stringify({
                         length: length,
                         custom_due_date: custom_due_date,
                         reason: reason
                     }),
-                    email_content: $('#email-extension-content').val()
+                    email_content: $('#email-extension-content').val(),
+                    tz_name: jstz.determine().name()
                 },
                 success: function (data) {
                     // Data should be html template page.
                     $("#email-extension-summary").html(data.template);
                     $("#email-extension-summary-hidden").val(data.template);
+                    $("#email-extension-tz-name").val(jstz.determine().name());
+                    flask_moment_render_all();
                 }
             });
             document.getElementById("extension-second").style.display = "none";

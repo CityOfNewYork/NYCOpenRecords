@@ -414,9 +414,6 @@ class Requests(db.Model):
         self.status = status
         self.agency_description = agency_description
 
-    def get_formatted_due_date(self):
-        return self.due_date.strftime('%m/%d/%Y')
-
     @property
     def val_for_events(self):
         """
@@ -739,7 +736,7 @@ class Notes(Responses):
                  request_id,
                  privacy,
                  content,
-                 date_modified=datetime.utcnow()):
+                 date_modified=None):
         super(Notes, self).__init__(request_id,
                                     privacy,
                                     date_modified)
@@ -778,7 +775,7 @@ class Files(Responses):
                  mime_type,
                  size,
                  hash_,
-                 date_modified=datetime.utcnow()):
+                 date_modified=None):
         super(Files, self).__init__(request_id,
                                     privacy,
                                     date_modified)
@@ -812,7 +809,7 @@ class Links(Responses):
                  privacy,
                  title,
                  url,
-                 date_modified=datetime.utcnow()):
+                 date_modified=None):
         super(Links, self).__init__(request_id,
                                     privacy,
                                     date_modified)
@@ -840,7 +837,7 @@ class Instructions(Responses):
                  request_id,
                  privacy,
                  content,
-                 date_modified=datetime.utcnow()):
+                 date_modified=None):
         super(Instructions, self).__init__(request_id,
                                            privacy,
                                            date_modified)
@@ -887,7 +884,7 @@ class Determinations(Responses):
                  dtype,
                  reason,
                  date=None,
-                 date_modified=datetime.utcnow()):
+                 date_modified=None):
         super(Determinations, self).__init__(request_id,
                                              privacy,
                                              date_modified)
@@ -945,7 +942,7 @@ class Emails(Responses):
                  bcc,
                  subject,
                  body,
-                 date_modified=datetime.utcnow()):
+                 date_modified=None):
         super(Emails, self).__init__(request_id,
                                      privacy,
                                      date_modified)

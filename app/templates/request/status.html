@@ -84,6 +84,6 @@
         {% if request.status == status.OPEN %}
             Acknowledgment<br>
         {% endif %}
-        Due Date: {{ request.get_formatted_due_date() }}
+        Due Date: {{ moment(request.due_date).format('MM/DD/YYYY') }}
     </p>
 </div>

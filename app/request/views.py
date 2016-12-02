@@ -38,6 +38,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
+    CloseRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -95,7 +96,8 @@ def new():
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         agency=form.request_agency.data,
-                                        upload_path=upload_path)
+                                        upload_path=upload_path,
+                                        tz_name=flask_request.form['tz-name'])
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -109,7 +111,8 @@ def new():
                                         phone=form.phone.data,
                                         fax=form.fax.data,
                                         address=get_address(form),
-                                        upload_path=upload_path)
+                                        upload_path=upload_path,
+                                        tz_name=flask_request.form['tz-name'])
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -122,7 +125,8 @@ def new():
                                         phone=form.phone.data,
                                         fax=form.fax.data,
                                         address=get_address(form),
-                                        upload_path=upload_path)
+                                        upload_path=upload_path,
+                                        tz_name=flask_request.form['tz-name'])
 
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester
@@ -158,7 +162,7 @@ def view(request_id):
 
     :return: redirect to view request page
     """
-    current_request = Requests.query.filter_by(id=request_id).first()
+    current_request = Requests.query.filter_by(id=request_id).one()
 
     holidays = sorted(get_holidays_date_list(
         datetime.utcnow().year,
@@ -171,6 +175,7 @@ def view(request_id):
         agency_users=current_request.agency_users,
         edit_requester_form=EditRequesterForm(current_request.requester),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
+        close_request_form=CloseRequestForm(current_request.agency.ein),
         holidays=holidays)
 
 

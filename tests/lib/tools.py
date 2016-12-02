@@ -65,7 +65,8 @@ class RequestsFactory(object):
             date_created=date_created,
             date_submitted=date_submitted,
             due_date=get_due_date(date_submitted,
-                                  ACKNOWLEDGMENT_DAYS_DUE),
+                                  ACKNOWLEDGMENT_DAYS_DUE,
+                                  300),
             submission=submission_methods.DIRECT_INPUT,
             status=request_status.OPEN)
         create_object(self.request)
@@ -206,7 +207,8 @@ def create_requests_search_set(requester, other_requester):
                 date_created=date_created,
                 date_submitted=date_submitted,
                 due_date=get_due_date(date_submitted,
-                                      ACKNOWLEDGMENT_DAYS_DUE),
+                                      ACKNOWLEDGMENT_DAYS_DUE,
+                                      300),
                 submission=submission_methods.DIRECT_INPUT,
                 status=random.choice((request_status.OPEN,
                                       request_status.CLOSED,

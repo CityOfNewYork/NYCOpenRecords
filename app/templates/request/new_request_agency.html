@@ -148,7 +148,7 @@
                     {{ form.zipcode(id='zipcode', class='input-block-level',
                     placeholder='12345') }}<br>
                 </div>
-
+                <input type="hidden" name="tz-name">
                 {{ form.submit(id='submit', class='btn-primary') }}
                 <span id="processing-submission" hidden>
                     <img src="{{ url_for("static", filename="img/loading.gif") }}"

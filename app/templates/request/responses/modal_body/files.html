@@ -1,7 +1,8 @@
 <form id="fileupload-update-{{ response.id }}" class="fileupload-update fileupload-form" action="/response/{{ response.id }}" method="POST">
     <div class="fileupload-error-messages alert alert-danger" hidden></div>
     <div>
-        <a href="" class="uploaded-filename">{{ response.name }}</a>
+        <a target="_blank" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
+           class="uploaded-filename">{{ response.name }}</a>
     </div>
     <br>
     <div class="fileupload-control">

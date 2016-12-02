@@ -1,0 +1,91 @@
+<script type="text/javascript">
+    $(function() {
+        var form = $("#add-closing");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third");
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+        var submit = third.find(".submit");
+
+        var reason_ids = first.find("#closing-reason-ids");
+
+        // Do not reset on click
+        reason_ids.find('option').mousedown(function(e) {
+            e.preventDefault();
+            reason_ids.focus();
+            $(this).prop('selected', !$(this).prop('selected'));
+            return false;
+        });
+
+        // Parsley
+        reason_ids.attr("data-parsley-required", "");
+
+        next1.click(function(e) {
+            reason_ids.parsley().validate();
+
+            if (!reason_ids.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "closing",
+                        reason_ids: reason_ids.val(),
+                        confirmation: false
+                    },
+                    success: function(data) {
+                        tinyMCE.get("closing-email-body").setContent(data.template);
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        next2.click(function() {
+            tinyMCE.triggerSave();
+
+            $.ajax({
+                url: "/response/email",
+                type: "POST",
+                data: {
+                    request_id: "{{ request.id }}",
+                    type: "closing",
+                    reason_ids: reason_ids.val(),
+                    email_content: second.find("#closing-email-body").val(),
+                    confirmation: true
+                },
+                success: function(data) {
+                    third.find(".email-summary").html(data.template);
+                    third.find("input[name=email-summary]").val(data.template);
+                }
+            });
+
+            second.hide();
+            third.show();
+        });
+        prev2.click(function() {
+            second.hide();
+            first.show();
+        });
+
+        prev3.click(function() {
+            third.hide();
+            second.show();
+        });
+
+        submit.click(function() {
+            $(this).attr("disabled", true);
+            form.submit();
+        });
+
+    })
+</script>

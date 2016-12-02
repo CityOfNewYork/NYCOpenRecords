@@ -25,7 +25,7 @@ def format_response_type(response):
     return formatted_type
 
 
-def format_denial_reason(reason):
+def format_ultimate_determination_reason(reason):
     reasons = reason.split(",")
     reason_li = "".join("<li>{}</li>".format(r) for r in reasons)
     return "<ul>{}</ul>".format(reason_li)

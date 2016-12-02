@@ -1,0 +1,18 @@
+{% if default_content %}
+    <p>
+        The {{ agency_name }} has provided additional
+        information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
+    </p>
+    <p>
+        The {{ agency_name }} has CLOSED your request for the following reason{% if reasons|length > 1 %}s{% endif %}:
+    </p>
+{% else %}
+    {{ content | safe }}
+    {% if reasons %}
+        <ul>
+            {% for reason in reasons %}
+                <li>{{ reason }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endif %}

@@ -21,7 +21,6 @@ $(document).ready(function () {
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
-                    template_name: "email_response_note.html",
                     type: "notes",
                     privacy: $(".note-privacy:checked").val()
                 },
@@ -43,7 +42,6 @@ $(document).ready(function () {
             type: 'POST',
             data: {
                 request_id: "{{ request.id }}",
-                template_name: "email_response_note.html",
                 type: "notes",
                 note: JSON.stringify({
                     content: $('#note-content').val(),

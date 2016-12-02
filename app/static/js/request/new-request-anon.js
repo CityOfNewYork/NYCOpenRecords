@@ -2,7 +2,10 @@
  * Created by atan on 9/14/16.
  */
 $(document).ready(function () {
-    $("[data-toggle='popover']").popover();
+
+    $("input[name='tz-name']").val(jstz.determine().name());
+
+    $('[data-toggle="popover"]').popover();
 
     // Prevent user from entering a non numeric value into phone and fax field
     $('#phone').keypress(function(key) {

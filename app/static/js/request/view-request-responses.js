@@ -49,6 +49,7 @@ $(function () {
                     );
                 }
             }
+            flask_moment_render_all();
         }
         else {
             response_list.text("None");
@@ -149,20 +150,28 @@ $(function () {
                     }
 
                     if (first.find(".fileupload-form").parsley().isValid()) {
-                        first.hide();
-                        second.show();
-
                         $.ajax({
                             url: "/response/email",
                             type: "POST",
                             data: {
                                 request_id: request_id,
-                                template_name: "email_response_file.html",
-                                type: "files"
+                                template_name: "email_edit_file.html",
+                                type: "edit",
+                                response_id: response_id,
+                                title: first.find("input[name=title]").val(),
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() : null
                             },
                             success: function (data) {
-                                // Data should be html template page.
-                                tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                if (data.error) {
+                                    first.find(".fileupload-error-messages").text(data.error).show();
+                                }
+                                else {
+                                    first.hide();
+                                    second.show();
+                                    first.find(".fileupload-error-messages").text(data.error).hide();
+                                    tinyMCE.get("email-content-" + response_id).setContent(data.template);
+                                }
                             }
                         });
                     }
@@ -180,25 +189,24 @@ $(function () {
                     }
                     var privacy = first.find("input[name=privacy]:checked").val();
 
-                    var files = [{
-                        "filename": filename,
-                        "privacy": privacy
-                    }];
-
                     $.ajax({
                         url: "/response/email",
                         type: "POST",
                         data: {
                             request_id: request_id,
-                            template_name: "email_response_file.html",
-                            type: "files",
-                            files: JSON.stringify(files),
+                            template_name: "email_edit_file.html",
+                            type: "edit",
+                            response_id: response_id,
+                            title: first.find("input[name=title]").val(),
+                            privacy: first.find("input[name=privacy]:checked").val(),
+                            filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
+                                null,
+                            confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
                         },
                         success: function (data) {
-                            // Data should be html template page.
+                            third.find(".confirmation-header").text(data.header);
                             third.find(".email-summary").html(data.template);
-                            // TODO: data should also return email confirmation header
                         }
                     });
                 });
@@ -217,11 +225,13 @@ $(function () {
                 // SUBMIT!
                 submitBtn.click(function () {
                     $(this).attr("disabled", true);
-                    var form = first.find("form");
+                    var form = first.find("form").serializeArray();
+                    var email_content = second.find("#email-content-" + response_id).val();
+                    form.push({ name: "email_content", value: email_content });
                     $.ajax({
                         url: "/response/" + response_id,
                         type: "PATCH",
-                        data: form.serializeArray(), // TODO: remove hidden email summaries
+                        data: form,
                         success: function () {
                             location.reload();
                         }
@@ -247,9 +257,8 @@ $(function () {
                                 template_name: "email_edit_response.html",
                                 type: "edit",
                                 response_id: response_id,
-                                content: first.find('.note-content').val(),
+                                content: first.find(".note-content").val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {
@@ -352,7 +361,6 @@ $(function () {
                                 response_id: response_id,
                                 content: first.find('.instruction-content').val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {
@@ -463,7 +471,6 @@ $(function () {
                                 title: first.find(".title").val(),
                                 url: first.find(".url").val(),
                                 privacy: first.find("input[name=privacy]:checked").val(),
-                                confirmation: false
                             },
                             success: function (data) {
                                 if (data.error) {

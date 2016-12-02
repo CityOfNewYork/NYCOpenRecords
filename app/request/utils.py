@@ -41,6 +41,7 @@ from app.models import (
     UserRequests,
     Roles,
     Files,
+    ResponseTokens
 )
 from app.response.utils import safely_send_and_add_email
 from app.upload.constants import upload_status
@@ -54,6 +55,7 @@ from app.upload.utils import (
 
 def create_request(title,
                    description,
+                   tz_name,
                    agency=None,
                    first_name=None,
                    last_name=None,
@@ -71,6 +73,7 @@ def create_request(title,
 
     :param title: request title
     :param description: detailed description of the request
+    :param tz_name: client's timezone name
     :param agency: agency_ein selected for the request
     :param first_name: first name of the requester
     :param last_name: last name of the requester
@@ -101,7 +104,7 @@ def create_request(title,
                       else get_following_date(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE)
+    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE, tz_name)
 
     # 5. Create Request
     request = Requests(
@@ -141,8 +144,9 @@ def create_request(title,
         upload_path = _move_validated_upload(request_id, upload_path)
 
         # 8. Create response object
-        title = ''  # TODO: add optional title field to new-request page?
-        name = os.path.basename(upload_path)
+        filename = os.path.basename(upload_path)
+        title = filename
+        name = filename
         mime_type = get_mime_type(request_id, upload_path)
         size = os.path.getsize(upload_path)
         hash_ = get_file_hash(upload_path)
@@ -165,6 +169,10 @@ def create_request(title,
                               timestamp=datetime.utcnow(),
                               new_value=response.val_for_events)
         create_object(upload_event)
+
+        # Create response token if requester is anonymous
+        if current_user.is_anonymous or current_user.is_agency:
+            create_object(ResponseTokens(response.id))
 
     role_to_user = {
         role.PUBLIC_REQUESTER: current_user.is_public,

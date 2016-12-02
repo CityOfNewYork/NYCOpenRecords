@@ -5,7 +5,7 @@
             The {{ agency_name }} has ACKNOWLEDGED your request.
         </p>
         <p>
-            You can expect a response on or about {{ date }}.
+            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.
         </p>
         {% if info is not none %}
             <p>
