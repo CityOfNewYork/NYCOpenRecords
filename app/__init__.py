@@ -60,7 +60,7 @@ def create_app(config_name):
 
     recaptcha.init_app(app)
     bootstrap.init_app(app)
-    es.init_app(app)
+    es.init_app(app, use_ssl=app.config['ELASTICSEARCH_USE_SSL'])
     db.init_app(app)
     moment.init_app(app)
     login_manager.init_app(app)
