@@ -23,7 +23,7 @@ def b64decode_lenient(data):
     :param data: a string or bytes-like object of base64 data
     :return: a decoded string
     """
-    if type(data) is str:
+    if isinstance(data, str):
         data = data.encode()
     data += b'=' * (4 - (len(data) % 4))
     return b64decode(data).decode()

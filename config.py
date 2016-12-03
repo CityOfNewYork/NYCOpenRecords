@@ -69,7 +69,9 @@ class Config:
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') == "True"
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests"
-    ELASTICSEARCH_AUTH = (os.environ.get('ELASTICSEARCH_USERNAME'), os.environ.get('ELASTICSEARCH_PASSWORD')) or None
+    ELASTICSEARCH_HTTP_AUTH = (os.environ.get('ELASTICSEARCH_USERNAME'),
+                               os.environ.get('ELASTICSEARCH_PASSWORD')) or None
+    ELASTICSEARCH_USE_SSL = os.environ.get('ELASTICSEARCH_USE_SSL') == "True"
     # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod
@@ -88,7 +90,7 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
-    ELASTICSEARCH_INDEX = "requests_dev"
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_dev"
     MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
 
 

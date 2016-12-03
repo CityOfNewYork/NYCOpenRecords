@@ -1,3 +1,7 @@
+$(function () {
+    $("[data-toggle='popover']").popover();
+});
+
 $(function() {
     $(".disable-enter-submit").keypress(function(e){
         if (e.keyCode == '13') {

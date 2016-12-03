@@ -28,6 +28,7 @@
 
 .wrapper
 {
+	min-height: 100%;
     max-width:calc(940px + 20px);
     margin-left:auto;
     margin-right:auto;
@@ -161,16 +162,4 @@ footer{
 
 input[type="radio"], input[type="checkbox"] {
 	width: auto;
-}
-
-.page-wrap {
-  min-height: 100%;
-  /* equal to footer height */
-  margin-bottom: -180px;
-}
-.page-wrap:after {
-  display: block;
-}
-.site-footer, .page-wrap:after {
-  height: 180px;
 }

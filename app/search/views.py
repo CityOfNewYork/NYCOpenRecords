@@ -54,7 +54,7 @@ def requests():
     # from flask_login import login_user
     # from app.models import Users
     # from app.constants.user_type_auth import PUBLIC_USER_NYC_ID, AGENCY_USER
-    # user = Users.query.filter_by(auth_user_type=PUBLIC_USER_NYC_ID).first()
+    # user = Users.query.filter_by(auth_user_type=AGENCY_USER).first()
     # login_user(user, force=True)
 
     try:
