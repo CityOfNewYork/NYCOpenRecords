@@ -7,6 +7,9 @@
 import os
 import magic
 import subprocess
+
+import app.lib.file_utils as fu
+
 from flask import current_app
 from app import (
     celery,
@@ -148,15 +151,15 @@ def scan_and_complete_upload(request_id, filepath, is_update=False):
                 dst_dir,
                 UPDATED_FILE_DIRNAME
             )
-        if not os.path.exists(dst_dir):
+        if not fu.exists(dst_dir):
             try:
-                os.makedirs(dst_dir)
+                fu.makedirs(dst_dir)
             except OSError as e:
-                # in the time between the call to os.path.exists
-                # and os.makedirs, the directory was created
+                # in the time between the call to fu.exists
+                # and fu.makedirs, the directory was created
                 print(e.args)
 
-        os.rename(
+        fu.move_to_sftp_server(
             filepath,
             os.path.join(dst_dir, filename)
         )

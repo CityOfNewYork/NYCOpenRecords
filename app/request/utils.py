@@ -9,6 +9,9 @@
 """
 import os
 import uuid
+
+import app.lib.file_utils as fu
+
 from datetime import datetime
 from urllib.parse import urljoin
 
@@ -30,9 +33,7 @@ from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.submission_methods import DIRECT_INPUT
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
-from app.lib.file_utils import get_mime_type
 from app.lib.user_information import create_mailing_address
-from app.lib.utils import get_file_hash
 from app.models import (
     Requests,
     Agencies,
@@ -142,22 +143,15 @@ def create_request(title,
     if upload_path is not None:
         # 7. Move file to upload directory
         upload_path = _move_validated_upload(request_id, upload_path)
-
         # 8. Create response object
         filename = os.path.basename(upload_path)
-        title = filename
-        name = filename
-        mime_type = get_mime_type(request_id, upload_path)
-        size = os.path.getsize(upload_path)
-        hash_ = get_file_hash(upload_path)
-
         response = Files(request_id,
                          RELEASE_AND_PRIVATE,
-                         title,
-                         name,
-                         mime_type,
-                         size,
-                         hash_)
+                         filename,
+                         filename,
+                         fu.get_mime_type(upload_path),
+                         fu.getsize(upload_path),
+                         fu.get_hash(upload_path))
         create_object(obj=response)
 
         # 8. Create upload Event
@@ -314,11 +308,11 @@ def _move_validated_upload(request_id, tmp_path):
     dst_dir = os.path.join(
         current_app.config['UPLOAD_DIRECTORY'],
         request_id)
-    if not os.path.exists(dst_dir):
-        os.mkdir(dst_dir)
+    if not fu.exists(dst_dir):
+        fu.mkdir(dst_dir)
     valid_name = os.path.basename(tmp_path).split('.', 1)[1]  # remove 'tmp' prefix
     valid_path = os.path.join(dst_dir, valid_name)
-    os.rename(tmp_path, valid_path)
+    fu.move_to_sftp_server(tmp_path, valid_path)
     upload_redis.set(
         get_upload_key(request_id, valid_name),
         upload_status.READY)

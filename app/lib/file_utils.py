@@ -2,36 +2,25 @@
     app.file.utils
     ~~~~~~~~~~~~~~~~
 
-    synopsis: Handles the functions for files
+    synopsis: Helpers for manipulating files.
+    Switches file-handling interface between sftp and os depending on configuration.
 
 """
 import os
 import magic
+import hashlib
 import paramiko
+from tempfile import TemporaryFile
 from functools import wraps
 from contextlib import contextmanager
 from flask import current_app
 
 
-def get_mime_type(request_id, filename):
-    """
-    Gets the mime_type of a file in the uploaded directory using python magic.
-    :param request_id: Request ID for the specific file.
-    :param filename: the name of the uploaded file.
-
-    :return: mime_type of the file as determined by python magic.
-    """
-
-    upload_file = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
-    # TODO: from_file(sftp_gotten_file)
-    mime_type = magic.from_file(upload_file, mime=True)
-    if current_app.config['MAGIC_FILE'] != '':
-        # Check using custom mime database file
-        m = magic.Magic(
-            magic_file=current_app.config['MAGIC_FILE'],
-            mime=True)
-        m.from_file(upload_file)
-    return mime_type
+def move_to_sftp_server(localpath, remotepath=None):
+    remotepath = remotepath or localpath
+    with sftp_ctx() as sftp:
+        sftp.put(localpath, remotepath)
+    os.remove(localpath)
 
 
 @contextmanager
@@ -105,8 +94,32 @@ def _sftp_rename(sftp, oldpath, newpath):
     sftp.rename(oldpath, newpath)
 
 
+def _sftp_get_mime_type(sftp, path):
+    with TemporaryFile() as tmp:
+        sftp.getfo(path, tmp)
+        tmp.seek(0)
+        if current_app.config['MAGIC_FILE'] != '':
+            # Check using custom mime database file
+            m = magic.Magic(
+                magic_file=current_app.config['MAGIC_FILE'],
+                mime=True)
+            mime_type = m.from_buffer(tmp.read())
+        else:
+            mime_type = magic.from_buffer(tmp.read(), mime=True)
+    return mime_type
+
+
+def _sftp_get_hash(sftp, path):
+    sha1 = hashlib.sha1()
+    with TemporaryFile() as tmp:
+        sftp.getfo(path, tmp)
+        tmp.seek(0)
+        sha1.update(tmp.read())
+    return sha1.hexdigest()
+
+
 @_sftp_switch(_sftp_get_size)
-def get_size(path):
+def getsize(path):
     return os.path.getsize(path)
 
 
@@ -133,3 +146,28 @@ def remove(path):
 @_sftp_switch(_sftp_rename)
 def rename(oldpath, newpath):
     os.rename(oldpath, newpath)
+
+
+@_sftp_switch(_sftp_get_mime_type)
+def get_mime_type(path):
+    if current_app.config['MAGIC_FILE'] != '':
+        # Check using custom mime database file
+        m = magic.Magic(
+            magic_file=current_app.config['MAGIC_FILE'],
+            mime=True)
+        mime_type = m.from_file(path)
+    else:
+        mime_type = magic.from_file(path, mime=True)
+    return mime_type
+
+
+@_sftp_switch(_sftp_get_hash)
+def get_hash(path):
+    """
+    Returns the sha1 hash of a file a string of
+    hexadecimal digits.
+    """
+    sha1 = hashlib.sha1()
+    with open(path, 'rb') as fp:
+        sha1.update(fp.read())
+    return sha1.hexdigest()

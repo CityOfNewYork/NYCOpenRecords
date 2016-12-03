@@ -54,7 +54,8 @@ class Config:
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
                                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
-                        os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/'))
+                        os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
+                        if not USE_SFTP else 'openrecords_v2_0/')
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
@@ -94,6 +95,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     VIRUS_SCAN_ENABLED = True
+    USE_SFTP = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or
