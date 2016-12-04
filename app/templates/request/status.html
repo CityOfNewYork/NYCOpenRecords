@@ -7,8 +7,6 @@
         <h1><span class="duesoon">Due Soon</span></h1>
     {% elif request.status == status.OPEN %}
         <h1><span class="open">Open</span></h1>
-    {% elif request.status == status.RE_OPENED %}
-        <h1><span class="reopened">Re-Opened</span></h1>
     {% elif request.status == status.CLOSED %}
         <h1><span class="closed">Closed</span></h1>
     {% endif %}

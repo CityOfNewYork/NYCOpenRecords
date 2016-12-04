@@ -39,7 +39,7 @@ from app.response.utils import (
     add_acknowledgment,
     add_denial,
     add_closing,
-    add_reopened,
+    add_reopening,
     add_instruction,
     get_file_links,
     process_upload_data,
@@ -180,8 +180,8 @@ def response_closing(request_id):
         return redirect(url_for('request.view', request_id=request_id))
 
 
-@response.route('/reopened/<request_id>', methods=['POST'])
-def response_reopened(request_id):
+@response.route('/reopening/<request_id>', methods=['POST'])
+def response_reopening(request_id):
     """
     Endpoint for reopening a request that takes in form data from the frontend.
     Required form data include:
@@ -201,10 +201,10 @@ def response_reopened(request_id):
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
-    add_reopened(request_id,
-                 flask_request.form['date'],
-                 flask_request.form['tz-name'],
-                 flask_request.form['email-summary'])
+    add_reopening(request_id,
+                  flask_request.form['date'],
+                  flask_request.form['tz-name'],
+                  flask_request.form['email-summary'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

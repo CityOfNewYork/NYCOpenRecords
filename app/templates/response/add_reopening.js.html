@@ -1,6 +1,6 @@
 <script type="text/javascript">
     $(function() {
-        var form = $("#add-reopened");
+        var form = $("#add-reopening");
         var first = form.find(".first");
         var second = form.find(".second");
 
@@ -8,7 +8,7 @@
         var prev = second.find(".prev");
         var submit = second.find(".submit");
 
-        var date = first.find("#reopened-date");
+        var date = first.find("#reopening-date");
 
         // Parsley
         date.attr("data-parsley-required", "");
@@ -32,7 +32,7 @@
                     type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
-                        type: "re-opened",
+                        type: "re-opening",
                         date: date.val(),
                         tz_name: jstz.determine().name()
                     },

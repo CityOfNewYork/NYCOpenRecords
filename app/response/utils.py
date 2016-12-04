@@ -216,7 +216,7 @@ def add_closing(request_id, reason_ids, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
-def add_reopened(request_id, date, tz_name, email_content):
+def add_reopening(request_id, date, tz_name, email_content):
     """
     Create and store a re-opened-determination for the specified request and update the request accordingly.
 
@@ -237,19 +237,19 @@ def add_reopened(request_id, date, tz_name, email_content):
         response = Determinations(
             request_id,
             privacy,
-            determination_type.REOPENED,
+            determination_type.REOPENING,
             None,
             new_due_date
         )
         create_object(response)
         _create_response_event(response, event_type.REQ_REOPENED)
-        _send_response_email(request_id, privacy, email_content)
         update_object(
             {'status': request_status.IN_PROGRESS,
              'agency_description_release_date': None},
             Requests,
             request_id
         )
+        _send_response_email(request_id, privacy, email_content)
 
 
 def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
@@ -446,7 +446,7 @@ def process_email_template_request(request_id, data):
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
             determination_type.CLOSING: _closing_email_handler,
-            determination_type.REOPENED: _reopened_email_handler
+            determination_type.REOPENING: _reopening_email_handler
         }
     else:
         handler_for_type = {
@@ -539,7 +539,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     )}), 200
 
 
-def _reopened_email_handler(request_id, data, page, agency_name, email_template):
+def _reopening_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for reopening a request.
 
