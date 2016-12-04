@@ -1239,7 +1239,7 @@ class RespFileEditor(ResponseEditor):
             current_app.config['UPLOAD_DIRECTORY'],
             self.response.request_id
         )
-        fu.remove(  # TODO: will rename take care of deletion?
+        fu.remove(
             os.path.join(
                 upload_path,
                 self.response.name

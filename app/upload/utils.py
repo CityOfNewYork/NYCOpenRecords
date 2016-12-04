@@ -159,7 +159,7 @@ def scan_and_complete_upload(request_id, filepath, is_update=False):
                 # and fu.makedirs, the directory was created
                 print(e.args)
 
-        fu.move_to_sftp_server(
+        fu.move(
             filepath,
             os.path.join(dst_dir, filename)
         )

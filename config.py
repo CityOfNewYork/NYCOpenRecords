@@ -70,14 +70,13 @@ class Config:
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') == "True"
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests"
-
+    ELASTICSEARCH_USE_SSL = os.environ.get('ELASTICSEARCH_USE_SSL') == "True"
     ELASTICSEARCH_USERNAME = os.environ.get('ELASTICSEARCH_USERNAME')
     ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD')
     ELASTICSEARCH_HTTP_AUTH = ((ELASTICSEARCH_USERNAME,
                                 ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
-    ELASTICSEARCH_USE_SSL = os.environ.get('ELASTICSEARCH_USE_SSL') == "True"
     # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod

@@ -16,13 +16,6 @@ from contextlib import contextmanager
 from flask import current_app
 
 
-def move_to_sftp_server(localpath, remotepath=None):
-    remotepath = remotepath or localpath
-    with sftp_ctx() as sftp:
-        sftp.put(localpath, remotepath)
-    os.remove(localpath)
-
-
 @contextmanager
 def sftp_ctx():
     """
@@ -94,6 +87,11 @@ def _sftp_rename(sftp, oldpath, newpath):
     sftp.rename(oldpath, newpath)
 
 
+def _sftp_move(sftp, localpath, remotepath):
+    sftp.put(localpath, remotepath)
+    os.remove(localpath)
+
+
 def _sftp_get_mime_type(sftp, path):
     with TemporaryFile() as tmp:
         sftp.getfo(path, tmp)
@@ -145,6 +143,15 @@ def remove(path):
 
 @_sftp_switch(_sftp_rename)
 def rename(oldpath, newpath):
+    os.rename(oldpath, newpath)
+
+
+@_sftp_switch(_sftp_move)
+def move(oldpath, newpath):
+    """
+    Use this instead of 'rename' if, when using sftp, 'oldpath'
+    represents a local file path and 'newpath' a remote path.
+    """
     os.rename(oldpath, newpath)
 
 

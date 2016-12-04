@@ -312,7 +312,7 @@ def _move_validated_upload(request_id, tmp_path):
         fu.mkdir(dst_dir)
     valid_name = os.path.basename(tmp_path).split('.', 1)[1]  # remove 'tmp' prefix
     valid_path = os.path.join(dst_dir, valid_name)
-    fu.move_to_sftp_server(tmp_path, valid_path)
+    fu.move(tmp_path, valid_path)
     upload_redis.set(
         get_upload_key(request_id, valid_name),
         upload_status.READY)
