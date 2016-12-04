@@ -129,7 +129,7 @@ def exists(path):
 
 
 @_sftp_switch(_sftp_mkdir)
-def mkdir(self, path):
+def mkdir(path):
     os.mkdir(path)
 
 

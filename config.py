@@ -69,8 +69,13 @@ class Config:
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') == "True"
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests"
-    ELASTICSEARCH_HTTP_AUTH = (os.environ.get('ELASTICSEARCH_USERNAME'),
-                               os.environ.get('ELASTICSEARCH_PASSWORD')) or None
+
+    ELASTICSEARCH_USERNAME = os.environ.get('ELASTICSEARCH_USERNAME')
+    ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD')
+    ELASTICSEARCH_HTTP_AUTH = ((ELASTICSEARCH_USERNAME,
+                                ELASTICSEARCH_PASSWORD)
+                               if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
+                               else None)
     ELASTICSEARCH_USE_SSL = os.environ.get('ELASTICSEARCH_USE_SSL') == "True"
     # https://www.elastic.co/blog/index-vs-type
 
@@ -81,7 +86,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    VIRUS_SCAN_ENABLED = eval(str(os.environ.get('VIRUS_SCAN_ENABLED'))) or False
+    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
     MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
     MAIL_USE_TLS = False
@@ -91,7 +96,7 @@ class DevelopmentConfig(Config):
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_dev"
-    MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
+    MAGIC_FILE = os.environ.get('MAGIC_FILE', '')
 
 
 class TestingConfig(Config):
