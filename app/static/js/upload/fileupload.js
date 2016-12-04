@@ -67,13 +67,14 @@ function bindFileUpload(target,
         }
     }).bind("fileuploadadd", function (e, data) {
         if (for_update) {
-            // Replace added file OR Delete uploaded file
             var elem_files = $(target).find(".files");
             var templates_upload = elem_files.children(".template-upload");
             var templates_download = elem_files.children(".template-download");
+            // Remove template for added file (pre-upload)
             if (templates_upload.length > 0) {
                 templates_upload.remove();
             }
+            // Remove template for uploaded file and delete corresponding file
             if (templates_download.length > 0) {
                 for (var i = 0; i < templates_download.length; i++) {
                     var file_identifier = $(templates_download[i]).attr("id");

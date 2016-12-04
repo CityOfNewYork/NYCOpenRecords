@@ -4,7 +4,7 @@ $(function () {
     var index = 0;
     var index_increment = 10;
 
-    var request_id = $('#request-id').text();
+    var request_id = $.trim($('#request-id').text());
 
     // get first set of responses on page load
     $.ajax({

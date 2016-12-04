@@ -25,6 +25,7 @@ class Config:
     SFTP_PORT = os.environ.get('SFTP_PORT')
     SFTP_USERNAME = os.environ.get('SFTP_USERNAME')
     SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
+    SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
@@ -55,7 +56,7 @@ class Config:
                                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
-                        if not USE_SFTP else 'openrecords_v2_0/')
+                        if not USE_SFTP else SFTP_UPLOAD_DIRECTORY)
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
