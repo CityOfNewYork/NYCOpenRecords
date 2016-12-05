@@ -216,6 +216,38 @@ def add_closing(request_id, reason_ids, email_content):
         _send_response_email(request_id, privacy, email_content)
 
 
+def add_reopening(request_id, date, tz_name, email_content):
+    """
+    Create and store a re-opened-determination for the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param date: string of new date of request completion
+    :param tz_name: client's timezone name
+    :param email_content: email body associated with the reopened request
+
+    """
+    if Requests.query.filter_by(id=request_id).one().status == request_status.CLOSED:
+        new_due_date = process_due_date(datetime.strptime(date, '%Y-%m-%d'), tz_name)
+        privacy = RELEASE_AND_PUBLIC
+        response = Determinations(
+            request_id,
+            privacy,
+            determination_type.REOPENING,
+            None,
+            new_due_date
+        )
+        create_object(response)
+        _create_response_event(response, event_type.REQ_REOPENED)
+        update_object(
+            {'status': request_status.IN_PROGRESS,
+             'due_date': new_due_date,
+             'agency_description_release_date': None},
+            Requests,
+            request_id
+        )
+        _send_response_email(request_id, privacy, email_content)
+
+
 def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
     """
     Create and store the extension object for the specified request.
@@ -409,7 +441,8 @@ def process_email_template_request(request_id, data):
             determination_type.EXTENSION: _extension_email_handler,
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
-            determination_type.CLOSING: _closing_email_handler
+            determination_type.CLOSING: _closing_email_handler,
+            determination_type.REOPENING: _reopening_email_handler
         }
     else:
         handler_for_type = {
@@ -498,6 +531,27 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         request_id=request_id,
         agency_name=agency_name,
         reasons=reasons,
+        page=page
+    )}), 200
+
+
+def _reopening_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
+    return jsonify({"template": render_template(
+        email_template,
+        request_id=request_id,
+        agency_name=agency_name,
+        date=process_due_date(datetime.strptime(data['date'], '%Y-%m-%d'), data['tz_name']),
         page=page
     )}), 200
 

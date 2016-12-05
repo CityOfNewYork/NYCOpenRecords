@@ -39,6 +39,7 @@ from app.response.utils import (
     add_acknowledgment,
     add_denial,
     add_closing,
+    add_reopening,
     add_instruction,
     get_file_links,
     process_upload_data,
@@ -155,6 +156,16 @@ def response_denial(request_id):
 
 @response.route('/closing/<request_id>', methods=['POST'])
 def response_closing(request_id):
+    """
+    Endpoint for closing a request that takes in form data from the front end.
+    Required form data include:
+        -reasons: a list of closing reasons
+        -email-summary: string email body from the confirmation page
+
+    :param request_id: FOIL request ID
+
+    :return: redirect to view request page
+    """
     required_fields = ['reasons', 'email-summary']
 
     for field in required_fields:
@@ -167,6 +178,34 @@ def response_closing(request_id):
                     flask_request.form.getlist('reasons'),
                     flask_request.form['email-summary'])
         return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/reopening/<request_id>', methods=['POST'])
+def response_reopening(request_id):
+    """
+    Endpoint for reopening a request that takes in form data from the frontend.
+    Required form data include:
+        -date: string of new date of request completion
+        -tz-name: name of the timezone the user is accessing the application in
+        -email-summary: string email body from the confirmation page
+
+    :param request_id: FOIL request ID
+
+    :return: redirect to view request page
+    """
+    required_fields = ['date', 'tz-name', 'email-summary']
+
+    for field in required_fields:
+        if not flask_request.form.get(field, ''):
+            flash('Uh Oh, it looks like the acknowledgement {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    add_reopening(request_id,
+                  flask_request.form['date'],
+                  flask_request.form['tz-name'],
+                  flask_request.form['email-summary'])
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/extension/<request_id>', methods=['POST'])
