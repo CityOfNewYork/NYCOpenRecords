@@ -4,6 +4,9 @@
    :synopsis: Handles the response URL endpoints for the OpenRecords application
 """
 import os
+
+import app.lib.file_utils as fu
+
 from datetime import datetime
 
 from flask import (
@@ -13,7 +16,6 @@ from flask import (
     redirect,
     jsonify,
     current_app,
-    send_from_directory,
 )
 from flask_login import current_user
 
@@ -441,8 +443,8 @@ def get_response_content(response_id):
                 token=token, response_id=response_id).first()
             if resptok is not None:
                 if (datetime.utcnow() < resptok.expiration_date
-                   and os.path.exists(filepath)):
-                    return send_from_directory(*filepath_parts, as_attachment=True)
+                   and fu.exists(filepath)):
+                    return fu.send_file(*filepath_parts, as_attachment=True)
                 else:
                     delete_object(resptok)
         else:
@@ -452,8 +454,8 @@ def get_response_content(response_id):
                         request_id=response.request_id,
                         user_guid=current_user.guid,
                         auth_user_type=current_user.auth_user_type).first() is not None
-                   and os.path.exists(filepath)):
-                    return send_from_directory(*filepath_parts, as_attachment=True)
+                   and fu.exists(filepath)):
+                    return fu.send_file(*filepath_parts, as_attachment=True)
             else:
                 return redirect(url_for(
                     'auth.index',

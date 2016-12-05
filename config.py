@@ -53,7 +53,9 @@ class Config:
 
     # Upload Settings
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
-                                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
+                                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/incoming/'))
+    UPLOAD_SERVING_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
+                                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/outgoing/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
                         if not USE_SFTP else SFTP_UPLOAD_DIRECTORY)

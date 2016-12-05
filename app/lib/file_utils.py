@@ -13,7 +13,7 @@ import paramiko
 from tempfile import TemporaryFile
 from functools import wraps
 from contextlib import contextmanager
-from flask import current_app
+from flask import current_app, send_from_directory
 
 
 @contextmanager
@@ -43,7 +43,7 @@ def _sftp_switch(sftp_func):
         def wrapper(*args, **kwargs):
             if current_app.config['USE_SFTP']:
                 with sftp_ctx() as sftp:
-                    return sftp_func(sftp, *args)
+                    return sftp_func(sftp, *args, **kwargs)
             else:
                 return os_func(*args, **kwargs)
         return wrapper
@@ -117,6 +117,20 @@ def _sftp_get_hash(sftp, path):
     return sha1.hexdigest()
 
 
+def _sftp_send_file(sftp, directory, filename, **kwargs):
+    request_id_folder = os.path.basename(directory)
+    localpath = os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'], request_id_folder)
+    if not os.path.exists(localpath):
+        os.mkdir(localpath)
+    path = os.path.join(request_id_folder, filename)
+    localpath = os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'], path)
+    if not os.path.exists(localpath):
+        import ipdb
+        ipdb.set_trace()
+        sftp.get(os.path.join(directory, filename), localpath)
+    return send_from_directory(*os.path.split(localpath), **kwargs)
+
+
 @_sftp_switch(_sftp_get_size)
 def getsize(path):
     return os.path.getsize(path)
@@ -179,3 +193,9 @@ def get_hash(path):
     with open(path, 'rb') as fp:
         sha1.update(fp.read())
     return sha1.hexdigest()
+
+
+@_sftp_switch(_sftp_send_file)
+def send_file(directory, filename, **kwargs):
+    return send_from_directory(directory, filename, **kwargs)
+
