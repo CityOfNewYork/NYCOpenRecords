@@ -43,7 +43,7 @@ def _sftp_switch(sftp_func):
         def wrapper(*args, **kwargs):
             if current_app.config['USE_SFTP']:
                 with sftp_ctx() as sftp:
-                    return sftp_func(sftp, *args, **kwargs)
+                    return sftp_func(sftp, *args)
             else:
                 return os_func(*args, **kwargs)
         return wrapper
@@ -67,6 +67,7 @@ def _sftp_mkdir(sftp, path):
 
 
 def _sftp_makedirs(sftp, path):
+    """ os.makedirs(path, exists_ok=True) """
     dirs = []
     while len(path) > 1:
         dirs.append(path)
@@ -132,8 +133,8 @@ def mkdir(path):
 
 
 @_sftp_switch(_sftp_makedirs)
-def makedirs(path):
-    os.makedirs(path)
+def makedirs(path, **kwargs):
+    os.makedirs(path, **kwargs)
 
 
 @_sftp_switch(_sftp_remove)
