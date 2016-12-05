@@ -46,6 +46,10 @@ function bindFileUpload(target,
         chunkfail: function (e, data) {
             // remove existing partial upload
             deleteUpload(request_id, encodeName(data.files[0].name), false, true);
+            // Re-enable 'next' button
+            if (for_update) {
+                $(nextButton).attr('disabled', false);
+            }
         }
     }).bind("fileuploaddone", function (e, data) {
         // blueimp says that this will only be called on a successful upload
@@ -62,7 +66,7 @@ function bindFileUpload(target,
         else {
             // Re-enable 'next' button
             if (for_update) {
-                $(nextButton).attr('enabled', true);
+                $(nextButton).attr('disabled', false);
             }
         }
     }).bind("fileuploadadd", function (e, data) {
