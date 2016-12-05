@@ -228,11 +228,6 @@ def add_reopening(request_id, date, tz_name, email_content):
     """
     if Requests.query.filter_by(id=request_id).one().status == request_status.CLOSED:
         new_due_date = process_due_date(datetime.strptime(date, '%Y-%m-%d'), tz_name)
-        update_object(
-            {'due_date': new_due_date},
-            Requests,
-            request_id
-        )
         privacy = RELEASE_AND_PUBLIC
         response = Determinations(
             request_id,
@@ -245,6 +240,7 @@ def add_reopening(request_id, date, tz_name, email_content):
         _create_response_event(response, event_type.REQ_REOPENED)
         update_object(
             {'status': request_status.IN_PROGRESS,
+             'due_date': new_due_date,
              'agency_description_release_date': None},
             Requests,
             request_id
