@@ -16,16 +16,17 @@ from wtforms import (
     DateTimeField,
     SelectMultipleField,
 )
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from app.constants import (
     CATEGORIES,
     STATES,
     submission_methods,
     determination_type,
+    user_type_auth
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons
+from app.models import Reasons, Users
 
 
 class PublicUserRequestForm(Form):
@@ -241,3 +242,17 @@ class SearchRequestsForm(Form):
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
         # Why choices must be set in constructor I do not know... some db issue
+
+
+class AddUserRequestForm(Form):
+    user = SelectField('Users', choices=None)
+    permission = SelectField('Users', choices=None)
+
+    def __init__(self, agency_ein):
+        super(AddUserRequestForm, self).__init__()
+        self.user.choices = [
+            (user.guid, ', '.join([user.last_name, user.first_name]))
+            for user in Users.query.filter_by(
+                # auth_user_type=user_type_auth.AGENCY_USER,
+                agency=agency_ein
+            )]

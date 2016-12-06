@@ -47,6 +47,7 @@ from app.request.forms import (
     DenyRequestForm,
     SearchRequestsForm,
     CloseRequestForm,
+    AddUserRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -208,7 +209,8 @@ def view(request_id):
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         holidays=holidays,
-        assigned_users=assigned_users)
+        assigned_users=assigned_users,
+        add_user_request_form=AddUserRequestForm(current_request.agency.ein)
 
 
 @request.route('/non_portal_agency/<agency_name>', methods=['GET'])

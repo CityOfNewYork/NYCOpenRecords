@@ -854,9 +854,9 @@ def _get_edit_response_template(editor):
                                                       privacy=data['privacy'],
                                                       response_privacy=response_privacy)
         if was_private:
-            recipient = "all associated participants"
-        elif release_and_viewable:
             recipient = "the Requester"
+        elif release_and_viewable:
+            recipient = "all associated participants"
         else:
             recipient = "all Assigned Users"
         header = "The following will be emailed to {}:".format(recipient)
