@@ -21,6 +21,19 @@ $(document).ready(function () {
         }
     });
 
+    $('#request-category').change(function() {
+        $.ajax({
+            url: "/request/agencies",
+            type: "POST",
+            data: {
+                category: $("#request-category").val()
+            },
+            success: function(data) {
+                $('#request-agency').empty();
+            }
+        })
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $('#request-title').attr({
             'data-placement': "top",

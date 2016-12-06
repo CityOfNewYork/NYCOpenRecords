@@ -29,6 +29,7 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
+    Agencies
 )
 from app.request import request
 from app.request.forms import (
@@ -263,3 +264,11 @@ def edit_requester_info(request_id):
         status_code = 400
 
     return jsonify(response), status_code
+
+
+@request.route('/agencies', methods=['POST'])
+def get_agencies():
+    choices = sorted([(agencies.ein, agencies.name)
+                      for agencies in Agencies.query.filter(Agencies.category.match(flask_request.form['category'])).all()],
+                     key=lambda x: x[1])
+    return jsonify(choices)
