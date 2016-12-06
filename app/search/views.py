@@ -137,7 +137,7 @@ def requests_doc(doc_type):
 
     :param doc_type: document type ('csv' only)
     """
-    if current_user.is_anonymous and doc_type.lower() == 'csv':  # FIXME: is_agency
+    if current_user.is_agency and doc_type.lower() == 'csv':
         try:
             agency_ein = int(request.args.get('agency_ein', ''))
         except ValueError:

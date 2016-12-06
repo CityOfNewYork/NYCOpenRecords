@@ -193,12 +193,14 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-sm-12 no-pad-left no-pad-right">
-                    <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV</button>
-                    <span id="generate-document-error"></span>
+            {% if current_user.is_agency %}
+                <div class="row">
+                    <div class="col-sm-12 no-pad-left no-pad-right">
+                        <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV</button>
+                        <span id="generate-document-error"></span>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         </form>
         <div class="row">
             <div class="panel panel-default">
