@@ -204,7 +204,6 @@ def create_requests_search_set(requester, other_requester):
                 generate_request_id(agency_ein),
                 title=title,
                 description=description,
-                agency_description=agency_description,
                 agency_ein=agency_ein,
                 date_created=date_created,
                 date_submitted=date_submitted,
@@ -222,6 +221,7 @@ def create_requests_search_set(requester, other_requester):
                     'agency_description': bool(agency_desc_private)
                 }
             )
+            request.agency_description = agency_description
             create_object(request)
             user_request = UserRequests(
                 user_guid=(requester.guid if is_requester

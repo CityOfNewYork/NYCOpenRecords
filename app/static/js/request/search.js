@@ -122,7 +122,9 @@ $(function() {
     var next = $("#next");
     var prev = $("#prev");
 
-    function search() {
+    function search(docType) {
+
+        var docTypePassed = typeof docType !== "undefined";
 
         // first clear out any "bad" input
         $(".bad-input-text").removeClass("bad-input-text").val("");
@@ -151,8 +153,9 @@ $(function() {
         var sortDateDue = $("#sort-date-due").attr("data-sort-order");
         var sortTitle = $("#sort-title").attr("data-sort-order");
 
+        var url = "/search/requests";
         $.ajax({
-            url: "/search/requests",
+            url: docTypePassed ? url + "/" + docType : url,
             data: {
                 query: query,
                 foil_id: searchById,
@@ -177,43 +180,53 @@ $(function() {
                 sort_title: sortTitle
             },
             success: function(data) {
-                if (data.total !== 0) {
-                    results.html(data.results);
-                    flask_moment_render_all();
-                    pageInfo.text(
-                        (start + 1) + " - " +
-                        (start + data.count) +
-                        " of " + data.total
-                    );
-                    total = data.total;
-                    end = start + data.count;
-                    if (end === total) {
-                        next.hide();
+                if (docTypePassed) {
+                    $("#generate-document-error").text();
+                }
+                else {
+                    if (data.total !== 0) {
+                        results.html(data.results);
+                        flask_moment_render_all();
+                        pageInfo.text(
+                            (start + 1) + " - " +
+                            (start + data.count) +
+                            " of " + data.total
+                        );
+                        total = data.total;
+                        end = start + data.count;
+                        if (end === total) {
+                            next.hide();
+                        }
+                        else {
+                            next.show();
+                        }
+                        if (start === 0) {
+                            prev.hide();
+                        }
+                        else {
+                            prev.show();
+                        }
                     }
                     else {
-                        next.show();
-                    }
-                    if (start === 0) {
+                        results.html("<li class='list-group-item text-center'>" +
+                            "No results found.</li>");
+                        pageInfo.text("");
+                        next.hide();
                         prev.hide();
                     }
-                    else {
-                        prev.show();
-                    }
+                }
+            },
+            error: function(e) {
+                if (docTypePassed) {
+                    $("#generate-document-error").text("Unable to generate document!");
                 }
                 else {
                     results.html("<li class='list-group-item text-center'>" +
-                        "No results found.</li>");
+                        "Hmmmm.... Looks like something's gone wrong.</li>");
                     pageInfo.text("");
                     next.hide();
                     prev.hide();
                 }
-            },
-            error: function(e) {
-                results.html("<li class='list-group-item text-center'>" +
-                    "Hmmmm.... Looks like something's gone wrong.</li>");
-                pageInfo.text("");
-                next.hide();
-                prev.hide();
             }
         });
     }
@@ -240,6 +253,12 @@ $(function() {
         }
     });
 
+    // $("#generate-document").click(function(e) {
+    //     // search('csv');
+    //     e.preventDefault();
+    //
+    //     e.submit()
+    // });
     $(".status").click(function() {
         start = 0;
         search();

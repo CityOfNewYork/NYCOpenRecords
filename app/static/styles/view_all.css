@@ -67,3 +67,7 @@
 .list-group-item:hover .test-info {
     display: block;
 }
+
+#generate-document-error {
+    color: red;
+}

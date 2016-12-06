@@ -159,7 +159,7 @@ def search_requests(query,
                     highlight=False):
     """
     The arguments of this function match the request parameters
-    of the '/search/requests' endpoint.
+    of the '/search/requests' endpoints.
 
     All date related params expect strings in the format "mm/dd/yyyy"
     All sort related params expect "desc" or "asc"; other strings ignored
@@ -190,7 +190,7 @@ def search_requests(query,
         if True, will come at a slight performance cost (in order to
         restrict highlights to public fields, iterating over elasticsearch
         query results is required)
-    :return: json response with result information
+    :return: elasticsearch json response with result information
 
     """
     # clean query trailing/leading whitespace
@@ -200,7 +200,11 @@ def search_requests(query,
     # return no results if there is nothing to query by
     if query and not any((foil_id, title, agency_description,
                           description, requester_name)):
-        return jsonify({"total": 0}), 200
+        return jsonify({
+            "hits": {
+                "total": 0,
+                "hits": []
+            }}), 200
 
     # set sort (list of "field:direction" pairs)
     sort = [
@@ -303,6 +307,7 @@ def search_requests(query,
         _source=['requester_id',
                  'date_submitted',
                  'date_due',
+                 'date_created',
                  'status',
                  'agency_ein',
                  'agency_name',
@@ -311,7 +316,7 @@ def search_requests(query,
                  'agency_description_private',
                  'public_title',
                  'title',
-                 'agency_description',  # TODO: remove last 2 after testing
+                 'agency_description',
                  'description'],
         size=size,
         from_=start,
@@ -322,19 +327,7 @@ def search_requests(query,
     if highlight and not foil_id:
         _process_highlights(results, dsl_gen.requester_id)
 
-    # format results
-    total = results["hits"]["total"]
-    formatted_results = None
-    if total != 0:
-        _convert_dates(results)
-        formatted_results = render_template("request/result_row.html",
-                                            requests=results["hits"]["hits"],
-                                            query=query)  # TODO: remove after testing
-    return jsonify({
-        "count": len(results["hits"]["hits"]),
-        "total": total,
-        "results": formatted_results
-    }), 200
+    return results
 
 
 class RequestsDSLGenerator(object):
@@ -452,7 +445,7 @@ class RequestsDSLGenerator(object):
         return self.__filters + self.__default_filters
 
 
-def _convert_dates(results):
+def convert_dates(results):
     """
     Replace 'date_submitted' and 'date_due' of the request
     search results with a datetime object.

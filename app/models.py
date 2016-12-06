@@ -469,6 +469,7 @@ class Requests(db.Model):
                 'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
                 'agency_description_private': self.privacy['agency_description'],
+                'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': self.submission,
