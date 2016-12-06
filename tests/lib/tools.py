@@ -1,6 +1,9 @@
 import os
 import uuid
 import random
+
+import app.lib.file_utils as fu
+
 from itertools import product
 from string import (
     ascii_lowercase,
@@ -19,7 +22,6 @@ from app.constants import (
 )
 from app.constants.response_privacy import PRIVATE
 from app.constants.role_name import PUBLIC_REQUESTER
-from app.lib.utils import get_file_hash
 from app.models import (
     Requests,
     Files,
@@ -106,8 +108,8 @@ class RequestsFactory(object):
         self.filepaths.append(filepath)
 
         # create an empty file if the specified path does not exist
-        if not os.path.exists(filepath):
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        if not fu.exists(filepath):
+            fu.makedirs(os.path.dirname(filepath), exist_ok=True)
             with open(filepath, 'w') as fp:
                 fp.write(contents or
                          ''.join(random.choice(ascii_letters)
@@ -119,8 +121,8 @@ class RequestsFactory(object):
             title or filename,
             filename,
             mime_type,
-            os.path.getsize(filepath),
-            get_file_hash(filepath)
+            fu.getsize(filepath),
+            fu.get_hash(filepath)
         )
         # TODO: add Events FILE_ADDED
         create_object(response)
@@ -146,8 +148,8 @@ class RequestsFactory(object):
         """
         if self.clean:
             for path in self.filepaths:
-                if os.path.exists(path):
-                    os.remove(path)
+                if fu.exists(path):
+                    fu.remove(path)
 
 
 def create_user(auth_type=user_type_auth.PUBLIC_USER_NYC_ID):

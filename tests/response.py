@@ -1,6 +1,9 @@
 import os
 import json
 import shutil
+
+import app.lib.file_utils as fu
+
 from unittest.mock import patch
 from urllib.parse import urljoin
 from datetime import datetime
@@ -19,7 +22,6 @@ from tests.lib.constants import (
     PNG_FILE_NAME,
     PNG_FILE_PATH,
 )
-from app.lib.utils import get_file_hash
 from app.lib.db_utils import create_object
 from app.models import (
     Events,
@@ -67,7 +69,7 @@ class ResponseViewsTests(BaseTestCase):
         new_title = "Updated Title, Shiny and Chrome"
         new_mime_type = 'image/png'
         new_size = os.path.getsize(PNG_FILE_PATH)
-        new_hash = get_file_hash(PNG_FILE_PATH)
+        new_hash = fu.get_hash(PNG_FILE_PATH)
         data_new = {
             'privacy': new_privacy,
             'title': new_title,

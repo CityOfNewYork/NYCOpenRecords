@@ -3,7 +3,6 @@
 
 """
 
-import hashlib
 from base64 import b64decode
 
 
@@ -24,7 +23,7 @@ def b64decode_lenient(data):
     :param data: a string or bytes-like object of base64 data
     :return: a decoded string
     """
-    if type(data) is str:
+    if isinstance(data, str):
         data = data.encode()
     data += b'=' * (4 - (len(data) % 4))
     return b64decode(data).decode()
@@ -47,14 +46,3 @@ def eval_request_bool(val, default=True):
         if val in ['true', '1', 'y', 'yes']:
             return True
     return default
-
-
-def get_file_hash(filepath):
-    """
-    Returns the sha1 hash of a file a string of
-    hexadecimal digits.
-    """
-    sha1 = hashlib.sha1()
-    with open(filepath, 'rb') as fp:
-        sha1.update(fp.read())
-    return sha1.hexdigest()

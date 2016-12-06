@@ -5,6 +5,8 @@
 """
 import os
 
+import app.lib.file_utils as fu
+
 from flask import (
     request,
     jsonify,
@@ -17,10 +19,7 @@ from app.lib.utils import (
     b64decode_lenient,
     eval_request_bool,
 )
-from app.models import (
-    Responses,
-    Files,
-)
+from app.models import Responses
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload import upload
 from app.upload.constants import (
@@ -167,7 +166,8 @@ def delete(r_id_type, r_id, filecode):
                 r_id = response.request_id
 
             path = ''
-            if eval_request_bool(request.form.get('quarantined_only'), False):
+            quarantined_only = eval_request_bool(request.form.get('quarantined_only'), False)
+            if quarantined_only:
                 path = os.path.join(
                     current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
                     r_id
@@ -191,8 +191,13 @@ def delete(r_id_type, r_id, filecode):
                         r_id
                     )
             filepath = os.path.join(path, filename)
-            if path != '' and os.path.exists(filepath):
-                os.remove(filepath)
+            if path != '':
+                if quarantined_only:
+                    os.path.exists(filepath)
+                    os.remove(filepath)
+                else:
+                    fu.exists(filepath)
+                    fu.remove(filepath)
                 response = {"deleted": filename}
             else:
                 response = {"error": "Upload not found."}

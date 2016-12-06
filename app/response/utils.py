@@ -8,12 +8,13 @@
 import os
 import re
 import json
+
+import app.lib.file_utils as fu
+
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
-import urllib.parse
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode
 
-import magic
 from cached_property import cached_property
 from werkzeug.utils import secure_filename
 from flask_login import current_user
@@ -41,11 +42,7 @@ from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import get_due_date, process_due_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
-from app.lib.file_utils import get_mime_type
-from app.lib.utils import (
-    get_file_hash,
-    eval_request_bool
-)
+from app.lib.utils import eval_request_bool
 from app.models import (
     Events,
     Notes,
@@ -77,18 +74,14 @@ def add_file(request_id, filename, title, privacy):
 
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
-    size = os.path.getsize(path)
-    mime_type = get_mime_type(request_id, filename)
-    hash_ = get_file_hash(path)
-
     response = Files(
         request_id,
         privacy,
         title,
         filename,
-        mime_type,
-        size,
-        hash_,
+        fu.get_mime_type(path),
+        fu.getsize(path),
+        fu.get_hash(path),
     )
     create_object(response)
 
@@ -919,7 +912,7 @@ def get_file_links(response, agency_file_links, requester_file_links):
         if resp.request.requester.is_anonymous_requester:
             resptoken = ResponseTokens(response.id)
             create_object(resptoken)
-            params = urllib.parse.urlencode({'token': resptoken.token})
+            params = urlencode({'token': resptoken.token})
             requester_url = urljoin(flask_request.url_root, path)
             requester_link = requester_url + "?%s" % params
         else:
@@ -1270,19 +1263,19 @@ class RespFileEditor(ResponseEditor):
                     UPDATED_FILE_DIRNAME,
                     new_filename
                 )
-                if os.path.exists(filepath):
+                if fu.exists(filepath):
                     self.set_data_values('size',
                                          self.response.size,
-                                         os.path.getsize(filepath))
+                                         fu.getsize(filepath))
                     self.set_data_values('name',
                                          self.response.name,
                                          new_filename)
                     self.set_data_values('mime_type',
                                          self.response.mime_type,
-                                         magic.from_file(filepath, mime=True))
+                                         fu.get_mime_type(filepath))
                     self.set_data_values('hash',
                                          self.response.hash,
-                                         get_file_hash(filepath))
+                                         fu.get_hash(filepath))
                     if self.update:
                         self.replace_old_file(filepath)
                 else:
@@ -1300,13 +1293,13 @@ class RespFileEditor(ResponseEditor):
             current_app.config['UPLOAD_DIRECTORY'],
             self.response.request_id
         )
-        os.remove(
+        fu.remove(
             os.path.join(
                 upload_path,
                 self.response.name
             )
         )
-        os.rename(
+        fu.rename(
             updated_filepath,
             os.path.join(
                 upload_path,
@@ -1350,7 +1343,7 @@ class RespFileEditor(ResponseEditor):
             path = '/response/' + str(self.response.id)
             if self.response.privacy != PRIVATE:
                 if self.response.request.requester.is_anonymous_requester:
-                    params = urllib.parse.urlencode({'token': self.response.token.token})
+                    params = urlencode({'token': self.response.token.token})
                     requester_url = urljoin(flask_request.url_root, path)
                     requester_link = requester_url + "?%s" % params
                 else:
@@ -1388,9 +1381,9 @@ class RespFileEditor(ResponseEditor):
             upload_path,
             DELETED_FILE_DIRNAME
         )
-        if not os.path.exists(dir_deleted):
-            os.mkdir(dir_deleted)
-        os.rename(
+        if not fu.exists(dir_deleted):
+            fu.mkdir(dir_deleted)
+        fu.rename(
             os.path.join(
                 upload_path,
                 self.response.name
