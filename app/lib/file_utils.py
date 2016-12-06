@@ -125,8 +125,6 @@ def _sftp_send_file(sftp, directory, filename, **kwargs):
     path = os.path.join(request_id_folder, filename)
     localpath = os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'], path)
     if not os.path.exists(localpath):
-        import ipdb
-        ipdb.set_trace()
         sftp.get(os.path.join(directory, filename), localpath)
     return send_from_directory(*os.path.split(localpath), **kwargs)
 
