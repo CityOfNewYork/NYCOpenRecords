@@ -1,0 +1,63 @@
+<script type="text/javascript">
+    $(function() {
+        var form = $("#add-reopening");
+        var first = form.find(".first");
+        var second = form.find(".second");
+
+        var next = first.find(".next");
+        var prev = second.find(".prev");
+        var submit = second.find(".submit");
+
+        var date = first.find("#reopening-date");
+
+        // Parsley
+        date.attr("data-parsley-required", "");
+
+        // Date Picker
+        holiday_dates = {{ holidays | safe }};
+        date.datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend,
+            minDate: 0
+        });
+        date.keydown(false);
+
+        next.click(function() {
+            date.parsley().validate();
+
+            if (date.parsley().isValid()) {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "re-opening",
+                        date: date.val(),
+                        tz_name: jstz.determine().name()
+                    },
+                    success: function(data) {
+                        var emailSummary = second.find(".email-summary");
+                        emailSummary.html(data.template);
+                        flask_moment_render_all();
+                        second.find("input[name='email-summary']").val(emailSummary.html());
+                        first.find("input[name='tz-name']").val(jstz.determine().name());
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        prev.click(function() {
+            second.hide();
+            first.show();
+        });
+
+        submit.click(function(){
+            $(this).attr("disabled", true);
+           form.submit();
+        });
+
+    });
+</script>

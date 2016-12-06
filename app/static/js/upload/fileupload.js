@@ -46,6 +46,10 @@ function bindFileUpload(target,
         chunkfail: function (e, data) {
             // remove existing partial upload
             deleteUpload(request_id, encodeName(data.files[0].name), false, true);
+            // Re-enable 'next' button
+            if (for_update) {
+                $(nextButton).attr('disabled', false);
+            }
         }
     }).bind("fileuploaddone", function (e, data) {
         // blueimp says that this will only be called on a successful upload
@@ -62,18 +66,19 @@ function bindFileUpload(target,
         else {
             // Re-enable 'next' button
             if (for_update) {
-                $(nextButton).attr('enabled', true);
+                $(nextButton).attr('disabled', false);
             }
         }
     }).bind("fileuploadadd", function (e, data) {
         if (for_update) {
-            // Replace added file OR Delete uploaded file
             var elem_files = $(target).find(".files");
             var templates_upload = elem_files.children(".template-upload");
             var templates_download = elem_files.children(".template-download");
+            // Remove template for added file (pre-upload)
             if (templates_upload.length > 0) {
                 templates_upload.remove();
             }
+            // Remove template for uploaded file and delete corresponding file
             if (templates_download.length > 0) {
                 for (var i = 0; i < templates_download.length; i++) {
                     var file_identifier = $(templates_download[i]).attr("id");

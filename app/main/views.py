@@ -50,3 +50,8 @@ def test_email():
         send_email(to, cc, bcc, subject, 'email_templates/email_confirmation')
         flash('Email sent')
     return render_template('email.html', form=form)
+
+
+@main.route('/index.html', methods=['GET'])
+def status():
+    return 200

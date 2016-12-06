@@ -96,7 +96,7 @@
                             {% endif %}
                         {% else %}
                             <div class="tab-pane active" id="reopen-request">
-                                Re-Open Request Content
+                                {% include "response/add_reopening.html" %}
                             </div>
                         {% endif %}
                     </div>
@@ -153,4 +153,5 @@
     {% include 'response/add_acknowledgment.js.html' %}
     {% include 'response/add_denial.js.html' %}
     {% include 'response/add_closing.js.html' %}
+    {% include 'response/add_reopening.js.html' %}
 {% endblock %}

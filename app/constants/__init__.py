@@ -92,4 +92,5 @@ EMAIL_TEMPLATE_FOR_TYPE = {
     determination_type.DENIAL: "email_response_denial.html",
     determination_type.CLOSING: "email_response_closing.html",
     determination_type.EXTENSION: "email_response_extension.html",
+    determination_type.REOPENING: "email_response_reopening.html"
 }

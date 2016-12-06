@@ -104,8 +104,8 @@ def deploy():
 
 
 @manager.command
-def recreate():
-    """Recreate elasticsearch index"""
+def es_recreate():
+    """Recreate elasticsearch index and populate."""
     from app.search.utils import recreate
     recreate()
 
