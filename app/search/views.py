@@ -1,19 +1,18 @@
-import os
 import csv
-
+from io import StringIO, BytesIO
 from datetime import datetime
 
 from flask import (
     request,
     render_template,
     jsonify,
-    current_app
 )
-from flask.helpers import send_from_directory
+from flask.helpers import send_file
 from flask_login import current_user
 from app.search import search
-from app.search.constants import DEFAULT_HITS_SIZE
+from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.lib.utils import eval_request_bool
+from app.lib.date_utils import get_timezone_offset
 from app.search.utils import search_requests, convert_dates
 
 
@@ -66,7 +65,7 @@ def requests():
     # login_user(user, force=True)
 
     try:
-        agency_ein = int(request.args.get('agency_ein'))
+        agency_ein = int(request.args.get('agency_ein', ''))
     except ValueError:
         agency_ein = None
 
@@ -83,7 +82,7 @@ def requests():
     query = request.args.get('query')
     results = search_requests(
         query,
-        eval_request_bool(request.args.get('foil_id'), False),
+        eval_request_bool(request.args.get('foil_id')),
         eval_request_bool(request.args.get('title')),
         eval_request_bool(request.args.get('agency_description')),
         eval_request_bool(request.args.get('description')) if not current_user.is_anonymous else False,
@@ -94,7 +93,7 @@ def requests():
         request.args.get('date_due_to'),
         agency_ein,
         eval_request_bool(request.args.get('open')),
-        eval_request_bool(request.args.get('closed'), False),
+        eval_request_bool(request.args.get('closed')),
         eval_request_bool(request.args.get('in_progress')) if current_user.is_agency else False,
         eval_request_bool(request.args.get('due_soon')) if current_user.is_agency else False,
         eval_request_bool(request.args.get('overdue')) if current_user.is_agency else False,
@@ -103,8 +102,8 @@ def requests():
         request.args.get('sort_date_submitted'),
         request.args.get('sort_date_due'),
         request.args.get('sort_title'),
-        # eval_request_bool(request.args.get('by_phrase'), False),
-        # eval_request_bool(request.args.get('highlight'), False),
+        # eval_request_bool(request.args.get('by_phrase')),
+        # eval_request_bool(request.args.get('highlight')),
     )
 
     # format results
@@ -138,52 +137,50 @@ def requests_doc(doc_type):
 
     :param doc_type: document type ('csv' only)
     """
-    if current_user.is_anonymous:  # FIXME: is_agency
+    if current_user.is_anonymous and doc_type.lower() == 'csv':  # FIXME: is_agency
         try:
-            agency_ein = int(request.args.get('agency_ein'))
-        except (ValueError, TypeError):
+            agency_ein = int(request.args.get('agency_ein', ''))
+        except ValueError:
             agency_ein = None
 
-        results = search_requests(
-            request.args.get('query'),
-            eval_request_bool(request.args.get('foil_id'), False),
-            eval_request_bool(request.args.get('title')),
-            eval_request_bool(request.args.get('agency_description')),
-            eval_request_bool(request.args.get('description')),
-            eval_request_bool(request.args.get('requester_name')),
-            request.args.get('date_rec_from'),
-            request.args.get('date_rec_to'),
-            request.args.get('date_due_from'),
-            request.args.get('date_due_to'),
-            agency_ein,
-            eval_request_bool(request.args.get('open')),
-            eval_request_bool(request.args.get('closed'), False),
-            eval_request_bool(request.args.get('in_progress')),
-            eval_request_bool(request.args.get('due_soon')),
-            eval_request_bool(request.args.get('overdue')),
-            100,  # size  # TODO: call search_request until total is 0
-            0,  # start
-            request.args.get('sort_date_submitted'),
-            request.args.get('sort_date_due'),
-            request.args.get('sort_title'),
-        )
-
-        total = results["hits"]["total"]
-        if total != doc_type.lower() == 'csv':
-            timestamp = datetime.utcnow().strftime("%m_%d_%Y_at_%I_%M_%p")  # TODO: tz_name (see process_due_date)
-            filepath = os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'],
-                                    "FOIL_requests_results_" + timestamp + ".csv")
-            with open(filepath, 'w') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow(["FOIL ID",
-                                 "Agency",
-                                 "Title",
-                                 "Description",
-                                 "Agency Description",
-                                 # "Date Created",
-                                 "Date Received",
-                                 "Date Due",
-                                 "Requester Name"])  # TODO: more requester info and assigned users info?
+        start = 0
+        buffer = StringIO()  # csvwriter cannot accept BytesIO
+        writer = csv.writer(buffer)
+        writer.writerow(["FOIL ID",
+                         "Agency",
+                         "Title",
+                         "Description",
+                         "Agency Description",
+                         "Date Created",
+                         "Date Received",
+                         "Date Due",
+                         "Requester Name"])  # TODO: more requester info and assigned users info?
+        while True:
+            results = search_requests(
+                request.args.get('query'),
+                eval_request_bool(request.args.get('foil_id')),
+                eval_request_bool(request.args.get('title')),
+                eval_request_bool(request.args.get('agency_description')),
+                eval_request_bool(request.args.get('description')),
+                eval_request_bool(request.args.get('requester_name')),
+                request.args.get('date_rec_from'),
+                request.args.get('date_rec_to'),
+                request.args.get('date_due_from'),
+                request.args.get('date_due_to'),
+                agency_ein,
+                eval_request_bool(request.args.get('open')),
+                eval_request_bool(request.args.get('closed')),
+                eval_request_bool(request.args.get('in_progress')),
+                eval_request_bool(request.args.get('due_soon')),
+                eval_request_bool(request.args.get('overdue')),
+                ALL_RESULTS_CHUNKSIZE,
+                start,
+                request.args.get('sort_date_submitted'),
+                request.args.get('sort_date_due'),
+                request.args.get('sort_title'),
+            )
+            total = results["hits"]["total"]
+            if total != 0:
                 for result in results["hits"]["hits"]:
                     writer.writerow([
                         result["_id"],
@@ -191,9 +188,21 @@ def requests_doc(doc_type):
                         result["_source"]["title"],
                         result["_source"]["description"],
                         result["_source"]["agency_description"],
-                        # result["_source"]["date_created"],
+                        result["_source"]["date_created"],
                         result["_source"]["date_submitted"],
                         result["_source"]["date_due"],
                         result["_source"]["requester_name"]])
-            return send_from_directory(*os.path.split(filepath), as_attachment=True)
+            start += ALL_RESULTS_CHUNKSIZE
+            if start > total:
+                break
+        if total != 0:
+            tz_name = request.args.get('tz_name')
+            dt = datetime.utcnow()
+            timestamp = dt + get_timezone_offset(dt, tz_name) if tz_name is not None else dt
+            return send_file(
+                BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
+                attachment_filename="FOIL_requests_results_{}.csv".format(
+                    timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
+                as_attachment=True
+            )
     return '', 400

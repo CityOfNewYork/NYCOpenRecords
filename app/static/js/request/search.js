@@ -1,4 +1,8 @@
 $(function() {
+
+    // set time zone name
+    $("input[name='tz_name']").val(jstz.determine().name());
+
     var start = 0;
     var end = 0;
     var total = 0;
@@ -121,10 +125,9 @@ $(function() {
 
     var next = $("#next");
     var prev = $("#prev");
+    var generateDocBtn = $("#generate-document");
 
-    function search(docType) {
-
-        var docTypePassed = typeof docType !== "undefined";
+    function search() {
 
         // first clear out any "bad" input
         $(".bad-input-text").removeClass("bad-input-text").val("");
@@ -132,101 +135,50 @@ $(function() {
         var results = $("#results");
         var pageInfo = $("#page-info");
 
-        var query = $("#query").val();
-        var searchById = $("#foil-id").prop("checked");
-        var searchByTitle = $("#title").prop("checked");
-        var searchByDescription = $("#description").prop("checked");
-        var searchByAgencyDesc = $("#agency-desc").prop("checked");
-        var searchByRequesterName = $("#requester-name").prop("checked");
-        var dateRecFrom = $("#date-rec-from").val();
-        var dateRecTo = $("#date-rec-to").val();
-        var dateDueFrom = $("#date-due-from").val();
-        var dateDueTo = $("#date-due-to").val();
-        var agency = $("#agency").val();
-        var statusOpen = $("#open").prop("checked");
-        var statusInProg = $("#in-progress").prop("checked");
-        var statusClosed = $("#closed").prop("checked");
-        var statusDueSoon = $("#due-soon").prop("checked");
-        var statusOverdue = $("#overdue").prop("checked");
-        var pageSize = $("#size").val();
-        var sortDateRec = $("#sort-date-rec").attr("data-sort-order");
-        var sortDateDue = $("#sort-date-due").attr("data-sort-order");
-        var sortTitle = $("#sort-title").attr("data-sort-order");
-
-        var url = "/search/requests";
         $.ajax({
-            url: docTypePassed ? url + "/" + docType : url,
-            data: {
-                query: query,
-                foil_id: searchById,
-                title: searchByTitle,
-                description: searchByDescription,
-                agency_description: searchByAgencyDesc,
-                requester_name: searchByRequesterName,
-                date_rec_from: dateRecFrom,
-                date_rec_to: dateRecTo,
-                date_due_from: dateDueFrom,
-                date_due_to: dateDueTo,
-                agency_ein: agency,
-                open: statusOpen,
-                closed: statusClosed,
-                in_progress: statusInProg,
-                due_soon: statusDueSoon,
-                overdue: statusOverdue,
-                size: pageSize,
-                start: start,
-                sort_date_submitted: sortDateRec,
-                sort_date_due: sortDateDue,
-                sort_title: sortTitle
-            },
+            url: "/search/requests",
+            data: $("#search-form").serializeArray(),
             success: function(data) {
-                if (docTypePassed) {
-                    $("#generate-document-error").text();
-                }
-                else {
-                    if (data.total !== 0) {
-                        results.html(data.results);
-                        flask_moment_render_all();
-                        pageInfo.text(
-                            (start + 1) + " - " +
-                            (start + data.count) +
-                            " of " + data.total
-                        );
-                        total = data.total;
-                        end = start + data.count;
-                        if (end === total) {
-                            next.hide();
-                        }
-                        else {
-                            next.show();
-                        }
-                        if (start === 0) {
-                            prev.hide();
-                        }
-                        else {
-                            prev.show();
-                        }
+                if (data.total !== 0) {
+                    results.html(data.results);
+                    flask_moment_render_all();
+                    pageInfo.text(
+                        (start + 1) + " - " +
+                        (start + data.count) +
+                        " of " + data.total
+                    );
+                    total = data.total;
+                    end = start + data.count;
+                    if (end === total) {
+                        next.hide();
                     }
                     else {
-                        results.html("<li class='list-group-item text-center'>" +
-                            "No results found.</li>");
-                        pageInfo.text("");
-                        next.hide();
+                        next.show();
+                    }
+                    if (start === 0) {
                         prev.hide();
                     }
-                }
-            },
-            error: function(e) {
-                if (docTypePassed) {
-                    $("#generate-document-error").text("Unable to generate document!");
+                    else {
+                        prev.show();
+                    }
+                    generateDocBtn.attr("disabled", false);
                 }
                 else {
                     results.html("<li class='list-group-item text-center'>" +
-                        "Hmmmm.... Looks like something's gone wrong.</li>");
+                        "No results found.</li>");
                     pageInfo.text("");
                     next.hide();
                     prev.hide();
+                    generateDocBtn.attr("disabled", true);
                 }
+            },
+            error: function(e) {
+                results.html("<li class='list-group-item text-center'>" +
+                    "Hmmmm.... Looks like something's gone wrong.</li>");
+                pageInfo.text("");
+                next.hide();
+                prev.hide();
+                generateDocBtn.attr("disabled", true);
             }
         });
     }
@@ -235,55 +187,57 @@ $(function() {
     search();
 
     // disable other filters if searching by FOIL-ID
-    $("#foil-id").click(function() {
+    $("input[name='foil_id']").click(function() {
         var query = $("#query");
-        var ids = ["title", "description", "agency-desc", "requester-name"];
+        var names = ["title", "description", "agency_description", "requester_name"];
         var i;
         if ($(this).prop("checked")) {
             query.attr("placeholder", "0000-000-00000");
-            for (i = 0; i < ids.length; i++) {
-                $("#".concat(ids[i])).prop("disabled", true);
+            for (i = 0; i < names.length; i++) {
+                $("input[name='" + names[i] + "']").prop("disabled", true);
             }
         }
         else {
             query.attr("placeholder", "");
-            for (i = 0; i < ids.length; i++) {
-                $("#".concat(ids[i])).prop("disabled", false);
+            for (i = 0; i < names.length; i++) {
+                $("input[name='" + names[i] + "']").prop("disabled", false);
             }
         }
     });
 
-    // $("#generate-document").click(function(e) {
-    //     // search('csv');
-    //     e.preventDefault();
-    //
-    //     e.submit()
-    // });
+    function setStart(val) {
+        start = val;
+        $("input[name='start']").val(val);
+    }
+
+    generateDocBtn.click(function() {
+        search();
+    });
     $(".status").click(function() {
-        start = 0;
+        setStart(0);
         search();
     });
     $("#search").click(function() {
-        start = 0;
+        setStart(0);
         search();
     });
     $("#size").change(function() {
-        start = 0;
+        setStart(0);
         search();
     });
-    $("#agency").change(function() {
-        start = 0;
+    $("#agency_ein").change(function() {
+        setStart(0);
         search();
     });
     next.click(function() {
         if (end < total) {
-            start += parseInt($("#size").val());
+            setStart(start + parseInt($("#size").val()));
             search();
         }
     });
     prev.click(function() {
         if (start > 0) {
-            start -= parseInt($("#size").val());
+            setStart(start - parseInt($("#size").val()));
             search();
         }
     });
@@ -315,8 +269,10 @@ $(function() {
     }
 
     $(".sort-field").click(function() {
-        start = 0;
+        setStart(0);
         cycleSort($(this));
+        // fill hidden inputs
+        $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
         search();
     });
 });

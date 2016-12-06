@@ -1,10 +1,6 @@
 from datetime import datetime
 
-from flask import (
-    jsonify,
-    render_template,
-    current_app,
-)
+from flask import current_app
 from flask_login import current_user
 from elasticsearch.helpers import bulk
 
@@ -14,7 +10,10 @@ from app.constants import (
     ES_DATETIME_FORMAT,
     request_status
 )
-from app.search.constants import DATE_RANGE_FORMAT
+from app.search.constants import (
+    DATE_RANGE_FORMAT,
+    MOCK_EMPTY_ELASTICSEARCH_RESULT
+)
 from app.lib.utils import InvalidUserException
 
 
@@ -79,6 +78,10 @@ def create_index():
                         "date_due": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "date_created": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
                         }
                     }
                 }
@@ -105,6 +108,7 @@ def create_docs():
             'requester_name': r.requester.name,
             'title_private': r.privacy['title'],
             'agency_description_private': r.privacy['agency_description'],
+            'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
             'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
             'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
             'submission': r.submission,
@@ -200,11 +204,7 @@ def search_requests(query,
     # return no results if there is nothing to query by
     if query and not any((foil_id, title, agency_description,
                           description, requester_name)):
-        return jsonify({
-            "hits": {
-                "total": 0,
-                "hits": []
-            }}), 200
+        return MOCK_EMPTY_ELASTICSEARCH_RESULT
 
     # set sort (list of "field:direction" pairs)
     sort = [
