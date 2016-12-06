@@ -258,7 +258,7 @@ class ResponseViewsTests(BaseTestCase):
                 '/response/' + str(response.id),
                 data={
                     'deleted': True,
-                    'confirmation': ':'.join((rf.request.id, str(response.id)))
+                    'confirmation': 'DELETE'
                 }
             )
 
