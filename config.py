@@ -19,6 +19,14 @@ class Config:
     REASON_DATA = (os.environ.get('REASONS_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
 
+    # SFTP
+    USE_SFTP = os.environ.get('USE_SFTP') == "True"
+    SFTP_HOSTNAME = os.environ.get('SFTP_HOSTNAME')
+    SFTP_PORT = os.environ.get('SFTP_PORT')
+    SFTP_USERNAME = os.environ.get('SFTP_USERNAME')
+    SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
+    SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
+
     # SAML Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
@@ -61,9 +69,12 @@ class Config:
 
     # Upload Settings
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
-                                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/data/'))
+                                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/incoming/'))
+    UPLOAD_SERVING_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
+                                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/outgoing/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
-                        os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/'))
+                        os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
+                        if not USE_SFTP else SFTP_UPLOAD_DIRECTORY)
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
@@ -77,9 +88,13 @@ class Config:
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
     ELASTICSEARCH_ENABLED = os.environ.get('ELASTICSEARCH_ENABLED') == "True"
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests"
-    ELASTICSEARCH_HTTP_AUTH = (os.environ.get('ELASTICSEARCH_USERNAME'),
-                               os.environ.get('ELASTICSEARCH_PASSWORD')) or None
     ELASTICSEARCH_USE_SSL = os.environ.get('ELASTICSEARCH_USE_SSL') == "True"
+    ELASTICSEARCH_USERNAME = os.environ.get('ELASTICSEARCH_USERNAME')
+    ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD')
+    ELASTICSEARCH_HTTP_AUTH = ((ELASTICSEARCH_USERNAME,
+                                ELASTICSEARCH_PASSWORD)
+                               if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
+                               else None)
     # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod
@@ -89,7 +104,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    VIRUS_SCAN_ENABLED = eval(str(os.environ.get('VIRUS_SCAN_ENABLED'))) or False
+    VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
     MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
     MAIL_USE_TLS = False
@@ -99,12 +114,13 @@ class DevelopmentConfig(Config):
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_dev"
-    MAGIC_FILE = eval(str(os.environ.get('MAGIC_FILE')))
+    MAGIC_FILE = os.environ.get('MAGIC_FILE', '')
 
 
 class TestingConfig(Config):
     TESTING = True
     VIRUS_SCAN_ENABLED = True
+    USE_SFTP = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or

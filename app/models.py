@@ -399,8 +399,7 @@ class Requests(db.Model):
             date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
             submission=None,
-            status=request_status.OPEN,
-            agency_description=None
+            status=request_status.OPEN
     ):
         self.id = id
         self.title = title
@@ -412,7 +411,6 @@ class Requests(db.Model):
         self.due_date = due_date
         self.submission = submission
         self.status = status
-        self.agency_description = agency_description
 
     @property
     def val_for_events(self):
@@ -863,6 +861,7 @@ class Determinations(Responses):
     acknowledgment | estimated date of completion     | why the date was chosen / additional info
     extension      | new estimated date of completion | why the request extended
     closing        | NA                               | why the request closed
+    reopening      | new estimated date of completion | NA
 
     """
     __tablename__ = response_type.DETERMINATION
@@ -873,9 +872,10 @@ class Determinations(Responses):
         determination_type.ACKNOWLEDGMENT,
         determination_type.EXTENSION,
         determination_type.CLOSING,
+        determination_type.REOPENING,
         name="determination_type"
     ), nullable=False)
-    reason = db.Column(db.String)  # nullable only for acknowledge
+    reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
 
     def __init__(self,
@@ -890,7 +890,8 @@ class Determinations(Responses):
                                              date_modified)
         self.dtype = dtype
 
-        if dtype != determination_type.ACKNOWLEDGMENT:
+        if dtype not in (determination_type.ACKNOWLEDGMENT,
+                         determination_type.REOPENING):
             assert reason is not None
         self.reason = reason
 
@@ -909,7 +910,8 @@ class Determinations(Responses):
             'reason': self.reason
         }
         if self.dtype in (determination_type.ACKNOWLEDGMENT,
-                          determination_type.EXTENSION):
+                          determination_type.EXTENSION,
+                          determination_type.REOPENING):
             val['date'] = self.date.isoformat()
         return val
 
