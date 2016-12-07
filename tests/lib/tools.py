@@ -75,7 +75,7 @@ class RequestsFactory(object):
         self.requester = Users(
             guid=generate_user_guid(user_type_auth.PUBLIC_USER_NYC_ID),
             auth_user_type=user_type_auth.PUBLIC_USER_NYC_ID,
-            agency=agency_ein,
+            agency_ein=agency_ein,
             first_name='Jane',
             last_name='Doe',
             email='jdizzle@email.com',
@@ -165,10 +165,10 @@ def create_user(auth_type=user_type_auth.PUBLIC_USER_NYC_ID):
     user = Users(
         guid=generate_user_guid(auth_type),
         auth_user_type=auth_type,
-        agency=(random.choice([ein[0] for ein in
-                              Agencies.query.with_entities(Agencies.ein).all()])
-                if auth_type == user_type_auth.AGENCY_USER
-                else None),
+        agency_ein=(random.choice([ein[0] for ein in
+                                  Agencies.query.with_entities(Agencies.ein).all()])
+                    if auth_type == user_type_auth.AGENCY_USER
+                    else None),
         first_name=firstname,
         last_name=lastname,
         email='{}{}@email.com'.format(firstname[0].lower(), lastname.lower()),
