@@ -27,9 +27,25 @@ class Config:
     # Database Settings
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
+    # Redis Settings
+    REDIS_HOST = os.environ.get('REDIS_HOST') or 'localhost'
+    REDIS_PORT = os.environ.get('REDIS_PORT') or '6379'
+    CELERY_REDIS_DB = 0
+    SESSION_REDIS_DB = 1
+    UPLOAD_REDIS_DB = 2
+    EMAIL_REDIS_DB = 3
+
     # Celery Settings
-    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
+    CELERY_BROKER_URL = 'redis://{redis_host}:{redis_port}/{celery_redis_db}'.format(
+        redis_host=REDIS_HOST,
+        redis_port=REDIS_PORT,
+        celery_redis_db=CELERY_REDIS_DB
+    )
+    CELERY_RESULT_BACKEND = 'redis://{redis_host}:{redis_port}/{celery_redis_db}'.format(
+        redis_host=REDIS_HOST,
+        redis_port=REDIS_PORT,
+        celery_redis_db=CELERY_REDIS_DB
+    )
 
     # Flask-Mail Settings
     MAIL_SERVER = os.environ.get('MAIL_SERVER')

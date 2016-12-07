@@ -24,12 +24,12 @@ es = FlaskElasticsearch()
 db = SQLAlchemy()
 moment = Moment()
 login_manager = LoginManager()
-store = RedisStore(redis.StrictRedis(db=1))
+store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 prefixed_store = PrefixDecorator('session_', store)
-celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)  # db=0
+celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
-upload_redis = redis.StrictRedis(db=2)
-email_redis = redis.StrictRedis(db=3)
+upload_redis = redis.StrictRedis(db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
+email_redis = redis.StrictRedis(db=Config.EMAIL_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 
 mail = Mail()
 
