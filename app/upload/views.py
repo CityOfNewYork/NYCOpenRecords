@@ -191,13 +191,17 @@ def delete(r_id_type, r_id, filecode):
                         r_id
                     )
             filepath = os.path.join(path, filename)
+            found = False
             if path != '':
                 if quarantined_only:
-                    os.path.exists(filepath)
-                    os.remove(filepath)
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                        found = True
                 else:
-                    fu.exists(filepath)
-                    fu.remove(filepath)
+                    if fu.exists(filepath):
+                        fu.remove(filepath)
+                        found = True
+            if found:
                 response = {"deleted": filename}
             else:
                 response = {"error": "Upload not found."}

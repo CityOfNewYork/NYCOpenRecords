@@ -134,7 +134,8 @@ def requests_doc(doc_type):
 
     In addition to the request parameters required for searching,
     a client's time zone name (param: tz_name) may be provided.
-    Doing so will offset the timestamp present in the file name.
+    Doing so will offset the timestamp present in the file name and
+    in any date-specific result fields.
 
     :param doc_type: document type ('csv' only)
     """
