@@ -1171,9 +1171,8 @@ class ResponseEditor(metaclass=ABCMeta):
         if the confirmation string (see response PATCH) is not valid.
         """
         confirmation = flask_request.form.get("confirmation")
-        valid_confirmation = ':'.join((self.response.request_id,
-                                       str(self.response.id)))
-        if confirmation is None or confirmation != valid_confirmation:
+        valid_confirmation_string = "DELETE"
+        if confirmation is None or confirmation.upper() != valid_confirmation_string:
             self.data_old.pop('deleted')
             self.data_new.pop('deleted')
 

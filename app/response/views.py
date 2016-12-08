@@ -400,7 +400,7 @@ def patch(response_id):
     Ex (for delete):
     {
         'deleted': true,
-        'confirmation': string checked against '<request_id>:<response_id>'
+        'confirmation': string checked against 'DELETE'
             if the strings do not match, the 'deleted' field will not be updated
     }
 

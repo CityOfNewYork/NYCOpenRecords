@@ -586,9 +586,9 @@ $(function () {
             e.preventDefault();
         });
 
-        var deleteConfirmString = sprintf("%s:%s", request_id, response_id);
+        var deleteConfirmString = "DELETE";
         deleteConfirmCheck.on("input", function() {
-            if ($(this).val() === deleteConfirmString) {
+            if ($(this).val().toUpperCase() === deleteConfirmString) {
                 deleteConfirm.attr("disabled", false);
             }
             else {
@@ -606,6 +606,7 @@ $(function () {
             defaultSection.show();
 
             deleteConfirmCheck.val('');
+            deleteConfirm.attr("disabled", true);
         });
 
         responseModal.find(".delete-confirm").click(function() {
