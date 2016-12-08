@@ -5,6 +5,10 @@ python-sudo.sh
 quarantine/
 .vagrant/
 tmp/
+.pip-packages/
+logs/
+received-emails/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
