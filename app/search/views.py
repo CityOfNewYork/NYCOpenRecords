@@ -14,6 +14,7 @@ from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.lib.utils import eval_request_bool
 from app.lib.date_utils import get_timezone_offset
 from app.search.utils import search_requests, convert_dates
+from app.models import Requests
 
 
 @search.route("/", methods=['GET'])
@@ -58,11 +59,11 @@ def requests():
 
     """
 
-    # from flask_login import login_user
-    # from app.models import Users
-    # from app.constants.user_type_auth import PUBLIC_USER_NYC_ID, AGENCY_USER
-    # user = Users.query.filter_by(auth_user_type=AGENCY_USER).first()
-    # login_user(user, force=True)
+    from flask_login import login_user
+    from app.models import Users
+    from app.constants.user_type_auth import PUBLIC_USER_NYC_ID, AGENCY_USER
+    user = Users.query.filter_by(auth_user_type=AGENCY_USER).first()
+    login_user(user, force=True)
 
     try:
         agency_ein = int(request.args.get('agency_ein', ''))
@@ -143,6 +144,8 @@ def requests_doc(doc_type):
         except ValueError:
             agency_ein = None
 
+        tz_name = request.args.get('tz_name')
+
         start = 0
         buffer = StringIO()  # csvwriter cannot accept BytesIO
         writer = csv.writer(buffer)
@@ -154,7 +157,18 @@ def requests_doc(doc_type):
                          "Date Created",
                          "Date Received",
                          "Date Due",
-                         "Requester Name"])  # TODO: more requester info and assigned users info?
+                         "Requester Name",
+                         "Requester Email",
+                         "Requester Title",
+                         "Requester Organization",
+                         "Requester Phone Number",
+                         "Requester Fax Number",
+                         "Requester Address 1",
+                         "Requester Address 2",
+                         "Requester City",
+                         "Requester State",
+                         "Requester Zipcode",
+                         "Assigned User Emails"])
         while True:
             results = search_requests(
                 request.args.get('query'),
@@ -181,7 +195,12 @@ def requests_doc(doc_type):
             )
             total = results["hits"]["total"]
             if total != 0:
+                convert_dates(results, tz_name=tz_name)
                 for result in results["hits"]["hits"]:
+                    r = Requests.query.filter_by(id=result["_id"]).one()
+                    mailing_address = (r.requester.mailing_address
+                                       if r.requester.mailing_address is not None
+                                       else {})
                     writer.writerow([
                         result["_id"],
                         result["_source"]["agency_name"],
@@ -191,12 +210,22 @@ def requests_doc(doc_type):
                         result["_source"]["date_created"],
                         result["_source"]["date_submitted"],
                         result["_source"]["date_due"],
-                        result["_source"]["requester_name"]])
+                        result["_source"]["requester_name"],
+                        r.requester.email,
+                        r.requester.title,
+                        r.requester.organization,
+                        r.requester.phone_number,
+                        r.requester.fax_number,
+                        mailing_address.get('address_one'),
+                        mailing_address.get('address_two'),
+                        mailing_address.get('city'),
+                        mailing_address.get('state'),
+                        mailing_address.get('zip'),
+                        ", ".join(u.email for u in r.agency_users)])
             start += ALL_RESULTS_CHUNKSIZE
             if start > total:
                 break
         if total != 0:
-            tz_name = request.args.get('tz_name')
             dt = datetime.utcnow()
             timestamp = dt + get_timezone_offset(dt, tz_name) if tz_name is not None else dt
             return send_file(

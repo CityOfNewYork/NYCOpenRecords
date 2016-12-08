@@ -15,6 +15,7 @@ from app.search.constants import (
     MOCK_EMPTY_ELASTICSEARCH_RESULT
 )
 from app.lib.utils import InvalidUserException
+from app.lib.date_utils import get_timezone_offset
 
 
 def recreate():
@@ -205,6 +206,10 @@ def search_requests(query,
     if query and not any((foil_id, title, agency_description,
                           description, requester_name)):
         return MOCK_EMPTY_ELASTICSEARCH_RESULT
+
+    # if searching by foil-id, strip "FOIL-"
+    if foil_id:
+        query = query.lstrip("FOIL-")
 
     # set sort (list of "field:direction" pairs)
     sort = [
@@ -445,14 +450,22 @@ class RequestsDSLGenerator(object):
         return self.__filters + self.__default_filters
 
 
-def convert_dates(results):
+def convert_dates(results, dt_format=None, tz_name=None):
     """
-    Replace 'date_submitted' and 'date_due' of the request
-    search results with a datetime object.
+    Replace datetime values of requests search results with a
+    datetime object or a datetime string in the specified format.
+    Dates can also be offset according to the given time zone name.
+
+    :results: elasticsearch json results
+    :dt_format: datetime string format
+    :tz_name: time zone name
     """
     for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due"):
-            hit["_source"][field] = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+        for field in ("date_submitted", "date_due", "date_created"):
+            dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+            if tz_name:
+                dt += get_timezone_offset(dt, tz_name)
+            hit["_source"][field] = dt.strftime(dt_format) if dt_format is not None else dt
 
 
 def _process_highlights(results, requester_id=None):
