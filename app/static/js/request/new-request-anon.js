@@ -24,12 +24,19 @@ $(document).ready(function () {
     $('#request-category').change(function() {
         $.ajax({
             url: "/request/agencies",
-            type: "POST",
+            type: "GET",
             data: {
                 category: $("#request-category").val()
             },
             success: function(data) {
-                $('#request-agency').empty();
+                var sel = $('#request-agency');
+                sel.empty();
+                for(var i =0; i < data.length; i++){
+                    var opt = document.createElement('option');
+                    opt.innerHTML = data[i][1];
+                    opt.value = data[i][0];
+                    sel.append(opt)
+                }
             }
         })
     });

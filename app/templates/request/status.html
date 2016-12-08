@@ -15,7 +15,7 @@
     <h4>{{ request.agency.name }} </h4>
 
     {% if current_user.is_agency %}
-        {% if request.requester.is_anonymous %}
+        {% if request.requester.is_anonymous_requester %}
             {% include 'request/_edit_requester_info.html' %}
         {% endif %}
         <hr>

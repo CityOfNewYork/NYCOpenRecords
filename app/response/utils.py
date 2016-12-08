@@ -1084,7 +1084,7 @@ def _create_response_event(response, events_type):
     event = Events(request_id=response.request_id,
                    user_id=user.guid,
                    auth_user_type=user.auth_user_type,
-                   type=events_type,
+                   type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
                    new_value=response.val_for_events)
@@ -1183,7 +1183,7 @@ class ResponseEditor(metaclass=ABCMeta):
         timestamp = datetime.utcnow()
 
         event = Events(
-            type=self.event_type,
+            type_=self.event_type,
             request_id=self.response.request_id,
             response_id=self.response.id,
             user_id=self.user.guid,

@@ -140,7 +140,7 @@
     {% endif %}
     {% include "request/fileupload_add_file.js.html" %}
     {% include "request/fileupload_update_templates.js.html" %}
-    {% if current_user.is_agency and request.requester.is_anonymous %}
+    {% if current_user.is_agency and request.requester.is_anonymous_requester %}
         {% include 'request/edit_requester_info.js.html' %}
     {% endif %}
     {% include 'request/_view_request_edit_visibility.js.html' %}

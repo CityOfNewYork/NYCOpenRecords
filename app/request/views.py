@@ -6,6 +6,8 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta as rd
 
+from sqlalchemy import any_
+
 from flask import (
     render_template,
     redirect,
@@ -96,12 +98,14 @@ def new():
         if current_user.is_public:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
+                                        form.request_category.data,
                                         agency=form.request_agency.data,
                                         upload_path=upload_path,
                                         tz_name=flask_request.form['tz-name'])
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
+                                        form.request_category.data,
                                         submission=form.method_received.data,
                                         agency_date_submitted=form.request_date.data,
                                         email=form.email.data,
@@ -117,6 +121,7 @@ def new():
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
+                                        form.request_category.data,
                                         agency=form.request_agency.data,
                                         email=form.email.data,
                                         first_name=form.first_name.data,
@@ -266,9 +271,19 @@ def edit_requester_info(request_id):
     return jsonify(response), status_code
 
 
-@request.route('/agencies', methods=['POST'])
-def get_agencies():
-    choices = sorted([(agencies.ein, agencies.name)
-                      for agencies in Agencies.query.filter(Agencies.category.match(flask_request.form['category'])).all()],
-                     key=lambda x: x[1])
+@request.route('/agencies', methods=['GET'])
+def get_agencies_as_choices():
+    if flask_request.args['category']:
+        # FIXME: is sorted faster than orderby?
+        choices = sorted(
+            [(agencies.ein, agencies.name)
+             for agencies in Agencies.query.filter(
+                flask_request.args['category'] == any_(Agencies.categories)
+            ).all()],
+            key=lambda x: x[1])
+    else:
+        choices = sorted(
+            [(agencies.ein, agencies.name)
+             for agencies in Agencies.query.all()],
+            key=lambda x: x[1])
     return jsonify(choices)
