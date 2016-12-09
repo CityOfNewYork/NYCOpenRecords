@@ -22,7 +22,7 @@ def patch(user_id):  # TODO: should handle what edit_requester_info route does
         fieldnames = ['is_agency_admin', 'is_agency_active']
         data = {}
         for name in fieldnames:
-            val = request.args.get(name)
+            val = request.form.get(name)
             if val:
                 data[name] = val
         if data:

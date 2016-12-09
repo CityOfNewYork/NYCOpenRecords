@@ -277,6 +277,10 @@ class Users(UserMixin, db.Model):
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
+    def from_id(self, id):  # Might come in useful
+        guid, auth_user_type = id.split(USER_ID_DELIMITER)
+        return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
+
     @property
     def name(self):
         return ' '.join((self.first_name, self.last_name))
