@@ -117,6 +117,9 @@ def create_app(config_name):
     from .request.api import request_api_blueprint
     app.register_blueprint(request_api_blueprint, url_prefix="/request/api/v1.0")
 
+    from .report import report
+    app.register_blueprint(report, url_prefix="/report")
+
     from .response import response
     app.register_blueprint(response, url_prefix="/response")
 
