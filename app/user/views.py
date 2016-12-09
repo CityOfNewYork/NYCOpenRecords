@@ -6,7 +6,7 @@ from flask import jsonify, request
 
 
 @user.route('/<user_id>', methods=['PATCH'])
-def patch(user_id):  # TODO: should handle what edit_requester_info route does
+def patch(user_id):  # TODO: should also handle what edit_requester_info route does
     """
     Currently only accepts agency-specific changes:
         is_agency_admin

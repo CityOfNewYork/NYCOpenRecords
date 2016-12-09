@@ -50,7 +50,7 @@ def update_object(data, obj_type, obj_id):
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
 
-    :return: was the records updated successfully?
+    :return: was the record updated successfully?
     """
     obj = get_obj(obj_type, obj_id)
 
