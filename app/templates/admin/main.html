@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{#{% block custom_css %}#}
+{#{% endblock %}#}
+
+{% block title %}
+    Admin
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            {{ form.users.label }}
+            <div class="row">
+                <div class="col-sm-8">
+                    {{ form.users }}  <!-- TODO: live search -->
+                </div>
+                <div class="col-sm-2">
+                    <div class="checkbox" style="margin-top: 0px">
+                        <label>
+                            <input type="checkbox"> Administrator
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" class="btn btn-primary btn-sm">Add</button>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row" style="font-weight: bold; padding-bottom: 1em;">
+            <div class="col-sm-4">
+                ID
+            </div>
+            <div class="col-sm-3">
+                Name
+            </div>
+            <div class="col-sm-3">
+                Email
+            </div>
+            <div class="col-sm-1">
+                User
+            </div>
+            <div class="col-sm-1">
+                Admin
+            </div>
+        </div>
+        {% for user in users %}
+            <div class="row">
+                <div class="col-sm-4 user-id">  <!-- MAYBE use hidden input instead -->
+                    {{ user.get_id() }}
+                </div>
+                <div class="col-sm-3">
+                    {{ user.name }}
+                </div>
+                <div class="col-sm-3">
+                    {{ user.email }}
+                </div>
+                <div class="col-sm-1">
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="user-status-{{ loop.index }}"
+                                   {% if not user.is_agency_admin %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="user-status-{{ loop.index }}"
+                                   {% if user.is_agency_admin %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript">
+        $(function() {
+            $("input[name^='user-status']").click(function() {
+                debugger;
+                var id = $(this).parents(".row").find(".user-id").val();
+                console.log(id);
+            });
+        })
+    </script>
+{% endblock %}

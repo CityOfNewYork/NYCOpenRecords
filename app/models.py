@@ -146,6 +146,11 @@ class Agencies(db.Model):
                     "Users.is_agency_active == True, "
                     "Users.is_agency_admin == False)"
     )
+    inactive_users = db.relationship(
+        'Users',
+        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
+                    "Users.is_agency_active == False)"
+    )
 
     @classmethod
     def populate(cls):

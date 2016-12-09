@@ -95,4 +95,7 @@ def create_app(config_name):
     from .search import search
     app.register_blueprint(search, url_prefix="/search")
 
+    from .admin import admin
+    app.register_blueprint(admin, url_prefix="/admin")
+
     return app
