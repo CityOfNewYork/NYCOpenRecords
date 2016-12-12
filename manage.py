@@ -112,5 +112,11 @@ def es_recreate():
     recreate()
 
 
+@manager.command
+def create_search_set():
+    from tests.lib.tools import create_user, create_requests_search_set
+    create_requests_search_set(create_user(), create_user())
+
+
 if __name__ == "__main__":
     manager.run()

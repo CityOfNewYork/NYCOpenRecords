@@ -214,15 +214,11 @@ def create_request(title,
     agency_administrators = Agencies.query.filter_by(ein=agency).first().administrators
 
     if agency_administrators:
-        # Generate a list of tuples(guid, auth_user_type) identifying the agency administrators
-        agency_administrators = [(agency_user.guid, agency_user.auth_user_type)
-                                 for agency_user in agency_administrators]
-
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
-        for agency_administrator in agency_administrators:
-            user_request = UserRequests(user_guid=agency_administrator[0],
-                                        auth_user_type=agency_administrator[1],
+        for admin in agency_administrators:
+            user_request = UserRequests(user_guid=admin.guid,
+                                        auth_user_type=admin.auth_user_type,
                                         request_user_type=user_type_request.AGENCY,
                                         request_id=request_id,
                                         permissions=Roles.query.filter_by(name=role.AGENCY_ADMIN).first().permissions)

@@ -426,7 +426,7 @@ class Requests(db.Model):
             description,
             agency_ein,
             date_created,
-            category,
+            category=None,
             privacy=None,
             date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
