@@ -493,7 +493,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=[Reasons.query.filter_by(id=reason_id).one().content
                  for reason_id in data.getlist('reason_ids[]')],
-        agency_appeals_email=Requests.query.filter_by(id=request_id).first().agency.appeals_email,
+        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page
     )}), 200
 
@@ -525,7 +525,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         request_id=request_id,
         agency_name=agency_name,
         reasons=reasons,
-        agency_appeals_email=Requests.query.filter_by(id=request_id).first().agency.appeals_email,
+        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page
     )}), 200
 
