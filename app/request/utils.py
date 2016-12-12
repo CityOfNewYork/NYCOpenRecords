@@ -56,6 +56,7 @@ from app.upload.utils import (
 
 def create_request(title,
                    description,
+                   category,
                    tz_name,
                    agency=None,
                    first_name=None,
@@ -112,6 +113,7 @@ def create_request(title,
         id=request_id,
         title=title,
         agency_ein=agency,
+        category=category,
         description=description,
         date_created=date_created,
         date_submitted=date_submitted,
@@ -159,7 +161,7 @@ def create_request(title,
                               auth_user_type=user.auth_user_type,
                               response_id=response.id,
                               request_id=request_id,
-                              type=event_type.FILE_ADDED,
+                              type_=event_type.FILE_ADDED,
                               timestamp=datetime.utcnow(),
                               new_value=response.val_for_events)
         create_object(upload_event)
@@ -181,7 +183,7 @@ def create_request(title,
     event = Events(user_id=user.guid,
                    auth_user_type=user.auth_user_type,
                    request_id=request_id,
-                   type=event_type.REQ_CREATED,
+                   type_=event_type.REQ_CREATED,
                    timestamp=timestamp,
                    new_value=request.val_for_events)
     create_object(event)
@@ -189,7 +191,7 @@ def create_request(title,
         agency_event = Events(user_id=current_user.guid,
                               auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
-                              type=event_type.AGENCY_REQ_CREATED,
+                              type_=event_type.AGENCY_REQ_CREATED,
                               timestamp=timestamp)
         create_object(agency_event)
 

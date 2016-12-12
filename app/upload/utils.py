@@ -78,7 +78,7 @@ def is_valid_file_type(obj):
     # 1. Check using default
     mime_type = magic.from_buffer(buffer, mime=True)
     is_valid = mime_type in ALLOWED_MIMETYPES
-    if is_valid and current_app.config['MAGIC_FILE'] != '':
+    if is_valid and current_app.config['MAGIC_FILE']:
         # 3. Check using custom
         m = magic.Magic(
             magic_file=current_app.config['MAGIC_FILE'],

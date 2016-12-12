@@ -97,7 +97,7 @@ def _sftp_get_mime_type(sftp, path):
     with TemporaryFile() as tmp:
         sftp.getfo(path, tmp)
         tmp.seek(0)
-        if current_app.config['MAGIC_FILE'] != '':
+        if current_app.config['MAGIC_FILE']:
             # Check using custom mime database file
             m = magic.Magic(
                 magic_file=current_app.config['MAGIC_FILE'],
@@ -170,7 +170,7 @@ def move(oldpath, newpath):
 
 @_sftp_switch(_sftp_get_mime_type)
 def get_mime_type(path):
-    if current_app.config['MAGIC_FILE'] != '':
+    if current_app.config['MAGIC_FILE']:
         # Check using custom mime database file
         m = magic.Magic(
             magic_file=current_app.config['MAGIC_FILE'],

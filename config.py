@@ -114,7 +114,7 @@ class DevelopmentConfig(Config):
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_dev"
-    MAGIC_FILE = os.environ.get('MAGIC_FILE', '')
+    MAGIC_FILE = os.environ.get('MAGIC_FILE')
 
 
 class TestingConfig(Config):
