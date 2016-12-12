@@ -5,6 +5,27 @@ $(document).ready(function () {
 
     $("input[name='tz-name']").val(jstz.determine().name());
 
+    // ajax call to get and populate list of agencies choices based on selected category
+    $('#request-category').change(function() {
+        $.ajax({
+            url: "/request/agencies",
+            type: "GET",
+            data: {
+                category: $("#request-category").val()
+            },
+            success: function(data) {
+                var sel = $('#request-agency');
+                sel.empty();
+                for(var i =0; i < data.length; i++){
+                    var opt = document.createElement('option');
+                    opt.innerHTML = data[i][1];
+                    opt.value = data[i][0];
+                    sel.append(opt)
+                }
+            }
+        })
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $('#request-title').attr({
             'data-placement': "top",
