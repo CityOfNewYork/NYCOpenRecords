@@ -6,7 +6,7 @@ $(document).ready(function () {
     $("input[name='tz-name']").val(jstz.determine().name());
 
     // ajax call to get and populate list of agencies choices based on selected category
-    $('#request-category').change(function() {
+    $("#request-category").change(function() {
         $.ajax({
             url: "/request/agencies",
             type: "GET",

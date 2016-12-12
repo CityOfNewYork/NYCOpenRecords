@@ -22,7 +22,7 @@ $(document).ready(function () {
     });
 
     // ajax call to get and populate list of agencies choices based on selected category
-    $('#request-category').change(function() {
+    $("#request-category").change(function() {
         $.ajax({
             url: "/request/agencies",
             type: "GET",
