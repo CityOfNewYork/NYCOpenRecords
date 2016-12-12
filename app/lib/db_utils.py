@@ -50,8 +50,7 @@ def update_object(data, obj_type, obj_id):
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
 
-    :return: string representation of the updated object
-        or None if updating failed
+    :return: was the record updated successfully?
     """
     obj = get_obj(obj_type, obj_id)
 
@@ -76,8 +75,8 @@ def update_object(data, obj_type, obj_id):
             # update elasticsearch
             if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED']:
                 obj.es_update()
-            return str(obj)
-    return None
+            return True
+    return False
 
 
 def delete_object(obj):
