@@ -25,7 +25,6 @@ from app.constants import (
     event_type,
     role_name as role,
     ACKNOWLEDGMENT_DAYS_DUE,
-    USER_ID_DELIMITER,
     user_type_request,
 )
 from app.constants.user_type_auth import ANONYMOUS_USER
@@ -216,13 +215,14 @@ def create_request(title,
 
     if agency_administrators:
         # Generate a list of tuples(guid, auth_user_type) identifying the agency administrators
-        agency_administrators = [tuple(agency_user.split(USER_ID_DELIMITER)) for agency_user in agency_administrators]
+        agency_administrators = [(agency_user.guid, agency_user.auth_user_type)
+                                 for agency_user in agency_administrators]
 
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
         for agency_administrator in agency_administrators:
-            user_request = UserRequests(user_id=agency_administrator[0],
-                                        auth_auth_user_type=agency_administrator[1],
+            user_request = UserRequests(user_guid=agency_administrator[0],
+                                        auth_user_type=agency_administrator[1],
                                         request_user_type=user_type_request.AGENCY,
                                         request_id=request_id,
                                         permissions=Roles.query.filter_by(name=role.AGENCY_ADMIN).first().permissions)
