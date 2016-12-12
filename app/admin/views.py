@@ -12,6 +12,9 @@ from flask_login import current_user
 
 @admin.route('/')
 def main():
+    from flask_login import login_user
+    login_user(Users.query.filtery_by(is_agency_admin=True).first())
+
     if not current_user.is_anonymous and current_user.is_agency_admin:
         form = AddAgencyUserForm(current_user.agency_ein)
         active_users = Users.query.filter(  # excluding current administrator
@@ -23,8 +26,8 @@ def main():
             Users.last_name.desc()
         ).all()
         return render_template("admin/main.html", users=active_users, form=form)
+    # FIXME: remove (just for testing)
     else:
-        # FIXME: remove (just for testing)
         form = AddAgencyUserForm(3)
         active_users = Users.query.filter(
             Users.is_agency_active == True,

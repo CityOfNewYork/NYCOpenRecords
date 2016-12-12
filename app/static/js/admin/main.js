@@ -42,7 +42,7 @@ $(function() {
                 success: function() {
                     location.reload();
                 }
-            })
+            });
         });
     });
 });
