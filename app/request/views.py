@@ -106,6 +106,7 @@ def new():
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         form.request_category.data,
+                                        agency=current_user.agency_ein,
                                         submission=form.method_received.data,
                                         agency_date_submitted=form.request_date.data,
                                         email=form.email.data,
