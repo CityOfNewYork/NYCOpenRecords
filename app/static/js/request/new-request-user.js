@@ -14,16 +14,16 @@ $(document).ready(function () {
                 category: $("#request-category").val()
             },
             success: function(data) {
-                var sel = $('#request-agency');
+                var sel = $("#request-agency");
                 sel.empty();
                 for(var i =0; i < data.length; i++){
-                    var opt = document.createElement('option');
+                    var opt = document.createElement("option");
                     opt.innerHTML = data[i][1];
                     opt.value = data[i][0];
-                    sel.append(opt)
+                    sel.append(opt);
                 }
             }
-        })
+        });
     });
 
     // javascript to add tooltip popovers when selecting the title and description
