@@ -14,7 +14,7 @@ from flask_login import current_user
 def main():
     if not current_user.is_anonymous and current_user.is_agency_admin:
         form = AddAgencyUserForm(current_user.agency_ein)
-        active_users = Users.query.filter(
+        active_users = Users.query.filter(  # excluding current administrator
             Users.guid != current_user.guid,
             Users.auth_user_type != current_user.auth_user_type,
             Users.is_agency_active == True,
