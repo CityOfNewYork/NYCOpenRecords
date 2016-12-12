@@ -1,77 +1,12 @@
-<html class="no-js" lang="en">
-<head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}OpenRecords{% endblock title %}</title>
-
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-theme.css') }}"/>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}"/>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/base.css') }}"/>
-
-    <link type="image/x-icon" rel="shortcut icon" href="{{ url_for('static', filename='img/favicon-32x32.png') }}"/>
-
-    {{ moment.include_jquery() }}
-    {{ moment.include_moment() }}
-
-    {% block custom_css %}
-    {% endblock %}
-</head>
-
-<body>
-
-{% block navbar %}
-{% block nyc_gov_header %}
-{% include '_nyc_gov_header.html' %}
-{% endblock %}
-{% block logo %}
-<script type="text/javascript">
-    function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'en',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-        }, 'google_translate_element');
-    }
-</script>
-
-
-<div class="row">
-    <div class="col-sm-4"></div>
-    <div class="col-sm-4">
-        <a href="{{ url_for('main.index') }}">
-            <img class="center-block header_logo" style=""
-                 src="{{ url_for('static', filename='img/logo.png') }}"/>
-        </a>
-    </div>
-    <div class="col-sm-2">
-        <div id="google_translate_element">
-            <div class="skiptranslate goog-te-gadget" dir="ltr">
-                <div id=":0.targetLanguage" class="goog-te-gadget-simple"
-                     style="white-space: nowrap; border:none;"><span style="vertical-align: middle;"><a
-                        role="menu" class="goog-te-menu-value2" href="javascript:void(0)"><span
-                        class="translate-text">Translate</span><span
-                        style="border-left: 1px solid rgb(187, 187, 187);padding-right:5px;">​</span><span
-                        style="color: rgb(155, 155, 155);">▼</span></a></span></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-3"></div>
-
-</div>
-{% endblock %}
-<div class="container-fluid">
-    {% block navigation %}
-    {% include "navbar.html" %}
-    {% endblock %}
-    {% endblock %}
-</div>
-<div class="container">
+{%extends "base.html"%}
+{% block content %}
     <h1 id="about">About OpenRECORDS</h1>
 
     <p class="lead">OpenRECORDS is a quick, simple way for you to submit a public records request to a New York City
         Agency.</p>
 
-    <p><strong>Most information on this site is public.</strong> Your contact information, and most personal information that may
+    <p><strong>Most information on this site is public.</strong> Your contact information, and most personal information
+        that may
         be contained in government documents will not be made available to the public.</p>
 
     <h4 id="what"> What is OpenRECORDS?</h4>
@@ -80,8 +15,8 @@
         agency. The web application also allows government employees to manage, respond to, and fulfill incoming
         requests. By providing more information about records requests, members of the public may find what they need
         without having to create a new public record request.</p>
-</div>
-<div class="container">
+
+
     <h4 id="documents">Why aren't all documents uploaded on OpenRECORDS?</h4>
 
     <p>City agencies will not publicly release records or information that violates your right to privacy. City agencies
@@ -97,9 +32,9 @@
         such as reports and data will be posted to the portal 20 business days after they are sent directly to the
         requester.
         Records that contain email correspondence from government employees will be sent directly to the requester.</p>
-</div>
 
-<div class="container">
+
+
     <h4 id="why">History of OpenRECORDS (Previously RecordTrac)</h4>
 
 
@@ -108,13 +43,8 @@
         didn’t understand what happened after they submitted their requests and it took too long to get the records they
         needed.
         By making everything completely transparent, you can know your request is fulfilled.</p>
-</div>
-<div class="wrapper">
-    {% block content %}
-    {% endblock %}
-</div>
+{% endblock %}
 
-{% include "_nyc_gov_footer.html" %}
 <script type="text/javascript"
         src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
@@ -125,4 +55,3 @@
 {% block custom_script %}
 {% endblock %}
 
-</body>
