@@ -1,10 +1,6 @@
 from datetime import datetime
 
-from flask import (
-    jsonify,
-    render_template,
-    current_app,
-)
+from flask import current_app
 from flask_login import current_user
 from elasticsearch.helpers import bulk
 
@@ -14,8 +10,12 @@ from app.constants import (
     ES_DATETIME_FORMAT,
     request_status
 )
-from app.search.constants import DATE_RANGE_FORMAT
+from app.search.constants import (
+    DATE_RANGE_FORMAT,
+    MOCK_EMPTY_ELASTICSEARCH_RESULT
+)
 from app.lib.utils import InvalidUserException
+from app.lib.date_utils import get_timezone_offset
 
 
 def recreate():
@@ -79,6 +79,10 @@ def create_index():
                         "date_due": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "date_created": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
                         }
                     }
                 }
@@ -105,6 +109,7 @@ def create_docs():
             'requester_name': r.requester.name,
             'title_private': r.privacy['title'],
             'agency_description_private': r.privacy['agency_description'],
+            'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
             'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
             'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
             'submission': r.submission,
@@ -159,7 +164,7 @@ def search_requests(query,
                     highlight=False):
     """
     The arguments of this function match the request parameters
-    of the '/search/requests' endpoint.
+    of the '/search/requests' endpoints.
 
     All date related params expect strings in the format "mm/dd/yyyy"
     All sort related params expect "desc" or "asc"; other strings ignored
@@ -190,7 +195,7 @@ def search_requests(query,
         if True, will come at a slight performance cost (in order to
         restrict highlights to public fields, iterating over elasticsearch
         query results is required)
-    :return: json response with result information
+    :return: elasticsearch json response with result information
 
     """
     # clean query trailing/leading whitespace
@@ -200,7 +205,11 @@ def search_requests(query,
     # return no results if there is nothing to query by
     if query and not any((foil_id, title, agency_description,
                           description, requester_name)):
-        return jsonify({"total": 0}), 200
+        return MOCK_EMPTY_ELASTICSEARCH_RESULT
+
+    # if searching by foil-id, strip "FOIL-"
+    if foil_id:
+        query = query.lstrip("FOIL-")
 
     # set sort (list of "field:direction" pairs)
     sort = [
@@ -303,6 +312,7 @@ def search_requests(query,
         _source=['requester_id',
                  'date_submitted',
                  'date_due',
+                 'date_created',
                  'status',
                  'agency_ein',
                  'agency_name',
@@ -311,7 +321,7 @@ def search_requests(query,
                  'agency_description_private',
                  'public_title',
                  'title',
-                 'agency_description',  # TODO: remove last 2 after testing
+                 'agency_description',
                  'description'],
         size=size,
         from_=start,
@@ -322,19 +332,7 @@ def search_requests(query,
     if highlight and not foil_id:
         _process_highlights(results, dsl_gen.requester_id)
 
-    # format results
-    total = results["hits"]["total"]
-    formatted_results = None
-    if total != 0:
-        _convert_dates(results)
-        formatted_results = render_template("request/result_row.html",
-                                            requests=results["hits"]["hits"],
-                                            query=query)  # TODO: remove after testing
-    return jsonify({
-        "count": len(results["hits"]["hits"]),
-        "total": total,
-        "results": formatted_results
-    }), 200
+    return results
 
 
 class RequestsDSLGenerator(object):
@@ -452,14 +450,22 @@ class RequestsDSLGenerator(object):
         return self.__filters + self.__default_filters
 
 
-def _convert_dates(results):
+def convert_dates(results, dt_format=None, tz_name=None):
     """
-    Replace 'date_submitted' and 'date_due' of the request
-    search results with a datetime object.
+    Replace datetime values of requests search results with a
+    datetime object or a datetime string in the specified format.
+    Dates can also be offset according to the given time zone name.
+
+    :results: elasticsearch json results
+    :dt_format: datetime string format
+    :tz_name: time zone name
     """
     for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due"):
-            hit["_source"][field] = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+        for field in ("date_submitted", "date_due", "date_created"):
+            dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+            if tz_name:
+                dt += get_timezone_offset(dt, tz_name)
+            hit["_source"][field] = dt.strftime(dt_format) if dt_format is not None else dt
 
 
 def _process_highlights(results, requester_id=None):

@@ -102,10 +102,12 @@ def deploy():
         Reasons
     )))
 
+    es_recreate()
+
 
 @manager.command
 def es_recreate():
-    """Recreate elasticsearch index and populate."""
+    """Recreate elasticsearch index and request docs."""
     from app.search.utils import recreate
     recreate()
 

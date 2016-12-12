@@ -32,160 +32,176 @@
         </div>
         <br>
         <!-- Search & Filters -->
-        <div class="row" id="search-section">
-            <div class="well col-sm-12">
-                <div class="col-sm-4">
-                    <h4><label for="query">Search By</label>
-                        <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Search By"
-                               data-content="This search section allows you to search by key words in the various fields of a request">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    <input type="text" id="query">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="foil-id">
-                            FOIL ID
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="title" checked>
-                            Title
-                        </label>
-                    </div>
-                    {% if not current_user.is_anonymous %}
+        <form id="search-form" action="{{ url_for("search.requests_doc", doc_type="csv") }}" method="get" target="_blank" rel="noreferrer">
+            <div class="row" id="search-section">
+                <div class="well col-sm-12">
+                    <div class="col-sm-4">
+                        <h4><label for="query">Search By</label>
+                            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Search By"
+                                   data-content="This search section allows you to search by key words in the various fields of a request">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </small>
+                        </h4>
+                        <input type="text" id="query" name="query">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="description">
-                                Description
+                                <input type="checkbox" name="foil_id">
+                                FOIL ID
                             </label>
                         </div>
-                    {% endif %}
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="agency-desc">
-                            Agency Description
-                        </label>
-                    </div>
-                    {% if current_user.is_agency %}
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="requester-name">
-                                Requester Name
+                                <input type="checkbox" name="title" checked>
+                                Title
                             </label>
                         </div>
-                    {% endif %}
-                    <br>
-                    <select id="size" title="size" class="input-block-level" style="width: 4em; display: inline;">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                    <strong>&nbsp;Results Per Page</strong>
-                </div>
-                <div class="col-sm-4">
-                    {% if current_user.is_agency %}
-                        <div class="row">
+                        {% if not current_user.is_anonymous %}
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="description">
+                                    Description
+                                </label>
+                            </div>
+                        {% endif %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="agency_description">
+                                Agency Description
+                            </label>
+                        </div>
+                        {% if current_user.is_agency %}
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="requester_name">
+                                    Requester Name
+                                </label>
+                            </div>
+                        {% endif %}
+                        <br>
+                        <select id="size" name="size" title="size" class="input-block-level">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                        <strong>&nbsp;Results Per Page</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        {% if current_user.is_agency %}
+                            <div class="row">
+                                <h4><label>Date Received</label>
+                                    <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
+                                           data-content="This search section allows you to search for requests that were received between two specific dates">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </small>
+                                </h4>
+                                <div class="col-sm-6 no-pad-left">
+                                    <label for="date-rec-from">From:</label>
+                                    <input type="text" id="date-rec-from" name="date_rec_from">
+                                </div>
+                                <div class="col-sm-6 no-pad-right">
+                                    <label for="date-rec-to">To:</label>
+                                    <input type="text" id="date-rec-to" name="date_rec_to">
+                                </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <h4><label>Date Due</label>
+                                    <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Due"
+                                           data-content="This search section allows you to search for requests that are due between two specific dates">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </small>
+                                </h4>
+                                <div class="col-sm-6 no-pad-left">
+                                    <label for="date-due-from">From:</label>
+                                    <input type="text" id="date-due-from" name="date_due_from">
+                                </div>
+                                <div class="col-sm-6 no-pad-right">
+                                    <label for="date-due-to">To:</label>
+                                    <input type="text" id="date-due-to" name="date_due_to">
+                                </div>
+                            </div>
+                        {% else %}
                             <h4><label>Date Received</label>
                                 <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
                                        data-content="This search section allows you to search for requests that were received between two specific dates">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </small>
                             </h4>
-                            <div class="col-sm-6 no-pad-left">
-                                <label for="date-rec-from">From:</label>
-                                <input type="text" id="date-rec-from">
-                            </div>
-                            <div class="col-sm-6 no-pad-right">
-                                <label for="date-rec-to">To:</label>
-                                <input type="text" id="date-rec-to">
-                            </div>
-                        </div>
-                        <br>
-                        <div class="row">
-                            <h4><label>Date Due</label>
-                                <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Due"
-                                       data-content="This search section allows you to search for requests that are due between two specific dates">
-                                    <span class="glyphicon glyphicon-question-sign"></span>
-                                </small>
-                            </h4>
-                            <div class="col-sm-6 no-pad-left">
-                                <label for="date-due-from">From:</label>
-                                <input type="text" id="date-due-from">
-                            </div>
-                            <div class="col-sm-6 no-pad-right">
-                                <label for="date-due-to">To:</label>
-                                <input type="text" id="date-due-to">
-                            </div>
-                        </div>
-                    {% else %}
-                        <h4><label>Date Received</label>
-                            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
-                                   data-content="This search section allows you to search for requests that were received between two specific dates">
+                            <label for="date-rec-from">From:</label>
+                            <input type="text" id="date-rec-from" name="date_rec_from">
+                            <br>
+                            <label for="date-rec-to">To:</label>
+                            <input type="text" id="date-rec-to" name="date_rec_to">
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-4">
+                        <h4>{{ form.agency_ein.label }}
+                            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency"
+                                   data-content="This search section allows you to search by different agencies">
                                 <span class="glyphicon glyphicon-question-sign"></span>
                             </small>
                         </h4>
-                        <label for="date-rec-from">From:</label>
-                        <input type="text" id="date-rec-from">
+                        {{ form.agency_ein(class="input-block-level") }}
                         <br>
-                        <label for="date-rec-to">To:</label>
-                        <input type="text" id="date-rec-to">
-                    {% endif %}
-                </div>
-                <div class="col-sm-4">
-                    <h4>{{ form.agency.label }}
-                        <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency"
-                               data-content="This search section allows you to search by different agencies">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    {{ form.agency(class="input-block-level") }}
-                    <br>
-                    <h4><label>Status</label>
-                        <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"
-                               data-content="This search section allows you to search by status of the request">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    <div class="status open checkbox">
-                        <label>
-                            <input type="checkbox" id="open" checked>
-                            Open
-                        </label>
-                    </div>
-                    {% if current_user.is_agency %}
-                        <div class="status in-progress checkbox">
+                        <h4><label>Status</label>
+                            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"
+                                   data-content="This search section allows you to search by status of the request">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </small>
+                        </h4>
+                        <div class="status open checkbox">
                             <label>
-                                <input type="checkbox" id="in-progress" checked>
-                                In Progress
+                                <input type="checkbox" name="open" checked>
+                                Open
                             </label>
                         </div>
-                        <div class="status due-soon checkbox">
+                        {% if current_user.is_agency %}
+                            <div class="status in-progress checkbox">
+                                <label>
+                                    <input type="checkbox" name="in_progress" checked>
+                                    In Progress
+                                </label>
+                            </div>
+                            <div class="status due-soon checkbox">
+                                <label>
+                                    <input type="checkbox" name="due_soon" checked>
+                                    Due Soon
+                                </label>
+                            </div>
+                            <div class="status overdue checkbox">
+                                <label>
+                                    <input type="checkbox" name="overdue" checked>
+                                    Overdue
+                                </label>
+                            </div>
+                        {% endif %}
+                        <div class=" status closed checkbox">
                             <label>
-                                <input type="checkbox" id="due-soon" checked>
-                                Due Soon
+                                <input type="checkbox" name="closed">
+                                Closed
                             </label>
                         </div>
-                        <div class="status overdue checkbox">
-                            <label>
-                                <input type="checkbox" id="overdue" checked>
-                                Overdue
-                            </label>
+                        <!-- hidden inputs with out-of-form counterparts must have identical values -->
+                        <input type="hidden" name="tz_name">
+                        <input type="hidden" name="start">
+                        <input type="hidden" name="sort_date_submitted">
+                        <input type="hidden" name="sort_date_due">
+                        <input type="hidden" name="sort_title">
+                        <div class="text-right">
+                            <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
                         </div>
-                    {% endif %}
-                    <div class=" status closed checkbox">
-                        <label>
-                            <input type="checkbox" id="closed">
-                            Closed
-                        </label>
-                    </div>
-                    <div class="text-right">
-                        <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
                     </div>
                 </div>
             </div>
-        </div>
+            {% if current_user.is_agency %}
+                <div class="row">
+                    <div class="col-sm-12 no-pad-left no-pad-right">
+                        <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV</button>
+                        <span id="generate-document-error"></span>
+                    </div>
+                </div>
+            {% endif %}
+        </form>
         <div class="row">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -193,17 +209,17 @@
                         <div class="col-sm-2">
                             ID
                         </div>
-                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort-date-rec">
+                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort_date_submitted">
                             Date Received <span class="glyphicon" aria-hidden="true"></span>
                         </div>
                         <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %} sort-field"
-                             data-sort-order="none" id="sort-title">
+                             data-sort-order="none" id="sort_title">
                             Title <span class="glyphicon" aria-hidden="true"></span>
                         </div>
                         <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
                             Assigned Agency
                         </div>
-                        <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort-date-due">
+                        <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort_date_due">
                             Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
                         </div>
                         {% if current_user.is_agency %}

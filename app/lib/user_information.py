@@ -10,7 +10,7 @@ def create_mailing_address(address_one, city, state, zipcode, address_two=None):
     :return: JSON Object containing the address
     """
     return {
-        'address_one': address_one,
+        'address_one': address_one,  # TODO: constants
         'address_two': address_two,
         'city': city,
         'state': state,

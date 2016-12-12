@@ -792,7 +792,7 @@ def _edit_email_handler(data):
         email_summary_requester, email_summary_edited, header = _get_edit_response_template(editor)
 
     # if confirmation is not empty and response type is not FILE, store email templates into redis
-    if eval_request_bool(data.get('confirmation'), False) and resp.type != response_type.FILE:
+    if eval_request_bool(data.get('confirmation')) and resp.type != response_type.FILE:
         email_redis.set(get_email_key(response_id), email_summary_edited)
         if email_summary_requester is not None:
             email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
@@ -823,7 +823,7 @@ def _get_edit_response_template(editor):
     email_summary_requester = None
     agency = False
 
-    if eval_request_bool(data.get('confirmation'), False) or editor.update:
+    if eval_request_bool(data.get('confirmation')) or editor.update:
         default_content = False
         agency_content = data['email_content']
 

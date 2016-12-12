@@ -279,7 +279,7 @@ class Users(UserMixin, db.Model):
         """
         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
 
-    def get_id(self):
+    def get_id(self):  # FIXME: should not be getter
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
     def from_id(self, user_id):  # Might come in useful
@@ -499,6 +499,7 @@ class Requests(db.Model):
                 'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
                 'agency_description_private': self.privacy['agency_description'],
+                'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': self.submission,
