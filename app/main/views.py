@@ -55,3 +55,8 @@ def test_email():
 @main.route('/index.html', methods=['GET'])
 def status():
     return 200
+
+
+@main.route('/contact', methods=['POST'])
+def contact():
+    return render_template('contact/contact.html')
