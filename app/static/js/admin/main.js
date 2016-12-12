@@ -2,7 +2,7 @@ $(function() {
     // ADD ACTIVE USER
     $("#add-button").click(function() {
         var id = $("#users").val();
-        var isAgencyAdmin = $("input[name='is-admin']").is(':checked');
+        var isAgencyAdmin = $("input[name='is-admin']").is(":checked");
         $.ajax({
             url: "/user/" + id,
             type: "PATCH",
@@ -13,7 +13,7 @@ $(function() {
             success: function() {
                 location.reload();
             }
-        })
+        });
     });
     // EDIT ACTIVE USER
     $("input[name^='user-status']").click(function() {

@@ -146,6 +146,11 @@ class Agencies(db.Model):
                     "Users.is_agency_active == True, "
                     "Users.is_agency_admin == False)"
     )
+    active_users = db.relationship(
+        'Users',
+        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
+                    "Users.is_agency_active == True)"
+    )
     inactive_users = db.relationship(
         'Users',
         primaryjoin="and_(Agencies.ein == Users.agency_ein, "
@@ -277,8 +282,8 @@ class Users(UserMixin, db.Model):
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
-    def from_id(self, id):  # Might come in useful
-        guid, auth_user_type = id.split(USER_ID_DELIMITER)
+    def from_id(self, user_id):  # Might come in useful
+        guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
 
     @property

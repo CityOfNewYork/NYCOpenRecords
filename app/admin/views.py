@@ -18,7 +18,7 @@ def main():
             Users.guid != current_user.guid,
             Users.auth_user_type != current_user.auth_user_type,
             Users.is_agency_active == True,
-            Users.agency_ein == 3
+            Users.agency_ein == current_user.agency_ein
         ).order_by(
             Users.last_name.desc()
         ).all()
