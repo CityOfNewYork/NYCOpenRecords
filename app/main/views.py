@@ -25,7 +25,7 @@ from . import main
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('home.html')
+    return render_template('main/home.html')
 
 
 # TESTING PURPOSES
@@ -55,3 +55,8 @@ def test_email():
 @main.route('/index.html', methods=['GET'])
 def status():
     return 200
+
+
+@main.route('/about', methods=['GET'])
+def about():
+    return render_template('main/about.html')
