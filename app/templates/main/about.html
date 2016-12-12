@@ -1,5 +1,7 @@
-{%extends "base.html"%}
+{% extends "base.html" %}
+
 {% block content %}
+<div class="col-sm-12">
     <h1 id="about">About OpenRECORDS</h1>
 
     <p class="lead">OpenRECORDS is a quick, simple way for you to submit a public records request to a New York City
@@ -8,7 +10,7 @@
     <p><strong>Most information on this site is public.</strong> Your contact information, and most personal information
         that may
         be contained in government documents will not be made available to the public.</p>
-
+    <br>
     <h4 id="what"> What is OpenRECORDS?</h4>
 
     <p>OpenRECORDS is a quick, simple way for individuals to submit Freedom of Information Law (FOIL) requests to a NYC
@@ -16,7 +18,7 @@
         requests. By providing more information about records requests, members of the public may find what they need
         without having to create a new public record request.</p>
 
-
+    <br>
     <h4 id="documents">Why aren't all documents uploaded on OpenRECORDS?</h4>
 
     <p>City agencies will not publicly release records or information that violates your right to privacy. City agencies
@@ -33,25 +35,14 @@
         requester.
         Records that contain email correspondence from government employees will be sent directly to the requester.</p>
 
-
-
+    <br>
     <h4 id="why">History of OpenRECORDS (Previously RecordTrac)</h4>
-
+    <img src="{{ url_for('static', filename='img/nycseal.png') }}" alt="NYC Seal" style="float: left; padding-right: 2em;">
 
     <p>The 2013 Code for America fellows created RecordTrac with the City of Oakland in response to public complaints
         that they
         didn’t understand what happened after they submitted their requests and it took too long to get the records they
         needed.
         By making everything completely transparent, you can know your request is fulfilled.</p>
+</div>
 {% endblock %}
-
-<script type="text/javascript"
-        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jstz.min.js') }}"></script>
-{% block custom_script %}
-{% endblock %}
-
