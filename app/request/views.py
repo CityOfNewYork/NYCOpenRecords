@@ -275,7 +275,7 @@ def edit_requester_info(request_id):
 @request.route('/agencies', methods=['GET'])
 def get_agencies_as_choices():
     if flask_request.args['category']:
-        # FIXME: is sorted faster than orderby?
+        # TODO: is sorted faster than orderby?
         choices = sorted(
             [(agencies.ein, agencies.name)
              for agencies in Agencies.query.filter(
