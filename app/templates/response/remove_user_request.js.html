@@ -20,6 +20,11 @@
 
         var removeConfirmCheck = second.find("input[name=remove-confirm-string]");
         var removeConfirmString = "REMOVE";
+
+        removeConfirmCheck.on('paste', function(e) {
+            e.preventDefault();
+        });
+
         removeConfirmCheck.on("input", function() {
             if ($(this).val().toUpperCase() === removeConfirmString) {
                 remove.attr("disabled", false);
