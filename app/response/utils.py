@@ -42,6 +42,7 @@ from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import get_due_date, process_due_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
+from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool
 from app.models import (
     Events,
@@ -74,14 +75,21 @@ def add_file(request_id, filename, title, privacy):
 
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
+    try:
+        size, mime_type, hash_ = redis_get_file_metadata(request_id, path)
+        redis_delete_file_metadata(request_id, path)
+    except AttributeError:
+        size = fu.getsize(path)
+        mime_type = fu.get_mime_type(path)
+        hash_ = fu.get_hash(path)
     response = Files(
         request_id,
         privacy,
         title,
         filename,
-        fu.get_mime_type(path),
-        fu.getsize(path),
-        fu.get_hash(path),
+        mime_type,
+        size,
+        hash_
     )
     create_object(response)
 
@@ -1265,19 +1273,30 @@ class RespFileEditor(ResponseEditor):
                     new_filename
                 )
                 if fu.exists(filepath):
+                    try:
+                        # fetch file metadata from redis store
+                        size, mime_type, hash_ = redis_get_file_metadata(
+                            self.response.id,
+                            filepath,
+                            is_update=True)
+                    except AttributeError:
+                        size = fu.getsize(filepath)
+                        mime_type = fu.get_mime_type(filepath)
+                        hash_ = fu.get_hash(filepath)
                     self.set_data_values('size',
                                          self.response.size,
-                                         fu.getsize(filepath))
+                                         size)
                     self.set_data_values('name',
                                          self.response.name,
                                          new_filename)
                     self.set_data_values('mime_type',
                                          self.response.mime_type,
-                                         fu.get_mime_type(filepath))
+                                         mime_type)
                     self.set_data_values('hash',
                                          self.response.hash,
-                                         fu.get_hash(filepath))
+                                         hash_)
                     if self.update:
+                        redis_delete_file_metadata(self.response.id, filepath, is_update=True)
                         self.replace_old_file(filepath)
                 else:
                     self.errors.append(
