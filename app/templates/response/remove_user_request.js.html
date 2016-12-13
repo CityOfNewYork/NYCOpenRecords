@@ -32,7 +32,7 @@
         remove.click(function() {
             remove.attr("disabled", true);
             $.ajax({
-                url: "/response/user/{{ request.id }}",
+                url: "/user_request/{{ request.id }}",
                 type: "DELETE",
                 data: form.serializeArray(),
                 success: function() {

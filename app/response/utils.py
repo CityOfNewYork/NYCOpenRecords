@@ -55,8 +55,6 @@ from app.models import (
     Determinations,
     Emails,
     ResponseTokens,
-    Users,
-    UserRequests
 )
 
 
@@ -87,7 +85,7 @@ def add_file(request_id, filename, title, privacy):
     )
     create_object(response)
 
-    _create_response_event(event_type.FILE_ADDED, response=response)
+    create_response_event(event_type.FILE_ADDED, response=response)
 
     return response
 
@@ -106,7 +104,7 @@ def add_note(request_id, note_content, email_content, privacy):
     """
     response = Notes(request_id, privacy, note_content)
     create_object(response)
-    _create_response_event(event_type.NOTE_ADDED, response=response)
+    create_response_event(event_type.NOTE_ADDED, response=response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -140,7 +138,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
             new_due_date,
         )
         create_object(response)
-        _create_response_event(event_type.REQ_ACKNOWLEDGED, response=response)
+        create_response_event(event_type.REQ_ACKNOWLEDGED, response=response)
         _send_response_email(request_id, privacy, email_content)
 
 
@@ -169,7 +167,7 @@ def add_denial(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(event_type.REQ_CLOSED, response=response)
+        create_response_event(event_type.REQ_CLOSED, response=response)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
@@ -202,7 +200,7 @@ def add_closing(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(event_type.REQ_CLOSED, response=response)
+        create_response_event(event_type.REQ_CLOSED, response=response)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
@@ -232,7 +230,7 @@ def add_reopening(request_id, date, tz_name, email_content):
             new_due_date
         )
         create_object(response)
-        _create_response_event(event_type.REQ_REOPENED, response=response)
+        create_response_event(event_type.REQ_REOPENED, response=response)
         update_object(
             {'status': request_status.IN_PROGRESS,
              'due_date': new_due_date,
@@ -272,7 +270,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
         new_due_date
     )
     create_object(response)
-    _create_response_event(event_type.REQ_EXTENDED, response=response)
+    create_response_event(event_type.REQ_EXTENDED, response=response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -292,7 +290,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     """
     response = Links(request_id, privacy, title, url_link)
     create_object(response)
-    _create_response_event(event_type.LINK_ADDED, response=response)
+    create_response_event(event_type.LINK_ADDED, response=response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -310,7 +308,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     """
     response = Instructions(request_id, privacy, instruction_content)
     create_object(response)
-    _create_response_event(event_type.INSTRUCTIONS_ADDED, response=response)
+    create_response_event(event_type.INSTRUCTIONS_ADDED, response=response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -342,53 +340,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
         body=email_content
     )
     create_object(response)
-    _create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response=response)
-
-
-def remove_user_request(request_id, user_guid):
-    """
-    Remove user from request and sends email to all agency administrators and to user being removed.
-    Delete row from UserRequests table and stores event object into Events.
-
-    :param request_id: FOIL request ID
-    :param user_guid: string guid of user being removed
-
-    """
-    user_request = UserRequests.query.filter_by(user_guid=user_guid,
-                                                request_id=request_id).first()
-    agency_admins = Users.query.filter_by(agency_ein=user_request.user.agency_ein,
-                                          is_agency_admin=True).all()
-    admin_emails = []
-    for agency_admin in agency_admins:
-        admin_emails.append(agency_admin.email)
-
-    # send email to agency administrators
-    safely_send_and_add_email(
-        request_id,
-        render_template(
-            'email_templates/email_removed_user_request.html',
-            request_id=request_id,
-            name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=user_request.user.agency.name,
-            page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
-            admin=True),
-        'User Removed from Request',
-        to=admin_emails)
-
-    # send email to user being removed
-    safely_send_and_add_email(
-        request_id,
-        render_template(
-            'email_templates/email_removed_user_request.html',
-            request_id=request_id,
-            name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=user_request.user.agency.name,
-            page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))),
-        'User Removed from Request',
-        to=[user_request.user.email])
-
-    _create_response_event(event_type.USER_REMOVED, user_request=user_request)
-    delete_object(user_request)
+    create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response=response)
 
 
 def add_sms():
@@ -1119,7 +1071,7 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def _create_response_event(events_type, response=None, user_request=None):
+def create_response_event(events_type, response=None, user_request=None):
     """
     Create and store event object for given response.
 

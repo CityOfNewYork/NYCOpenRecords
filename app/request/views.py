@@ -42,6 +42,8 @@ from app.request.forms import (
     DenyRequestForm,
     SearchRequestsForm,
     CloseRequestForm,
+)
+from app.user_request.forms import (
     RemoveUserRequestForm
 )
 from app.request.utils import (
