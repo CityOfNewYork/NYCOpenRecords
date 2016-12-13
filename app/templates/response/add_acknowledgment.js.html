@@ -43,6 +43,7 @@
             if ($(this).val() === dateSelectVal) {
                 date.parent().show();
                 info.attr("data-parsley-required", "");
+                info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
                 info.attr("data-parsley-minlength", "20");
             }
             else {
