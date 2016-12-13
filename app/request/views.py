@@ -276,6 +276,11 @@ def edit_requester_info(request_id):
 
 @request.route('/agencies', methods=['GET'])
 def get_agencies_as_choices():
+    """
+    Get selected category value from the request body and generate a list of sorted agencies from the category.
+
+    :return: list of agency choices
+    """
     if flask_request.args['category']:
         # TODO: is sorted faster than orderby?
         choices = sorted(

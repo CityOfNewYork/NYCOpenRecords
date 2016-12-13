@@ -43,6 +43,7 @@ from app.response.utils import (
     add_closing,
     add_reopening,
     add_instruction,
+    remove_user_request,
     get_file_links,
     process_upload_data,
     send_file_email,
@@ -501,3 +502,42 @@ def get_response_content(response_id):
                     sso2=True,
                     return_to=flask_request.base_url))
     return '', 400  # TODO: error pages
+
+
+@response.route('/user/<request_id>', methods=['DELETE'])
+def response_user(request_id):
+    """
+    Removes a user from a request and send notification emails.
+
+    Expects a request body containing user's guid and confirmation string.
+    Ex:
+    {
+        'user': '7khz9y',
+        'remove-confirmation-string': 'removed'
+    }
+
+    :return:
+    """
+    user_data = flask_request.form
+
+    required_fields = ['user',
+                       'remove-confirm-string']
+
+    # TODO: Get copy from business, insert sentry issue key in message
+    # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
+    for field in required_fields:
+        if user_data.get(field) is None:
+            flash('Uh Oh, it looks like the {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    valid_confirmation_string = "REMOVE"
+    if user_data['remove-confirm-string'].upper() != valid_confirmation_string:
+        flash('Uh Oh, it looks like the confirmation text is incorrect! '
+              'This is probably NOT your fault.', category='danger')
+        return redirect(url_for('request.view', request_id=request_id))
+
+    remove_user_request(request_id,
+                        user_data['user'])
+    return jsonify({'removed': True})
+
