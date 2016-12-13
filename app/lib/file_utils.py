@@ -184,7 +184,7 @@ def move(oldpath, newpath):
 
 @_sftp_switch(_sftp_get_mime_type)
 def get_mime_type(path):
-    os_get_mime_type(path)
+    return os_get_mime_type(path)
 
 
 def os_get_mime_type(path):
@@ -205,7 +205,7 @@ def get_hash(path):
     Returns the sha1 hash of a file a string of
     hexadecimal digits.
     """
-    os_get_hash(path)
+    return os_get_hash(path)
 
 
 def os_get_hash(path):

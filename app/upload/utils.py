@@ -67,8 +67,7 @@ def upload_exists(request_id, filename, response_id=None):
             request_id=request_id,
             deleted=False
         ).all()
-    existing_filenames = [f.name for f in files]
-    return filename in existing_filenames
+    return filename in [f.name for f in files]
 
 
 def is_valid_file_type(obj):
