@@ -1,7 +1,7 @@
 """
 .. module:: request.forms.
 
-    :synopsis: Defines forms used to create Procurement requests.
+    :synopsis: Defines forms used to create FOIL requests.
 """
 
 from datetime import datetime
@@ -241,3 +241,14 @@ class SearchRequestsForm(Form):
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
         # Why choices must be set in constructor I do not know... some db issue
+
+
+class RemoveUserRequestForm(Form):
+    user = SelectField('Users')
+
+    def __init__(self, agency_users):
+        super(RemoveUserRequestForm, self).__init__()
+        self.user.choices = [
+            (agency_user.guid, ', '.join([agency_user.last_name, agency_user.first_name]))
+            for agency_user in agency_users
+        ]
