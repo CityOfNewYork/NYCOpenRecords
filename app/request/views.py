@@ -23,6 +23,7 @@ from app.constants import (
     request_status,
     user_type_request
 )
+from app.constants.user_type_auth import AGENCY_USER
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -185,12 +186,14 @@ def view(request_id):
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
-
-    assigned_user_requests = UserRequests.query.filter(
-        UserRequests.request_id == current_request.id,
-        UserRequests.request_user_type == user_type_request.AGENCY,
-        UserRequests.user_guid != current_user.guid
-    ).all()
+    if current_user.is_agency:
+        assigned_user_requests = UserRequests.query.filter(
+            UserRequests.request_id == current_request.id,
+            UserRequests.request_user_type == user_type_request.AGENCY,
+            UserRequests.user_guid != current_user.guid
+        ).all()
+    else:
+        assigned_user_requests = []
 
     assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
                       for ur in assigned_user_requests]
