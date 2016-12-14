@@ -50,26 +50,12 @@ class Roles(db.Model):
         Insert permissions for each role.
         """
         roles = {
-            role_name.ANONYMOUS: (
-                permission.DUPLICATE_REQUEST |
-                permission.VIEW_REQUEST_STATUS_PUBLIC |
-                permission.VIEW_REQUEST_INFO_PUBLIC
-            ),
-            role_name.PUBLIC_NON_REQUESTER: (
-                permission.DUPLICATE_REQUEST |
-                permission.VIEW_REQUEST_STATUS_PUBLIC |
-                permission.VIEW_REQUEST_INFO_PUBLIC
-            ),
             role_name.PUBLIC_REQUESTER: (
-                permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.VIEW_DOCUMENTS_IMMEDIATELY |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_PUBLIC
+                permission.ADD_NOTE
             ),
             role_name.AGENCY_HELPER: (
                 permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
+                permission.ADD_FILE |
                 permission.VIEW_REQUESTS_HELPER |
                 permission.VIEW_REQUEST_INFO_ALL |
                 permission.VIEW_REQUEST_STATUS_ALL
