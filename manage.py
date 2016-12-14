@@ -140,17 +140,5 @@ def create_users():
         print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
 
 
-#
-# @manager.option("-a", "--agency", help="Create agency user.", action="store_true", dest='agency')
-# def create_user(agency=False):
-#     from tests.lib.tools import create_user
-#     from app.constants.user_type_auth import AGENCY_USER
-#     if agency:
-#         user = create_user(AGENCY_USER)
-#     else:
-#         user = create_user()
-#     print(user, "created.")
-
-
 if __name__ == "__main__":
     manager.run()
