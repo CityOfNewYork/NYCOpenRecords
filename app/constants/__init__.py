@@ -94,3 +94,5 @@ EMAIL_TEMPLATE_FOR_TYPE = {
     determination_type.EXTENSION: "email_response_extension.html",
     determination_type.REOPENING: "email_response_reopening.html"
 }
+
+OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"

@@ -3,24 +3,20 @@
 
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
-
+from . import main
 from datetime import datetime
-from flask import current_app
 from flask import (
     render_template,
     flash,
     request,
-    make_response,
-    url_for,
-    redirect,
-    session
 )
-from app.lib.email_utils import send_email
+from app.lib.email_utils import send_email, send_contact_email
+from app.lib.db_utils import create_object
+from app.models import Emails
+from app.constants import OPENRECORDS_DL_EMAIL
+from app.constants.response_privacy import PRIVATE
 from flask_wtf import Form
 from wtforms import SubmitField, StringField
-
-from app.models import Users
-from . import main
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -57,6 +53,33 @@ def status():
     return 200
 
 
-@main.route('/contact', methods=['POST'])
+@main.route('/contact', methods=['GET', 'POST'])
 def contact():
-    return render_template('contact/contact.html')
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        subject = request.form.get('subject')
+        message = request.form.get('message')
+
+        if all((name, email, subject, message)):
+            body = "Name: {}\n\nEmail: {}\n\nSubject: {}\n\nMessage:\n{}".format(
+                name, email, subject, message)
+            create_object(
+                Emails(
+                    request_id=None,
+                    privacy=PRIVATE,
+                    to=OPENRECORDS_DL_EMAIL,
+                    cc=None,
+                    bcc=None,
+                    subject=subject,
+                    body=body,
+                    date_modified=datetime.utcnow()
+                )
+            )
+            send_contact_email(subject, body, email)
+            flash('Your message has been sent. We will get back to you.', category='success')
+        else:
+            flash('Cannot send email.', category='danger')
+    return render_template('contact.html')
+
+# openrecords@records.nyc.gov

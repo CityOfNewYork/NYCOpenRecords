@@ -20,7 +20,7 @@
                 {% if current_user.is_authenticated %}
                     <li class="openrecords_nav"><a href="{{ url_for('auth.manage_account') }}">Manage Account</a></li>
                 {% endif %}
-                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Contact</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.contact') }}">Contact</a></li>
             </ul>
         </div><!--/.nav-collapse -->
     </div><!--/.container-fluid -->

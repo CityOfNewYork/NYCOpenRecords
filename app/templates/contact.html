@@ -1,10 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
+<h2>Contact</h2>
 
-</body>
-</html>
+<div>
+    <form action="{{ url_for('main.contact') }}" method="post">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" value="">
+        <br>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="text" value="">
+        <br>
+        <label for="subject">Subject</label>
+        <input id="subject" name="subject" type="text" value="">
+        <br>
+        <label for="message">Message</label>
+        <textarea id="message" name="message"></textarea>
+        <br>
+        <input id="submit" name="submit" type="submit" value="Send">
+    </form>
+</div>
+
+{% endblock %}
