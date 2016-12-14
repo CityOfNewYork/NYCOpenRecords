@@ -127,7 +127,7 @@ class Agencies(db.Model):
     administrators - an array of user id strings that identify default admins for an agencies requests
     """
     __tablename__ = 'agencies'
-    ein = db.Column(db.String(4), primary_key=True)  # FIXME: add length 3 if possible
+    ein = db.Column(db.String(4), primary_key=True)
     parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
     name = db.Column(db.String(256), nullable=False)

@@ -1,6 +1,6 @@
 import csv
-from io import StringIO, BytesIO
 from datetime import datetime
+from io import StringIO, BytesIO
 
 from flask import (
     request,
@@ -9,12 +9,13 @@ from flask import (
 )
 from flask.helpers import send_file
 from flask_login import current_user
+
+from app.lib.date_utils import get_timezone_offset
+from app.lib.utils import eval_request_bool
+from app.models import Requests
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
-from app.lib.utils import eval_request_bool
-from app.lib.date_utils import get_timezone_offset
 from app.search.utils import search_requests, convert_dates
-from app.models import Requests
 
 
 @search.route("/", methods=['GET'])

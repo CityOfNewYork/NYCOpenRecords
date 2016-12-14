@@ -9,17 +9,15 @@
 """
 import os
 import uuid
-
-import app.lib.file_utils as fu
-
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
 
 from flask import render_template, current_app, url_for, request as flask_request
 from flask_login import current_user
-from tempfile import NamedTemporaryFile
 from werkzeug.utils import secure_filename
 
+import app.lib.file_utils as fu
 from app import upload_redis
 from app.constants import (
     event_type,
@@ -27,9 +25,9 @@ from app.constants import (
     ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request,
 )
-from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.submission_methods import DIRECT_INPUT
+from app.constants.user_type_auth import ANONYMOUS_USER
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
@@ -324,8 +322,8 @@ def generate_request_id(agency_ein):
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     if agency_ein:
-        agency = Agencies.query.filter_by(ein=agency_ein).first()
-        next_request_number = Agencies.query.filter_by(ein=agency_ein).first().next_request_number
+        agency = Agencies.query.filter_by(ein=agency_ein).one()
+        next_request_number = Agencies.query.filter_by(ein=agency.parent_ein).one().next_request_number
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
                       agency_ein)
