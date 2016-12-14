@@ -33,6 +33,7 @@ from app.constants.submission_methods import DIRECT_INPUT
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
+from app.lib.redis_utils import redis_set_file_metadata
 from app.models import (
     Requests,
     Agencies,
@@ -310,6 +311,8 @@ def _move_validated_upload(request_id, tmp_path):
         fu.mkdir(dst_dir)
     valid_name = os.path.basename(tmp_path).split('.', 1)[1]  # remove 'tmp' prefix
     valid_path = os.path.join(dst_dir, valid_name)
+    # store file metadata in redis
+    redis_set_file_metadata(request_id, tmp_path)
     fu.move(tmp_path, valid_path)
     upload_redis.set(
         get_upload_key(request_id, valid_name),
