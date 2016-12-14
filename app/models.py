@@ -127,12 +127,14 @@ class Agencies(db.Model):
     administrators - an array of user id strings that identify default admins for an agencies requests
     """
     __tablename__ = 'agencies'
-    ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
+    ein = db.Column(db.String(4), primary_key=True)  # FIXME: add length 3 if possible
+    parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
     name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
+    is_active = db.Column(db.Boolean(), default=False)
 
     administrators = db.relationship(
         'Users',
@@ -168,11 +170,13 @@ class Agencies(db.Model):
             for row in dictreader:
                 agency = cls(
                     ein=row['ein'],
+                    parent_ein=row['parent_ein'],
                     categories=row['categories'].split(','),
                     name=row['name'],
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
-                    appeals_email=row['appeals_email']
+                    appeals_email=row['appeals_email'],
+                    is_active=eval(row['is_active'])
                 )
                 db.session.add(agency)
             db.session.commit()
@@ -214,7 +218,7 @@ class Users(UserMixin, db.Model):
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'),
         primary_key=True)
-    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     is_agency_admin = db.Column(db.Boolean, nullable=False, default=False)
     is_agency_active = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
@@ -361,7 +365,7 @@ class Requests(db.Model):
     """
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
-    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     category = db.Column(db.String, default='All', nullable=False)
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
@@ -670,7 +674,7 @@ class Reasons(db.Model):
         determination_type.DENIAL,
         name="reason_type"
     ), nullable=False)
-    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     content = db.Column(db.String, nullable=False)
 
     @classmethod

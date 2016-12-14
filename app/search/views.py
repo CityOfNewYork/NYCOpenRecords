@@ -58,15 +58,8 @@ def requests():
     - Date Due
 
     """
-
-    from flask_login import login_user
-    from app.models import Users
-    from app.constants.user_type_auth import PUBLIC_USER_NYC_ID, AGENCY_USER
-    user = Users.query.filter_by(auth_user_type=AGENCY_USER).first()
-    login_user(user, force=True)
-
     try:
-        agency_ein = int(request.args.get('agency_ein', ''))
+        agency_ein = request.args.get('agency_ein', '')
     except ValueError:
         agency_ein = None
 
@@ -141,7 +134,7 @@ def requests_doc(doc_type):
     """
     if current_user.is_agency and doc_type.lower() == 'csv':
         try:
-            agency_ein = int(request.args.get('agency_ein', ''))
+            agency_ein = request.args.get('agency_ein', '')
         except ValueError:
             agency_ein = None
 
