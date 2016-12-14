@@ -4,21 +4,24 @@
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
 
-from datetime import datetime
-from flask import current_app
 from flask import (
     render_template,
     flash,
     request,
-    make_response,
-    url_for,
     redirect,
-    session
+    url_for
 )
-from app.lib.email_utils import send_email
+from flask_login import login_user
 from flask_wtf import Form
 from wtforms import SubmitField, StringField
 
+from app.constants.user_type_auth import (
+    AGENCY_USER,
+    ANONYMOUS_USER,
+    PUBLIC_USER_TYPES
+)
+
+from app.lib.email_utils import send_email
 from app.models import Users
 from . import main
 
@@ -60,3 +63,22 @@ def status():
 @main.route('/about', methods=['GET'])
 def about():
     return render_template('main/about.html')
+
+
+@main.route('/login-user', methods=['GET'])
+def get_user_list():
+    types = [type for type in PUBLIC_USER_TYPES]
+    types.append(AGENCY_USER)
+    users = []
+    for type in types:
+        user = Users.query.filter_by(auth_user_type=type).first()
+        users.append(user)
+
+    return render_template('main/test/user_list.html', users=users)
+
+
+@main.route('/login-user/<guid>', methods=['GET'])
+def test_specific_user(guid=None):
+    user = Users.query.filter_by(guid=guid).first()
+    login_user(user, force=True)
+    return redirect(url_for('main.index'))
