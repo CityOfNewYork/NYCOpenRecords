@@ -9,17 +9,15 @@
 """
 import os
 import uuid
-
-import app.lib.file_utils as fu
-
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
 
 from flask import render_template, current_app, url_for, request as flask_request
 from flask_login import current_user
-from tempfile import NamedTemporaryFile
 from werkzeug.utils import secure_filename
 
+import app.lib.file_utils as fu
 from app import upload_redis
 from app.constants import (
     event_type,
@@ -27,9 +25,9 @@ from app.constants import (
     ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request,
 )
-from app.constants.user_type_auth import ANONYMOUS_USER
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.submission_methods import DIRECT_INPUT
+from app.constants.user_type_auth import ANONYMOUS_USER
 from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
@@ -204,20 +202,19 @@ def create_request(title,
                                     name=role_name).first().permissions)
     create_object(user_request)
 
-    # 11. Create the elasticsearch request doc
+    # 11. Create the elasticsearch request doc only if agency has been onboarded
+    agency = Agencies.query.filter_by(ein=agency).first()
+
     # (Now that we can associate the request with its requester.)
-    if current_app.config['ELASTICSEARCH_ENABLED']:
+    if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
         request.es_create()
 
     # 12. Add all agency administrators to the request.
 
-    # a. Get all agency administrators objects
-    agency_administrators = Agencies.query.filter_by(ein=agency).first().administrators
-
-    if agency_administrators:
+    if agency.administrators:
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
-        for admin in agency_administrators:
+        for admin in agency.administrators:
             user_request = UserRequests(user_guid=admin.guid,
                                         auth_user_type=admin.auth_user_type,
                                         request_user_type=user_type_request.AGENCY,
@@ -328,12 +325,15 @@ def generate_request_id(agency_ein):
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     if agency_ein:
-        next_request_number = Agencies.query.filter_by(ein=agency_ein).first().next_request_number
+        agency = Agencies.query.filter_by(ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
+        next_request_number = Agencies.query.filter_by(
+            parent_ein=agency.parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
                       agency_ein)
-        request_id = "FOIL-{0:s}-{1:03d}-{2:05d}".format(
-            datetime.utcnow().strftime("%Y"), int(agency_ein), int(next_request_number))
+        agency_ein = agency.parent_ein
+        request_id = "FOIL-{0:s}-{1!s}-{2:05d}".format(
+            datetime.utcnow().strftime("%Y"), agency_ein, int(next_request_number))
         return request_id
     return None
 

@@ -64,7 +64,7 @@ def create_index():
                             "type": "boolean",
                         },
                         "agency_ein": {
-                            "type": "integer",
+                            "type": "keyword",
                         },
                         "agency_name": {
                             "type": "keyword",

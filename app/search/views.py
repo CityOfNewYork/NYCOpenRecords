@@ -1,6 +1,6 @@
 import csv
-from io import StringIO, BytesIO
 from datetime import datetime
+from io import StringIO, BytesIO
 
 from flask import (
     request,
@@ -9,12 +9,13 @@ from flask import (
 )
 from flask.helpers import send_file
 from flask_login import current_user
+
+from app.lib.date_utils import get_timezone_offset
+from app.lib.utils import eval_request_bool
+from app.models import Requests
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
-from app.lib.utils import eval_request_bool
-from app.lib.date_utils import get_timezone_offset
 from app.search.utils import search_requests, convert_dates
-from app.models import Requests
 
 
 @search.route("/", methods=['GET'])
@@ -59,7 +60,7 @@ def requests():
 
     """
     try:
-        agency_ein = int(request.args.get('agency_ein', ''))
+        agency_ein = request.args.get('agency_ein', '')
     except ValueError:
         agency_ein = None
 
@@ -134,7 +135,7 @@ def requests_doc(doc_type):
     """
     if current_user.is_agency and doc_type.lower() == 'csv':
         try:
-            agency_ein = int(request.args.get('agency_ein', ''))
+            agency_ein = request.args.get('agency_ein', '')
         except ValueError:
             agency_ein = None
 
