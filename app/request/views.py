@@ -23,7 +23,6 @@ from app.constants import (
     request_status,
     user_type_request
 )
-from app.constants.user_type_auth import AGENCY_USER
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -187,23 +186,18 @@ def view(request_id):
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
-    if current_user.is_agency:
-        assigned_user_requests = UserRequests.query.filter(
-            UserRequests.request_id == current_request.id,
-            UserRequests.request_user_type == user_type_request.AGENCY,
-            UserRequests.user_guid != current_user.guid
-        ).all()
-    else:
-        assigned_user_requests = []
 
-    assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
-                      for ur in assigned_user_requests]
-
-    # active agency users (not admins) that can be added to a request
     active_users = []
-    for agency_user in current_request.agency.active_users:
-        if not agency_user.is_agency_admin:
-            active_users.append(agency_user)
+    assigned_users = []
+    if current_user.is_agency:
+        for agency_user in current_request.agency.active_users:
+            if not agency_user.is_agency_admin and (agency_user != current_user):
+                # populate list of assigned users that can be removed from a request
+                if agency_user in current_request.agency_users:
+                    assigned_users.append(agency_user)
+                # append to list of active users that can be added to a request
+                else:
+                    active_users.append(agency_user)
 
     return render_template(
         'request/view_request.html',

@@ -90,7 +90,7 @@
                                 </div>
                                 {% if active_users %}
                                     <div class="tab-pane" id="add-user">
-                                        {% include "response/add_user_to_request.html" %}
+                                        {% include "response/add_user_request.html" %}
                                     </div>
                                 {% endif %}
                                 <div class="tab-pane" id="edit-user">
@@ -163,4 +163,5 @@
     {% include 'response/add_closing.js.html' %}
     {% include 'response/add_reopening.js.html' %}
     {% include 'response/remove_user_request.js.html' %}
+    {% include 'response/add_user_request.js.html' %}
 {% endblock %}
