@@ -50,7 +50,9 @@
                                 <li><a href="#close-request" data-toggle="tab">Close</a></li>
                                 <li><a href="#add-user" data-toggle="tab">Add User</a></li>
                                 <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
-                                <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
+                                {% if assigned_users %}
+                                    <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
+                                {% endif %}
                             {% endif %}
                         {% else %}
                             <li class="active"><a href="#reopen-request" data-toggle="tab">Re-Open</a></li>
@@ -90,9 +92,11 @@
                                 <div class="tab-pane" id="edit-user">
                                     Edit User Content
                                 </div>
-                                <div class="tab-pane" id="remove-user">
-                                    Remove User Content
-                                </div>
+                                {% if assigned_users %}
+                                    <div class="tab-pane" id="remove-user">
+                                        {% include "response/remove_user_request.html" %}
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         {% else %}
                             <div class="tab-pane active" id="reopen-request">
@@ -154,4 +158,5 @@
     {% include 'response/add_denial.js.html' %}
     {% include 'response/add_closing.js.html' %}
     {% include 'response/add_reopening.js.html' %}
+    {% include 'response/remove_user_request.js.html' %}
 {% endblock %}

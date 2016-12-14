@@ -1,7 +1,7 @@
 """
 .. module:: request.forms.
 
-    :synopsis: Defines forms used to create Procurement requests.
+    :synopsis: Defines forms used to create FOIL requests.
 """
 
 from datetime import datetime

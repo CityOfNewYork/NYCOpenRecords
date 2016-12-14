@@ -55,7 +55,7 @@ from app.models import (
     Reasons,
     Determinations,
     Emails,
-    ResponseTokens
+    ResponseTokens,
 )
 
 
@@ -93,7 +93,7 @@ def add_file(request_id, filename, title, privacy):
     )
     create_object(response)
 
-    _create_response_event(response, event_type.FILE_ADDED)
+    create_response_event(event_type.FILE_ADDED, response)
 
     return response
 
@@ -112,7 +112,7 @@ def add_note(request_id, note_content, email_content, privacy):
     """
     response = Notes(request_id, privacy, note_content)
     create_object(response)
-    _create_response_event(response, event_type.NOTE_ADDED)
+    create_response_event(event_type.NOTE_ADDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -146,7 +146,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
             new_due_date,
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_ACKNOWLEDGED)
+        create_response_event(event_type.REQ_ACKNOWLEDGED, response)
         _send_response_email(request_id, privacy, email_content)
 
 
@@ -175,7 +175,7 @@ def add_denial(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)
+        create_response_event(event_type.REQ_CLOSED, response)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
@@ -208,7 +208,7 @@ def add_closing(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)
+        create_response_event(event_type.REQ_CLOSED, response)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
@@ -238,7 +238,7 @@ def add_reopening(request_id, date, tz_name, email_content):
             new_due_date
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_REOPENED)
+        create_response_event(event_type.REQ_REOPENED, response)
         update_object(
             {'status': request_status.IN_PROGRESS,
              'due_date': new_due_date,
@@ -278,7 +278,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
         new_due_date
     )
     create_object(response)
-    _create_response_event(response, event_type.REQ_EXTENDED)
+    create_response_event(event_type.REQ_EXTENDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -298,7 +298,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     """
     response = Links(request_id, privacy, title, url_link)
     create_object(response)
-    _create_response_event(response, event_type.LINK_ADDED)
+    create_response_event(event_type.LINK_ADDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -316,7 +316,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     """
     response = Instructions(request_id, privacy, instruction_content)
     create_object(response)
-    _create_response_event(response, event_type.INSTRUCTIONS_ADDED)
+    create_response_event(event_type.INSTRUCTIONS_ADDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -348,7 +348,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
         body=email_content
     )
     create_object(response)
-    _create_response_event(response, event_type.EMAIL_NOTIFICATION_SENT)
+    create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response)
 
 
 def add_sms():
@@ -1079,25 +1079,33 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def _create_response_event(response, events_type):
+def create_response_event(events_type, response=None, user_request=None):
     """
     Create and store event object for given response.
 
     :param response: response object
+    :param user_request: user_request object
     :param events_type: one of app.constants.event_type
 
     """
     user = response.request.requester \
         if current_user.is_anonymous else current_user
     # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
-
-    event = Events(request_id=response.request_id,
-                   user_id=user.guid,
-                   auth_user_type=user.auth_user_type,
-                   type_=events_type,
-                   timestamp=datetime.utcnow(),
-                   response_id=response.id,
-                   new_value=response.val_for_events)
+    event = None
+    if response:
+        event = Events(request_id=response.request_id,
+                       user_id=user.guid,
+                       auth_user_type=user.auth_user_type,
+                       type_=events_type,
+                       timestamp=datetime.utcnow(),
+                       response_id=response.id,
+                       new_value=response.val_for_events)
+    elif user_request:
+        event = Events(request_id=user_request.request_id,
+                       user_id=user.guid,
+                       auth_user_type=user.auth_user_type,
+                       type_=events_type,
+                       timestamp=datetime.utcnow())
     # store event object
     create_object(event)
 

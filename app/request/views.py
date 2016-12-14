@@ -4,10 +4,8 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 from datetime import datetime
+
 from dateutil.relativedelta import relativedelta as rd
-
-from sqlalchemy import any_
-
 from flask import (
     render_template,
     redirect,
@@ -19,7 +17,12 @@ from flask import (
     jsonify,
 )
 from flask_login import current_user
+from sqlalchemy import any_
 
+from app.constants import (
+    request_status,
+    user_type_request
+)
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -31,7 +34,8 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
-    Agencies
+    Agencies,
+    UserRequests
 )
 from app.request import request
 from app.request.forms import (
@@ -41,7 +45,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm
+    CloseRequestForm,
 )
 from app.request.utils import (
     create_request,
@@ -49,9 +53,8 @@ from app.request.utils import (
     get_address,
     send_confirmation_email
 )
-from app.constants import (
-    user_type_request,
-    request_status,
+from app.user_request.forms import (
+    RemoveUserRequestForm
 )
 
 
@@ -175,6 +178,16 @@ def view(request_id):
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
+
+    assigned_user_requests = UserRequests.query.filter(
+        UserRequests.request_id == current_request.id,
+        UserRequests.request_user_type == user_type_request.AGENCY,
+        UserRequests.user_guid != current_user.guid
+    ).all()
+
+    assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
+                      for ur in assigned_user_requests]
+
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -183,7 +196,9 @@ def view(request_id):
         edit_requester_form=EditRequesterForm(current_request.requester),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
-        holidays=holidays)
+        remove_user_request_form=RemoveUserRequestForm(assigned_users),
+        holidays=holidays,
+        assigned_users=assigned_users)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['PUT'])
@@ -274,6 +289,11 @@ def edit_requester_info(request_id):
 
 @request.route('/agencies', methods=['GET'])
 def get_agencies_as_choices():
+    """
+    Get selected category value from the request body and generate a list of sorted agencies from the category.
+
+    :return: list of agency choices
+    """
     if flask_request.args['category']:
         # TODO: is sorted faster than orderby?
         choices = sorted(
