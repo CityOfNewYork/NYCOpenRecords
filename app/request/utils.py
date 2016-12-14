@@ -325,8 +325,9 @@ def generate_request_id(agency_ein):
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     if agency_ein:
-        agency = Agencies.query.filter_by(ein=agency_ein).one()
-        next_request_number = Agencies.query.filter_by(ein=agency.parent_ein).one().next_request_number
+        agency = Agencies.query.filter_by(ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
+        next_request_number = Agencies.query.filter_by(
+            ein=agency.parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
                       agency_ein)
