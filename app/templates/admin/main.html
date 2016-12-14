@@ -10,14 +10,30 @@
 
 {% block content %}
     <div class="container-fluid">
-        <h1>Manage Agency Users</h1>
+        <h1>Manage {% if current_user.is_super %}Agencies and{% else %}Agency{% endif %} Users</h1>
         <hr>
-        {% if form.users.choices %}
+        {% if current_user.is_super %}
             <div class="row">
-                {{ form.users.label }}
+                {{ agency_form.agencies.label }}
                 <div class="row">
                     <div class="col-sm-8">
-                        {{ form.users }}  <!-- TODO: live search would be nice (bootstrap select) -->
+                        {{ agency_form.agencies }}
+                    </div>
+                    {% if not agency_is_active %}
+                        <div class="col-sm-4">
+                            <button type="button" class="btn btn-sm btn-primary" id="activate">Activate</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <hr>
+        {% endif %}
+        {% if user_form.users.choices %}
+            <div class="row">
+                {{ user_form.users.label }}
+                <div class="row">
+                    <div class="col-sm-8">
+                        {{ user_form.users }}  <!-- TODO: live search would be nice (bootstrap select) -->
                     </div>
                     <div class="col-sm-2">
                         <div class="checkbox no-margin-top">
@@ -34,7 +50,7 @@
             <hr>
         {% endif %}
         <div class="row user-fields">
-            <div class="col-sm-3">
+            <div class="col-sm-2">
                 ID
             </div>
             <div class="col-sm-3">
@@ -49,7 +65,12 @@
             <div class="col-sm-1 text-center">
                 Admin
             </div>
-            <div class="col-sm-1 text-right">
+            {% if current_user.is_super %}
+                <div class="col-sm-1 text-center">
+                    Super
+                </div>
+            {% endif %}
+            <div class="col-sm-{% if current_user.is_super %}1{% else %}2{% endif %} text-right">
                 <button type="button" class="btn btn-danger btn-sm" id="remove">
                      <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                 </button>
@@ -58,8 +79,8 @@
         {% for user in users %}
             <div class="row user-info">
                 <input type="hidden" name="user-id" value="{{ user.get_id() }}">
-                <div class="col-sm-3">
-                    {{ user.get_id() }}
+                <div class="col-sm-2">
+                    {{ user.guid }}
                 </div>
                 <div class="col-sm-3">
                     {{ user.name }}
@@ -85,7 +106,19 @@
                         </label>
                     </div>
                 </div>
-                <div class="col-sm-1 text-right">
+                {% if current_user.is_super %}
+                    <div class="col-sm-1 text-center">
+                        <div class="checkbox no-margin-top no-margin-bottom">
+                            <label>
+                                <input type="checkbox" name="user-super-{{ loop.index }}"
+                                       {% if user.is_super %}checked="checked"{% endif %}
+                                       {% if user.guid == current_user.guid %}disabled="disabled"{% endif %}
+                                value="true">
+                            </label>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="col-sm-{% if current_user.is_super %}1{% else %}2{% endif %} text-right">
                     <div class="checkbox no-margin-top no-margin-bottom">
                         <label>
                             <input type="checkbox" name="remove-{{ loop.index }}">
