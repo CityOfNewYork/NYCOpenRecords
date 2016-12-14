@@ -242,17 +242,3 @@ class SearchRequestsForm(Form):
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
         # Why choices must be set in constructor I do not know... some db issue
-
-
-class AddUserRequestForm(Form):
-    user = SelectField('Users', choices=None)
-    permission = SelectField('Users', choices=None)
-
-    def __init__(self, agency_ein):
-        super(AddUserRequestForm, self).__init__()
-        self.user.choices = [
-            (user.guid, ', '.join([user.last_name, user.first_name]))
-            for user in Users.query.filter_by(
-                # auth_user_type=user_type_auth.AGENCY_USER,
-                agency=agency_ein
-            )]

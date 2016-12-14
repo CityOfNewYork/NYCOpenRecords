@@ -46,8 +46,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm,
-    AddUserRequestForm
+    CloseRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -56,7 +55,8 @@ from app.request.utils import (
     send_confirmation_email
 )
 from app.user_request.forms import (
-    RemoveUserRequestForm
+    RemoveUserRequestForm,
+    AddUserRequestForm
 )
 
 
@@ -199,6 +199,12 @@ def view(request_id):
     assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
                       for ur in assigned_user_requests]
 
+    # active agency users (not admins) that can be added to a request
+    active_users = []
+    for agency_user in current_request.agency.active_users:
+        if not agency_user.is_agency_admin:
+            active_users.append(agency_user)
+
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -208,9 +214,10 @@ def view(request_id):
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
+        add_user_request_form=AddUserRequestForm(active_users),
         holidays=holidays,
         assigned_users=assigned_users,
-        add_user_request_form=AddUserRequestForm(current_request.agency.ein)
+        active_users=active_users)
 
 
 @request.route('/non_portal_agency/<agency_name>', methods=['GET'])

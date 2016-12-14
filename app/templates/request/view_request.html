@@ -48,7 +48,9 @@
                                 <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
                                 <li><a href="#extend-request" data-toggle="tab">Extend</a></li>
                                 <li><a href="#close-request" data-toggle="tab">Close</a></li>
-                                <li><a href="#add-user" data-toggle="tab">Add User</a></li>
+                                {% if active_users %}
+                                    <li><a href="#add-user" data-toggle="tab">Add User</a></li>
+                                {% endif %}
                                 <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
                                 {% if assigned_users %}
                                     <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
@@ -86,9 +88,11 @@
                                 <div class="tab-pane" id="close-request">
                                     {% include "response/add_closing.html" %}
                                 </div>
-                                <div class="tab-pane" id="add-user">
-                                    {% include "response/add_user_to_request.html" %}
-                                </div>
+                                {% if active_users %}
+                                    <div class="tab-pane" id="add-user">
+                                        {% include "response/add_user_to_request.html" %}
+                                    </div>
+                                {% endif %}
                                 <div class="tab-pane" id="edit-user">
                                     Edit User Content
                                 </div>
