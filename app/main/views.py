@@ -81,7 +81,6 @@ def login(guid=None):
     return render_template('main/test/user_list.html', users=users, current_user=current_user)
 
 
-#
 # @main.route('/login-user/<guid>', methods=['GET'])
 # def test_specific_user(guid=None):
 #     user = Users.query.filter_by(guid=guid).first()
