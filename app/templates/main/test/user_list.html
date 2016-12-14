@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenRecords User Testing</title>
+</head>
+<body>
+<table>
+    <tr>
+        <th>GUID</th>
+        <th>USER AUTH TYPE</th>
+        <th>LOGIN USER</th>
+    </tr>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.guid }}</td>
+            <td>{{ user.auth_user_type }}</td>
+            <td><a href={{ url_for('main.test_specific_user', guid=user.guid)
+                    }}>Log In</a></td>
+        </tr>
+    {% endfor %}
+</table>
+</body>
+</html>
