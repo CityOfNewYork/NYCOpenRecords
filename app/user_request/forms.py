@@ -5,9 +5,9 @@ from wtforms import SelectField
 class RemoveUserRequestForm(Form):
     user = SelectField('Users')
 
-    def __init__(self, agency_users):
+    def __init__(self, assigned_users):
         super(RemoveUserRequestForm, self).__init__()
         self.user.choices = [
-            (agency_user.guid, ', '.join([agency_user.last_name, agency_user.first_name]))
-            for agency_user in agency_users
+            (agency_user.guid, '{} ({})'.format(agency_user.name, agency_user.email))
+            for agency_user in assigned_users
         ]
