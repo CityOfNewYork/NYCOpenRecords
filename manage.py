@@ -103,6 +103,7 @@ def deploy():
     )))
 
     es_recreate()
+    create_users()
 
 
 @manager.command
@@ -114,19 +115,29 @@ def es_recreate():
 
 @manager.command
 def create_search_set():
-    from tests.lib.tools import create_user, create_requests_search_set
-    create_requests_search_set(create_user(), create_user())
+    """Create a number of requests for test purposes."""
+    from tests.lib.tools import create_requests_search_set
+    from app.constants.user_type_auth import PUBLIC_USER_TYPES
+    import random
+
+    users = random.sample(PUBLIC_USER_TYPES, 2)
+    for i in range(len(users)):
+        users[i] = Users.query.filter_by(auth_user_type=users[i]).first()
+
+    create_requests_search_set(users[0], users[1])
 
 
-@manager.option("-a", "--agency", help="Create agency user.", action="store_true", dest='agency')
-def create_user(agency=False):
+@manager.command
+def create_users():
+    """Create a user from each of the allowed auth_user_types."""
+    from app.constants.user_type_auth import PUBLIC_USER_TYPES, AGENCY_USER
+    types = [type for type in PUBLIC_USER_TYPES]
+    types.append(AGENCY_USER)
+
     from tests.lib.tools import create_user
-    from app.constants.user_type_auth import AGENCY_USER
-    if agency:
-        user = create_user(AGENCY_USER)
-    else:
-        user = create_user()
-    print(user, "created.")
+    for type in types:
+        user = create_user(type)
+        print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
 
 
 if __name__ == "__main__":

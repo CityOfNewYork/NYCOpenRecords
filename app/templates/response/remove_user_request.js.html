@@ -1,0 +1,49 @@
+<script type="text/javascript">
+    $(function() {
+        var form = $("#remove-user-request");
+        var first = form.find(".first");
+        var second = form.find(".second");
+
+        var next = first.find(".next");
+        var prev = second.find(".prev");
+        var remove = second.find(".remove");
+
+        next.click(function() {
+            first.hide();
+            second.show();
+        });
+
+        prev.click(function() {
+            second.hide();
+            first.show();
+        });
+
+        var removeConfirmCheck = second.find("input[name=remove-confirm-string]");
+        var removeConfirmString = "REMOVE";
+
+        removeConfirmCheck.on('paste', function(e) {
+            e.preventDefault();
+        });
+
+        removeConfirmCheck.on("input", function() {
+            if ($(this).val().toUpperCase() === removeConfirmString) {
+                remove.attr("disabled", false);
+            }
+            else {
+                remove.attr("disabled", true);
+            }
+        });
+
+        remove.click(function() {
+            remove.attr("disabled", true);
+            $.ajax({
+                url: "/user_request/{{ request.id }}",
+                type: "DELETE",
+                data: form.serializeArray(),
+                success: function() {
+                    location.reload();
+                }
+            });
+        });
+    });
+</script>
