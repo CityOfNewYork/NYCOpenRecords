@@ -32,7 +32,6 @@ def main(agency_ein=None):
             agency_ein = agency_ein or agency_form.agencies.choices[0][0]
             user_form = ActivateAgencyUserForm(agency_ein)
             active_users = Users.query.filter_by(
-                # Users.guid != current_user.guid,
                 is_agency_active=True,
                 agency_ein=agency_ein
             ).order_by(
