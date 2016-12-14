@@ -20,8 +20,7 @@ from flask_login import current_user
 from sqlalchemy import any_
 
 from app.constants import (
-    request_status,
-    user_type_request
+    request_status
 )
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
@@ -34,8 +33,7 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
-    Agencies,
-    UserRequests
+    Agencies
 )
 from app.request import request
 from app.request.forms import (
