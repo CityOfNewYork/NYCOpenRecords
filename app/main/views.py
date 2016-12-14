@@ -17,10 +17,8 @@ from wtforms import SubmitField, StringField
 
 from app.constants.user_type_auth import (
     AGENCY_USER,
-    ANONYMOUS_USER,
     PUBLIC_USER_TYPES
 )
-
 from app.lib.email_utils import send_email
 from app.models import Users
 from . import main
@@ -76,8 +74,8 @@ def login(guid=None):
     types = [type for type in PUBLIC_USER_TYPES]
     types.append(AGENCY_USER)
     users = []
-    for type in types:
-        user = Users.query.filter_by(auth_user_type=type).first()
+    for type_ in types:
+        user = Users.query.filter_by(auth_user_type=type_).first()
         users.append(user)
 
     return render_template('main/test/user_list.html', users=users, current_user=current_user)

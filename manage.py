@@ -121,7 +121,7 @@ def create_search_set():
     import random
 
     users = random.sample(PUBLIC_USER_TYPES, 2)
-    for i in range(len(users)):
+    for i in enumerate(users):
         users[i] = Users.query.filter_by(auth_user_type=users[i]).first()
 
     create_requests_search_set(users[0], users[1])
@@ -135,8 +135,8 @@ def create_users():
     types.append(AGENCY_USER)
 
     from tests.lib.tools import create_user
-    for type in types:
-        user = create_user(type)
+    for type_ in types:
+        user = create_user(type_)
         print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
 
 
