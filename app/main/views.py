@@ -53,7 +53,7 @@ def test_email():
         subject = 'Test Subject' if 'subject' not in request.form else form.subject.data
         send_email(to, cc, bcc, subject, 'email_templates/email_confirmation')
         flash('Email sent')
-    return render_template('email.html', form=form)
+    return render_template('main/test/email.html', form=form)
 
 
 @main.route('/index.html', methods=['GET'])
@@ -88,7 +88,7 @@ def contact():
             flash('Your message has been sent. We will get back to you.', category='success')
         else:
             flash('Cannot send email.', category='danger')
-    return render_template('contact.html')
+    return render_template('main/contact.html')
 
 
 @main.route('/about', methods=['GET'])
