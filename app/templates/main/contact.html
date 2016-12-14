@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Contact</h2>
+
+<div>
+    <form id="contact-info" data-parsley-validate="" action="{{ url_for('main.contact') }}" method="POST">
+        <label for="name">Name</label>
+        <input id="name" class="form-control" name="name" type="text" required="">
+        <br>
+        <label for="email">Email</label>
+        <input id="email" class="form-control" name="email" type="email" required="">
+        <br>
+        <label for="subject">Subject</label>
+        <input id="subject" class="form-control" name="subject" type="text" required="">
+        <br>
+        <label for="message">Message</label>
+        <textarea id="message" name="message" required=""></textarea>
+        <br>
+        <input id="submit" name="submit" type="submit" value="Send">
+    </form>
+</div>
+{% endblock %}
