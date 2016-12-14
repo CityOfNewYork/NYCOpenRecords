@@ -4,8 +4,8 @@
    :synopsis: Handles the request URL endpoints for the OpenRecords application
 """
 from datetime import datetime
-from dateutil.relativedelta import relativedelta as rd
 
+from dateutil.relativedelta import relativedelta as rd
 from flask import (
     render_template,
     redirect,
@@ -17,7 +17,13 @@ from flask import (
     jsonify,
 )
 from flask_login import current_user
+from sqlalchemy import any_
 
+from app.constants import (
+    request_status,
+    user_type_request
+)
+from app.constants.user_type_auth import AGENCY_USER
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -29,6 +35,8 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
+    Agencies,
+    UserRequests
 )
 from app.request import request
 from app.request.forms import (
@@ -38,7 +46,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm
+    CloseRequestForm,
 )
 from app.request.utils import (
     create_request,
@@ -46,9 +54,8 @@ from app.request.utils import (
     get_address,
     send_confirmation_email
 )
-from app.constants import (
-    user_type_request,
-    request_status,
+from app.user_request.forms import (
+    RemoveUserRequestForm
 )
 
 
@@ -95,12 +102,15 @@ def new():
         if current_user.is_public:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
+                                        form.request_category.data,
                                         agency=form.request_agency.data,
                                         upload_path=upload_path,
                                         tz_name=flask_request.form['tz-name'])
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
+                                        form.request_category.data,
+                                        agency=current_user.agency_ein,
                                         submission=form.method_received.data,
                                         agency_date_submitted=form.request_date.data,
                                         email=form.email.data,
@@ -116,6 +126,7 @@ def new():
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
+                                        form.request_category.data,
                                         agency=form.request_agency.data,
                                         email=form.email.data,
                                         first_name=form.first_name.data,
@@ -132,14 +143,21 @@ def new():
         requester = current_request.requester
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
-        if requester.email:
-            flashed_message_html = render_template('request/confirmation_email.html')
-            flash(Markup(flashed_message_html), category='success')
-        else:
-            flashed_message_html = render_template('request/confirmation_non_email.html')
-            flash(Markup(flashed_message_html), category='warning')
+        if current_request.agency.is_active:
+            if requester.email:
+                flashed_message_html = render_template('request/confirmation_email.html')
+                flash(Markup(flashed_message_html), category='success')
+            else:
+                flashed_message_html = render_template('request/confirmation_non_email.html')
+                flash(Markup(flashed_message_html), category='warning')
 
-        return redirect(url_for('request.view', request_id=request_id))
+            return redirect(url_for('request.view', request_id=request_id))
+        else:
+            flashed_message_html = render_template('request/non_portal_agency_message.html',
+                                                   agency=current_request.agency)
+            flash(Markup(flashed_message_html), category='warning')
+            return redirect(url_for('request.non_portal_agency', agency_name=current_request.agency.name))
+
     return render_template(new_request_template, form=form, site_key=site_key)
 
 
@@ -168,6 +186,18 @@ def view(request_id):
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
+    if current_user.is_agency:
+        assigned_user_requests = UserRequests.query.filter(
+            UserRequests.request_id == current_request.id,
+            UserRequests.request_user_type == user_type_request.AGENCY,
+            UserRequests.user_guid != current_user.guid
+        ).all()
+    else:
+        assigned_user_requests = []
+
+    assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
+                      for ur in assigned_user_requests]
+
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -176,7 +206,19 @@ def view(request_id):
         edit_requester_form=EditRequesterForm(current_request.requester),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
-        holidays=holidays)
+        remove_user_request_form=RemoveUserRequestForm(assigned_users),
+        holidays=holidays,
+        assigned_users=assigned_users)
+
+
+@request.route('/non_portal_agency/<agency_name>', methods=['GET'])
+def non_portal_agency(agency_name):
+    """
+    This function handles messaging to the requester if they submitted a request to a non-portal agency.
+
+    :return: redirect to non_portal_agency page.
+    """
+    return render_template('request/non_partner_request.html', agency_name=agency_name)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['PUT'])
@@ -213,12 +255,12 @@ def edit_requester_info(request_id):
     }
 
     if (user_attrs_val['email'] or
-        user_attrs_val['phone_number'] or
-        user_attrs_val['fax_number'] or (
-            address_attrs_val['city'] and
-            address_attrs_val['zip'] and
-            address_attrs_val['state'] and
-            address_attrs_val['address_one'])
+            user_attrs_val['phone_number'] or
+            user_attrs_val['fax_number'] or (
+                        address_attrs_val['city'] and
+                        address_attrs_val['zip'] and
+                    address_attrs_val['state'] and
+                address_attrs_val['address_one'])
         ):
 
         old = {}
@@ -263,3 +305,26 @@ def edit_requester_info(request_id):
         status_code = 400
 
     return jsonify(response), status_code
+
+
+@request.route('/agencies', methods=['GET'])
+def get_agencies_as_choices():
+    """
+    Get selected category value from the request body and generate a list of sorted agencies from the category.
+
+    :return: list of agency choices
+    """
+    if flask_request.args['category']:
+        # TODO: is sorted faster than orderby?
+        choices = sorted(
+            [(agencies.ein, agencies.name)
+             for agencies in Agencies.query.filter(
+                flask_request.args['category'] == any_(Agencies.categories)
+            ).all()],
+            key=lambda x: x[1])
+    else:
+        choices = sorted(
+            [(agencies.ein, agencies.name)
+             for agencies in Agencies.query.all()],
+            key=lambda x: x[1])
+    return jsonify(choices)

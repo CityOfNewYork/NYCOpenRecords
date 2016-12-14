@@ -29,7 +29,7 @@ def b64decode_lenient(data):
     return b64decode(data).decode()
 
 
-def eval_request_bool(val, default=True):
+def eval_request_bool(val, default=False):
     """
     Evaluates the boolean value of a request parameter.
 
@@ -41,8 +41,8 @@ def eval_request_bool(val, default=True):
     assert isinstance(default, bool)
     if val is not None:
         val = val.lower()
-        if val in ['false', '0', 'n', 'no']:
+        if val in ['false', '0', 'n', 'no', 'off']:
             return False
-        if val in ['true', '1', 'y', 'yes']:
+        if val in ['true', '1', 'y', 'yes', 'on']:
             return True
     return default

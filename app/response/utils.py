@@ -42,6 +42,7 @@ from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.lib.date_utils import get_due_date, process_due_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
+from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool
 from app.models import (
     Events,
@@ -54,7 +55,7 @@ from app.models import (
     Reasons,
     Determinations,
     Emails,
-    ResponseTokens
+    ResponseTokens,
 )
 
 
@@ -74,18 +75,25 @@ def add_file(request_id, filename, title, privacy):
 
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
+    try:
+        size, mime_type, hash_ = redis_get_file_metadata(request_id, path)
+        redis_delete_file_metadata(request_id, path)
+    except AttributeError:
+        size = fu.getsize(path)
+        mime_type = fu.get_mime_type(path)
+        hash_ = fu.get_hash(path)
     response = Files(
         request_id,
         privacy,
         title,
         filename,
-        fu.get_mime_type(path),
-        fu.getsize(path),
-        fu.get_hash(path),
+        mime_type,
+        size,
+        hash_
     )
     create_object(response)
 
-    _create_response_event(response, event_type.FILE_ADDED)
+    create_response_event(event_type.FILE_ADDED, response)
 
     return response
 
@@ -104,7 +112,7 @@ def add_note(request_id, note_content, email_content, privacy):
     """
     response = Notes(request_id, privacy, note_content)
     create_object(response)
-    _create_response_event(response, event_type.NOTE_ADDED)
+    create_response_event(event_type.NOTE_ADDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -138,7 +146,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
             new_due_date,
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_ACKNOWLEDGED)
+        create_response_event(event_type.REQ_ACKNOWLEDGED, response)
         _send_response_email(request_id, privacy, email_content)
 
 
@@ -167,7 +175,7 @@ def add_denial(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)
+        create_response_event(event_type.REQ_CLOSED, response)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
@@ -200,7 +208,7 @@ def add_closing(request_id, reason_ids, email_content):
                      for reason_id in reason_ids)
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_CLOSED)
+        create_response_event(event_type.REQ_CLOSED, response)
         update_object(
             {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
             Requests,
@@ -230,7 +238,7 @@ def add_reopening(request_id, date, tz_name, email_content):
             new_due_date
         )
         create_object(response)
-        _create_response_event(response, event_type.REQ_REOPENED)
+        create_response_event(event_type.REQ_REOPENED, response)
         update_object(
             {'status': request_status.IN_PROGRESS,
              'due_date': new_due_date,
@@ -270,7 +278,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
         new_due_date
     )
     create_object(response)
-    _create_response_event(response, event_type.REQ_EXTENDED)
+    create_response_event(event_type.REQ_EXTENDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -290,7 +298,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     """
     response = Links(request_id, privacy, title, url_link)
     create_object(response)
-    _create_response_event(response, event_type.LINK_ADDED)
+    create_response_event(event_type.LINK_ADDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -308,7 +316,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     """
     response = Instructions(request_id, privacy, instruction_content)
     create_object(response)
-    _create_response_event(response, event_type.INSTRUCTIONS_ADDED)
+    create_response_event(event_type.INSTRUCTIONS_ADDED, response)
     _send_response_email(request_id, privacy, email_content)
 
 
@@ -340,7 +348,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
         body=email_content
     )
     create_object(response)
-    _create_response_event(response, event_type.EMAIL_NOTIFICATION_SENT)
+    create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response)
 
 
 def add_sms():
@@ -493,6 +501,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=[Reasons.query.filter_by(id=reason_id).one().content
                  for reason_id in data.getlist('reason_ids[]')],
+        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page
     )}), 200
 
@@ -524,6 +533,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         request_id=request_id,
         agency_name=agency_name,
         reasons=reasons,
+        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page
     )}), 200
 
@@ -792,7 +802,7 @@ def _edit_email_handler(data):
         email_summary_requester, email_summary_edited, header = _get_edit_response_template(editor)
 
     # if confirmation is not empty and response type is not FILE, store email templates into redis
-    if eval_request_bool(data.get('confirmation'), False) and resp.type != response_type.FILE:
+    if eval_request_bool(data.get('confirmation')) and resp.type != response_type.FILE:
         email_redis.set(get_email_key(response_id), email_summary_edited)
         if email_summary_requester is not None:
             email_redis.set(get_email_key(response_id, requester=True), email_summary_requester)
@@ -823,7 +833,7 @@ def _get_edit_response_template(editor):
     email_summary_requester = None
     agency = False
 
-    if eval_request_bool(data.get('confirmation'), False) or editor.update:
+    if eval_request_bool(data.get('confirmation')) or editor.update:
         default_content = False
         agency_content = data['email_content']
 
@@ -843,9 +853,9 @@ def _get_edit_response_template(editor):
                                                       page=page,
                                                       privacy=data['privacy'],
                                                       response_privacy=response_privacy)
-        if release_and_viewable:
+        if was_private:
             recipient = "all associated participants"
-        elif was_private:
+        elif release_and_viewable:
             recipient = "the Requester"
         else:
             recipient = "all Assigned Users"
@@ -1069,25 +1079,33 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def _create_response_event(response, events_type):
+def create_response_event(events_type, response=None, user_request=None):
     """
     Create and store event object for given response.
 
     :param response: response object
+    :param user_request: user_request object
     :param events_type: one of app.constants.event_type
 
     """
     user = response.request.requester \
         if current_user.is_anonymous else current_user
     # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
-
-    event = Events(request_id=response.request_id,
-                   user_id=user.guid,
-                   auth_user_type=user.auth_user_type,
-                   type=events_type,
-                   timestamp=datetime.utcnow(),
-                   response_id=response.id,
-                   new_value=response.val_for_events)
+    event = None
+    if response:
+        event = Events(request_id=response.request_id,
+                       user_id=user.guid,
+                       auth_user_type=user.auth_user_type,
+                       type_=events_type,
+                       timestamp=datetime.utcnow(),
+                       response_id=response.id,
+                       new_value=response.val_for_events)
+    elif user_request:
+        event = Events(request_id=user_request.request_id,
+                       user_id=user.guid,
+                       auth_user_type=user.auth_user_type,
+                       type_=events_type,
+                       timestamp=datetime.utcnow())
     # store event object
     create_object(event)
 
@@ -1183,7 +1201,7 @@ class ResponseEditor(metaclass=ABCMeta):
         timestamp = datetime.utcnow()
 
         event = Events(
-            type=self.event_type,
+            type_=self.event_type,
             request_id=self.response.request_id,
             response_id=self.response.id,
             user_id=self.user.guid,
@@ -1263,19 +1281,30 @@ class RespFileEditor(ResponseEditor):
                     new_filename
                 )
                 if fu.exists(filepath):
+                    try:
+                        # fetch file metadata from redis store
+                        size, mime_type, hash_ = redis_get_file_metadata(
+                            self.response.id,
+                            filepath,
+                            is_update=True)
+                    except AttributeError:
+                        size = fu.getsize(filepath)
+                        mime_type = fu.get_mime_type(filepath)
+                        hash_ = fu.get_hash(filepath)
                     self.set_data_values('size',
                                          self.response.size,
-                                         fu.getsize(filepath))
+                                         size)
                     self.set_data_values('name',
                                          self.response.name,
                                          new_filename)
                     self.set_data_values('mime_type',
                                          self.response.mime_type,
-                                         fu.get_mime_type(filepath))
+                                         mime_type)
                     self.set_data_values('hash',
                                          self.response.hash,
-                                         fu.get_hash(filepath))
+                                         hash_)
                     if self.update:
+                        redis_delete_file_metadata(self.response.id, filepath, is_update=True)
                         self.replace_old_file(filepath)
                 else:
                     self.errors.append(

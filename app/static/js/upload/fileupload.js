@@ -3,6 +3,7 @@
 function bindFileUpload(target,
                         request_id,
                         for_update,
+                        response_id,
                         uploadTemplateId,
                         downloadTemplateId,
                         nextButton) {
@@ -12,6 +13,7 @@ function bindFileUpload(target,
     @param {string} target - jquery selector string (ex. "#fileupload")
     @param {string} request_id - FOIL request id
     @param {bool} for_update - editing a file?
+    @param {int} response_id - response id of file being replaced
     @param {string} uploadTemplateId - jquery file upload uploadTemplateId
     @param {string} downloadTemplateId - jquery file upload downloadTemplateId
     @param {selector} nextButton - jquery selector for next button of file response workflow
@@ -23,7 +25,7 @@ function bindFileUpload(target,
     $(target).fileupload({
         //xhrFields: {withCredentials: true},  // send cross-domain cookies
         url: "/upload/" + request_id,
-        formData: for_update ? {update: true} : {},
+        formData: for_update ? {update: true, response_id: response_id} : {},
         uploadTemplateId: uploadTemplateId,
         downloadTemplateId: downloadTemplateId,
         maxChunkSize: 512000,  // 512 kb

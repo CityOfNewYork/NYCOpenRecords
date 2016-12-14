@@ -38,8 +38,11 @@ def process_due_date(due_date, tz_name):
     :return: naive datetime object
     """
     date = due_date.replace(hour=17, minute=00, second=00, microsecond=00)
-    return date - (timezone('US/Eastern').localize(date).utcoffset() * 2 -
-                   timezone(tz_name).localize(date).utcoffset())
+    return date - get_timezone_offset(due_date, tz_name)
+
+
+def get_timezone_offset(date, tz_name):
+    return timezone('US/Eastern').localize(date).utcoffset() * 2 - timezone(tz_name).localize(date).utcoffset()
 
 
 def get_holidays_date_list(year_start, year_end=None):

@@ -9,19 +9,27 @@ from flask import (
     render_template,
     flash,
     request,
+    redirect,
+    url_for
+)
+from flask_login import login_user, current_user, logout_user
+from flask_wtf import Form
+from wtforms import SubmitField, StringField
+from app.constants.user_type_auth import (
+    AGENCY_USER,
+    PUBLIC_USER_TYPES
 )
 from app.lib.email_utils import send_email, send_contact_email
 from app.lib.db_utils import create_object
 from app.models import Emails
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
-from flask_wtf import Form
-from wtforms import SubmitField, StringField
+from app.models import Users
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('home.html')
+    return render_template('main/home.html')
 
 
 # TESTING PURPOSES
@@ -82,4 +90,41 @@ def contact():
             flash('Cannot send email.', category='danger')
     return render_template('contact.html')
 
-# openrecords@records.nyc.gov
+
+@main.route('/about', methods=['GET'])
+def about():
+    return render_template('main/about.html')
+
+
+@main.route('/login')
+@main.route('/login/<guid>', methods=['GET'])
+def login(guid=None):
+    if guid:
+        user = Users.query.filter_by(guid=guid).one()
+        login_user(user, force=True)
+        flash('Logged in user: {}'.format(user.auth_user_type))
+        return redirect(url_for('main.index'))
+    types = [type for type in PUBLIC_USER_TYPES]
+    types.append(AGENCY_USER)
+    users = []
+    for type_ in types:
+        user = Users.query.filter_by(auth_user_type=type_).first()
+        users.append(user)
+
+    return render_template('main/test/user_list.html', users=users, current_user=current_user)
+
+
+# @main.route('/login-user/<guid>', methods=['GET'])
+# def test_specific_user(guid=None):
+#     user = Users.query.filter_by(guid=guid).first()
+#     login_user(user, force=True)
+#     return redirect(url_for('main.index'))
+
+@main.route('/logout-user/<guid>', methods=['GET'])
+def logout(guid):
+    if not guid:
+        return (redirect(url_for('main.login')))
+    user = Users.query.filter_by(guid=guid).one()
+    logout_user()
+    flash('Logged out user: {}'.format(user.auth_user_type))
+    return redirect(url_for('main.index'))

@@ -127,13 +127,37 @@ class Agencies(db.Model):
     administrators - an array of user id strings that identify default admins for an agencies requests
     """
     __tablename__ = 'agencies'
-    ein = db.Column(db.Integer, primary_key=True)  # FIXME: add length 3 if possible
-    category = db.Column(db.String(256))
+    ein = db.Column(db.String(4), primary_key=True)
+    parent_ein = db.Column(db.String(3))
+    categories = db.Column(ARRAY(db.String(256)))
     name = db.Column(db.String(256), nullable=False)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
-    administrators = db.Column(ARRAY(db.String))
+    is_active = db.Column(db.Boolean(), default=False)
+
+    administrators = db.relationship(
+        'Users',
+        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
+                    "Users.is_agency_active == True, "
+                    "Users.is_agency_admin == True)"
+    )
+    standard_users = db.relationship(
+        'Users',
+        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
+                    "Users.is_agency_active == True, "
+                    "Users.is_agency_admin == False)"
+    )
+    active_users = db.relationship(
+        'Users',
+        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
+                    "Users.is_agency_active == True)"
+    )
+    inactive_users = db.relationship(
+        'Users',
+        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
+                    "Users.is_agency_active == False)"
+    )
 
     @classmethod
     def populate(cls):
@@ -146,11 +170,13 @@ class Agencies(db.Model):
             for row in dictreader:
                 agency = cls(
                     ein=row['ein'],
-                    category=row['category'],
+                    parent_ein=row['parent_ein'],
+                    categories=row['categories'].split(','),
                     name=row['name'],
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
-                    appeals_email=row['appeals_email']
+                    appeals_email=row['appeals_email'],
+                    is_active=eval(row['is_active'])
                 )
                 db.session.add(agency)
             db.session.commit()
@@ -166,7 +192,7 @@ class Users(UserMixin, db.Model):
     guid - a string that contains the unique guid of users
     auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     guid and auth_user_type are combined to create a composite primary key
-    agency - a foreign key that links to the primary key of the agency table
+    agency_ein - a foreign key that links to the primary key of the agency table
     email - a string containing the user's email
     first_name - a string containing the user's first name
     middle_initial - a string containing the user's middle initial
@@ -192,7 +218,9 @@ class Users(UserMixin, db.Model):
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'),
         primary_key=True)
-    agency = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    is_agency_admin = db.Column(db.Boolean, nullable=False, default=False)
+    is_agency_active = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
     middle_initial = db.Column(db.String(1))
     last_name = db.Column(db.String(64), nullable=False)
@@ -205,6 +233,8 @@ class Users(UserMixin, db.Model):
     fax_number = db.Column(db.String(15))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
     user_requests = db.relationship("UserRequests", backref="user")
+
+    agency = db.relationship('Agencies', backref='users')
 
     @property
     def is_authenticated(self):
@@ -244,7 +274,7 @@ class Users(UserMixin, db.Model):
     @property
     def is_anonymous_requester(self):
         """
-        Checks to see if the current user is an anonymous requester
+        Checks to see if the user is an anonymous requester
 
         NOTE: This is not the same as an anonymous user! This returns
         true if this user has been created for a specific request.
@@ -253,8 +283,12 @@ class Users(UserMixin, db.Model):
         """
         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
 
-    def get_id(self):
+    def get_id(self):  # FIXME: should not be getter
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
+
+    def from_id(self, user_id):  # Might come in useful
+        guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
+        return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
 
     @property
     def name(self):
@@ -331,7 +365,8 @@ class Requests(db.Model):
     """
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
-    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    category = db.Column(db.String, default='All', nullable=False)
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
@@ -395,6 +430,7 @@ class Requests(db.Model):
             description,
             agency_ein,
             date_created,
+            category=None,
             privacy=None,
             date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
@@ -406,6 +442,7 @@ class Requests(db.Model):
         self.description = description
         self.agency_ein = agency_ein
         self.date_created = date_created
+        self.category = category
         self.privacy = privacy or self.PRIVACY_DEFAULT
         self.date_submitted = date_submitted
         self.due_date = due_date
@@ -469,6 +506,7 @@ class Requests(db.Model):
                 'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
                 'agency_description_private': self.privacy['agency_description'],
+                'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': self.submission,
@@ -512,8 +550,7 @@ class Events(db.Model):
                 user_type_auth.PUBLIC_USER_GOOGLE,
                 user_type_auth.PUBLIC_USER_NYC_ID,
                 user_type_auth.ANONYMOUS_USER,
-                name='auth_user_type'),
-        primary_key=True)
+                name='auth_user_type'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(30))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
@@ -526,6 +563,24 @@ class Events(db.Model):
             [Users.guid, Users.auth_user_type]
         ),
     )
+
+    def __init__(self,
+                 request_id,
+                 user_id,
+                 auth_user_type,
+                 type_,
+                 previous_value=None,
+                 new_value=None,
+                 response_id=None,
+                 timestamp=None):
+        self.request_id = request_id
+        self.user_id = user_id
+        self.auth_user_type = auth_user_type
+        self.response_id = response_id
+        self.type = type_
+        self.previous_value = previous_value
+        self.new_value = new_value
+        self.timestamp = timestamp
 
     def __repr__(self):
         return '<Events %r>' % self.id
@@ -619,7 +674,7 @@ class Reasons(db.Model):
         determination_type.DENIAL,
         name="reason_type"
     ), nullable=False)
-    agency_ein = db.Column(db.Integer, db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     content = db.Column(db.String, nullable=False)
 
     @classmethod

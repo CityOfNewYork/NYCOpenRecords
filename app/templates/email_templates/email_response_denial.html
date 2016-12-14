@@ -3,10 +3,15 @@
     information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
 </p>
 <p>
-    The {{ agency_name }} has DENIED your request for the following reason{% if reasons|length > 1 %}s{% endif %}:
+    The {{ agency_name }} has <strong>denied</strong> your request for the following reason{% if reasons|length > 1 %}s{% endif %}:
 </p>
 <ul>
     {% for reason in reasons %}
         <li>{{ reason }}</li>
     {% endfor %}
 </ul>
+<p>
+    You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
+    by contacting the agency's FOIL Appeals Officer: <a href="mailto:{{ agency_appeals_email }}">{{ agency_appeals_email }}</a>
+    within 30 days.
+</p>

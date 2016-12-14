@@ -102,12 +102,42 @@ def deploy():
         Reasons
     )))
 
+    es_recreate()
+    create_users()
+
 
 @manager.command
 def es_recreate():
-    """Recreate elasticsearch index and populate."""
+    """Recreate elasticsearch index and request docs."""
     from app.search.utils import recreate
     recreate()
+
+
+@manager.command
+def create_search_set():
+    """Create a number of requests for test purposes."""
+    from tests.lib.tools import create_requests_search_set
+    from app.constants.user_type_auth import PUBLIC_USER_TYPES
+    import random
+
+    users = random.sample(PUBLIC_USER_TYPES, 2)
+    for i in enumerate(users):
+        users[i[0]] = Users.query.filter_by(auth_user_type=users[i[0]]).first()
+
+    create_requests_search_set(users[0], users[1])
+
+
+@manager.command
+def create_users():
+    """Create a user from each of the allowed auth_user_types."""
+    from app.constants.user_type_auth import PUBLIC_USER_TYPES, AGENCY_USER
+    types = [type for type in PUBLIC_USER_TYPES]
+    types.append(AGENCY_USER)
+
+    from tests.lib.tools import create_user
+    for type_ in types:
+        user = create_user(type_)
+        print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
 
 
 if __name__ == "__main__":
