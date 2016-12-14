@@ -23,6 +23,7 @@ from app.constants import (
     request_status,
     user_type_request
 )
+from app.constants.user_type_auth import AGENCY_USER
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -142,14 +143,21 @@ def new():
         requester = current_request.requester
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
-        if requester.email:
-            flashed_message_html = render_template('request/confirmation_email.html')
-            flash(Markup(flashed_message_html), category='success')
-        else:
-            flashed_message_html = render_template('request/confirmation_non_email.html')
-            flash(Markup(flashed_message_html), category='warning')
+        if current_request.agency.is_active:
+            if requester.email:
+                flashed_message_html = render_template('request/confirmation_email.html')
+                flash(Markup(flashed_message_html), category='success')
+            else:
+                flashed_message_html = render_template('request/confirmation_non_email.html')
+                flash(Markup(flashed_message_html), category='warning')
 
-        return redirect(url_for('request.view', request_id=request_id))
+            return redirect(url_for('request.view', request_id=request_id))
+        else:
+            flashed_message_html = render_template('request/non_portal_agency_message.html',
+                                                   agency=current_request.agency)
+            flash(Markup(flashed_message_html), category='warning')
+            return redirect(url_for('request.non_portal_agency', agency_name=current_request.agency.name))
+
     return render_template(new_request_template, form=form, site_key=site_key)
 
 
@@ -178,12 +186,14 @@ def view(request_id):
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
-
-    assigned_user_requests = UserRequests.query.filter(
-        UserRequests.request_id == current_request.id,
-        UserRequests.request_user_type == user_type_request.AGENCY,
-        UserRequests.user_guid != current_user.guid
-    ).all()
+    if current_user.is_agency:
+        assigned_user_requests = UserRequests.query.filter(
+            UserRequests.request_id == current_request.id,
+            UserRequests.request_user_type == user_type_request.AGENCY,
+            UserRequests.user_guid != current_user.guid
+        ).all()
+    else:
+        assigned_user_requests = []
 
     assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
                       for ur in assigned_user_requests]
@@ -199,6 +209,16 @@ def view(request_id):
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         holidays=holidays,
         assigned_users=assigned_users)
+
+
+@request.route('/non_portal_agency/<agency_name>', methods=['GET'])
+def non_portal_agency(agency_name):
+    """
+    This function handles messaging to the requester if they submitted a request to a non-portal agency.
+
+    :return: redirect to non_portal_agency page.
+    """
+    return render_template('request/non_partner_request.html', agency_name=agency_name)
 
 
 @request.route('/edit_requester_info/<request_id>', methods=['PUT'])
@@ -235,12 +255,12 @@ def edit_requester_info(request_id):
     }
 
     if (user_attrs_val['email'] or
-        user_attrs_val['phone_number'] or
-        user_attrs_val['fax_number'] or (
-            address_attrs_val['city'] and
-            address_attrs_val['zip'] and
-            address_attrs_val['state'] and
-            address_attrs_val['address_one'])
+            user_attrs_val['phone_number'] or
+            user_attrs_val['fax_number'] or (
+                        address_attrs_val['city'] and
+                        address_attrs_val['zip'] and
+                    address_attrs_val['state'] and
+                address_attrs_val['address_one'])
         ):
 
         old = {}

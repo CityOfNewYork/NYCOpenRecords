@@ -58,7 +58,7 @@ def status():
     return 200
 
 
-@main.route('/faq.html', methods=['GET'])
+@main.route('/faq', methods=['GET'])
 def faq():
     return render_template('main/faq.html')
 
@@ -86,17 +86,10 @@ def login(guid=None):
     return render_template('main/test/user_list.html', users=users, current_user=current_user)
 
 
-#
-# @main.route('/login-user/<guid>', methods=['GET'])
-# def test_specific_user(guid=None):
-#     user = Users.query.filter_by(guid=guid).first()
-#     login_user(user, force=True)
-#     return redirect(url_for('main.index'))
-
 @main.route('/logout-user/<guid>', methods=['GET'])
 def logout(guid):
     if not guid:
-        return (redirect(url_for('main.login')))
+        return redirect(url_for('main.login'))
     user = Users.query.filter_by(guid=guid).one()
     logout_user()
     flash('Logged out user: {}'.format(user.auth_user_type))

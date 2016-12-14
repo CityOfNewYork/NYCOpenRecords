@@ -122,7 +122,7 @@ def create_search_set():
 
     users = random.sample(PUBLIC_USER_TYPES, 2)
     for i in enumerate(users):
-        users[i] = Users.query.filter_by(auth_user_type=users[i]).first()
+        users[i[0]] = Users.query.filter_by(auth_user_type=users[i[0]]).first()
 
     create_requests_search_set(users[0], users[1])
 
