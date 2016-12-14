@@ -379,8 +379,10 @@ def send_confirmation_email(request, agency, user):
     address = user.mailing_address
 
     # generates the view request page URL for this request
-    if agency.is_active
+    if agency.is_active:
         page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
+    else:
+        page = None
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,
