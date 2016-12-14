@@ -11,7 +11,7 @@ from flask import (
     redirect,
     url_for
 )
-from flask_login import login_user
+from flask_login import login_user, current_user, logout_user
 from flask_wtf import Form
 from wtforms import SubmitField, StringField
 
@@ -62,9 +62,14 @@ def status():
 def about():
     return render_template('main/about.html')
 
-
-@main.route('/login-user', methods=['GET'])
-def get_user_list():
+@main.route('/login')
+@main.route('/login/<guid>', methods=['GET'])
+def login(guid=None):
+    if guid:
+        user = Users.query.filter_by(guid=guid).one()
+        login_user(user, force=True)
+        flash('Logged in user: {}'.format(user.auth_user_type))
+        return redirect(url_for('main.index'))
     types = [type for type in PUBLIC_USER_TYPES]
     types.append(AGENCY_USER)
     users = []
@@ -72,11 +77,20 @@ def get_user_list():
         user = Users.query.filter_by(auth_user_type=type_).first()
         users.append(user)
 
-    return render_template('main/test/user_list.html', users=users)
+    return render_template('main/test/user_list.html', users=users, current_user=current_user)
 
+#
+# @main.route('/login-user/<guid>', methods=['GET'])
+# def test_specific_user(guid=None):
+#     user = Users.query.filter_by(guid=guid).first()
+#     login_user(user, force=True)
+#     return redirect(url_for('main.index'))
 
-@main.route('/login-user/<guid>', methods=['GET'])
-def test_specific_user(guid=None):
-    user = Users.query.filter_by(guid=guid).first()
-    login_user(user, force=True)
+@main.route('/logout-user/<guid>', methods=['GET'])
+def logout(guid):
+    if not guid:
+        return(redirect(url_for('main.login')))
+    user = Users.query.filter_by(guid=guid).one()
+    logout_user()
+    flash('Logged out user: {}'.format(user.auth_user_type))
     return redirect(url_for('main.index'))
