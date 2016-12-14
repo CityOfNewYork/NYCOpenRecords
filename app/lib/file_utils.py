@@ -15,6 +15,12 @@ from functools import wraps
 from contextlib import contextmanager
 from flask import current_app, send_from_directory
 
+TRANSFER_SIZE_LIMIT = 512000  # 512 kb
+
+
+class MaxTransferSizeExceededException(Exception):
+    pass
+
 
 @contextmanager
 def sftp_ctx():
@@ -48,6 +54,11 @@ def _sftp_switch(sftp_func):
                 return os_func(*args, **kwargs)
         return wrapper
     return decorator
+
+
+def _raise_if_too_big(bytes_transferred, _):
+    if bytes_transferred >= TRANSFER_SIZE_LIMIT:
+        raise MaxTransferSizeExceededException
 
 
 def _sftp_get_size(sftp, path):
@@ -95,7 +106,10 @@ def _sftp_move(sftp, localpath, remotepath):
 
 def _sftp_get_mime_type(sftp, path):
     with TemporaryFile() as tmp:
-        sftp.getfo(path, tmp)
+        try:
+            sftp.getfo(path, tmp, _raise_if_too_big)
+        except MaxTransferSizeExceededException:
+            pass
         tmp.seek(0)
         if current_app.config['MAGIC_FILE']:
             # Check using custom mime database file
@@ -170,6 +184,10 @@ def move(oldpath, newpath):
 
 @_sftp_switch(_sftp_get_mime_type)
 def get_mime_type(path):
+    return os_get_mime_type(path)
+
+
+def os_get_mime_type(path):
     if current_app.config['MAGIC_FILE']:
         # Check using custom mime database file
         m = magic.Magic(
@@ -187,6 +205,10 @@ def get_hash(path):
     Returns the sha1 hash of a file a string of
     hexadecimal digits.
     """
+    return os_get_hash(path)
+
+
+def os_get_hash(path):
     sha1 = hashlib.sha1()
     with open(path, 'rb') as fp:
         sha1.update(fp.read())
@@ -196,4 +218,3 @@ def get_hash(path):
 @_sftp_switch(_sftp_send_file)
 def send_file(directory, filename, **kwargs):
     return send_from_directory(directory, filename, **kwargs)
-

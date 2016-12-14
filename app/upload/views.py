@@ -49,6 +49,11 @@ def post(request_id):
         save the uploaded file to the 'updated' directory
         (this indicates the file is meant to replace
         a previously uploaded file)
+    - response_id (int)
+        the id of a response associated with the file
+        this upload is replacing
+        - REQUIRED if 'update' is 'true'
+        - ignored if 'update' is 'false'
 
     :returns: {
         "name": file name,
@@ -59,7 +64,8 @@ def post(request_id):
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
     is_update = eval_request_bool(request.form.get('update'))
-    if not is_update and upload_exists(request_id, filename):
+    response_id = request.form.get('response_id') if is_update else None
+    if upload_exists(request_id, filename, response_id):
         response = {
             "files": [{
                 "name": filename,
@@ -87,6 +93,9 @@ def post(request_id):
                 file_type = None
                 if start == 0:
                     valid_file_type, file_type = is_valid_file_type(file_)
+                    if os.path.exists(filepath):
+                        # remove existing file (upload 'restarted' for same file)
+                        os.remove(filepath)
 
                 if valid_file_type:
                     redis.set(key, upload_status.PROCESSING)
@@ -95,13 +104,13 @@ def post(request_id):
                         fp.write(file_.stream.read())
                     # scan if last chunk written
                     if os.path.getsize(filepath) == size:
-                        scan_and_complete_upload.delay(request_id, filepath, is_update)
+                        scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
             else:
                 valid_file_type, file_type = is_valid_file_type(file_)
                 if valid_file_type:
                     redis.set(key, upload_status.PROCESSING)
                     file_.save(filepath)
-                    scan_and_complete_upload.delay(request_id, filepath, is_update)
+                    scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
 
             if not valid_file_type:
                 response = {

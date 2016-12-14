@@ -15,6 +15,7 @@ from app import (
     celery,
     upload_redis as redis
 )
+from app.lib.redis_utils import redis_set_file_metadata
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload.constants import (
     ALLOWED_MIMETYPES,
@@ -45,22 +46,28 @@ def parse_content_range(header):
     return int(bytes_.split('-')[0]), int(bytes_.split('/')[1])
 
 
-def upload_exists(request_id, filename):
+def upload_exists(request_id, filename, response_id=None):
     """
-    Checks for an existing uploaded file.
+    Checks for an existing uploaded file. If a response id
+    is given, the file name associated with that response is ignored.
 
     :param request_id: id of request associated with the upload
     :param filename: the name of the uploaded file
+    :param response_id: id of response associated with the upload
     :return: whether the file exists or not
     """
-    existing_filenames = [
-        file_.name for file_ in
-        Files.query.filter_by(
-            request_id=request_id,
-            deleted=False,
+    if response_id:
+        files = Files.query.filter(
+            Files.request_id == request_id,
+            Files.deleted == False,
+            Files.id != response_id
         ).all()
-    ]
-    return filename in existing_filenames
+    else:
+        files = Files.query.filter_by(
+            request_id=request_id,
+            deleted=False
+        ).all()
+    return filename in [f.name for f in files]
 
 
 def is_valid_file_type(obj):
@@ -120,7 +127,7 @@ class VirusDetectedException(Exception):
 
 
 @celery.task
-def scan_and_complete_upload(request_id, filepath, is_update=False):
+def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=None):
     """
     Scans an uploaded file (see scan_file) and moves
     it to the data directory if it is clean. If is_update is set,
@@ -130,7 +137,13 @@ def scan_and_complete_upload(request_id, filepath, is_update=False):
     :param request_id: id of request associated with the upload
     :param filepath: path to uploaded and quarantined file
     :param is_update: will the file replace an existing one?
+    :param response_id: id of response associated with the upload
     """
+    if is_update:
+        assert response_id is not None
+    else:
+        assert response_id is None
+
     filename = os.path.basename(filepath)
 
     key = get_upload_key(request_id, filename, is_update)
@@ -151,6 +164,8 @@ def scan_and_complete_upload(request_id, filepath, is_update=False):
                 dst_dir,
                 UPDATED_FILE_DIRNAME
             )
+        # store file metadata in redis
+        redis_set_file_metadata(response_id or request_id, filepath, is_update)
         if not fu.exists(dst_dir):
             try:
                 fu.makedirs(dst_dir)

@@ -1,4 +1,5 @@
 USER_ADDED = "user_added"
+USER_REMOVED = "user_removed"
 USER_PERM_CHANGED = "user_permissions_changed"
 USER_INFO_EDITED = "user_information_edited"
 REQ_CREATED = "request_created"

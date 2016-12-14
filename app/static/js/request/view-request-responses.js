@@ -42,6 +42,7 @@ $(function () {
                         "#fileupload-update-" + responses[i].id,
                         request_id,
                         true,
+                        responses[i].id,
                         "template-upload-update",
                         "template-download-update",
                         $("#response-modal-" + responses[i].id).find(
