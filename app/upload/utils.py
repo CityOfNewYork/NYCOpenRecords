@@ -164,8 +164,8 @@ def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=
                 dst_dir,
                 UPDATED_FILE_DIRNAME
             )
-            # store file metadata in redis
-            redis_set_file_metadata(response_id or request_id, filepath, is_update)
+        # store file metadata in redis
+        redis_set_file_metadata(response_id or request_id, filepath, is_update)
         if not fu.exists(dst_dir):
             try:
                 fu.makedirs(dst_dir)

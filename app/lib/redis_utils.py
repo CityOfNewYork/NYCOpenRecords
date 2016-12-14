@@ -44,6 +44,6 @@ def _get_file_metadata_key(request_or_response_id, filepath, is_update):
     Since this key is being stored in upload_redis, a pipe
     is used instead of an underscore to avoid any key conflicts.
     """
-    return '|'.join((request_or_response_id,
+    return '|'.join((str(request_or_response_id),
                      os.path.basename(filepath),
                      'update' if is_update else 'new'))
