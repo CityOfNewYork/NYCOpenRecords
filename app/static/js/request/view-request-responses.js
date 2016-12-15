@@ -42,6 +42,7 @@ $(function () {
                         "#fileupload-update-" + responses[i].id,
                         request_id,
                         true,
+                        responses[i].id,
                         "template-upload-update",
                         "template-download-update",
                         $("#response-modal-" + responses[i].id).find(
@@ -52,7 +53,7 @@ $(function () {
             flask_moment_render_all();
         }
         else {
-            response_list.text("None");
+            response_list.text("");
         }
     }
 

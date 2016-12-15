@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/admin.css') }}"/>
+{% endblock %}
+
+{% block title %}
+    Admin
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <h1>Manage Agency Users</h1>
+        <hr>
+        {% if form.users.choices %}
+            <div class="row">
+                {{ form.users.label }}
+                <div class="row">
+                    <div class="col-sm-8">
+                        {{ form.users }}  <!-- TODO: live search would be nice (bootstrap select) -->
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="checkbox no-margin-top">
+                            <label>
+                                <input type="checkbox" name="is-admin"> Administrator
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn-sm" id="add-button">Add</button>
+                    </div>
+                </div>
+            </div>
+            <hr>
+        {% endif %}
+        <div class="row user-fields">
+            <div class="col-sm-3">
+                ID
+            </div>
+            <div class="col-sm-3">
+                Name
+            </div>
+            <div class="col-sm-3">
+                Email
+            </div>
+            <div class="col-sm-1 text-center">
+                User
+            </div>
+            <div class="col-sm-1 text-center">
+                Admin
+            </div>
+            <div class="col-sm-1 text-right">
+                <button type="button" class="btn btn-danger btn-sm" id="remove">
+                     <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        {% for user in users %}
+            <div class="row user-info">
+                <input type="hidden" name="user-id" value="{{ user.get_id() }}">
+                <div class="col-sm-3">
+                    {{ user.get_id() }}
+                </div>
+                <div class="col-sm-3">
+                    {{ user.name }}
+                </div>
+                <div class="col-sm-3">
+                    {{ user.email }}
+                </div>
+                <div class="col-sm-1 text-center">
+                    <div class="radio no-margin-top no-margin-bottom">
+                        <label>
+                            <input type="radio" name="user-status-{{ loop.index }}"
+                                   {% if not user.is_agency_admin %}checked{% endif %}
+                            value="false">
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-1 text-center">
+                    <div class="radio no-margin-top no-margin-bottom">
+                        <label>
+                            <input type="radio" name="user-status-{{ loop.index }}"
+                                   {% if user.is_agency_admin %}checked{% endif %}
+                            value="true">
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-1 text-right">
+                    <div class="checkbox no-margin-top no-margin-bottom">
+                        <label>
+                            <input type="checkbox" name="remove-{{ loop.index }}">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for("static", filename="js/admin/main.js") }}"></script>
+{% endblock %}

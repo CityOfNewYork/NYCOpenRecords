@@ -114,13 +114,14 @@ class DevelopmentConfig(Config):
                                'postgresql://localhost:5432/openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_dev"
-    MAGIC_FILE = os.environ.get('MAGIC_FILE', '')
+    MAGIC_FILE = os.environ.get('MAGIC_FILE')
 
 
 class TestingConfig(Config):
     TESTING = True
     VIRUS_SCAN_ENABLED = True
     USE_SFTP = False
+    UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or

@@ -1,74 +1,74 @@
-"ein","category","name","next_request_number","default_email","appeals_email"
-"002","","Mayor's Office","1","openrecords_agency_default_dev_002@mailinator.com","openrecords_agency_appeals_dev_002@mailinator.com"
-"003","","Board of Elections","1","openrecords_agency_default_dev_003@mailinator.com","openrecords_agency_appeals_dev_003@mailinator.com"
-"004","","Campaign Finance Board","1","openrecords_agency_default_dev_004@mailinator.com","openrecords_agency_appeals_dev_004@mailinator.com"
-"008","","Office of the Actuary","1","openrecords_agency_default_dev_008@mailinator.com","openrecords_agency_appeals_dev_008@mailinator.com"
-"009","","NYC Employee's Retirement System","1","openrecords_agency_default_dev_009@mailinator.com","openrecords_agency_appeals_dev_009@mailinator.com"
-"010","","Manhattan Borough President","1","openrecords_agency_default_dev_010@mailinator.com","openrecords_agency_appeals_dev_010@mailinator.com"
-"011","","Bronx Borough President","1","openrecords_agency_default_dev_011@mailinator.com","openrecords_agency_appeals_dev_011@mailinator.com"
-"012","","Brooklyn Borough President","1","openrecords_agency_default_dev_012@mailinator.com","openrecords_agency_appeals_dev_012@mailinator.com"
-"013","","Queens Borough President","1","openrecords_agency_default_dev_013@mailinator.com","openrecords_agency_appeals_dev_013@mailinator.com"
-"014","","Staten Island Borough President","1","openrecords_agency_default_dev_014@mailinator.com","openrecords_agency_appeals_dev_014@mailinator.com"
-"015","","Office of the Comptroller","1","openrecords_agency_default_dev_015@mailinator.com","openrecords_agency_appeals_dev_015@mailinator.com"
-"017","","Office of Emergency Management","1","openrecords_agency_default_dev_017@mailinator.com","openrecords_agency_appeals_dev_017@mailinator.com"
-"019","","Office of Management and Budget","1","openrecords_agency_default_dev_019@mailinator.com","openrecords_agency_appeals_dev_019@mailinator.com"
-"021","","Tax Commission","1","openrecords_agency_default_dev_021@mailinator.com","openrecords_agency_appeals_dev_021@mailinator.com"
-"025","","Law Department","1","openrecords_agency_default_dev_025@mailinator.com","openrecords_agency_appeals_dev_025@mailinator.com"
-"030","","Department of City Planning","1","openrecords_agency_default_dev_030@mailinator.com","openrecords_agency_appeals_dev_030@mailinator.com"
-"032","","Department of Investigation","1","openrecords_agency_default_dev_032@mailinator.com","openrecords_agency_appeals_dev_032@mailinator.com"
-"040","","Department of Education","1","openrecords_agency_default_dev_040@mailinator.com","openrecords_agency_appeals_dev_040@mailinator.com"
-"041","","Teachers' Retirement System","1","openrecords_agency_default_dev_041@mailinator.com","openrecords_agency_appeals_dev_041@mailinator.com"
-"054","","Civilian Complaint Review Board","1","openrecords_agency_default_dev_054@mailinator.com","openrecords_agency_appeals_dev_054@mailinator.com"
-"056","","Police Department","1","openrecords_agency_default_dev_056@mailinator.com","openrecords_agency_appeals_dev_056@mailinator.com"
-"057","","Fire Department","1","openrecords_agency_default_dev_057@mailinator.com","openrecords_agency_appeals_dev_057@mailinator.com"
-"059","","Board of Standard & Appeals","1","openrecords_agency_default_dev_059@mailinator.com","openrecords_agency_appeals_dev_059@mailinator.com"
-"067","","Administration for Children's Services","1","openrecords_agency_default_dev_067@mailinator.com","openrecords_agency_appeals_dev_067@mailinator.com"
-"069","","Human Resources Administration","1","openrecords_agency_default_dev_069@mailinator.com","openrecords_agency_appeals_dev_069@mailinator.com"
-"071","","Department of Homeless Services","1","openrecords_agency_default_dev_071@mailinator.com","openrecords_agency_appeals_dev_071@mailinator.com"
-"072","","Department of Correction","1","openrecords_agency_default_dev_072@mailinator.com","openrecords_agency_appeals_dev_072@mailinator.com"
-"073","","Board of Correction","1","openrecords_agency_default_dev_073@mailinator.com","openrecords_agency_appeals_dev_073@mailinator.com"
-"094","","Department of Employment","1","openrecords_agency_default_dev_094@mailinator.com","openrecords_agency_appeals_dev_094@mailinator.com"
-"101","","Public Advocate's Office","1","openrecords_agency_default_dev_101@mailinator.com","openrecords_agency_appeals_dev_101@mailinator.com"
-"102","","The City Council","1","openrecords_agency_default_dev_102@mailinator.com","openrecords_agency_appeals_dev_102@mailinator.com"
-"103","","Office of the City Clerk","1","openrecords_agency_default_dev_103@mailinator.com","openrecords_agency_appeals_dev_103@mailinator.com"
-"125","","Department for the Aging","1","openrecords_agency_default_dev_125@mailinator.com","openrecords_agency_appeals_dev_125@mailinator.com"
-"126","","Department of Cultural Affairs","1","openrecords_agency_default_dev_126@mailinator.com","openrecords_agency_appeals_dev_126@mailinator.com"
-"127","","Financial Information Services Agency","1","openrecords_agency_default_dev_127@mailinator.com","openrecords_agency_appeals_dev_127@mailinator.com"
-"130","","Department of Juvenile Justice","1","openrecords_agency_default_dev_130@mailinator.com","openrecords_agency_appeals_dev_130@mailinator.com"
-"131","","Office of Payroll Administration","1","openrecords_agency_default_dev_131@mailinator.com","openrecords_agency_appeals_dev_131@mailinator.com"
-"132","","Independent Budget Office","1","openrecords_agency_default_dev_132@mailinator.com","openrecords_agency_appeals_dev_132@mailinator.com"
-"133","","Equal Employment Practices Commission","1","openrecords_agency_default_dev_133@mailinator.com","openrecords_agency_appeals_dev_133@mailinator.com"
-"134","","City Civil Service Commission","1","openrecords_agency_default_dev_134@mailinator.com","openrecords_agency_appeals_dev_134@mailinator.com"
-"136","","Landmarks Preservation Commission","1","openrecords_agency_default_dev_136@mailinator.com","openrecords_agency_appeals_dev_136@mailinator.com"
-"156","","Taxi & Limousine Commission","1","openrecords_agency_default_dev_156@mailinator.com","openrecords_agency_appeals_dev_156@mailinator.com"
-"214","","Office of Labor Relations","1","openrecords_agency_default_dev_214@mailinator.com","openrecords_agency_appeals_dev_214@mailinator.com"
-"220","","Community Assistance Unit","1","openrecords_agency_default_dev_220@mailinator.com","openrecords_agency_appeals_dev_220@mailinator.com"
-"226","","Human Rights Commission","1","openrecords_agency_default_dev_226@mailinator.com","openrecords_agency_appeals_dev_226@mailinator.com"
-"256","","Police Pension Fund","1","openrecords_agency_default_dev_256@mailinator.com","openrecords_agency_appeals_dev_256@mailinator.com"
-"260","","Department of Youth & Community Development","1","openrecords_agency_default_dev_260@mailinator.com","openrecords_agency_appeals_dev_260@mailinator.com"
-"312","","Conflicts of Interest Board","1","openrecords_agency_default_dev_312@mailinator.com","openrecords_agency_appeals_dev_312@mailinator.com"
-"313","","Office of Collective Bargaining","1","openrecords_agency_default_dev_313@mailinator.com","openrecords_agency_appeals_dev_313@mailinator.com"
-"441","","Community Boards","1","openrecords_agency_default_dev_441@mailinator.com","openrecords_agency_appeals_dev_441@mailinator.com"
-"740","","Special Commissioner of Investigation for the NYC School District","1","openrecords_agency_default_dev_740@mailinator.com","openrecords_agency_appeals_dev_740@mailinator.com"
-"781","","Department of Probation","1","openrecords_agency_default_dev_781@mailinator.com","openrecords_agency_appeals_dev_781@mailinator.com"
-"801","","Department of Business Services","1","openrecords_agency_default_dev_801@mailinator.com","openrecords_agency_appeals_dev_801@mailinator.com"
-"806","","Department of Housing Preservation & Development","1","openrecords_agency_default_dev_806@mailinator.com","openrecords_agency_appeals_dev_806@mailinator.com"
-"810","","Department of Buildings","1","openrecords_agency_default_dev_810@mailinator.com","openrecords_agency_appeals_dev_810@mailinator.com"
-"816","","Department of Health and Mental Hygiene","1","openrecords_agency_default_dev_816@mailinator.com","openrecords_agency_appeals_dev_816@mailinator.com"
-"826","","Department of Environmental Protection","1","openrecords_agency_default_dev_826@mailinator.com","openrecords_agency_appeals_dev_826@mailinator.com"
-"827","","Department of Sanitation","1","openrecords_agency_default_dev_827@mailinator.com","openrecords_agency_appeals_dev_827@mailinator.com"
-"831","","Business Integrity Commission","1","openrecords_agency_default_dev_831@mailinator.com","openrecords_agency_appeals_dev_831@mailinator.com"
-"836","","Department of Finance","1","openrecords_agency_default_dev_836@mailinator.com","openrecords_agency_appeals_dev_836@mailinator.com"
-"841","","Department of Transportation","1","openrecords_agency_default_dev_841@mailinator.com","openrecords_agency_appeals_dev_841@mailinator.com"
-"846","","Department of Parks and Recreation","1","openrecords_agency_default_dev_846@mailinator.com","openrecords_agency_appeals_dev_846@mailinator.com"
-"850","","Department of Design and Construction","1","openrecords_agency_default_dev_850@mailinator.com","openrecords_agency_appeals_dev_850@mailinator.com"
-"858","","Department of Info. Tech. & Telecomm","1","openrecords_agency_default_dev_858@mailinator.com","openrecords_agency_appeals_dev_858@mailinator.com"
-"860","","Department of Records","1","openrecords_agency_default_dev_860@mailinator.com","openrecords_agency_appeals_dev_860@mailinator.com"
-"866","","Department of Consumer Affairs","1","openrecords_agency_default_dev_866@mailinator.com","openrecords_agency_appeals_dev_866@mailinator.com"
-"868","","Citywide Administrative Services","1","openrecords_agency_default_dev_868@mailinator.com","openrecords_agency_appeals_dev_868@mailinator.com"
-"901","","District Attorney: Manhattan","1","openrecords_agency_default_dev_901@mailinator.com","openrecords_agency_appeals_dev_901@mailinator.com"
-"902","","District Attorney: Bronx","1","openrecords_agency_default_dev_902@mailinator.com","openrecords_agency_appeals_dev_902@mailinator.com"
-"903","","District Attorney: Brooklyn","1","openrecords_agency_default_dev_903@mailinator.com","openrecords_agency_appeals_dev_903@mailinator.com"
-"904","","District Attorney: Queens","1","openrecords_agency_default_dev_904@mailinator.com","openrecords_agency_appeals_dev_904@mailinator.com"
-"905","","District Attorney: Staten Island","1","openrecords_agency_default_dev_905@mailinator.com","openrecords_agency_appeals_dev_905@mailinator.com"
-"906","","Special Narcotics Prosecutor's Office","1","openrecords_agency_default_dev_906@mailinator.com","openrecords_agency_appeals_dev_906@mailinator.com"
+"ein","parent_ein","categories","name","next_request_number","default_email","appeals_email","is_active"
+"0002","002","Government Administration","Mayor's Office","1","openrecords_agency_default_dev_002@mailinator.com","openrecords_agency_appeals_dev_002@mailinator.com",True
+"0003","003","Government Administration","Board of Elections","1","openrecords_agency_default_dev_003@mailinator.com","openrecords_agency_appeals_dev_003@mailinator.com",False
+"0004","004","","Campaign Finance Board","1","openrecords_agency_default_dev_004@mailinator.com","openrecords_agency_appeals_dev_004@mailinator.com",False
+"0008","008","Government Administration","Office of the Actuary","1","openrecords_agency_default_dev_008@mailinator.com","openrecords_agency_appeals_dev_008@mailinator.com",False
+"0009","009","","NYC Employee's Retirement System","1","openrecords_agency_default_dev_009@mailinator.com","openrecords_agency_appeals_dev_009@mailinator.com",False
+"0010","010","","Manhattan Borough President","1","openrecords_agency_default_dev_010@mailinator.com","openrecords_agency_appeals_dev_010@mailinator.com",False
+"0011","011","","Bronx Borough President","1","openrecords_agency_default_dev_011@mailinator.com","openrecords_agency_appeals_dev_011@mailinator.com",False
+"0012","012","Public Safety,Health,Social Services","Brooklyn Borough President","1","openrecords_agency_default_dev_012@mailinator.com","openrecords_agency_appeals_dev_012@mailinator.com",False
+"0013","013","","Queens Borough President","1","openrecords_agency_default_dev_013@mailinator.com","openrecords_agency_appeals_dev_013@mailinator.com",False
+"0014","014","","Staten Island Borough President","1","openrecords_agency_default_dev_014@mailinator.com","openrecords_agency_appeals_dev_014@mailinator.com",False
+"0015","015","","Office of the Comptroller","1","openrecords_agency_default_dev_015@mailinator.com","openrecords_agency_appeals_dev_015@mailinator.com",False
+"0017","017","Public Safety","Office of Emergency Management","1","openrecords_agency_default_dev_017@mailinator.com","openrecords_agency_appeals_dev_017@mailinator.com",True
+"0019","019","Government Administration","Office of Management and Budget","1","openrecords_agency_default_dev_019@mailinator.com","openrecords_agency_appeals_dev_019@mailinator.com",False
+"0021","021","","Tax Commission","1","openrecords_agency_default_dev_021@mailinator.com","openrecords_agency_appeals_dev_021@mailinator.com",False
+"0025","025","","Law Department","1","openrecords_agency_default_dev_025@mailinator.com","openrecords_agency_appeals_dev_025@mailinator.com",False
+"0030","030","Housing & Development","Department of City Planning","1","openrecords_agency_default_dev_030@mailinator.com","openrecords_agency_appeals_dev_030@mailinator.com",False
+"0032","032","Public Safety","Department of Investigation","1","openrecords_agency_default_dev_032@mailinator.com","openrecords_agency_appeals_dev_032@mailinator.com",False
+"0040","040","Education","Department of Education","1","openrecords_agency_default_dev_040@mailinator.com","openrecords_agency_appeals_dev_040@mailinator.com",True
+"0041","041","","Teachers' Retirement System","1","openrecords_agency_default_dev_041@mailinator.com","openrecords_agency_appeals_dev_041@mailinator.com",False
+"0054","054","Public Safety","Civilian Complaint Review Board","1","openrecords_agency_default_dev_054@mailinator.com","openrecords_agency_appeals_dev_054@mailinator.com",False
+"0056","056","Public Safety","Police Department","1","openrecords_agency_default_dev_056@mailinator.com","openrecords_agency_appeals_dev_056@mailinator.com",False
+"0057","057","Public Safety","Fire Department","1","openrecords_agency_default_dev_057@mailinator.com","openrecords_agency_appeals_dev_057@mailinator.com",False
+"0059","059","Housing & Development","Board of Standard & Appeals","1","openrecords_agency_default_dev_059@mailinator.com","openrecords_agency_appeals_dev_059@mailinator.com",False
+"0067","067","Social Services","Administration for Children's Services","1","openrecords_agency_default_dev_067@mailinator.com","openrecords_agency_appeals_dev_067@mailinator.com",False
+"0069","069","Social Services","Human Resources Administration","1","openrecords_agency_default_dev_069@mailinator.com","openrecords_agency_appeals_dev_069@mailinator.com",False
+"0071","071","Social Services","Department of Homeless Services","1","openrecords_agency_default_dev_071@mailinator.com","openrecords_agency_appeals_dev_071@mailinator.com",False
+"0072","072","","Department of Correction","1","openrecords_agency_default_dev_072@mailinator.com","openrecords_agency_appeals_dev_072@mailinator.com",False
+"0073","073","Public Safety","Board of Correction","1","openrecords_agency_default_dev_073@mailinator.com","openrecords_agency_appeals_dev_073@mailinator.com",False
+"0094","094","","Department of Employment","1","openrecords_agency_default_dev_094@mailinator.com","openrecords_agency_appeals_dev_094@mailinator.com",False
+"0101","101","","Public Advocate's Office","1","openrecords_agency_default_dev_101@mailinator.com","openrecords_agency_appeals_dev_101@mailinator.com",False
+"0102","102","","The City Council","1","openrecords_agency_default_dev_102@mailinator.com","openrecords_agency_appeals_dev_102@mailinator.com",False
+"0103","103","","Office of the City Clerk","1","openrecords_agency_default_dev_103@mailinator.com","openrecords_agency_appeals_dev_103@mailinator.com",False
+"0125","125","Social Services","Department for the Aging","1","openrecords_agency_default_dev_125@mailinator.com","openrecords_agency_appeals_dev_125@mailinator.com",True
+"0126","126","Culture & Recreation","Department of Cultural Affairs","1","openrecords_agency_default_dev_126@mailinator.com","openrecords_agency_appeals_dev_126@mailinator.com",False
+"0127","127","","Financial Information Services Agency","1","openrecords_agency_default_dev_127@mailinator.com","openrecords_agency_appeals_dev_127@mailinator.com",False
+"0130","130","","Department of Juvenile Justice","1","openrecords_agency_default_dev_130@mailinator.com","openrecords_agency_appeals_dev_130@mailinator.com",False
+"0131","131","Government Administration","Office of Payroll Administration","1","openrecords_agency_default_dev_131@mailinator.com","openrecords_agency_appeals_dev_131@mailinator.com",True
+"0132","132","","Independent Budget Office","1","openrecords_agency_default_dev_132@mailinator.com","openrecords_agency_appeals_dev_132@mailinator.com",False
+"0133","133","Government Administration","Equal Employment Practices Commission","1","openrecords_agency_default_dev_133@mailinator.com","openrecords_agency_appeals_dev_133@mailinator.com",True
+"0134","134","Government Administration","City Civil Service Commission","1","openrecords_agency_default_dev_134@mailinator.com","openrecords_agency_appeals_dev_134@mailinator.com",False
+"0136","136","Housing & Development","Landmarks Preservation Commission","1","openrecords_agency_default_dev_136@mailinator.com","openrecords_agency_appeals_dev_136@mailinator.com",False
+"0156","156","Transportation","Taxi & Limousine Commission","1","openrecords_agency_default_dev_156@mailinator.com","openrecords_agency_appeals_dev_156@mailinator.com",False
+"0214","214","Government Administration","Office of Labor Relations","1","openrecords_agency_default_dev_214@mailinator.com","openrecords_agency_appeals_dev_214@mailinator.com",False
+"0220","220","","Community Assistance Unit","1","openrecords_agency_default_dev_220@mailinator.com","openrecords_agency_appeals_dev_220@mailinator.com",False
+0228,"226","Government Administration","Human Rights Commission","1","openrecords_agency_default_dev_226@mailinator.com","openrecords_agency_appeals_dev_226@mailinator.com",False
+"0256","256","","Police Pension Fund","1","openrecords_agency_default_dev_256@mailinator.com","openrecords_agency_appeals_dev_256@mailinator.com",False
+"0260","260","Social Services","Department of Youth & Community Development","1","openrecords_agency_default_dev_260@mailinator.com","openrecords_agency_appeals_dev_260@mailinator.com",True
+"0312","312","Government Administration","Conflicts of Interest Board","1","openrecords_agency_default_dev_312@mailinator.com","openrecords_agency_appeals_dev_312@mailinator.com",False
+"0313","313","Social Services","Office of Collective Bargaining","1","openrecords_agency_default_dev_313@mailinator.com","openrecords_agency_appeals_dev_313@mailinator.com",False
+"0441","441","","Community Boards","1","openrecords_agency_default_dev_441@mailinator.com","openrecords_agency_appeals_dev_441@mailinator.com",False
+"0740","740","","Special Commissioner of Investigation for the NYC School District","1","openrecords_agency_default_dev_740@mailinator.com","openrecords_agency_appeals_dev_740@mailinator.com",False
+"0781","781","Public Safety","Department of Probation","1","openrecords_agency_default_dev_781@mailinator.com","openrecords_agency_appeals_dev_781@mailinator.com",False
+"0801","801","","Department of Business Services","1","openrecords_agency_default_dev_801@mailinator.com","openrecords_agency_appeals_dev_801@mailinator.com",False
+"0806","806","Social Services","Department of Housing Preservation & Development","1","openrecords_agency_default_dev_806@mailinator.com","openrecords_agency_appeals_dev_806@mailinator.com",False
+"0810","810","Housing & Development","Department of Buildings","1","openrecords_agency_default_dev_810@mailinator.com","openrecords_agency_appeals_dev_810@mailinator.com",False
+"0816","816","Health","Department of Health and Mental Hygiene","1","openrecords_agency_default_dev_816@mailinator.com","openrecords_agency_appeals_dev_816@mailinator.com",True
+"0826","826","Environment","Department of Environmental Protection","1","openrecords_agency_default_dev_826@mailinator.com","openrecords_agency_appeals_dev_826@mailinator.com",False
+"0827","827","Environment","Department of Sanitation","1","openrecords_agency_default_dev_827@mailinator.com","openrecords_agency_appeals_dev_827@mailinator.com",True
+"0831","831","Government Administration","Business Integrity Commission","1","openrecords_agency_default_dev_831@mailinator.com","openrecords_agency_appeals_dev_831@mailinator.com",True
+"0836","836","Government Administration","Department of Finance","1","openrecords_agency_default_dev_836@mailinator.com","openrecords_agency_appeals_dev_836@mailinator.com",False
+"0841","841","Transportation","Department of Transportation","1","openrecords_agency_default_dev_841@mailinator.com","openrecords_agency_appeals_dev_841@mailinator.com",False
+"0846","846","Culture & Recreation","Department of Parks and Recreation","1","openrecords_agency_default_dev_846@mailinator.com","openrecords_agency_appeals_dev_846@mailinator.com",True
+"0850","850","Government Administration","Department of Design and Construction","1","openrecords_agency_default_dev_850@mailinator.com","openrecords_agency_appeals_dev_850@mailinator.com",False
+"0858","858","Government Administration","Department of Info. Tech. & Telecomm","1","openrecords_agency_default_dev_858@mailinator.com","openrecords_agency_appeals_dev_858@mailinator.com",True
+"0860","860","Government Administration","Department of Records","1","openrecords_agency_default_dev_860@mailinator.com","openrecords_agency_appeals_dev_860@mailinator.com",True
+"0866","866","","Department of Consumer Affairs","1","openrecords_agency_default_dev_866@mailinator.com","openrecords_agency_appeals_dev_866@mailinator.com",False
+"0868","868","Government Administration","Citywide Administrative Services","1","openrecords_agency_default_dev_868@mailinator.com","openrecords_agency_appeals_dev_868@mailinator.com",False
+"0901","901","","District Attorney: Manhattan","1","openrecords_agency_default_dev_901@mailinator.com","openrecords_agency_appeals_dev_901@mailinator.com",False
+"0902","902","","District Attorney: Bronx","1","openrecords_agency_default_dev_902@mailinator.com","openrecords_agency_appeals_dev_902@mailinator.com",False
+"0903","903","","District Attorney: Brooklyn","1","openrecords_agency_default_dev_903@mailinator.com","openrecords_agency_appeals_dev_903@mailinator.com",False
+"0904","904","","District Attorney: Queens","1","openrecords_agency_default_dev_904@mailinator.com","openrecords_agency_appeals_dev_904@mailinator.com",False
+"0905","905","","District Attorney: Staten Island","1","openrecords_agency_default_dev_905@mailinator.com","openrecords_agency_appeals_dev_905@mailinator.com",False
+"0906","906","Public Safety","Special Narcotics Prosecutor's Office","1","openrecords_agency_default_dev_906@mailinator.com","openrecords_agency_appeals_dev_906@mailinator.com",False
