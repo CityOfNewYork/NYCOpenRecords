@@ -56,34 +56,58 @@ class Roles(db.Model):
             role_name.AGENCY_HELPER: (
                 permission.ADD_NOTE |
                 permission.ADD_FILE |
-                permission.VIEW_REQUESTS_HELPER |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_ALL
+                permission.ADD_LINK |
+                permission.ADD_OFFLINE_INSTRUCTIONS
             ),
             role_name.AGENCY_OFFICER: (
-                permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.EXTEND_REQUESTS |
-                permission.CLOSE_REQUESTS |
-                permission.ADD_HELPERS |
-                permission.REMOVE_HELPERS |
                 permission.ACKNOWLEDGE |
-                permission.VIEW_REQUESTS_AGENCY |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_ALL
+                permission.DENY |
+                permission.EXTEND |
+                permission.CLOSE |
+                permission.RE_OPEN |
+                permission.ADD_NOTE |
+                permission.ADD_FILE |
+                permission.ADD_LINK |
+                permission.ADD_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_NOTE |
+                permission.EDIT_NOTE_PRIVACY |
+                permission.EDIT_FILE |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_LINK |
+                permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_TITLE |
+                permission.CHANGE_PRIVACY_TITLE |
+                permission.EDIT_AGENCY_DESCRIPTION |
+                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION
             ),
             role_name.AGENCY_ADMIN: (
-                permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.EXTEND_REQUESTS |
-                permission.CLOSE_REQUESTS |
-                permission.ADD_HELPERS |
-                permission.REMOVE_HELPERS |
                 permission.ACKNOWLEDGE |
-                permission.CHANGE_REQUEST_POC |
-                permission.VIEW_REQUESTS_ALL |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_ALL
+                permission.DENY |
+                permission.EXTEND |
+                permission.CLOSE |
+                permission.RE_OPEN |
+                permission.ADD_NOTE |
+                permission.ADD_FILE |
+                permission.ADD_LINK |
+                permission.ADD_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_NOTE |
+                permission.EDIT_NOTE_PRIVACY |
+                permission.EDIT_FILE |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_LINK |
+                permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_TITLE |
+                permission.CHANGE_PRIVACY_TITLE |
+                permission.EDIT_AGENCY_DESCRIPTION |
+                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.ADD_USER_TO_REQUEST |
+                permission.DELETE_USER_FROM_REQUEST |
+                permission.EDIT_USER_REQUEST_PERMISSIONS |
+                permission.ADD_USER_TO_AGENCY |
+                permission.REMOVE_USER_FROM_AGENCY |
+                permission.CHANGE_USER_ADMIN_PRIVILEGE
             )
         }
 
@@ -390,7 +414,7 @@ class Requests(db.Model):
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(
-                          user_type_request.REQUESTER),
+            user_type_request.REQUESTER),
         backref="requests",
         viewonly=True,
         uselist=False
@@ -403,7 +427,7 @@ class Requests(db.Model):
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type, "
                       "UserRequests.request_user_type == '{}')".format(
-                           user_type_request.AGENCY),
+            user_type_request.AGENCY),
         viewonly=True
     )
 
@@ -631,7 +655,7 @@ class Responses(db.Model):
         val = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-        }
+            }
         val.pop('id')
         val['privacy'] = self.privacy
         return val
