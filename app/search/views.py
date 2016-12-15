@@ -107,8 +107,8 @@ def requests():
     if total != 0:
         convert_dates(results)
         formatted_results = render_template("request/result_row.html",
-                                            requests=results["hits"]["hits"],
-                                            query=query)  # TODO: remove after testing
+                                            requests=results["hits"]["hits"])
+                                            # query=query)  # only for testing
     return jsonify({
         "count": len(results["hits"]["hits"]),
         "total": total,

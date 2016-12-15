@@ -56,17 +56,16 @@
     padding-right: 0;
 }
 
-/* TODO: remove after testing */
-.test-info {
-    margin-top: 1em;
-    padding-top: 1em;
-    border-top: 1px dashed black;
-    display: none;
-}
+/*.test-info {*/
+    /*margin-top: 1em;*/
+    /*padding-top: 1em;*/
+    /*border-top: 1px dashed black;*/
+    /*display: none;*/
+/*}*/
 
-.list-group-item:hover .test-info {
-    display: block;
-}
+/*.list-group-item:hover .test-info {*/
+    /*display: block;*/
+/*}*/
 
 #generate-document-error {
     color: red;
