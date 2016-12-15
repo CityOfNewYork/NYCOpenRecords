@@ -623,20 +623,19 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
     # if data['files'] exists, use email_content as template with specific file email template
     if files is not None:
         files = json.loads(files)
-        default_content = False
-        content = data['email_content']
-    # use default_content in response template
-    else:
-        files = []
         default_content = True
         content = None
         if eval_request_bool(data['is_private']):
             email_template = 'email_templates/email_private_file_upload.html'
+        for file_ in files:
+            if file_['privacy'] != PRIVATE or eval_request_bool(data['is_private']):
+                filename = file_['filename']
+                files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
+    # use default_content in response template
+    else:
+        default_content = False
+        content = data['email_content']
     # iterate through files dictionary to create and append links of files with privacy option of not private
-    for file_ in files:
-        if file_['privacy'] != PRIVATE or eval_request_bool(data['is_private']):
-            filename = file_['filename']
-            files_links[filename] = "http://127.0.0.1:5000/request/view/{}".format(filename)
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,

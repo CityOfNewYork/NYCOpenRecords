@@ -67,11 +67,23 @@
 
             // Proceed with next click function if validation fields are valid and no files are uploading
             if (form.parsley().isValid() && (templateUpload.length === 0)) {
+                var filenames = first.find(".secured-name").map( function(){return $(this).text(); }).get();
                 var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
+
+                // Create an array (called files) of objects with keys of filename and privacy
+                var files = [];
+                for( var i = 0; i < filenames.length; i++ ) {
+                    var file = {};
+                    file["filename"] = filenames[i];
+                    file["privacy"] = privacy[i];
+
+                    files.push(file);
+                }
+
                 is_private = true;
-                for (var i = 0; i < privacy.length; i++) {
+                for (var j = 0; j < privacy.length; j++) {
                     // Check if current value === 'private'
-                    if (privacy[i] !== 'private') {
+                    if (privacy[j] !== 'private') {
                         is_private = false;
                         break;
                     }
@@ -82,6 +94,7 @@
                     data: {
                         request_id: "{{ request.id }}",
                         type: "files",
+                        files: JSON.stringify(files),
                         is_private: is_private
                     },
                     success: function (data) {
@@ -98,26 +111,12 @@
         next2.click(function () {
             tinyMCE.triggerSave();
 
-            var filenames = first.find(".secured-name").map( function(){return $(this).text(); }).get();
-            var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
-
-            // Create an array (called files) of objects with keys of filename and privacy
-            var files = [];
-            for( var i = 0; i < filenames.length; i++ ) {
-                var file = {};
-                file["filename"] = filenames[i];
-                file["privacy"] = privacy[i];
-
-                files.push(file);
-            }
-
             $.ajax({
                 url: "/response/email",
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
                     type: "files",
-                    files: JSON.stringify(files),
                     email_content: second.find("#email-file-content").val(),
                     is_private: is_private
                 },
