@@ -46,11 +46,6 @@ $(document).ready(function () {
             data: {
                 request_id: "{{ request.id }}",
                 type: "notes",
-{#                note: JSON.stringify({#}
-{#                    content: $('#note-content').val(),#}
-{#                    privacy: $(".note-privacy:checked").val()#}
-{#                }),#}
-                confirmation: true,
                 email_content: $('#email-note-content').val()
             },
             success: function (data) {

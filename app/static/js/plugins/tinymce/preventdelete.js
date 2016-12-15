@@ -108,7 +108,7 @@
 				return true
 
 			var children = node.childNodes
-			var hasClass = true
+			var hasClass = false
 
 			for (var i = 0; i < children.length && !hasClass; i++) {
 				var cnode = children[i]
