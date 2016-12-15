@@ -366,7 +366,10 @@ def send_confirmation_email(request, agency, user):
     :param agency: Agencies object containing the agency of the new request
     :param user: Users object containing the user who created the request
     """
-    subject = 'New Request Created ({})'.format(request.id)
+    if agency.is_active:
+        subject = 'New Request Created ({})'.format(request.id)
+    else:
+        subject = 'FOIL Request Submitted: {}'.format(request.title)
 
     # get the agency's default email and adds it to the bcc list
     bcc = [agency.default_email]
@@ -376,7 +379,10 @@ def send_confirmation_email(request, agency, user):
     address = user.mailing_address
 
     # generates the view request page URL for this request
-    page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
+    if agency.is_active:
+        page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
+    else:
+        page = None
 
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template("email_templates/email_confirmation.html", current_request=request,

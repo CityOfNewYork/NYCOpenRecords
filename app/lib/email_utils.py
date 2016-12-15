@@ -19,9 +19,8 @@ from flask import current_app, render_template
 from flask_mail import Message
 
 from app import mail, celery
-from app.models import Users, UserRequests, Requests
-from app.constants.user_type_request import AGENCY
-from app.constants.user_type_auth import AGENCY_USER
+from app.models import Requests
+from app.constants import OPENRECORDS_DL_EMAIL
 
 
 @celery.task
@@ -31,6 +30,11 @@ def send_async_email(msg):
     except Exception as e:
         print("Error sending email:", e)
         # TODO: we ought to email ourselves
+
+
+def send_contact_email(subject, body, sender):
+    msg = Message(subject, [OPENRECORDS_DL_EMAIL], body, sender=sender)
+    send_async_email.delay(msg)
 
 
 def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_content=None, **kwargs):
