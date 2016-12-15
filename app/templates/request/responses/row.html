@@ -5,10 +5,12 @@
     {% if response.dtype == determination_type.REOPENING %}re-opened-row{% endif %}">
         <strong>{{ response | format_response_type }}</strong>
     </div>
-    <div class="col-md-5 metadata-preview">
+    <div class="col-md-6 metadata-preview">
         {% if show_preview %}
             {{ response.preview }}
         {% endif %}
     </div>
-    <div class="col-md-4">{{ moment(response.date_modified).format('dddd, MMMM D, YYYY [at] h:mm A') }}</div>
+    <div class="col-md-3">
+        {{ moment(response.date_modified).format('dddd, MMMM D, YYYY [at] h:mm A') }}
+    </div>
 </div>

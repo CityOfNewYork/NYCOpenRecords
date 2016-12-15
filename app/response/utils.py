@@ -1398,8 +1398,17 @@ class RespFileEditor(ResponseEditor):
 
     def move_deleted_file(self):
         """
-        Move the file to the 'deleted' directory
-        and rename it to its hash.
+        Move the file of a deleted response to the
+        designated directory for deleted files.
+
+        from:
+
+            UPLOAD_DIRECTORY/<FOIL-ID>/
+
+        to:
+
+            UPLOAD_DIRECTORY/deleted/<response-ID>/
+
         """
         upload_path = os.path.join(
             current_app.config['UPLOAD_DIRECTORY'],
@@ -1407,10 +1416,11 @@ class RespFileEditor(ResponseEditor):
         )
         dir_deleted = os.path.join(
             upload_path,
-            DELETED_FILE_DIRNAME
+            DELETED_FILE_DIRNAME,
+            str(self.response.id)
         )
         if not fu.exists(dir_deleted):
-            fu.mkdir(dir_deleted)
+            fu.makedirs(dir_deleted)
         fu.rename(
             os.path.join(
                 upload_path,
@@ -1418,7 +1428,7 @@ class RespFileEditor(ResponseEditor):
             ),
             os.path.join(
                 dir_deleted,
-                self.response.hash
+                self.response.name
             )
         )
 
