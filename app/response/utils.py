@@ -649,8 +649,8 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
 def _link_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for a link instruction.
-    Checks if dictionary of link data exists. If not, renders the default response email template.
-    If link dictionary exists, renders the link response template with provided arguments.
+    Checks if dictionary of link data exists and renders the default response email template.
+    If link dictionary does not exist, use email_content from frontend to render confirmation.
 
     :param request_id: FOIL request ID of the request the file is being added to
     :param data: data from the frontend AJAX call
@@ -661,23 +661,21 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a file response
     """
     link = data.get('link')
-    # if data['link'] exists, use email_content as template with specific link email template
+    # if data['link'] exists get instruction content and privacy, and render template accordingly
     if link is not None:
         link = json.loads(link)
-        default_content = False
-        content = data['email_content']
         url = link['url']
-        privacy = link['privacy']
-    # use default_content in response template
-    else:
-        url = ''
         content = None
-        privacy = None
-        if data['privacy'] == PRIVATE:
+        if link['privacy'] == PRIVATE:
             email_template = 'email_templates/email_response_private_link.html'
             default_content = None
         else:
             default_content = True
+    # use email_content from frontend to render confirmation
+    else:
+        default_content = False
+        url = None
+        content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
@@ -685,7 +683,6 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
                                                 agency_name=agency_name,
                                                 url=url,
                                                 page=page,
-                                                privacy=privacy,
                                                 response_privacy=response_privacy)}), 200
 
 
