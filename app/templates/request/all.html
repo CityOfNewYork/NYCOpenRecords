@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block title %}
-View Requests
+    View Requests
 {% endblock %}
 
 {% block content %}
@@ -14,8 +14,7 @@ View Requests
         <div class="row">
             <div class="col-sm-9">
                 <h1>Explore OpenRecords Requests
-                    <small data-toggle="popover" data-placement="bottom" data-trigger="hover"
-                           title="Explore OpenRecords Requests"
+                    <small data-toggle="popover" data-placement="bottom" data-trigger="hover" title="Explore OpenRecords Requests"
                            data-content="This page will help you view all requests that have been made public">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
@@ -23,8 +22,7 @@ View Requests
                 <p>
                     OpenRecords makes every public request available using the View Requests option,
                     including messages or documents uploaded by agency staff.
-                    By searching the requests, you may find the information you are interested in before requesting
-                    documents.
+                    By searching the requests, you may find the information you are interested in before requesting documents.
                     This will save time for you and for the City of New York.
                 </p>
             </div>
@@ -34,176 +32,175 @@ View Requests
         </div>
         <br>
         <!-- Search & Filters -->
-        <form id="search-form" action="{{ url_for(" search.requests_doc
-        ", doc_type="csv") }}" method="get" target="_blank" rel="noreferrer">
-        <div class="row" id="search-section">
-            <div class="well col-sm-12">
-                <div class="col-sm-4">
-                    <h4><label for="query">Search By</label>
-                        <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Search By"
-                               data-content="The Search By section allows you to search by key words in the various fields of a request.">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    <input type="text" id="query" name="query">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="foil_id">
-                            FOIL ID
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="title" checked>
-                            Title
-                        </label>
-                    </div>
-                    {% if not current_user.is_anonymous %}
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="description">
-                            Description
-                        </label>
-                    </div>
-                    {% endif %}
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="agency_description">
-                            Agency Description
-                        </label>
-                    </div>
-                    {% if current_user.is_agency %}
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="requester_name">
-                            Requester Name
-                        </label>
-                    </div>
-                    {% endif %}
-                    <br>
-                    <select id="size" name="size" title="size" class="input-block-level">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                    <strong>&nbsp;Results Per Page</strong>
-                </div>
-                <div class="col-sm-4">
-                    {% if current_user.is_agency %}
-                    <div class="row">
-                        <h4><label>Date Received</label>
-                            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
-                                   data-content="The Date Received section allows you to search for requests that were received between two specific dates.">
+        <form id="search-form" action="{{ url_for("search.requests_doc", doc_type="csv") }}" method="get" target="_blank" rel="noreferrer">
+            <div class="row" id="search-section">
+                <div class="well col-sm-12">
+                    <div class="col-sm-4">
+                        <h4><label for="query">Search By</label>
+                            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Search By"
+                                   data-content="The Search By section allows you to search by key words in the various fields of a request.">
                                 <span class="glyphicon glyphicon-question-sign"></span>
                             </small>
                         </h4>
-                        <div class="col-sm-6 no-pad-left">
+                        <input type="text" id="query" name="query">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="foil_id">
+                                FOIL ID
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="title" checked>
+                                Title
+                            </label>
+                        </div>
+                        {% if not current_user.is_anonymous %}
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="description">
+                                    Description
+                                </label>
+                            </div>
+                        {% endif %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="agency_description">
+                                Agency Description
+                            </label>
+                        </div>
+                        {% if current_user.is_agency %}
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="requester_name">
+                                    Requester Name
+                                </label>
+                            </div>
+                        {% endif %}
+                        <br>
+                        <select id="size" name="size" title="size" class="input-block-level">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                        <strong>&nbsp;Results Per Page</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        {% if current_user.is_agency %}
+                            <div class="row">
+                                <h4><label>Date Received</label>
+                                    <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
+                                           data-content="The Date Received section allows you to search for requests that were received between two specific dates.">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </small>
+                                </h4>
+                                <div class="col-sm-6 no-pad-left">
+                                    <label for="date-rec-from">From:</label>
+                                    <input type="text" id="date-rec-from" name="date_rec_from">
+                                </div>
+                                <div class="col-sm-6 no-pad-right">
+                                    <label for="date-rec-to">To:</label>
+                                    <input type="text" id="date-rec-to" name="date_rec_to">
+                                </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <h4><label>Date Due</label>
+                                    <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Due"
+                                           data-content="The Date Due section allows you to search for requests that are due between two specific dates.">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </small>
+                                </h4>
+                                <div class="col-sm-6 no-pad-left">
+                                    <label for="date-due-from">From:</label>
+                                    <input type="text" id="date-due-from" name="date_due_from">
+                                </div>
+                                <div class="col-sm-6 no-pad-right">
+                                    <label for="date-due-to">To:</label>
+                                    <input type="text" id="date-due-to" name="date_due_to">
+                                </div>
+                            </div>
+                        {% else %}
+                            <h4><label>Date Received</label>
+                                <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
+                                       data-content="The Date Received section allows you to search for requests that were received between two specific dates.">
+                                    <span class="glyphicon glyphicon-question-sign"></span>
+                                </small>
+                            </h4>
                             <label for="date-rec-from">From:</label>
                             <input type="text" id="date-rec-from" name="date_rec_from">
-                        </div>
-                        <div class="col-sm-6 no-pad-right">
+                            <br>
                             <label for="date-rec-to">To:</label>
                             <input type="text" id="date-rec-to" name="date_rec_to">
-                        </div>
+                        {% endif %}
                     </div>
-                    <br>
-                    <div class="row">
-                        <h4><label>Date Due</label>
-                            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Due"
-                                   data-content="The Date Due section allows you to search for requests that are due between two specific dates.">
+                    <div class="col-sm-4">
+                        <h4>{{ form.agency_ein.label }}
+                            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency"
+                                   data-content="This search section allows you to search by different agencies.">
                                 <span class="glyphicon glyphicon-question-sign"></span>
                             </small>
                         </h4>
-                        <div class="col-sm-6 no-pad-left">
-                            <label for="date-due-from">From:</label>
-                            <input type="text" id="date-due-from" name="date_due_from">
+                        {{ form.agency_ein(class="input-block-level") }}
+                        <br>
+                        <h4><label>Status</label>
+                            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"
+                                   data-content="This search section allows you to search by status of the request.">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </small>
+                        </h4>
+                        <div class="status open checkbox">
+                            <label>
+                                <input type="checkbox" name="open" checked>
+                                Open
+                            </label>
                         </div>
-                        <div class="col-sm-6 no-pad-right">
-                            <label for="date-due-to">To:</label>
-                            <input type="text" id="date-due-to" name="date_due_to">
+                        {% if current_user.is_agency %}
+                            <div class="status in-progress checkbox">
+                                <label>
+                                    <input type="checkbox" name="in_progress" checked>
+                                    In Progress
+                                </label>
+                            </div>
+                            <div class="status due-soon checkbox">
+                                <label>
+                                    <input type="checkbox" name="due_soon" checked>
+                                    Due Soon
+                                </label>
+                            </div>
+                            <div class="status overdue checkbox">
+                                <label>
+                                    <input type="checkbox" name="overdue" checked>
+                                    Overdue
+                                </label>
+                            </div>
+                        {% endif %}
+                        <div class=" status closed checkbox">
+                            <label>
+                                <input type="checkbox" name="closed">
+                                Closed
+                            </label>
                         </div>
-                    </div>
-                    {% else %}
-                    <h4><label>Date Received</label>
-                        <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
-                               data-content="The Date Received section allows you to search for requests that were received between two specific dates.">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    <label for="date-rec-from">From:</label>
-                    <input type="text" id="date-rec-from" name="date_rec_from">
-                    <br>
-                    <label for="date-rec-to">To:</label>
-                    <input type="text" id="date-rec-to" name="date_rec_to">
-                    {% endif %}
-                </div>
-                <div class="col-sm-4">
-                    <h4>{{ form.agency_ein.label }}
-                        <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency"
-                               data-content="The search section allows you to search by different agencies">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    {{ form.agency_ein(class="input-block-level") }}
-                    <br>
-                    <h4><label>Status</label>
-                        <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"
-                               data-content="The Status section allows you to search by status of the request.">
-                            <span class="glyphicon glyphicon-question-sign"></span>
-                        </small>
-                    </h4>
-                    <div class="status open checkbox">
-                        <label>
-                            <input type="checkbox" name="open" checked>
-                            Open
-                        </label>
-                    </div>
-                    {% if current_user.is_agency %}
-                    <div class="status in-progress checkbox">
-                        <label>
-                            <input type="checkbox" name="in_progress" checked>
-                            In Progress
-                        </label>
-                    </div>
-                    <div class="status due-soon checkbox">
-                        <label>
-                            <input type="checkbox" name="due_soon" checked>
-                            Due Soon
-                        </label>
-                    </div>
-                    <div class="status overdue checkbox">
-                        <label>
-                            <input type="checkbox" name="overdue" checked>
-                            Overdue
-                        </label>
-                    </div>
-                    {% endif %}
-                    <div class=" status closed checkbox">
-                        <label>
-                            <input type="checkbox" name="closed">
-                            Closed
-                        </label>
-                    </div>
-                    <!-- hidden inputs with out-of-form counterparts must have identical values -->
-                    <input type="hidden" name="tz_name">
-                    <input type="hidden" name="start">
-                    <input type="hidden" name="sort_date_submitted">
-                    <input type="hidden" name="sort_date_due">
-                    <input type="hidden" name="sort_title">
-                    <div class="text-right">
-                        <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
+                        <!-- hidden inputs with out-of-form counterparts must have identical values -->
+                        <input type="hidden" name="tz_name">
+                        <input type="hidden" name="start">
+                        <input type="hidden" name="sort_date_submitted">
+                        <input type="hidden" name="sort_date_due">
+                        <input type="hidden" name="sort_title">
+                        <div class="text-right">
+                            <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        {% if current_user.is_agency %}
-        <div class="row">
-            <div class="col-sm-12 no-pad-left no-pad-right">
-                <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV</button>
-                <span id="generate-document-error"></span>
-            </div>
-        </div>
-        {% endif %}
+            {% if current_user.is_agency %}
+                <div class="row">
+                    <div class="col-sm-12 no-pad-left no-pad-right">
+                        <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV</button>
+                        <span id="generate-document-error"></span>
+                    </div>
+                </div>
+            {% endif %}
         </form>
         <div class="row">
             <div class="panel panel-default">
@@ -226,9 +223,9 @@ View Requests
                             Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
                         </div>
                         {% if current_user.is_agency %}
-                        <div class="col-sm-2">
-                            Requester Name
-                        </div>
+                            <div class="col-sm-2">
+                                Requester Name
+                            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -255,7 +252,7 @@ View Requests
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript">$(function () {holiday_dates = {{ holidays | safe }}; });</script>
+    <script type="text/javascript">$(function() {holiday_dates = {{ holidays | safe }}; });</script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/request/search.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
 {% endblock %}
