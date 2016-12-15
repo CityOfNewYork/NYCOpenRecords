@@ -2,7 +2,7 @@ $(function() {
     // SWITCH AGENCY
     $("#agencies").change(function() {
         var agency_ein = $(this).val();
-        window.location = window.location.origin + '/admin/' + agency_ein;
+        window.location = window.location.origin + "/admin/" + agency_ein;
     });
     // ACTIVATE AGENCY
     $("#activate").click(function() {
@@ -14,7 +14,7 @@ $(function() {
                 is_active: true
             },
             success: function () {
-                window.location = window.location.origin + '/admin/' + agency_ein;
+                window.location = window.location.origin + "/admin/" + agency_ein;
             }
         });
     });

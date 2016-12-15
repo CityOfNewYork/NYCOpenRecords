@@ -15,12 +15,12 @@
                 <li class="openrecords_nav"><a href="{{ url_for('request.new') }}">Request a Record</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('request.view_all') }}">View Requests</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Reports</a></li>
-                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Help</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.faq') }}">FAQ</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.about') }}">About</a></li>
                 {% if current_user.is_authenticated %}
                     <li class="openrecords_nav"><a href="{{ url_for('auth.manage_account') }}">Manage Account</a></li>
                 {% endif %}
-                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Contact</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.contact') }}">Contact</a></li>
                 {% if not current_user.is_anonymous
                 and ((current_user.is_agency_admin and current_user.is_agency_active)
                 or current_user.is_super) %}

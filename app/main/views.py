@@ -3,7 +3,8 @@
 
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
-
+from . import main
+from datetime import datetime
 from flask import (
     render_template,
     flash,
@@ -14,14 +15,16 @@ from flask import (
 from flask_login import login_user, current_user, logout_user
 from flask_wtf import Form
 from wtforms import SubmitField, StringField
-
 from app.constants.user_type_auth import (
     AGENCY_USER,
     PUBLIC_USER_TYPES
 )
-from app.lib.email_utils import send_email
+from app.lib.email_utils import send_email, send_contact_email
+from app.lib.db_utils import create_object
+from app.models import Emails
+from app.constants import OPENRECORDS_DL_EMAIL
+from app.constants.response_privacy import PRIVATE
 from app.models import Users
-from . import main
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -50,7 +53,7 @@ def test_email():
         subject = 'Test Subject' if 'subject' not in request.form else form.subject.data
         send_email(to, cc, bcc, subject, 'email_templates/email_confirmation')
         flash('Email sent')
-    return render_template('email.html', form=form)
+    return render_template('main/test/email.html', form=form)
 
 
 @main.route('/index.html', methods=['GET'])
@@ -58,9 +61,45 @@ def status():
     return 200
 
 
+@main.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        subject = request.form.get('subject')
+        message = request.form.get('message')
+
+        if all((name, email, subject, message)):
+            body = "Name: {}\n\nEmail: {}\n\nSubject: {}\n\nMessage:\n{}".format(
+                name, email, subject, message)
+            create_object(
+                Emails(
+                    request_id=None,
+                    privacy=PRIVATE,
+                    to=OPENRECORDS_DL_EMAIL,
+                    cc=None,
+                    bcc=None,
+                    subject=subject,
+                    body=body,
+                    date_modified=datetime.utcnow()
+                )
+            )
+            send_contact_email(subject, body, email)
+            flash('Your message has been sent. We will get back to you.', category='success')
+        else:
+            flash('Cannot send email.', category='danger')
+    return render_template('main/contact.html')
+
+
+@main.route('/faq', methods=['GET'])
+def faq():
+    return render_template('main/faq.html')
+
+
 @main.route('/about', methods=['GET'])
 def about():
     return render_template('main/about.html')
+
 
 @main.route('/login')
 @main.route('/login/<guid>', methods=['GET'])
@@ -79,17 +118,11 @@ def login(guid=None):
 
     return render_template('main/test/user_list.html', users=users, current_user=current_user)
 
-#
-# @main.route('/login-user/<guid>', methods=['GET'])
-# def test_specific_user(guid=None):
-#     user = Users.query.filter_by(guid=guid).first()
-#     login_user(user, force=True)
-#     return redirect(url_for('main.index'))
 
 @main.route('/logout-user/<guid>', methods=['GET'])
 def logout(guid):
     if not guid:
-        return(redirect(url_for('main.login')))
+        return redirect(url_for('main.login'))
     user = Users.query.filter_by(guid=guid).one()
     logout_user()
     flash('Logged out user: {}'.format(user.auth_user_type))

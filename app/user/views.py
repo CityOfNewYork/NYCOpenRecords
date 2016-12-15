@@ -47,7 +47,6 @@ def patch(user_id):
                 guid=guid,
                 auth_user_type=auth_type
             ).first() is not None:
-                # TODO: eval_request_bool from above
                 fieldnames = ['is_agency_admin', 'is_agency_active', 'is_super']
                 data = {}
                 for name in fieldnames:
