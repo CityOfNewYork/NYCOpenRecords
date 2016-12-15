@@ -20,10 +20,8 @@ from flask_login import current_user
 from sqlalchemy import any_
 
 from app.constants import (
-    request_status,
-    user_type_request
+    request_status
 )
-from app.constants.user_type_auth import AGENCY_USER
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -35,8 +33,7 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
-    Agencies,
-    UserRequests
+    Agencies
 )
 from app.request import request
 from app.request.forms import (
@@ -46,7 +43,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm,
+    CloseRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -55,7 +52,8 @@ from app.request.utils import (
     send_confirmation_email
 )
 from app.user_request.forms import (
-    RemoveUserRequestForm
+    RemoveUserRequestForm,
+    AddUserRequestForm
 )
 
 
@@ -186,17 +184,18 @@ def view(request_id):
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
-    if current_user.is_agency:
-        assigned_user_requests = UserRequests.query.filter(
-            UserRequests.request_id == current_request.id,
-            UserRequests.request_user_type == user_type_request.AGENCY,
-            UserRequests.user_guid != current_user.guid
-        ).all()
-    else:
-        assigned_user_requests = []
 
-    assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
-                      for ur in assigned_user_requests]
+    active_users = []
+    assigned_users = []
+    if current_user.is_agency:
+        for agency_user in current_request.agency.active_users:
+            if not agency_user.is_agency_admin and (agency_user != current_user):
+                # populate list of assigned users that can be removed from a request
+                if agency_user in current_request.agency_users:
+                    assigned_users.append(agency_user)
+                # append to list of active users that can be added to a request
+                else:
+                    active_users.append(agency_user)
 
     return render_template(
         'request/view_request.html',
@@ -207,8 +206,10 @@ def view(request_id):
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
+        add_user_request_form=AddUserRequestForm(active_users),
         holidays=holidays,
-        assigned_users=assigned_users)
+        assigned_users=assigned_users,
+        active_users=active_users)
 
 
 @request.route('/non_portal_agency/<agency_name>', methods=['GET'])

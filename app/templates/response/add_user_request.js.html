@@ -1,0 +1,35 @@
+<script type="text/javascript">
+    $(function() {
+        var form = $("#add-user-request");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third");
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+        var submit = third.find(".submit");
+
+        next1.click(function() {
+            first.hide();
+            second.show();
+        });
+
+        prev2.click(function() {
+            second.hide();
+            first.show();
+        });
+
+        next2.click(function() {
+            second.hide();
+            third.show();
+        });
+
+        prev3.click(function() {
+            third.hide();
+            second.show();
+        });
+
+    });
+</script>

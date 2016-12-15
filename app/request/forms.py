@@ -16,16 +16,17 @@ from wtforms import (
     DateTimeField,
     SelectMultipleField,
 )
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from app.constants import (
     CATEGORIES,
     STATES,
     submission_methods,
     determination_type,
+    user_type_auth
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons
+from app.models import Reasons, Users
 
 
 class PublicUserRequestForm(Form):
