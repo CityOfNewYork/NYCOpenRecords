@@ -24,7 +24,7 @@
                 {% if not current_user.is_anonymous
                 and ((current_user.is_agency_admin and current_user.is_agency_active)
                 or current_user.is_super) %}
-                    <li class="openrecords_nav"><a href="{{ url_for('admin.main') }}">Admin</a></li>
+                    <li class="openrecords_nav"><a href="{{ url_for('admin.main') }}">Agency Administration</a></li>
                 {% endif %}
             </ul>
         </div><!--/.nav-collapse -->

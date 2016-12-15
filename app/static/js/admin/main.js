@@ -1,20 +1,20 @@
 $(function() {
     // SWITCH AGENCY
     $("#agencies").change(function() {
-        var agency_ein = $(this).val();
-        window.location = window.location.origin + "/admin/" + agency_ein;
+        var agencyEin = $(this).val();
+        window.location = window.location.origin + "/admin/" + agencyEin;
     });
     // ACTIVATE AGENCY
     $("#activate").click(function() {
-        var agency_ein = $("#agencies").val();
+        var agencyEin = $("#agencies").val();
         $.ajax({
-            url: "/agency/" + agency_ein,
+            url: "/agency/" + agencyEin,
             type: "PATCH",
             data: {
                 is_active: true
             },
             success: function () {
-                window.location = window.location.origin + "/admin/" + agency_ein;
+                window.location = window.location.origin + "/admin/" + agencyEin;
             }
         });
     });
