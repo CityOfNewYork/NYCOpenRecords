@@ -180,6 +180,7 @@ def view(request_id):
 
     :return: redirect to view request page
     """
+    # FIXME: 404 if agency not active?
     current_request = Requests.query.filter_by(id=request_id).one()
 
     holidays = sorted(get_holidays_date_list(
