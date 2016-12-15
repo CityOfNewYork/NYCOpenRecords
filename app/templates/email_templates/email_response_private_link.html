@@ -1,5 +1,9 @@
 <p>Attention {{ agency_name }} Users,<p>
 
-<p><span class="mceNonEditable">The following link has been added as private to <a href="{{ page }}">{{ request_id }}</a>:</span>&nbsp;</p>
-<p style="padding-left:30px;"><a href="{{ url }}" target="_blank" class="mceNonEditable">{{ url }}</a>&nbsp;</p>
-<p><br></p>
+<p>
+    <span class="mceNonEditable">
+        The following link has been added to <a href="{{ page }}">{{ request_id }}</a>:
+        <br><br><strong style="padding-left: 30px">{{ note_content }}</strong><br />
+    </span>
+</p>
+<p><br /></p>

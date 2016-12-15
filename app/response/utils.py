@@ -577,8 +577,8 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
-        default_content = False
-        content = data['email_content']
+        default_content = True
+        content = None
         # calculates new due date based on selected value if custom due date is not selected
         new_due_date = _get_new_due_date(
             request_id,
@@ -588,10 +588,10 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         reason = extension['reason']
     # use default_content in response template
     else:
-        default_content = True
-        content = None
-        new_due_date = ''
-        reason = ''
+        default_content = False
+        new_due_date = None
+        reason = None
+        content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
