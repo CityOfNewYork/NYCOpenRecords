@@ -704,24 +704,31 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a note response
     """
     note = data.get('note')
-    # if data['note'] exists, use email_content as template with specific link email template
     if note is not None:
+    # if data['note'] exists, use email_content as template with specific link email template
+    # if note is not None:
+    #     note = json.loads(note)
+    #     default_content = False
+    #     content = data['email_content']
+    #     note_content = note['content']
+    #     privacy = note['privacy']
+    # # use default_content in response template
+    # else:
         note = json.loads(note)
-        default_content = False
-        content = data['email_content']
         note_content = note['content']
-        privacy = note['privacy']
-    # use default_content in response template
-    else:
-        note_content = ''
         content = None
-        privacy = None
+        # privacy = None
         # use private email template for note if privacy is private
-        if data['privacy'] == PRIVATE:
+        if note['privacy'] == PRIVATE:
             email_template = 'email_templates/email_response_private_note.html'
             default_content = None
         else:
             default_content = True
+    else:
+        default_content = False
+        content = data['email_content'].replace('class="mceNonEditable" ', '')
+        note_content = None
+        # privacy = None
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
@@ -729,7 +736,7 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
                                                 agency_name=agency_name,
                                                 note_content=note_content,
                                                 page=page,
-                                                privacy=privacy,
+                                                # privacy=privacy,
                                                 response_privacy=response_privacy)}), 200
 
 

@@ -6,6 +6,8 @@
     <p>
         Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
     </p>
+    {% block response_content %}
+    {% endblock %}
 {% else %}
     {% if email_file_content %}
         {{ email_file_content | safe }}
@@ -25,7 +27,7 @@
                 action.
             </p>
         {% endif %}
-        {% block response_content %}
-        {% endblock %}
+{#        {% block response_content %}#}
+{#        {% endblock %}#}
     {% endif %}
 {% endif %}
