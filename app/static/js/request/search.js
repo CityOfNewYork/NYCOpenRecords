@@ -118,18 +118,18 @@ $(function() {
         }
     });
 
-    // TODO: remove after testing
-    document.onkeypress = function (e) {
-        var testInfo = $(".test-info");
-        if (e.keyCode === 92) {
-            if (testInfo.is(":visible")) {
-                testInfo.hide();
-            }
-            else {
-                testInfo.show();
-            }
-        }
-    };
+    // show test info
+    // document.onkeypress = function (e) {
+    //     var testInfo = $(".test-info");
+    //     if (e.keyCode === 92) {
+    //         if (testInfo.is(":visible")) {
+    //             testInfo.hide();
+    //         }
+    //         else {
+    //             testInfo.show();
+    //         }
+    //     }
+    // };
 
     var next = $("#next");
     var prev = $("#prev");
