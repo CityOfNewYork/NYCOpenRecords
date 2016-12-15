@@ -34,7 +34,7 @@
             dateFormat: "yy-mm-dd",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
-            minDate: "{{ request.due_date }}".split()[0]
+            minDate: "{{ request.due_date }}".split(' ')[0]
         });
         date.keydown(false);
 
