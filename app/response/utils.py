@@ -692,8 +692,8 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
 def _note_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for note
-    Checks if dictionary of note data exists. If not, renders the default response email template.
-    If note dictionary exists, renders the note response template with provided arguments.
+    Checks if dictionary of note data exists and renders the default response email template.
+    If note dictionary does not exist, use email_content from frontend to render confirmation.
 
     :param request_id: FOIL request ID of the request the note is being added to
     :param data: data from the frontend AJAX call
@@ -716,9 +716,8 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
             default_content = True
     else:
         default_content = False
-        # content = data['email_content']
-        content = data['email_content']
         note_content = None
+        content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
@@ -732,8 +731,8 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
 def _instruction_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an offline instruction.
-    Checks if dictionary of instruction data exists. If not, renders the default response email template.
-    If instruction dictionary exists, renders the instruction response template with provided arguments.
+    Checks if dictionary of instruction data exists and renders the default response email template.
+    If instruction dictionary does not exist, use email_content from frontend to render confirmation.
 
     :param request_id: FOIL request ID of the request the instruction is being added to
     :param data: data from the frontend AJAX call
@@ -744,23 +743,21 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
     :return: the HTML of the rendered template of an instruction response
     """
     instruction = data.get('instruction')
-    # if data['instructions'] exists, use email_content as template with specific instructions template
+    # if data['instructions'] exists get instruction content and privacy, and render template accordingly
     if instruction is not None:
         instruction = json.loads(instruction)
-        default_content = False
-        content = data['email_content']
         instruction_content = instruction['content']
-        privacy = instruction['privacy']
-    # use default_content in response template
-    else:
-        instruction_content = ''
         content = None
-        privacy = None
-        if data['privacy'] == PRIVATE:
+        if instruction['privacy'] == PRIVATE:
             email_template = 'email_templates/email_response_private_instruction.html'
             default_content = None
         else:
             default_content = True
+    # use email_content from frontend to render confirmation
+    else:
+        default_content = False
+        instruction_content = None
+        content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
@@ -768,7 +765,6 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
                                                 agency_name=agency_name,
                                                 instruction_content=instruction_content,
                                                 page=page,
-                                                privacy=privacy,
                                                 response_privacy=response_privacy)}), 200
 
 
