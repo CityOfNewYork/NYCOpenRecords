@@ -82,7 +82,6 @@ class AgencyUserRequestForm(Form):
     """
 
     # Request Information
-    request_category = SelectField('Category (optional)', choices=CATEGORIES)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
     request_date = DateTimeField("Date (required)", format="%Y-%m-%d", default=datetime.today)

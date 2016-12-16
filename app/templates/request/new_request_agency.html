@@ -19,13 +19,6 @@
                     notify
                     you about how much time is required to
                     respond to your request.</p>
-                {# Categories to filter out agencies #}
-                {{ form.request_category.label(class='request-heading') }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
-                      data-content="Selecting a category helps clarify which agency will receive the request"
-                      class="glyphicon glyphicon-question-sign">
-                </span>
-                {{ form.request_category(id='request-category', class='input-block-level') }}<br>
                 {# Title of the request #}
                 {{ form.request_title.label(class='request-heading') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
@@ -36,8 +29,10 @@
                         placeholder='Please provide a short summary of your request.', maxlength="90") }}
                 <h5 id="title-character-count">90 characters remaining</h5>
                 <div class="alert alert-info">
-                    <p><b>Note: The agency, category, and topic of your request will be visible to the public. Do not
-                            enter personal information here.</b></p>
+                    <p><strong>
+                        Note: The title of this request will be visible to the public.
+                        Do not enter personal information here.
+                    </strong></p>
                 </div>
                 {# Description of the request #}
                 {{ form.request_description.label(class='request-heading') }}
@@ -50,7 +45,8 @@
                         maxlength="5000") }}
                 <h5 id="description-character-count">5000 characters remaining</h5>
                 <div class="alert alert-info">
-                    <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
+                    <p><b>Note: The request details written here will not be visible to the public.
+                        However, your agency may post a description of the records provided.</b></p>
                 </div>
 
                 {# Upload field for user to add files #}
