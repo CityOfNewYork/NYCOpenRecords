@@ -90,6 +90,11 @@ def contact():
     return render_template('main/contact.html')
 
 
+@main.route('/report', methods=['GET'])
+def report():
+    return render_template('main/reports.html')
+
+
 @main.route('/faq', methods=['GET'])
 def faq():
     return render_template('main/faq.html')
