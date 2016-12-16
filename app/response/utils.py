@@ -819,44 +819,47 @@ def _get_edit_response_template(editor):
         if editor.response.type == response_type.FILE \
         else os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
     email_summary_requester = None
-    agency = False
+    release_and_viewable = data['privacy'] != PRIVATE and editor.requester_viewable
+    was_private = editor.data_old.get('privacy') == PRIVATE
+    requester_content = None
+    agency_content = None
 
     if eval_request_bool(data.get('confirmation')) or editor.update:
         default_content = False
         agency_content = data['email_content']
 
-        release_and_viewable = data['privacy'] != PRIVATE and editor.requester_viewable
-        was_private = editor.data_old.get('privacy') == PRIVATE
-
         if release_and_viewable or was_private:
             requester_content = data['email_content']
             agency_content = None
-            email_summary_requester = render_template(email_template,
-                                                      default_content=default_content,
-                                                      content=requester_content,
-                                                      request_id=editor.response.request.id,
-                                                      agency_name=agency_name,
-                                                      response=editor.response,
-                                                      response_data=editor,
-                                                      page=page,
-                                                      privacy=data['privacy'],
-                                                      response_privacy=response_privacy)
+
         if was_private:
-            recipient = "all associated participants"
-        elif release_and_viewable:
             recipient = "the Requester"
+        elif release_and_viewable:
+            recipient = "all associated participants"
         else:
             recipient = "all Assigned Users"
         header = "The following will be emailed to {}:".format(recipient)
-
-        agency = True
     else:
-        agency_content = None
-        if data['privacy'] == PRIVATE:
+        if data['privacy'] == PRIVATE or not editor.requester_viewable:
             email_template = 'email_templates/email_edit_private_response.html'
             default_content = None
         else:
             default_content = True
+
+    if release_and_viewable or was_private:
+        email_summary_requester = render_template(email_template,
+                                                  default_content=default_content,
+                                                  content=requester_content,
+                                                  request_id=editor.response.request.id,
+                                                  agency_name=agency_name,
+                                                  response=editor.response,
+                                                  response_data=editor,
+                                                  page=page,
+                                                  privacy=data['privacy'],
+                                                  response_privacy=response_privacy)
+        default_content = True
+
+    agency = True
     # email_summary_edited rendered every time for email that agency receives
     email_summary_edited = render_template(email_template,
                                            default_content=default_content,

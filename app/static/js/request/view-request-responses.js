@@ -123,7 +123,8 @@ $(function () {
             editor_selector: "tinymce-area",
             elementpath: false,
             convert_urls: false,
-            height: 180
+            height: 180,
+            plugins: ["noneditable","preventdelete"]
         });
 
         switch (response_type) {
@@ -259,7 +260,7 @@ $(function () {
                                 type: "edit",
                                 response_id: response_id,
                                 content: first.find(".note-content").val(),
-                                privacy: first.find("input[name=privacy]:checked").val(),
+                                privacy: first.find("input[name=privacy]:checked").val()
                             },
                             success: function (data) {
                                 if (data.error) {
