@@ -219,6 +219,7 @@ class Users(UserMixin, db.Model):
                 name='auth_user_type'),
         primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    is_super = db.Column(db.Boolean, nullable=False, default=False)
     is_agency_admin = db.Column(db.Boolean, nullable=False, default=False)
     is_agency_active = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
