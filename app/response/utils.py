@@ -471,8 +471,8 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
-        default_content = False
-        content = data['email_content']
+        default_content = True
+        content = None
         date = _get_new_due_date(
             request_id,
             acknowledgment['days'],
@@ -480,10 +480,10 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
             data['tz_name'])
         info = acknowledgment['info'].strip() or None
     else:
-        default_content = True
-        content = None
-        date = ''
-        info = ''
+        default_content = False
+        content = data['email_content']
+        date = None
+        info = None
     return jsonify({"template": render_template(email_template,
                                                 default_content=default_content,
                                                 content=content,
