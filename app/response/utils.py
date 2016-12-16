@@ -171,7 +171,7 @@ def add_denial(request_id, reason_ids, email_content):
             request_id,
             privacy,
             determination_type.DENIAL,
-            ",".join(Reasons.query.filter_by(id=reason_id).one().content
+            "|".join(Reasons.query.filter_by(id=reason_id).one().content
                      for reason_id in reason_ids)
         )
         create_object(response)
@@ -204,7 +204,7 @@ def add_closing(request_id, reason_ids, email_content):
             request_id,
             privacy,
             determination_type.CLOSING,
-            ",".join(Reasons.query.filter_by(id=reason_id).one().content
+            "|".join(Reasons.query.filter_by(id=reason_id).one().content
                      for reason_id in reason_ids)
         )
         create_object(response)

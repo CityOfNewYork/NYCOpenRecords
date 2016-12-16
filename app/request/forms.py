@@ -201,7 +201,7 @@ class FinishRequestForm(Form):
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
         self.reasons.choices = [
-            (reason.id, reason.content)
+            (reason.id, reason.title)
             for reason in Reasons.query.filter(
                 Reasons.type == self.ultimate_determination_type,
                 or_(

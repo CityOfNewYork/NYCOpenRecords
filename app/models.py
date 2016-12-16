@@ -676,6 +676,7 @@ class Reasons(db.Model):
         name="reason_type"
     ), nullable=False)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
 
     @classmethod
@@ -686,6 +687,7 @@ class Reasons(db.Model):
             for row in dictreader:
                 reason = cls(
                     type=row['type'],
+                    title=row['title'],
                     content=row['content']
                 )
                 db.session.add(reason)
