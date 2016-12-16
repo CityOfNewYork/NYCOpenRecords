@@ -1,64 +1,209 @@
-from app.user import user
-from app.models import Users
-from app.constants import USER_ID_DELIMITER
-from app.lib.db_utils import update_object
-from flask import jsonify, request
+from datetime import datetime
+
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+
+from flask import request, jsonify
 from flask_login import current_user
+
+from app.user import user
+from app.models import Users, Events
+from app.constants import USER_ID_DELIMITER, event_type
+from app.lib.db_utils import update_object, create_object
+from app.lib.utils import eval_request_bool
 
 
 @user.route('/<user_id>', methods=['PATCH'])
 def patch(user_id):
-    # TODO: should also handle what edit_requester_info route does
     """
-    Only accessible by Agency Administrators and Super Users.
+    Request Parameters:
+    - title
+    - organization
+    - email
+    - phone_number
+    - fax_number
+    - mailing_address
+    - is_super
+    - is_agency_active
+    - is_agency_admin
+    (Mailing Address)
+    - zip
+    - city
+    - state
+    - address_one
+    - address_two
 
-    Currently only changes:
-        is_agency_admin
-        is_agency_active
-        is_super
-
-    Agency Administrators cannot update themselves.
-    Super Users cannot change their super user status.
+    Restrictions:
+    - Anonymous Users
+        - cannot access this endpoint
+    - Agency Administrators
+        - cannot change their agency status
+        - can only update the agency status of users within their agency
+        - cannot change any super user status
+    - Super Users
+        - cannot change their super user status
+    - Agency Users
+        - cannot change any user except for themselves or
+          *anonymous* requesters for requests they are assigned to
+        - cannot change super user or agency status
+    - Public Users
+        - can only update themselves
+        - cannot change super user or agency status
 
     """
-    if (not current_user.is_anonymous and
-            (
-                (current_user.is_agency_admin and current_user.is_agency_active)
-                or current_user.is_super
-            )):
+    if not current_user.is_anonymous:
+        # attempt to parse user_id and find user
         try:
             guid, auth_type = user_id.split(USER_ID_DELIMITER)
-        except ValueError:
-            return '', 400
+            user_ = Users.query_filter_by(guid=guid,
+                                          auth_user_type=auth_type).one()
+        except (ValueError, NoResultFound, MultipleResultsFound):
+            return jsonify({}), 404
+
+        updating_self = current_user is user_  # TODO: test 'is'
+        current_user_is_agency_user = current_user.is_agency and current_user.is_active
+        current_user_is_agency_admin = current_user.is_agency_admin and current_user.is_active
+        same_agency = current_user.agency is user_.agency
 
         is_agency_admin = request.form.get('is_agency_admin')
         is_agency_active = request.form.get('is_agency_active')
         is_super = request.form.get('is_super')
 
-        updating_self = current_user.guid == guid
-        updating_super_as_super = current_user.is_super and is_super is not None
-        updating_agency_as_admin = current_user.is_agency_admin and any((is_agency_admin,
-                                                                         is_agency_active,
-                                                                         is_super))
-        if not updating_self or (updating_self
-                                 and not updating_super_as_super
-                                 and not updating_agency_as_admin):
-            if Users.query.filter_by(
-                guid=guid,
-                auth_user_type=auth_type
-            ).first() is not None:
-                fieldnames = ['is_agency_admin', 'is_agency_active', 'is_super']
-                data = {}
-                for name in fieldnames:
-                    val = request.form.get(name)
-                    if val:
-                        data[name] = val
-                if data:
-                    update_object(
-                        data,
-                        Users,
-                        (guid, auth_type)
-                    )
-                return '', 200
-            return '', 400
-    return '', 403
+        changing_status = any((is_agency_active, is_agency_admin, is_super))
+
+        rform_copy = dict(request.form)
+        rform_copy.pop('is_agency_admin')
+        rform_copy.pop('is_agency_active')
+        changing_more_than_agency_status = len(rform_copy) != 0
+
+        # VALIDATE
+        if ((updating_self and (
+                # super user attempting to change their own super status
+                (current_user.is_super and is_super is not None)
+            or
+                # agency admin or public user attempting to change their own agency/super status
+                (changing_status and (current_user_is_agency_admin or current_user.is_public)))) or
+           (not updating_self and (
+                # public user attempting to change another user
+                current_user.is_public
+            or
+                # agency user attempting to change a agency/super status
+                (current_user_is_agency_user and changing_status)
+            or
+                # agency admin attempting to change another user that is not in the same agency or
+                # attempting to change more than just the agency status of a user
+                (current_user_is_agency_admin and (not same_agency or changing_more_than_agency_status))
+            or
+                # agency user attempting to change a user that is not an anonymous requester
+                # for a request they are assigned to
+                (current_user_is_agency_user and (not user_.is_anonymous_requester or
+                 current_user.user_requests.filter_by(request_id=user_.anonymous_request.id)))))):
+            return jsonify({}), 403
+
+        # UPDATE
+        status_fields = [
+            'is_agency_admin',
+            'is_agency_active',
+            'is_super'
+        ]
+        user_fields = status_fields + [
+            'email',
+            'phone_number',
+            'fax_number',
+            'title',
+            'organization'
+        ]
+        address_fields = [
+            'zip',
+            'city',
+            'state',
+            'address_one',
+            'address_two'
+        ]
+
+        user_field_val = {
+            'email': request.form.get('email') or None,  # in case of empty string
+            'phone_number': request.form.get('phone') or None,
+            'fax_number': request.form.get('fax') or None,
+            'title': request.form.get('title') or None,
+            'organization': request.form.get('organization') or None,
+            'is_agency_admin': eval_request_bool(request.form.get('is_agency_admin')),
+            'is_agency_active': eval_request_bool(request.form.get('is_agency_active')),
+            'is_super': eval_request_bool(request.form.get('is_super'))
+        }
+
+        address_field_val = {
+            'address_one': request.form.get('address_one') or None,
+            'address_two': request.form.get('address_two') or None,
+            'zip': request.form.get('zipcode') or None,
+            'city': request.form.get('city') or None,
+            'state': request.form.get('state') or None
+        }
+
+        old = {}
+        old_address = {}
+        new = {}
+        new_address = {}
+
+        for field in user_fields:
+            cur_val = getattr(user_, field)
+            new_val = user_field_val[field]
+            if cur_val != new_val:
+                old[field] = cur_val
+                new[field] = new_val
+
+        for field in address_fields:
+            cur_val = (user_.mailing_address.get(field)
+                       if user_.mailing_address else None)
+            new_val = address_field_val[field]
+            if cur_val != new_val:
+                old_address[field] = cur_val
+                new_address[field] = new_val
+
+        if new or new_address:
+            if new_address:
+                new['mailing_address'] = new_address
+            if old_address:
+                old['mailing_address'] = old_address
+
+            # update object
+            update_object(
+                new,
+                Users,
+                user_.id
+            )
+
+            # create event(s)
+
+            event_kwargs = {
+                'request_id': None,
+                'response_id': None,
+                'user_guid': current_user.guid,
+                'auth_user_type': current_user.auth_user_type,
+                'timestamp': datetime.utcnow()
+            }
+
+            if changing_status:
+                new_statuses = {}
+                old_statuses = {}
+                for field in status_fields:
+                    if new.get(field) is not None:
+                        new_statuses[field] = new.pop(field)
+                        old_statuses[field] = old.pop(field)
+                create_object(Events(
+                    type_=event_type.USER_STATUS_CHANGED,
+                    previous_value=old_statuses,
+                    new_value=new_statuses,
+                    *event_kwargs
+                ))
+
+            if new:  # something besides status changed
+                create_object(Events(
+                    type_=event_type.USER_INFO_EDITED,
+                    previous_value=old,
+                    new_value=new,
+                    *event_kwargs
+                ))
+
+            return jsonify({}), 200
+    return jsonify({}), 403
+

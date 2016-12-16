@@ -124,6 +124,7 @@ def create_request(title,
     if current_user.is_public:
         user = current_user
     else:
+        # TODO: create User Event
         user = Users(
             guid=generate_guid(),
             auth_user_type=ANONYMOUS_USER,
@@ -155,7 +156,7 @@ def create_request(title,
         create_object(obj=response)
 
         # 8. Create upload Event
-        upload_event = Events(user_id=user.guid,
+        upload_event = Events(user_guid=user.guid,
                               auth_user_type=user.auth_user_type,
                               response_id=response.id,
                               request_id=request_id,
@@ -178,7 +179,7 @@ def create_request(title,
 
     # 9. Create Event
     timestamp = datetime.utcnow()
-    event = Events(user_id=user.guid,
+    event = Events(user_guid=user.guid,
                    auth_user_type=user.auth_user_type,
                    request_id=request_id,
                    type_=event_type.REQ_CREATED,
@@ -186,7 +187,7 @@ def create_request(title,
                    new_value=request.val_for_events)
     create_object(event)
     if current_user.is_agency:
-        agency_event = Events(user_id=current_user.guid,
+        agency_event = Events(user_guid=current_user.guid,
                               auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
                               type_=event_type.AGENCY_REQ_CREATED,

@@ -145,7 +145,7 @@ class ResponseViewsTests(BaseTestCase):
         self.assertEqual(
             [
                 event.request_id,
-                event.user_id,
+                event.user_guid,
                 event.auth_user_type,
                 event.type,
                 event.previous_value,

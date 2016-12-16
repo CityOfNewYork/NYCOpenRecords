@@ -233,7 +233,7 @@ class Users(UserMixin, db.Model):
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
-    user_requests = db.relationship("UserRequests", backref="user")
+    user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
 
     agency = db.relationship('Agencies', backref='users')
 
@@ -283,6 +283,16 @@ class Users(UserMixin, db.Model):
         :return: Boolean
         """
         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
+
+    @property
+    def anonymous_request(self):
+        """
+        Returns the request this user is associated with
+        if this user is an anonymous requester.
+        """
+        if self.is_anonymous_requester:
+            return Requests.filter_by(id=self.user_requests.one().request_id)
+        return None
 
     def get_id(self):  # FIXME: should not be getter
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
@@ -541,7 +551,7 @@ class Events(db.Model):
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    user_id = db.Column(db.String(64))  # who did the action
+    user_guid = db.Column(db.String(64))  # who did the action
     auth_user_type = db.Column(
         db.Enum(user_type_auth.AGENCY_USER,
                 user_type_auth.PUBLIC_USER_FACEBOOK,
@@ -560,14 +570,14 @@ class Events(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_id, auth_user_type],
+            [user_guid, auth_user_type],
             [Users.guid, Users.auth_user_type]
         ),
     )
 
     def __init__(self,
                  request_id,
-                 user_id,
+                 user_guid,
                  auth_user_type,
                  type_,
                  previous_value=None,
@@ -575,7 +585,7 @@ class Events(db.Model):
                  response_id=None,
                  timestamp=None):
         self.request_id = request_id
-        self.user_id = user_id
+        self.user_guid = user_guid
         self.auth_user_type = auth_user_type
         self.response_id = response_id
         self.type = type_

@@ -7,8 +7,8 @@
 
             e.preventDefault();
             $.ajax({
-                type: "PUT",
-                url: "/request/edit_requester_info/{{ request.id }}",
+                type: "PATCH",
+                url: "/user/{{ request.requester.get_id() }}",
                 data: $(this).serialize(),
                 success: function (response) {
                     // console.log(response);

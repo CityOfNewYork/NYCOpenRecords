@@ -1094,7 +1094,7 @@ def create_response_event(events_type, response=None, user_request=None):
     event = None
     if response:
         event = Events(request_id=response.request_id,
-                       user_id=user.guid,
+                       user_guid=user.guid,
                        auth_user_type=user.auth_user_type,
                        type_=events_type,
                        timestamp=datetime.utcnow(),
@@ -1102,7 +1102,7 @@ def create_response_event(events_type, response=None, user_request=None):
                        new_value=response.val_for_events)
     elif user_request:
         event = Events(request_id=user_request.request_id,
-                       user_id=user.guid,
+                       user_guid=user.guid,
                        auth_user_type=user.auth_user_type,
                        type_=events_type,
                        timestamp=datetime.utcnow())
@@ -1204,7 +1204,7 @@ class ResponseEditor(metaclass=ABCMeta):
             type_=self.event_type,
             request_id=self.response.request_id,
             response_id=self.response.id,
-            user_id=self.user.guid,
+            user_guid=self.user.guid,
             auth_user_type=self.user.auth_user_type,
             timestamp=timestamp,
             previous_value=self.data_old,
