@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block custom_css %}
+<style type="text/css">
+    div.bar {
+        display: inline-block;
+        width: 120px;
+        height: 75px;
+        background-color: steelblue;
+        margin-right: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="graph">
+    <svg width="500" height="50"</svg>
+</div>
+     {% endblock %}
+
+     {% block custom_script %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/d3.js') }}"></script>
+<script type="text/javascript">
+
+
+    //    for (var i = 0; i < 2; i++){
+    //        var newNumber = Math.round(Math.random() * 30);
+    //        dataset.push(newNumber);
+    //    }
+
+    //Width and Height
+    var w = 500;
+    var h = 50;
+
+    var dataset = [5, 10, 15, 20, 25];
+
+    var svg = d3.select("#graph")
+            .append("svg")
+            .attr("width", 500)
+            .attr("height", 50);
+
+
+    var circles = svg.selectAll("circle")
+            .data(dataset)
+            .enter()
+            .append("circle");
+
+    circles.attr("cx", function (d, i) {
+        return (i * 50) + 25;
+    })
+            .attr("cy", h / 2)
+            .attr("r", function (d) {
+                return d;
+            });
+
+    //    d3.select("#graph").selectAll("div")
+    //            .data(dataset)
+    //            .enter()
+    //            .append("div")
+    //            .attr("class", "bar")
+    //            .style("height", function (d) {
+    //                var barHeight = d * 5;
+    //                return barHeight + "px"
+    //            });
+
+
+</script>
+{% endblock %}
