@@ -5,7 +5,15 @@ from flask import (
 )
 from flask_login import current_user
 
-from app.models import Users
+from app.constants import permission
+from app.models import (
+    Users,
+    Responses,
+    Files,
+    Notes,
+    Links,
+    Instructions
+)
 
 
 def has_permission(permissions: list):
@@ -42,3 +50,41 @@ def permission_checker(user: Users, request_id: str, permissions: list):
     for permission in permissions:
         if not user_request.has_permission(permission):
             return False
+    return True
+
+
+def get_permission(permission_type: str, response_type: Responses):
+    """
+
+    :param permission_type:
+    :param response_type:
+    :return:
+    """
+    if permission_type == 'edit':
+        permission_for_edit_type = {
+            Files: permission.EDIT_FILE,
+            Notes: permission.EDIT_NOTE,
+            Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS,
+            Links: permission.EDIT_LINK
+        }
+        return [permission_for_edit_type[type(response_type)]]
+
+    if permission_type == 'privacy':
+        permission_for_edit_type_privacy = {
+            Files: permission.EDIT_FILE,
+            Notes: permission.EDIT_NOTE,
+            Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS,
+            Links: permission.EDIT_LINK
+        }
+        return [permission_for_edit_type_privacy[type(response_type)]]
+
+    if permission_type == 'delete':
+        permission_for_delete_type = {
+            Files: permission.DELETE_FILE,
+            Notes: permission.DELETE_NOTE,
+            Instructions: permission.DELETE_OFFLINE_INSTRUCTIONS,
+            Links: permission.DELETE_LINK
+        }
+        return [permission_for_delete_type[type(response_type)]]
+
+    return None

@@ -5,7 +5,7 @@
             <div class="response-id" hidden>{{ response.id }}</div>
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"
-                aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 {% if response.type == response_type.FILE %}
                     <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                 {% elif response.type == response_type.LINK %}
@@ -30,20 +30,25 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
                             {% if response.type  != response_type.DETERMINATION %}
-                                <button type="button" class="btn btn-danger pull-left delete-select">
-                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-                                    Delete
-                                </button>
-                                <button type="button" class="btn btn-primary response-modal-next">
-                                    Next
-                                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                                </button>
+                                {% if response | has_permissions(delete_response_permission) %}
+                                    <button type="button" class="btn btn-danger pull-left delete-select">
+                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                        Delete
+                                    </button>
+                                {% endif %}
+                                {% if has_permissions(response, edit_response_permission) %}
+                                    <button type="button" class="btn btn-primary response-modal-next">
+                                        Next
+                                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                                    </button>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
-                    <div class ="second" hidden>
+                    <div class="second" hidden>
                         <div class="modal-body">
-                            <textarea class="tinymce-area" name="email-content-{{ response.id }}" title="email-content"></textarea>
+                            <textarea class="tinymce-area" name="email-content-{{ response.id }}"
+                                      title="email-content"></textarea>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>

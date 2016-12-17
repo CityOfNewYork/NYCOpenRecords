@@ -10,9 +10,14 @@ from flask import (
     render_template,
     request as flask_request,
 )
+from flask_login import current_user
 from app.request.api import request_api_blueprint
 from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
+from app.lib.permission_utils import (
+    permission_checker,
+    get_permission
+)
 from app.models import Requests, Responses
 from app.constants import RESPONSES_INCREMENT
 from app.constants import (
@@ -137,6 +142,15 @@ def get_request_responses():
                 ),
                 response_type=response_type,
                 determination_type=determination_type,
+                edit_response_permission=permission_checker(user=current_user,
+                                                            request_id=response.requesst_id,
+                                                            permissions=get_permission(permission_type='edit',
+                                                                                       response_type=type(response))),
+                delete_response_permission=permission_checker(user=current_user, request_id=response.requesst_id,
+                                                              response_type=type(response)),
+                edit_privacy_response_permission=permission_checker(user=current_user, request_id=response.requesst_id,
+                                                                    response_type=type(response))
+
             )
             json['template'] = row + modal
 
