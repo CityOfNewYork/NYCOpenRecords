@@ -840,7 +840,7 @@ def _get_edit_response_template(editor):
             recipient = "all Assigned Users"
         header = "The following will be emailed to {}:".format(recipient)
     else:
-        if data['privacy'] == PRIVATE or not editor.requester_viewable:
+        if (data['privacy'] == PRIVATE or not editor.requester_viewable) and editor.response.type != response_type.FILE:
             email_template = 'email_templates/email_edit_private_response.html'
             default_content = None
         else:

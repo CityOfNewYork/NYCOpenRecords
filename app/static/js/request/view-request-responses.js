@@ -201,8 +201,7 @@ $(function () {
                             response_id: response_id,
                             title: first.find("input[name=title]").val(),
                             privacy: first.find("input[name=privacy]:checked").val(),
-                            filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() :
-                                null,
+                            filename: first.find(".secured-name").length > 0 ? first.find(".secured-name").text() : null,
                             confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
                         },
