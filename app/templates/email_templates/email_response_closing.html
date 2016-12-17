@@ -4,8 +4,7 @@
         information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
     </p>
     <p>
-        The {{ agency_name }} has <strong>closed</strong> your request for the following reason
-        {% if reasons|length > 1 %}s{% endif %}:
+        The {{ agency_name }} has <strong>closed</strong> your request for the following reason{% if reasons|length > 1 %}s{% endif %}:
     </p>
     <div class="mceNonEditable">
         {% for reason in reasons %}
