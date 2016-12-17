@@ -3,6 +3,8 @@ Models for OpenRecords database
 """
 import csv
 from datetime import datetime
+from operator import ior
+from functools import reduce
 from uuid import uuid4
 
 from flask import current_app
@@ -50,6 +52,9 @@ class Roles(db.Model):
         Insert permissions for each role.
         """
         roles = {
+            role_name.ANONYMOUS: (
+                0
+            ),
             role_name.PUBLIC_REQUESTER: (
                 permission.ADD_NOTE
             ),
@@ -243,8 +248,9 @@ class Users(UserMixin, db.Model):
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
-    user_requests = db.relationship("UserRequests", backref="user")
 
+    # Relationships
+    user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
     agency = db.relationship('Agencies', backref='users')
 
     @property
@@ -754,6 +760,20 @@ class UserRequests(db.Model):
             has_permission(permission.ADD_NOTE)
         """
         return bool(self.permissions & permission)
+
+
+    def add_permissions(self, permissions):
+        """
+        :param permissions: list of permissions from app.constants.permissions
+        """
+        self.permissions |= reduce(ior, permissions)
+
+
+    def remove_permissions(self, permissions):
+        """
+        :param permissions: list of permissions from app.constants.permissions
+        """
+        self.permissions &= ~reduce(ior, permissions)
 
 
 class ResponseTokens(db.Model):

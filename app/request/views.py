@@ -15,6 +15,7 @@ from flask import (
     flash,
     Markup,
     jsonify,
+    abort
 )
 from flask_login import current_user
 from sqlalchemy import any_
@@ -178,8 +179,10 @@ def view(request_id):
 
     :return: redirect to view request page
     """
-    # FIXME: 404 if agency not active?
     current_request = Requests.query.filter_by(id=request_id).one()
+
+    if not current_request.agency.is_active:
+        return abort(404)
 
     holidays = sorted(get_holidays_date_list(
         datetime.utcnow().year,

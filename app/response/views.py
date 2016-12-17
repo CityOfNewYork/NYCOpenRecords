@@ -17,13 +17,19 @@ from flask import (
     jsonify,
     current_app,
     after_this_request,
+    abort
 )
 from flask_login import current_user
 
+from app.constants import permission
 from app.constants.response_type import FILE
 from app.constants.response_privacy import PRIVATE
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object
+from app.lib.permission_utils import (
+    has_permission,
+    permission_checker
+)
 from app.response import response
 from app.models import (
     Requests,
@@ -57,6 +63,7 @@ from app.response.utils import (
 
 
 @response.route('/note/<request_id>', methods=['POST'])
+@has_permission(permissions=[permission.ADD_NOTE])
 def response_note(request_id):
     """
     Note response endpoint that takes in the content of a note for a specific request from the frontend.
@@ -90,6 +97,7 @@ def response_note(request_id):
 
 
 @response.route('/file/<request_id>', methods=['POST'])
+@has_permission(permissions=[permission.ADD_FILE])
 def response_file(request_id):
     """
     File response endpoint that takes in the metadata of a file for a specific request from the frontend.
@@ -415,9 +423,34 @@ def patch(response_id):
     """
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
 
-    user = resp.request.requester \
-        if current_user.is_anonymous else current_user
-    # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
+    if current_user.is_anonymous:
+        return abort(403)
+
+    # Mapping of Response types to permission values
+    permission_for_type = {
+        Files: permission.EDIT_FILE,
+        Notes: permission.EDIT_NOTE,
+        Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS,
+        Links: permission.EDIT_LINK
+    }
+
+    # If the current user does not have the permission to edit the response type, return 403
+    if not permission_checker(current_user, resp.request_id, [permission_for_type[type(resp)]]):
+        return abort(403)
+
+    if flask_request.form.get('privacy'):
+
+        # Check permissions for editing the privacy if required.
+
+        permission_for_edit_type_privacy = {
+            Files: permission.EDIT_FILE,
+            Notes: permission.EDIT_NOTE,
+            Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS,
+            Links: permission.EDIT_LINK
+        }
+
+        if not permission_checker(current_user, resp.request_id, [permission_for_edit_type_privacy[type(resp)]]):
+            return abort(404)
 
     editor_for_type = {
         Files: RespFileEditor,
@@ -426,7 +459,8 @@ def patch(response_id):
         Links: RespLinkEditor,
         # ...
     }
-    editor = editor_for_type[type(resp)](user, resp, flask_request)
+    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
+
     if editor.errors:
         http_response = {"errors": editor.errors}
     else:
@@ -488,31 +522,33 @@ def get_response_content(response_id):
                 token=token, response_id=response_id).first()
             if resptok is not None:
                 if (datetime.utcnow() < resptok.expiration_date
-                   and fu.exists(filepath)
-                   and response_.privacy != PRIVATE):
+                    and fu.exists(filepath)
+                    and response_.privacy != PRIVATE):
                     @after_this_request
                     def remove(resp):
                         os.remove(serving_path)
                         return resp
+
                     return fu.send_file(*filepath_parts, as_attachment=True)
                 else:
                     delete_object(resptok)
         else:
             if current_user.is_authenticated:
                 if (fu.exists(filepath)
-                   and (
-                        (current_user.is_public and response_.privacy != PRIVATE)
-                        or current_user.is_agency
-                   )
-                   and UserRequests.query.filter_by(
+                    and (
+                                (current_user.is_public and response_.privacy != PRIVATE)
+                            or current_user.is_agency
+                    )
+                    and UserRequests.query.filter_by(
                         request_id=response_.request_id,
                         user_guid=current_user.guid,
                         auth_user_type=current_user.auth_user_type
-                   ).first() is not None):
+                    ).first() is not None):
                     @after_this_request
                     def remove(resp):
                         os.remove(serving_path)
                         return resp
+
                     return fu.send_file(*filepath_parts, as_attachment=True)
             else:
                 return redirect(url_for(
