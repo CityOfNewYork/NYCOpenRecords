@@ -11,6 +11,8 @@
         var prev3 = third.find(".prev");
         var submit = third.find("#file-submit");
 
+        var hiddenEmailDiv = third.find(".email-hidden-div");
+
         var addFile = first.find("#add-files");
         var errorMessage = first.find(".fileupload-error-messages");
 
@@ -121,9 +123,12 @@
                     is_private: is_private
                 },
                 success: function (data) {
-                    // Data should be html template page.
-                    third.find("#email-file-summary").html(data.template);
-                    third.find("#email-file-summary-hidden").val(data.template);
+                    var emailSummary = third.find("#email-file-summary");
+                    emailSummary.html(data.template);
+                    emailSummary.find('p').filter(function () {
+                        return this.innerHTML == '&nbsp;';
+                    }).remove();
+                    hiddenEmailDiv.html(emailSummary.html());
                 }
             });
             second.hide();
@@ -146,8 +151,19 @@
         // Disable button on submit click and submit form
         submit.click(function () {
             $(this).attr("disabled", true);
+            var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+            hiddenEmailDiv.find(".mceNonEditable").html(randomString);
+            hiddenEmailDiv.find("p:empty").remove();
+            third.find("#email-file-summary-hidden").val(hiddenEmailDiv.html());
+            third.find("input[name='replace-string']").val(randomString);
             form.submit();
         });
+
+        function getRandomString(length, chars) {
+                var string = '';
+                for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
+                return string;
+        }
 
         // Initialize tinymce HTML editor
         tinymce.init({

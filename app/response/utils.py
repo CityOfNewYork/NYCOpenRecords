@@ -846,6 +846,7 @@ def _get_edit_response_template(editor):
         else:
             default_content = True
 
+    # render email_template for requester if requester viewable keys are edited or privacy changed from private
     if release_and_viewable or was_private:
         email_summary_requester = render_template(email_template,
                                                   default_content=default_content,
@@ -925,7 +926,7 @@ def get_file_links(response, agency_file_links, requester_file_links):
     return agency_file_links, requester_file_links
 
 
-def send_file_email(request_id, agency_file_links, requester_file_links, email_content):
+def send_file_email(request_id, agency_file_links, requester_file_links, email_content, replace_string):
     """
     Send email with file links detailing a file response has been added to the request.
     Requester receives email only if requester_file_links dictionary has key and value.
@@ -936,35 +937,38 @@ def send_file_email(request_id, agency_file_links, requester_file_links, email_c
                               with both containing key, value of filename and file link
     :param requester_file_links: dictionary of file links to the requester with key, value of filename and file link
     :param email_content: string body of email from tinymce textarea
+    :param replace_string: alphanumeric random 32 character string to be replaced in email_content
 
     :return:
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
-    is_anon = None
-    if Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester:
-        is_anon = True
+    is_anon = Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester
     subject = 'Response Added'
     bcc = get_agency_emails(request_id)
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if requester_file_links:
-        email_content_requester = render_template('email_templates/email_response_file.html',
-                                                  request_id=request_id,
-                                                  email_file_content=email_content,
-                                                  agency_name=agency_name,
-                                                  requester_file_links=requester_file_links,
-                                                  is_anon=is_anon)
+        email_content_requester = email_content.replace(replace_string,
+                                                        render_template('email_templates/links_of_response_file.html',
+                                                                        requester_file_links=requester_file_links,
+                                                                        is_anon=is_anon
+                                                                        ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   subject,
                                   to=[requester_email])
-        email_content = None
-    email_content_agency = render_template('email_templates/email_private_file_upload.html',
-                                           request_id=request_id,
-                                           email_file_content=email_content,
-                                           agency_name=agency_name,
-                                           agency_file_links=agency_file_links,
-                                           page=page)
+        email_content_agency = render_template('email_templates/email_private_file_upload.html',
+                                               request_id=request_id,
+                                               agency_name=agency_name,
+                                               agency_file_links=agency_file_links,
+                                               page=page)
+    else:
+        email_content_agency = email_content.replace(replace_string,
+                                                     render_template('email_templates/links_of_response_file.html',
+                                                                     request_id=request_id,
+                                                                     agency_file_links=agency_file_links,
+                                                                     page=page
+                                                                     ))
     safely_send_and_add_email(request_id,
                               email_content_agency,
                               subject,
