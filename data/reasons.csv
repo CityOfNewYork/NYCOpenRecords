@@ -1,26 +1,31 @@
-type,content
-denial,You get nothing!
-denial,No.
-denial,How about... no.
-denial,Nope.
-denial,I'm sorry, but we cannot complete your request.
-denial,DENIED!
-denial,Stop it.
-denial,Forget it about.
-denial,filler1
-denial,filler2
-denial,filler3
-denial,filler4
-denial,filler5
-denial,filler6
-denial,filler7
-closing,filler1
-closing,filler2
-closing,filler3
-closing,filler4
-closing,filler5
-closing,filler6
-closing,filler7
-closing,filler8
-closing,filler9
-closing,filler10
+"type","title","content"
+"closing","Fulfilled in Whole","Your request under the Freedom of Information Law (FOIL) has been reviewed and the documents you requested have been posted on the OpenRecords portal."
+"closing","Fulfilled in Part","Your request under the Freedom of Information Law (FOIL) has been reviewed and is granted in part and denied in part because some of the records or portions of records are disclosable and others are exempt from disclosure under FOIL."
+"closing","Fulfilled via Email","Your request under the Freedom of Information Law (FOIL) has been fulfilled and the documents you requested have been emailed to you."
+"closing","Fulfilled via Fax","Your request under the Freedom of Information Law (FOIL) has been fulfilled and the documents you requested have been faxed to you."
+"closing","Fulfilled via Mail","Your request under the Freedom of Information Law (FOIL) has been been fulfilled and the documents you requested have been mailed to you. Please allow 7 - 10 days for receipt."
+"closing","Fulfilled via Pickup","Your request under the Freedom of Information Law has been fulfilled and the documents you requested are available to you for pickup."
+"closing","Denied - Records Non-Responsive","Your request under the Freedom of Information Law (FOIL) is denied because no responsive records were found."
+"closing","Denied - No Records","Your request under the Freedom of Information Law (FOIL) is denied because it is a request for information that is not contained in an existing agency record."
+"closing","Denied - All Exempt","Your request under the Freedom of Information Law (FOIL) is denied because the records you requested are exempt from disclosure under FOIL."
+"closing","Denied - Unknown","Your request under the Freedom of Information Law (FOIL) cannot be processed because it does not provide enough information to identify the records you would like to receive."
+"closing","No Customer Response","We need more information from you in order to process your request under the Freedom of Information Law (FOIL). We have tried to contact you but have not received a response within the last 5 business days. We are closing this request due to lack of response. If you remain interested in these records, you may open a new FOIL request."
+"closing","No Payment","The records you requested under the Freedom of Information Law (FOIL) could be provided to you at cost. We are closing this request because we have not received your payment to cover the record retrieval and/or duplication cost. If you still want a copy of these records, you may open a new FOIL request."
+"closing","Public Record","Your request under the Freedom of Information Law (FOIL) is being closed because the records are publicly available."
+"closing","Out of Jurisdiction","Your request under the Freedom of Information Law (FOIL) is being closed because the record is not a city record."
+"closing","Refer to 311/NYC.gov","Your request is for general City information or services. You may search http://nyc.gov/ or call 311 for assistance."
+"closing","Refer to OpenData","Your request is for data that is available through the City's OpenData site. You may visit http://nyc.gov/opendata to find this information"
+"closing","Refer to Other Agency","Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have the records requested. You should direct your request to a different agency."
+"closing","Refer to Web Link","Your request under the Freedom of Information Law (FOIL) is being closed because the document or information you requested is publicly available."
+"denial","Denied - Records Non-Responsive","Your request under the Freedom of Information Law (FOIL) is denied because no responsive records were found."
+"denial","Denied - No Records","Your request under the Freedom of Information Law (FOIL) is denied because it is a request for information that is not contained in an existing agency record."
+"denial","Denied - All Exempt","Your request under the Freedom of Information Law (FOIL) is denied because the records you requested are exempt from disclosure under FOIL."
+"denial","Denied - Unknown","Your request under the Freedom of Information Law (FOIL) cannot be processed because it does not provide enough information to identify the records you would like to receive."
+"denial","No Customer Response","We need more information from you in order to process your request under the Freedom of Information Law (FOIL). We have tried to contact you but have not received a response within the last 5 business days. We are closing this request due to lack of response. If you remain interested in these records, you may open a new FOIL request."
+"denial","No Payment","The records you requested under the Freedom of Information Law (FOIL) could be provided to you at cost. We are closing this request because we have not received your payment to cover the record retrieval and/or duplication cost. If you still want a copy of these records, you may open a new FOIL request."
+"denial","Public Record","Your request under the Freedom of Information Law (FOIL) is being closed because the records are publicly available."
+"denial","Out of Jurisdiction","Your request under the Freedom of Information Law (FOIL) is being closed because the record is not a city record."
+"denial","Refer to 311/NYC.gov","Your request is for general City information or services. You may search http://nyc.gov/ or call 311 for assistance."
+"denial","Refer to OpenData","Your request is for data that is available through the City's OpenData site. You may visit http://nyc.gov/opendata to find this information"
+"denial","Refer to Other Agency","Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have the records requested. You should direct your request to a different agency."
+"denial","Refer to Web Link","Your request under the Freedom of Information Law (FOIL) is being closed because the document or information you requested is publicly available."

@@ -92,6 +92,9 @@ def create_app(config_name):
     from .user import user
     app.register_blueprint(user, url_prefix="/user")
 
+    from .agency import agency
+    app.register_blueprint(agency, url_prefix="/agency")
+
     from .search import search
     app.register_blueprint(search, url_prefix="/search")
 

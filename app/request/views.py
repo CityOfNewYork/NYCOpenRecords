@@ -107,7 +107,7 @@ def new():
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
-                                        form.request_category.data,
+                                        category=None,
                                         agency=current_user.agency_ein,
                                         submission=form.method_received.data,
                                         agency_date_submitted=form.request_date.data,
@@ -178,6 +178,7 @@ def view(request_id):
 
     :return: redirect to view request page
     """
+    # FIXME: 404 if agency not active?
     current_request = Requests.query.filter_by(id=request_id).one()
 
     holidays = sorted(get_holidays_date_list(

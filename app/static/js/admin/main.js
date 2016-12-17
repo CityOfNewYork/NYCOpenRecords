@@ -1,4 +1,36 @@
 $(function() {
+    // SWITCH AGENCY
+    $("#agencies").change(function() {
+        var agencyEin = $(this).val();
+        window.location = window.location.origin + "/admin/" + agencyEin;
+    });
+    // ACTIVATE AGENCY
+    $("#activate").click(function() {
+        var agencyEin = $("#agencies").val();
+        $.ajax({
+            url: "/agency/" + agencyEin,
+            type: "PATCH",
+            data: {
+                is_active: true
+            },
+            success: function () {
+                window.location = window.location.origin + "/admin/" + agencyEin;
+            }
+        });
+    });
+    // SET SUPER USER
+    $("input[name^='user-super']").click(function() {
+        var row = $(this).parents(".row");
+        var id = row.find("input[name='user-id']").val();
+        var isSuperUser = $(this).is(":checked");
+        $.ajax({
+            url: "/user/" + id,
+            type: "PATCH",
+            data: {
+                is_super: isSuperUser
+            }
+        });
+    });
     // ADD ACTIVE USER
     $("#add-button").click(function() {
         var id = $("#users").val();

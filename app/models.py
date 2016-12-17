@@ -229,6 +229,7 @@ class Users(UserMixin, db.Model):
                 name='auth_user_type'),
         primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    is_super = db.Column(db.Boolean, nullable=False, default=False)
     is_agency_admin = db.Column(db.Boolean, nullable=False, default=False)
     is_agency_active = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
@@ -685,6 +686,7 @@ class Reasons(db.Model):
         name="reason_type"
     ), nullable=False)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
 
     @classmethod
@@ -695,6 +697,7 @@ class Reasons(db.Model):
             for row in dictreader:
                 reason = cls(
                     type=row['type'],
+                    title=row['title'],
                     content=row['content']
                 )
                 db.session.add(reason)

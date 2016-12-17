@@ -63,8 +63,8 @@ def edit_request_info():
     return jsonify(edit_request), 200
 
 
-@request_api_blueprint.route('/history', methods=['GET', 'POST'])
-def get_request_history():
+@request_api_blueprint.route('/history', methods=['GET'])
+def get_request_history():  # TODO: 2.1
     """
     Retrieves a JSON object of event objects to display the history of a request on the view request page.
 
@@ -73,11 +73,11 @@ def get_request_history():
     request_history_index = int(flask_request.form['request_history_reload_index'])
     request_history_index_end = (request_history_index + 1) * 50 + 1
     request_history = []
-    # TODO: Query events table
+
     for i in range(1, request_history_index_end):
         request_history.append(str(i))
 
-    return jsonify(request_history=request_history)
+    return jsonify({})
 
 
 @request_api_blueprint.route('/responses', methods=['GET'])
