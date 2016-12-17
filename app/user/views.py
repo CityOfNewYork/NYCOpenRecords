@@ -59,7 +59,7 @@ def patch(user_id):
         except (ValueError, NoResultFound, MultipleResultsFound):
             return jsonify({}), 404
 
-        updating_self = current_user is user_  # TODO: test 'is'
+        updating_self = current_user is user_
         current_user_is_agency_user = current_user.is_agency and current_user.is_agency_active
         current_user_is_agency_admin = current_user.is_agency_admin and current_user.is_agency_active
         same_agency = current_user.agency is user_.agency
