@@ -15,7 +15,8 @@
                     location.reload();
                 },
                 error: function(data) {
-                    errorMessageDiv.text(data.responseJSON.error)
+                    errorMessageDiv.text(data.responseJSON.error);
+                    submitBtn.attr("disabled", false);
                 }
             });
         });

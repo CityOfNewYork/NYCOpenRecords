@@ -54,14 +54,14 @@ def patch(user_id):
         # attempt to parse user_id and find user
         try:
             guid, auth_type = user_id.split(USER_ID_DELIMITER)
-            user_ = Users.query_filter_by(guid=guid,
+            user_ = Users.query.filter_by(guid=guid,
                                           auth_user_type=auth_type).one()
         except (ValueError, NoResultFound, MultipleResultsFound):
             return jsonify({}), 404
 
         updating_self = current_user is user_  # TODO: test 'is'
-        current_user_is_agency_user = current_user.is_agency and current_user.is_active
-        current_user_is_agency_admin = current_user.is_agency_admin and current_user.is_active
+        current_user_is_agency_user = current_user.is_agency and current_user.is_agency_active
+        current_user_is_agency_admin = current_user.is_agency_admin and current_user.is_agency_active
         same_agency = current_user.agency is user_.agency
 
         is_agency_admin = request.form.get('is_agency_admin')
@@ -71,9 +71,12 @@ def patch(user_id):
         changing_status = any((is_agency_active, is_agency_admin, is_super))
 
         rform_copy = dict(request.form)
-        rform_copy.pop('is_agency_admin')
-        rform_copy.pop('is_agency_active')
-        changing_more_than_agency_status = len(rform_copy) != 0
+        try:
+            rform_copy.pop('is_agency_admin')
+            rform_copy.pop('is_agency_active')
+            changing_more_than_agency_status = len(rform_copy) != 0
+        except KeyError:
+            changing_more_than_agency_status = False
 
         # VALIDATE
         if ((updating_self and (
@@ -95,8 +98,11 @@ def patch(user_id):
             or
                 # agency user attempting to change a user that is not an anonymous requester
                 # for a request they are assigned to
-                (current_user_is_agency_user and (not user_.is_anonymous_requester or
-                 current_user.user_requests.filter_by(request_id=user_.anonymous_request.id)))))):
+                (current_user_is_agency_user and (not user_.is_anonymous_requester or (
+                        user_.is_anonymous_requester and
+                 current_user.user_requests.filter_by(
+                     request_id=user_.anonymous_request.id
+                 ).first() is None)))))):
             return jsonify({}), 403
 
         # UPDATE
@@ -121,23 +127,41 @@ def patch(user_id):
         ]
 
         user_field_val = {
-            'email': request.form.get('email') or None,  # in case of empty string
-            'phone_number': request.form.get('phone') or None,
-            'fax_number': request.form.get('fax') or None,
-            'title': request.form.get('title') or None,
-            'organization': request.form.get('organization') or None,
+            'email': request.form.get('email'),
+            'phone_number': request.form.get('phone'),
+            'fax_number': request.form.get('fax'),
+            'title': request.form.get('title'),
+            'organization': request.form.get('organization'),
             'is_agency_admin': eval_request_bool(request.form.get('is_agency_admin')),
             'is_agency_active': eval_request_bool(request.form.get('is_agency_active')),
             'is_super': eval_request_bool(request.form.get('is_super'))
         }
 
         address_field_val = {
-            'address_one': request.form.get('address_one') or None,
-            'address_two': request.form.get('address_two') or None,
-            'zip': request.form.get('zipcode') or None,
-            'city': request.form.get('city') or None,
-            'state': request.form.get('state') or None
+            'address_one': request.form.get('address_one'),
+            'address_two': request.form.get('address_two'),
+            'zip': request.form.get('zipcode'),
+            'city': request.form.get('city'),
+            'state': request.form.get('state')
         }
+
+        # check if missing contact information
+        if (user_field_val['email'] == ''
+            and user_field_val['phone_number'] == ''
+            and user_field_val['fax_number'] == ''
+            and (address_field_val['city'] == ''
+                 or address_field_val['zip'] == ''
+                 or address_field_val['state'] == ''
+                 or address_field_val['address_one'] == '')):
+            return jsonify({"error": "Missing contact information."}), 400
+
+        # convert empty string to None
+        for field, val in user_field_val.items():
+            if val == '':
+                user_field_val[field] = None
+        for field, val in address_field_val.items():
+            if val == '':
+                address_field_val[field] = None
 
         old = {}
         old_address = {}
@@ -169,11 +193,10 @@ def patch(user_id):
             update_object(
                 new,
                 Users,
-                user_.id
+                (guid, auth_type)
             )
 
             # create event(s)
-
             event_kwargs = {
                 'request_id': None,
                 'response_id': None,
@@ -193,7 +216,7 @@ def patch(user_id):
                     type_=event_type.USER_STATUS_CHANGED,
                     previous_value=old_statuses,
                     new_value=new_statuses,
-                    *event_kwargs
+                    **event_kwargs
                 ))
 
             if new:  # something besides status changed
@@ -201,9 +224,10 @@ def patch(user_id):
                     type_=event_type.USER_INFO_EDITED,
                     previous_value=old,
                     new_value=new,
-                    *event_kwargs
+                    **event_kwargs
                 ))
-
             return jsonify({}), 200
-    return jsonify({}), 403
+        else:
+            return jsonify({"message": "No changes detected."}), 200
 
+    return jsonify({}), 403

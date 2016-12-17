@@ -227,14 +227,15 @@ class Users(UserMixin, db.Model):
     last_name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(254))
     email_validated = db.Column(db.Boolean(), nullable=False)
-    terms_of_use_accepted = db.Column(db.String(16))
+    terms_of_use_accepted = db.Column(db.Boolean)
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(15))
     fax_number = db.Column(db.String(15))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
-    user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
 
+    # Relationships
+    user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
     agency = db.relationship('Agencies', backref='users')
 
     @property
@@ -291,7 +292,7 @@ class Users(UserMixin, db.Model):
         if this user is an anonymous requester.
         """
         if self.is_anonymous_requester:
-            return Requests.filter_by(id=self.user_requests.one().request_id)
+            return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
     def get_id(self):  # FIXME: should not be getter
@@ -312,6 +313,26 @@ class Users(UserMixin, db.Model):
         """
         for request in self.requests:
             request.es_update()
+
+    @property
+    def val_for_events(self):
+        """
+        JSON to store in Events 'new_value' field.
+        """
+        return {
+            "guid": self.guid,
+            "auth_user_type": self.auth_user_type,
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "title": self.title,
+            "organization": self.organization,
+            "phone_number": self.phone_number,
+            "fax_number": self.fax_number,
+            "mailing_address": self.mailing_address,
+            "email_validated": self.email_validated,
+            "terms_of_use_accepted": self.terms_of_use_accepted,
+        }
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
@@ -746,12 +767,25 @@ class UserRequests(db.Model):
         ),
     )
 
-    def has_permission(self, permission):
+    @property
+    def val_for_events(self):
+        """
+        JSON to store in Events 'new_value' field.
+        """
+        return {
+            "user_guid": self.user_guid,
+            "auth_user_type": self.auth_user_type,
+            "request_id": self.request_id,
+            "request_user_type": self.request_user_type,
+            "permissions": self.permissions
+        }
+
+    def has_permission(self, perm):
         """
         Ex:
             has_permission(permission.ADD_NOTE)
         """
-        return bool(self.permissions & permission)
+        return bool(self.permissions & perm)
 
 
 class ResponseTokens(db.Model):

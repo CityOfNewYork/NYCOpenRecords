@@ -120,11 +120,13 @@ def create_request(title,
     )
     create_object(request)
 
+    guid_for_event = current_user.guid if not current_user.is_anonymous else None
+    auth_type_for_event = current_user.auth_user_type if not current_user.is_anonymous else None
+
     # 6. Get or Create User
     if current_user.is_public:
         user = current_user
     else:
-        # TODO: create User Event
         user = Users(
             guid=generate_guid(),
             auth_user_type=ANONYMOUS_USER,
@@ -140,6 +142,17 @@ def create_request(title,
             mailing_address=address
         )
         create_object(user)
+        # user created event
+        create_object(Events(
+            request_id,
+            guid_for_event,
+            auth_type_for_event,
+            event_type.USER_CREATED,
+            previous_value=None,
+            new_value=user.val_for_events,
+            response_id=None,
+            timestamp=datetime.utcnow()
+        ))
 
     if upload_path is not None:
         # 7. Move file to upload directory
@@ -170,17 +183,16 @@ def create_request(title,
             create_object(ResponseTokens(response.id))
 
     role_to_user = {
-        role.PUBLIC_REQUESTER: current_user.is_public,
-        role.ANONYMOUS: current_user.is_anonymous,
-        role.AGENCY_OFFICER: current_user.is_agency
+        role.PUBLIC_REQUESTER: user.is_public,
+        role.ANONYMOUS: user.is_anonymous,
     }
     role_name = [k for (k, v) in role_to_user.items() if v][0]
     # (key for "truthy" value)
 
     # 9. Create Event
     timestamp = datetime.utcnow()
-    event = Events(user_guid=user.guid,
-                   auth_user_type=user.auth_user_type,
+    event = Events(user_guid=user.guid if current_user.is_anonymous else current_user.guid,
+                   auth_user_type=user.auth_user_type if current_user.is_anonymous else current_user.auth_user_type,
                    request_id=request_id,
                    type_=event_type.REQ_CREATED,
                    timestamp=timestamp,
@@ -194,7 +206,7 @@ def create_request(title,
                               timestamp=timestamp)
         create_object(agency_event)
 
-    # 10. Create UserRequest
+    # 10. Create UserRequest for requester
     user_request = UserRequests(user_guid=user.guid,
                                 auth_user_type=user.auth_user_type,
                                 request_user_type=user_type_request.REQUESTER,
@@ -202,6 +214,16 @@ def create_request(title,
                                 permissions=Roles.query.filter_by(
                                     name=role_name).first().permissions)
     create_object(user_request)
+    create_object(Events(
+        request_id,
+        guid_for_event,
+        auth_type_for_event,
+        event_type.USER_ADDED,
+        previous_value=None,
+        new_value=user_request.val_for_events,
+        response_id=None,
+        timestamp=datetime.utcnow()
+    ))
 
     # 11. Create the elasticsearch request doc only if agency has been onboarded
     agency = Agencies.query.filter_by(ein=agency).first()
@@ -211,7 +233,6 @@ def create_request(title,
         request.es_create()
 
     # 12. Add all agency administrators to the request.
-
     if agency.administrators:
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
@@ -220,8 +241,19 @@ def create_request(title,
                                         auth_user_type=admin.auth_user_type,
                                         request_user_type=user_type_request.AGENCY,
                                         request_id=request_id,
-                                        permissions=Roles.query.filter_by(name=role.AGENCY_ADMIN).first().permissions)
+                                        permissions=Roles.query.filter_by(
+                                            name=role.AGENCY_ADMIN).first().permissions)
             create_object(user_request)
+            create_object(Events(
+                request_id,
+                guid_for_event,
+                auth_type_for_event,
+                event_type.USER_ADDED,
+                previous_value=None,
+                new_value=user_request.val_for_events,
+                response_id=None,
+                timestamp=datetime.utcnow()
+            ))
     return request_id
 
 
