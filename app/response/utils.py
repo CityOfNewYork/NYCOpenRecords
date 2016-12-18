@@ -39,9 +39,11 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
+from app.constants import permission
 from app.lib.date_utils import get_due_date, process_due_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
+from app.lib.permission_utils import has_permission
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool
 from app.models import (

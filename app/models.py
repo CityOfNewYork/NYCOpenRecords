@@ -761,19 +761,19 @@ class UserRequests(db.Model):
         """
         return bool(self.permissions & permission)
 
-
     def add_permissions(self, permissions):
         """
         :param permissions: list of permissions from app.constants.permissions
         """
         self.permissions |= reduce(ior, permissions)
-
+        db.session.commit()
 
     def remove_permissions(self, permissions):
         """
         :param permissions: list of permissions from app.constants.permissions
         """
         self.permissions &= ~reduce(ior, permissions)
+        db.session.commit()
 
 
 class ResponseTokens(db.Model):

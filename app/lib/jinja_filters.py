@@ -1,7 +1,4 @@
 from app.constants import response_type, response_privacy
-from app.lib.permission_utils import permission_checker
-from flask_login import current_user
-
 
 def format_response_privacy(privacy):
     return {

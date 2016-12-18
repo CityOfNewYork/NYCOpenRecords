@@ -30,13 +30,11 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
                             {% if response.type  != response_type.DETERMINATION %}
-                                {% if response | has_permissions(delete_response_permission) %}
+                                {% if edit_response_permission or edit_response_privacy_permission %}
                                     <button type="button" class="btn btn-danger pull-left delete-select">
                                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                         Delete
                                     </button>
-                                {% endif %}
-                                {% if has_permissions(response, edit_response_permission) %}
                                     <button type="button" class="btn btn-primary response-modal-next">
                                         Next
                                         <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
@@ -45,39 +43,43 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="second" hidden>
-                        <div class="modal-body">
+                    {% if edit_response_permission or edit_response_privacy_permission %}
+                        <div class="second" hidden>
+                            <div class="modal-body">
                             <textarea class="tinymce-area" name="email-content-{{ response.id }}"
                                       title="email-content"></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close
+                                </button>
+                                <button type="button" class="btn btn-default response-modal-prev">
+                                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                                    Prev
+                                </button>
+                                <button type="button" class="btn btn-primary response-modal-next">
+                                    Next
+                                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-default response-modal-prev">
-                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                                Prev
-                            </button>
-                            <button type="button" class="btn btn-primary response-modal-next">
-                                Next
-                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                            </button>
+                        <div class="third" hidden>
+                            <div class="modal-body">
+                                <h4 class="confirmation-header"></h4>
+                                <div class="email-summary"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close
+                                </button>
+                                <button type="button" class="btn btn-default response-modal-prev">
+                                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                                    Prev
+                                </button>
+                                <button type="button" class="btn btn-primary response-modal-submit">
+                                    Submit
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="third" hidden>
-                        <div class="modal-body">
-                            <h4 class="confirmation-header"></h4>
-                            <div class="email-summary"></div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-default response-modal-prev">
-                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                                Prev
-                            </button>
-                            <button type="button" class="btn btn-primary response-modal-submit">
-                                Submit
-                            </button>
-                        </div>
-                    </div>
+                    {% endif %}
                 {% else %}
                     <div class="modal-body">
                         {{ modal_body | safe }}

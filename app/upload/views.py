@@ -15,10 +15,12 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from app import upload_redis as redis
+from app.constants import permission
 from app.lib.utils import (
     b64decode_lenient,
     eval_request_bool,
 )
+from app.lib.permission_utils import has_permission
 from app.models import Responses
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload import upload
@@ -36,6 +38,7 @@ from app.upload.utils import (
 
 
 @upload.route('/<request_id>', methods=['POST'])
+@has_permission(permission.ADD_FILE)
 def post(request_id):
     """
     Create a new upload.
@@ -142,6 +145,7 @@ def post(request_id):
 
 
 @upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
+@has_permission(permission.DELETE_FILE)
 def delete(r_id_type, r_id, filecode):
     """
     Removes an uploaded file.
