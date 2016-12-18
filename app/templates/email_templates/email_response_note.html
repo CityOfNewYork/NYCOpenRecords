@@ -1,13 +1,10 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
-    {% if note_content %}
-        {% if privacy != response_privacy.PRIVATE %}
-            The following note has been added to <a
-                href="{{ page }}">{{ request_id }}</a>:</p>
-        {% endif %}
-        <p style="padding-left: 30px;">
-            {{ note_content }}
-        </p>
-
-    {% endif %}
+    <p>
+        <span class="mceNonEditable">
+            The following note has been added to <a href="{{ page }}">{{ request_id }}</a>:
+            <br><br>&nbsp;&nbsp;&nbsp;&nbsp;{{ note_content }}<br />
+        </span>
+    </p>
+    <p><br /></p>
 {% endblock %}

@@ -79,12 +79,19 @@
                     type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
-                        // FIXME: this can be inferred by server through 'type'
                         type: "acknowledgment",
+                        acknowledgment: JSON.stringify({
+                            days: days.val(),
+                            date: date.val(),
+                            info: info.val()
+                        }),
+                        tz_name: jstz.determine().name()
                     },
                     success: function(data) {
-                        tinyMCE.get("acknowledgment-email-body").setContent(data.template);
+                        emailContent = second.find(".email-content-hidden");
+                        emailContent.html(data.template);
                         flask_moment_render_all();
+                        tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());
                     }
                 });
                 first.hide();
@@ -101,19 +108,11 @@
                 data: {
                     request_id: "{{ request.id }}",
                     type: "acknowledgment",
-                    acknowledgment: JSON.stringify({
-                        days: days.val(),
-                        date: date.val(),
-                        info: info.val()
-                    }),
                     email_content: second.find("#acknowledgment-email-body").val(),
-                    tz_name: jstz.determine().name()
                 },
                 success: function(data) {
-                    var emailSummary = third.find(".email-summary");
-                    emailSummary.html(data.template);
-                    flask_moment_render_all();
-                    third.find("input[name='email-summary']").val(emailSummary.html());
+                    third.find(".email-summary").html(data.template);
+                    third.find("input[name='email-summary']").val(data.template);
                     third.find("input[name='tz-name']").val(jstz.determine().name());
                 }
             });

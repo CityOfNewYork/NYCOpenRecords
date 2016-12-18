@@ -1,11 +1,10 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
-    {% if instruction_content %}
-        {% if privacy != response_privacy.PRIVATE %}
-            The following Offline Instructions has been added to request {{ request_id }}:
-        {% endif %}
-        <p>
-            {{ instruction_content }}
-        </p>
-    {% endif %}
+    <p>
+        <span class="mceNonEditable">
+            The following Offline Instructions has been added to <a href="{{ page }}">{{ request_id }}</a>:
+            <br><br><strong style="padding-left: 30px">{{ instruction_content }}</strong><br />
+        </span>
+    </p>
+    <br />
 {% endblock %}

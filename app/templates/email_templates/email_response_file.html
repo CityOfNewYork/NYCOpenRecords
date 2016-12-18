@@ -24,13 +24,14 @@
                     {% endfor %}
             {% endif %}
             </ul>
-        </p>
         {% endif %}
     {% endif %}
 {% endblock %}
-    {% block response_content %}
-        {% if files_links %}
-        <p>
+
+{% block response_content %}
+    {% if files_links %}
+    <p>
+        <div class="mceNonEditable">
             Download the request files at:
             <br>
             <ul>
@@ -40,6 +41,8 @@
                     </li>
                 {% endfor %}
             </ul>
-        </p>
-        {% endif %}
-    {% endblock %}
+        </div>
+    </p>
+    <br />
+    {% endif %}
+{% endblock %}

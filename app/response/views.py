@@ -115,8 +115,11 @@ def response_file(request_id):
                                 files[file_data]['title'],
                                 files[file_data]['privacy'])
         get_file_links(response_obj, agency_file_links, requester_file_links)
-    email_content = flask_request.form['email-file-content']
-    send_file_email(request_id, agency_file_links, requester_file_links, email_content)
+    send_file_email(request_id,
+                    agency_file_links,
+                    requester_file_links,
+                    flask_request.form['email-file-summary'],
+                    flask_request.form['replace-string'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

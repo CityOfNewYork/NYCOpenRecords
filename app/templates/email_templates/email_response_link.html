@@ -1,11 +1,10 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
-    {% if url %}
-        {% if privacy != response_privacy.PRIVATE %}
-            You can view the additional information at the following webpage: </p>
-        {% endif %}
-        <p>
-            <a href="{{ url }}">{{ url }}</a>
-        </p>
-    {% endif %}
+    <p>
+        <span class="mceNonEditable">
+            The following link has been added to <a href="{{ page }}">{{ request_id }}</a>:
+            <br><br><strong style="padding-left: 30px">{{ note_content }}</strong><br />
+        </span>
+    </p>
+    <br />
 {% endblock %}

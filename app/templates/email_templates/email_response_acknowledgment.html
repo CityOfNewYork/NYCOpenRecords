@@ -1,17 +1,18 @@
 {% extends 'email_templates/email_response.html' %}
 {% block response_content %}
-    {% if date, info %}
-        <p>
-            The {{ agency_name }} has <strong>acknowledged</strong> your request.
-        </p>
-        <p>
-            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.
-        </p>
-        {% if info is not none %}
-            <p>
-                Additional Information: <br/>
-                {{ info }}
-            </p>
-        {% endif %}
+    <p>
+        <span class="mceNonEditable">
+        The {{ agency_name }} has <strong>acknowledged</strong> your request.
+    <br><br>
+        You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.
+    <br>
+    {% if info is not none %}
+        <br>
+        Additional Information: <br/>
+        {{ info }}
+        <br />
     {% endif %}
+    </span>
+    </p>
+    <br>
 {% endblock %}
