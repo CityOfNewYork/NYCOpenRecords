@@ -7,15 +7,16 @@
 
             e.preventDefault();
             $.ajax({
-                type: "PUT",
-                url: "/request/edit_requester_info/{{ request.id }}",
+                type: "PATCH",
+                url: "/user/{{ request.requester.get_id() }}",
                 data: $(this).serialize(),
                 success: function (response) {
                     // console.log(response);
                     location.reload();
                 },
                 error: function(data) {
-                    errorMessageDiv.text(data.responseJSON.error)
+                    errorMessageDiv.text(data.responseJSON.error);
+                    submitBtn.attr("disabled", false);
                 }
             });
         });
