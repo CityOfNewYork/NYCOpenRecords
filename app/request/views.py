@@ -236,6 +236,9 @@ def view(request_id):
     for key, val in permissions.items():
         permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
 
+    show_agency_description = datetime.utcnow() < current_request.agency_description_release_date and \
+        not current_request.privacy['agency_description']
+
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -249,7 +252,8 @@ def view(request_id):
         holidays=holidays,
         assigned_users=assigned_users,
         active_users=active_users,
-        permissions=permissions
+        permissions=permissions,
+        show_agency_description=show_agency_description
     )
 
 

@@ -75,7 +75,9 @@
                         <!-- editable area for agency description -->
                         <a href="#" class="xedit" id="agency_description">{{ request.agency_description or "" }}</a>
                     {% else %}
-                        {{ request.agency_description or "" }}
+                        {% if show_agency_description %}
+                            {{ request.agency_description or "" }}
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endif %}
