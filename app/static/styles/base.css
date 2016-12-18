@@ -40,8 +40,8 @@
     .wrapper, .navbar
     {
         /*max-width: 724px;*/
-		/*min-width: 724px;*/
-		min-width:calc(940px + 20px);
+	/*min-width: 724px;*/
+	min-width:calc(940px + 20px);
     }
 
 }
