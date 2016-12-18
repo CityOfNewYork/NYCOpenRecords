@@ -114,6 +114,7 @@ def get_request_responses():
             'id': response.id,
             'type': response.type
         }
+        # import ipdb; ipdb.set_trace()
         if eval_request_bool(flask_request.args.get('with_template')):
             row = render_template(
                 template_path + 'row.html',

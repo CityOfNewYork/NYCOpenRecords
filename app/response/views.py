@@ -432,6 +432,7 @@ def patch(response_id):
     }
 
     """
+    import ipdb; ipdb.set_trace()
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
 
     if current_user.is_anonymous:
@@ -440,6 +441,7 @@ def patch(response_id):
     patch_form = dict(flask_request.form)
 
     privacy = patch_form.pop('privacy', None)
+
 
     if privacy:
         # Check permissions for editing the privacy if required.

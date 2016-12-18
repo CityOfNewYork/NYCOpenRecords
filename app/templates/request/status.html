@@ -22,69 +22,67 @@
     <hr>
     <h4>{{ request.agency.name }} </h4>
 
-    {% if current_user.is_agency %}
-        {% if request.requester.is_anonymous_requester %}
-            {% include 'request/_edit_requester_info.html' %}
-        {% endif %}
-        <hr>
-        <h3>
-            <a data-target="#assignedUserModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
-               href="#assignedUserModal">Assigned Users</a>
-        </h3>
-        {# Modal content for assigned users #}
-        <div class="modal fade" id="assignedUserModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Agency Users </h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="panel-group" id="accordion">
-                            {% for user in agency_users %}
-                                <div class="panel panel-default" id="panel_{{ user.guid }}">
-                                    <div class="panel-heading">
-                                        <h4 class="panel-title">
-                                            <a data-toggle="collapse" data-target="#collapse_{{ user.guid }}"
-                                               href="#collapse_{{ user.guid }}">
-                                                {{ user.name }}
-                                            </a>
-                                        </h4>
-                                    </div>
+    {% if current_user.is_agency and request.requester.is_anonymous_requester and permissions['edit_requester_info'] %}
+        {% include 'request/_edit_requester_info.html' %}
+    {% endif %}
+    <hr>
+    <h3>
+        <a data-target="#assignedUserModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
+           href="#assignedUserModal">Assigned Users</a>
+    </h3>
+    {# Modal content for assigned users #}
+    <div class="modal fade" id="assignedUserModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Agency Users </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="panel-group" id="accordion">
+                        {% for user in agency_users %}
+                            <div class="panel panel-default" id="panel_{{ user.guid }}">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        <a data-toggle="collapse" data-target="#collapse_{{ user.guid }}"
+                                           href="#collapse_{{ user.guid }}">
+                                            {{ user.name }}
+                                        </a>
+                                    </h4>
+                                </div>
 
-                                    <div id="collapse_{{ user.guid }}" class="panel-collapse collapse out">
-                                        <div class="panel-body">
-                                            {% if user.email %}
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        Email
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        {{ user.email }}
-                                                    </div>
+                                <div id="collapse_{{ user.guid }}" class="panel-collapse collapse out">
+                                    <div class="panel-body">
+                                        {% if user.email %}
+                                            <div class="row">
+                                                <div class="col-sm-3">
+                                                    Email
                                                 </div>
-                                            {% endif %}
-                                            {% if user.phone_number %}
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        Phone
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        {{ user.phone_number }}
-                                                    </div>
+                                                <div class="col-sm-9">
+                                                    {{ user.email }}
                                                 </div>
-                                            {% endif %}
-                                        </div>
+                                            </div>
+                                        {% endif %}
+                                        {% if user.phone_number %}
+                                            <div class="row">
+                                                <div class="col-sm-3">
+                                                    Phone
+                                                </div>
+                                                <div class="col-sm-9">
+                                                    {{ user.phone_number }}
+                                                </div>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
-                            {% endfor %}
-                        </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
-    {% endif %}
+    </div>
 
     <p>
         {% if request.status == status.OPEN %}
