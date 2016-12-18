@@ -19,7 +19,13 @@
                         <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
                     {% endif %}
                 {% endif %}
-                <strong class="modal-title">{{ response | format_response_type }}</strong>
+                <strong class="modal-title">
+                    {% if response.type != response_type.DETERMINATION %}
+                        EDIT {{ response | format_response_type }}
+                    {% else %}
+                        VIEW {{ response | format_response_type }}
+                    {% endif %}
+                </strong>
             </div>
             <div class="default">
                 {% if requires_workflow %}
@@ -43,6 +49,7 @@
                     </div>
                     <div class ="second" hidden>
                         <div class="modal-body">
+                            <h4>Edit Email Body</h4>
                             <textarea class="tinymce-area" name="email-content-{{ response.id }}" title="email-content"></textarea>
                         </div>
                         <div class="modal-footer">
