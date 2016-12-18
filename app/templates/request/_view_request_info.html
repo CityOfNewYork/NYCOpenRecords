@@ -3,8 +3,8 @@
         <div class="control-widget">
             <h3 class="text-muted" id="request-id">{{ request.id }}
                 <small data-toggle="popover" data-placement="right" data-trigger="hover" title="FOIL Number"
-                       data-content="You can use your FOIL number to track your request on the track your request page">
-                        <span class="glyphicon glyphicon-question-sign"></span>
+                       data-content="You can use your FOIL number to track your request on the View Requests page.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </h3>
             <div class="row">
@@ -12,19 +12,19 @@
                 <!-- privacy options for request title -->
                 <div class="btn-group col-sm-push-8" data-toggle="buttons">
                     {% if request.privacy['title'] %}
-                        <label class="title-privacy-btn btn btn-default" data-active-class="primary">
-                            <input type="radio" value="false">Public
-                        </label>
-                        <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
-                            <input type="radio" value="true">Private
-                        </label>
+                    <label class="title-privacy-btn btn btn-default" data-active-class="primary">
+                        <input type="radio" value="false">Public
+                    </label>
+                    <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
+                        <input type="radio" value="true">Private
+                    </label>
                     {% else %}
-                        <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
-                            <input type="radio" value="false">Public
-                        </label>
-                        <label class="title-privacy-btn btn btn-default" data-active-class="primary">
-                            <input type="radio" value="true">Private
-                        </label>
+                    <label class="title-privacy-btn btn btn-default active" data-active-class="primary">
+                        <input type="radio" value="false">Public
+                    </label>
+                    <label class="title-privacy-btn btn btn-default" data-active-class="primary">
+                        <input type="radio" value="true">Private
+                    </label>
                     {% endif %}
                 </div>
                 <div class="request-title-text lead">
@@ -40,19 +40,19 @@
             <!-- privacy options for agency description -->
             <div class="btn-group col-sm-push-5" data-toggle="buttons">
                 {% if request.privacy['agency_description'] %}
-                    <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
-                        <input type="radio" value="false">Public
-                    </label>
-                    <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
-                        <input type="radio" value="true">Private
-                    </label>
+                <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
+                    <input type="radio" value="false">Public
+                </label>
+                <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
+                    <input type="radio" value="true">Private
+                </label>
                 {% else %}
-                    <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
-                        <input type="radio" value="false">Public
-                    </label>
-                    <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
-                        <input type="radio" value="true">Private
-                    </label>
+                <label class="desc-privacy-btn btn btn-default active" data-active-class="primary">
+                    <input type="radio" value="false">Public
+                </label>
+                <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
+                    <input type="radio" value="true">Private
+                </label>
                 {% endif %}
             </div>
             <div class="agency-desc-text lead">
