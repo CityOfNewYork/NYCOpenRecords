@@ -22,7 +22,10 @@ $(document).ready(function () {
                 data: {
                     request_id: "{{ request.id }}",
                     type: "notes",
-                    privacy: $(".note-privacy:checked").val()
+                    note: JSON.stringify({
+                        content: $('#note-content').val(),
+                        privacy: $(".note-privacy:checked").val()
+                    })
                 },
                 success: function (data) {
                     // Data should be html template page.
@@ -43,10 +46,6 @@ $(document).ready(function () {
             data: {
                 request_id: "{{ request.id }}",
                 type: "notes",
-                note: JSON.stringify({
-                    content: $('#note-content').val(),
-                    privacy: $(".note-privacy:checked").val()
-                }),
                 email_content: $('#email-note-content').val()
             },
             success: function (data) {

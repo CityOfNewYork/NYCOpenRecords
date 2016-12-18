@@ -4,3 +4,21 @@
         {{ request_id }}
     </a> has been edited.
 </p>
+
+{% for key, value in response_data.data_old.items() %}
+    <div class="mceNonEditable">
+        <p>
+            The <strong>{{ key }}</strong> was changed from:
+        </p>
+        {% if key == 'privacy' %}
+            <p style="padding-left: 30px;"> {{ response_data.data_old[key] | format_response_privacy }} </p>
+            <p> to: </p>
+            <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
+        {% else %}
+            <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                <p> to: </p>
+            <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+        {% endif %}
+    </div>
+    <p><br /></p>
+{% endfor %}

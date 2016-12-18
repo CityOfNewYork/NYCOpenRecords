@@ -139,7 +139,6 @@ def create_users():
         user = create_user(type_)
         print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
 
-
 @manager.option("-a", "--agency", help="Create agency user.", action="store_true", dest='agency')
 @manager.option("-g", "--google", help="Create google user.", action="store_true", dest='google')
 @manager.option("-y", "--yahoo", help="Create yahoo user.", action="store_true", dest='yahoo')

@@ -3,7 +3,7 @@
           action="/response/{{ response.id }}" method="POST">
         {% if edit_response_permission %}
             <div class="instruction-error-messages alert alert-danger" hidden></div>
-            <textarea class="input-block-level form-group note-content"
+            <textarea class="input-block-level form-group instruction-content"
                       title="content" name="content" maxlength="500">{{ response.content }}</textarea>
             <h5 class="required instruction-content-character-count">
                 500 characters remaining

@@ -6,18 +6,18 @@
     <p>
         The {{ agency_name }} has <strong>closed</strong> your request for the following reason{% if reasons|length > 1 %}s{% endif %}:
     </p>
+    <div class="mceNonEditable">
+        {% for reason in reasons %}
+            <p><span class="mceNonEditable">&nbsp;&nbsp;&nbsp;&nbsp;{{ reason }}&nbsp;</span></p>
+        {% endfor %}
+    </div>
+    <br />
 {% else %}
     {{ content | safe }}
-    {% if reasons %}
-        <ul>
-            {% for reason in reasons %}
-                <li>{{ reason }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
     <p>
         You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
-        by contacting the agency's FOIL Appeals Officer: <a href="mailto:{{ agency_appeals_email }}">{{ agency_appeals_email }}</a>
+        by contacting the agency's FOIL Appeals Officer: <a
+            href="mailto:{{ agency_appeals_email }}">{{ agency_appeals_email }}</a>
         within 30 days.
     </p>
 {% endif %}

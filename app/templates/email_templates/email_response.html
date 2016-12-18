@@ -6,26 +6,8 @@
     <p>
         Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
     </p>
+    {% block response_content %}
+    {% endblock %}
 {% else %}
-    {% if email_file_content %}
-        {{ email_file_content | safe }}
-        {% block response_file_content %}
-        {% endblock %}
-    {% else %}
-        {% if content %}
-            {{ content | safe }}
-        {% else %}
-            <p>
-                The {{ agency_name }} has provided additional
-                information about your Freedom of Information Law (FOIL) ID number <a
-                    href='{{ page }}'>{{ request_id }}</a>.
-            </p>
-            <p>
-                Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary
-                action.
-            </p>
-        {% endif %}
-        {% block response_content %}
-        {% endblock %}
-    {% endif %}
+    {{ content | safe }}
 {% endif %}

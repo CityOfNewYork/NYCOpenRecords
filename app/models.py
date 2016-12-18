@@ -242,7 +242,7 @@ class Users(UserMixin, db.Model):
     last_name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(254))
     email_validated = db.Column(db.Boolean(), nullable=False)
-    terms_of_use_accepted = db.Column(db.String(16))
+    terms_of_use_accepted = db.Column(db.Boolean)
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(15))
@@ -300,6 +300,16 @@ class Users(UserMixin, db.Model):
         """
         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
 
+    @property
+    def anonymous_request(self):
+        """
+        Returns the request this user is associated with
+        if this user is an anonymous requester.
+        """
+        if self.is_anonymous_requester:
+            return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
+        return None
+
     def get_id(self):  # FIXME: should not be getter
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
@@ -318,6 +328,26 @@ class Users(UserMixin, db.Model):
         """
         for request in self.requests:
             request.es_update()
+
+    @property
+    def val_for_events(self):
+        """
+        JSON to store in Events 'new_value' field.
+        """
+        return {
+            "guid": self.guid,
+            "auth_user_type": self.auth_user_type,
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "title": self.title,
+            "organization": self.organization,
+            "phone_number": self.phone_number,
+            "fax_number": self.fax_number,
+            "mailing_address": self.mailing_address,
+            "email_validated": self.email_validated,
+            "terms_of_use_accepted": self.terms_of_use_accepted,
+        }
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
@@ -557,7 +587,7 @@ class Events(db.Model):
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    user_id = db.Column(db.String(64))  # who did the action
+    user_guid = db.Column(db.String(64))  # who did the action
     auth_user_type = db.Column(
         db.Enum(user_type_auth.AGENCY_USER,
                 user_type_auth.PUBLIC_USER_FACEBOOK,
@@ -576,14 +606,14 @@ class Events(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_id, auth_user_type],
+            [user_guid, auth_user_type],
             [Users.guid, Users.auth_user_type]
         ),
     )
 
     def __init__(self,
                  request_id,
-                 user_id,
+                 user_guid,
                  auth_user_type,
                  type_,
                  previous_value=None,
@@ -591,7 +621,7 @@ class Events(db.Model):
                  response_id=None,
                  timestamp=None):
         self.request_id = request_id
-        self.user_id = user_id
+        self.user_guid = user_guid
         self.auth_user_type = auth_user_type
         self.response_id = response_id
         self.type = type_
@@ -754,12 +784,25 @@ class UserRequests(db.Model):
         ),
     )
 
-    def has_permission(self, permission):
+    @property
+    def val_for_events(self):
+        """
+        JSON to store in Events 'new_value' field.
+        """
+        return {
+            "user_guid": self.user_guid,
+            "auth_user_type": self.auth_user_type,
+            "request_id": self.request_id,
+            "request_user_type": self.request_user_type,
+            "permissions": self.permissions
+        }
+
+    def has_permission(self, perm):
         """
         Ex:
             has_permission(permission.ADD_NOTE)
         """
-        return bool(self.permissions & permission)
+        return bool(self.permissions & perm)
 
     def add_permissions(self, permissions):
         """
