@@ -32,7 +32,7 @@ function bindFileUpload(target,
         downloadTemplateId: downloadTemplateId,
         maxChunkSize: 512000,  // 512 kb
         maxFileSize: 500000000, // 500 mb
-        maxNumberOfFiles: isIE ? 10 : 1000;
+        maxNumberOfFiles: isIE ? 10 : 1000,
         chunksend: function (e, data) {
             // stop sending chunks if abort signaled
             if (data.context[0].abortChunkSend) {
