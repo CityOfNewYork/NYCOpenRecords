@@ -16,6 +16,18 @@ class InvalidUserException(Exception):
             "Invalid user: {}".format(user))
 
 
+class InvalidClosingException(Exception):
+
+    def __init__(self, request, reason):
+        """
+        :param request: request that was not closed
+        """
+        super(InvalidClosingException, self).__init__(
+            'Unable to close request: {}\nReason: {}'.format(request, reason)
+        )
+
+
+
 def b64decode_lenient(data):
     """
     Decodes base64 (bytes or str), padding being optional.

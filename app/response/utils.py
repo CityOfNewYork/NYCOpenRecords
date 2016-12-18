@@ -45,7 +45,7 @@ from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.permission_utils import has_permission
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
-from app.lib.utils import eval_request_bool
+from app.lib.utils import eval_request_bool, InvalidClosingException
 from app.models import (
     Events,
     Notes,
@@ -195,7 +195,16 @@ def add_closing(request_id, reason_ids, email_content):
     :param email_content: email body associated with the closing
 
     """
-    if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
+    current_request = Requests.query.filter_by(id=request_id).one()
+    if current_request.status != request_status.CLOSED:
+        if current_request.privacy['agency_description'] or not current_request.agency_description:
+            for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(Responses.type != response_type.NOTE).all():
+                if privacy != RELEASE_AND_PUBLIC:
+                    raise InvalidClosingException(current_request,
+                                                  "Agency Description is private and responses are not public")
+            if current_request.privacy['title']:
+                raise InvalidClosingException(current_request,
+                                              "Agency Description is private and title is private")
         update_object(
             {'status': request_status.CLOSED},
             Requests,
@@ -842,7 +851,8 @@ def _get_edit_response_template(editor):
             recipient = "all Assigned Users"
         header = "The following will be emailed to {}:".format(recipient)
     else:
-        if (data.get('privacy') == PRIVATE or not editor.requester_viewable) and editor.response.type != response_type.FILE:
+        if (data.get(
+                'privacy') == PRIVATE or not editor.requester_viewable) and editor.response.type != response_type.FILE:
             email_template = 'email_templates/email_edit_private_response.html'
             default_content = None
         else:

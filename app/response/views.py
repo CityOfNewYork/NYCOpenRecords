@@ -33,6 +33,7 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
+from app.lib.utils import InvalidClosingException
 from app.response import response
 from app.models import (
     Requests,
@@ -194,10 +195,12 @@ def response_closing(request_id):
             flash('Uh Oh, it looks like the closing {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-
-        add_closing(request_id,
+        try:
+            add_closing(request_id,
                     flask_request.form.getlist('reasons'),
                     flask_request.form['email-summary'])
+        except InvalidClosingException as e:
+            flash(e, category='danger')
         return redirect(url_for('request.view', request_id=request_id))
 
 

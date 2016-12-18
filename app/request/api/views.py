@@ -10,7 +10,9 @@ from flask import (
     render_template,
     request as flask_request,
 )
+from datetime import datetime
 from flask_login import current_user
+from app.lib.date_utils import calendar
 from app.request.api import request_api_blueprint
 from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
@@ -41,9 +43,21 @@ def edit_privacy():
     title = flask_request.form.get('title')
     agency_desc = flask_request.form.get('agency_desc')
     if title is not None:
-        privacy['title'] = True if title == 'true' else False
+        privacy['title'] = title == 'true'
     if agency_desc is not None:
-        privacy['agency_description'] = True if agency_desc == 'true' else False
+        privacy['agency_description'] = agency_desc == 'true'
+        if not privacy['agency_description']:
+            release_date = calendar.addbusdays(datetime.utcnow(), offset=20)
+            update_object({'privacy': privacy,
+                           'agency_description_release_date': release_date},
+                          Requests,
+                          current_request.id)
+        else:
+            update_object({'privacy': privacy,
+                           'agency_description_release_date': None},
+                          Requests,
+                          current_request.id)
+        return jsonify(privacy), 200
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)
@@ -62,7 +76,8 @@ def edit_request_info():
     # title = flask_request.form['value']
     request_id = flask_request.form.get('pk')
     current_request = Requests.query.filter_by(id=request_id).first()
-    update_object({edit_request['name']: edit_request['value']},
+    val = edit_request['value'].strip()
+    update_object({edit_request['name']: val if val else None},
                   Requests,
                   current_request.id)
     return jsonify(edit_request), 200

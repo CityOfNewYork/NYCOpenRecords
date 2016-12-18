@@ -10,7 +10,6 @@
             <div class="row">
                 <div class="request-label lead col-sm-1">Title:</div>
                 <!-- privacy options for request title -->
-
                 {% if permissions['edit_title_privacy'] %}
 
                     <div class="btn-group col-sm-push-8" data-toggle="buttons">
@@ -32,6 +31,8 @@
 
                     </div>
                 {% endif %}
+            </div>
+            <div class="row">
                 <div class="request-title-text lead">
                     {% if permissions['edit_title'] %}
                         <!-- editable area for request title -->
@@ -43,16 +44,19 @@
             </div>
             <br>
             {% if current_user.is_agency %}
-                <div class="request-label lead">Description:</div>
-                <div class="request-description-text lead">{{ request.description }}</div>
-                <br>
+                <div class="row">
+                    <div class="request-label lead">Description:</div>
+                    <div class="request-description-text lead">{{ request.description }}</div>
+                    <br>
+                </div>
             {% endif %}
-            {% if request.agency_description %}
-                <div class="request-label lead col-sm-4">Agency Description:</div>
+            <div class="row">
+                {% if show_agency_description %}
+                    <div class="request-label lead col-sm-4">Agency Description:</div>
+                {% endif %}
                 <!-- privacy options for agency description -->
                 <div class="btn-group col-sm-push-5" data-toggle="buttons">
-
-                    {% if permissions['edit_title_agency_description_privacy'] %}
+                    {% if permissions['edit_agency_description_privacy'] %}
                         {% if request.privacy['agency_description'] %}
                             <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
                                 <input type="radio" value="false">Public
@@ -70,6 +74,8 @@
                         {% endif %}
                     {% endif %}
                 </div>
+            </div>
+            <div class="row">
                 <div class="agency-desc-text lead">
                     {% if permissions['edit_agency_description'] %}
                         <!-- editable area for agency description -->
@@ -80,7 +86,7 @@
                         {% endif %}
                     {% endif %}
                 </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
