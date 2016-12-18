@@ -435,7 +435,6 @@ def patch(response_id):
     }
 
     """
-    import ipdb; ipdb.set_trace()
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
 
     if current_user.is_anonymous:

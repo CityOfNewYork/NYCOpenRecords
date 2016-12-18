@@ -47,7 +47,6 @@ def is_allowed(user: Users, request_id: str, permission: int):
     :param permissions:
     :return:
     """
-    # import ipdb; ipdb.set_trace()
     user_request = user.user_requests.filter_by(request_id=request_id).one()
     return True if user_request.has_permission(permission) else False
 
@@ -59,7 +58,6 @@ def get_permission(permission_type: str, response_type: Responses):
     :param response_type:
     :return:
     """
-    # import ipdb; ipdb.set_trace()
 
     if response_type is not Determinations:
 
