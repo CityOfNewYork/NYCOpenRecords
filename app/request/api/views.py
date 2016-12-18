@@ -150,6 +150,10 @@ def get_request_responses():
                                                         permission=get_permission(permission_type='edit',
                                                                                   response_type=type(
                                                                                       response))),
+                    delete_response_permission=is_allowed(user=current_user,
+                                                          request_id=response.request_id,
+                                                          permission=get_permission(permission_type='delete',
+                                                                                    response_type=type(response)))
 
                 ),
                 response_type=response_type,

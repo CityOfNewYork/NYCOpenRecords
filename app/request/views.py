@@ -21,7 +21,8 @@ from flask_login import current_user
 from sqlalchemy import any_
 
 from app.constants import (
-    request_status
+    request_status,
+    permission
 )
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
@@ -29,6 +30,9 @@ from app.lib.date_utils import (
 )
 from app.lib.db_utils import (
     update_object,
+)
+from app.lib.permission_utils import (
+    is_allowed
 )
 from app.lib.utils import InvalidUserException
 from app.models import (
@@ -201,6 +205,37 @@ def view(request_id):
                 else:
                     active_users.append(agency_user)
 
+    permissions = {
+        'acknowledge': permission.ACKNOWLEDGE,
+        'deny': permission.DENY,
+        'extend': permission.EXTEND,
+        'close': permission.CLOSE,
+        'add_file': permission.ADD_FILE,
+        'edit_file_privacy': permission.EDIT_FILE_PRIVACY,
+        'delete_file': permission.DELETE_FILE,
+        'add_note': permission.ADD_NOTE,
+        'edit_note_privacy': permission.EDIT_NOTE_PRIVACY,
+        'delete_note': permission.DELETE_NOTE,
+        'add_link': permission.ADD_LINK,
+        'edit_link_privacy': permission.EDIT_LINK_PRIVACY,
+        'delete_link': permission.DELETE_LINK,
+        'add_instructions': permission.ADD_OFFLINE_INSTRUCTIONS,
+        'edit_instructions_privacy': permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY,
+        'delete_instructions': permission.DELETE_OFFLINE_INSTRUCTIONS,
+        'add_user': permission.ADD_USER_TO_REQUEST,
+        'edit_user': permission.EDIT_USER_REQUEST_PERMISSIONS,
+        'remove_user': permission.REMOVE_USER_FROM_REQUEST,
+        'edit_title': permission.EDIT_TITLE,
+        'edit_title_privacy': permission.CHANGE_PRIVACY_TITLE,
+        'edit_agency_description': permission.EDIT_AGENCY_DESCRIPTION,
+        'edit_agency_description_privacy': permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION,
+        'edit_requester_info': permission.EDIT_REQUESTER_INFO
+
+    }
+
+    for key, val in permissions.items():
+        permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
+
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -213,7 +248,9 @@ def view(request_id):
         add_user_request_form=AddUserRequestForm(active_users),
         holidays=holidays,
         assigned_users=assigned_users,
-        active_users=active_users)
+        active_users=active_users,
+        permissions=permissions
+    )
 
 
 @request.route('/non_portal_agency/<agency_name>', methods=['GET'])

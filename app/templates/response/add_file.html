@@ -105,7 +105,10 @@
         </div>
     {% } %}
 </script>
+{% endraw %}
 <!-- The template to display files after upload -->
+{% if permissions['edit_file_privacy'] %}
+{% raw %}
 <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
@@ -169,3 +172,61 @@
     {% } %}
 </script>
 {% endraw %}
+{% else %}
+{% raw %}
+<script id="template-download" type="text/x-tmpl">
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+        <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
+            <div class="col-sm-8">
+                <span class="original-name hidden">{%=file.original_name%}</span>
+                <p class="name">
+                    Filename: <strong><span class="secured-name">{%=file.name%}</span></strong>
+                </p>
+
+                {% if (!(file.error)) { %}
+                    <div class="fileupload-input-fields hidden">
+                        Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required>
+                        <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
+                        <div class="radio">
+                            <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
+                                value="private" checked>Private</label>
+                        </div>
+                    </div>
+                {% } %}
+
+                {% if (file.error) { %}
+                    <!-- Error reported using fileupload -->
+                    <div><span class="label label-danger upload-error">Error</span> {%=file.error%}</div>
+                {% } %}
+
+                <!-- Error reported post upload (fileuploaddone) -->
+                <div class="error-post-fileupload hidden">
+                    <span class="label label-danger">Error</span>
+                    <span class="error-post-fileupload-msg"></span>
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <span class="size">{%=o.formatFileSize(file.size)%}</span>
+            </div>
+            <div class="col-sm-2">
+                {% if (file.error) { %}
+                    <!-- CANCEL -->
+                    <button class="btn btn-warning cancel">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
+                {% } else { %}
+                    <!-- PROCESSING -->
+                    <img src="/static/img/loading.gif" class="processing-upload" alt="Processing" height="20" width="20">
+                    <!-- REMOVE -->
+                    <button class="remove-post-fileupload btn btn-warning hidden">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
+                {% } %}
+            </div>
+        </div>
+    {% } %}
+</script>
+{% endraw %}
+{% endif %}

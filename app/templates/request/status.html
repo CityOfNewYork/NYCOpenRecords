@@ -1,14 +1,22 @@
 <div class="container-fluid">
-    {% if request.status == status.IN_PROGRESS %}
-        <h1><span class="in-progress">In Progress</span></h1>
-    {% elif request.status == status.OVERDUE %}
-        <h1><span class="overdue">Overdue</span></h1>
-    {% elif request.status == status.DUE_SOON %}
-        <h1><span class="duesoon">Due Soon</span></h1>
-    {% elif request.status == status.OPEN %}
-        <h1><span class="open">Open</span></h1>
-    {% elif request.status == status.CLOSED %}
-        <h1><span class="closed">Closed</span></h1>
+    {% if current_user.is_agency %}
+        {% if request.status == status.IN_PROGRESS %}
+            <h1><span class="in-progress">In Progress</span></h1>
+        {% elif request.status == status.OVERDUE %}
+            <h1><span class="overdue">Overdue</span></h1>
+        {% elif request.status == status.DUE_SOON %}
+            <h1><span class="duesoon">Due Soon</span></h1>
+        {% elif request.status == status.OPEN %}
+            <h1><span class="open">Open</span></h1>
+        {% elif request.status == status.CLOSED %}
+            <h1><span class="closed">Closed</span></h1>
+        {% endif %}
+    {% else %}
+        {% if request.status == status.CLOSED %}
+            <h1><span class="closed">Closed</span></h1>
+        {% else %}
+            <h1><span class="open">Open</span></h1>
+        {% endif %}
     {% endif %}
 
     <hr>

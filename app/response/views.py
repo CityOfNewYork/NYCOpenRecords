@@ -437,11 +437,11 @@ def patch(response_id):
     if current_user.is_anonymous:
         return abort(403)
 
-    import ipdb;
-    ipdb.set_trace()
+    patch_form = dict(flask_request.form)
 
-    if flask_request.form.get('privacy'):
+    privacy = patch_form.pop('privacy', None)
 
+    if privacy:
         # Check permissions for editing the privacy if required.
 
         permission_for_edit_type_privacy = {
@@ -454,20 +454,24 @@ def patch(response_id):
         if not is_allowed(current_user, resp.request_id, permission_for_edit_type_privacy[type(resp)]):
             return abort(403)
 
-        if len(flask_request.form) > 1:
-            # Mapping of Response types to permission values
-            permission_for_type = {
-                Files: permission.EDIT_FILE,
-                Notes: permission.EDIT_NOTE,
-                Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS,
-                Links: permission.EDIT_LINK
-            }
+    delete = patch_form.pop('deleted', None)
 
-            # If the current user does not have the permission to edit the response type, return 403
-            if not is_allowed(current_user, resp.request_id, permission_for_type[type(resp)]):
-                return abort(403)
+    if delete:
+        confirmation = patch_form.pop('confirmation', None)
+        if not confirmation:
+            return abort(403)
 
-    else:
+        permission_for_delete_type = {
+            Files: permission.DELETE_FILE,
+            Notes: permission.DELETE_NOTE,
+            Instructions: permission.DELETE_OFFLINE_INSTRUCTIONS,
+            Links: permission.DELETE_LINK
+        }
+
+        if not is_allowed(current_user, resp.request_id, permission_for_delete_type[type(resp)]):
+            return abort(403)
+
+    if patch_form:
         # Mapping of Response types to permission values
         permission_for_type = {
             Files: permission.EDIT_FILE,

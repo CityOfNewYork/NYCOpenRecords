@@ -30,11 +30,13 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
                             {% if response.type  != response_type.DETERMINATION %}
-                                {% if edit_response_permission or edit_response_privacy_permission %}
+                                {% if delete_response_permission %}
                                     <button type="button" class="btn btn-danger pull-left delete-select">
                                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                         Delete
                                     </button>
+                                {% endif %}
+                                {% if edit_response_permission or edit_response_privacy_permission %}
                                     <button type="button" class="btn btn-primary response-modal-next">
                                         Next
                                         <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
