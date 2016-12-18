@@ -65,6 +65,7 @@
                 success: function(data) {
                     third.find(".email-summary").html(data.template);
                     third.find("input[name=email-summary]").val(data.template);
+                    third.find(".confirmation-header").text(data.header);
                 }
             });
 

@@ -75,6 +75,7 @@
                     $("#email-extension-summary").html(data.template);
                     $("#email-extension-summary-hidden").val(data.template);
                     $("#email-extension-tz-name").val(jstz.determine().name());
+                    $(".extension-confirmation-header").text(data.header);
                 }
             });
             document.getElementById("extension-second").style.display = "none";
