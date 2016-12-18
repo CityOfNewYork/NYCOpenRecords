@@ -37,9 +37,11 @@
 }
 
 @media (max-width: 979px) and (min-width: 768px) {
-    .wrapper
+    .wrapper, .navbar
     {
-        max-width:724px
+        /*max-width: 724px;*/
+		/*min-width: 724px;*/
+		min-width:calc(940px + 20px);
     }
 
 }
