@@ -184,7 +184,7 @@ def create_request(title,
 
     role_to_user = {
         role.PUBLIC_REQUESTER: user.is_public,
-        role.ANONYMOUS: user.is_anonymous,
+        role.ANONYMOUS: user.is_anonymous_requester,
     }
     role_name = [k for (k, v) in role_to_user.items() if v][0]
     # (key for "truthy" value)

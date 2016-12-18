@@ -60,9 +60,17 @@ def patch(user_id):
             return jsonify({}), 404
 
         updating_self = current_user is user_
-        current_user_is_agency_user = current_user.is_agency and current_user.is_agency_active
-        current_user_is_agency_admin = current_user.is_agency_admin and current_user.is_agency_active
+        current_user_is_agency_user = (current_user.is_agency
+                                       and not current_user.is_agency_admin
+                                       and current_user.is_agency_active)
+        current_user_is_agency_admin = (current_user.is_agency
+                                        and current_user.is_agency_admin
+                                        and current_user.is_agency_active)
         same_agency = current_user.agency is user_.agency
+        associated_anonymous_requester = (user_.is_anonymous_requester
+                                          and current_user.user_requests.filter_by(
+                                            request_id=user_.anonymous_request.id
+                                          ).first() is None)
 
         is_agency_admin = request.form.get('is_agency_admin')
         is_agency_active = request.form.get('is_agency_active')
@@ -98,25 +106,26 @@ def patch(user_id):
             or
                 # agency user attempting to change a user that is not an anonymous requester
                 # for a request they are assigned to
-                (current_user_is_agency_user and (not user_.is_anonymous_requester or (
-                        user_.is_anonymous_requester and
-                 current_user.user_requests.filter_by(
-                     request_id=user_.anonymous_request.id
-                 ).first() is None)))))):
+                (current_user_is_agency_user and (
+                            not user_.is_anonymous_requester or associated_anonymous_requester))
+            or
+                # agency admin attempting to change an anonymous requester for a request
+                # they are not assigned to
+                (current_user_is_agency_admin and associated_anonymous_requester)))):
             return jsonify({}), 403
 
         # UPDATE
-        status_fields = [
-            'is_agency_admin',
-            'is_agency_active',
-            'is_super'
-        ]
-        user_fields = status_fields + [
+        user_fields = [
             'email',
             'phone_number',
             'fax_number',
             'title',
             'organization'
+        ]
+        status_fields = [
+            'is_agency_admin',
+            'is_agency_active',
+            'is_super'
         ]
         address_fields = [
             'zip',
@@ -132,11 +141,12 @@ def patch(user_id):
             'fax_number': request.form.get('fax'),
             'title': request.form.get('title'),
             'organization': request.form.get('organization'),
-            'is_agency_admin': eval_request_bool(request.form.get('is_agency_admin')),
-            'is_agency_active': eval_request_bool(request.form.get('is_agency_active')),
-            'is_super': eval_request_bool(request.form.get('is_super'))
         }
-
+        status_field_val = {
+            'is_agency_admin': request.form.get('is_agency_admin'),
+            'is_agency_active': request.form.get('is_agency_active'),
+            'is_super': request.form.get('is_super')
+        }
         address_field_val = {
             'address_one': request.form.get('address_one'),
             'address_two': request.form.get('address_two'),
@@ -155,33 +165,41 @@ def patch(user_id):
                  or address_field_val['address_one'] == '')):
             return jsonify({"error": "Missing contact information."}), 400
 
-        # convert empty string to None
-        for field, val in user_field_val.items():
-            if val == '':
-                user_field_val[field] = None
-        for field, val in address_field_val.items():
-            if val == '':
-                address_field_val[field] = None
-
         old = {}
         old_address = {}
         new = {}
         new_address = {}
 
+        for field in status_fields:
+            if status_field_val[field] is not None:
+                cur_val = getattr(user_, field)
+                new_val = eval_request_bool(status_field_val[field])
+                if cur_val != new_val:
+                    old[field] = cur_val
+                    new[field] = new_val
+
         for field in user_fields:
-            cur_val = getattr(user_, field)
-            new_val = user_field_val[field]
-            if cur_val != new_val:
-                old[field] = cur_val
-                new[field] = new_val
+            val = user_field_val[field]
+            if val is not None:
+                if val == '':
+                    user_field_val[field] = None  # null in db, not empty string
+                cur_val = getattr(user_, field)
+                new_val = user_field_val[field]
+                if cur_val != new_val:
+                    old[field] = cur_val
+                    new[field] = new_val
 
         for field in address_fields:
-            cur_val = (user_.mailing_address.get(field)
-                       if user_.mailing_address else None)
-            new_val = address_field_val[field]
-            if cur_val != new_val:
-                old_address[field] = cur_val
-                new_address[field] = new_val
+            val = address_field_val[field]
+            if val is not None:
+                if val == '':
+                    address_field_val[field] = None
+                cur_val = (user_.mailing_address.get(field)
+                           if user_.mailing_address else None)
+                new_val = address_field_val[field]
+                if cur_val != new_val:
+                    old_address[field] = cur_val
+                    new_address[field] = new_val
 
         if new or new_address:
             if new_address:
@@ -198,7 +216,7 @@ def patch(user_id):
 
             # create event(s)
             event_kwargs = {
-                'request_id': None,
+                'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
                 'response_id': None,
                 'user_guid': current_user.guid,
                 'auth_user_type': current_user.auth_user_type,

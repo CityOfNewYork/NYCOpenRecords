@@ -1,6 +1,6 @@
 USER_CREATED = "user_created"
-USER_ADDED = "user_added"  # to request
-USER_REMOVED = "user_removed"  # from request
+USER_ADDED = "user_added_to_request"
+USER_REMOVED = "user_removed_from_request"
 USER_PERM_CHANGED = "user_permissions_changed"
 USER_STATUS_CHANGED = "user_status_changed"  # user, admin, super
 USER_INFO_EDITED = "user_information_edited"
@@ -29,3 +29,4 @@ INSTRUCTIONS_REMOVED = "instructions_removed"
 NOTE_ADDED = "note_added"
 NOTE_EDITED = "note_edited"
 NOTE_DELETED = "note_deleted"
+AGENCY_ACTIVATED = "agency_activated"
