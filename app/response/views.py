@@ -540,6 +540,12 @@ def get_response_content(response_id):
              400 error if response/file not found
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
+    if not (
+                ((current_user in response_.request.agency_users) or
+                         response_.request.requester is current_user) and
+                    response_.release_date > datetime.utcnow()
+    ):
+        return abort(403)
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
             current_app.config["UPLOAD_DIRECTORY"],
@@ -561,8 +567,8 @@ def get_response_content(response_id):
                 token=token, response_id=response_id).first()
             if resptok is not None:
                 if (datetime.utcnow() < resptok.expiration_date
-                    and fu.exists(filepath)
-                    and response_.privacy != PRIVATE):
+                   and fu.exists(filepath)
+                   and response_.privacy != PRIVATE):
                     @after_this_request
                     def remove(resp):
                         os.remove(serving_path)
@@ -582,7 +588,7 @@ def get_response_content(response_id):
                         request_id=response_.request_id,
                         user_guid=current_user.guid,
                         auth_user_type=current_user.auth_user_type
-                    ).first() is not None):
+                   ).first() is not None):
                     @after_this_request
                     def remove(resp):
                         os.remove(serving_path)
@@ -593,15 +599,12 @@ def get_response_content(response_id):
                 if response_.privacy == RELEASE_AND_PUBLIC:
                     if datetime.utcnow() < response_.release_date:
                         if (fu.exists(filepath)
-                            and (
-                                        (current_user.is_public and response_.privacy != PRIVATE)
-                                    or current_user.is_agency
-                            )
+                            and ((current_user.is_public and response_.privacy != PRIVATE) or current_user.is_agency)
                             and UserRequests.query.filter_by(
                                 request_id=response_.request_id,
                                 user_guid=current_user.guid,
                                 auth_user_type=current_user.auth_user_type
-                            ).first() is not None):
+                           ).first() is not None):
                             @after_this_request
                             def remove(resp):
                                 os.remove(serving_path)
@@ -613,4 +616,4 @@ def get_response_content(response_id):
                         'auth.index',
                         sso2=True,
                         return_to=flask_request.base_url))
-    return 'Not found.', 404  # TODO: other pages (whoops, page expired...)
+    return abort(404)

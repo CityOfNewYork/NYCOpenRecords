@@ -47,6 +47,8 @@ def is_allowed(user: Users, request_id: str, permission: int):
     :param permissions:
     :return:
     """
+    if user.is_anonymous:
+        return False
     user_request = user.user_requests.filter_by(request_id=request_id).one()
     return True if user_request.has_permission(permission) else False
 

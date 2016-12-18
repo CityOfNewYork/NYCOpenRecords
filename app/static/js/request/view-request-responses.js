@@ -99,7 +99,6 @@ $(function () {
     // TODO: DELETE 'updated' on modal close and reset / refresh page (wait until all responses ready)
 
     function setEditResponseWorkflow(response_id, response_type) {
-        // FIXME: if response_type does not need email workflow, some of these elements won't be found!
 
         var responseModal = $("#response-modal-" + response_id);
 

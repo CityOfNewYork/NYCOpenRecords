@@ -345,7 +345,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     :param bcc: list of person(s) email is being bcc'ed
 
     """
-    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None  # TODO: see why
+    to = ','.join([email.replace('{', '').replace('}', '') for email in to]) if to else None
     cc = ','.join([email.replace('{', '').replace('}', '') for email in cc]) if cc else None
     bcc = ','.join([email.replace('{', '').replace('}', '') for email in bcc]) if bcc else None
 
@@ -1095,9 +1095,7 @@ def create_response_event(events_type, response=None, user_request=None):
     :param events_type: one of app.constants.event_type
 
     """
-    user = response.request.requester \
-        if current_user.is_anonymous else current_user
-    # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
+    user = current_user
     event = None
     if response:
         event = Events(request_id=response.request_id,

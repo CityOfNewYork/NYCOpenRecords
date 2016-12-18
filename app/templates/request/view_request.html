@@ -88,7 +88,7 @@
                         <div class="tab-content content-min-height">
                             {% if request.status != status.CLOSED %}
                                 {% if request.status == status.OPEN %}
-                                    {% if permission['acknowledge'] %}
+                                    {% if permissions['acknowledge'] %}
                                         <div class="tab-pane active" id="acknowledge-request">
                                             {% include "response/add_acknowledgment.html" %}
                                         </div>

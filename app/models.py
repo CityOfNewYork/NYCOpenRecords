@@ -108,7 +108,7 @@ class Roles(db.Model):
                 permission.EDIT_AGENCY_DESCRIPTION |
                 permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
                 permission.ADD_USER_TO_REQUEST |
-                permission.DELETE_USER_FROM_REQUEST |
+                permission.REMOVE_USER_FROM_REQUEST |
                 permission.EDIT_USER_REQUEST_PERMISSIONS |
                 permission.ADD_USER_TO_AGENCY |
                 permission.REMOVE_USER_FROM_AGENCY |
@@ -530,7 +530,6 @@ class Requests(db.Model):
                     'title_private': self.privacy['title'],
                     'agency_description_private': self.privacy['agency_description'],
                     'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                    'submission': self.submission,  # TODO: does this ever change?
                     'status': self.status,
                     'requester_name': self.requester.name,
                     'public_title': 'Private' if self.privacy['title'] else self.title
@@ -772,7 +771,7 @@ class UserRequests(db.Model):
         db.Enum(user_type_request.REQUESTER,
                 user_type_request.AGENCY,
                 name='request_user_type'))
-    permissions = db.Column(db.Integer)
+    permissions = db.Column(db.BigInteger)
     # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
     # same permissions as an anonymous user browsing a request since there is no method for authenticating that the
     # current anonymous user is in fact the requester.

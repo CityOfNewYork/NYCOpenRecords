@@ -234,8 +234,9 @@ def view(request_id):
     }
 
     for key, val in permissions.items():
-        if not current_request.user_requests.filter_by(user_guid=current_user.guid,
-                                                       auth_user_type=current_user.auth_user_type).first():
+
+        if current_user.is_anonymous or not current_request.user_requests.filter_by(user_guid=current_user.guid,
+                                                                                    auth_user_type=current_user.auth_user_type).first():
             permissions[key] = False
         else:
             permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
@@ -243,6 +244,18 @@ def view(request_id):
     show_agency_description = (
         datetime.utcnow() > current_request.agency_description_release_date and not current_request.privacy[
             'agency_description']) if current_request.agency_description_release_date else False
+
+    show_agency_description = False
+    if (
+        current_user in current_request.agency_users or
+        current_request.requester is current_user or
+        (
+            current_request.agency_description_release_date and
+            current_request.agency_description_release_date < datetime.utcnow() and not
+            current_request.privacy['agency_description']
+        )
+    ):
+        show_agency_description = True
 
     return render_template(
         'request/view_request.html',
