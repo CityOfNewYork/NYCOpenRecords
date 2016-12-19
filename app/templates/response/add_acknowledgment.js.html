@@ -114,6 +114,7 @@
                     third.find(".email-summary").html(data.template);
                     third.find("input[name='email-summary']").val(data.template);
                     third.find("input[name='tz-name']").val(jstz.determine().name());
+                    third.find(".confirmation-header").text(data.header)
                 }
             });
 

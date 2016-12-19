@@ -28,8 +28,8 @@ $(document).ready(function () {
                     })
                 },
                 success: function (data) {
-                    // Data should be html template page.
                     tinyMCE.get('email-note-content').setContent(data.template);
+                    $(".note-confirmation-header").text(data.header);
                 }
             });
             document.getElementById("note-first").style.display = "none";

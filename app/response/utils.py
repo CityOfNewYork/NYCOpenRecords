@@ -483,6 +483,7 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     :return: the HTML of the rendered template of an acknowledgement
     """
     acknowledgment = data.get('acknowledgment')
+    header = "The following will be emailed to the Requester:"
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
@@ -506,7 +507,8 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
                                                 agency_name=agency_name,
                                                 date=date,
                                                 info=info,
-                                                page=page)}), 200
+                                                page=page),
+                    "header": header}), 200
 
 
 def _denial_email_handler(request_id, data, page, agency_name, email_template):
@@ -535,6 +537,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     """
     reasons = [Reasons.query.filter_by(id=reason_id).one().content
                for reason_id in data.getlist('reason_ids[]')]
+    header = "The following will be emailed to the Requester:"
     if eval_request_bool(data['confirmation']):
         default_content = False
         content = data['email_content']
@@ -549,8 +552,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=reasons,
         agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
-        page=page
-    )}), 200
+        page=page),
+        "header": header}), 200
 
 
 def _reopening_email_handler(request_id, data, page, agency_name, email_template):
@@ -677,6 +680,7 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     :return: the HTML of the rendered template of an extension response
     """
     extension = data.get('extension')
+    header = "The following will be emailed to the Requester:"
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
@@ -702,7 +706,8 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
                                                 agency_name=agency_name,
                                                 new_due_date=new_due_date,
                                                 reason=reason,
-                                                page=page)}), 200
+                                                page=page),
+                    "header": header}), 200
 
 
 def _file_email_handler(request_id, data, page, agency_name, email_template):
@@ -728,8 +733,10 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         files = json.loads(files)
         default_content = True
         content = None
+        header = "The following will be emailed to the Requester:"
         if eval_request_bool(data['is_private']):
             email_template = 'email_templates/email_private_file_upload.html'
+            header = "The following will be emailed to all Assigned Users:"
         for file_ in files:
             if file_.get('privacy') != PRIVATE or eval_request_bool(data['is_private']):
                 filename = file_['filename']
@@ -737,6 +744,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
     # use default_content in response template
     else:
         default_content = False
+        header = None
         content = data['email_content']
     # iterate through files dictionary to create and append links of files with privacy option of not private
     return jsonify({"template": render_template(email_template,
@@ -745,7 +753,8 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 request_id=request_id,
                                                 page=page,
                                                 agency_name=agency_name,
-                                                files_links=files_links)}), 200
+                                                files_links=files_links),
+                    "header": header}), 200
 
 
 def _link_email_handler(request_id, data, page, agency_name, email_template):
@@ -771,11 +780,14 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
         if link.get('privacy') == PRIVATE:
             email_template = 'email_templates/email_response_private_link.html'
             default_content = None
+            header = "The following will be emailed to all Assigned Users:"
         else:
             default_content = True
+            header = "The following will be emailed to the Requester:"
     # use email_content from frontend to render confirmation
     else:
         default_content = False
+        header = None
         url = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
@@ -785,7 +797,8 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
                                                 agency_name=agency_name,
                                                 url=url,
                                                 page=page,
-                                                response_privacy=response_privacy)}), 200
+                                                response_privacy=response_privacy),
+                    "header": header}), 200
 
 
 def _note_email_handler(request_id, data, page, agency_name, email_template):
@@ -811,10 +824,13 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         if note.get('privacy') == PRIVATE:
             email_template = 'email_templates/email_response_private_note.html'
             default_content = None
+            header = "The following will be emailed to all Assigned Users:"
         else:
             default_content = True
+            header = "The following will be emailed to the Requester:"
     else:
         default_content = False
+        header = None
         note_content = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
@@ -824,7 +840,8 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
                                                 agency_name=agency_name,
                                                 note_content=note_content,
                                                 page=page,
-                                                response_privacy=response_privacy)}), 200
+                                                response_privacy=response_privacy),
+                    "header": header}), 200
 
 
 def _instruction_email_handler(request_id, data, page, agency_name, email_template):
@@ -849,12 +866,15 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
         content = None
         if instruction.get('privacy') == PRIVATE:
             email_template = 'email_templates/email_response_private_instruction.html'
+            header = "The following will be emailed to all Assigned Users:"
             default_content = None
         else:
             default_content = True
+            header = "The following will be emailed to the Requester:"
     # use email_content from frontend to render confirmation
     else:
         default_content = False
+        header = None
         instruction_content = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
@@ -864,7 +884,8 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
                                                 agency_name=agency_name,
                                                 instruction_content=instruction_content,
                                                 page=page,
-                                                response_privacy=response_privacy)}), 200
+                                                response_privacy=response_privacy),
+                    "header": header}), 200
 
 
 def _edit_email_handler(data):
