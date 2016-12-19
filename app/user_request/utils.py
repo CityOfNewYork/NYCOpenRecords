@@ -31,13 +31,6 @@ def edit_user_request(request_id, user_guid, permissions):
 
     agency_admin_emails = _get_agency_admin_emails(request_id)
 
-    for key, val in enumerate(permissions):
-        if permission
-
-
-
-
-
 
 def remove_user_request(request_id, user_guid):
     """

@@ -19,6 +19,8 @@ class Config:
     REASON_DATA = (os.environ.get('REASONS_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
 
+    DUE_SOON_DAYS_THRESHOLD = os.environ.get('DUE_SOON_DAYS_THRESHOLD') or 2
+
     # SFTP
     USE_SFTP = os.environ.get('USE_SFTP') == "True"
     SFTP_HOSTNAME = os.environ.get('SFTP_HOSTNAME')

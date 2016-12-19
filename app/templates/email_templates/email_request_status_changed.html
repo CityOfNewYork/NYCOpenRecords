@@ -1,0 +1,5 @@
+{% include 'email/email.html' %}
+
+<p>
+    {% if request.was_acknowledged %}This request{% else %}The acknowledgment for this request{% endif %} is {% if request.status == request_status.OVERDUE %}now <strong>overdue</strong>. Please take immediate action.{% elif request.status == request_status.DUE_SOON %}due in <strong>{{ days_until_due }}</strong> days.{% endif %}
+</p>

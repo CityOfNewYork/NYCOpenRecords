@@ -13,7 +13,6 @@ from flask import (
     url_for,
     abort
 )
-from app.utils import UserRequestError
 from app.constants import permission
 from flask_login import current_user
 
@@ -80,7 +79,8 @@ def delete(request_id):
     :return:
     """
     agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
-    if current_user.is_agency and (current_user.is_agency_admin or) and current_user.agency_ein == agency_ein:
+    if current_user.is_agency and current_user.is_super or (
+            current_user.is_agency_active and current_user.is_agency_admin and current_user.agency_ein == agency_ein):
         user_data = flask_request.form
 
         required_fields = ['user',
