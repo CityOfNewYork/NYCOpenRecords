@@ -3,6 +3,8 @@ Models for OpenRecords database
 """
 import csv
 from datetime import datetime
+from operator import ior
+from functools import reduce
 from uuid import uuid4
 
 from flask import current_app
@@ -51,53 +53,80 @@ class Roles(db.Model):
         """
         roles = {
             role_name.ANONYMOUS: (
-                permission.DUPLICATE_REQUEST |
-                permission.VIEW_REQUEST_STATUS_PUBLIC |
-                permission.VIEW_REQUEST_INFO_PUBLIC
-            ),
-            role_name.PUBLIC_NON_REQUESTER: (
-                permission.DUPLICATE_REQUEST |
-                permission.VIEW_REQUEST_STATUS_PUBLIC |
-                permission.VIEW_REQUEST_INFO_PUBLIC
+                permission.NONE
             ),
             role_name.PUBLIC_REQUESTER: (
-                permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.VIEW_DOCUMENTS_IMMEDIATELY |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_PUBLIC
+                permission.ADD_NOTE
             ),
             role_name.AGENCY_HELPER: (
                 permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.VIEW_REQUESTS_HELPER |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_ALL
+                permission.ADD_FILE |
+                permission.ADD_LINK |
+                permission.ADD_OFFLINE_INSTRUCTIONS
             ),
             role_name.AGENCY_OFFICER: (
-                permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.EXTEND_REQUESTS |
-                permission.CLOSE_REQUESTS |
-                permission.ADD_HELPERS |
-                permission.REMOVE_HELPERS |
                 permission.ACKNOWLEDGE |
-                permission.VIEW_REQUESTS_AGENCY |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_ALL
+                permission.DENY |
+                permission.EXTEND |
+                permission.CLOSE |
+                permission.RE_OPEN |
+                permission.ADD_NOTE |
+                permission.ADD_FILE |
+                permission.ADD_LINK |
+                permission.ADD_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_NOTE |
+                permission.EDIT_NOTE_PRIVACY |
+                permission.EDIT_FILE |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_LINK_PRIVACY |
+                permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
+                permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_FILE_PRIVACY |
+                permission.DELETE_NOTE |
+                permission.DELETE_FILE |
+                permission.DELETE_LINK |
+                permission.DELETE_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_TITLE |
+                permission.CHANGE_PRIVACY_TITLE |
+                permission.EDIT_AGENCY_DESCRIPTION |
+                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
-                permission.ADD_NOTE |
-                permission.UPLOAD_DOCUMENTS |
-                permission.EXTEND_REQUESTS |
-                permission.CLOSE_REQUESTS |
-                permission.ADD_HELPERS |
-                permission.REMOVE_HELPERS |
                 permission.ACKNOWLEDGE |
-                permission.CHANGE_REQUEST_POC |
-                permission.VIEW_REQUESTS_ALL |
-                permission.VIEW_REQUEST_INFO_ALL |
-                permission.VIEW_REQUEST_STATUS_ALL
+                permission.DENY |
+                permission.EXTEND |
+                permission.CLOSE |
+                permission.RE_OPEN |
+                permission.ADD_NOTE |
+                permission.ADD_FILE |
+                permission.ADD_LINK |
+                permission.ADD_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_NOTE |
+                permission.EDIT_NOTE_PRIVACY |
+                permission.EDIT_FILE |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_LINK |
+                permission.EDIT_LINK_PRIVACY |
+                permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
+                permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_TITLE |
+                permission.DELETE_NOTE |
+                permission.DELETE_FILE |
+                permission.DELETE_LINK |
+                permission.DELETE_OFFLINE_INSTRUCTIONS |
+                permission.CHANGE_PRIVACY_TITLE |
+                permission.EDIT_AGENCY_DESCRIPTION |
+                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.ADD_USER_TO_REQUEST |
+                permission.REMOVE_USER_FROM_REQUEST |
+                permission.EDIT_USER_REQUEST_PERMISSIONS |
+                permission.ADD_USER_TO_AGENCY |
+                permission.REMOVE_USER_FROM_AGENCY |
+                permission.CHANGE_USER_ADMIN_PRIVILEGE |
+                permission.EDIT_REQUESTER_INFO
             )
         }
 
@@ -436,7 +465,7 @@ class Requests(db.Model):
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(
-                          user_type_request.REQUESTER),
+            user_type_request.REQUESTER),
         backref="requests",
         viewonly=True,
         uselist=False
@@ -449,7 +478,7 @@ class Requests(db.Model):
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type, "
                       "UserRequests.request_user_type == '{}')".format(
-                           user_type_request.AGENCY),
+            user_type_request.AGENCY),
         viewonly=True
     )
 
@@ -515,7 +544,6 @@ class Requests(db.Model):
                     'title_private': self.privacy['title'],
                     'agency_description_private': self.privacy['agency_description'],
                     'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                    'submission': self.submission,  # TODO: does this ever change?
                     'status': self.status,
                     'requester_name': self.requester.name,
                     'public_title': 'Private' if self.privacy['title'] else self.title
@@ -677,7 +705,7 @@ class Responses(db.Model):
         val = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-        }
+            }
         val.pop('id')
         val['privacy'] = self.privacy
         return val
@@ -757,7 +785,7 @@ class UserRequests(db.Model):
         db.Enum(user_type_request.REQUESTER,
                 user_type_request.AGENCY,
                 name='request_user_type'))
-    permissions = db.Column(db.Integer)
+    permissions = db.Column(db.BigInteger)
     # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
     # same permissions as an anonymous user browsing a request since there is no method for authenticating that the
     # current anonymous user is in fact the requester.
@@ -788,6 +816,20 @@ class UserRequests(db.Model):
             has_permission(permission.ADD_NOTE)
         """
         return bool(self.permissions & perm)
+
+    def add_permissions(self, permissions):
+        """
+        :param permissions: list of permissions from app.constants.permissions
+        """
+        self.permissions |= reduce(ior, permissions)
+        db.session.commit()
+
+    def remove_permissions(self, permissions):
+        """
+        :param permissions: list of permissions from app.constants.permissions
+        """
+        self.permissions &= ~reduce(ior, permissions)
+        db.session.commit()
 
 
 class ResponseTokens(db.Model):

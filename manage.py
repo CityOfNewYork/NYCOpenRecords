@@ -14,7 +14,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell, Command
 
 from app import create_app, db
-from app.models import Users, Agencies, Requests, Responses, Events, Reasons, Roles
+from app.models import Users, Agencies, Requests, Responses, Events, Reasons, Roles, UserRequests
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
@@ -44,7 +44,8 @@ def make_shell_context():
         Responses=Responses,
         Events=Events,
         Reasons=Reasons,
-        Roles=Roles
+        Roles=Roles,
+        UserRequests=UserRequests
     )
 
 
@@ -139,6 +140,7 @@ def create_users():
         user = create_user(type_)
         print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
 
+
 @manager.option("-a", "--agency", help="Create agency user.", action="store_true", dest='agency')
 @manager.option("-g", "--google", help="Create google user.", action="store_true", dest='google')
 @manager.option("-y", "--yahoo", help="Create yahoo user.", action="store_true", dest='yahoo')
@@ -182,6 +184,7 @@ def create_user(agency=False,
         user = create_user()
 
     print(user, "created.")
-    
+
+
 if __name__ == "__main__":
     manager.run()

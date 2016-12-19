@@ -17,13 +17,23 @@ from flask import (
     jsonify,
     current_app,
     after_this_request,
+    abort
 )
 from flask_login import current_user
 
+from app.constants import permission
 from app.constants.response_type import FILE
-from app.constants.response_privacy import PRIVATE
+from app.constants.response_privacy import (
+    PRIVATE,
+    RELEASE_AND_PUBLIC
+)
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object
+from app.lib.permission_utils import (
+    has_permission,
+    is_allowed
+)
+from app.lib.utils import InvalidClosingException
 from app.response import response
 from app.models import (
     Requests,
@@ -57,6 +67,7 @@ from app.response.utils import (
 
 
 @response.route('/note/<request_id>', methods=['POST'])
+@has_permission(permission.ADD_NOTE)
 def response_note(request_id):
     """
     Note response endpoint that takes in the content of a note for a specific request from the frontend.
@@ -90,6 +101,7 @@ def response_note(request_id):
 
 
 @response.route('/file/<request_id>', methods=['POST'])
+@has_permission(permission.ADD_FILE)
 def response_file(request_id):
     """
     File response endpoint that takes in the metadata of a file for a specific request from the frontend.
@@ -124,6 +136,7 @@ def response_file(request_id):
 
 
 @response.route('/acknowledgment/<request_id>', methods=['POST'])
+@has_permission(permission.ACKNOWLEDGE)
 def response_acknowledgment(request_id):
     required_fields = ['date',
                        'days',
@@ -146,6 +159,7 @@ def response_acknowledgment(request_id):
 
 
 @response.route('/denial/<request_id>', methods=['POST'])
+@has_permission(permission.DENY)
 def response_denial(request_id):
     required_fields = ['reasons', 'email-summary']
 
@@ -162,6 +176,7 @@ def response_denial(request_id):
 
 
 @response.route('/closing/<request_id>', methods=['POST'])
+@has_permission(permission.CLOSE)
 def response_closing(request_id):
     """
     Endpoint for closing a request that takes in form data from the front end.
@@ -180,14 +195,17 @@ def response_closing(request_id):
             flash('Uh Oh, it looks like the closing {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-
-        add_closing(request_id,
-                    flask_request.form.getlist('reasons'),
-                    flask_request.form['email-summary'])
+        try:
+            add_closing(request_id,
+                        flask_request.form.getlist('reasons'),
+                        flask_request.form['email-summary'])
+        except InvalidClosingException as e:
+            flash(e, category='danger')
         return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/reopening/<request_id>', methods=['POST'])
+@has_permission(permission.RE_OPEN)
 def response_reopening(request_id):
     """
     Endpoint for reopening a request that takes in form data from the frontend.
@@ -216,6 +234,7 @@ def response_reopening(request_id):
 
 
 @response.route('/extension/<request_id>', methods=['POST'])
+@has_permission(permission.EXTEND)
 def response_extension(request_id):
     """
     Extension response endpoint that takes in the metadata of an extension for a specific request from the frontend.
@@ -252,6 +271,7 @@ def response_extension(request_id):
 
 
 @response.route('/link/<request_id>', methods=['POST'])
+@has_permission(permission.ADD_LINK)
 def response_link(request_id):
     """
     Link response endpoint that takes in the metadata of a link for a specific request from the frontend.
@@ -287,6 +307,7 @@ def response_link(request_id):
 
 
 @response.route('/instruction/<request_id>', methods=['POST'])
+@has_permission(permission.ADD_OFFLINE_INSTRUCTIONS)
 def response_instructions(request_id):
     """
     Instruction response endpoint that takes in from the frontend, the content of a instruction for a specific request.
@@ -369,6 +390,7 @@ def response_email():
     """
     data = flask_request.form
     request_id = data['request_id']
+
     return process_email_template_request(request_id, data)
 
 
@@ -418,9 +440,56 @@ def patch(response_id):
     """
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
 
-    user = resp.request.requester \
-        if current_user.is_anonymous else current_user
-    # FIXME: this is only for testing purposes, anonymous users cannot do anything with responses
+    if current_user.is_anonymous:
+        return abort(403)
+
+    patch_form = dict(flask_request.form)
+
+    privacy = patch_form.pop('privacy', None)
+
+
+    if privacy:
+        # Check permissions for editing the privacy if required.
+
+        permission_for_edit_type_privacy = {
+            Files: permission.EDIT_FILE_PRIVACY,
+            Notes: permission.EDIT_NOTE_PRIVACY,
+            Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY,
+            Links: permission.EDIT_LINK_PRIVACY
+        }
+
+        if not is_allowed(current_user, resp.request_id, permission_for_edit_type_privacy[type(resp)]):
+            return abort(403)
+
+    delete = patch_form.pop('deleted', None)
+
+    if delete:
+        confirmation = patch_form.pop('confirmation', None)
+        if not confirmation:
+            return abort(403)
+
+        permission_for_delete_type = {
+            Files: permission.DELETE_FILE,
+            Notes: permission.DELETE_NOTE,
+            Instructions: permission.DELETE_OFFLINE_INSTRUCTIONS,
+            Links: permission.DELETE_LINK
+        }
+
+        if not is_allowed(current_user, resp.request_id, permission_for_delete_type[type(resp)]):
+            return abort(403)
+
+    if patch_form:
+        # Mapping of Response types to permission values
+        permission_for_type = {
+            Files: permission.EDIT_FILE,
+            Notes: permission.EDIT_NOTE,
+            Instructions: permission.EDIT_OFFLINE_INSTRUCTIONS,
+            Links: permission.EDIT_LINK
+        }
+
+        # If the current user does not have the permission to edit the response type, return 403
+        if not is_allowed(current_user, resp.request_id, permission_for_type[type(resp)]):
+            return abort(403)
 
     editor_for_type = {
         Files: RespFileEditor,
@@ -429,7 +498,8 @@ def patch(response_id):
         Links: RespLinkEditor,
         # ...
     }
-    editor = editor_for_type[type(resp)](user, resp, flask_request)
+    editor = editor_for_type[type(resp)](current_user, resp, flask_request)
+
     if editor.errors:
         http_response = {"errors": editor.errors}
     else:
@@ -470,6 +540,12 @@ def get_response_content(response_id):
              400 error if response/file not found
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
+    if not (
+                ((current_user in response_.request.agency_users) or
+                         response_.request.requester is current_user) and
+                    response_.release_date > datetime.utcnow()
+    ):
+        return abort(403)
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
             current_app.config["UPLOAD_DIRECTORY"],
@@ -497,17 +573,18 @@ def get_response_content(response_id):
                     def remove(resp):
                         os.remove(serving_path)
                         return resp
+
                     return fu.send_file(*filepath_parts, as_attachment=True)
                 else:
                     delete_object(resptok)
         else:
             if current_user.is_authenticated:
                 if (fu.exists(filepath)
-                   and (
-                        (current_user.is_public and response_.privacy != PRIVATE)
-                        or current_user.is_agency
-                   )
-                   and UserRequests.query.filter_by(
+                    and (
+                                (current_user.is_public and response_.privacy != PRIVATE)
+                            or current_user.is_agency
+                    )
+                    and UserRequests.query.filter_by(
                         request_id=response_.request_id,
                         user_guid=current_user.guid,
                         auth_user_type=current_user.auth_user_type
@@ -516,10 +593,27 @@ def get_response_content(response_id):
                     def remove(resp):
                         os.remove(serving_path)
                         return resp
+
                     return fu.send_file(*filepath_parts, as_attachment=True)
             else:
-                return redirect(url_for(
-                    'auth.index',
-                    sso2=True,
-                    return_to=flask_request.base_url))
-    return 'Not found.', 404  # TODO: other pages (whoops, page expired...)
+                if response_.privacy == RELEASE_AND_PUBLIC:
+                    if datetime.utcnow() < response_.release_date:
+                        if (fu.exists(filepath)
+                            and ((current_user.is_public and response_.privacy != PRIVATE) or current_user.is_agency)
+                            and UserRequests.query.filter_by(
+                                request_id=response_.request_id,
+                                user_guid=current_user.guid,
+                                auth_user_type=current_user.auth_user_type
+                           ).first() is not None):
+                            @after_this_request
+                            def remove(resp):
+                                os.remove(serving_path)
+                                return resp
+
+                            return fu.send_file(*filepath_parts, as_attachment=True)
+                else:
+                    return redirect(url_for(
+                        'auth.index',
+                        sso2=True,
+                        return_to=flask_request.base_url))
+    return abort(404)

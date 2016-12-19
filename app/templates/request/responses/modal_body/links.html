@@ -1,30 +1,40 @@
-<form id="link-update-{{ response.id }}" class="link-update link-form"
-      action="/response/{{ response.id }}" method="POST">
-    <div class="link-error-messages alert alert-danger" hidden></div>
-    <div class="form-group">
-        <label>Title</label>
-        <input type="text" class="disable-enter-submit title" name="title" title="title"
-               maxlength="90" value="{{ response.title }}">
-    </div>
-    <div class="form-group">
-        <label>URL Link</label>
-        <input type="text" class="disable-enter-submit url" name="url" title="url"
-               maxlength="90" value="{{ response.url }}">
-    </div>
-    <div>
-        <strong>Verify: </strong>
-        <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
-    </div>
-    <br>
-    <div>
-    {% for privacy in privacies %}
-        <div class="radio">
-            <label>
-                <input type="radio" name="privacy" value="{{ privacy }}"
-                       {% if response.privacy == privacy %}checked{% endif %}>
-            {{ privacy | format_response_privacy }}
-            </label>
-        </div>
-    {% endfor %}
-    </div>
-</form>
+{% if edit_response_permission or edit_response_privacy_permission %}
+    <form id="link-update-{{ response.id }}" class="link-update link-form"
+          action="/response/{{ response.id }}" method="POST">
+        {% if edit_response_permission %}
+            <div class="link-error-messages alert alert-danger" hidden></div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" class="disable-enter-submit title" name="title" title="title"
+                       maxlength="90" value="{{ response.title }}">
+            </div>
+            <div class="form-group">
+                <label>URL Link</label>
+                <input type="text" class="disable-enter-submit url" name="url" title="url"
+                       maxlength="90" value="{{ response.url }}">
+            </div>
+            <div>
+                <strong>Verify: </strong>
+                <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
+            </div>
+        {% else %}
+            {{ response.title }}: <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
+        {% endif %}
+        <br>
+        {% if edit_response_privacy_permission %}
+            <div>
+                {% for privacy in privacies %}
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="privacy" value="{{ privacy }}"
+                                   {% if response.privacy == privacy %}checked{% endif %}>
+                            {{ privacy | format_response_privacy }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </form>
+{% else %}
+    {{ response.title }}: <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
+{% endif %}

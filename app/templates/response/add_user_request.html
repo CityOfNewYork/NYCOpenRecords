@@ -1,0 +1,29 @@
+<form id="add-user-request" action="/user_request/{{ request.id }}" method="POST">
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Add User to Request
+            </legend>
+            <div class="first">
+                <div class="form-group">
+                    {{ add_user_request_form.user.label }}<br>
+                    {{ add_user_request_form.user(id="user", class="form-control") }}
+                </div>
+                <div id="add_options" hidden>
+                    {{ add_user_request_form.roles.label }}<br>
+                    {{ add_user_request_form.roles(id="role", class="form-control") }}
+                    {{ add_user_request_form.permission.label }}<br>
+                    {{ add_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
+                    <button type="button" class="next pull-right btn btn-primary">Next</button>
+                </div>
+            </div>
+            <div class="second" hidden>
+                <h4>The following will be emailed to&nbsp;<span id="user_name"></span>:</h4>
+                <div class="wrap-text email-summary"></div>
+                <input type="hidden" name="email-summary">
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="submit" class="submit pull-right btn btn-success">Submit</button>
+            </div>
+        </fieldset>
+    </div>
+</form>

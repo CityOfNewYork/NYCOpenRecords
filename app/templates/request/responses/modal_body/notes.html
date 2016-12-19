@@ -1,20 +1,31 @@
-<form id="note-update-{{ response.id }}" class="note-update note-form"
-      action="/response/{{ response.id }}" method="POST">
-    <div class="note-error-messages alert alert-danger" hidden></div>
-    <textarea class="input-block-level form-group note-content"
-              title="content" name="content" maxlength="500">{{ response.content }}</textarea>
-    <h5 class="required note-content-character-count">
-        500 characters remaining
-    </h5>
-    <div>
-    {% for privacy in privacies %}
-        <div class="radio">
-            <label>
-                <input type="radio" name="privacy" value="{{ privacy }}"
-                   {% if response.privacy == privacy %}checked{% endif %}>
-            {{ privacy | format_response_privacy }}
-            </label>
-        </div>
-    {% endfor %}
-    </div>
-</form>
+{% if edit_response_permission or edit_privacy_response_permission %}
+    <form id="note-update-{{ response.id }}" class="note-update note-form"
+          action="/response/{{ response.id }}" method="POST">
+        <div class="note-error-messages alert alert-danger" hidden></div>
+        {% if edit_response_permission %}
+            <textarea class="input-block-level form-group note-content"
+                      title="content" name="content" maxlength="500">{{ response.content }}</textarea>
+            <h5 class="required note-content-character-count">
+                500 characters remaining
+            </h5>
+        {% else %}
+            {{ response.content }}
+        {% endif %}
+
+        {% if edit_response_privacy_permission %}
+            <div>
+                {% for privacy in privacies %}
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="privacy" value="{{ privacy }}"
+                                   {% if response.privacy == privacy %}checked{% endif %}>
+                            {{ privacy | format_response_privacy }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </form>
+{% else %}
+    {{ response.content }}
+{% endif %}

@@ -1,28 +1,39 @@
 <div class="container-fluid">
-    {% if request.status == status.IN_PROGRESS %}
-        <h1><span class="in-progress">In Progress</span></h1>
-    {% elif request.status == status.OVERDUE %}
-        <h1><span class="overdue">Overdue</span></h1>
-    {% elif request.status == status.DUE_SOON %}
-        <h1><span class="duesoon">Due Soon</span></h1>
-    {% elif request.status == status.OPEN %}
-        <h1><span class="open">Open</span></h1>
-    {% elif request.status == status.CLOSED %}
-        <h1><span class="closed">Closed</span></h1>
-    {% endif %}
+    <h1 align="center">
+        {% if current_user.is_agency %}
+            {% if request.status == status.IN_PROGRESS %}
+                <span class="in-progress">In Progress</span>
+            {% elif request.status == status.OVERDUE %}
+                <span class="overdue">Overdue</span>
+            {% elif request.status == status.DUE_SOON %}
+                <span class="duesoon">Due Soon</span>
+            {% elif request.status == status.OPEN %}
+                <span class="open">Open</span>
+            {% elif request.status == status.CLOSED %}
+                <span class="closed">Closed</span>
+            {% endif %}
+        {% else %}
+            {% if request.status == status.CLOSED %}
+                <span class="closed">Closed</span>
+            {% else %}
+                <span class="open">Open</span>
+            {% endif %}
+        {% endif %}
+    </h1>
 
     <hr>
-    <h4>{{ request.agency.name }} </h4>
+    <h4 align="center">{{ request.agency.name }} </h4>
+
+    {% if current_user.is_agency and request.requester.is_anonymous_requester and permissions['edit_requester_info'] %}
+        {% include 'request/_edit_requester_info.html' %}
+    {% endif %}
 
     {% if current_user.is_agency %}
-        {% if request.requester.is_anonymous_requester %}
-            {% include 'request/_edit_requester_info.html' %}
-        {% endif %}
         <hr>
-        <h3>
+        <h4 align="center">
             <a data-target="#assignedUserModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
                href="#assignedUserModal">Assigned Users</a>
-        </h3>
+        </h4>
         {# Modal content for assigned users #}
         <div class="modal fade" id="assignedUserModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
@@ -76,9 +87,9 @@
                 </div>
             </div>
         </div>
-    {% endif %}
 
-    <p>
+    {% endif %}
+    <p align="center">
         {% if request.status == status.OPEN %}
             Acknowledgment<br>
         {% endif %}

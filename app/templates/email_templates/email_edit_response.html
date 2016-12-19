@@ -3,14 +3,18 @@
     {% if not agency %}
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
             <p>
-                A {{ response | format_response_type }} in request  <!-- FIXME: An extension/offline inst...-->
+                {% if response.type[0] in ['a', 'e', 'i', 'o', 'u'] %}
+                    An <strong>{{ response | format_response_type | lower }}</strong> in request
+                {% else %}
+                    A <strong>{{ response | format_response_type | lower }}</strong> in request
+                {% endif %}
                 <a href="{{ page }}">
                     {{ request_id }}
                 </a> has been edited.
             </p>
         {% else %}
             <p>
-                A {{ response | format_response_type }} in request
+                A <strong>{{ response | format_response_type | lower }}</strong> in request
                 <a href="{{ page }}">
                     {{ request_id }}
                 </a> is available for you to view.
@@ -30,7 +34,7 @@
                     <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
                 {% endfor %}
             </div>
-            <br />
+            <br/>
         {% endif %}
         {% if agency %}
             {% for key, value in response_data.data_old.items() %}
@@ -43,7 +47,7 @@
                     <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
                 {% else %}
                     <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
-                        <p> to: </p>
+                    <p> to: </p>
                     <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
                 {% endif %}
             {% endfor %}

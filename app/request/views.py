@@ -15,15 +15,15 @@ from flask import (
     flash,
     Markup,
     jsonify,
+    abort
 )
 from flask_login import current_user
 from sqlalchemy import any_
 
 from app.constants import (
     request_status,
-    user_type_request
+    permission
 )
-from app.constants.user_type_auth import AGENCY_USER
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
@@ -31,12 +31,15 @@ from app.lib.date_utils import (
 from app.lib.db_utils import (
     update_object,
 )
+from app.lib.permission_utils import (
+    is_allowed
+)
 from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
     Agencies,
-    UserRequests
+    Roles
 )
 from app.request import request
 from app.request.forms import (
@@ -46,7 +49,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm,
+    CloseRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -55,7 +58,9 @@ from app.request.utils import (
     send_confirmation_email
 )
 from app.user_request.forms import (
-    RemoveUserRequestForm
+    AddUserRequestForm,
+    EditUserRequestForm,
+    RemoveUserRequestForm,
 )
 
 
@@ -180,25 +185,74 @@ def view(request_id):
 
     :return: redirect to view request page
     """
-    # FIXME: 404 if agency not active?
     current_request = Requests.query.filter_by(id=request_id).one()
+
+    if not current_request.agency.is_active:
+        return abort(404)
 
     holidays = sorted(get_holidays_date_list(
         datetime.utcnow().year,
         (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
     )
+
+    active_users = []
+    assigned_users = []
     if current_user.is_agency:
-        assigned_user_requests = UserRequests.query.filter(
-            UserRequests.request_id == current_request.id,
-            UserRequests.request_user_type == user_type_request.AGENCY,
-            UserRequests.user_guid != current_user.guid
-        ).all()
-    else:
-        assigned_user_requests = []
+        for agency_user in current_request.agency.active_users:
+            if not agency_user.is_agency_admin and (agency_user != current_user):
+                # populate list of assigned users that can be removed from a request
+                if agency_user in current_request.agency_users:
+                    assigned_users.append(agency_user)
+                # append to list of active users that can be added to a request
+                else:
+                    active_users.append(agency_user)
 
-    assigned_users = [Users.query.filter_by(guid=ur.user_guid, auth_user_type=ur.auth_user_type).one()
-                      for ur in assigned_user_requests]
+    permissions = {
+        'acknowledge': permission.ACKNOWLEDGE,
+        'deny': permission.DENY,
+        'extend': permission.EXTEND,
+        'close': permission.CLOSE,
+        'add_file': permission.ADD_FILE,
+        'edit_file_privacy': permission.EDIT_FILE_PRIVACY,
+        'delete_file': permission.DELETE_FILE,
+        'add_note': permission.ADD_NOTE,
+        'edit_note_privacy': permission.EDIT_NOTE_PRIVACY,
+        'delete_note': permission.DELETE_NOTE,
+        'add_link': permission.ADD_LINK,
+        'edit_link_privacy': permission.EDIT_LINK_PRIVACY,
+        'delete_link': permission.DELETE_LINK,
+        'add_instructions': permission.ADD_OFFLINE_INSTRUCTIONS,
+        'edit_instructions_privacy': permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY,
+        'delete_instructions': permission.DELETE_OFFLINE_INSTRUCTIONS,
+        'add_user': permission.ADD_USER_TO_REQUEST,
+        'edit_user': permission.EDIT_USER_REQUEST_PERMISSIONS,
+        'remove_user': permission.REMOVE_USER_FROM_REQUEST,
+        'edit_title': permission.EDIT_TITLE,
+        'edit_title_privacy': permission.CHANGE_PRIVACY_TITLE,
+        'edit_agency_description': permission.EDIT_AGENCY_DESCRIPTION,
+        'edit_agency_description_privacy': permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION,
+        'edit_requester_info': permission.EDIT_REQUESTER_INFO
+    }
 
+    for key, val in permissions.items():
+
+        if current_user.is_anonymous or not current_request.user_requests.filter_by(user_guid=current_user.guid,
+                                                                                    auth_user_type=current_user.auth_user_type).first():
+            permissions[key] = False
+        else:
+            permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
+
+    show_agency_description = False
+    if (
+        current_user in current_request.agency_users or
+        current_request.requester is current_user or
+        (
+            current_request.agency_description_release_date and
+            current_request.agency_description_release_date < datetime.utcnow() and not
+            current_request.privacy['agency_description']
+        )
+    ):
+        show_agency_description = True
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -208,8 +262,16 @@ def view(request_id):
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
+        add_user_request_form=AddUserRequestForm(active_users),
+        edit_user_request_form=EditUserRequestForm(assigned_users),
         holidays=holidays,
-        assigned_users=assigned_users)
+        assigned_users=assigned_users,
+        active_users=active_users,
+        permissions=permissions,
+        show_agency_description=show_agency_description,
+        is_requester=(current_request.requester is current_user),
+        permissions_length=len(permission.ALL)
+    )
 
 
 @request.route('/non_portal_agency/<agency_name>', methods=['GET'])

@@ -197,7 +197,6 @@ class EditRequesterForm(Form):
 
 
 class FinishRequestForm(Form):
-
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
         self.reasons.choices = [
@@ -232,7 +231,8 @@ class CloseRequestForm(FinishRequestForm):
 
 
 class SearchRequestsForm(Form):
-    agency_ein = SelectField('Agency')  #, choices=get_agency_choices())
+    agency_ein = SelectField('Agency')  # , choices=get_agency_choices())
+
     # category = SelectField('Category', get_categories())
 
     def __init__(self):
