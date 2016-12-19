@@ -38,7 +38,8 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
-    Agencies
+    Agencies,
+    Roles
 )
 from app.request import request
 from app.request.forms import (
@@ -231,7 +232,6 @@ def view(request_id):
         'edit_agency_description': permission.EDIT_AGENCY_DESCRIPTION,
         'edit_agency_description_privacy': permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION,
         'edit_requester_info': permission.EDIT_REQUESTER_INFO
-
     }
 
     for key, val in permissions.items():
@@ -257,7 +257,6 @@ def view(request_id):
                 )
     ):
         show_agency_description = True
-
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -274,7 +273,8 @@ def view(request_id):
         active_users=active_users,
         permissions=permissions,
         show_agency_description=show_agency_description,
-        is_requester=(current_request.requester is current_user)
+        is_requester=(current_request.requester is current_user),
+        permissions_length=len(permission.ALL)
     )
 
 
