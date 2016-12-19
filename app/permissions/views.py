@@ -9,9 +9,6 @@ from app.permissions.utils import has_permission
 def get_role_permissions(role):
     """
     Given a role, return the permissions that are in that role.
-
-    :param role:
-    :return:
     """
     role = Roles.query.filter_by(id=role).one()
     role_permissions = []

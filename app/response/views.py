@@ -197,8 +197,8 @@ def response_closing(request_id):
             return redirect(url_for('request.view', request_id=request_id))
         try:
             add_closing(request_id,
-                    flask_request.form.getlist('reasons'),
-                    flask_request.form['email-summary'])
+                        flask_request.form.getlist('reasons'),
+                        flask_request.form['email-summary'])
         except InvalidClosingException as e:
             flash(e, category='danger')
         return redirect(url_for('request.view', request_id=request_id))

@@ -3,71 +3,71 @@
     <div class="col-sm-9">
         <div class="fileupload-control">
             <fieldset>
-            <legend>
-                Add File
-            </legend>
-            <div class="first">
-                <div class="fileupload-error-messages alert alert-danger" hidden></div>
-                <!-- first div of the add-file form containing uploads -->
-                <div class="row fileupload-buttonbar">
-                    <div class="col-lg-7">
+                <legend>
+                    Add File
+                </legend>
+                <div class="first">
+                    <div class="fileupload-error-messages alert alert-danger" hidden></div>
+                    <!-- first div of the add-file form containing uploads -->
+                    <div class="row fileupload-buttonbar">
+                        <div class="col-lg-7">
                         <span class="btn btn-success fileinput-button">
                             <i class="glyphicon glyphicon-plus"></i>
                             <span>Add files...</span>
                             <input type="file" name="file" id="add-files" multiple>
                         </span>
-                        <button type="submit" class="btn btn-primary start">
-                            <i class="glyphicon glyphicon-upload"></i>
-                            <span>Start All</span>
-                        </button>
-                        <!-- TODO: (maybe) global cancellation / deletion
-                        <button type="reset" class="btn btn-warning cancel">
-                            <i class="glyphicon glyphicon-ban-circle"></i>
-                            <span>Cancel upload</span>
-                        </button>
-                        <button type="button" class="btn btn-danger delete">
-                            <i class="glyphicon glyphicon-trash"></i>
-                            <span>Delete</span>
-                        </button>
-                        <input type="checkbox" class="toggle">
-                        -->
-                        <span class="fileupload-process"></span>
-                    </div>
-                    <!-- The global progress state -->
-                    <div class="col-lg-5 fileupload-progress fade">
-                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="0"
-                             aria-valuemax="100">
-                            <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
+                            <button type="submit" class="btn btn-primary start">
+                                <i class="glyphicon glyphicon-upload"></i>
+                                <span>Start All</span>
+                            </button>
+                            <!-- TODO: (maybe) global cancellation / deletion
+                            <button type="reset" class="btn btn-warning cancel">
+                                <i class="glyphicon glyphicon-ban-circle"></i>
+                                <span>Cancel upload</span>
+                            </button>
+                            <button type="button" class="btn btn-danger delete">
+                                <i class="glyphicon glyphicon-trash"></i>
+                                <span>Delete</span>
+                            </button>
+                            <input type="checkbox" class="toggle">
+                            -->
+                            <span class="fileupload-process"></span>
                         </div>
-                        <!-- The extended global progress state -->
-                        <div class="progress-extended">&nbsp;</div>
+                        <!-- The global progress state -->
+                        <div class="col-lg-5 fileupload-progress fade">
+                            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
+                            </div>
+                            <!-- The extended global progress state -->
+                            <div class="progress-extended">&nbsp;</div>
+                        </div>
                     </div>
+                    <!-- The table listing the files available for upload/download -->
+                    <div role="presentation">
+                        <div class="files"></div>
+                    </div>
+                    <button type="button" class="next next-btn btn btn-primary">Next</button>
                 </div>
-                <!-- The table listing the files available for upload/download -->
-                <div role="presentation">
-                    <div class="files"></div>
+                <!-- second div of the add-file form containing email content -->
+                <div class="second" hidden>
+                    <h4>Edit Email Body</h4>
+                    <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
+                    <button type="button" class="prev prev-btn btn btn-default">Prev</button>
+                    <button type="button" class="next next-btn btn btn-primary">Next</button>
                 </div>
-                <button type="button" class="next next-btn btn btn-primary">Next</button>
-            </div>
-            <!-- second div of the add-file form containing email content -->
-            <div class="second" hidden>
-                <h4>Edit Email Body</h4>
-                <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
-                <button type="button" class="prev prev-btn btn btn-default">Prev</button>
-                <button type="button" class="next next-btn btn btn-primary">Next</button>
-            </div>
-            <!-- last div of the add-file form containing confirmation and submit -->
-            <div class="third" hidden>
-                <h4>The following will be Submitted to the request:</h4>
-                <h5>Email:</h5>
-                <div class="wrap-text" id="email-file-summary"></div>
-                <!-- hidden input to send email summary to backend -->
-                <div class="email-hidden-div" hidden></div>
-                <input type="hidden" name="email-file-summary" id="email-file-summary-hidden">
-                <input type="hidden" name="replace-string">
-                <button type="button" class="prev pull-left btn btn-default">Prev</button>
-                <button type="submit" class="submit-btn btn btn-success" id="file-submit">Submit</button>
-            </div>
+                <!-- last div of the add-file form containing confirmation and submit -->
+                <div class="third" hidden>
+                    <h4>The following will be Submitted to the request:</h4>
+                    <h5>Email:</h5>
+                    <div class="wrap-text" id="email-file-summary"></div>
+                    <!-- hidden input to send email summary to backend -->
+                    <div class="email-hidden-div" hidden></div>
+                    <input type="hidden" name="email-file-summary" id="email-file-summary-hidden">
+                    <input type="hidden" name="replace-string">
+                    <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                    <button type="submit" class="submit-btn btn btn-success" id="file-submit">Submit</button>
+                </div>
             </fieldset>
         </div>
     </div>
@@ -104,12 +104,13 @@
             </div>
         </div>
     {% } %}
+
 </script>
 {% endraw %}
 <!-- The template to display files after upload -->
 {% if permissions['edit_file_privacy'] %}
-{% raw %}
-<script id="template-download" type="text/x-tmpl">
+    {% raw %}
+    <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-download fade template-row-spacer" id="{%=file.identifier%}">
             <div class="col-sm-8">
@@ -170,11 +171,12 @@
             </div>
         </div>
     {% } %}
-</script>
-{% endraw %}
+
+    </script>
+    {% endraw %}
 {% else %}
-{% raw %}
-<script id="template-download" type="text/x-tmpl">
+    {% raw %}
+    <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
         <div class="row template-download fade upload-row-spacer" id="{%=file.identifier%}">
             <div class="col-sm-8">
@@ -227,6 +229,7 @@
             </div>
         </div>
     {% } %}
-</script>
-{% endraw %}
+
+    </script>
+    {% endraw %}
 {% endif %}

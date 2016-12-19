@@ -16,17 +16,16 @@ from wtforms import (
     DateTimeField,
     SelectMultipleField,
 )
-from sqlalchemy import or_, and_
+from sqlalchemy import or_
 
 from app.constants import (
     CATEGORIES,
     STATES,
     submission_methods,
     determination_type,
-    user_type_auth
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, Users
+from app.models import Reasons
 
 
 class PublicUserRequestForm(Form):
@@ -198,7 +197,6 @@ class EditRequesterForm(Form):
 
 
 class FinishRequestForm(Form):
-
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
         self.reasons.choices = [
@@ -233,7 +231,8 @@ class CloseRequestForm(FinishRequestForm):
 
 
 class SearchRequestsForm(Form):
-    agency_ein = SelectField('Agency')  #, choices=get_agency_choices())
+    agency_ein = SelectField('Agency')  # , choices=get_agency_choices())
+
     # category = SelectField('Category', get_categories())
 
     def __init__(self):

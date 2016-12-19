@@ -197,6 +197,9 @@ def _get_agency_admin_emails(request_id):
 
     agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
 
-    agency_administrators = Users.query.filter_by(agency_ein=agency_ein, is_agency_admin=True).all()
+    agency_administrators = Users.query.filter_by(agency_ein=agency_ein,
+                                                  is_agency_admin=True,
+                                                  is_agency_active=True
+                                                  ).all()
 
     return [user.email for user in agency_administrators]

@@ -130,13 +130,12 @@
                                             {% include "response/add_closing.html" %}
                                         </div>
                                     {% endif %}
-                                    {{ active_users }}
                                     {% if active_users and permissions['add_user'] %}
                                         <div class="tab-pane" id="add-user">
                                             {% include "response/add_user_request.html" %}
                                         </div>
                                     {% endif %}
-                                    {% if permissions['edit_user'] %}
+                                    {% if assigned_users and permissions['edit_user'] %}
                                         <div class="tab-pane" id="edit-user">
                                             {% include "response/edit_user_request.html" %}
                                         </div>
