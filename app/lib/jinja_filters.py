@@ -1,5 +1,6 @@
 from app.constants import response_type, response_privacy
 
+
 def format_response_privacy(privacy):
     return {
         response_privacy.RELEASE_AND_PUBLIC: "Release and Public",

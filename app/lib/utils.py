@@ -7,7 +7,6 @@ from base64 import b64decode
 
 
 class InvalidUserException(Exception):
-
     def __init__(self, user):
         """
         :param user: the current_user as define in flask_login
@@ -17,7 +16,6 @@ class InvalidUserException(Exception):
 
 
 class InvalidClosingException(Exception):
-
     def __init__(self, request, reason):
         """
         :param request: request that was not closed
@@ -26,6 +24,15 @@ class InvalidClosingException(Exception):
             'Unable to close request: {}\nReason: {}'.format(request, reason)
         )
 
+
+class UserRequestError(Exception):
+    def __init__(self, action, request, reason):
+        """
+        :param request: request that was not closed
+        """
+        super(UserRequestError, self).__init__(
+            'Unable to {} request: {}\nReason: {}'.format(action, request, reason)
+        )
 
 
 def b64decode_lenient(data):

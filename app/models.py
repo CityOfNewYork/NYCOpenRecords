@@ -53,7 +53,7 @@ class Roles(db.Model):
         """
         roles = {
             role_name.ANONYMOUS: (
-                0
+                permission.NONE
             ),
             role_name.PUBLIC_REQUESTER: (
                 permission.ADD_NOTE
@@ -78,13 +78,20 @@ class Roles(db.Model):
                 permission.EDIT_NOTE_PRIVACY |
                 permission.EDIT_FILE |
                 permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_LINK |
+                permission.EDIT_LINK_PRIVACY |
+                permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
                 permission.EDIT_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_FILE_PRIVACY |
+                permission.DELETE_NOTE |
+                permission.DELETE_FILE |
+                permission.DELETE_LINK |
+                permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_TITLE |
                 permission.CHANGE_PRIVACY_TITLE |
                 permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION
+                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
                 permission.ACKNOWLEDGE |
@@ -101,9 +108,15 @@ class Roles(db.Model):
                 permission.EDIT_FILE |
                 permission.EDIT_FILE_PRIVACY |
                 permission.EDIT_LINK |
+                permission.EDIT_LINK_PRIVACY |
                 permission.EDIT_OFFLINE_INSTRUCTIONS |
+                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
                 permission.EDIT_FILE_PRIVACY |
                 permission.EDIT_TITLE |
+                permission.DELETE_NOTE |
+                permission.DELETE_FILE |
+                permission.DELETE_LINK |
+                permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.CHANGE_PRIVACY_TITLE |
                 permission.EDIT_AGENCY_DESCRIPTION |
                 permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
@@ -112,7 +125,8 @@ class Roles(db.Model):
                 permission.EDIT_USER_REQUEST_PERMISSIONS |
                 permission.ADD_USER_TO_AGENCY |
                 permission.REMOVE_USER_FROM_AGENCY |
-                permission.CHANGE_USER_ADMIN_PRIVILEGE
+                permission.CHANGE_USER_ADMIN_PRIVILEGE |
+                permission.EDIT_REQUESTER_INFO
             )
         }
 

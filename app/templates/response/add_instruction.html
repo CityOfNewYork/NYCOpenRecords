@@ -10,7 +10,6 @@
                 <textarea class="input-block-level form-group" id="instruction-content" name="content"
                           maxlength="500"></textarea>
                 <h5 id="instruction-content-character-count">500 characters remaining</h5>
-
                 {% if permissions['edit_instructions_privacy'] %}
                     <div class="radio">
                         <label><input type="radio" class="instruction-privacy" name="privacy" value="release_public">Release
@@ -25,7 +24,6 @@
                                       checked="checked">Private</label>
                     </div>
                 {% else %}
-
                     <div class="radio">
                         <label><input type="radio" class="instruction-privacy" name="privacy" value="private"
                                       checked="checked">Private</label>

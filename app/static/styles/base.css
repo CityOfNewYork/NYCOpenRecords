@@ -34,6 +34,7 @@
     margin-right:auto;
     padding-left:20px;
     padding-right:20px;
+    padding-bottom: 200px;
 }
 
 @media (max-width: 979px) and (min-width: 768px) {
@@ -164,4 +165,8 @@ footer{
 
 input[type="radio"], input[type="checkbox"] {
 	width: auto;
+}
+
+.footer-wrapper {
+	margin-top: 50rem;
 }

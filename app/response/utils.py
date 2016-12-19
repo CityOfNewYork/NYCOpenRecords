@@ -43,7 +43,6 @@ from app.constants import permission
 from app.lib.date_utils import get_due_date, process_due_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
-from app.lib.permission_utils import has_permission
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, InvalidClosingException
 from app.models import (
@@ -58,6 +57,7 @@ from app.models import (
     Determinations,
     Emails,
     ResponseTokens,
+    Users,
 )
 
 
@@ -198,7 +198,8 @@ def add_closing(request_id, reason_ids, email_content):
     current_request = Requests.query.filter_by(id=request_id).one()
     if current_request.status != request_status.CLOSED:
         if current_request.privacy['agency_description'] or not current_request.agency_description:
-            for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(Responses.type != response_type.NOTE).all():
+            for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(
+                            Responses.type != response_type.NOTE).all():
                 if privacy != RELEASE_AND_PUBLIC:
                     raise InvalidClosingException(current_request,
                                                   "Agency Description is private and responses are not public")
@@ -462,6 +463,9 @@ def process_email_template_request(request_id, data):
             response_type.LINK: _link_email_handler,
             response_type.NOTE: _note_email_handler,
             response_type.INSTRUCTIONS: _instruction_email_handler,
+            response_type.USER_REQUEST_ADDED: _user_request_added_email_handler,
+            response_type.USER_REQUEST_EDITED: _user_request_edited_email_handler,
+            response_type.USER_REQUEST_REMOVED: _user_request_removed_email_handler
         }
     return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
 
@@ -568,6 +572,94 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
         date=process_due_date(datetime.strptime(data['date'], '%Y-%m-%d'), data['tz_name']),
         page=page
     )}), 200
+
+
+def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
+
+    name = Users.query.filter_by(guid=data['guid']).first().name
+    original_permissions = [int(i) for i in data.getlist('permission[]')]
+    permissions = []
+    for i, perm in enumerate(permission.ALL):
+        if i in original_permissions:
+            permissions.append(perm.label)
+
+    return jsonify({"template": render_template(
+        email_template,
+        request_id=request_id,
+        agency_name=agency_name,
+        permissions=permissions,
+        name=name,
+        page=page
+    ), "name": name}), 200
+
+
+def _user_request_edited_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
+    name = Users.query.filter_by(guid=data['guid']).first().name
+    original_permissions = [int(i) for i in data.getlist('permission[]')]
+    added_permissions = []
+    removed_permissions = []
+    for i, perm in enumerate(permission.ALL):
+        if i in original_permissions:
+            added_permissions.append(perm.label)
+        else:
+            removed_permissions.append(perm.label)
+
+    return jsonify({"template": render_template(
+        email_template,
+        request_id=request_id,
+        agency_name=agency_name,
+        added_permissions=added_permissions,
+        removed_permissions=removed_permissions,
+        name=name,
+        admin=False,
+        page=page
+    ), "name": name}), 200
+
+
+def _user_request_removed_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
+
+    name = Users.query.filter_by(guid=data['guid']).first().name
+    return jsonify({"template": render_template(
+        email_template,
+        request_id=request_id,
+        agency_name=agency_name,
+        page=page,
+        name=name,
+        admin=False
+    ), "name": name}), 200
 
 
 def _extension_email_handler(request_id, data, page, agency_name, email_template):

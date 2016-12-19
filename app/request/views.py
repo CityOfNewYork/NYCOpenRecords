@@ -38,7 +38,8 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Users,
-    Agencies
+    Agencies,
+    Roles
 )
 from app.request import request
 from app.request.forms import (
@@ -231,7 +232,6 @@ def view(request_id):
         'edit_agency_description': permission.EDIT_AGENCY_DESCRIPTION,
         'edit_agency_description_privacy': permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION,
         'edit_requester_info': permission.EDIT_REQUESTER_INFO
-
     }
 
     for key, val in permissions.items():
@@ -242,22 +242,17 @@ def view(request_id):
         else:
             permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
 
-    show_agency_description = (
-        datetime.utcnow() > current_request.agency_description_release_date and not current_request.privacy[
-            'agency_description']) if current_request.agency_description_release_date else False
-
     show_agency_description = False
     if (
-                        current_user in current_request.agency_users or
-                        current_request.requester is current_user or
-                (
-                                current_request.agency_description_release_date and
-                                    current_request.agency_description_release_date < datetime.utcnow() and not
-                        current_request.privacy['agency_description']
-                )
+        current_user in current_request.agency_users or
+        current_request.requester is current_user or
+        (
+            current_request.agency_description_release_date and
+            current_request.agency_description_release_date < datetime.utcnow() and not
+            current_request.privacy['agency_description']
+        )
     ):
         show_agency_description = True
-
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -274,7 +269,8 @@ def view(request_id):
         active_users=active_users,
         permissions=permissions,
         show_agency_description=show_agency_description,
-        is_requester=(current_request.requester is current_user)
+        is_requester=(current_request.requester is current_user),
+        permissions_length=len(permission.ALL)
     )
 
 

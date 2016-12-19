@@ -11,7 +11,6 @@
                 <div class="request-label lead col-sm-1">Title:</div>
                 <!-- privacy options for request title -->
                 {% if permissions['edit_title_privacy'] %}
-
                     <div class="btn-group col-sm-push-8" data-toggle="buttons">
                         {% if request.privacy['title'] %}
                             <label class="title-privacy-btn btn btn-default" data-active-class="primary">
@@ -28,7 +27,6 @@
                                 <input type="radio" value="true">Private
                             </label>
                         {% endif %}
-
                     </div>
                 {% endif %}
             </div>

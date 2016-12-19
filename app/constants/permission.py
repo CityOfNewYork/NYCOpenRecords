@@ -2,6 +2,9 @@ from collections import namedtuple
 
 PermissionPair = namedtuple('Permission', ['value', 'label'])
 
+
+NONE = 0x000000000
+
 # Request Information Permissions
 CHANGE_PRIVACY_TITLE = 0x000000001
 CHANGE_PRIVACY_AGENCY_DESCRIPTION = 0x000000002

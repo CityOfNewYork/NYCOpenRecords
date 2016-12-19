@@ -1,26 +1,25 @@
-<form id="add-user-request" action="/response/user_request/{{ request.id }}" method="POST">
+<form id="edit-user-request" action="/user_request/{{ request.id }}" method="POST">
     <div class="col-sm-9">
         <fieldset>
             <legend>
-                Add User to Request
+                Edit User in Request
             </legend>
             <div class="first">
                 <div class="form-group">
-                    {{ add_user_request_form.user.label }}<br>
-                    {{ add_user_request_form.user(id="user", class="form-control") }}
+                    {{ edit_user_request_form.user.label }}<br>
+                    {{ edit_user_request_form.user(id="user", class="form-control") }}
+                    <div id="edit_options" hidden>
+                        {{ edit_user_request_form.roles.label }}<br>
+                        {{ edit_user_request_form.roles(id="role", class="form-control") }}
+                        {{ edit_user_request_form.permission.label }}<br>
+                        {{ edit_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
+
+                        <button type="button" class="next pull-right btn btn-primary">Next</button>
+                    </div>
                 </div>
-                <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="second" hidden>
-                <div class="form-group">
-{#                    {{ add_user_request_form.permission.label }}<br>#}
-{#                    {{ add_user_request_form.permission(id="permission", class="form-control") }}#}
-                </div>
-                <button type="button" class="prev pull-left btn btn-default">Prev</button>
-                <button type="button" class="next pull-right btn btn-primary">Next</button>
-            </div>
-            <div class="third" hidden>
-                <h4>The following will be emailed:</h4>
+                <h4>The following will be emailed to&nbsp;<span id="user_name"></span>:</h4>
                 <div class="wrap-text email-summary"></div>
                 <input type="hidden" name="email-summary">
                 <input type="hidden" name="tz-name">

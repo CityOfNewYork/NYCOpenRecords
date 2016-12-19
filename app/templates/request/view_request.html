@@ -135,9 +135,9 @@
                                             {% include "response/add_user_request.html" %}
                                         </div>
                                     {% endif %}
-                                    {% if permissions['edit_user'] %}
+                                    {% if assigned_users and permissions['edit_user'] %}
                                         <div class="tab-pane" id="edit-user">
-                                            Edit User Content
+                                            {% include "response/edit_user_request.html" %}
                                         </div>
                                     {% endif %}
                                     {% if assigned_users and permissions['remove_user'] %}
@@ -238,10 +238,14 @@
     {% if permissions['re_open'] %}
         {% include 'response/add_reopening.js.html' %}
     {% endif %}
-    {% if permissions['remove_user_from_request'] %}
-        {% include 'response/remove_user_request.js.html' %}
-    {% endif %}
-    {% if permissions['add_user_to_request'] %}
+    {% if permissions['add_user'] %}
         {% include 'response/add_user_request.js.html' %}
     {% endif %}
+    {% if permissions['edit_user'] %}
+        {% include 'response/edit_user_request.js.html' %}
+    {% endif %}
+    {% if permissions['remove_user'] %}
+        {% include 'response/remove_user_request.js.html' %}
+    {% endif %}
+
 {% endblock %}
