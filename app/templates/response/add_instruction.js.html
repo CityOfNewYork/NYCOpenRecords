@@ -28,8 +28,8 @@ $(document).ready(function () {
                     })
                 },
                 success: function (data) {
-                    // Data should be html template page.
                     tinyMCE.get('email-instruction-content').setContent(data.template);
+                    $(".instruction-confirmation-header").text(data.header);
                 }
             });
             document.getElementById("instruction-first").style.display = "none";
@@ -49,7 +49,6 @@ $(document).ready(function () {
                 email_content: $('#email-instruction-content').val()
             },
             success: function (data) {
-                // Data should be html template page.
                 $("#email-instruction-summary").html(data.template);
                 $("#email-instruction-summary-hidden").val(data.template);
             }
