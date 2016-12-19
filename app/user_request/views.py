@@ -27,8 +27,8 @@ def edit(request_id):
     Ex:
     {
         'user': '7khz9y',
-        'add_user': true,
-        'remove_user': false
+        1: true,
+        5: false
     }
     :return:
     """
@@ -56,7 +56,8 @@ def edit(request_id):
                 return redirect(url_for('request.view', request_id=request_id))
 
         try:
-            edit_user_request(user_request=current_user_request, user_data=user_data)
+            edit_user_request(request_id=request_id, user_guid=user_data.get('user'),
+                              permissions=user_data.get('permissions'))
         except UserRequestError as e:
             flash(e, category='warning')
             return redirect(url_for('request.view', request_id=request_id))

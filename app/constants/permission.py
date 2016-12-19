@@ -1,3 +1,7 @@
+from collections import namedtuple
+
+PermissionPair = namedtuple('Permission', ['value', 'label'])
+
 # Request Information Permissions
 CHANGE_PRIVACY_TITLE = 0x000000001
 CHANGE_PRIVACY_AGENCY_DESCRIPTION = 0x000000002
@@ -101,34 +105,34 @@ USER_MANAGEMENT_PERMISSIONS = frozenset((
     CHANGE_USER_ADMIN_PRIVILEGE,
 ))
 
-PERMISSIONS = [
-    (ACKNOWLEDGE, "Acknowledge Request"),
-    (DENY, "Deny Request"),
-    (EXTEND, "Extend Request"),
-    (CLOSE, "Close Request"),
-    (RE_OPEN, "Re-Open Request"),
-    (CHANGE_PRIVACY_TITLE, "Change Title Privacy"),
-    (CHANGE_PRIVACY_AGENCY_DESCRIPTION, "Change Agency Description Privacy"),
-    (EDIT_TITLE, "Edit Title"),
-    (EDIT_AGENCY_DESCRIPTION, "Edit Agency Description"),
-    (ADD_FILE, "Add Files"),
-    (ADD_LINK, "Add Links"),
-    (ADD_OFFLINE_INSTRUCTIONS, "Add Offline Instructions"),
-    (ADD_NOTE, "Add Notes"),
-    (EDIT_FILE, "Edit Files"),
-    (EDIT_FILE_PRIVACY, "Change File Privacy"),
-    (EDIT_LINK, "Edit Links"),
-    (EDIT_LINK_PRIVACY, "Change Link Privacy"),
-    (EDIT_OFFLINE_INSTRUCTIONS, "Edit Offline Instructions"),
-    (EDIT_OFFLINE_INSTRUCTIONS_PRIVACY, "Change Offline Instructions Privacy"),
-    (EDIT_NOTE, "Edit Notes"),
-    (EDIT_NOTE_PRIVACY, "Change Note Privacy"),
-    (DELETE_FILE, "Delete File"),
-    (DELETE_LINK, "Delete Link"),
-    (DELETE_OFFLINE_INSTRUCTIONS, "Delete Offline Instructions"),
-    (DELETE_NOTE, "Delete Note"),
-    (ADD_USER_TO_REQUEST, "Add User"),
-    (REMOVE_USER_FROM_REQUEST, "Remove User"),
-    (EDIT_USER_REQUEST_PERMISSIONS, "Edit User Request Permissions"),
-    (EDIT_REQUESTER_INFO, "Edit Requester Information")
+ALL = [
+    PermissionPair(ACKNOWLEDGE, "Acknowledge Request"),
+    PermissionPair(DENY, "Deny Request"),
+    PermissionPair(EXTEND, "Extend Request"),
+    PermissionPair(CLOSE, "Close Request"),
+    PermissionPair(RE_OPEN, "Re-Open Request"),
+    PermissionPair(CHANGE_PRIVACY_TITLE, "Change Title Privacy"),
+    PermissionPair(CHANGE_PRIVACY_AGENCY_DESCRIPTION, "Change Agency Description Privacy"),
+    PermissionPair(EDIT_TITLE, "Edit Title"),
+    PermissionPair(EDIT_AGENCY_DESCRIPTION, "Edit Agency Description"),
+    PermissionPair(ADD_FILE, "Add Files"),
+    PermissionPair(ADD_LINK, "Add Links"),
+    PermissionPair(ADD_OFFLINE_INSTRUCTIONS, "Add Offline Instructions"),
+    PermissionPair(ADD_NOTE, "Add Notes"),
+    PermissionPair(EDIT_FILE, "Edit Files"),
+    PermissionPair(EDIT_FILE_PRIVACY, "Change File Privacy"),
+    PermissionPair(EDIT_LINK, "Edit Links"),
+    PermissionPair(EDIT_LINK_PRIVACY, "Change Link Privacy"),
+    PermissionPair(EDIT_OFFLINE_INSTRUCTIONS, "Edit Offline Instructions"),
+    PermissionPair(EDIT_OFFLINE_INSTRUCTIONS_PRIVACY, "Change Offline Instructions Privacy"),
+    PermissionPair(EDIT_NOTE, "Edit Notes"),
+    PermissionPair(EDIT_NOTE_PRIVACY, "Change Note Privacy"),
+    PermissionPair(DELETE_FILE, "Delete File"),
+    PermissionPair(DELETE_LINK, "Delete Link"),
+    PermissionPair(DELETE_OFFLINE_INSTRUCTIONS, "Delete Offline Instructions"),
+    PermissionPair(DELETE_NOTE, "Delete Note"),
+    PermissionPair(ADD_USER_TO_REQUEST, "Add User"),
+    PermissionPair(REMOVE_USER_FROM_REQUEST, "Remove User"),
+    PermissionPair(EDIT_USER_REQUEST_PERMISSIONS, "Edit User Request Permissions"),
+    PermissionPair(EDIT_REQUESTER_INFO, "Edit Requester Information")
 ]

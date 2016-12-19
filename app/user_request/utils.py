@@ -11,11 +11,32 @@ from app.response.utils import (
 from app.lib.db_utils import delete_object
 from app.models import (
     Users,
-    UserRequests
+    UserRequests,
+    Requests,
 )
 from app.constants import event_type
 
-def edit_user_permissions()
+
+def edit_user_request(request_id, user_guid, permissions):
+    """
+    Edit a users permissions on a request and notify all agency administrators and the user that the permissions
+    have changed.
+
+    :param request_id: FOIL request ID
+    :param user_guid: string guid of the user being edited
+    :param permissions: Updated permissions values {'permission': true}
+    """
+    user_request = UserRequests.query.filter_by(user_guid=user_guid,
+                                                request_id=request_id).one()
+
+    agency_admin_emails = _get_agency_admin_emails(request_id)
+
+    for key, val in enumerate(permissions):
+        if permission
+
+
+
+
 
 
 def remove_user_request(request_id, user_guid):
@@ -29,11 +50,7 @@ def remove_user_request(request_id, user_guid):
     """
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).first()
-    agency_admins = Users.query.filter_by(agency_ein=user_request.user.agency_ein,
-                                          is_agency_admin=True).all()
-    admin_emails = []
-    for agency_admin in agency_admins:
-        admin_emails.append(agency_admin.email)
+    agency_admin_emails = _get_agency_admin_emails(request_id)
 
     # send email to agency administrators
     safely_send_and_add_email(
@@ -46,7 +63,7 @@ def remove_user_request(request_id, user_guid):
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             admin=True),
         'User Removed from Request',
-        to=admin_emails)
+        to=agency_admin_emails)
 
     # send email to user being removed
     safely_send_and_add_email(
@@ -62,3 +79,17 @@ def remove_user_request(request_id, user_guid):
 
     create_response_event(event_type.USER_REMOVED, user_request=user_request)
     delete_object(user_request)
+
+
+def _get_agency_admin_emails(request_id):
+    """
+    Retrieve a list of agency administrator emails
+    :param request_id: FOIL request id
+    :return: list(Agency Adminstrator Emails)
+    """
+
+    agency_ein = Requests.query.filter_by(request_id=request_id).one().agency.agency_ein
+
+    agency_administrators = Users.query.filter_by(agency_ein=agency_ein, is_agency_admin=True).all()
+
+    return [user.email for user in agency_administrators]
