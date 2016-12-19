@@ -4,15 +4,64 @@
     :synopsis: Endpoints for User Requests
 """
 from app.user_request import user_request
-from app.user_request.utils import remove_user_request
+from app.user_request.utils import remove_user_request, edit_user_request
 from app.models import Requests
 from flask import (
     request as flask_request,
     flash,
     redirect,
-    url_for
+    url_for,
+    abort
 )
+from app.utils import UserRequestError
+from app.constants import permission
 from flask_login import current_user
+
+
+@user_request.route('/<request_id>', methods=['PATCH'])
+def edit(request_id):
+    """
+    Updates a users permissions on a request and sends notification emails.
+
+    Expects a request body containing the user's guid and updated permissions.
+    Ex:
+    {
+        'user': '7khz9y',
+        'add_user': true,
+        'remove_user': false
+    }
+    :return:
+    """
+    current_user_request = current_user.user_requests.filter_by(request_id=request_id).one()
+    current_request = current_user_request.request
+
+    if (
+        current_user.is_agency and (
+            current_user.is_super or
+            (current_user.agency_ein == current_request.agency.ein and
+                 (current_user.is_agency_admin or
+                      current_user_request.has_permission(permission.EDIT_USER_REQUEST_PERMISSIONS)
+                  )
+             )
+        )
+    ):
+        user_data = flask_request.form
+
+        required_fields = ['user']
+
+        for field in required_fields:
+            if not user_data.get(field):
+                flash('Uh Oh, it looks like the {} is missing! '
+                      'This is probably NOT your fault.'.format(field), category='danger')
+                return redirect(url_for('request.view', request_id=request_id))
+
+        try:
+            edit_user_request(user_request=current_user_request, user_data=user_data)
+        except UserRequestError as e:
+            flash(e, category='warning')
+            return redirect(url_for('request.view', request_id=request_id))
+        return redirect(url_for('request.view', request_id=request_id))
+    return abort(403)
 
 
 @user_request.route('/<request_id>', methods=['DELETE'])
@@ -30,7 +79,7 @@ def delete(request_id):
     :return:
     """
     agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
-    if current_user.is_agency and current_user.is_agency_admin and current_user.agency_ein == agency_ein:
+    if current_user.is_agency and (current_user.is_agency_admin or) and current_user.agency_ein == agency_ein:
         user_data = flask_request.form
 
         required_fields = ['user',

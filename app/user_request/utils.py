@@ -15,6 +15,8 @@ from app.models import (
 )
 from app.constants import event_type
 
+def edit_user_permissions()
+
 
 def remove_user_request(request_id, user_guid):
     """

@@ -57,8 +57,9 @@ from app.request.utils import (
     send_confirmation_email
 )
 from app.user_request.forms import (
+    AddUserRequestForm,
+    EditUserRequestForm,
     RemoveUserRequestForm,
-    AddUserRequestForm
 )
 
 
@@ -247,13 +248,13 @@ def view(request_id):
 
     show_agency_description = False
     if (
-        current_user in current_request.agency_users or
-        current_request.requester is current_user or
-        (
-            current_request.agency_description_release_date and
-            current_request.agency_description_release_date < datetime.utcnow() and not
-            current_request.privacy['agency_description']
-        )
+                        current_user in current_request.agency_users or
+                        current_request.requester is current_user or
+                (
+                                current_request.agency_description_release_date and
+                                    current_request.agency_description_release_date < datetime.utcnow() and not
+                        current_request.privacy['agency_description']
+                )
     ):
         show_agency_description = True
 
@@ -267,6 +268,7 @@ def view(request_id):
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         add_user_request_form=AddUserRequestForm(active_users),
+        edit_user_request_form=EditUserRequestForm(assigned_users),
         holidays=holidays,
         assigned_users=assigned_users,
         active_users=active_users,
