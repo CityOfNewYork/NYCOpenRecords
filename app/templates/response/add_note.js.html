@@ -70,9 +70,9 @@ $(document).ready(function () {
         document.getElementById("note-second").style.display = "block";
     });
 
-    // Disable button on submit click and submit form
-    $("#note-submit").click(function () {
-        $(this).attr("disabled", true);
+    // Disable button on submit
+    $("#add-note-form").submit(function () {
+        $("#note-submit").attr("disabled", true);
     });
 
     // Apply parsley data required validation to note title and url

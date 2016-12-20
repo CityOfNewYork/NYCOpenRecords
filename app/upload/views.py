@@ -145,7 +145,6 @@ def post(request_id):
 
 
 @upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
-@has_permission(permission.DELETE_FILE)
 def delete(r_id_type, r_id, filecode):
     """
     Removes an uploaded file.
@@ -168,7 +167,6 @@ def delete(r_id_type, r_id, filecode):
         On failure:
             { "error": error message }
     """
-    # TODO: check current user request permissions
     filename = secure_filename(b64decode_lenient(filecode))
     if r_id_type not in ["request", "response"]:
         response = {"error": "Invalid ID type."}

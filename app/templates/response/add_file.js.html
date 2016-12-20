@@ -148,10 +148,10 @@
             second.show();
         });
 
-        // Disable button on submit click and submit form
+        // Disable button on submit and handle email content
         form.submit(function (e) {
             e.preventDefault();
-            $(this).attr("disabled", true);
+            submit.attr("disabled", true);
             var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
             hiddenEmailDiv.find(".mceNonEditable").html(randomString);
             hiddenEmailDiv.find("p:empty").remove();
