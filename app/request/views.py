@@ -212,6 +212,7 @@ def view(request_id):
         'deny': permission.DENY,
         'extend': permission.EXTEND,
         'close': permission.CLOSE,
+        're_open': permission.RE_OPEN,
         'add_file': permission.ADD_FILE,
         'edit_file_privacy': permission.EDIT_FILE_PRIVACY,
         'delete_file': permission.DELETE_FILE,
@@ -269,7 +270,7 @@ def view(request_id):
         active_users=active_users,
         permissions=permissions,
         show_agency_description=show_agency_description,
-        is_requester=(current_request.requester is current_user),
+        is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL)
     )
 

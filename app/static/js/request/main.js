@@ -1,3 +1,6 @@
+// Don't cache ajax requests
+$.ajaxSetup({ cache: false });
+
 $(function () {
     $("[data-toggle='popover']").popover();
 });

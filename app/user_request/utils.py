@@ -14,7 +14,7 @@ from app.models import (
     UserRequests,
     Requests,
 )
-from app.lib.utils import UserRequestError
+from app.lib.utils import UserRequestException
 from app.constants import event_type, permission, user_type_request
 
 
@@ -31,7 +31,7 @@ def add_user_request(request_id, user_guid, permissions):
                                                 request_id=request_id).first()
 
     if user_request:
-        raise UserRequestError("create", request_id, "UserRequest entry already exists.")
+        raise UserRequestException(action="create", request_id=request_id, reason="UserRequest entry already exists.")
 
     user = Users.query.filter_by(guid=user_guid).one()
 

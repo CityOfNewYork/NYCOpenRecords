@@ -100,8 +100,8 @@
                         is_private: is_private
                     },
                     success: function (data) {
-                        // Data should be html template page.
                         tinyMCE.get('email-file-content').setContent(data.template);
+                        $(".file-confirmation-header").text(data.header);
                     }
                 });
                 first.hide();
@@ -148,9 +148,9 @@
             second.show();
         });
 
-        // Disable button on submit click and submit form
-        submit.click(function () {
-            $(this).attr("disabled", true);
+        // Disable button on submit and handle email content
+        submit.click(function() {
+            submit.attr("disabled", true);
             var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
             hiddenEmailDiv.find(".mceNonEditable").html(randomString);
             hiddenEmailDiv.find("p:empty").remove();

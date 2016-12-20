@@ -333,7 +333,7 @@ class Users(UserMixin, db.Model):
 
     @property
     def name(self):
-        return ' '.join((self.first_name, self.last_name))
+        return ' '.join((self.first_name.title(), self.last_name.title()))
 
     def es_update(self):
         """

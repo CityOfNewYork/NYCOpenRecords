@@ -27,13 +27,13 @@ from app.constants.response_privacy import (
     PRIVATE,
     RELEASE_AND_PUBLIC
 )
+from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object
 from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
-from app.lib.utils import InvalidClosingException
 from app.response import response
 from app.models import (
     Requests,
@@ -199,8 +199,8 @@ def response_closing(request_id):
             add_closing(request_id,
                         flask_request.form.getlist('reasons'),
                         flask_request.form['email-summary'])
-        except InvalidClosingException as e:
-            flash(e, category='danger')
+        except UserRequestException as e:
+            flash(str(e), category='danger')
         return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -540,12 +540,13 @@ def get_response_content(response_id):
              400 error if response/file not found
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
-    if not (
-                ((current_user in response_.request.agency_users) or
-                         response_.request.requester is current_user) and
-                    response_.release_date > datetime.utcnow()
-    ):
-        return abort(403)
+
+    # if ((current_user.is_authenticated
+    #    and current_user not in response_.request.agency_users
+    #    and response_.request.requester != current_user)
+    #    or flask_request.args.get('token') is None):
+    #     return abort(403)
+
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
             current_app.config["UPLOAD_DIRECTORY"],
@@ -562,58 +563,51 @@ def get_response_content(response_id):
             response_.name
         )
         token = flask_request.args.get('token')
-        if token is not None:
-            resptok = ResponseTokens.query.filter_by(
-                token=token, response_id=response_id).first()
-            if resptok is not None:
-                if (datetime.utcnow() < resptok.expiration_date
-                   and fu.exists(filepath)
-                   and response_.privacy != PRIVATE):
-                    @after_this_request
-                    def remove(resp):
-                        os.remove(serving_path)
-                        return resp
+        if fu.exists(filepath):
+            if token is not None:
+                resptok = ResponseTokens.query.filter_by(
+                    token=token, response_id=response_id).first()
+                if resptok is not None:
+                    if (datetime.utcnow() < resptok.expiration_date
+                       and response_.privacy != PRIVATE):
+                        @after_this_request
+                        def remove(resp):
+                            os.remove(serving_path)
+                            return resp
 
-                    return fu.send_file(*filepath_parts, as_attachment=True)
-                else:
-                    delete_object(resptok)
-        else:
-            if current_user.is_authenticated:
-                if (fu.exists(filepath)
-                    and (
-                                (current_user.is_public and response_.privacy != PRIVATE)
-                            or current_user.is_agency
-                    )
-                    and UserRequests.query.filter_by(
-                        request_id=response_.request_id,
-                        user_guid=current_user.guid,
-                        auth_user_type=current_user.auth_user_type
-                   ).first() is not None):
-                    @after_this_request
-                    def remove(resp):
-                        os.remove(serving_path)
-                        return resp
-
-                    return fu.send_file(*filepath_parts, as_attachment=True)
+                        return fu.send_file(*filepath_parts, as_attachment=True)
+                    else:
+                        delete_object(resptok)
             else:
-                if response_.privacy == RELEASE_AND_PUBLIC:
-                    if datetime.utcnow() < response_.release_date:
-                        if (fu.exists(filepath)
-                            and ((current_user.is_public and response_.privacy != PRIVATE) or current_user.is_agency)
-                            and UserRequests.query.filter_by(
-                                request_id=response_.request_id,
-                                user_guid=current_user.guid,
-                                auth_user_type=current_user.auth_user_type
-                           ).first() is not None):
-                            @after_this_request
-                            def remove(resp):
-                                os.remove(serving_path)
-                                return resp
-
-                            return fu.send_file(*filepath_parts, as_attachment=True)
+                if current_user.is_authenticated:
+                    # user is agency or is public and response is not private
+                    if (((current_user.is_public and response_.privacy != PRIVATE)
+                        or current_user.is_agency)
+                        # user is associated with request
+                        and UserRequests.query.filter_by(
+                            request_id=response_.request_id,
+                            user_guid=current_user.guid,
+                            auth_user_type=current_user.auth_user_type
+                       ).first() is not None):
+                        @after_this_request
+                        def remove(resp):
+                            os.remove(serving_path)
+                            return resp
+                        return fu.send_file(*filepath_parts, as_attachment=True)
+                    return abort(403)
                 else:
-                    return redirect(url_for(
-                        'auth.index',
-                        sso2=True,
-                        return_to=flask_request.base_url))
+                    # response is release and public  # TODO: Responses.is_release_public property
+                    if (response_.privacy == RELEASE_AND_PUBLIC
+                       and response_.release_date is not None
+                       and datetime.utcnow() > response_.release_date):
+                        @after_this_request
+                        def remove(resp):
+                            os.remove(serving_path)
+                            return resp
+                        return fu.send_file(*filepath_parts, as_attachment=True)
+                    else:
+                        return redirect(url_for(
+                            'auth.index',
+                            sso2=True,
+                            return_to=flask_request.base_url))
     return abort(404)
