@@ -147,9 +147,11 @@
                                     {% endif %}
                                 {% endif %}
                             {% else %}
-                                <div class="tab-pane active" id="reopen-request">
-                                    {% include "response/add_reopening.html" %}
-                                </div>
+                                {% if permissions['re_open'] %}
+                                    <div class="tab-pane active" id="reopen-request">
+                                        {% include "response/add_reopening.html" %}
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>

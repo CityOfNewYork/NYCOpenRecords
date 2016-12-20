@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="request-label lead col-sm-1">Title:</div>
                 <!-- privacy options for request title -->
-                {% if permissions['edit_title_privacy'] %}
+                {% if permissions['edit_title_privacy'] and request.status != status.CLOSED %}
                     <div class="btn-group col-sm-push-8" data-toggle="buttons">
                         {% if request.privacy['title'] %}
                             <label class="title-privacy-btn btn btn-default" data-active-class="primary">
@@ -32,7 +32,7 @@
             </div>
             <div class="row">
                 <div class="request-title-text lead">
-                    {% if permissions['edit_title'] %}
+                    {% if permissions['edit_title'] and request.status != status.CLOSED %}
                         <!-- editable area for request title -->
                         <a href="#" class="xedit" id="title">{{ request.title }}</a>
                     {% else %}
@@ -54,7 +54,7 @@
                 {% endif %}
                 <!-- privacy options for agency description -->
                 <div class="btn-group col-sm-push-5" data-toggle="buttons">
-                    {% if permissions['edit_agency_description_privacy'] %}
+                    {% if permissions['edit_agency_description_privacy'] and request.status != status.CLOSED  %}
                         {% if request.privacy['agency_description'] %}
                             <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
                                 <input type="radio" value="false">Public
@@ -75,7 +75,7 @@
             </div>
             <div class="row">
                 <div class="agency-desc-text lead">
-                    {% if permissions['edit_agency_description'] %}
+                    {% if permissions['edit_agency_description'] and request.status != status.CLOSED %}
                         <!-- editable area for agency description -->
                         <a href="#" class="xedit" id="agency_description">{{ request.agency_description or "" }}</a>
                     {% else %}
