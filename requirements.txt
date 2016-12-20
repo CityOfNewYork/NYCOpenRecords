@@ -1,6 +1,7 @@
 alembic==0.8.8
 amqp==1.4.9
 anyjson==0.3.3
+APScheduler==3.3.0
 billiard==3.3.0.23
 blinker==1.4
 business-calendar==0.2.1
@@ -13,6 +14,7 @@ cryptography==1.6  # paramiko (also libffi-devel, openssl-devel)
 dominate==2.2.1
 elasticsearch==5.0.1
 Flask==0.11.1
+Flask-APScheduler==1.5.0
 Flask-Bootstrap==3.3.7.0
 Flask-Elasticsearch==0.2.5
 Flask-KVSession==0.6.2
