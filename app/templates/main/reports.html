@@ -4,65 +4,28 @@
 
 
 {% block content %}
+<style type="text/css">
+    .bar {
+        fill: steelblue;
+    }
+
+    .bar:hover {
+        fill: red;
+    }
+
+    div.report-tooltip {
+        position: absolute;
+        text-align: center;
+        width: 60px;
+        height: 28px;
+        padding: 2px;
+        font: 20px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+    }
+</style>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/d3.js') }}"></script>
-<div>
-    <!--<script type="text/javascript">-->
-
-
-    <!--//Width and height-->
-    <!--var w = 850;-->
-    <!--var h = 650;-->
-    <!--var barPadding = 20;-->
-
-    <!--var dataset = [40, 70];-->
-
-
-    <!--//Create SVG element-->
-    <!--var svg = d3.select(".wrapper")-->
-    <!--.append("svg")-->
-    <!--.attr("width", w)-->
-    <!--.attr("height", h);-->
-
-
-    <!--svg.selectAll("rect")-->
-    <!--.data(dataset)-->
-    <!--.enter()-->
-    <!--.append("rect")-->
-    <!--.attr("x", function (d, i) {-->
-    <!--return i * (w / dataset.length);-->
-    <!--})-->
-    <!--.attr("y", function (d) {-->
-    <!--return h - (d * 4);-->
-    <!--})-->
-    <!--.attr("width", w / dataset.length - barPadding)-->
-    <!--.attr("height", function (d) {-->
-    <!--return d * 4;-->
-    <!--})-->
-    <!--.attr("fill", "dodgerblue");-->
-
-    <!--svg.selectAll("text")-->
-    <!--.data(dataset)-->
-    <!--.enter()-->
-    <!--.append("text")-->
-    <!--.text(function (d) {-->
-    <!--return d;-->
-    <!--})-->
-    <!--.attr("text-anchor", "middle")-->
-    <!--.attr("x", function (d, i) {-->
-    <!--return i * (w / dataset.length) + (w / dataset.length - barPadding) / 2;-->
-    <!--})-->
-    <!--.attr("y", function (d) {-->
-    <!--return d - 5;-->
-    <!--})-->
-    <!--.attr("font-family", "sans-serif")-->
-    <!--.attr("font-size", "18px")-->
-    <!--.attr("fill", "white");-->
-
-    <!--d3.select(".axis")-->
-    <!--.call(d3.axisBottom(x));-->
-
-    <!--</script>-->
-</div>
 <script type="text/javascript">
 
     // set the dimensions and margins of the graph
@@ -86,6 +49,10 @@
             .append("g")
             .attr("transform",
                     "translate(" + margin.left + "," + margin.top + ")");
+
+    var div = d3.select(".wrapper").append("div")
+            .attr("class", "report-tooltip")
+            .style("opacity", 0)
 
     var maxTicks = 10;
     var minTicks = 5;
@@ -123,25 +90,16 @@
                 })
                 .attr("height", function (d) {
                     return height - y(d.num);
+                })
+                .on("mouseover", function (d) {
+                    div.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                    div.html(d.num)
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
                 });
-
-        svg.selectAll("text")
-                .data(data)
-                .enter().append("text")
-                .text(function (d) {
-                    return d.num;
-                })
-                .attr("text-anchor", "middle")
-                .attr("x", function (d, i) {
-                    return i * (width / data.length) + ((width / data.length) / 2);
-                })
-                .attr("y", function (d) {
-                    return height - y(d.num)
-                })
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "18px")
-                .attr("fill", "white");
-
+        console.log(d3.event);
         // add the x Axis
         svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
