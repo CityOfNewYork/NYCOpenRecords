@@ -3,7 +3,7 @@ from datetime import date
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import Flask
+from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_kvsession import KVSessionExtension
@@ -70,6 +70,26 @@ def create_app(config_name):
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(prefixed_store, app)
+
+    # Error Handlers
+
+    @app.errorhandler(400)
+    def bad_request(e):
+        return render_template("error/generic.html", status_code=400)
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("error/generic.html", status_code=403)
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template("error/generic.html", status_code=404)
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template("error/generic.html", status_code=500)
+
+    # Register Blueprints
 
     from .main import main
     app.register_blueprint(main)
