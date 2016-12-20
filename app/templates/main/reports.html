@@ -1,68 +1,79 @@
 {% extends "base.html" %}
+{% block title %}OpenRecords - Report {% endblock %}
+{% set active_page="report" %}
 
-{% block custom_css %}
-<style type="text/css">
-    div.bar {
-        display: inline-block;
-        width: 120px;
-        height: 75px;
-        background-color: steelblue;
-        margin-right: 6px;
-    }
-</style>
-{% endblock %}
 
 {% block content %}
-<div id="graph">
-    <svg width="500" height="50"</svg>
-</div>
-     {% endblock %}
+<style>
 
-     {% block custom_script %}
+    .bar {
+        fill: steelblue;
+    }
+
+    .bar:hover {
+        fill: brown;
+    }
+
+    .axis--x path {
+        display: none;
+    }
+
+</style>
+<svg width="960" height="500"></svg>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/d3.js') }}"></script>
-<script type="text/javascript">
+<div>
+    <script type="text/javascript">
 
 
-    //    for (var i = 0; i < 2; i++){
-    //        var newNumber = Math.round(Math.random() * 30);
-    //        dataset.push(newNumber);
-    //    }
+        //Width and height
+        var w = 850;
+        var h = 650;
+        var barPadding = 20;
 
-    //Width and Height
-    var w = 500;
-    var h = 50;
-
-    var dataset = [5, 10, 15, 20, 25];
-
-    var svg = d3.select("#graph")
-            .append("svg")
-            .attr("width", 500)
-            .attr("height", 50);
+        var dataset = [40, 70];
 
 
-    var circles = svg.selectAll("circle")
-            .data(dataset)
-            .enter()
-            .append("circle");
+        //Create SVG element
+        var svg = d3.select(".wrapper")
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
 
-    circles.attr("cx", function (d, i) {
-        return (i * 50) + 25;
-    })
-            .attr("cy", h / 2)
-            .attr("r", function (d) {
-                return d;
-            });
+        svg.selectAll("rect")
+                .data(dataset)
+                .enter()
+                .append("rect")
+                .attr("x", function (d, i) {
+                    return i * (w / dataset.length);
+                })
+                .attr("y", function (d) {
+                    return h - (d * 4);
+                })
+                .attr("width", w / dataset.length - barPadding)
+                .attr("height", function (d) {
+                    return d * 4;
+                })
+                .attr("fill", "dodgerblue");
 
-    //    d3.select("#graph").selectAll("div")
-    //            .data(dataset)
-    //            .enter()
-    //            .append("div")
-    //            .attr("class", "bar")
-    //            .style("height", function (d) {
-    //                var barHeight = d * 5;
-    //                return barHeight + "px"
-    //            });
+        svg.selectAll("text")
+                .data(dataset)
+                .enter()
+                .append("text")
+                .text(function (d) {
+                    return d;
+                })
+                .attr("text-anchor", "middle")
+                .attr("x", function (d, i) {
+                    return i * (w / dataset.length) + (w / dataset.length - barPadding) / 2;
+                })
+                .attr("y", function (d) {
+                    return h - (d * 4) + 14;
+                })
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "18px")
+                .attr("fill", "black");
 
 
-</script>
+    </script>
+</div>
 {% endblock %}
