@@ -86,7 +86,7 @@ def create_app(config_name):
             name="Update requests statuses every day.",
             trigger=IntervalTrigger(days=1)
         )
-        
+
     # Error Handlers
     @app.errorhandler(400)
     def bad_request(e):
@@ -143,6 +143,9 @@ def create_app(config_name):
 
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
+
+    from .report import report
+    app.register_blueprint(report, url_prefix="/report")
 
     # exit handling
     atexit.register(lambda: scheduler.shutdown())

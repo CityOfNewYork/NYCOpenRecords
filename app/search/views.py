@@ -243,8 +243,13 @@ def basic_report_csv():
 
     from app.constants import request_status
 
-    requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED).all())
-    requests_opened = len(Requests.query.all()) - requests_closed
+    agency = request.args.get('agency')
+    if agency:
+        requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED, agency_ein=agency).all())
+        requests_opened = len(Requests.query.filter_by(agency_ein=agency).all()) - requests_closed
+    else:
+        requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED).all())
+        requests_opened = len(Requests.query.all()) - requests_closed
 
     writer.writerow(["status", "num"])
     writer.writerow(["opened", requests_opened])

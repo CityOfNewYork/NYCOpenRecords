@@ -2,12 +2,13 @@
 {% block title %}OpenRecords - Reports{% endblock %}
 {% set active_page="report" %}
 
-
 {% block content %}
 <style type="text/css">
     .bar:hover {
         fill: orangered;
     }
+
+    .axis { font: 14px sans-serif; }
 
     div.report-tooltip {
         position: absolute;
@@ -23,7 +24,6 @@
 </style>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/d3.js') }}"></script>
 <script type="text/javascript">
-
     // set the dimensions and margins of the graph
     var margin = {top: 20, right: 20, bottom: 30, left: 40},
             width = 960 - margin.left - margin.right,
@@ -83,7 +83,7 @@
                     return "#4bd762";
             })
             .attr("x", function (d) {
-                return x(d.status);
+                return x(d.status)
             })
             .attr("width", x.bandwidth())
             .attr("y", function (d) {
@@ -94,15 +94,16 @@
             })
             .on("mouseover", function (d) {
                 div.transition()
-                        .duration(200)
-                        .style("opacity", .9);
+                    .duration(200)
+                    .style("opacity", .9);
                 div.html(d.num)
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
             });
         console.log(d3.event);
         // add the x Axis
         svg.append("g")
+            .attr("class", "axis")
             .attr("transform", "translate(0," + height + ")")
             .call(d3.axisBottom(x));
 
@@ -112,21 +113,44 @@
                 .ticks(minTicks)
                 .tickFormat(d3.format("d")));
 
-    svg.append("text")
-{#        .attr("class", "x label")#}
-        .attr("text-anchor", "middle")
-        .attr("transform", "translate(" + (width / 2) + " ," + ((height + margin.bottom) - 2) + ")")
-        .text("Request Status");
+        svg.append("text")
+        {#        .attr("class", "x label")#}
+            .attr("text-anchor", "middle")
+            .attr("transform", "translate(" + (width / 2) + " ," + ((height + margin.bottom) - 2) + ")")
+            .text("Request Status");
 
-     // Add the text label for the Y axis
-    svg.append("text")
-{#        .attr("class", "y label")#}
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - margin.left)
-        .attr("x", 0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Number of Requests");
+        // Add the text label for the Y axis
+        svg.append("text")
+        {#        .attr("class", "y label")#}
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x", 0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Number of Requests");
+
     });
+
 </script>
+    <div class="container">
+        <div style="padding-top: 20px">
+            {{ report_filter_form.agency.label }}
+            {{ report_filter_form.agency(id="agency-filter", class="input-block-level") }}
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $("#agency-filter").change(function() {
+            $.ajax({
+                url: "/search/basic_report",
+                type: "GET",
+                data: {
+                    agency: $(this).val()
+                },
+                success: function(data) {
+                    d3test(data);
+                }
+            })
+        });
+    </script>
 {% endblock %}
