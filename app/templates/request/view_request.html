@@ -40,7 +40,7 @@
                     <div class="tabbable tabs-left" id="mobile-toggle">
                         <ul class="nav nav-tabs">
                             {% if request.status != status.CLOSED %}
-                                {% if request.status == status.OPEN %}
+                                {% if request.status == status.OPEN or not request.was_acknowledged %}
                                     {% if permissions['acknowledge'] %}
                                         <li class="active"><a href="#acknowledge-request"
                                                               data-toggle="tab">Acknowledge</a>
@@ -87,7 +87,7 @@
                         </ul>
                         <div class="tab-content content-min-height">
                             {% if request.status != status.CLOSED %}
-                                {% if request.status == status.OPEN %}
+                                {% if request.status == status.OPEN  or not request.was_acknowledged %}
                                     {% if permissions['acknowledge'] %}
                                         <div class="tab-pane active" id="acknowledge-request">
                                             {% include "response/add_acknowledgment.html" %}
@@ -147,9 +147,11 @@
                                     {% endif %}
                                 {% endif %}
                             {% else %}
-                                <div class="tab-pane active" id="reopen-request">
-                                    {% include "response/add_reopening.html" %}
-                                </div>
+                                {% if permissions['re_open'] %}
+                                    <div class="tab-pane active" id="reopen-request">
+                                        {% include "response/add_reopening.html" %}
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>

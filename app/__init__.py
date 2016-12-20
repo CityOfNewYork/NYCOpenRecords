@@ -1,9 +1,10 @@
+import atexit
 from datetime import date
 
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import Flask
+from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_kvsession import KVSessionExtension
@@ -12,6 +13,8 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
+from flask_apscheduler import APScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from app.lib import NYCHolidays, jinja_filters
@@ -25,6 +28,7 @@ db = SQLAlchemy()
 moment = Moment()
 mail = Mail()
 login_manager = LoginManager()
+scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 prefixed_store = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
@@ -65,12 +69,42 @@ def create_app(config_name):
     mail.init_app(app)
     celery.conf.update(app.config)
 
+    scheduler.start()
+
     with app.app_context():
         from app.models import Anonymous
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(prefixed_store, app)
 
+        # schedule jobs
+        import jobs
+
+        scheduler.add_job(
+            'update_request_statuses',
+            jobs.update_request_statuses,
+            name="Update requests statuses every day.",
+            trigger=IntervalTrigger(days=1)
+        )
+        
+    # Error Handlers
+    @app.errorhandler(400)
+    def bad_request(e):
+        return render_template("error/generic.html", status_code=400)
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("error/generic.html", status_code=403)
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template("error/generic.html", status_code=404)
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template("error/generic.html", status_code=500)
+
+    # Register Blueprints
     from .main import main
     app.register_blueprint(main)
 
@@ -106,5 +140,8 @@ def create_app(config_name):
 
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
+
+    # exit handling
+    atexit.register(lambda: scheduler.shutdown())
 
     return app

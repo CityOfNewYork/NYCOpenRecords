@@ -57,7 +57,7 @@ class RequestsFactory(object):
         self.clean = clean
         date_created = datetime.utcnow()
         date_submitted = get_following_date(date_created)
-        agency_ein = 2
+        agency_ein = '0860'
         self.request = Requests(
             request_id or generate_request_id(agency_ein),
             title="I would like my vital essence.",

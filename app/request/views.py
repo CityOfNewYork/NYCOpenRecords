@@ -212,6 +212,7 @@ def view(request_id):
         'deny': permission.DENY,
         'extend': permission.EXTEND,
         'close': permission.CLOSE,
+        're_open': permission.RE_OPEN,
         'add_file': permission.ADD_FILE,
         'edit_file_privacy': permission.EDIT_FILE_PRIVACY,
         'delete_file': permission.DELETE_FILE,

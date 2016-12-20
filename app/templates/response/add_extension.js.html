@@ -94,10 +94,9 @@
             document.getElementById("extension-second").style.display = "block";
         });
 
-        // Disable button on submit click and submit form
-        $("#extension-submit").click(function () {
-            $(this).attr("disabled", true);
-            $("#add-extension-form").submit();
+        // Disable button on submit
+        $("#add-extension-form").submit(function() {
+            $("#extension-submit").attr("disabled", true);
         });
 
         // Shows custom due date datepicker when Custom Due Date is selected

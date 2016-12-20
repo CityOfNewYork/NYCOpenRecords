@@ -9,18 +9,18 @@
                         {{ filename }}: <a href="{{ link }}">{{ link }}</a>
                     </li>
                 {% endfor %}
-                {% else %}
+    {% else %}
         <p>
             Download the request files at:
             <br>
-        <ul>
-        {% for filename, link in requester_file_links.items() %}
-            <li style="list-style: none">
-                <a href="{{ link }}">{{ filename }}</a>
-            </li>
-        {% endfor %}
+            <ul>
+                {% for filename, link in requester_file_links.items() %}
+                    <li style="list-style: none">
+                        <a href="{{ link }}">{{ filename }}</a>
+                    </li>
+                {% endfor %}
     {% endif %}
-</ul>
+            </ul>
 {% else %}
     <p>The following files were uploaded as private to <a href="{{ page }}">{{ request_id }}</a>:</p>
         <ul>

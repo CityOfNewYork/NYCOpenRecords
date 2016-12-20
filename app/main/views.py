@@ -81,7 +81,6 @@ def contact():
                     bcc=None,
                     subject=subject,
                     body=body,
-                    date_modified=datetime.utcnow()
                 )
             )
             send_contact_email(subject, body, email)
