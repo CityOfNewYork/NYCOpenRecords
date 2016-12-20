@@ -132,6 +132,7 @@ def logout(guid):
     flash('Logged out user: {}'.format(user.auth_user_type))
     return redirect(url_for('main.index'))
 
+
 @main.route('/sales.csv', methods=['GET'])
 def testing_d3():
     from flask import send_file
