@@ -1,33 +1,13 @@
 {% extends "base.html" %}
-{% block title %}OpenRecords - Report{% endblock %}
+{% block title %}OpenRecords - Reports{% endblock %}
 {% set active_page="report" %}
 
 
 {% block content %}
 <style type="text/css">
-    .bar {
-        fill: steelblue;
-    }
-
     .bar:hover {
-        fill: red;
+        fill: orangered;
     }
-
-{#    .report-tooltip {#}
-{#        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;#}
-{#        position: absolute;#}
-{#        display: none;#}
-{#        width: auto;#}
-{#        height: auto;#}
-{#        background: none repeat scroll 0 0 white;#}
-{#        border: 0 none;#}
-{#        border-radius: 8px 8px 8px 8px;#}
-{#        box-shadow: -3px 3px 15px #888888;#}
-{#        color: black;#}
-{#        font: 12px sans-serif;#}
-{#        padding: 5px;#}
-{#        text-align: center;#}
-{#    }#}
 
     div.report-tooltip {
         position: absolute;
@@ -48,7 +28,6 @@
     var margin = {top: 20, right: 20, bottom: 30, left: 40},
             width = 960 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom;
-
 
     // set the ranges
     var x = d3.scaleBand()
@@ -74,7 +53,6 @@
     var maxTicks = 10;
     var minTicks = 5;
 
-
     // get the data
     d3.csv("/search/basic_report", function (error, data) {
         if (error) throw error;
@@ -97,7 +75,13 @@
             .data(data)
             .enter().append("rect")
             .attr("class", "bar")
-            .attr("fill", "red")
+            .attr("fill", function (d) {
+                if (d.status == "opened") {
+                    return "#278ecf";
+                }
+                else
+                    return "#4bd762";
+            })
             .attr("x", function (d) {
                 return x(d.status);
             })
@@ -125,23 +109,24 @@
         // add the y Axis
         svg.append("g")
             .call(d3.axisLeft(y)
-                .ticks(5)
+                .ticks(minTicks)
                 .tickFormat(d3.format("d")));
 
     svg.append("text")
 {#        .attr("class", "x label")#}
         .attr("text-anchor", "middle")
         .attr("transform", "translate(" + (width / 2) + " ," + ((height + margin.bottom) - 2) + ")")
-        .text("income per capita, inflation-adjusted (dollars)");
+        .text("Request Status");
 
      // Add the text label for the Y axis
     svg.append("text")
+{#        .attr("class", "y label")#}
         .attr("transform", "rotate(-90)")
         .attr("y", 0 - margin.left)
         .attr("x", 0 - (height / 2))
         .attr("dy", "1em")
         .style("text-anchor", "middle")
-        .text("life expectancy (years)");
+        .text("Number of Requests");
     });
 </script>
 {% endblock %}
