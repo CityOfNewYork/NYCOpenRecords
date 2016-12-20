@@ -149,8 +149,7 @@
         });
 
         // Disable button on submit and handle email content
-        form.submit(function (e) {
-            e.preventDefault();
+        submit.click(function() {
             submit.attr("disabled", true);
             var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
             hiddenEmailDiv.find(".mceNonEditable").html(randomString);
