@@ -4,7 +4,7 @@ from flask import (
     abort
 )
 from flask_login import current_user
-
+from sqlalchemy.orm.exc import NoResultFound
 from app.constants import permission
 from app.models import (
     Users,
@@ -47,10 +47,15 @@ def is_allowed(user: Users, request_id: str, permission: int):
     :param permissions:
     :return:
     """
-    if user.is_anonymous:
+    try:
+        user_request = user.user_requests.filter_by(request_id=request_id).one()
+        return True if user_request.has_permission(permission) else False
+
+    except NoResultFound:
         return False
-    user_request = user.user_requests.filter_by(request_id=request_id).one()
-    return True if user_request.has_permission(permission) else False
+
+    except AttributeError:
+        return False
 
 
 def get_permission(permission_type: str, response_type: Responses):
