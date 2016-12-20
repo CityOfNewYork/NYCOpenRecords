@@ -541,9 +541,13 @@ def get_response_content(response_id):
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
     if not (
-                ((current_user in response_.request.agency_users) or
-                         response_.request.requester is current_user) and
-                    response_.release_date > datetime.utcnow()
+            (
+            (
+                current_user in response_.request.agency_users
+            ) or
+                response_.request.requester == current_user
+            ) and
+            response_.release_date > datetime.utcnow()
     ):
         return abort(403)
     if response_ is not None and response_.type == FILE:
