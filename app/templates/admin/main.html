@@ -10,7 +10,7 @@
 
 {% block content %}
     <div class="container-fluid">
-        <h1>Manage {% if current_user.is_super %}Agencies and{% else %}Agency{% endif %} Users</h1>
+        <h2 class="text-center">Manage {% if current_user.is_super %}Agencies and{% else %}Agency{% endif %} Users</h2>
         <hr>
         {% if current_user.is_super %}
             <div class="row">
