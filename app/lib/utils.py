@@ -15,23 +15,13 @@ class InvalidUserException(Exception):
             "Invalid user: {}".format(user))
 
 
-class InvalidClosingException(Exception):
-    def __init__(self, request, reason):
+class UserRequestException(Exception):
+    def __init__(self, action, request_id, reason):
         """
-        :param request: request that was not closed
+        :param request_id: request that was not closed
         """
-        super(InvalidClosingException, self).__init__(
-            'Unable to close request: {}\nReason: {}'.format(request, reason)
-        )
-
-
-class UserRequestError(Exception):
-    def __init__(self, action, request, reason):
-        """
-        :param request: request that was not closed
-        """
-        super(UserRequestError, self).__init__(
-            'Unable to {} request: {}\nReason: {}'.format(action, request, reason)
+        super(UserRequestException, self).__init__(
+            'Unable to {} request: {}\nReason: {}'.format(action, request_id, reason)
         )
 
 

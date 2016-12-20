@@ -13,7 +13,7 @@ from flask import (
     url_for,
     abort
 )
-from app.lib.utils import UserRequestError
+from app.lib.utils import UserRequestException
 from app.constants import permission
 from flask_login import current_user
 
@@ -59,8 +59,8 @@ def create(request_id):
             permissions = [int(i) for i in user_data.getlist('permission')]
             add_user_request(request_id=request_id, user_guid=user_data.get('user'),
                              permissions=permissions)
-        except UserRequestError as e:
-            flash(e, category='warning')
+        except UserRequestException as e:
+            flash(str(e), category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return redirect(url_for('request.view', request_id=request_id))
     return abort(403)
@@ -107,7 +107,7 @@ def edit(request_id):
             permissions = [int(i) for i in user_data.getlist('permission')]
             edit_user_request(request_id=request_id, user_guid=user_data.get('user'),
                               permissions=permissions)
-        except UserRequestError as e:
+        except UserRequestException as e:
             flash(e, category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return 'OK', 200

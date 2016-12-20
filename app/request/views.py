@@ -269,7 +269,7 @@ def view(request_id):
         active_users=active_users,
         permissions=permissions,
         show_agency_description=show_agency_description,
-        is_requester=(current_request.requester is current_user),
+        is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL)
     )
 
