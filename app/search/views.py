@@ -108,7 +108,7 @@ def requests():
         convert_dates(results)
         formatted_results = render_template("request/result_row.html",
                                             requests=results["hits"]["hits"])
-                                            # query=query)  # only for testing
+        # query=query)  # only for testing
     return jsonify({
         "count": len(results["hits"]["hits"]),
         "total": total,
@@ -230,3 +230,28 @@ def requests_doc(doc_type):
                 as_attachment=True
             )
     return '', 400
+
+
+@search.route('/basic_report', methods=['GET'])
+def basic_report_csv():
+    """
+    Generate a CSV for the Basic Reports Page
+    :return: CSV
+    """
+    buffer = StringIO()  # csvwriter cannot accept BytesIO
+    writer = csv.writer(buffer)
+
+    from app.constants import request_status
+
+    requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED).all())
+    requests_opened = len(Requests.query.all()) - requests_closed
+
+    writer.writerow(["status", "num"])
+    writer.writerow(["opened", requests_opened])
+    writer.writerow(["closed", requests_closed])
+
+    return send_file(
+        BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
+        attachment_filename="sales.csv",
+        as_attachment=True
+    )
