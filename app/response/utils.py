@@ -44,7 +44,7 @@ from app.lib.date_utils import get_due_date, process_due_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
-from app.lib.utils import eval_request_bool, InvalidClosingException
+from app.lib.utils import eval_request_bool, UserRequestException
 from app.models import (
     Events,
     Notes,
@@ -201,11 +201,15 @@ def add_closing(request_id, reason_ids, email_content):
             for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(
                             Responses.type != response_type.NOTE).all():
                 if privacy != RELEASE_AND_PUBLIC:
-                    raise InvalidClosingException(current_request,
-                                                  "Agency Description is private and responses are not public")
+                    raise UserRequestException(action="close",
+                                               request_id=current_request.id,
+                                               reason="Agency Description is private and responses are not public"
+                                               )
             if current_request.privacy['title']:
-                raise InvalidClosingException(current_request,
-                                              "Agency Description is private and title is private")
+                raise UserRequestException(action="close",
+                                           request_id=current_request.id,
+                                           reason="Agency Description is private and title is private"
+                                           )
         update_object(
             {'status': request_status.CLOSED},
             Requests,

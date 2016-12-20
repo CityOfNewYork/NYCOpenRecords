@@ -33,7 +33,6 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
-from app.lib.utils import InvalidClosingException
 from app.response import response
 from app.models import (
     Requests,
@@ -199,8 +198,8 @@ def response_closing(request_id):
             add_closing(request_id,
                         flask_request.form.getlist('reasons'),
                         flask_request.form['email-summary'])
-        except InvalidClosingException as e:
-            flash(e, category='danger')
+        except UserRequestException as e:
+            flash(str(e), category='danger')
         return redirect(url_for('request.view', request_id=request_id))
 
 
