@@ -27,6 +27,7 @@ from app.constants.response_privacy import (
     PRIVATE,
     RELEASE_AND_PUBLIC
 )
+from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object
 from app.lib.permission_utils import (
