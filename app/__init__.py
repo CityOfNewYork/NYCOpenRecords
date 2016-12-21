@@ -144,9 +144,6 @@ def create_app(config_name):
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
 
-    from .report import report
-    app.register_blueprint(report, url_prefix="/report")
-
     # exit handling
     atexit.register(lambda: scheduler.shutdown())
 
