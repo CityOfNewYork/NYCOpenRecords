@@ -14,7 +14,7 @@
             <ul class="nav navbar-nav">
                 <li class="openrecords_nav"><a href="{{ url_for('request.new') }}">Request a Record</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('request.view_all') }}">View Requests</a></li>
-                <li class="openrecords_nav"><a href="{{ url_for('main.index') }}">Reports</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('report.show_report') }}">Reports</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.faq') }}">FAQ</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.about') }}">About</a></li>
                 {% if current_user.is_authenticated %}

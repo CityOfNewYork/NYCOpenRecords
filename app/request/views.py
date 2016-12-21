@@ -28,18 +28,13 @@ from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
     get_holidays_date_list,
 )
-from app.lib.db_utils import (
-    update_object,
-)
 from app.lib.permission_utils import (
     is_allowed
 )
 from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
-    Users,
     Agencies,
-    Roles
 )
 from app.request import request
 from app.request.forms import (
