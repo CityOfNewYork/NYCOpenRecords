@@ -1,3 +1,8 @@
+"""
+.. module:: report.views.
+
+   :synopsis: Handles the report URL endpoints for the OpenRecords application
+"""
 from app.report import report
 from flask import (
     render_template,
@@ -17,19 +22,28 @@ from app.constants import (
 from app.report.forms import ReportFilterForm
 
 
-# @report.route('/', methods=['GET'])
-# def report():
-#     return render_template('main/reports.html',
-#                            report_filter_form=ReportFilterForm())
-
 @report.route('/show', methods=['GET'])
 def show_report():
-    return render_template('main/chart.html',
+    """
+    This function handles the rendering of the reports page
+
+    :return: redirect to reports page
+    """
+    return render_template('report/reports.html',
                            report_filter_form=ReportFilterForm())
 
 
 @report.route('/', methods=['GET'])
 def get():
+    """
+    This function handles the retrieval of report data to generate the chart on the frontend.
+    Takes in agency_ein or user_guid from the frontend and filters for the number of requests closed and requests
+    opened.
+
+    :return: json object({"labels": ["Opened", "Closed"],
+                          "values": [150, 135],
+                          "active_users": [('', ''), ('o8pj0k', 'John Doe')]}), 200
+    """
     agency_ein = request.args.get('agency_ein')
     user_guid = request.args.get('user_guid')
     requests_opened = 0

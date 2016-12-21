@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/reports.css') }}"/>
+{% endblock %}
+{% block title %}OpenRecords - Reports{% endblock %}
+{% set active_page="report" %}
+{% block content %}
+    <h2 class="text-center">FOIL Request Stats</h2>
+    <br>
+    <canvas id="reportChart" width="500" height="500"></canvas>
+    <div class="container" style="padding-top:20px">
+        <div class="form-group">
+            {{ report_filter_form.agency.label }}
+            {{ report_filter_form.agency(id="agency-filter", class="input-block-level") }}
+        </div>
+
+        {% if current_user.is_agency %}
+        <div id="user-filter" hidden>
+            {{ report_filter_form.user.label }}
+            {{ report_filter_form.user(id="agency-user-filter", class="input-block-level") }}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/Chart.min.js') }}"></script>
+    {% include 'report/reports.js.html' %}
+{% endblock %}

@@ -230,33 +230,3 @@ def requests_doc(doc_type):
                 as_attachment=True
             )
     return '', 400
-
-
-@search.route('/basic_report', methods=['GET'])
-def basic_report_csv():
-    """
-    Generate a CSV for the Basic Reports Page
-    :return: CSV
-    """
-    buffer = StringIO()  # csvwriter cannot accept BytesIO
-    writer = csv.writer(buffer)
-
-    from app.constants import request_status
-
-    agency = request.args.get('agency')
-    if agency:
-        requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED, agency_ein=agency).all())
-        requests_opened = len(Requests.query.filter_by(agency_ein=agency).all()) - requests_closed
-    else:
-        requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED).all())
-        requests_opened = len(Requests.query.all()) - requests_closed
-
-    writer.writerow(["status", "num"])
-    writer.writerow(["opened", requests_opened])
-    writer.writerow(["closed", requests_closed])
-
-    return send_file(
-        BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
-        attachment_filename="sales.csv",
-        as_attachment=True
-    )

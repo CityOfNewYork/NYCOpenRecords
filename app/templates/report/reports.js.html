@@ -1,0 +1,116 @@
+<script type="text/javascript">
+    var agencyFilter = $("#agency-filter");
+    var agencyUserFilter = $("#agency-user-filter");
+    var userFilterDiv = $("#user-filter");
+
+    var ctx = document.getElementById("reportChart");
+    var reportChart;
+
+    function drawChart(labels, values) {
+        reportChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.2)',
+                        '#e5efe5'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        '#328332'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Number of Requests"
+                        },
+                        ticks: {
+                            maxTicksLimit: Math.min(Math.min.apply(null, values), 10),
+                            beginAtZero: true
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Request Status"
+                        }
+                    }]
+                },
+                responsive: false,
+                legend: {
+                    display: false
+                }
+            }
+        });
+    }
+
+    $.ajax({
+        url: "/report",
+        type: "GET",
+        data: {
+            agency_ein: agencyFilter.val()
+        },
+        success: function (data) {
+            drawChart(data.labels, data.values)
+        }
+    });
+
+    agencyFilter.change(function () {
+        $.ajax({
+            url: "/report",
+            type: "GET",
+            data: {
+                agency_ein: $(this).val()
+            },
+            success: function (data) {
+                for (var i = 0; i < (data.values).length; ++i) {
+                    reportChart.data.datasets[0].data[i] = data.values[i]
+                }
+                var maxTicks = Math.min(Math.min.apply(null, data.values), 10);
+                reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = maxTicks;
+                reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : 10;
+                reportChart.update();
+
+                if (data.active_users.length > 0) {
+                    var sel = agencyUserFilter;
+                    sel.empty();
+                    for (i = 0; i < (data.active_users).length; i++) {
+                        var opt = document.createElement("option");
+                        opt.innerHTML = data.active_users[i][1];
+                        opt.value = data.active_users[i][0];
+                        sel.append(opt);
+                    }
+                    userFilterDiv.show();
+                }
+                else {
+                    userFilterDiv.hide();
+                }
+            }
+        });
+    });
+
+    {% if current_user.is_agency %}
+        agencyUserFilter.change(function () {
+            $.ajax({
+                url: "/report",
+                type: "GET",
+                data: {
+                    user_guid: $(this).val()
+                },
+                success: function (data) {
+                    for (var i = 0; i < (data.values).length; ++i) {
+                        reportChart.data.datasets[0].data[i] = data.values[i]
+                    }
+                    reportChart.update();
+                }
+            })
+        });
+    {% endif %}
+</script>
