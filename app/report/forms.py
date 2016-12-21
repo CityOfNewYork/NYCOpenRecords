@@ -6,8 +6,10 @@ from app.lib.db_utils import get_agency_choices
 
 class ReportFilterForm(Form):
     agency = SelectField('Agency Filter', choices=None)
+    user = SelectField('Agency User Filter', choices=None)
 
     def __init__(self):
         super(ReportFilterForm, self).__init__()
         self.agency.choices = get_agency_choices()
-        self.agency.choices.insert(0, ('', ''))
+        self.agency.choices.insert(0, ('all', 'All'))
+        self.user.choices = []
