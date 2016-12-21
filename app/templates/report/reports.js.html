@@ -74,8 +74,8 @@
                     reportChart.data.datasets[0].data[i] = data.values[i]
                 }
                 var maxTicks = Math.min(Math.min.apply(null, data.values), 10);
-                reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = maxTicks;
-                reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : 10;
+                reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
+                reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                 reportChart.update();
 
                 if (data.active_users.length > 0) {

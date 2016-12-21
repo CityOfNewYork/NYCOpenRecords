@@ -53,7 +53,7 @@ def get():
         if agency_ein == 'all':
             requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED).all())
             requests_opened = len(Requests.query.all()) - requests_closed
-            active_users = None
+            active_users = []
         else:
             requests_closed = len(Requests.query.filter_by(status=request_status.CLOSED, agency_ein=agency_ein).all())
             requests_opened = len(Requests.query.filter_by(agency_ein=agency_ein).all()) - requests_closed
