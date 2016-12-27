@@ -318,7 +318,10 @@ def add_link(request_id, title, url_link, email_content, privacy):
     response = Links(request_id, privacy, title, url_link)
     create_object(response)
     create_response_event(event_type.LINK_ADDED, response)
-    _send_response_email(request_id, privacy, email_content)
+    _send_response_email(request_id,
+                         privacy,
+                         email_content,
+                         'Response Added to {} - Link'.format(request_id))
 
 
 def add_instruction(request_id, instruction_content, email_content, privacy):
@@ -778,32 +781,39 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a file response
     """
+    release_date = None
     link = data.get('link')
     # if data['link'] exists get instruction content and privacy, and render template accordingly
     if link is not None:
         link = json.loads(link)
         url = link['url']
+        title = link['title']
         content = None
-        if link.get('privacy') == PRIVATE:
-            email_template = 'email_templates/email_response_private_link.html'
-            default_content = None
+        privacy = link.get('privacy')
+        if privacy == PRIVATE:
             header = "The following will be emailed to all Assigned Users:"
         else:
-            default_content = True
             header = "The following will be emailed to the Requester:"
+            if privacy == RELEASE_AND_PUBLIC:
+                release_date = get_release_date(datetime.utcnow(),
+                                                RELEASE_PUBLIC_DAYS,
+                                                data.get('tz_name')).strftime("%A, %B %d, %Y")
     # use email_content from frontend to render confirmation
     else:
-        default_content = False
         header = None
         url = None
+        title = None
+        privacy = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
-                                                default_content=default_content,
                                                 content=content,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 url=url,
+                                                title=title,
                                                 page=page,
+                                                release_date=release_date,
+                                                privacy=privacy,
                                                 response_privacy=response_privacy),
                     "header": header}), 200
 
@@ -844,7 +854,6 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         privacy = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
-                                                # default_content=default_content,
                                                 content=content,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
