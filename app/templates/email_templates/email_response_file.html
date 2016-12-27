@@ -1,48 +1,43 @@
-{% extends 'email_templates/email_response.html' %}
-{% block response_file_content %}
-    {% if email_file_content %}
-        {% if requester_file_links %}
-            {% if is_anon %}
-                <p>
-                You have 20 DAYS to download the following request files:
-                <br>
-                <ul>
-                    {% for filename, link in requester_file_links.items() %}
-                        <li style="list-style: none">
-                            {{ filename }}: <a href="{{ link }}">{{ link }}</a>
-                        </li>
-                    {% endfor %}
-            {% else %}
-                <p>
-                Download the request files at:
-                <br>
-                <ul>
-                    {% for filename, link in requester_file_links.items() %}
-                        <li style="list-style: none">
-                            <a href="{{ link }}">{{ filename }}</a>
-                        </li>
-                    {% endfor %}
-            {% endif %}
-            </ul>
-        {% endif %}
-    {% endif %}
-{% endblock %}
-
-{% block response_content %}
-    {% if files_links %}
+{% if default_content %}
     <p>
-        <div class="mceNonEditable">
-            Download the request files at:
-            <br>
+        The {{ agency_name }} has responded to your FOIL request <a href='{{ page }}'>{{ request_id }}</a> with the
+        following files.
+    </p>
+    <div class="mceNonEditable">
+        {% if release_public_links %}
+            <p>
+                These records will not be accessible to the public for 20 days.
+            </p>
+            <p>
+                On {{ release_date }} the files listed below will be publicly available on the OpenRecords portal.
+            </p>
             <ul>
-                {% for filename, link in files_links.items() %}
+                {% for file in release_public_links %}
                     <li style="list-style: none">
-                        <a href="#">{{ filename }}</a>
+                        {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
                     </li>
                 {% endfor %}
             </ul>
-        </div>
-    </p>
-    <br />
-    {% endif %}
-{% endblock %}
+        {% endif %}
+        {% if release_private_links %}
+            <p>
+                The links below will be valid until {{ release_date }}. The records accessed through these links will not be
+                publicly accessible. If you need to access these files after this date, please contact the {{ agency_name }} at
+                <a href="mailto:{{ agency_default_email }}">{{ agency_default_email }}</a>
+            </p>
+            <ul>
+                {% for file in release_private_links %}
+                    <li style="list-style: none">
+                        {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p>
+                Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+            </p>
+        {% endif %}
+    </div>
+    <p><br></p>
+{% else %}
+    {{ content | safe }}
+{% endif %}

@@ -116,20 +116,23 @@ def response_file(request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
-    agency_file_links = {
-        'private': {},
-        'release': {}
-    }
-    requester_file_links = dict()
+    # agency_file_links = {
+    #     'private': {},
+    #     'release': {}
+    # }
+    release_public_links = []
+    release_private_links = []
+    private_links = []
     for file_data in files:
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],
                                 files[file_data]['privacy'])
-        get_file_links(response_obj, agency_file_links, requester_file_links)
+        get_file_links(response_obj, release_public_links, release_private_links, private_links)
     send_file_email(request_id,
-                    agency_file_links,
-                    requester_file_links,
+                    release_public_links,
+                    release_private_links,
+                    private_links,
                     flask_request.form['email-file-summary'],
                     flask_request.form['replace-string'])
     return redirect(url_for('request.view', request_id=request_id))
