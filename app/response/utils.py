@@ -339,7 +339,10 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     response = Instructions(request_id, privacy, instruction_content)
     create_object(response)
     create_response_event(event_type.INSTRUCTIONS_ADDED, response)
-    _send_response_email(request_id, privacy, email_content)
+    _send_response_email(request_id,
+                         privacy,
+                         email_content,
+                         'Response Added to {} - Offline Access Instructions'.format(request_id))
 
 
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
@@ -879,32 +882,36 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
 
     :return: the HTML of the rendered template of an instruction response
     """
+    release_date = None
     instruction = data.get('instruction')
     # if data['instructions'] exists get instruction content and privacy, and render template accordingly
     if instruction is not None:
         instruction = json.loads(instruction)
         instruction_content = instruction['content']
         content = None
-        if instruction.get('privacy') == PRIVATE:
-            email_template = 'email_templates/email_response_private_instruction.html'
+        privacy = instruction.get('privacy')
+        if privacy == PRIVATE:
             header = "The following will be emailed to all Assigned Users:"
-            default_content = None
         else:
-            default_content = True
             header = "The following will be emailed to the Requester:"
+            if privacy == RELEASE_AND_PUBLIC:
+                release_date = get_release_date(datetime.utcnow(),
+                                                RELEASE_PUBLIC_DAYS,
+                                                data.get('tz_name')).strftime("%A, %B %d, %Y")
     # use email_content from frontend to render confirmation
     else:
-        default_content = False
         header = None
         instruction_content = None
+        privacy = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
-                                                default_content=default_content,
                                                 content=content,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 instruction_content=instruction_content,
                                                 page=page,
+                                                release_date=release_date,
+                                                privacy=privacy,
                                                 response_privacy=response_privacy),
                     "header": header}), 200
 
