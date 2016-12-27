@@ -236,7 +236,10 @@ def add_closing(request_id, reason_ids, email_content):
             Requests,
             request_id
         )
-        _send_response_email(request_id, privacy, email_content)
+        _send_response_email(request_id,
+                             privacy,
+                             email_content,
+                             'Request {} Closed'.format(request_id))
 
 
 def add_reopening(request_id, date, tz_name, email_content):
@@ -268,7 +271,10 @@ def add_reopening(request_id, date, tz_name, email_content):
             Requests,
             request_id
         )
-        _send_response_email(request_id, privacy, email_content)
+        _send_response_email(request_id,
+                             privacy,
+                             email_content,
+                             'Request {} Re-Opened'.format(request_id))
 
 
 def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
