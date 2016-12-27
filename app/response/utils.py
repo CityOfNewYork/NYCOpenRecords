@@ -40,7 +40,7 @@ from app.constants import (
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC
 from app.constants import permission
-from app.lib.date_utils import get_due_date, process_due_date
+from app.lib.date_utils import get_due_date, process_due_date, get_release_date
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
@@ -115,7 +115,10 @@ def add_note(request_id, note_content, email_content, privacy):
     response = Notes(request_id, privacy, note_content)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
-    _send_response_email(request_id, privacy, email_content)
+    _send_response_email(request_id,
+                         privacy,
+                         email_content,
+                         'Response Added to {} - Note'.format(request_id))
 
 
 def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
@@ -819,31 +822,36 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a note response
     """
+    release_date = None
     note = data.get('note')
     if note is not None:
         note = json.loads(note)
         note_content = note['content']
         content = None
+        privacy = note.get('privacy')
         # use private email template for note if privacy is private
-        if note.get('privacy') == PRIVATE:
-            email_template = 'email_templates/email_response_private_note.html'
-            default_content = None
+        if privacy == PRIVATE:
             header = "The following will be emailed to all Assigned Users:"
         else:
-            default_content = True
             header = "The following will be emailed to the Requester:"
+            if privacy == RELEASE_AND_PUBLIC:
+                release_date = get_release_date(datetime.utcnow(),
+                                                RELEASE_PUBLIC_DAYS,
+                                                data.get('tz_name')).strftime("%A, %B %d, %Y")
     else:
-        default_content = False
         header = None
         note_content = None
+        privacy = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
-                                                default_content=default_content,
+                                                # default_content=default_content,
                                                 content=content,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 note_content=note_content,
                                                 page=page,
+                                                release_date=release_date,
+                                                privacy=privacy,
                                                 response_privacy=response_privacy),
                     "header": header}), 200
 
@@ -1130,7 +1138,7 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
                                   to=[requester_email])
 
 
-def _send_response_email(request_id, privacy, email_content):
+def _send_response_email(request_id, privacy, email_content, subject):
     """
     Function that sends email detailing a specific response has been added to a request.
     If the file privacy is private, only agency_ein users are emailed.
@@ -1143,7 +1151,6 @@ def _send_response_email(request_id, privacy, email_content):
     :param privacy: privacy option of link
 
     """
-    subject = 'Response Added'
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     # Send email with link to requester and bcc agency_ein users as privacy option is release
