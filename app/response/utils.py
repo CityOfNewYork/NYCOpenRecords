@@ -152,7 +152,10 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
         )
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response)
-        _send_response_email(request_id, privacy, email_content)
+        _send_response_email(request_id,
+                             privacy,
+                             email_content,
+                             'Request {} Acknowledged'.format(request_id))
 
 
 def add_denial(request_id, reason_ids, email_content):
@@ -298,7 +301,10 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
     )
     create_object(response)
     create_response_event(event_type.REQ_EXTENDED, response)
-    _send_response_email(request_id, privacy, email_content)
+    _send_response_email(request_id,
+                         privacy,
+                         email_content,
+                         'Request {} Extended'.format(request_id))
 
 
 def add_link(request_id, title, url_link, email_content, privacy):

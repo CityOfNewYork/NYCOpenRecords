@@ -1,18 +1,19 @@
-{% extends 'email_templates/email_response.html' %}
-{% block response_content %}
+{% if default_content %}
+    <p>
+        The {{ agency_name }} has acknowledged your FOIL request <a href="{{ page }}">{{ request_id }}</a>.
+    </p>
     <p>
         <span class="mceNonEditable">
-        The {{ agency_name }} has <strong>acknowledged</strong> your request.
-    <br><br>
-        You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.
-    <br>
-    {% if info is not none %}
-        <br>
-        Additional Information: <br/>
-        {{ info }}
-        <br />
-    {% endif %}
-    </span>
+            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.<br /><br />
+            {% if info is not none %}
+                Additional Information:<br />
+                {{ info }}
+                <br /><br />
+            {% endif %}
+            Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+        </span>
     </p>
-    <br>
-{% endblock %}
+    <p><br /></p>
+{% else %}
+    {{ content | safe }}
+{% endif %}

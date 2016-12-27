@@ -1,15 +1,16 @@
-{% extends 'email_templates/email_response.html' %}
-{% block response_content %}
+{% if default_content %}
+    <p>
+        The {{ agency_name }} has extended the time to response to your FOIL request {{ request_id }} for the following reasons:
+    </p>
     <p>
         <span class="mceNonEditable">
-        The {{ agency_name }} is still in the process of searching for the documents you requested under your
-        Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>
-    <br><br>
-        You can expect a response on or about {{ moment(new_due_date).format('dddd, MMMM D, YYYY') }}.
-    <br><br>
+        You can expect a response on or about {{ moment(new_due_date).format('dddd, MMMM D, YYYY') }}.<br /><br />
         Additional Information: <br />
-        {{ reason }}<br />
+        {{ reason }}<br /><br />
+        Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
         </span>
-    </p><br />
-    <br />
-{% endblock %}
+    </p>
+    <p><br /></p>
+{% else %}
+    {{ content | safe }}
+{% endif %}
