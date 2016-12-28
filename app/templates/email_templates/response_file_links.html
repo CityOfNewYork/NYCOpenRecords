@@ -1,0 +1,45 @@
+{% if not private_links %}
+    {% if release_public_links %}
+        <p>
+            These records will not be accessible to the public for 20 days.
+        </p>
+        <p>
+            On {{ release_date }} the files listed below will be publicly available on the OpenRecords portal.
+        </p>
+        <ul>
+            {% for file in release_public_links %}
+                <li style="list-style: none">
+                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if release_private_links %}
+        <p>
+            The links below will be valid until {{ release_date }}. The records accessed through these links will not be
+            publicly accessible. If you need to access these files after this date, please contact the {{ agency_name }} at
+            <a href="mailto:{{ agency_default_email }}">{{ agency_default_email }}</a>
+        </p>
+        <ul>
+            {% for file in release_private_links %}
+                <li style="list-style: none">
+                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <p>
+            Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+        </p>
+    {% endif %}
+{% else %}
+    <p>
+        The following files were added to <a href='{{ page }}'>{{ request_id }}</a> and are private:
+    </p>
+    <ul>
+        {% for file in private_links %}
+            <li style="list-style: none">
+                {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

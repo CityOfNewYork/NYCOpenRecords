@@ -21,8 +21,10 @@ $(document).ready(function () {
                     type: "links",
                     link: JSON.stringify({
                         url: $('#link-url').val(),
+                        title: $("#link-title").val(),
                         privacy: $('.link-privacy:checked').val()
-                    })
+                    }),
+                    tz_name: jstz.determine().name()
                 },
                 success: function (data) {
                     tinyMCE.get('email-link-content').setContent(data.template);

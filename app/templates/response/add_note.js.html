@@ -25,7 +25,8 @@ $(document).ready(function () {
                     note: JSON.stringify({
                         content: $('#note-content').val(),
                         privacy: $(".note-privacy:checked").val()
-                    })
+                    }),
+                    tz_name: jstz.determine().name()
                 },
                 success: function (data) {
                     tinyMCE.get('email-note-content').setContent(data.template);
