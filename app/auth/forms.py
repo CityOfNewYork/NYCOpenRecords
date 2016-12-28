@@ -6,7 +6,12 @@
 """
 
 from flask_wtf import Form
-from wtforms import StringField, SelectField, SubmitField
+from wtforms import (
+    StringField,
+    SelectField,
+    PasswordField,
+    SubmitField
+)
 
 from app.constants import STATES
 
@@ -32,3 +37,10 @@ class ManageUserAccountForm(Form):
     zipcode = StringField('Zip Code (5 Digits)')
 
     submit = SubmitField('Update OpenRecords Account')
+
+
+class LDAPLoginForm(Form):
+    username = StringField('Username')
+    password = PasswordField('Password')
+
+    login = SubmitField('Login')

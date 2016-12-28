@@ -5,6 +5,9 @@ from urllib.parse import urljoin, urlparse
 from flask import current_app, request, session
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 
+from ldap3 import Server, Tls, Connection
+import ssl
+
 from app import login_manager
 from app.constants import USER_ID_DELIMITER
 from app.lib.db_utils import create_object, update_object
@@ -232,3 +235,53 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
         return user
     else:  # Insert Error Message
         return None
+
+
+def ldap_authentication(email, password):
+    """
+    Authenticate the provided user with an LDAP Server.
+    :param email: Users username
+    :param password: Users password
+    :return: Boolean
+    """
+    conn = __ldap_server_connect()
+
+    users = conn.search(search_base=current_app.config['LDAP_BASE_DN'],
+                        search_filter='(mail={email})'.format(email=email), attributes='dn')
+
+    if users and len(users) > 1:
+        if not conn.bind(users[0].entry_dn, password):
+            return False
+        else:
+            return True
+
+
+def __ldap_server_connect():
+    """
+    Connect to an LDAP server
+    :param ldap_server: LDAP Server Hostname / IP Address
+    :param ldap_port: Port to use on LDAP server
+    :param ldap_use_tls: Use a secure connection to the LDAP server
+    :param ldap_cert_path: Certificate for Secure connection to LDAP
+    :param ldap_sa_bind_dn: LDAP Bind Distinguished Name for Service Account
+    :param ldap_sa_password: LDAP Service Account password
+    :return: LDAP Context
+    """
+    ldap_server = current_app.config['LDAP_SERVER']
+    ldap_port = current_app.config['LDAP_PORT']
+    ldap_use_tls = False
+    ldap_key_path = current_app.config['LDAP_KEY_PATH']
+    ldap_sa_bind_dn = current_app.config['LDAP_SA_BIND_DN']
+    ldap_sa_password = current_app.config['LDAP_SA_PASSWORD']
+
+    tls = Tls(validate=ssl.CERT_NONE, local_private_key_file=ldap_key_path)
+
+    if ldap_use_tls:
+        server = Server(ldap_server, ldap_port, tls=tls, use_ssl=True)
+
+    else:
+        server = Server(ldap_server, ldap_port)
+
+    conn = Connection(server, ldap_sa_bind_dn, ldap_sa_password, auto_bind=True)
+
+    return conn

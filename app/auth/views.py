@@ -4,27 +4,68 @@
    :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
 """
 
-from flask import request, redirect, session, render_template, make_response, url_for
-from flask_login import login_user, current_user
+from flask import (
+    request,
+    redirect,
+    session,
+    render_template,
+    make_response,
+    url_for,
+    abort
+)
+from flask_login import (
+    login_user,
+    current_user,
+    current_app
+)
 
 from app.auth import auth
-from app.auth.forms import ManageUserAccountForm
+from app.auth.forms import ManageUserAccountForm, LDAPLoginForm
 from app.auth.utils import (
     prepare_flask_request,
     init_saml_auth,
     process_user_data,
-    find_or_create_user
+    find_or_create_user,
+    ldap_authentication
 )
 from app.lib.user_information import create_mailing_address
 
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 
-@auth.route('/', methods=['GET', 'POST'])
-def index():
-    # TODO: Add commenting
-    """
+@auth.route('/login')
+def login():
+    with current_app.app_context():
+        if current_app.config['USE_LDAP']:
+            return redirect(url_for('auth.ldap_login'))
+        elif current_app.config['USE_SAML']:
+            return redirect(url_for('auth.saml_login'))
 
+        return abort(404)
+
+
+@auth.route('/ldap_login', methods=['GET', 'POST'])
+def ldap_login():
+    if request.method == 'POST':
+        username = request.form.username.data
+        password = request.form.password.data
+
+        # authenticated = ldap_authentication(username, password)
+
+        authenticated = True
+        if authenticated:
+            return redirect('main.index')
+
+    elif request.method == 'GET':
+        login_form = LDAPLoginForm()
+
+        return render_template('auth/ldap_login_form.html', login_form=login_form)
+
+
+@auth.route('/', methods=['GET', 'POST'])
+def saml_login():
+    """
+    TODO: Add Commenting
     :return:
     """
     req = prepare_flask_request(request)
@@ -103,6 +144,11 @@ def index():
 
 @auth.route('/attrs/')
 def attrs():
+    # TODO: Document attrs endpoint
+    """
+
+    :return:
+    """
     paint_logout = False
     attributes = False
 
@@ -117,6 +163,11 @@ def attrs():
 
 @auth.route('/metadata/')
 def metadata():
+    # TODO: Document metadata endpoint
+    """
+
+    :return:
+    """
     req = prepare_flask_request(request)
     auth = init_saml_auth(req)
     settings = auth.get_settings()
@@ -133,6 +184,7 @@ def metadata():
 
 @auth.route('/manage', methods=['GET', 'POST'])
 def manage_account():
+    # TODO: Document manage account endpoint
     """
 
     :return:
