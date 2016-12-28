@@ -53,10 +53,10 @@ def add_user_request(request_id, user_guid, permissions):
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             added_permissions=[capability.label for capability in added_permissions],
             admin=True),
-        'User Removed from Request',
+        'User Added to Request {}'.format(request_id),
         to=agency_admin_emails)
 
-    # send email to user being removed
+    # send email to user being added
     safely_send_and_add_email(
         request_id,
         render_template(
@@ -67,7 +67,7 @@ def add_user_request(request_id, user_guid, permissions):
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             added_permissions=[capability.label for capability in added_permissions],
         ),
-        'User Removed from Request',
+        'User Added to Request {}'.format(request_id),
         to=[user.email])
 
     user_request = UserRequests(
@@ -120,10 +120,10 @@ def edit_user_request(request_id, user_guid, permissions):
             added_permissions=[capability.label for capability in added_permissions],
             removed_permissions=[capability.label for capability in removed_permissions],
             admin=True),
-        'User Removed from Request',
+        'User Edited in Request {}'.format(request_id),
         to=agency_admin_emails)
 
-    # send email to user being removed
+    # send email to user being edited
     safely_send_and_add_email(
         request_id,
         render_template(
@@ -135,7 +135,7 @@ def edit_user_request(request_id, user_guid, permissions):
             added_permissions=[capability.label for capability in added_permissions],
             removed_permissions=[capability.label for capability in removed_permissions],
         ),
-        'User Removed from Request',
+        'User Edited in Request {}'.format(request_id),
         to=[user_request.user.email])
 
     if added_permissions:
@@ -169,7 +169,7 @@ def remove_user_request(request_id, user_guid):
             agency_name=user_request.user.agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             admin=True),
-        'User Removed from Request',
+        'User Removed from Request {}'.format(request_id),
         to=agency_admin_emails)
 
     # send email to user being removed
@@ -181,7 +181,7 @@ def remove_user_request(request_id, user_guid):
             name=' '.join([user_request.user.first_name, user_request.user.last_name]),
             agency_name=user_request.user.agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))),
-        'User Removed from Request',
+        'User Removed from Request {}'.format(request_id),
         to=[user_request.user.email])
 
     create_response_event(event_type.USER_REMOVED, user_request=user_request)
