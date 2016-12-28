@@ -175,7 +175,8 @@ def get_request_responses():
                         delete_response_permission=is_allowed(user=current_user,
                                                               request_id=response.request_id,
                                                               permission=get_permission(permission_type='delete',
-                                                                                        response_type=type(response)))
+                                                                                        response_type=type(response))),
+                        is_editable=response.is_editable
 
                     ),
                     response_type=response_type,
@@ -193,7 +194,8 @@ def get_request_responses():
                                                                 permission=get_permission(
                                                                     permission_type='privacy',
                                                                     response_type=type(
-                                                                        response)))
+                                                                        response))),
+                    is_editable=response.is_editable
                 )
                 json['template'] = row + modal
 

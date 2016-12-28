@@ -1,4 +1,4 @@
-{% if edit_response_permission or edit_response_privacy_permission %}
+{% if (edit_response_permission or edit_response_privacy_permission) and is_editable %}
     <form id="link-update-{{ response.id }}" class="link-update link-form"
           action="/response/{{ response.id }}" method="POST">
         {% if edit_response_permission %}
