@@ -1303,7 +1303,7 @@ def create_response_event(events_type, response=None, user_request=None):
     :param events_type: one of app.constants.event_type
 
     """
-    user = current_user
+    user = response.request.requester if current_user.is_anonymous else current_user
     event = None
     if response:
         event = Events(request_id=response.request_id,
