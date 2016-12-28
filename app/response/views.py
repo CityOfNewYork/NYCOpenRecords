@@ -93,10 +93,13 @@ def response_note(request_id):
             return redirect(url_for('request.view', request_id=request_id))
 
     current_request = Requests.query.filter_by(id=request_id).first()
+    is_editable = False if current_request.requester == current_user else True
+
     add_note(current_request.id,
              note_data['content'],
              note_data['email-note-summary'],
-             note_data['privacy'])
+             note_data['privacy'],
+             is_editable)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -123,7 +126,8 @@ def response_file(request_id):
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],
-                                files[file_data]['privacy'])
+                                files[file_data]['privacy'],
+                                is_editable=True)
         get_file_links(response_obj, release_public_links, release_private_links, private_links)
     send_file_email(request_id,
                     release_public_links,
@@ -301,7 +305,8 @@ def response_link(request_id):
              link_data['title'],
              link_data['url'],
              link_data['email-link-summary'],
-             link_data['privacy'])
+             link_data['privacy'],
+             is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -336,7 +341,8 @@ def response_instructions(request_id):
     add_instruction(current_request.id,
                     instruction_data['content'],
                     instruction_data['email-instruction-summary'],
-                    instruction_data['privacy'])
+                    instruction_data['privacy'],
+                    is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -439,7 +445,7 @@ def patch(response_id):
     """
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
 
-    if current_user.is_anonymous:
+    if current_user.is_anonymous or not resp.is_editable:
         return abort(403)
 
     patch_form = dict(flask_request.form)
