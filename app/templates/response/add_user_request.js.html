@@ -9,6 +9,7 @@
         var submit = second.find(".submit");
 
         var role = first.find("#role");
+        var user = first.find("#user");
         var permission = first.find("#permission");
 
         permission.find("option").mousedown(function (e) {
@@ -18,7 +19,7 @@
             return false;
         });
 
-        $("#user").change(function () {
+        user.change(function () {
             $("#add_options").show();
         });
 
@@ -30,7 +31,7 @@
                     request_id: "{{ request.id }}",
                     type: "user_request_added",
                     permission: permission.val(),
-                    guid: $("#user").val()
+                    guid: user.val()
                 },
                 success: function (data) {
                     $(".email-summary").html(data.template);
@@ -51,7 +52,7 @@
                 url: "/permissions/api/v1.0/" + role.val(),
                 type: "GET",
                 success: function (data) {
-                    $("#permission").children().each(function () {
+                    permission.children().each(function () {
                         if (data.indexOf(parseInt($(this).val())) !== -1) {
                             $(this).prop("selected", true);
                         } else {
