@@ -120,7 +120,7 @@ def edit_user_request(request_id, user_guid, permissions):
             added_permissions=[capability.label for capability in added_permissions],
             removed_permissions=[capability.label for capability in removed_permissions],
             admin=True),
-        'User Edited in Request {}'.format(request_id),
+        'User Permissions Edited for Request {}'.format(request_id),
         to=agency_admin_emails)
 
     # send email to user being edited
@@ -135,7 +135,7 @@ def edit_user_request(request_id, user_guid, permissions):
             added_permissions=[capability.label for capability in added_permissions],
             removed_permissions=[capability.label for capability in removed_permissions],
         ),
-        'User Edited in Request {}'.format(request_id),
+        'User Permissions Edited for Request {}'.format(request_id),
         to=[user_request.user.email])
 
     if added_permissions:
