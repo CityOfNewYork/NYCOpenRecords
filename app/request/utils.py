@@ -165,7 +165,8 @@ def create_request(title,
                          filename,
                          fu.get_mime_type(upload_path),
                          fu.getsize(upload_path),
-                         fu.get_hash(upload_path))
+                         fu.get_hash(upload_path),
+                         is_editable=False)
         create_object(obj=response)
 
         # 8. Create upload Event

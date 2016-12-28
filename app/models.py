@@ -668,6 +668,7 @@ class Responses(db.Model):
     date_modified = db.Column(db.DateTime)
     release_date = db.Column(db.DateTime)
     deleted = db.Column(db.Boolean, default=False, nullable=False)
+    is_editable = db.Column(db.Boolean, default=False, nullable=False)
     type = db.Column(db.Enum(
         response_type.NOTE,
         response_type.LINK,
@@ -684,13 +685,15 @@ class Responses(db.Model):
     def __init__(self,
                  request_id,
                  privacy,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
         self.release_date = (calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
                              if privacy == response_privacy.RELEASE_AND_PUBLIC
                              else None)
+        self.is_editable = is_editable
 
     # NOTE: If you can find a way to make this class work with abc,
     # you're welcome to make the necessary changes to the following method:
@@ -873,15 +876,18 @@ class Notes(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.NOTE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String(5000))
+    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
                  privacy,
                  content,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         super(Notes, self).__init__(request_id,
                                     privacy,
-                                    date_modified)
+                                    date_modified,
+                                    is_editable)
         self.content = content
 
     @property
@@ -908,6 +914,7 @@ class Files(Responses):
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
     hash = db.Column(db.String)
+    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -917,10 +924,12 @@ class Files(Responses):
                  mime_type,
                  size,
                  hash_,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         super(Files, self).__init__(request_id,
                                     privacy,
-                                    date_modified)
+                                    date_modified,
+                                    is_editable)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -945,16 +954,19 @@ class Links(Responses):
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String)
     url = db.Column(db.String)
+    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
                  privacy,
                  title,
                  url,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         super(Links, self).__init__(request_id,
                                     privacy,
-                                    date_modified)
+                                    date_modified,
+                                    is_editable)
         self.title = title
         self.url = url
 
@@ -974,15 +986,18 @@ class Instructions(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.INSTRUCTIONS}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
+    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
                  privacy,
                  content,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         super(Instructions, self).__init__(request_id,
                                            privacy,
-                                           date_modified)
+                                           date_modified,
+                                           is_editable)
         self.content = content
 
     @property
@@ -1021,6 +1036,7 @@ class Determinations(Responses):
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
+    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1028,10 +1044,12 @@ class Determinations(Responses):
                  dtype,
                  reason,
                  date=None,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         super(Determinations, self).__init__(request_id,
                                              privacy,
-                                             date_modified)
+                                             date_modified,
+                                             is_editable)
         self.dtype = dtype
 
         if dtype not in (determination_type.ACKNOWLEDGMENT,
@@ -1079,6 +1097,7 @@ class Emails(Responses):
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
     body = db.Column(db.String)
+    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1088,10 +1107,12 @@ class Emails(Responses):
                  bcc,
                  subject,
                  body,
-                 date_modified=None):
+                 date_modified=None,
+                 is_editable=False):
         super(Emails, self).__init__(request_id,
                                      privacy,
-                                     date_modified)
+                                     date_modified,
+                                     is_editable)
         self.to = to
         self.cc = cc
         self.bcc = bcc

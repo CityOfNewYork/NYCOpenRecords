@@ -63,7 +63,7 @@ from app.models import (
 
 # TODO: class ResponseProducer()
 
-def add_file(request_id, filename, title, privacy):
+def add_file(request_id, filename, title, privacy, is_editable):
     """
     Create and store the file response object for the specified request.
     Gets the file mimetype and magic file check from a helper function in lib.file_utils
@@ -84,6 +84,7 @@ def add_file(request_id, filename, title, privacy):
         size = fu.getsize(path)
         mime_type = fu.get_mime_type(path)
         hash_ = fu.get_hash(path)
+
     response = Files(
         request_id,
         privacy,
@@ -91,7 +92,8 @@ def add_file(request_id, filename, title, privacy):
         filename,
         mime_type,
         size,
-        hash_
+        hash_,
+        is_editable=is_editable
     )
     create_object(response)
 
@@ -100,7 +102,7 @@ def add_file(request_id, filename, title, privacy):
     return response
 
 
-def add_note(request_id, note_content, email_content, privacy):
+def add_note(request_id, note_content, email_content, privacy, is_editable):
     """
     Create and store the note object for the specified request.
     Store the note content into the Notes table.
@@ -112,7 +114,7 @@ def add_note(request_id, note_content, email_content, privacy):
     :param privacy: The privacy option of the note
 
     """
-    response = Notes(request_id, privacy, note_content)
+    response = Notes(request_id, privacy, note_content, is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
     if privacy != PRIVATE:
@@ -320,7 +322,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
                          'Request {} Extended'.format(request_id))
 
 
-def add_link(request_id, title, url_link, email_content, privacy):
+def add_link(request_id, title, url_link, email_content, privacy, is_editable=True):
     """
     Create and store the link object for the specified request.
     Store the link content into the Links table.
@@ -334,7 +336,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
     :param privacy: The privacy option of the link
 
     """
-    response = Links(request_id, privacy, title, url_link)
+    response = Links(request_id, privacy, title, url_link, is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.LINK_ADDED, response)
     if privacy != PRIVATE:
@@ -347,7 +349,7 @@ def add_link(request_id, title, url_link, email_content, privacy):
                          subject)
 
 
-def add_instruction(request_id, instruction_content, email_content, privacy):
+def add_instruction(request_id, instruction_content, email_content, privacy, is_editable=True):
     """
     Creates and stores the instruction object for the specified request.
     Stores the instruction content into the Instructions table.
@@ -359,7 +361,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     :param privacy: The privacy option of the instruction
 
     """
-    response = Instructions(request_id, privacy, instruction_content)
+    response = Instructions(request_id, privacy, instruction_content, is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.INSTRUCTIONS_ADDED, response)
     if privacy != PRIVATE:
