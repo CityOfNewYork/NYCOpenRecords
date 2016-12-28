@@ -72,10 +72,10 @@
                                     {% if active_users and permissions['add_user'] %}
                                         <li><a href="#add-user" data-toggle="tab">Add User</a></li>
                                     {% endif %}
-                                    {% if permissions['edit_user'] %}
+                                    {% if assigned_users and permissions['edit_user'] %}
                                         <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
                                     {% endif %}
-                                    {% if assigned_users %}
+                                    {% if assigned_users and permissions['remove_user'] %}
                                         <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
                                     {% endif %}
                                 {% endif %}
