@@ -129,7 +129,7 @@ $(document).ready(function () {
 
     // Clear the file from input and the name from filename div
     $("#clear-file").click(function () {
-        if ($(".file-error").is(':visible')) {
+        if ($(".file-error").is(":visible")) {
             $(".file-error").hide();
         }
         $("#request-file").val("");
@@ -180,7 +180,7 @@ $(document).ready(function () {
             $('#email').attr('data-parsley-required', '');
         }
 
-        if ($("#request-file").parsley().isValid() == false) {
+        if ($("#request-file").parsley().isValid() === false) {
             $(".file-error").show();
         }
         else {
@@ -188,27 +188,27 @@ $(document).ready(function () {
         }
 
         // Scroll to input label if parsley validation fails
-        if ($("#request-agency").parsley().isValid() == false) {
+        if ($("#request-agency").parsley().isValid() === false) {
             $(window).scrollTop($(".agency-label").offset().top);
         }
-        else if ($("#request-title").parsley().isValid() == false) {
+        else if ($("#request-title").parsley().isValid() === false) {
             $(window).scrollTop($(".title-label").offset().top);
         }
-        else if ($("#request-description").parsley().isValid() == false ) {
+        else if ($("#request-description").parsley().isValid() === false ) {
             $("#request-description").attr('data-parsley-no-focus', '');
             $(window).scrollTop($(".description-label").offset().top);
         }
-        else if ($("#request-file").parsley().isValid() == false) {
+        else if ($("#request-file").parsley().isValid() === false) {
             $(".file-error").show();
             $(window).scrollTop($("#upload-control").offset().top);
         }
-        else if ($("#first-name").parsley().isValid() == false ) {
+        else if ($("#first-name").parsley().isValid() === false ) {
             $(window).scrollTop($(".first-name-label").offset().top);
         }
-        else if ($("#last-name").parsley().isValid() == false ) {
+        else if ($("#last-name").parsley().isValid() === false ) {
             $(window).scrollTop($(".last-name-label").offset().top);
         }
-        else if ($("#email").parsley().isValid() == false ) {
+        else if ($("#email").parsley().isValid() === false ) {
             $(window).scrollTop($(".email-label").offset().top);
         }
     });
