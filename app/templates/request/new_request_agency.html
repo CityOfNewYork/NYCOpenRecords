@@ -20,7 +20,7 @@
                     you about how much time is required to
                     respond to your request.</p>
                 {# Title of the request #}
-                {{ form.request_title.label(class='request-heading') }}
+                {{ form.request_title.label(class='request-heading title-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
                      data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
                      class="glyphicon glyphicon-question-sign">
@@ -35,7 +35,7 @@
                     </strong></p>
                 </div>
                 {# Description of the request #}
-                {{ form.request_description.label(class='request-heading') }}
+                {{ form.request_description.label(class='request-heading description-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
                      data-content="Enter a detailed description of the request"
                      class="glyphicon glyphicon-question-sign">
@@ -72,7 +72,9 @@
                     Receipt Information
                 </div>
                 {# Format of request received #}
-                Format Received (required)
+                <div class="format-label">
+                    Format Received (required)
+                </div>
                 {{ form.method_received(id='method-received', class='input-block-level') }}
                 {# Date request was received #}
                 Request Date (required)
@@ -88,15 +90,15 @@
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name of user #}
-                {{ form.first_name.label(class='request-heading') }}
+                {{ form.first_name.label(class='request-heading first-name-label') }}
                 {{ form.first_name(id='first-name', class='input-block-level',
                 placeholder='John') }}<br>
                 {# Last name of user #}
-                {{ form.last_name.label(class='request-heading') }}
+                {{ form.last_name.label(class='request-heading last-name-label') }}
                 {{ form.last_name(id='last-name', class='input-block-level',
                 placeholder='Doe') }}<br>
                 {# Email of user #}
-                {{ form.email.label(class='request-heading') }}
+                {{ form.email.label(class='request-heading email-label') }}
                 {{ form.email(id='email', class='input-block-level',
                 placeholder='requester@email.com') }}<br>
 
