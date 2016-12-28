@@ -1,7 +1,8 @@
 {% if privacy %}
     {% if privacy == response_privacy.RELEASE_AND_PUBLIC %}
         <p>
-            The {{ agency_name }} has responded to your FOIL request {{ request_id }} with the following note.
+            The {{ agency_name }} has responded to your FOIL request
+            <a href="{{ page }}" target="_blank">{{ request_id }}</a> with the following note.
         </p>
         <p>
             This information will not be accessible to the public for 20 work days.
@@ -17,7 +18,8 @@
 
     {% elif privacy == response_privacy.RELEASE_AND_PRIVATE %}
         <p>
-            The {{ agency_name }} has responded to your FOIL request {{ request_id }} with the following note.
+            The {{ agency_name }} has responded to your FOIL request
+            <a href="{{ page }}" target="_blank">{{ request_id }}</a> with the following note.
         </p>
         <p>
             <span class="mceNonEditable">

@@ -116,10 +116,6 @@ def response_file(request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
-    # agency_file_links = {
-    #     'private': {},
-    #     'release': {}
-    # }
     release_public_links = []
     release_private_links = []
     private_links = []

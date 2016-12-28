@@ -115,10 +115,14 @@ def add_note(request_id, note_content, email_content, privacy):
     response = Notes(request_id, privacy, note_content)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
+    if privacy != PRIVATE:
+        subject = 'Response Added to {} - Note'.format(request_id)
+    else:
+        subject = 'Note Added to {}'.format(request_id)
     _send_response_email(request_id,
                          privacy,
                          email_content,
-                         'Response Added to {} - Note'.format(request_id))
+                         subject)
 
 
 def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
@@ -333,10 +337,14 @@ def add_link(request_id, title, url_link, email_content, privacy):
     response = Links(request_id, privacy, title, url_link)
     create_object(response)
     create_response_event(event_type.LINK_ADDED, response)
+    if privacy != PRIVATE:
+        subject = 'Response Added to {} - Link'.format(request_id)
+    else:
+        subject = 'Link Added to {}'.format(request_id)
     _send_response_email(request_id,
                          privacy,
                          email_content,
-                         'Response Added to {} - Link'.format(request_id))
+                         subject)
 
 
 def add_instruction(request_id, instruction_content, email_content, privacy):
@@ -354,10 +362,14 @@ def add_instruction(request_id, instruction_content, email_content, privacy):
     response = Instructions(request_id, privacy, instruction_content)
     create_object(response)
     create_response_event(event_type.INSTRUCTIONS_ADDED, response)
+    if privacy != PRIVATE:
+        subject = 'Response Added to {} - Offline Access Instructions'.format(request_id)
+    else:
+        subject = 'Offline Instructions Added to {}'.format(request_id)
     _send_response_email(request_id,
                          privacy,
                          email_content,
-                         'Response Added to {} - Offline Access Instructions'.format(request_id))
+                         subject)
 
 
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
@@ -758,6 +770,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
     release_private_links = []
 
     release_date = None
+    agency_default_email = None
 
     files = data.get('files')
     # if data['files'] exists, use email_content as template with specific file email template
@@ -779,10 +792,11 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                 release_public_links.append(file_link)
             elif file_.get('privacy') == RELEASE_AND_PRIVATE:
                 release_private_links.append(file_link)
-        if release_public_links:
+        if release_public_links or release_private_links:
             release_date = get_release_date(datetime.utcnow(),
                                             RELEASE_PUBLIC_DAYS,
                                             data.get('tz_name')).strftime("%A, %B %d, %Y")
+            agency_default_email = Requests.query.filter_by(id=request_id).first().agency.default_email
     # use default_content in response template
     else:
         default_content = False
@@ -795,6 +809,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 request_id=request_id,
                                                 page=page,
                                                 agency_name=agency_name,
+                                                agency_default_email=agency_default_email,
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
@@ -1080,16 +1095,18 @@ def get_email_key(response_id, requester=False):
 def get_file_links(response, release_public_links, release_private_links, private_links):
     """
     Create file links for a file response based on privacy.
-    Add file link item to agency_file_links dictionary and to requester_file_links dictionary if file response is not
-    private.
+    Append a file_link dictionary to either release_public_links, release_private_links, and private_links, based on
+    privacy option.
 
     :param response: response object
-    :param agency_file_links: dictionary of agency file links containing nested dictionaries of private and release
-                              with both containing key, value of filename and file link
-    :param requester_file_links: dictionary of file links to the requester with key, value of filename and file link
+    :param release_public_links: list of dictionaries of release and public files containing key and values of filename,
+                                 title, and link to file
+    :param release_private_links: list of dictionaries of release and public files containing key and values of
+                                  filename, title, and link to file
+    :param private_links: list of dictionaries of private files containing key and values of filename, title, and
+                          link to file
 
-    :return: agency_file_links dictionary and requester_file_links (if file is not private) dictionary with
-             added file link item
+    :return: list with appended file_link dictionary based on privacy
     """
     resp = Responses.query.filter_by(id=response.id).one()
     path = '/response/' + str(response.id)
@@ -1122,17 +1139,20 @@ def get_file_links(response, release_public_links, release_private_links, privat
 def send_file_email(request_id, release_public_links, release_private_links, private_links, email_content, replace_string):
     """
     Send email with file links detailing a file response has been added to the request.
-    Requester receives email only if requester_file_links dictionary has key and value.
-    Agency users always receive email.
+    Requester receives email only if release_public_links and release_private_links list is not empty.
+    Agency users are BCCed on the email the requester receives.
+    Agency users receive a separate email if only private files were uploaded.
 
     :param request_id: FOIL request ID
-    :param agency_file_links: dictionary of agency file links containing nested dictionaries of private and release
-                              with both containing key, value of filename and file link
-    :param requester_file_links: dictionary of file links to the requester with key, value of filename and file link
+    :param release_public_links: list of dictionaries of release and public files containing key and values of filename,
+                                 title, and link to file
+    :param release_private_links: list of dictionaries of release and public files containing key and values of
+    filename, title, and link to file
+    :param private_links: list of dictionaries of private files containing key and values of filename, title, and
+                          link to file
     :param email_content: string body of email from tinymce textarea
     :param replace_string: alphanumeric random 32 character string to be replaced in email_content
 
-    :return:
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
     is_anon = Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester
@@ -1142,15 +1162,16 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
         email_content_requester = email_content.replace(replace_string,
-                                                        render_template('email_templates/links_of_response_file.html',
+                                                        render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,
                                                                         release_private_links=release_private_links,
                                                                         is_anon=is_anon
                                                                         ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
-                                  subject,
-                                  to=[requester_email])
+                                  'Response Added to {} - File'.format(request_id),
+                                  to=[requester_email],
+                                  bcc=bcc)
         email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                request_id=request_id,
                                                default_content=True,
@@ -1159,11 +1180,11 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                page=page)
         safely_send_and_add_email(request_id,
                                   email_content_agency,
-                                  subject,
+                                  'File(s) Added to {}'.format(request_id),
                                   bcc=bcc)
     else:
         email_content_agency = email_content.replace(replace_string,
-                                                     render_template('email_templates/links_of_response_file.html',
+                                                     render_template('email_templates/response_file_links.html',
                                                                      request_id=request_id,
                                                                      private_links=private_links,
                                                                      page=page
@@ -1187,7 +1208,6 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     :type email_content_agency: str
     :type email_content_requester: str
 
-    :return:
     """
     subject = 'Response Edited'
     bcc = get_agency_emails(request_id)

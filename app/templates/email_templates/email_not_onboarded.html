@@ -7,8 +7,10 @@
                         <span style="font-family: arial,helvetica,sans-serif;">
                             <span style="color: rgb(51, 51, 51); font-size: 14px;">
                                 <p>
-                                    Your request {{ current_request.id }} has been successfully submitted to the {{ agency_name }}.
-                                    The details of your request are shown below.<br />
+                                    Your request has been emailed to the {{ agency_name }} because that agency is not yet using
+                                    the portal to respond to FOIL requests. The details of your request are shown below.
+                                    No further information will be available on the OpenRecords portal regarding this
+                                    request.<br />
                                 </p>
                                 <!-- Contact and Request Information -->
                                 <p>
@@ -115,10 +117,9 @@
                                         </div>
                                     </div>
                                 </p>
-                                <!-- Link to the view request page -->
                                 <p>
-                                    You can view the request and take any necessary action at the following webpage:
-                                    <a href='{{ page }}'>{{ page }}</a>.
+                                    Please contact the {{ agency_name }} via email at <a href="mailto:{{ agency_default_email }}">{{ agency_default_email }}</a>
+                                    for any further information.
                                 </p>
                             </span>
                         </span>
