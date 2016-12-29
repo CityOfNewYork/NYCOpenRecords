@@ -32,7 +32,7 @@
                             labelString: "Number of Requests"
                         },
                         ticks: {
-                            maxTicksLimit: Math.min(Math.min.apply(null, values), 10),
+                            maxTicksLimit: 10,
                             beginAtZero: true
                         }
                     }],
@@ -62,6 +62,10 @@
         }
     });
 
+    var agency_admin = "{{ current_user.is_agency_admin }}";
+    var super_user = "{{ current_user.is_super }}";
+    var current_agency = "{{ current_user.agency.ein }}";
+
     agencyFilter.change(function () {
         $.ajax({
             url: "/report",
@@ -78,25 +82,28 @@
                 reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                 reportChart.update();
 
-                if (data.active_users.length > 0) {
-                    var sel = agencyUserFilter;
-                    sel.empty();
-                    for (i = 0; i < (data.active_users).length; i++) {
-                        var opt = document.createElement("option");
-                        opt.innerHTML = data.active_users[i][1];
-                        opt.value = data.active_users[i][0];
-                        sel.append(opt);
+                {% if current_user.is_super or current_user.is_agency_admin or current_user.is_active %}
+                    if ((data.active_users.length > 0) && data.show_users) {
+                        debugger;
+                        var sel = agencyUserFilter;
+                        sel.empty();
+                        for (i = 0; i < (data.active_users).length; i++) {
+                            var opt = document.createElement("option");
+                            opt.innerHTML = data.active_users[i][1];
+                            opt.value = data.active_users[i][0];
+                            sel.append(opt);
+                        }
+                        userFilterDiv.show();
                     }
-                    userFilterDiv.show();
-                }
-                else {
-                    userFilterDiv.hide();
-                }
+                    else {
+                        userFilterDiv.hide();
+                    }
+                {% endif %}
             }
         });
     });
 
-    {% if current_user.is_agency %}
+    if (agency_admin || super_user || current_agency === agencyFilter.val()) {
         agencyUserFilter.change(function () {
             $.ajax({
                 url: "/report",
@@ -112,5 +119,5 @@
                 }
             })
         });
-    {% endif %}
+    }
 </script>
