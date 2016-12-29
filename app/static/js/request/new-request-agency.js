@@ -69,6 +69,7 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
     $('#request-title').attr('data-parsley-maxlength', 90);
     $('#request-description').attr('data-parsley-maxlength', 5000);
+    $("#email").attr("data-parsley-maxlength", 254);
     $('#phone').attr('data-parsley-length','[14,14]');
     $('#fax').attr('data-parsley-length','[14,14]');
     $('#zipcode').attr('data-parsley-length', '[5,5]');
