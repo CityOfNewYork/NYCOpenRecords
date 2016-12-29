@@ -100,14 +100,16 @@ def patch(user_id):
                 # agency user attempting to change a agency/super status
                 (current_user_is_agency_user and changing_status)
             or
-                # agency admin attempting to change another user that is not in the same agency or
-                # attempting to change more than just the agency status of a user
-                (current_user_is_agency_admin and (not same_agency or changing_more_than_agency_status))
-            or
                 # agency user attempting to change a user that is not an anonymous requester
                 # for a request they are assigned to
                 (current_user_is_agency_user and (
-                            not user_.is_anonymous_requester or associated_anonymous_requester))
+                            not user_.is_anonymous_requester or not associated_anonymous_requester))
+            or
+               # agency admin attempting to change another user that is not in the same agency or
+               # attempting to change more than just the agency status of a user
+               (current_user_is_agency_admin
+                and not (associated_anonymous_requester or user_.is_anonymous_requester)
+                and (not same_agency or changing_more_than_agency_status))
             or
                 # agency admin attempting to change an anonymous requester for a request
                 # they are not assigned to
