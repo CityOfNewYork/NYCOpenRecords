@@ -99,6 +99,8 @@ class Config:
                                else None)
     # https://www.elastic.co/blog/index-vs-type
 
+    NYC_GOV_BASE = 'www1.nyc.gov'
+
     @staticmethod
     def init_app(app):
         pass
