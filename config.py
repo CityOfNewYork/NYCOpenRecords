@@ -9,6 +9,7 @@ load_dotenv(dotenv_path)
 
 
 class Config:
+    NYC_GOV_BASE = 'www1.nyc.gov'
     WTF_CSRF_ENABLED = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
