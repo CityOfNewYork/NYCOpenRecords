@@ -198,13 +198,13 @@ def response_closing(request_id):
             flash('Uh Oh, it looks like the closing {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-        try:
-            add_closing(request_id,
-                        flask_request.form.getlist('reasons'),
-                        flask_request.form['email-summary'])
-        except UserRequestException as e:
-            flash(str(e), category='danger')
-        return redirect(url_for('request.view', request_id=request_id))
+    try:
+        add_closing(request_id,
+                    flask_request.form.getlist('reasons'),
+                    flask_request.form['email-summary'])
+    except UserRequestException as e:
+        flash(str(e), category='danger')
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/reopening/<request_id>', methods=['POST'])
