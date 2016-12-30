@@ -86,6 +86,9 @@ $(document).ready(function () {
 
     // Clear the file from input and the name from filename div
     $("#clear-file").click(function () {
+        if ($(".file-error").is(":visible")) {
+            $(".file-error").hide();
+        }
         $("#request-file").val("");
         $("#filename").text("");
     });
@@ -93,6 +96,12 @@ $(document).ready(function () {
     $('#request-form').parsley().on('form:validate', function () {
         // Do stuff when parsley validates
         // TODO: this or combine (see the other new-request-* js files)
+        if ($("#request-file").parsley().isValid() === false) {
+            $(".file-error").show();
+        }
+        else {
+            $(".file-error").hide();
+        }
     });
 
     // Clear error messages for form.request_file on submit ...
