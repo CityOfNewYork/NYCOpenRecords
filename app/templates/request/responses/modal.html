@@ -20,7 +20,8 @@
                     {% endif %}
                 {% endif %}
                 <strong class="modal-title">
-                    {% if response.type != response_type.DETERMINATION and is_editable %}
+                    {% if response.type != response_type.DETERMINATION and is_editable
+                    and current_request.status != request_status.CLOSED %}
                         EDIT {{ response | format_response_type }}
                     {% else %}
                         VIEW {{ response | format_response_type }}
@@ -36,13 +37,15 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
                             {% if response.type != response_type.DETERMINATION %}
-                                {% if is_editable and delete_response_permission %}
+                                {% if is_editable and delete_response_permission
+                                and current_request.status != request_status.CLOSED %}
                                     <button type="button" class="btn btn-danger pull-left delete-select">
                                         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                         Delete
                                     </button>
                                 {% endif %}
-                                {% if is_editable and (edit_response_permission or edit_response_privacy_permission) %}
+                                {% if is_editable and (edit_response_permission or edit_response_privacy_permission)
+                                and current_request.status != request_status.CLOSED %}
                                     <button type="button" class="btn btn-primary response-modal-next">
                                         Next
                                         <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
@@ -52,7 +55,8 @@
                         </div>
                     </div>
                     {% if is_editable %}
-                        {% if edit_response_permission or edit_response_privacy_permission %}
+                        {% if edit_response_permission or edit_response_privacy_permission
+                        and current_request.status != request_status.CLOSED %}
                             <div class="second" hidden>
                                 <div class="modal-body">
                                     <h4>Edit Email Body</h4>
@@ -96,7 +100,8 @@
                         {{ modal_body | safe }}
                     </div>
                     <div class="modal-footer">
-                        {% if response.type  != response_type.DETERMINATION and delete_response_permission and is_editable %}
+                        {% if response.type  != response_type.DETERMINATION and delete_response_permission and is_editable
+                        and current_request.status != request_status.CLOSED %}
                             <button type="button" class="btn btn-danger pull-left delete-select">
                                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                 Delete
@@ -106,7 +111,7 @@
                     </div>
                 {% endif %}
             </div>
-            {% if is_editable and delete_response_permission %}
+            {% if is_editable and delete_response_permission and current_request.status != request_status.CLOSED%}
                 <div class="delete" hidden>
                     <div class="modal-body">
                         <p>Are you sure you want to delete this response?</p>

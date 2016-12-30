@@ -1,4 +1,5 @@
-{% if (edit_response_permission or edit_response_privacy_permission) and is_editable %}
+{% if (edit_response_permission or edit_response_privacy_permission) and is_editable
+and current_request.status != request_status.CLOSED %}
     <form id="fileupload-update-{{ response.id }}" class="fileupload-update fileupload-form"
           action="/response/{{ response.id }}" method="POST">
         {% if edit_response_permission %}

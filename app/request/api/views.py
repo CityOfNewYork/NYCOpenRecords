@@ -26,6 +26,7 @@ from app.constants import (
     determination_type,
     response_type,
     response_privacy,
+    request_status
 )
 
 
@@ -113,8 +114,10 @@ def get_request_responses():
     """
     start = int(flask_request.args['start'])
 
+    current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
+
     responses = Responses.query.filter(
-        Responses.request_id == flask_request.args['request_id'],
+        Responses.request_id == current_request.id,
         Responses.type != response_type.EMAIL,
         Responses.deleted == False
     ).order_by(
@@ -161,6 +164,7 @@ def get_request_responses():
                                    response_privacy.RELEASE_AND_PRIVATE,
                                    response_privacy.PRIVATE],
                         determination_type=determination_type,
+                        request_status=request_status,
                         edit_response_privacy_permission=is_allowed(user=current_user,
                                                                     request_id=response.request_id,
                                                                     permission=get_permission(
@@ -176,11 +180,13 @@ def get_request_responses():
                                                               request_id=response.request_id,
                                                               permission=get_permission(permission_type='delete',
                                                                                         response_type=type(response))),
-                        is_editable=response.is_editable
+                        is_editable=response.is_editable,
+                        current_request=current_request
 
                     ),
                     response_type=response_type,
                     determination_type=determination_type,
+                    request_status=request_status,
                     edit_response_permission=is_allowed(user=current_user,
                                                         request_id=response.request_id,
                                                         permission=get_permission(permission_type='edit',
@@ -195,7 +201,8 @@ def get_request_responses():
                                                                     permission_type='privacy',
                                                                     response_type=type(
                                                                         response))),
-                    is_editable=response.is_editable
+                    is_editable=response.is_editable,
+                    current_request=current_request
                 )
                 json['template'] = row + modal
 

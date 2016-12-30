@@ -214,8 +214,8 @@ def add_closing(request_id, reason_ids, email_content):
     if current_request.status != request_status.CLOSED:
         if current_request.privacy['agency_description'] or not current_request.agency_description:
             for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(
-                            Responses.type != response_type.NOTE).all():
-                if privacy != RELEASE_AND_PUBLIC:
+                            Responses.type != response_type.NOTE, Responses.type != response_type.EMAIL).all():
+                if privacy[0] != RELEASE_AND_PUBLIC:
                     raise UserRequestException(action="close",
                                                request_id=current_request.id,
                                                reason="Agency Description is private and responses are not public"
