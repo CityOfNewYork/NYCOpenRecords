@@ -78,14 +78,13 @@
                 for (var i = 0; i < (data.values).length; ++i) {
                     reportChart.data.datasets[0].data[i] = data.values[i]
                 }
-                var maxTicks = Math.min(Math.min.apply(null, data.values), 10);
+                var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
                 reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
                 reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                 reportChart.update();
 
                 if (agency_active || agency_admin || super_user) {
                     if ((data.active_users.length > 0) && data.show_users) {
-                        debugger;
                         var sel = agencyUserFilter;
                         sel.empty();
                         for (i = 0; i < (data.active_users).length; i++) {
