@@ -6,9 +6,19 @@ from flask import request, jsonify
 from flask_login import current_user
 
 from app.user import user
-from app.models import Users, Events
-from app.constants import USER_ID_DELIMITER, event_type
-from app.lib.db_utils import update_object, create_object
+from app.user_request.utils import create_user_request_event
+from app.models import Users, Events, Roles
+from app.constants import (
+    USER_ID_DELIMITER,
+    event_type,
+    permission,
+    role_name,
+)
+from app.lib.db_utils import (
+    update_object,
+    create_object,
+    delete_object,
+)
 from app.lib.utils import eval_request_bool
 
 
@@ -61,9 +71,11 @@ def patch(user_id):
 
         updating_self = current_user == user_
         current_user_is_agency_user = (current_user.is_agency
+                                       and not current_user.is_super
                                        and not current_user.is_agency_admin
                                        and current_user.is_agency_active)
         current_user_is_agency_admin = (current_user.is_agency
+                                        and not current_user.is_super
                                         and current_user.is_agency_admin
                                         and current_user.is_agency_active)
         same_agency = current_user.agency is user_.agency
@@ -105,11 +117,11 @@ def patch(user_id):
                 (current_user_is_agency_user and (
                             not user_.is_anonymous_requester or not associated_anonymous_requester))
             or
-               # agency admin attempting to change another user that is not in the same agency or
-               # attempting to change more than just the agency status of a user
-               (current_user_is_agency_admin
-                and not (associated_anonymous_requester or user_.is_anonymous_requester)
-                and (not same_agency or changing_more_than_agency_status))
+                # agency admin attempting to change another user that is not in the same agency or
+                # attempting to change more than just the agency status of a user
+                (current_user_is_agency_admin
+                 and not (associated_anonymous_requester or user_.is_anonymous_requester)
+                 and (not same_agency or changing_more_than_agency_status))
             or
                 # agency admin attempting to change an anonymous requester for a request
                 # they are not assigned to
@@ -204,6 +216,12 @@ def patch(user_id):
                     new_address[field] = new_val
 
         if new or new_address:
+            # in spite of not changing, the guid and auth type of
+            # the user being updated is added to Events.new_value
+            # in order to identify this user
+            new['user_guid'] = user_.guid
+            new['auth_user_type'] = user_.auth_user_type
+
             if new_address:
                 new['mailing_address'] = new_address
             if old_address:
@@ -232,6 +250,32 @@ def patch(user_id):
                     if new.get(field) is not None:
                         new_statuses[field] = new.pop(field)
                         old_statuses[field] = old.pop(field)
+
+                # TODO: a better way to store user identifiers (than in the value columns)
+                new_statuses['user_guid'] = user_.guid
+                new_statuses['auth_user_type'] = user_.auth_user_type
+
+                is_agency_active = new_statuses.get('is_agency_active')
+                is_agency_admin = new_statuses.get('is_agency_admin')
+
+                if is_agency_active is not None and not is_agency_active:
+                    # Remove ALL UserRequests
+                    for user_request in user_.user_requests.all():
+                        create_user_request_event(event_type.USER_REMOVED, user_request)
+                        delete_object(user_request)
+                elif is_agency_admin is not None:
+                    # Update ALL UserRequests
+                    permissions = (Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
+                                   if is_agency_admin else permission.NONE)
+                    for user_request in user_.user_requests.all():
+                        old_permissions = user_request.permissions
+                        user_request.set_permissions(permissions)
+                        create_user_request_event(event_type.USER_PERM_CHANGED,
+                                                  user_request,
+                                                  old_permissions)
+
+                # TODO: single email detailing user changes?
+
                 create_object(Events(
                     type_=event_type.USER_STATUS_CHANGED,
                     previous_value=old_statuses,
@@ -239,7 +283,7 @@ def patch(user_id):
                     **event_kwargs
                 ))
 
-            if new:  # something besides status changed
+            if old:  # something besides status changed ('new' holds user guid and auth type)
                 create_object(Events(
                     type_=event_type.USER_INFO_EDITED,
                     previous_value=old,

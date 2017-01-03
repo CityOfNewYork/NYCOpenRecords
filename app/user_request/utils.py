@@ -1,18 +1,18 @@
+from datetime import datetime
 from urllib.parse import urljoin
 from flask import (
     request as flask_request,
     render_template,
     url_for
 )
-from app.response.utils import (
-    safely_send_and_add_email,
-    create_response_event
-)
+from flask_login import current_user
+from app.response.utils import safely_send_and_add_email
 from app.lib.db_utils import delete_object, create_object
 from app.models import (
     Users,
     UserRequests,
     Requests,
+    Events,
 )
 from app.lib.utils import UserRequestException
 from app.constants import event_type, permission, user_type_request
@@ -83,7 +83,7 @@ def add_user_request(request_id, user_guid, permissions):
     if added_permissions:
         user_request.add_permissions([capability.value for capability in added_permissions])
 
-    create_response_event(event_type.USER_ADDED, user_request=user_request)
+    create_user_request_event(event_type.USER_ADDED, user_request)
 
 
 def edit_user_request(request_id, user_guid, permissions):
@@ -138,12 +138,14 @@ def edit_user_request(request_id, user_guid, permissions):
         'User Permissions Edited for Request {}'.format(request_id),
         to=[user_request.user.email])
 
+    old_permissions = user_request.permissions
+
     if added_permissions:
         user_request.add_permissions([capability.value for capability in added_permissions])
     if removed_permissions:
         user_request.remove_permissions([capability.value for capability in removed_permissions])
 
-    create_response_event(event_type.USER_PERM_CHANGED, user_request=user_request)
+    create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions)
 
 
 def remove_user_request(request_id, user_guid):
@@ -184,7 +186,7 @@ def remove_user_request(request_id, user_guid):
         'User Removed from Request {}'.format(request_id),
         to=[user_request.user.email])
 
-    create_response_event(event_type.USER_REMOVED, user_request=user_request)
+    create_user_request_event(event_type.USER_REMOVED, user_request)
     delete_object(user_request)
 
 
@@ -203,3 +205,23 @@ def _get_agency_admin_emails(request_id):
                                                   ).all()
 
     return [user.email for user in agency_administrators]
+
+
+def create_user_request_event(events_type, user_request, old_permissions=None):
+    """
+    Create an Event for the addition, removal, or updating of a UserRequest
+
+    """
+    if old_permissions is not None:
+        previous_value = {"permissions": old_permissions}
+    else:
+        previous_value = None
+    create_object(Events(
+        user_request.request_id,
+        current_user.guid,
+        current_user.auth_user_type,
+        events_type,
+        previous_value=previous_value,
+        new_value=user_request.val_for_events,
+        timestamp=datetime.utcnow(),
+    ))

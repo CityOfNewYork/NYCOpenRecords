@@ -1294,31 +1294,21 @@ def safely_send_and_add_email(request_id,
         print("Error:", e)
 
 
-def create_response_event(events_type, response=None, user_request=None):
+def create_response_event(events_type, response):
     """
     Create and store event object for given response.
 
     :param response: response object
-    :param user_request: user_request object
     :param events_type: one of app.constants.event_type
 
     """
-    user = response.request.requester if current_user.is_anonymous else current_user
-    event = None
-    if response:
-        event = Events(request_id=response.request_id,
-                       user_guid=user.guid,
-                       auth_user_type=user.auth_user_type,
-                       type_=events_type,
-                       timestamp=datetime.utcnow(),
-                       response_id=response.id,
-                       new_value=response.val_for_events)
-    elif user_request:
-        event = Events(request_id=user_request.request_id,
-                       user_guid=user.guid,
-                       auth_user_type=user.auth_user_type,
-                       type_=events_type,
-                       timestamp=datetime.utcnow())
+    event = Events(request_id=response.request_id,
+                   user_guid=current_user.guid,
+                   auth_user_type=current_user.auth_user_type,
+                   type_=events_type,
+                   timestamp=datetime.utcnow(),
+                   response_id=response.id,
+                   new_value=response.val_for_events)
     # store event object
     create_object(event)
 

@@ -9,7 +9,7 @@ from app.admin.forms import (
     SelectAgencyForm,
     ActivateAgencyUserForm
 )
-from flask import render_template
+from flask import render_template, abort
 from flask_login import current_user
 
 
@@ -41,4 +41,4 @@ def main(agency_ein=None):
                 Users.last_name.desc()
             ).all()
             return render_template("admin/main.html", users=active_users, user_form=form)
-    return '', 403
+    return abort(404)
