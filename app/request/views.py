@@ -19,6 +19,7 @@ from flask import (
 )
 from flask_login import current_user
 from sqlalchemy import any_
+from sqlalchemy.orm.exc import NoResultFound
 
 from app.constants import (
     request_status,
@@ -180,9 +181,10 @@ def view(request_id):
 
     :return: redirect to view request page
     """
-    current_request = Requests.query.filter_by(id=request_id).one()
-
-    if not current_request.agency.is_active:
+    try:
+        current_request = Requests.query.filter_by(id=request_id).one()
+        assert current_request.agency.is_active
+    except (NoResultFound, AssertionError):
         return abort(404)
 
     holidays = sorted(get_holidays_date_list(

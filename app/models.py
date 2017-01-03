@@ -808,7 +808,6 @@ class UserRequests(db.Model):
         return {
             "user_guid": self.user_guid,
             "auth_user_type": self.auth_user_type,
-            "request_id": self.request_id,
             "request_user_type": self.request_user_type,
             "permissions": self.permissions
         }
@@ -832,6 +831,17 @@ class UserRequests(db.Model):
         :param permissions: list of permissions from app.constants.permissions
         """
         self.permissions &= ~reduce(ior, permissions)
+        db.session.commit()
+
+    def set_permissions(self, permissions):
+        """
+        :param permissions: list of permissions from app.constants.permissions
+                            or a permissions bitmask
+        """
+        if isinstance(permissions, list):
+            self.permissions = reduce(ior, permissions)
+        else:
+            self.permissions = permissions
         db.session.commit()
 
 
