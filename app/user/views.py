@@ -217,7 +217,7 @@ def patch(user_id):
 
         if new or new_address:
             # in spite of not changing, the guid and auth type of
-            # the user being updated is added to previous/new values
+            # the user being updated is added to Events.new_value
             # in order to identify this user
             new['user_guid'] = user_.guid
             new['auth_user_type'] = user_.auth_user_type
