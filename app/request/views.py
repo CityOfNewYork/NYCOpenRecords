@@ -184,7 +184,11 @@ def view(request_id):
     try:
         current_request = Requests.query.filter_by(id=request_id).one()
         assert current_request.agency.is_active
-    except (NoResultFound, AssertionError):
+    except NoResultFound as e:
+        print("Request with id '{}' does not exist.".format(request_id))
+        return abort(404)
+    except AssertionError as e:
+        print("Request belongs to inactive agency.")
         return abort(404)
 
     holidays = sorted(get_holidays_date_list(
