@@ -455,8 +455,8 @@ class Requests(db.Model):
     agency_description = db.Column(db.String(5000))
     agency_description_release_date = db.Column(db.DateTime)
 
-    user_requests = db.relationship('UserRequests', backref='request', lazy='dynamic')
-    agency = db.relationship('Agencies', backref=db.backref('request', uselist=False))
+    user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
+    agency = db.relationship('Agencies', backref='requests', uselist=False)
     responses = db.relationship('Responses', backref=db.backref('request', uselist=False), lazy='dynamic')
     requester = db.relationship(
         'Users',
@@ -464,8 +464,7 @@ class Requests(db.Model):
         primaryjoin=lambda: Requests.id == UserRequests.request_id,
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type,"
-                      "UserRequests.request_user_type == '{}')".format(
-            user_type_request.REQUESTER),
+                      "UserRequests.request_user_type == '{}')".format(user_type_request.REQUESTER),
         backref="requests",
         viewonly=True,
         uselist=False
@@ -477,8 +476,7 @@ class Requests(db.Model):
         primaryjoin=lambda: Requests.id == UserRequests.request_id,
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
                       "Users.auth_user_type == UserRequests.auth_user_type, "
-                      "UserRequests.request_user_type == '{}')".format(
-            user_type_request.AGENCY),
+                      "UserRequests.request_user_type == '{}')".format(user_type_request.AGENCY),
         viewonly=True
     )
 
