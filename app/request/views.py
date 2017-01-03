@@ -184,10 +184,10 @@ def view(request_id):
     try:
         current_request = Requests.query.filter_by(id=request_id).one()
         assert current_request.agency.is_active
-    except NoResultFound as e:
+    except NoResultFound:
         print("Request with id '{}' does not exist.".format(request_id))
         return abort(404)
-    except AssertionError as e:
+    except AssertionError:
         print("Request belongs to inactive agency.")
         return abort(404)
 
