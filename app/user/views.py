@@ -267,6 +267,13 @@ def patch(user_id):
                 elif is_agency_admin is not None:
 
                     def set_permissions_and_create_event(user_req, perms):
+                        """
+                        Set permissions for a user request and create a
+                        'user_permissions_changed' Event.
+
+                        :param user_req: user request
+                        :param perms: permissions to set for user request
+                        """
                         old_permissions = user_req.permissions
                         user_request.set_permissions(perms)
                         create_user_request_event(event_type.USER_PERM_CHANGED,
