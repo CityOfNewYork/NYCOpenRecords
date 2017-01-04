@@ -9,6 +9,9 @@
 
 <div>
     <form id="contact-info" action="{{ url_for('main.contact') }}" method="POST">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
         <label for="name">Name</label>
         <input id="name" class="form-control" name="name" maxlength="32" type="text">
         <h5 id="name-character-count">32 characters remaining</h5>

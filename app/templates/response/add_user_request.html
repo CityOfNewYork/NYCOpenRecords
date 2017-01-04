@@ -1,4 +1,7 @@
 <form id="add-user-request" action="/user_request/{{ request.id }}" method="POST">
+
+    {{ add_user_request_form.csrf_token }}
+
     <div class="col-sm-9">
         <fieldset>
             <legend>

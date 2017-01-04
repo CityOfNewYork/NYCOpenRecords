@@ -5,15 +5,16 @@ import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import Flask, render_template
+from flask_apscheduler import APScheduler
 from flask_bootstrap import Bootstrap
-from flask_moment import Moment
-from flask_kvsession import KVSessionExtension
 from flask_elasticsearch import FlaskElasticsearch
+from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
-from flask_apscheduler import APScheduler
+from flask_wtf import CsrfProtect
 from apscheduler.triggers.interval import IntervalTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
@@ -25,6 +26,7 @@ recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
 es = FlaskElasticsearch()
 db = SQLAlchemy()
+csrf = CsrfProtect()
 moment = Moment()
 mail = Mail()
 login_manager = LoginManager()
@@ -64,6 +66,7 @@ def create_app(config_name):
     bootstrap.init_app(app)
     es.init_app(app, use_ssl=app.config['ELASTICSEARCH_USE_SSL'])
     db.init_app(app)
+    csrf.init_app(app)
     moment.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)

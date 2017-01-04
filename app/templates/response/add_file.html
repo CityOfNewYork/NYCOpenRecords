@@ -1,5 +1,8 @@
 <form id="fileupload" class="fileupload-form" action="/response/file/{{ request.id }}" method="POST"
       enctype="multipart/form-data">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="col-sm-9">
         <div class="fileupload-control">
             <fieldset>
