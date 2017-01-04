@@ -16,9 +16,9 @@
             <td>{{ user.guid }}</td>
             <td>{{ user.auth_user_type }}</td>
             {% if current_user.guid == user.guid %}
-                <td><a href={{ url_for('main.logout', guid=user.guid) }}>Log out</a></td>
+                <td><a href="{{ url_for('main.logout', guid=user.guid) }}">Log out</a></td>
             {% else %}
-                <td><a href={{ url_for('main.login', guid=user.guid) }}>Log In</a></td>
+                <td><a href="{{ url_for('main.login', guid=user.guid) }}">Log In</a></td>
             {% endif %}
         </tr>
     {% endfor %}
