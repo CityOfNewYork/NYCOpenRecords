@@ -1,6 +1,6 @@
 <script type="text/javascript">
     $.ajaxSetup({
-        beforeRequest: function(xhr, settings) {
+        beforeSend: function(xhr, settings) {
             /*
              * Include the X-CSRFToken header for methods that are not considered "safe"
              * (see: https://tools.ietf.org/html/rfc7231.html#section-4.2.1).
