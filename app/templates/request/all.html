@@ -35,8 +35,6 @@
         <!-- Search & Filters -->
         <form id="search-form" action="{{ url_for("search.requests_doc", doc_type="csv") }}" method="get" target="_blank" rel="noreferrer">
 
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
             <div class="row" id="search-section">
                 <div class="well col-sm-12">
                     <div class="col-sm-4">
