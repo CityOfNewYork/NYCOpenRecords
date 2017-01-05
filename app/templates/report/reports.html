@@ -25,7 +25,10 @@
 
         {% if current_user.is_agency %}
         <div id="user-filter" hidden>
-            {{ report_filter_form.user.label }}
+            {{ report_filter_form.user.label }} <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Filter"
+                   data-content="This allows the graph to be filtered by the requests assigned to specific users.">
+                <span class="glyphicon glyphicon-question-sign"></span>
+        </small>
             {{ report_filter_form.user(id="agency-user-filter", class="input-block-level") }}
         </div>
         {% endif %}
