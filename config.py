@@ -38,7 +38,7 @@ class Config:
     USE_SAML = os.environ.get('USE_SAML') == "True"
     LDAP_SERVER = os.environ.get('LDAP_SERVER') or None
     LDAP_PORT = os.environ.get('LDAP_PORT') or None
-    LDAP_USE_TLS = os.environ.get('LDAP_USE_TLS') or None
+    LDAP_USE_TLS = os.environ.get('LDAP_USE_TLS') == "True"
     LDAP_KEY_PATH = os.environ.get('LDAP_KEY_PATH') or None
     LDAP_SA_BIND_DN = os.environ.get('LDAP_SA_BIND_DN') or None
     LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None

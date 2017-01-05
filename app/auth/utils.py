@@ -11,6 +11,7 @@ from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from ldap3 import Server, Tls, Connection
 import ssl
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from app import login_manager
 from app.constants import USER_ID_DELIMITER
@@ -241,6 +242,15 @@ def create_user(title=None, organization=None, phone_number=None, fax_number=Non
         return None
 
 
+def find_user(email):
+    """
+    Find a user by email address in the database. Used for LDAP Authentication ONLY.
+    :param email: Email address
+    :return: User object.
+    """
+    return Users.query.filter_by(email=email, is_agency_active=True).first()
+
+
 def ldap_authentication(email, password):
     """
     Authenticate the provided user with an LDAP Server.
@@ -253,11 +263,8 @@ def ldap_authentication(email, password):
     users = conn.search(search_base=current_app.config['LDAP_BASE_DN'],
                         search_filter='(mail={email})'.format(email=email), attributes='dn')
 
-    if users and len(users) > 1:
-        if not conn.rebind(users[0].entry_dn, password):
-            return False
-        else:
-            return True
+    if users and len(conn.entries) >= 1:
+        return conn.rebind(conn.entries[0].entry_dn, password)
 
 
 def _ldap_server_connect():
@@ -272,7 +279,7 @@ def _ldap_server_connect():
     :return: LDAP Context
     """
     ldap_server = current_app.config['LDAP_SERVER']
-    ldap_port = current_app.config['LDAP_PORT']
+    ldap_port = int(current_app.config['LDAP_PORT'])
     ldap_use_tls = current_app.config['LDAP_USE_TLS']
     ldap_key_path = current_app.config['LDAP_KEY_PATH']
     ldap_sa_bind_dn = current_app.config['LDAP_SA_BIND_DN']

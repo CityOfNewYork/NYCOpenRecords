@@ -15,6 +15,7 @@ from flask import (
 )
 from flask_login import (
     login_user,
+    logout_user,
     current_user,
     current_app
 )
@@ -26,7 +27,8 @@ from app.auth.utils import (
     init_saml_auth,
     process_user_data,
     find_or_create_user,
-    ldap_authentication
+    ldap_authentication,
+    find_user
 )
 from app.lib.user_information import create_mailing_address
 
@@ -35,30 +37,52 @@ from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 @auth.route('/login')
 def login():
-    with current_app.app_context():
-        if current_app.config['USE_LDAP']:
-            return redirect(url_for('auth.ldap_login'))
-        elif current_app.config['USE_SAML']:
-            return redirect(url_for('auth.saml_login'))
+    if current_app.config['USE_LDAP']:
+        return redirect(url_for('auth.ldap_login'))
+    elif current_app.config['USE_SAML']:
+        return redirect(url_for('auth.saml'))
 
-        return abort(404)
+    return abort(404)
+
+
+@auth.route('/logout')
+def logout():
+    if current_app.config['USE_LDAP']:
+        return redirect(url_for('auth.ldap_logout'))
+    elif current_app.config['USE_SAML']:
+        return redirect(url_for('auth.saml'))
+
+    return abort(404)
 
 
 @auth.route('/ldap_login', methods=['GET', 'POST'])
 def ldap_login():
     if request.method == 'POST':
-        username = request.form.email.data
-        password = request.form.password.data
+        email = request.form['email']
+        password = request.form['password']
 
-        authenticated = ldap_authentication(username, password)
+        user = find_user(email)
 
-        if authenticated:
-            return redirect('main.index')
+        if user is not None:
+            authenticated = ldap_authentication(email, password)
+
+            if authenticated:
+                login_user(user)
+                session['user_id'] = current_user.get_id()
+                return redirect(url_for('main.index'))
+            return abort(403)
+        return abort(403)
 
     elif request.method == 'GET':
         login_form = LDAPLoginForm()
 
         return render_template('auth/ldap_login_form.html', login_form=login_form)
+
+
+@auth.route('/ldap_logout', methods=['GET'])
+def ldap_logout():
+    logout_user()
+    return redirect(url_for('main.index'))
 
 
 @auth.route('/', methods=['GET', 'POST'])
