@@ -186,5 +186,33 @@ def create_user(agency=False,
     print(user, "created.")
 
 
+@manager.command
+def routes():
+    from flask import url_for
+    from urllib.parse import unquote
+    output = []
+    for rule in app.url_map.iter_rules():
+        options = {}
+        for arg in rule.arguments:
+            if arg == 'year':
+                from datetime import datetime
+                options[arg] = "{}".format(datetime.now().year)
+                continue
+            options[arg] = "[{}]".format(arg)
+
+        methods = ','.join(rule.methods)
+        url = url_for(rule.endpoint, **options)
+        from datetime import datetime
+        if str(datetime.now().year) in url:
+            url = url.replace(str(datetime.now().year), '[year]')
+        line = unquote("{:50} {:20} {}".format(rule.endpoint, methods, url))
+
+        output.append(line)
+
+    for line in sorted(output):
+        print(line)
+
+
+
 if __name__ == "__main__":
     manager.run()

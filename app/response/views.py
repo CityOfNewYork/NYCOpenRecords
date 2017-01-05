@@ -529,7 +529,10 @@ def get_yearly_holidays(year):
 
     :return: List of strings ["YYYY-MM-DD"]
     """
-    return jsonify(holidays=sorted(get_holidays_date_list(year)))
+    if year:
+        return jsonify(holidays=sorted(get_holidays_date_list(year)))
+    else:
+        return jsonify(holidays=sorted(get_holidays_date_list(int(datetime.now().year))))
 
 
 @response.route('/<response_id>', methods=["GET"])

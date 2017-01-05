@@ -30,10 +30,19 @@ class Config:
     SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
-    # SAML Authentication Settings
+    # Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
     IDP = os.environ.get('IDP')
+    USE_LDAP = os.environ.get('USE_LDAP') == "True"
+    USE_SAML = os.environ.get('USE_SAML') == "True"
+    LDAP_SERVER = os.environ.get('LDAP_SERVER') or None
+    LDAP_PORT = os.environ.get('LDAP_PORT') or None
+    LDAP_USE_TLS = os.environ.get('LDAP_USE_TLS') == "True"
+    LDAP_KEY_PATH = os.environ.get('LDAP_KEY_PATH') or None
+    LDAP_SA_BIND_DN = os.environ.get('LDAP_SA_BIND_DN') or None
+    LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
+    LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
 
     # Database Settings
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
@@ -132,6 +141,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
+    # TODO: complete me
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
 

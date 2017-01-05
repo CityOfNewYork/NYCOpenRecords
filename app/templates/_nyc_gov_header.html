@@ -4,7 +4,7 @@
             {% if current_user.is_authenticated %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="/auth/?slo">Log Out</a>
+                        <a href="{{ url_for('auth.logout') }}">Log Out</a>
                     </span>
                 </span>
                 {% if current_user.is_public %}
@@ -16,7 +16,7 @@
             {% else %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="/auth/?sso">Log In</a>
+                        <a href="{{ url_for('auth.login') }}">Log In</a>
                     </span>
                 </span>
             {% endif %}
