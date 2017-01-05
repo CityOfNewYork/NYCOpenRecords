@@ -54,9 +54,8 @@
             first.show();
         });
 
-        submit.click(function(){
-            $(this).attr("disabled", true);
-           form.submit();
+        form.submit(function() {
+            submit.attr("disabled", true);
         });
 
     });

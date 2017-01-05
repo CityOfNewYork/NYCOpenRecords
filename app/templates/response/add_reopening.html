@@ -1,4 +1,7 @@
 <form id="add-reopening" action="/response/reopening/{{ request.id }}" method="POST">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="col-sm-9">
         <fieldset>
             <legend>

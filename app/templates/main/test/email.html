@@ -10,6 +10,7 @@
     <p style="color: red;">{{ message }}</p>
 {% endfor %}
 <form id="email" method="POST">
+    {{ form.csrf_token }}
     {{ form.hidden_tag() }}
     {{ form.to.label }}: {{ form.to }}
     {{ form.cc.label }}: {{ form.cc }}

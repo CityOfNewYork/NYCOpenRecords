@@ -1,4 +1,7 @@
 <form id="add-closing" action="/response/closing/{{ request.id }}" method="POST">
+
+    {{ close_request_form.csrf_token }}
+
     <div class="col-sm-9">
         <fieldset>
             <legend>

@@ -1,0 +1,15 @@
+<script type="text/javascript">
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            /*
+             * Include the X-CSRFToken header for methods that are not considered "safe"
+             * (see: https://tools.ietf.org/html/rfc7231.html#section-4.2.1).
+             *
+             * http://flask-wtf.readthedocs.io/en/stable/csrf.html
+             */
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}")
+            }
+        }
+    });
+</script>

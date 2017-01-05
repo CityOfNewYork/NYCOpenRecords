@@ -1,4 +1,6 @@
 <form id="add-extension-form" action="/response/extension/{{ request.id }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="col-sm-9">
         <div class="extension-control">
             <legend>

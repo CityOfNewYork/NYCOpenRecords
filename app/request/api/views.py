@@ -153,8 +153,7 @@ def get_request_responses():
                 modal = render_template(
                     template_path + 'modal.html',
                     response=response,
-                    requires_workflow=response.type
-                                      in response_type.EMAIL_WORKFLOW_TYPES,
+                    requires_workflow=response.type in response_type.EMAIL_WORKFLOW_TYPES,
                     modal_body=render_template(
                         "{}modal_body/{}.html".format(
                             template_path, response.type

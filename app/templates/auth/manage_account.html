@@ -10,6 +10,8 @@
         <form method="post" class="form" role="form" id="request-form" data-parsley-validate>
             <h1>Manage OpenRecords Profile</h1>
 
+            {{ form.csrf_token }}
+
             {{ form.user_title.label(class='request-heading') }}
             {{ form.user_title(id='user-title', class='input-block-level',
                 placeholder='Your role in your organization (if applicable)') }}<br>
