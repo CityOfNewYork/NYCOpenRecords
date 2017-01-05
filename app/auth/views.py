@@ -47,12 +47,11 @@ def login():
 @auth.route('/ldap_login', methods=['GET', 'POST'])
 def ldap_login():
     if request.method == 'POST':
-        username = request.form.username.data
+        username = request.form.email.data
         password = request.form.password.data
 
-        # authenticated = ldap_authentication(username, password)
+        authenticated = ldap_authentication(username, password)
 
-        authenticated = True
         if authenticated:
             return redirect('main.index')
 
