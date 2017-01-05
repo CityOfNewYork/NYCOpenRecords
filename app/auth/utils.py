@@ -1,4 +1,8 @@
-# TODO: Add module level comments
+"""
+.. module:: auth.views.
+
+   :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
+"""
 
 from urllib.parse import urljoin, urlparse
 

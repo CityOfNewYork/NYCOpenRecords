@@ -33,6 +33,7 @@ isodate==0.5.4
 itsdangerous==0.24
 Jinja2==2.8
 kombu==3.0.35
+ldap3==2.1.1
 lxml==3.6.4
 Mako==1.0.4
 MarkupSafe==0.23
