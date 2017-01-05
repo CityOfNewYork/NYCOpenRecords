@@ -248,7 +248,7 @@ def ldap_authentication(email, password):
     :param password: Users password
     :return: Boolean
     """
-    conn = __ldap_server_connect()
+    conn = _ldap_server_connect()
 
     users = conn.search(search_base=current_app.config['LDAP_BASE_DN'],
                         search_filter='(mail={email})'.format(email=email), attributes='dn')
@@ -260,7 +260,7 @@ def ldap_authentication(email, password):
             return True
 
 
-def __ldap_server_connect():
+def _ldap_server_connect():
     """
     Connect to an LDAP server
     :param ldap_server: LDAP Server Hostname / IP Address
