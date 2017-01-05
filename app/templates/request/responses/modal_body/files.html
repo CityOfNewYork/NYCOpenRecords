@@ -1,6 +1,10 @@
-{% if edit_response_permission or edit_response_privacy_permission %}
+{% if (edit_response_permission or edit_response_privacy_permission) and is_editable
+and current_request.status != request_status.CLOSED %}
     <form id="fileupload-update-{{ response.id }}" class="fileupload-update fileupload-form"
           action="/response/{{ response.id }}" method="POST">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
         {% if edit_response_permission %}
             <div class="fileupload-error-messages alert alert-danger" hidden></div>
             <div>

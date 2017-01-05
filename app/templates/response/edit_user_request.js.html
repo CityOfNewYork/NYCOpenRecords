@@ -9,6 +9,7 @@
         var submit = second.find(".submit");
 
         var role = first.find("#role");
+        var user = first.find("#user");
         var permission = first.find("#permission");
 
 
@@ -17,7 +18,7 @@
                 url: "/permissions/api/v1.0/" + role.val(),
                 type: "GET",
                 success: function (data) {
-                    $('#permission').children().each(function () {
+                    permission.children().each(function () {
                         if (data.indexOf(parseInt($(this).val())) !== -1) {
                             $(this).prop("selected", true);
                         } else {
@@ -36,7 +37,7 @@
             return false;
         });
 
-        $('#user').change(function () {
+        user.change(function () {
             $('#edit_options').show();
         });
 
@@ -48,13 +49,13 @@
                     request_id: "{{ request.id }}",
                     type: "user_request_edited",
                     permission: permission.val(),
-                    guid: $('#user').val()
+                    guid: user.val()
                 },
                 success: function (data) {
-                    $('.email-summary').html(data.template);
+                    $(".email-summary").html(data.template);
                     first.hide();
                     second.show();
-                    $('#user_name').text(data.name);
+                    $("#user_name").text(data.name);
                 }
             });
         });

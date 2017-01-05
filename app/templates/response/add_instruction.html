@@ -1,8 +1,15 @@
 <form id="add-instruction-form" action="/response/instruction/{{ request.id }}" method="POST">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="col-sm-9">
         <div class="instruction-control">
             <legend>
                 Add Offline Instructions
+                <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Adding Offline Instructions"
+                       data-content="This function allows you to create instructions for a request so that the requester knows how to pick up their responsive documents.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
             </legend>
             <!-- first div of the add-instruction form -->
             <div class="instruction-divs form-group" id="instruction-first">

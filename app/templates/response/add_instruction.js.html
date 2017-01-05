@@ -25,7 +25,8 @@ $(document).ready(function () {
                     instruction: JSON.stringify({
                         content: $('#instruction-content').val(),
                         privacy: $(".instruction-privacy:checked").val()
-                    })
+                    }),
+                    tz_name: jstz.determine().name()
                 },
                 success: function (data) {
                     tinyMCE.get('email-instruction-content').setContent(data.template);

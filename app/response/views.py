@@ -93,10 +93,13 @@ def response_note(request_id):
             return redirect(url_for('request.view', request_id=request_id))
 
     current_request = Requests.query.filter_by(id=request_id).first()
+    is_editable = False if current_request.requester == current_user else True
+
     add_note(current_request.id,
              note_data['content'],
              note_data['email-note-summary'],
-             note_data['privacy'])
+             note_data['privacy'],
+             is_editable)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -116,20 +119,20 @@ def response_file(request_id):
     """
     current_request = Requests.query.filter_by(id=request_id).first()
     files = process_upload_data(flask_request.form)
-    agency_file_links = {
-        'private': {},
-        'release': {}
-    }
-    requester_file_links = dict()
+    release_public_links = []
+    release_private_links = []
+    private_links = []
     for file_data in files:
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],
-                                files[file_data]['privacy'])
-        get_file_links(response_obj, agency_file_links, requester_file_links)
+                                files[file_data]['privacy'],
+                                is_editable=True)
+        get_file_links(response_obj, release_public_links, release_private_links, private_links)
     send_file_email(request_id,
-                    agency_file_links,
-                    requester_file_links,
+                    release_public_links,
+                    release_private_links,
+                    private_links,
                     flask_request.form['email-file-summary'],
                     flask_request.form['replace-string'])
     return redirect(url_for('request.view', request_id=request_id))
@@ -195,13 +198,13 @@ def response_closing(request_id):
             flash('Uh Oh, it looks like the closing {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-        try:
-            add_closing(request_id,
-                        flask_request.form.getlist('reasons'),
-                        flask_request.form['email-summary'])
-        except UserRequestException as e:
-            flash(str(e), category='danger')
-        return redirect(url_for('request.view', request_id=request_id))
+    try:
+        add_closing(request_id,
+                    flask_request.form.getlist('reasons'),
+                    flask_request.form['email-summary'])
+    except UserRequestException as e:
+        flash(str(e), category='danger')
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/reopening/<request_id>', methods=['POST'])
@@ -302,7 +305,8 @@ def response_link(request_id):
              link_data['title'],
              link_data['url'],
              link_data['email-link-summary'],
-             link_data['privacy'])
+             link_data['privacy'],
+             is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -337,7 +341,8 @@ def response_instructions(request_id):
     add_instruction(current_request.id,
                     instruction_data['content'],
                     instruction_data['email-instruction-summary'],
-                    instruction_data['privacy'])
+                    instruction_data['privacy'],
+                    is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -440,7 +445,7 @@ def patch(response_id):
     """
     resp = Responses.query.filter_by(id=response_id, deleted=False).one()
 
-    if current_user.is_anonymous:
+    if current_user.is_anonymous or not resp.is_editable:
         return abort(403)
 
     patch_form = dict(flask_request.form)

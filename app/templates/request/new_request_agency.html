@@ -10,7 +10,8 @@
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
             <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
-                {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
+
                 <h1>Request a Record (Logged in Agency User)</h1>
 
                 <p>Please make your request specific so you receive the fastest service. After you submit a FOIL request
@@ -20,7 +21,7 @@
                     you about how much time is required to
                     respond to your request.</p>
                 {# Title of the request #}
-                {{ form.request_title.label(class='request-heading') }}
+                {{ form.request_title.label(class='request-heading title-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
                      data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
                      class="glyphicon glyphicon-question-sign">
@@ -35,7 +36,7 @@
                     </strong></p>
                 </div>
                 {# Description of the request #}
-                {{ form.request_description.label(class='request-heading') }}
+                {{ form.request_description.label(class='request-heading description-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
                      data-content="Enter a detailed description of the request"
                      class="glyphicon glyphicon-question-sign">
@@ -54,11 +55,11 @@
                     {{ form.request_file.label(class='request-heading') }}
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     <br>
+                    <div class="alert alert-danger file-error" hidden></div>
                     <label class="btn btn-info">Choose File
                         {{ form.request_file(id='request-file', style="display:none") }}
                     </label>
                     <button type="button" id="clear-file" class="btn btn-danger pull-right">Clear File</button>
-                    <div class="file-error"></div>
                     <div id="filename"></div>
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
@@ -72,7 +73,9 @@
                     Receipt Information
                 </div>
                 {# Format of request received #}
-                Format Received (required)
+                <div class="format-label">
+                    Format Received (required)
+                </div>
                 {{ form.method_received(id='method-received', class='input-block-level') }}
                 {# Date request was received #}
                 Request Date (required)
@@ -88,17 +91,17 @@
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name of user #}
-                {{ form.first_name.label(class='request-heading') }}
+                {{ form.first_name.label(class='request-heading first-name-label') }}
                 {{ form.first_name(id='first-name', class='input-block-level',
                 placeholder='John') }}<br>
                 {# Last name of user #}
-                {{ form.last_name.label(class='request-heading') }}
+                {{ form.last_name.label(class='request-heading last-name-label') }}
                 {{ form.last_name(id='last-name', class='input-block-level',
                 placeholder='Doe') }}<br>
                 {# Email of user #}
-                {{ form.email.label(class='request-heading') }}
+                {{ form.email.label(class='request-heading email-label') }}
                 {{ form.email(id='email', class='input-block-level',
-                placeholder='requester@email.com') }}<br>
+                placeholder='requester@email.com', maxlength='254') }}<br>
 
                 <div class="contact-form-error-message"></div>
                 <h1>Alternate Contact Information

@@ -1,8 +1,14 @@
 <form id="add-extension-form" action="/response/extension/{{ request.id }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="col-sm-9">
         <div class="extension-control">
             <legend>
                 Extend Request
+                <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Extending a Request"
+                       data-content="This function is used to extend a request.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
             </legend>
             <!-- first div of the add-extension form -->
             <div class="extension-divs form-group" id="extension-first">

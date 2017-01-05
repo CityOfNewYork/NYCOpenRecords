@@ -1,6 +1,10 @@
-{% if edit_response_permission or edit_response_privacy_permission %}
+{% if (edit_response_permission or edit_response_privacy_permission) and is_editable
+and current_request.status != request_status.CLOSED %}
     <form id="link-update-{{ response.id }}" class="link-update link-form"
           action="/response/{{ response.id }}" method="POST">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
         {% if edit_response_permission %}
             <div class="link-error-messages alert alert-danger" hidden></div>
             <div class="form-group">

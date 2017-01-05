@@ -1,10 +1,46 @@
-{% extends 'email_templates/email_response.html' %}
-{% block response_content %}
-    <p>
-        <span class="mceNonEditable">
-            The following Offline Instructions has been added to <a href="{{ page }}">{{ request_id }}</a>:
-            <br><br>&nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br />
-        </span>
-    </p>
-    <br />
-{% endblock %}
+{% if privacy %}
+    {% if privacy == response_privacy.RELEASE_AND_PUBLIC %}
+        <p>
+            The {{ agency_name }} has responded to your FOIL request
+            <a href="{{ page }}" target="_blank">{{ request_id }}</a> with the following instructions for
+            offline access.
+        </p>
+        <p>
+            This information will not be accessible to the public for 20 work days.
+        </p>
+        <p>
+            <span class="mceNonEditable">
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br /><br />
+                On {{ release_date }} this note will be publicly available on the OpenRecords Portal.<br /><br />
+                Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+            </span>
+        </p>
+        <p><br/></p>
+
+    {% elif privacy == response_privacy.RELEASE_AND_PRIVATE %}
+        <p>
+            The {{ agency_name }} has responded to your FOIL request
+            <a href="{{ page }}" target="_blank">{{ request_id }}</a> with the following instructions for
+            offline access.
+        </p>
+        <p>
+            <span class="mceNonEditable">
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br /><br />
+                Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+            </span>
+        </p>
+        <p><br/></p>
+
+    {% elif privacy == response_privacy.PRIVATE %}
+        <p>Attention {{ agency_name }} Users,<p>
+        <p>
+            <span class="mceNonEditable">
+                The following instructions for offline access were added to <a href="{{ page }}">{{ request_id }}</a> and is private: <br /><br />
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br />
+            </span>
+        </p>
+        <p><br /></p>
+    {% endif %}
+{% else %}
+    {{ content | safe }}
+{% endif %}

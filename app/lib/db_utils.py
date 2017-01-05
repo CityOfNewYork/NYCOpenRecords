@@ -97,6 +97,26 @@ def delete_object(obj):
         return False
 
 
+def bulk_delete(query):
+    """
+    Delete multiple database records via a bulk delete query.
+
+    http://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.delete
+
+    :param query: Query object
+    :return: the number of records deleted
+    """
+    try:
+        num_deleted = query.delete()
+        db.session.commit()
+        return num_deleted
+    except Exception as e:
+        print(e)
+        print(sys.exc_info())
+        db.session.rollback()
+        return 0
+
+
 def get_obj(obj_type, obj_id):
     """
 
@@ -111,6 +131,6 @@ def get_obj(obj_type, obj_id):
 
 def get_agency_choices():
     choices = sorted([(agencies.ein, agencies.name)
-                      for agencies in db.session.query(Agencies).all()],
-                      key=lambda x: x[1])
+                     for agencies in db.session.query(Agencies).all()],
+                     key=lambda x: x[1])
     return choices

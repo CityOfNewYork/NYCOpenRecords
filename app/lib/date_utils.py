@@ -59,3 +59,15 @@ def get_holidays_date_list(year_start, year_end=None):
     else:
         years = year_start
     return [str(date) for date, name in NYCHolidays(years=years).items()]
+
+
+def get_release_date(initial_date, days_until_release, tz_name):
+    """
+
+    :param initial_date:
+    :param days_until_release:
+    :param tz_name:
+    :return:
+    """
+    release_date = calendar.addbusdays(initial_date, days_until_release)
+    return release_date - get_timezone_offset(release_date, tz_name)

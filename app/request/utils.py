@@ -165,7 +165,8 @@ def create_request(title,
                          filename,
                          fu.get_mime_type(upload_path),
                          fu.getsize(upload_path),
-                         fu.get_hash(upload_path))
+                         fu.get_hash(upload_path),
+                         is_editable=False)
         create_object(obj=response)
 
         # 8. Create upload Event
@@ -400,9 +401,9 @@ def send_confirmation_email(request, agency, user):
     :param user: Users object containing the user who created the request
     """
     if agency.is_active:
-        subject = 'New Request Created ({})'.format(request.id)
+        subject = 'Request {} Submitted to {}'.format(request.id, agency.name)
     else:
-        subject = 'FOIL Request Submitted: {}'.format(request.title)
+        subject = 'FOIL Request Submitted to {}'.format(agency.name)
 
     # get the agency's default email and adds it to the bcc list
     bcc = [agency.default_email]
@@ -414,12 +415,21 @@ def send_confirmation_email(request, agency, user):
     # generates the view request page URL for this request
     if agency.is_active:
         page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
+        email_template = "email_templates/email_confirmation.html"
+        agency_default_email = None
     else:
         page = None
+        email_template = "email_templates/email_not_onboarded.html"
+        agency_default_email = agency.default_email
 
     # grabs the html of the email message so we can store the content in the Emails object
-    email_content = render_template("email_templates/email_confirmation.html", current_request=request,
-                                    agency_name=agency.name, user=user, address=address, page=page)
+    email_content = render_template(email_template,
+                                    current_request=request,
+                                    agency_name=agency.name,
+                                    agency_default_email=agency_default_email,
+                                    user=user,
+                                    address=address,
+                                    page=page)
 
     try:
         # if the requester supplied an email sent it to the request and bcc the agency

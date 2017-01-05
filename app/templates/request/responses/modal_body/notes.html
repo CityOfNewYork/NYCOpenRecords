@@ -1,6 +1,10 @@
-{% if edit_response_permission or edit_privacy_response_permission %}
+{% if (edit_response_permission or edit_privacy_response_permission) and is_editable
+and current_request.status != request_status.CLOSED %}
     <form id="note-update-{{ response.id }}" class="note-update note-form"
           action="/response/{{ response.id }}" method="POST">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
         <div class="note-error-messages alert alert-danger" hidden></div>
         {% if edit_response_permission %}
             <textarea class="input-block-level form-group note-content"
