@@ -16,6 +16,10 @@
     <div class="container" style="padding-top:20px">
         <div class="form-group">
             {{ report_filter_form.agency.label }}
+            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Filter"
+                   data-content="This allows the graph to be filtered by the number of requests made to a specific agency.">
+                <span class="glyphicon glyphicon-question-sign"></span>
+        </small>
             {{ report_filter_form.agency(id="agency-filter", class="input-block-level") }}
         </div>
 
