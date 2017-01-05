@@ -11,7 +11,8 @@ from flask import (
     render_template,
     make_response,
     url_for,
-    abort
+    abort,
+    flash
 )
 from flask_login import (
     login_user,
@@ -57,6 +58,7 @@ def logout():
 
 @auth.route('/ldap_login', methods=['GET', 'POST'])
 def ldap_login():
+    login_form = LDAPLoginForm()
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -70,11 +72,11 @@ def ldap_login():
                 login_user(user)
                 session['user_id'] = current_user.get_id()
                 return redirect(url_for('main.index'))
-            return abort(403)
-        return abort(403)
+
+        flash("Invalid username/password combination", category="danger")
+        return render_template('auth/ldap_login_form.html', login_form=login_form)
 
     elif request.method == 'GET':
-        login_form = LDAPLoginForm()
 
         return render_template('auth/ldap_login_form.html', login_form=login_form)
 
