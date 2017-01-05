@@ -1,7 +1,7 @@
 """
 .. module:: auth.views.
 
-   :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
+   :synopsis: Handles SAML and LDAP authentication endpoints for NYC OpenRecords
 """
 
 from flask import (

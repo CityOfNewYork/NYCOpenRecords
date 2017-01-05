@@ -30,10 +30,11 @@ class Config:
     SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
-    # SAML Authentication Settings
+    # Authentication Settings
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
     IDP = os.environ.get('IDP')
+    USE_LDAP = os.environ.get('USE_LDAP') == "True"
 
     # Database Settings
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True

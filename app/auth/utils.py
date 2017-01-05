@@ -1,7 +1,7 @@
 """
 .. module:: auth.views.
 
-   :synopsis: Handles SAML authentication endpoints for NYC OpenRecords
+   :synopsis: Authentication utilities for NYC OpenRecords
 """
 
 from urllib.parse import urljoin, urlparse
