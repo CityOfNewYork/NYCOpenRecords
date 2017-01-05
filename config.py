@@ -141,6 +141,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
+    # TODO: complete me
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
 

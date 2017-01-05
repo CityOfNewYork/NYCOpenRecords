@@ -3,20 +3,18 @@
 
    :synopsis: Authentication utilities for NYC OpenRecords
 """
+import ssl
 
 from urllib.parse import urljoin, urlparse
 
 from flask import current_app, request, session
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
-
-from ldap3 import Server, Tls, Connection
-import ssl
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-
 from app import login_manager
 from app.constants import USER_ID_DELIMITER
 from app.lib.db_utils import create_object, update_object
 from app.models import Agencies, Users
+
+from ldap3 import Server, Tls, Connection
 
 
 @login_manager.user_loader
