@@ -7,12 +7,13 @@ from flask_login import current_user
 
 from app.user import user
 from app.user_request.utils import create_user_request_event
-from app.models import Users, Events, Roles
+from app.models import Users, Events, Roles, UserRequests
 from app.constants import (
     USER_ID_DELIMITER,
     event_type,
     permission,
     role_name,
+    user_type_request,
 )
 from app.lib.db_utils import (
     update_object,
@@ -259,20 +260,53 @@ def patch(user_id):
                 is_agency_admin = new_statuses.get('is_agency_admin')
 
                 if is_agency_active is not None and not is_agency_active:
-                    # Remove ALL UserRequests
+                    # remove ALL UserRequests
                     for user_request in user_.user_requests.all():
                         create_user_request_event(event_type.USER_REMOVED, user_request)
                         delete_object(user_request)
                 elif is_agency_admin is not None:
-                    # Update ALL UserRequests
-                    permissions = (Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
-                                   if is_agency_admin else permission.NONE)
-                    for user_request in user_.user_requests.all():
-                        old_permissions = user_request.permissions
-                        user_request.set_permissions(permissions)
+
+                    def set_permissions_and_create_event(user_req, perms):
+                        """
+                        Set permissions for a user request and create a
+                        'user_permissions_changed' Event.
+
+                        :param user_req: user request
+                        :param perms: permissions to set for user request
+                        """
+                        old_permissions = user_req.permissions
+                        user_request.set_permissions(perms)
                         create_user_request_event(event_type.USER_PERM_CHANGED,
-                                                  user_request,
+                                                  user_req,
                                                   old_permissions)
+                    if is_agency_admin:
+                        permissions = Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
+                        # create UserRequests for ALL existing requests under user's agency where user is not assigned
+                        # for where the user *is* assigned, only change the permissions
+                        for req in user_.agency.requests:
+                            user_request = UserRequests.query.filter_by(
+                                request_id=req.id,
+                                user_guid=user_.guid,
+                                auth_user_type=user_.auth_user_type
+                            ).first()
+                            if user_request is None:
+                                user_request = UserRequests(
+                                    user_guid=user_.guid,
+                                    auth_user_type=user_.auth_user_type,
+                                    request_id=req.id,
+                                    request_user_type=user_type_request.AGENCY,
+                                    permissions=permissions
+                                )
+                                create_object(user_request)
+                                create_user_request_event(event_type.USER_ADDED,
+                                                          user_request)
+                            else:
+                                set_permissions_and_create_event(user_request, permissions)
+
+                    else:
+                        # update ALL UserRequests (strip user of permissions)
+                        for user_request in user_.user_requests.all():
+                            set_permissions_and_create_event(user_request, permission.NONE)
 
                 # TODO: single email detailing user changes?
 
