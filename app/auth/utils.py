@@ -254,7 +254,7 @@ def ldap_authentication(email, password):
                         search_filter='(mail={email})'.format(email=email), attributes='dn')
 
     if users and len(users) > 1:
-        if not conn.bind(users[0].entry_dn, password):
+        if not conn.rebind(users[0].entry_dn, password):
             return False
         else:
             return True
@@ -273,7 +273,7 @@ def _ldap_server_connect():
     """
     ldap_server = current_app.config['LDAP_SERVER']
     ldap_port = current_app.config['LDAP_PORT']
-    ldap_use_tls = False
+    ldap_use_tls = current_app.config['LDAP_USE_TLS']
     ldap_key_path = current_app.config['LDAP_KEY_PATH']
     ldap_sa_bind_dn = current_app.config['LDAP_SA_BIND_DN']
     ldap_sa_password = current_app.config['LDAP_SA_PASSWORD']
