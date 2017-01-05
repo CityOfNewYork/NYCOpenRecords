@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row text-center">
+        <div class="col-sm-8 col-centered">
+            <h4 class="text-center">Login to NYC OpenRecords</h4>
+            <br>
+            <p>
+                {{ login_form.email.label }}
+                {{ login_form.email(class="form-control") }}
+            </p>
+            <br>
+            <p>
+                {{ login_form.password.label }}
+                {{ login_form.password(class="form-control") }}
+            </p>
+            <br>
+            {{ login_form.login(class="btn btn-primary") }}
+            <br>
+            <p>
+                Forgot your password? Please email
+                <a href="mailto:openrecords@records.nyc.gov">openrecords@records.nyc.gov</a>
+                for assistance.
+            </p>
+        </div>
+    </div>
+{% endblock %}

@@ -33,7 +33,8 @@
                         },
                         ticks: {
                             maxTicksLimit: 10,
-                            beginAtZero: true
+                            beginAtZero: true,
+                            stepSize: Math.min(Math.max.apply(null, values), 10) < 10 ? 1 : false
                         }
                     }],
                     xAxes: [{

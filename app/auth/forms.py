@@ -40,7 +40,7 @@ class ManageUserAccountForm(Form):
 
 
 class LDAPLoginForm(Form):
-    username = StringField('Username')
+    email = StringField('Email')
     password = PasswordField('Password')
 
     login = SubmitField('Login')
