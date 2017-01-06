@@ -78,6 +78,7 @@ class Roles(db.Model):
                 permission.EDIT_NOTE_PRIVACY |
                 permission.EDIT_FILE |
                 permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_LINK |
                 permission.EDIT_LINK_PRIVACY |
                 permission.EDIT_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
@@ -841,6 +842,9 @@ class UserRequests(db.Model):
         else:
             self.permissions = permissions
         db.session.commit()
+
+    def get_permissions(self):
+        return [i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)]
 
 
 class ResponseTokens(db.Model):

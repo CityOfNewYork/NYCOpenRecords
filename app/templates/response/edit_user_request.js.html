@@ -12,22 +12,37 @@
         var user = first.find("#user");
         var permission = first.find("#permission");
 
+        var current_permissions = {{ assigned_user_permissions | safe }};
 
-        role.change(function () {
-            $.ajax({
-                url: "/permissions/api/v1.0/" + role.val(),
-                type: "GET",
-                success: function (data) {
-                    permission.children().each(function () {
-                        if (data.indexOf(parseInt($(this).val())) !== -1) {
-                            $(this).prop("selected", true);
-                        } else {
-                            $(this).prop("selected", false);
-                        }
-                    })
-
+        function setPermissions(perms) {
+            permission.children().each(function () {
+                if (perms.indexOf(Number($(this).val())) !== -1) {
+                    $(this).prop("selected", true);
+                } else {
+                    $(this).prop("selected", false);
                 }
             });
+        }
+
+        function setCurrentPermissions() {
+            if (current_permissions.hasOwnProperty(user.val())) {
+                setPermissions(current_permissions[user.val()]);
+            }
+        }
+
+        role.change(function () {
+            if (role.val() == 0) {
+                setCurrentPermissions();
+            }
+            else {
+                $.ajax({
+                    url: "/permissions/api/v1.0/" + role.val(),
+                    type: "GET",
+                    success: function (data) {
+                        setPermissions(data);
+                    }
+                });
+            }
         });
 
         permission.find('option').mousedown(function(e) {
@@ -37,27 +52,41 @@
             return false;
         });
 
+        var options = $("#edit_options");
         user.change(function () {
-            $('#edit_options').show();
+            if (user.val() != 0) {
+                options.show();
+                setCurrentPermissions();
+            } else {
+                options.hide();
+            }
         });
 
         next.click(function () {
-            $.ajax({
-                url: "/response/email",
-                type: "POST",
-                data: {
-                    request_id: "{{ request.id }}",
-                    type: "user_request_edited",
-                    permission: permission.val(),
-                    guid: user.val()
-                },
-                success: function (data) {
-                    $(".email-summary").html(data.template);
-                    first.hide();
-                    second.show();
-                    $("#user_name").text(data.name);
-                }
-            });
+            // check if permissions are different
+            if (!permission.val()
+                    .map(Number)
+                    .every(function(item, index) {
+                        return item === current_permissions[user.val()][index];
+                    })
+            ) {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "user_request_edited",
+                        permission: permission.val(),
+                        guid: user.val()
+                    },
+                    success: function (data) {
+                        $(".email-summary").html(data.template);
+                        first.hide();
+                        second.show();
+                        $("#user_name").text(data.name);
+                    }
+                });
+            }
         });
 
         prev.click(function () {
