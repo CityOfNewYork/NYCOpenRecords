@@ -71,8 +71,7 @@ def create_app(config_name):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
-
-    scheduler.start()
+    scheduler.init_app(app)
 
     with app.app_context():
         from app.models import Anonymous
@@ -80,15 +79,18 @@ def create_app(config_name):
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(prefixed_store, app)
 
-        # schedule jobs
-        import jobs
+    # schedule jobs
+    # NOTE: if running with reloader, jobs will execute twice
+    import jobs
+    scheduler.add_job(
+        'update_request_statuses',
+        jobs.update_request_statuses,
+        name="Update requests statuses every day.",
+        trigger=IntervalTrigger(days=1),
+        args=[app]
+    )
 
-        scheduler.add_job(
-            'update_request_statuses',
-            jobs.update_request_statuses,
-            name="Update requests statuses every day.",
-            trigger=IntervalTrigger(days=1)
-        )
+    scheduler.start()
 
     # Error Handlers
     @app.errorhandler(400)

@@ -73,11 +73,10 @@ def ldap_login():
                 session['user_id'] = current_user.get_id()
                 return redirect(url_for('main.index'))
 
-        flash("Invalid username/password combination", category="danger")
+        flash("Invalid username/password combination.", category="danger")
         return render_template('auth/ldap_login_form.html', login_form=login_form)
 
     elif request.method == 'GET':
-
         return render_template('auth/ldap_login_form.html', login_form=login_form)
 
 
