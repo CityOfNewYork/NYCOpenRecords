@@ -842,6 +842,9 @@ class UserRequests(db.Model):
             self.permissions = permissions
         db.session.commit()
 
+    def get_permissions(self):
+        return [i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)]
+
 
 class ResponseTokens(db.Model):
     """

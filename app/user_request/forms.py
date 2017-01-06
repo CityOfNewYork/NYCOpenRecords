@@ -44,8 +44,8 @@ class EditUserRequestForm(Form):
         self.roles.choices = [
             (roles.id, roles.name) for roles in Roles.query.all()
             ]
+        self.roles.choices.insert(0, (0, ''))
         self.roles.choices.sort(key=lambda tup: tup[1])
-        self.roles.default = Roles.query.filter_by(name='Anonymous User').one().id
         self.process()
         self.permission.choices = [
             (i, p.label) for i, p in enumerate(permission.ALL)
