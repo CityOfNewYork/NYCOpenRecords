@@ -100,8 +100,6 @@ def saml_login():
     attributes = False
     paint_logout = False
 
-    # TODO: get proper user attributes (guid, auth type) if auth type is still LDAP
-
     if 'sso' in request.args:
         # TODO: Describe sso functionality
         return redirect(auth.login())

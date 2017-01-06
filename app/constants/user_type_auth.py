@@ -1,7 +1,6 @@
 ANONYMOUS_USER = 'AnonymousUser'
 
-# AGENCY_USER = 'Saml2In:NYC Employees'  # TODO: restore when OAuth/SAML implemented
-AGENCY_USER = 'LDAP'
+AGENCY_USER = 'Saml2In:NYC Employees'
 
 PUBLIC_USER_NYC_ID = 'EDIRSSO'
 PUBLIC_USER_FACEBOOK = 'FacebookSSO'
