@@ -13,15 +13,20 @@
         var permission = first.find("#permission");
 
         var current_permissions = {{ assigned_user_permissions | safe }};
+
+        function setPermissions(perms) {
+            permission.children().each(function () {
+                if (perms.indexOf(Number($(this).val())) !== -1) {
+                    $(this).prop("selected", true);
+                } else {
+                    $(this).prop("selected", false);
+                }
+            });
+        }
+
         function setCurrentPermissions() {
             if (current_permissions.hasOwnProperty(user.val())) {
-                permission.children().each(function () {
-                    if (current_permissions[user.val()].indexOf(Number($(this).val())) !== -1) {
-                        $(this).prop("selected", true);
-                    } else {
-                        $(this).prop("selected", false);
-                    }
-                });
+                setPermissions(current_permissions[user.val()]);
             }
         }
 
@@ -34,14 +39,7 @@
                     url: "/permissions/api/v1.0/" + role.val(),
                     type: "GET",
                     success: function (data) {
-                        permission.children().each(function () {
-                            if (data.indexOf(parseInt($(this).val())) !== -1) {
-                                $(this).prop("selected", true);
-                            } else {
-                                $(this).prop("selected", false);
-                            }
-                        })
-
+                        setPermissions(data);
                     }
                 });
             }
