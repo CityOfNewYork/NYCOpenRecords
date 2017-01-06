@@ -78,6 +78,7 @@ class Roles(db.Model):
                 permission.EDIT_NOTE_PRIVACY |
                 permission.EDIT_FILE |
                 permission.EDIT_FILE_PRIVACY |
+                permission.EDIT_LINK |
                 permission.EDIT_LINK_PRIVACY |
                 permission.EDIT_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
