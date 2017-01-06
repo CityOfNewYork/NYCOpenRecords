@@ -14,7 +14,16 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell, Command
 
 from app import create_app, db
-from app.models import Users, Agencies, Requests, Responses, Events, Reasons, Roles, UserRequests
+from app.models import (
+    Users,
+    Agencies,
+    Requests,
+    Responses,
+    Events,
+    Reasons,
+    Roles,
+    UserRequests
+)
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
@@ -211,7 +220,6 @@ def routes():
 
     for line in sorted(output):
         print(line)
-
 
 
 if __name__ == "__main__":
