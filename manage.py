@@ -109,7 +109,8 @@ def deploy():
     list(map(lambda x: x.populate(), (
         Roles,
         Agencies,
-        Reasons
+        Reasons,
+        Users
     )))
 
     es_recreate()
@@ -140,9 +141,8 @@ def create_search_set():
 @manager.command
 def create_users():
     """Create a user from each of the allowed auth_user_types."""
-    from app.constants.user_type_auth import PUBLIC_USER_TYPES, AGENCY_USER
-    types = [type for type in PUBLIC_USER_TYPES]
-    types.append(AGENCY_USER)
+    from app.constants.user_type_auth import PUBLIC_USER_TYPES
+    types = [type_ for type_ in PUBLIC_USER_TYPES]
 
     from tests.lib.tools import create_user
     for type_ in types:

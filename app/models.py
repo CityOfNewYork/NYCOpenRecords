@@ -239,6 +239,7 @@ class Users(UserMixin, db.Model):
     guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
     auth_user_type = db.Column(
         db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.AGENCY_LDAP_USER,
                 user_type_auth.PUBLIC_USER_FACEBOOK,
                 user_type_auth.PUBLIC_USER_MICROSOFT,
                 user_type_auth.PUBLIC_USER_YAHOO,
@@ -301,7 +302,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type == user_type_auth.AGENCY_USER
+        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES
 
     @property
     def is_anonymous_requester(self):
@@ -363,6 +364,32 @@ class Users(UserMixin, db.Model):
             "email_validated": self.email_validated,
             "terms_of_use_accepted": self.terms_of_use_accepted,
         }
+
+    @classmethod
+    def populate(cls):
+        with open(current_app.config['STAFF_DATA'], 'r') as data:
+            dictreader = csv.DictReader(data)
+
+            for row in dictreader:
+                user = cls(
+                    guid=str(uuid4()),
+                    auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
+                    agency_ein=row['agency_ein'],
+                    is_super=eval(row['is_super']),
+                    is_agency_admin=eval(row['is_agency_admin']),
+                    is_agency_active=eval(row['is_agency_active']),
+                    first_name=row['first_name'],
+                    middle_initial=row['middle_initial'],
+                    last_name=row['last_name'],
+                    email=row['email'],
+                    email_validated=eval(row['email_validated']),
+                    terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+                    phone_number=row['phone_number'],
+                    fax_number=row['fax_number']
+                )
+                db.session.add(user)
+            db.session.commit()
+
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
@@ -602,6 +629,7 @@ class Events(db.Model):
     user_guid = db.Column(db.String(64))  # who did the action
     auth_user_type = db.Column(
         db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.AGENCY_LDAP_USER,
                 user_type_auth.PUBLIC_USER_FACEBOOK,
                 user_type_auth.PUBLIC_USER_MICROSOFT,
                 user_type_auth.PUBLIC_USER_YAHOO,
@@ -773,6 +801,7 @@ class UserRequests(db.Model):
     user_guid = db.Column(db.String(64), primary_key=True)
     auth_user_type = db.Column(
         db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.AGENCY_LDAP_USER,
                 user_type_auth.PUBLIC_USER_FACEBOOK,
                 user_type_auth.PUBLIC_USER_MICROSOFT,
                 user_type_auth.PUBLIC_USER_YAHOO,
