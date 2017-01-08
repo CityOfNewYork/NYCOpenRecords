@@ -1,6 +1,12 @@
 ANONYMOUS_USER = 'AnonymousUser'
 
 AGENCY_USER = 'Saml2In:NYC Employees'
+AGENCY_LDAP_USER = 'LDAP:NYC Employees'
+
+AGENCY_USER_TYPES = frozenset((
+    AGENCY_USER,
+    AGENCY_LDAP_USER
+))
 
 PUBLIC_USER_NYC_ID = 'EDIRSSO'
 PUBLIC_USER_FACEBOOK = 'FacebookSSO'

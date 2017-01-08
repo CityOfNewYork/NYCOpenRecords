@@ -16,7 +16,7 @@ from flask_login import login_user, current_user, logout_user
 from flask_wtf import Form
 from wtforms import SubmitField, StringField
 from app.constants.user_type_auth import (
-    AGENCY_USER,
+    AGENCY_USER_TYPES,
     PUBLIC_USER_TYPES
 )
 from app.lib.email_utils import send_email, send_contact_email
@@ -108,8 +108,8 @@ def login(guid=None):
         login_user(user, force=True)
         flash('Logged in user: {}'.format(user.auth_user_type))
         return redirect(url_for('main.index'))
-    types = [type for type in PUBLIC_USER_TYPES]
-    types.append(AGENCY_USER)
+    types = [type_ for type_ in PUBLIC_USER_TYPES]
+    types.append([type_ for type_ in AGENCY_USER_TYPES])
     users = []
     for type_ in types:
         user = Users.query.filter_by(auth_user_type=type_).first()
