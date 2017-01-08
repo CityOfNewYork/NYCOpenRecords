@@ -13,8 +13,7 @@ from flask_login import current_user
 from app.models import (
     Agencies,
     Requests,
-    UserRequests,
-    Users
+    UserRequests
 )
 from app.constants import (
     request_status,
@@ -78,8 +77,9 @@ def get():
                         show_users = True
 
     elif user_guid and (current_user.is_agency_active or current_user.is_agency_admin or current_user.is_super):
-        ureqs = UserRequests.query.filter_by(user_guid=user_guid,
-                                             auth_user_type=user_type_auth.AGENCY_USER).all()
+        ureqs = UserRequests.query.filter(UserRequests.user_guid == user_guid,
+                                          UserRequests.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+                                         ).all()
 
         requests_closed = len([u for u in ureqs if u.request.status == request_status.CLOSED])
         requests_opened = len([u for u in ureqs if u.request.status != request_status.CLOSED])
