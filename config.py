@@ -36,8 +36,8 @@ class Config:
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
     IDP = os.environ.get('IDP')
-    USE_LDAP = os.environ.get('USE_LDAP') == "True"
     USE_SAML = os.environ.get('USE_SAML') == "True"
+    USE_LDAP = os.environ.get('USE_LDAP') == "True"
     LDAP_SERVER = os.environ.get('LDAP_SERVER') or None
     LDAP_PORT = os.environ.get('LDAP_PORT') or None
     LDAP_USE_TLS = os.environ.get('LDAP_USE_TLS') == "True"
