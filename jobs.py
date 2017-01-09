@@ -36,8 +36,7 @@ def update_request_statuses():
         template = "email_templates/email_request_status_changed"
 
         for request in requests_overdue:
-            page = urljoin(current_app.config['HOST_URL'],
-                           url_for('request.view', request_id=request.id))
+            page = url_for('request.view', request_id=request.id)
             subject = "Request Overdue"
             if request.status != request_status.OVERDUE:
                 update_object(
@@ -51,7 +50,7 @@ def update_request_statuses():
                 template=template,
                 request=request,
                 request_status=request_status,
-                department=request.agency.name,
+                agency_name=request.agency.name,
                 page=page,
             )
             email = Emails(
@@ -65,7 +64,7 @@ def update_request_statuses():
                     template + ".html",
                     request=request,
                     request_status=request_status,
-                    department=request.agency.name,
+                    agency_name=request.agency.name,
                     page=page,
                 )
             )
@@ -84,8 +83,7 @@ def update_request_statuses():
             )
 
         for request in requests_due_soon:
-            page = urljoin(current_app.config['HOST_URL'],
-                           url_for('request.view', request_id=request.id))
+            page = url_for('request.view', request_id=request.id)
             subject = "Requests Due Soon"
             timedelta_until_due = request.due_date - now
             if request.status != request_status.DUE_SOON:
@@ -101,7 +99,7 @@ def update_request_statuses():
                 request=request,
                 request_status=request_status,
                 days_until_due=timedelta_until_due.days,
-                department=request.agency.name,
+                agency_name=request.agency.name,
                 page=page,
             )
             email = Emails(
@@ -116,7 +114,7 @@ def update_request_statuses():
                     request=request,
                     request_status=request_status,
                     days_until_due=timedelta_until_due.days,
-                    department=request.agency.name,
+                    agency_name=request.agency.name,
                     page=page,
                 )
             )

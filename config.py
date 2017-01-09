@@ -15,7 +15,7 @@ class Config:
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
 
-    HOST_URL = os.environ.get('HOST_URL') or 'http://localhost/'
+    SERVER_NAME = os.environ.get('SERVER_NAME') or 'localhost:5000'
 
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
