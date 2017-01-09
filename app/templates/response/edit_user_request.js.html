@@ -64,7 +64,9 @@
 
         next.click(function () {
             // check if permissions are different
-            if (!permission.val()
+            if (!(permission.val() === null && current_permissions.length === 0) ||
+                permission.val() === null ||
+                !permission.val()
                     .map(Number)
                     .every(function(item, index) {
                         return item === current_permissions[user.val()][index];
