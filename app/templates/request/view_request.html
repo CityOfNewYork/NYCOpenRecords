@@ -36,7 +36,14 @@
 
             <!-- Action Button Column -->
             {% if (current_user in request.agency_users) or (is_requester and (request.status != status.OPEN) or (request.status != status.CLOSED)) %}
-                <div class="col-md-12"><h3>Actions</h3>
+                <div class="col-md-12"><h3>Actions
+                    <small data-toggle="Actions" data-placement="right" data-trigger="hover"
+                           title="Actions"
+                           data-content="Re-Opening the request allows the agency user to add a custom due date to
+                            fulfill a closed previously closed request.">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </small>
+                </h3>
                     <div class="tabbable tabs-left" id="mobile-toggle">
                         <ul class="nav nav-tabs">
                             {% if request.status != status.CLOSED %}
