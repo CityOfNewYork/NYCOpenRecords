@@ -21,13 +21,13 @@ $(document).ready(function () {
     message.attr('data-parsley-maxlength', 5000);
 
     $("#contact-info").parsley().on("form:validate", function () {
-        if (name.parsley().isValid() == false) {
+        if (name.parsley().isValid() === false) {
             $(window).scrollTop($("label[for=name]").offset().top);
         }
-        else if (email.parsley().isValid() == false) {
+        else if (email.parsley().isValid() === false) {
             $(window).scrollTop($("label[for=email]").offset().top);
         }
-        else if (subject.parsley().isValid() == false) {
+        else if (subject.parsley().isValid() === false) {
             $(window).scrollTop($("label[for=subject]").offset().top);
         }
         else {
