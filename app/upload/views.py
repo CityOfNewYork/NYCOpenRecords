@@ -145,6 +145,7 @@ def post(request_id):
 
 
 @upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
+@has_permission(permission.ADD_FILE)  # can only delete if you can add
 def delete(r_id_type, r_id, filecode):
     """
     Removes an uploaded file.
