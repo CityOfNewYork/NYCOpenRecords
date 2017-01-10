@@ -41,6 +41,7 @@ from app.upload.utils import (
 )
 
 
+@login_required
 @upload.route('/<request_id>', methods=['POST'])
 def post(request_id):
     """
@@ -70,9 +71,8 @@ def post(request_id):
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
     is_update = eval_request_bool(request.form.get('update'))
-    if not current_user.is_anonymous and (
-            is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or
-            is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE)):
+    if is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or \
+            is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE):
         response_id = request.form.get('response_id') if is_update else None
         if upload_exists(request_id, filename, response_id):
             response = {
