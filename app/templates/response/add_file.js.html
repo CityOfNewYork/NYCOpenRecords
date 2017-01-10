@@ -102,7 +102,10 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        tinyMCE.get('email-file-content').setContent(data.template);
+                        emailContent = second.find(".email-file-content-hidden");
+                        emailContent.html(data.template);
+                        flask_moment_render_all();
+                        tinyMCE.get('email-file-content').setContent(emailContent.html());
                         $(".file-confirmation-header").text(data.header);
                     }
                 });
@@ -154,8 +157,9 @@
         submit.click(function() {
             submit.attr("disabled", true);
             var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-            hiddenEmailDiv.find(".mceNonEditable").html(randomString);
+            hiddenEmailDiv.find(".file-links").html(randomString);
             hiddenEmailDiv.find("p:empty").remove();
+            third.find("input[name='tz_name']").val(jstz.determine().name());
             third.find("#email-file-summary-hidden").val(hiddenEmailDiv.html());
             third.find("input[name='replace-string']").val(randomString);
             form.submit();

@@ -40,7 +40,12 @@ from app.constants import (
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
 from app.constants import permission
-from app.lib.date_utils import get_due_date, process_due_date, get_release_date
+from app.lib.date_utils import (
+    get_due_date,
+    process_due_date,
+    get_release_date,
+    get_timezone_offset
+)
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
@@ -797,7 +802,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         if release_public_links or release_private_links:
             release_date = get_release_date(datetime.utcnow(),
                                             RELEASE_PUBLIC_DAYS,
-                                            data.get('tz_name')).strftime("%A, %B %d, %Y")
+                                            data.get('tz_name'))
             agency_default_email = Requests.query.filter_by(id=request_id).first().agency.default_email
     # use default_content in response template
     else:
@@ -849,7 +854,7 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
-                                                data.get('tz_name')).strftime("%A, %B %d, %Y")
+                                                data.get('tz_name'))
     # use email_content from frontend to render confirmation
     else:
         header = None
@@ -899,7 +904,7 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
-                                                data.get('tz_name')).strftime("%A, %B %d, %Y")
+                                                data.get('tz_name'))
     else:
         header = None
         note_content = None
@@ -946,7 +951,7 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
-                                                data.get('tz_name')).strftime("%A, %B %d, %Y")
+                                                data.get('tz_name'))
     # use email_content from frontend to render confirmation
     else:
         header = None
@@ -1138,7 +1143,8 @@ def get_file_links(response, release_public_links, release_private_links, privat
     return release_public_links, release_private_links, private_links
 
 
-def send_file_email(request_id, release_public_links, release_private_links, private_links, email_content, replace_string):
+def send_file_email(request_id, release_public_links, release_private_links, private_links, email_content,
+                    replace_string, tz_name):
     """
     Send email with file links detailing a file response has been added to the request.
     Requester receives email only if release_public_links and release_private_links list is not empty.
@@ -1154,6 +1160,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                           link to file
     :param email_content: string body of email from tinymce textarea
     :param replace_string: alphanumeric random 32 character string to be replaced in email_content
+    :param tz_name:
 
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
@@ -1163,27 +1170,31 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
+        release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        release_date = release_date + get_timezone_offset(release_date, tz_name)
         email_content_requester = email_content.replace(replace_string,
                                                         render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,
                                                                         release_private_links=release_private_links,
-                                                                        is_anon=is_anon
+                                                                        is_anon=is_anon,
+                                                                        release_date=release_date
                                                                         ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   'Response Added to {} - File'.format(request_id),
                                   to=[requester_email],
                                   bcc=bcc)
-        email_content_agency = render_template('email_templates/email_private_file_upload.html',
-                                               request_id=request_id,
-                                               default_content=True,
-                                               agency_name=agency_name,
-                                               private_links=private_links,
-                                               page=page)
-        safely_send_and_add_email(request_id,
-                                  email_content_agency,
-                                  'File(s) Added to {}'.format(request_id),
-                                  bcc=bcc)
+        if private_links:
+            email_content_agency = render_template('email_templates/email_private_file_upload.html',
+                                                   request_id=request_id,
+                                                   default_content=True,
+                                                   agency_name=agency_name,
+                                                   private_links=private_links,
+                                                   page=page)
+            safely_send_and_add_email(request_id,
+                                      email_content_agency,
+                                      'File(s) Added to {}'.format(request_id),
+                                      bcc=bcc)
     else:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
