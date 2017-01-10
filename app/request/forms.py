@@ -205,7 +205,7 @@ class FinishRequestForm(Form):
                 Reasons.type == self.ultimate_determination_type,
                 or_(
                     Reasons.agency_ein == agency_ein,
-                    Reasons.agency_ein is None
+                    Reasons.agency_ein == None
                 )
             )]
 
