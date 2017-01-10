@@ -5,9 +5,8 @@ from flask import (
     render_template,
     current_app,
     url_for,
-    request as flask_request,
 )
-from app import calendar
+from app import calendar, scheduler
 from app.models import Requests, Events, Emails
 from app.constants import request_status
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT
@@ -15,9 +14,13 @@ from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import update_object, create_object
 from app.lib.email_utils import send_email
 
+# NOTE: (For Future Reference)
+# If we find ourselves in need of a request context,
+# app.test_request_context() is an option.
 
-def update_request_statuses(app):
-    with app.app_context():
+
+def update_request_statuses():
+    with scheduler.app.app_context():
         now = datetime.utcnow()
         due_soon_date = calendar.addbusdays(
             now, current_app.config['DUE_SOON_DAYS_THRESHOLD']
@@ -33,7 +36,7 @@ def update_request_statuses(app):
         template = "email_templates/email_request_status_changed"
 
         for request in requests_overdue:
-            page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
+            page = url_for('request.view', request_id=request.id)
             subject = "Request Overdue"
             if request.status != request_status.OVERDUE:
                 update_object(
@@ -47,7 +50,7 @@ def update_request_statuses(app):
                 template=template,
                 request=request,
                 request_status=request_status,
-                department=request.agency.name,
+                agency_name=request.agency.name,
                 page=page,
             )
             email = Emails(
@@ -61,7 +64,7 @@ def update_request_statuses(app):
                     template + ".html",
                     request=request,
                     request_status=request_status,
-                    department=request.agency.name,
+                    agency_name=request.agency.name,
                     page=page,
                 )
             )
@@ -80,7 +83,7 @@ def update_request_statuses(app):
             )
 
         for request in requests_due_soon:
-            page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
+            page = url_for('request.view', request_id=request.id)
             subject = "Requests Due Soon"
             timedelta_until_due = request.due_date - now
             if request.status != request_status.DUE_SOON:
@@ -96,7 +99,7 @@ def update_request_statuses(app):
                 request=request,
                 request_status=request_status,
                 days_until_due=timedelta_until_due.days,
-                department=request.agency.name,
+                agency_name=request.agency.name,
                 page=page,
             )
             email = Emails(
@@ -111,7 +114,7 @@ def update_request_statuses(app):
                     request=request,
                     request_status=request_status,
                     days_until_due=timedelta_until_due.days,
-                    department=request.agency.name,
+                    agency_name=request.agency.name,
                     page=page,
                 )
             )

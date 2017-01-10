@@ -19,3 +19,7 @@
 .row.user-info:nth-child(even) {
     background-color: gainsboro;
 }
+
+.break-word {
+    word-wrap: break-word;
+}

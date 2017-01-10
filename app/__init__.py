@@ -15,7 +15,7 @@ from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CsrfProtect
-from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from app.lib import NYCHolidays, jinja_filters
@@ -85,9 +85,8 @@ def create_app(config_name):
     scheduler.add_job(
         'update_request_statuses',
         jobs.update_request_statuses,
-        name="Update requests statuses every day.",
-        trigger=IntervalTrigger(days=1),
-        args=[app]
+        name="Update requests statuses every day at 3 AM.",
+        trigger=CronTrigger(hour=3),
     )
 
     scheduler.start()

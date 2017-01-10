@@ -1,5 +1,10 @@
-{% include 'email/email.html' %}
-
 <p>
-    {% if request.was_acknowledged %}This request{% else %}The acknowledgment for this request{% endif %} is {% if request.status == request_status.OVERDUE %}now <strong>overdue</strong>. Please take immediate action.{% elif request.status == request_status.DUE_SOON %}due in <strong>{{ days_until_due }}</strong> days.{% endif %}
+    The {{ agency_name }} has provided additional
+    information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request.id }}</a>.
+</p>
+<p>
+    Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
+</p>
+<p>
+    {% if request.was_acknowledged %}This request{% else %}The acknowledgment for this request{% endif %} is {% if request.status == request_status.OVERDUE %}now <strong>overdue</strong>. Please take immediate action.{% elif request.status == request_status.DUE_SOON %}due in <strong>{{ days_until_due }}</strong> day{% if days_until_due > 1 %}s{% endif %}.{% endif %}
 </p>
