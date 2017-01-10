@@ -29,7 +29,10 @@ $(document).ready(function () {
                     tz_name: jstz.determine().name()
                 },
                 success: function (data) {
-                    tinyMCE.get('email-instruction-content').setContent(data.template);
+                    emailContent = $(".email-instruction-content-hidden");
+                    emailContent.html(data.template);
+                    flask_moment_render_all();
+                    tinyMCE.get('email-instruction-content').setContent(emailContent.html());
                     $(".instruction-confirmation-header").text(data.header);
                 }
             });
