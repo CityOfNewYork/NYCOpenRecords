@@ -12,6 +12,10 @@ from flask import (
     jsonify,
     current_app,
 )
+from flask_login import (
+    current_user,
+    login_required
+)
 from werkzeug.utils import secure_filename
 
 from app import upload_redis as redis
@@ -20,7 +24,7 @@ from app.lib.utils import (
     b64decode_lenient,
     eval_request_bool,
 )
-from app.lib.permission_utils import has_permission
+from app.lib.permission_utils import is_allowed
 from app.models import Responses
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload import upload
@@ -66,12 +70,9 @@ def post(request_id):
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
     is_update = eval_request_bool(request.form.get('update'))
-    post_upload = False
-    if is_update and has_permission(permission.EDIT_FILE):
-        post_upload = True
-    elif has_permission(permission.ADD_FILE):
-        post_upload = True
-    if post_upload:
+    if not current_user.is_anonymous and (
+                is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or
+                is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE)):
         response_id = request.form.get('response_id') if is_update else None
         if upload_exists(request_id, filename, response_id):
             response = {
@@ -149,6 +150,7 @@ def post(request_id):
         return jsonify(response), 200
 
 
+@login_required
 @upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
 def delete(r_id_type, r_id, filecode):
     """
@@ -183,12 +185,15 @@ def delete(r_id_type, r_id, filecode):
 
             path = ''
             quarantined_only = eval_request_bool(request.form.get('quarantined_only'))
-            if quarantined_only:
+            if quarantined_only and (
+                        is_allowed(user=current_user, request_id=r_id, permission=permission.ADD_FILE) or
+                        is_allowed(user=current_user, request_id=r_id, permission=permission.EDIT_FILE)):
                 path = os.path.join(
                     current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
                     r_id
                 )
-            elif eval_request_bool(request.form.get('updated_only')):
+            elif eval_request_bool(request.form.get('updated_only')) and \
+                    is_allowed(user=current_user, request_id=r_id, permission=permission.EDIT_FILE):
                 path = os.path.join(
                     current_app.config['UPLOAD_DIRECTORY'],
                     r_id,
@@ -214,7 +219,8 @@ def delete(r_id_type, r_id, filecode):
                         os.remove(filepath)
                         found = True
                 else:
-                    if fu.exists(filepath):
+                    if fu.exists(filepath) and \
+                            is_allowed(user=current_user, request_id=r_id, permission=permission.ADD_FILE):
                         fu.remove(filepath)
                         found = True
             if found:
