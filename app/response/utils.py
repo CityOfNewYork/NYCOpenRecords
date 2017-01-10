@@ -643,7 +643,7 @@ def _user_request_added_email_handler(request_id, data, page, agency_name, email
         email_template,
         request_id=request_id,
         agency_name=agency_name,
-        permissions=permissions,
+        added_permissions=permissions,
         name=name,
         page=page
     ), "name": name}), 200

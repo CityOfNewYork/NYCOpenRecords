@@ -8,10 +8,10 @@
     <p>You have been added to request <a href='{{ page }}'>{{ request_id }}</a>.</p>
 {% endif %}
 
-{% if permissions %}
+{% if added_permissions %}
     <p><strong>Permissions:</strong></p>
     <ul>
-        {% for permission in permissions %}
+        {% for permission in added_permissions %}
             <li>{{ permission }}</li>
         {% endfor %}
     </ul>
