@@ -19,12 +19,12 @@
                                     <br/>
                                     <br/>
 
-                                    <p style="text-decoration: underline">Contact Information</p>
+                                    <p style="text-decoration: underline">Requester's Contact Information</p>
                                     <div class="row-fluid hide" id="requester_info">
                                         <div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Name:</strong>
+                                                    <strong>Name:</strong>
                                                 </div>
                                                 <div>
                                                     <span class="label">{{ user.first_name }} {{ user.last_name }}</span>
@@ -32,7 +32,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Email:</strong>
+                                                    <strong>Email:</strong>
                                                 </div>
                                                 <div>
                                                     {% if user.email  %}
@@ -46,7 +46,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Phone Number:</strong>
+                                                    <strong>Phone Number:</strong>
                                                 </div>
                                                 <div>
                                                     {% if user.phone_number  %}
@@ -58,7 +58,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Fax Number:</strong>
+                                                    <strong>Fax Number:</strong>
                                                 </div>
                                                 <div class="span6">
                                                     {% if user.fax_number  %}
@@ -70,7 +70,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Street Address (line 1):</strong>
+                                                    <strong>Street Address (line 1):</strong>
                                                 </div>
                                                 <div>
                                                     <span class="label">{{ address['address_one']  or "Not provided" }}</span>
@@ -78,7 +78,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Street Address (line 2):</strong>
+                                                    <strong>Street Address (line 2):</strong>
                                                 </div>
                                                 <div>
                                                     <span class="label">{{ address['address_two']  or "Not provided" }}</span>
@@ -86,7 +86,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's City:</strong>
+                                                    <strong>City:</strong>
                                                 </div>
                                                 <div>
                                                     <span class="label" style="align: left;">{{ address['city']  or "Not provided" }}</span>
@@ -94,7 +94,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's State:</strong>
+                                                    <strong>State:</strong>
                                                 </div>
                                                 <div>
                                                     {% if not address['address_one'] or not address['zip'] %}
@@ -106,7 +106,7 @@
                                             </div>
                                             <div class="row-fluid">
                                                 <div>
-                                                    <strong>Requester's Zipcode:</strong>
+                                                    <strong>Zip Code:</strong>
                                                 </div>
                                                 <div>
                                                     <span class="label">{{ address['zip'] or "Not provided" }}</span>
