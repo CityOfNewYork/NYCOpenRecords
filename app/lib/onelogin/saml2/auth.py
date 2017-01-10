@@ -172,7 +172,7 @@ class OneLogin_Saml2_Auth(object):
                 OneLogin_Saml2_Error.SAML_LOGOUTMESSAGE_NOT_FOUND
             )
 
-    def redirect_to(self, url=None, parameters={}):
+    def redirect_to(self, url=None, parameters=None):
         """
         Redirects the user to the url past by parameter or to the url that we defined in our SSO Request.
 
