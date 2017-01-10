@@ -71,8 +71,8 @@ def post(request_id):
     filename = secure_filename(file_.filename)
     is_update = eval_request_bool(request.form.get('update'))
     if not current_user.is_anonymous and (
-                is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or
-                is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE)):
+            is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or
+            is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE)):
         response_id = request.form.get('response_id') if is_update else None
         if upload_exists(request_id, filename, response_id):
             response = {
@@ -185,9 +185,9 @@ def delete(r_id_type, r_id, filecode):
 
             path = ''
             quarantined_only = eval_request_bool(request.form.get('quarantined_only'))
-            if quarantined_only and (
-                        is_allowed(user=current_user, request_id=r_id, permission=permission.ADD_FILE) or
-                        is_allowed(user=current_user, request_id=r_id, permission=permission.EDIT_FILE)):
+            has_add_edit = (is_allowed(user=current_user, request_id=r_id, permission=permission.ADD_FILE) or
+                            is_allowed(user=current_user, request_id=r_id, permission=permission.EDIT_FILE))
+            if quarantined_only and has_add_edit:
                 path = os.path.join(
                     current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
                     r_id
@@ -207,10 +207,15 @@ def delete(r_id_type, r_id, filecode):
                 }
                 status = redis.get(get_upload_key(r_id, filename))
                 if status is not None:
-                    path = os.path.join(
-                        path_for_status[status.decode("utf-8")],
-                        r_id
-                    )
+                    dest_path = path_for_status[status.decode("utf-8")]
+                    if (dest_path == current_app.config['UPLOAD_QUARANTINE_DIRECTORY'] and has_add_edit) or (
+                        dest_path == current_app.config['UPLOAD_DIRECTORY'] and
+                            is_allowed(user=current_user, request_id=r_id, permission=permission.ADD_FILE)
+                    ):
+                        path = os.path.join(
+                            dest_path,
+                            r_id
+                        )
             filepath = os.path.join(path, filename)
             found = False
             if path != '':
@@ -219,8 +224,7 @@ def delete(r_id_type, r_id, filecode):
                         os.remove(filepath)
                         found = True
                 else:
-                    if fu.exists(filepath) and \
-                            is_allowed(user=current_user, request_id=r_id, permission=permission.ADD_FILE):
+                    if fu.exists(filepath):
                         fu.remove(filepath)
                         found = True
             if found:
