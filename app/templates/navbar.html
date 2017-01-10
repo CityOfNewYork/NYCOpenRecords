@@ -17,9 +17,6 @@
                 <li class="openrecords_nav"><a href="{{ url_for('report.show_report') }}">Reports</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.faq') }}">FAQ</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.about') }}">About</a></li>
-                {% if current_user.is_authenticated %}
-                    <li class="openrecords_nav"><a href="{{ url_for('auth.manage_account') }}">Manage Account</a></li>
-                {% endif %}
                 <li class="openrecords_nav"><a href="{{ url_for('main.contact') }}">Contact</a></li>
                 {% if not current_user.is_anonymous
                 and ((current_user.is_agency_admin and current_user.is_agency_active)

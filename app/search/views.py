@@ -18,11 +18,6 @@ from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.search.utils import search_requests, convert_dates
 
 
-@search.route("/", methods=['GET'])
-def test():
-    return render_template('search/test.html')
-
-
 @search.route("/requests", methods=['GET'])
 def requests():
     """
