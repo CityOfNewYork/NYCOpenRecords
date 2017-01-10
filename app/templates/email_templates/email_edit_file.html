@@ -78,20 +78,6 @@
             </p>
             </div>
             <br>
-
-            {% if not agency %}
-                {% if response_data.response.request.requester.is_anonymous_requester %}
-                    <p>
-                        Link to file: <a href="{{ response_data.file_link_for_user['requester'] }}">
-                        {% if response_data.data_new['name'] %}
-                            {{ response_data.data_new['name'] }}
-                        {% else %}
-                            {{ response_data.response.name }}</a>
-                        {% endif %}
-                    </p>
-                {% endif %}
-            {% endif %}
         {% endif %}
-
     {% endif %}
 {% endblock %}
