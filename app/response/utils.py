@@ -32,6 +32,7 @@ from app.constants import (
     response_privacy,
     request_status,
     determination_type,
+    user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
@@ -1314,8 +1315,8 @@ def create_response_event(events_type, response):
 
     """
     event = Events(request_id=response.request_id,
-                   user_guid=current_user.guid,
-                   auth_user_type=current_user.auth_user_type,
+                   user_guid=response.request.requester.guid if current_user.is_anonymous else current_user.guid,
+                   auth_user_type=user_type_auth.ANONYMOUS_USER if current_user.is_anonymous else current_user.auth_user_type,
                    type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
