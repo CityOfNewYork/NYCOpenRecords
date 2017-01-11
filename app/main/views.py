@@ -7,7 +7,8 @@ from . import main
 from flask import (
     render_template,
     flash,
-    request
+    request,
+    session
 )
 from app.lib.email_utils import send_contact_email
 from app.lib.db_utils import create_object
@@ -63,3 +64,12 @@ def faq():
 @main.route('/about', methods=['GET'])
 def about():
     return render_template('main/about.html')
+
+@main.route('/active', methods=['POST'])
+def active():
+    """
+    Extends a user's session.
+    :return:
+    """
+    session.modified = True
+    return 'OK'

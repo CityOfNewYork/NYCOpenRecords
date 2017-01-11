@@ -36,7 +36,7 @@ from app.lib.user_information import create_mailing_address
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 
-@auth.route('/login')
+@auth.route('/login', methods=['GET'])
 def login():
     if current_app.config['USE_LDAP']:
         return redirect(url_for('auth.ldap_login'))
@@ -46,12 +46,14 @@ def login():
     return abort(404)
 
 
-@auth.route('/logout')
+@auth.route('/logout', methods=['GET'])
 def logout():
+    timed_out = request.args.get('timeout')
     if current_app.config['USE_LDAP']:
-        return redirect(url_for('auth.ldap_logout'))
+        return redirect(url_for('auth.ldap_logout', timed_out=timed_out))
     elif current_app.config['USE_SAML']:
-        return redirect(url_for('auth.saml'))
+        # return redirect(url_for('auth.saml'), timed_out=timed_out)
+        return abort(404)
 
     return abort(404)
 
@@ -85,6 +87,8 @@ def ldap_login():
 
 
 @auth.route('/ldap_logout', methods=['GET'])
-def ldap_logout():
+def ldap_logout(timed_out=None):
     logout_user()
+    if timed_out is not None:
+        flash("Your session timed out. Please login again", category='info')
     return redirect(url_for('main.index'))
