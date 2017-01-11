@@ -15,7 +15,9 @@ class Config:
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
 
-    SERVER_NAME = os.environ.get('SERVER_NAME') or 'localhost:5000'
+    # Note: BASE_URL and VIEW_REQUEST_ENDPOINT used for the automatic status update job (jobs.py)
+    BASE_URL = os.environ.get('BASE_URL')
+    VIEW_REQUEST_ENDPOINT = os.environ.get('VIEW_REQUEST_ENDPOINT')
 
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
