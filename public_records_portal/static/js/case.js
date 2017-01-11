@@ -208,39 +208,48 @@
 
     $('#rerouteButton').on('click', function () {
         var formData = new FormData($("#AcknowledgeNote")[0]);
-        if ($("#rerouteReason").val()) {
-
+        var acknowledge_status = $('#acknowledge_status')[0].selectedIndex;
+        if (acknowledge_status == 0){
+            acknowledge_url = "/email/email_acknowledgement_20.html";
         }
-        else {
-            $.ajax({
-                url: "/email/email_acknowledgement.html",
-                type: 'POST',
-                processData: false,
-                contentType: false,
-                data: formData,
-                success: function (data) {
-                    $('#form_id').val('AcknowledgeNote');
-                    var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-                    modalQuestion += ' ' + $('#acknowledge_status').val();
-                    $('#modalquestionDiv').html(modalQuestion);
-                    $('#modalQuestionTable').hide();
-                    CKEDITOR.replace('email_text');
-                    $('#email_text').val(data);
-                    $('#emailTextTable').hide();
-                    $('#modalquestionDiv').text(modalQuestion);
-                    $('#modalQuestionTable').hide();
-                },
-                error: function (data) {
-                    alert('fail.');
-                }
-            });
+        else{
+            acknowledge_url = "/email/email_acknowledgement.html";
         }
+        $.ajax({
+            url: acknowledge_url,
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (data) {
+                $('#form_id').val('AcknowledgeNote');
+                var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
+                modalQuestion += ' ' + $('#acknowledge_status').val();
+                $('#modalquestionDiv').html(modalQuestion);
+                $('#modalQuestionTable').hide();
+                CKEDITOR.replace('email_text');
+                $('#email_text').val(data);
+                $('#emailTextTable').hide();
+                $('#modalquestionDiv').text(modalQuestion);
+                $('#modalQuestionTable').hide();
+            },
+            error: function (data) {
+                alert('fail.');
+            }
+        });
     });
 
     $('#extendButton').on('click', function (e) {
         var formData = new FormData($("#extension")[0]);
+        var extension_status = $('#days_after')[0].selectedIndex;
+        if (extension_status == 1){
+            extension_url = "/email/email_extension_20.html";
+        }
+        else{
+            extension_url = "/email/email_extension.html";
+        }
         $.ajax({
-            url: "/email/email_extension.html",
+            url: extension_url,
             type: 'POST',
             processData: false,
             contentType: false,
