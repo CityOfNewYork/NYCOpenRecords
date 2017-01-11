@@ -64,16 +64,12 @@
 
         next.click(function () {
             // check if permissions are different
-            if (permission.val() === null && current_permissions[user.val()].length === 0) {
-                return;
-            }
-
             if ((permission.val() === null && current_permissions[user.val()].length > 0) ||
-                !permission.val()
+                (permission.val() !== null && !permission.val()
                     .map(Number)
                     .every(function(item, index) {
                         return item === current_permissions[user.val()][index];
-                    })
+                    }))
             ) {
                 $.ajax({
                     url: "/response/email",
