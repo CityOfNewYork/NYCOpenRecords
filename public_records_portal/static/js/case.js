@@ -67,16 +67,15 @@
         }
     });
 
-    $("#days_after").change(function () {
+    $("#acknowledge_status").change(function () {
         selected = $(this).val();
-        if (selected === "0") {
+        if (selected === "-1") {
             $("#custom_due_date").show();
         }
         else {
             $("#custom_due_date").hide();
         }
     });
-
 
     $("#days_after").change(function () {
         selected = $(this).val();
@@ -207,40 +206,94 @@
     });
 
     $('#rerouteButton').on('click', function () {
-        var formData = new FormData($("#AcknowledgeNote")[0]);
-        if ($("#rerouteReason").val()) {
-
-        }
-        else {
-            $.ajax({
-                url: "/email/email_acknowledgement.html",
-                type: 'POST',
-                processData: false,
-                contentType: false,
-                data: formData,
-                success: function (data) {
-                    $('#form_id').val('AcknowledgeNote');
-                    var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
-                    modalQuestion += ' ' + $('#acknowledge_status').val();
-                    $('#modalquestionDiv').html(modalQuestion);
-                    $('#modalQuestionTable').hide();
-                    CKEDITOR.replace('email_text');
-                    $('#email_text').val(data);
-                    $('#emailTextTable').hide();
-                    $('#modalquestionDiv').text(modalQuestion);
-                    $('#modalQuestionTable').hide();
-                },
-                error: function (data) {
-                    alert('fail.');
+        var acknowledge_status = $('#acknowledge_status')[0].selectedIndex;
+        var input = $("<input>")
+            .attr("type", "hidden")
+            .attr("name", "days_after")
+            .attr("id","days_after").val('');
+        $('#AcknowledgeNote').append($(input));
+        var days_after=document.getElementById('days_after');
+        if (acknowledge_status != 0){
+            if (acknowledge_status == 5) {
+                var custom_date = $('#datepicker').val();
+                custom_date = new Date(custom_date);
+                var current_date = new Date(Date.now());
+                var date_difference = (custom_date - current_date) / 86400000;
+                if (date_difference >= 21){
+                    days_after.value=Math.ceil(date_difference);
+                    acknowledge_url = "/email/email_acknowledgement.html";
                 }
-            });
+                else{
+                    days_after.value=Math.ceil(date_difference);
+                    acknowledge_url = "/email/email_acknowledgement_20.html";
+                }
+            }
+            else{
+                days_after.value=$('#acknowledge_status').val();
+                acknowledge_url = "/email/email_acknowledgement.html";
+            }
+            var formData = new FormData($("#AcknowledgeNote")[0]);
         }
+        else{
+            days_after.value=$('#acknowledge_status').val();
+            acknowledge_url = "/email/email_acknowledgement.html";
+            var formData = new FormData($("#AcknowledgeNote")[0]);
+        }
+        $.ajax({
+            url: acknowledge_url,
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function (data) {
+                $('#form_id').val('AcknowledgeNote');
+                var modalQuestion = 'Are you sure you want to acknowledge the request for the number of days below and send an email to the requester?';
+                if ($('#acknowledge_status').val() == -1){
+                    modalQuestion += ' ' + $('#datepicker').val();
+                }
+                else {
+                    modalQuestion += ' ' + $('#acknowledge_status').val();
+                }
+                $('#modalquestionDiv').html(modalQuestion);
+                $('#modalQuestionTable').hide();
+                CKEDITOR.replace('email_text');
+                $('#email_text').val(data);
+                $('#emailTextTable').hide();
+                $('#modalquestionDiv').text(modalQuestion);
+                $('#modalQuestionTable').hide();
+            },
+            error: function (data) {
+                alert('fail.');
+            }
+        });
     });
 
     $('#extendButton').on('click', function (e) {
         var formData = new FormData($("#extension")[0]);
+        var extension_status = $('#days_after')[0].selectedIndex;
+        if (extension_status == 1){
+            extension_url = "/email/email_extension_20.html";
+        }
+        else if(extension_status == 5){
+            var custom_date = $('#datepicker').val();
+            custom_date = new Date(custom_date);
+            var current_date = new Date(Date.now());
+            var date_difference = (custom_date - current_date) / 86400000;
+
+            if (date_difference > 20)
+            {
+                extension_url = "/email/email_extension.html"
+            }
+            else
+            {
+                extension_url = "/email/email_extension_20.html"
+            }
+        }
+        else{
+            extension_url = "/email/email_extension.html";
+        }
         $.ajax({
-            url: "/email/email_extension.html",
+            url: extension_url,
             type: 'POST',
             processData: false,
             contentType: false,

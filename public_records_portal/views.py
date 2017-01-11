@@ -69,7 +69,6 @@ zip_reg_ex = re.compile('^[0-9]{5}(?:-[0-9]{4})?$')
 
 @app.before_request
 def csrf_protect():
-    app.logger.info("def csrf_protect")
     if request.method == "POST":
         token = session['_csrf_token']
         if not token or token != request.form.get('_csrf_token'):
@@ -634,18 +633,15 @@ def show_request(request_id, template="manage_request_public.html", errors=None,
 
 @app.route("/email/<string:template_name>", methods=["GET", "POST"])
 def show_email(template_name, errors=None, form=None):
-    fields = form
     request_id = request.form.get('request_id')
     acknowledge_status = request.form.get('acknowledge_status')
     due_date = request.form.get('due_date')
     due_date_str = None
-    days_after = None
+    days_after = request.form.get('days_after')
     close_reasons = None
     if request.form.get('days_after') != '' and request.form.get('days_after') is not None:
         days_after = int(request.form.get('days_after'))
     req = get_obj("Request", request_id)
-
-
 
     if due_date == '' or due_date is None:
         if days_after is not None:
@@ -667,7 +663,9 @@ def show_email(template_name, errors=None, form=None):
     else:
         page= '%srequest/%s' % (public_app_url, request_id)
     unfollow_link = '%sunfollow/%s/' % (public_app_url, request_id)
-    return render_template('edit_templates/' + template_name, department=department, page=page, unfollow_link=unfollow_link, acknowledge_status=acknowledge_status, due_date=due_date_str, close_reasons=close_reasons)
+    return render_template('edit_templates/' + template_name, department=department, page=page,
+                           unfollow_link=unfollow_link, acknowledge_status=acknowledge_status, due_date=due_date_str,
+                           close_reasons=close_reasons, days_after=days_after)
 
 # @app.route("/api/staff")
 # def staff_to_json():

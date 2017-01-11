@@ -343,8 +343,13 @@ def update_resource(resource, request_body):
             app.logger.error('No Subscribers')
     elif 'acknowledge' in resource:
         req = get_obj('Request', fields['request_id'])
-        change_request_status(fields['request_id'],
-                              fields['acknowledge_status'])
+        if fields['due_date'] != '':
+            change_request_status(fields['request_id'],
+                                  status='custom_due_date',
+                                    due_date=fields['due_date'])
+        else:
+            change_request_status(fields['request_id'],
+                                  fields['acknowledge_status'] + ' days')
         notification_content['additional_information'] = bleach.clean(request_body['additional_information'], tags=[])
         notification_content['acknowledge_status'] = request_body['acknowledge_status']
         notification_content['request_id'] = fields['request_id']

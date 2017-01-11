@@ -150,7 +150,7 @@
     "Action": "Refer to 311/NYC.gov"
   },
   "Refer to OpenData": {
-    "What": "Your request is for data that is available through the City's OpenData site. You may visit http://nyc.gov/opendata to find this information",
+    "What": "Your request is for data that is available through the City's OpenData site. You may visit http://nyc.gov/opendata to find this information.",
     "Who": "",
     "Action": "Refer to OpenData"
   },
@@ -175,7 +175,7 @@
     "Action": "Fulfilled via Fax"
   },
   "Fulfilled via Mail": {
-    "What": "Your request under the Freedom of Information Law (FOIL) has been been fulfilled and the documents you requested have been mailed to you. Please allow 7 - 10 days for receipt.",
+    "What": "Your request under the Freedom of Information Law (FOIL) has been fulfilled and the documents you requested have been mailed to you. Please allow 7 - 10 days for receipt.",
     "Who": "",
     "Action": "Fulfilled via Mail"
   },
