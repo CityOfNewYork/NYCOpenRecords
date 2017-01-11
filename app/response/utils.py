@@ -1315,7 +1315,7 @@ def create_response_event(events_type, response):
 
     """
     event = Events(request_id=response.request_id,
-                   user_guid=response.request.requester.guid if current_user.is_anonymous else current_user,
+                   user_guid=response.request.requester.guid if current_user.is_anonymous else current_user.guid,
                    auth_user_type=user_type_auth.ANONYMOUS_USER if current_user.is_anonymous else current_user.auth_user_type,
                    type_=events_type,
                    timestamp=datetime.utcnow(),
