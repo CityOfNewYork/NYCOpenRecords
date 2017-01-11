@@ -1054,32 +1054,43 @@ def _get_edit_response_template(editor):
             default_content = True
 
     # render email_template for requester if requester viewable keys are edited or privacy changed from private
-    if release_and_viewable or was_private:
-        email_summary_requester = render_template(email_template,
-                                                  default_content=default_content,
-                                                  content=requester_content,
-                                                  request_id=editor.response.request.id,
-                                                  agency_name=agency_name,
-                                                  response=editor.response,
-                                                  response_data=editor,
-                                                  page=page,
-                                                  privacy=data.get('privacy'),
-                                                  response_privacy=response_privacy)
-        default_content = True
-
-    agency = True
-    # email_summary_edited rendered every time for email that agency receives
-    email_summary_edited = render_template(email_template,
-                                           default_content=default_content,
-                                           content=agency_content,
-                                           request_id=editor.response.request.id,
-                                           agency_name=agency_name,
-                                           response=editor.response,
-                                           response_data=editor,
-                                           page=page,
-                                           privacy=data.get('privacy'),
-                                           response_privacy=response_privacy,
-                                           agency=agency)
+    if not editor.update:
+        if release_and_viewable or was_private:
+            email_summary_requester = render_template(email_template,
+                                                      default_content=default_content,
+                                                      content=requester_content,
+                                                      request_id=editor.response.request.id,
+                                                      agency_name=agency_name,
+                                                      response=editor.response,
+                                                      response_data=editor,
+                                                      page=page,
+                                                      privacy=data.get('privacy'),
+                                                      response_privacy=response_privacy)
+            default_content = True
+        agency = True
+        # email_summary_edited rendered every time for email that agency receives
+        email_summary_edited = render_template(email_template,
+                                               default_content=default_content,
+                                               content=agency_content,
+                                               request_id=editor.response.request.id,
+                                               agency_name=agency_name,
+                                               response=editor.response,
+                                               response_data=editor,
+                                               page=page,
+                                               privacy=data.get('privacy'),
+                                               response_privacy=response_privacy,
+                                               agency=agency)
+    else:
+        if requester_content is not None:
+            email_summary_requester = requester_content.replace(flask_request.form['replace-string'],
+                                                                render_template(
+                                                                    'email_templates/edit_response_file_links.html',
+                                                                    response_data=editor))
+        else:
+            email_summary_edited = requester_content.replace(flask_request.form['replace-string'],
+                                                             render_template(
+                                                                 'email_templates/edit_response_file_links.html',
+                                                                 response_data=editor))
     return email_summary_requester, email_summary_edited, header
 
 

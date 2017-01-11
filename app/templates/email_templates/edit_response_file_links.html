@@ -1,0 +1,21 @@
+{% if not agency and response_data.response.request.requester.is_anonymous_requester %}
+     <p>
+         Requester Link to file: <a href="{{ response_data.file_link_for_user['requester'] }}">
+         {% if response_data.data_new['name'] %}
+             {{ response_data.data_new['name'] }}
+         {% else %}
+             {{ response_data.response.name }}</a>
+         {% endif %}
+     </p>
+{% endif %}
+
+{% if agency or not response_data.response.request.requester.is_anonymous_requester %}
+    <p>
+        Agency Link to file: <a href="{{ response_data.file_link_for_user['agency'] }}">
+        {% if response_data.data_new['name'] %}
+            {{ response_data.data_new['name'] }}
+        {% else %}
+            {{ response_data.response.name }}</a>
+        {% endif %}
+    </p>
+ {% endif %}

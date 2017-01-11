@@ -52,6 +52,8 @@ and current_request.status != request_status.CLOSED %}
                 {% endfor %}
             </div>
         {% endif %}
+        <input type="hidden" name="replace-string">
+        <input type="hidden" name="email_content">
     </form>
 {% else %}
     <div>
