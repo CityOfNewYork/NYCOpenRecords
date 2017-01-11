@@ -1,59 +1,57 @@
-sessionMonitor = function (options) {
+sessionMonitor = function(options) {
     "use strict";
 
     var defaults = {
             // Session lifetime (milliseconds)
-            sessionLifetime: 30 * 60 * 1000,
+            sessionLifetime: 60 * 60 * 1000,
             // Amount of time before session expiration when the warning is shown (milliseconds)
             timeBeforeWarning: 5 * 60 * 1000,
             // Minimum time between pings to the server (milliseconds)
-            minPingInterval: 1 * 60 * 1000,
+            minPingInterval: 60 * 1000,
             // Space-separated list of events passed to $(document).on() that indicate a user is active
             activityEvents: 'mouseup',
             // URL to ping the server using HTTP POST to extend the session
-            pingUrl: '/active',
+            pingUrl: '/ping',
             // URL used to log out when the user clicks a "Log out" button
             logoutUrl: '/logout',
             // URL used to log out when the session times out
             timeoutUrl: '/logout?timeout=1',
-            ping: function () {
+            ping: function() {
                 // Ping the server to extend the session expiration using a POST request.
                 $.ajax({
                     type: 'POST',
                     url: self.pingUrl
                 });
             },
-            logout: function () {
+            logout: function() {
                 // Go to the logout page.
                 window.location.href = self.logoutUrl;
             },
-            onwarning: function () {
+            onwarning: function() {
                 // Below is example code to demonstrate basic functionality. Use this to warn
                 // the user that the session will expire and allow the user to take action.
                 // Override this method to customize the warning.
                 var warningMinutes = Math.round(self.timeBeforeWarning / 60 / 1000),
                     $alert = $('<div id="jqsm-warning">Your session will expire in ' + warningMinutes + ' minutes. ' +
-                        '<button id="jqsm-stay-logged-in">Stay Logged In</button>' +
-                        '<button id="jqsm-log-out">Log Out</button>' +
-                        '</div>');
+                               '<button id="jqsm-stay-logged-in">Stay Logged In</button>' +
+                               '<button id="jqsm-log-out">Log Out</button>' +
+                               '</div>');
 
                 if (!$('body').children('div#jqsm-warning').length) {
                     $('body').prepend($alert);
                 }
                 $('div#jqsm-warning').show();
                 $('button#jqsm-stay-logged-in').on('click', self.extendsess)
-                    .on('click', function () {
-                        $alert.hide();
-                    });
+                    .on('click', function() { $alert.hide(); });
                 $('button#jqsm-log-out').on('click', self.logout);
             },
-            onbeforetimeout: function () {
+            onbeforetimeout: function() {
                 // By default this does nothing. Override this method to perform actions
                 // (such as saving draft data) before the user is automatically logged out.
                 // This may optionally return a jQuery Deferred object, in which case
                 // ontimeout will be executed when the deferred is resolved or rejected.
             },
-            ontimeout: function () {
+            ontimeout: function() {
                 // Go to the timeout page.
                 window.location.href = self.timeoutUrl;
             }

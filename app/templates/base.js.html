@@ -12,19 +12,16 @@
             }
         }
     });
-</script>
 
-<script type="text/javascript">
     // Configure and start the session timeout monitor
     sessMon = sessionMonitor({
         // Subtract 1 minute to ensure the backend doesn't expire the session first
-        sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} -(1 * 60 * 1000),
-        timeBeforeWarning: 10 * 60 * 1000,  // 10 minutes
-        minPingInterval: 1 * 60 * 1000,  // 1 minute
+        sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
+        timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes
+        minPingInterval: 60 * 1000,  // 1 minute
         pingUrl: '/ping',
-        logoutUrl: '/logout',
-        timeoutUrl: '/logged-out?timeout=1&next=' + encodeURIComponent(
-            window.location.pathname + window.location.search + window.location.hash),
+        logoutUrl: '/auth/logout',
+        timeoutUrl: '/auth/logout?timeout=1&next=',
         // The "mouseup" event was used instead of "click" because some of the
         // inner elements on some pages have click event handlers that stop propagation.
         activityEvents: 'mouseup',
