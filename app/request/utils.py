@@ -365,7 +365,7 @@ def generate_request_id(agency_ein):
             ein=parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
-                      agency_ein)
+                      parent_ein)
         agency_ein = agency.parent_ein
         request_id = "FOIL-{0:s}-{1!s}-{2:05d}".format(
             datetime.utcnow().strftime("%Y"), agency_ein, int(next_request_number))
