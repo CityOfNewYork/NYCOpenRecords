@@ -360,8 +360,9 @@ def generate_request_id(agency_ein):
     """
     if agency_ein:
         agency = Agencies.query.filter_by(ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
+        parent_ein = _get_parent_ein(agency.parent_ein)
         next_request_number = Agencies.query.filter_by(
-            parent_ein=agency.parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
+            ein=parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
                       agency_ein)
@@ -453,3 +454,14 @@ def send_confirmation_email(request, agency, user):
         print('Must include: To, CC, or BCC')
     except Exception as e:
         print("Error:", e)
+
+
+def _get_parent_ein(parent_ein):
+    """
+    Return the correctly formated EIN for a parent agency.
+
+    Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
+    :param parent_ein: 3 character parent ein
+    :return: String
+    """
+    return "0{}".format(parent_ein)
