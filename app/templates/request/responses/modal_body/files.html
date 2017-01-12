@@ -15,11 +15,11 @@ and current_request.status != request_status.CLOSED %}
             <div class="fileupload-control">
                 <div class="fileupload-divs">
                     <div class="row fileupload-buttonbar">
-                <span class="btn btn-default fileinput-button">
+                <label class="btn btn-default fileinput-button">
                     <i class="glyphicon glyphicon-open-file"></i>
                     <span>Replace File</span>
                     <input type="file" name="file" id="add-files">
-                </span>
+                </label>
                         <span class="fileupload-process"></span>
                     </div>
                     <div role="presentation">
@@ -52,6 +52,8 @@ and current_request.status != request_status.CLOSED %}
                 {% endfor %}
             </div>
         {% endif %}
+        <input type="hidden" name="replace-string">
+        <input type="hidden" name="email_content">
     </form>
 {% else %}
     <div>

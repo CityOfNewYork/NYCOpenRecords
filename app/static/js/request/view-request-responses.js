@@ -3,6 +3,7 @@ $(function () {
     var responses = null;
     var index = 0;
     var index_increment = 10;
+    var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var request_id = $.trim($('#request-id').text());
 
@@ -225,9 +226,13 @@ $(function () {
                 // SUBMIT!
                 submitBtn.click(function () {
                     $(this).attr("disabled", true);
+                    var randomString = getRandomString(32, alphaNumericChars);
+                    var emailSummaryHidden = third.find(".email-summary-hidden");
+                    emailSummaryHidden.html(third.find(".email-summary").html());
+                    emailSummaryHidden.find(".file-links").html(randomString);
+                    first.find("input[name='replace-string']").val(randomString);
+                    first.find("input[name='email_content']").val(emailSummaryHidden.html());
                     var form = first.find("form").serializeArray();
-                    var email_content = second.find("#email-content-" + response_id).val();
-                    form.push({ name: "email_content", value: email_content });
                     $.ajax({
                         url: "/response/" + response_id,
                         type: "PATCH",
@@ -237,6 +242,12 @@ $(function () {
                         }
                     });
                 });
+
+                function getRandomString(length, chars) {
+                    var string = '';
+                    for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
+                    return string;
+                }
 
                 // Apply parsley required validation for title
                 first.find("input[name=title]").attr("data-parsley-required", "");
