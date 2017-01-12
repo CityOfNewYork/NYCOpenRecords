@@ -5,58 +5,66 @@
 {% endblock %}
 
 {% block content %}
-<div class="row row-centered">
-    <div class="col-sm-9 col-centered">
-        <h1 id="about" class="text-center">
-            About OpenRECORDS
-        </h1>
-        <br>
-        <p class="lead">
-            OpenRECORDS is a quick, simple way for you to submit a
-            public records request to a New York City Agency.
-        </p>
-        <p>
-            <strong>Most information on this site is public.</strong>
-            Your contact information, and most personal information that may be contained
-            in government documents will not be made available to the public.
-        </p>
-        <br>
-        <h4 id="what">
-            What is OpenRECORDS?
-        </h4>
-        <p>
-            OpenRECORDS is a quick, simple way for individuals to submit Freedom of
-            Information Law (FOIL) requests to a NYC agency. The web application also
-            allows government employees to manage, respond to, and fulfill incoming requests.
-            By providing more information about records requests, members of the public may
-            find what they need without having to create a new public record request.
-        </p>
-        <br>
-        <h4 id="documents">
-            Why aren't all documents uploaded on OpenRECORDS?
-        </h4>
-        <p>
-            City agencies will not publicly release records or information that violates your right to privacy.
-            City agencies will not make records available that have been exempted from disclosure by Federal,
-            State, or Local statute, including records that would impair contract awards or collective bargaining
-            negotiations, are trade secrets, or are compiled for law enforcement purposes and if disclosed would
-            interfere with investigations or judicial proceedings, deprive a person to a fair trial, identify a
-            confidential source, reveal investigative techniques, or endanger a person's life. Records
-            such as reports and data will be posted to the portal 20 business days after they are sent
-            directly to the requester. Records that contain email correspondence from government employees
-            will be sent directly to the requester.
-        </p>
-        <hr>
-        <h4 id="why">
-            History of OpenRECORDS (Previously RecordTrac)
-        </h4>
-        <img id="nyc-seal" src="{{ url_for('static', filename='img/nycseal.png') }}" alt="NYC Seal" width="175">
-        <p>
-            The 2013 Code for America fellows created RecordTrac with the City of Oakland in response to public
-            complaints that they didn’t understand what happened after they submitted their requests and
-            it took too long to get the records they needed. By making everything completely transparent,
-            you can know your request is fulfilled.
-        </p>
+    <div class="row row-centered">
+        <div class="col-sm-9 col-centered">
+            <h1 id="about" class="text-center">
+                About OpenRECORDS
+            </h1>
+            <br>
+            <p class="lead">
+                OpenRECORDS is a quick, simple way for you to submit a
+                public records request to a New York City Agency.
+            </p>
+            <p>
+                <strong>Most information on this site is public.</strong>
+                Your contact information, and most personal information that may be contained
+                in government documents will not be made available to the public.
+            </p>
+            <br>
+            <h4 id="what">
+                What is OpenRECORDS?
+            </h4>
+            <p>
+                OpenRECORDS is a quick, simple way for individuals to submit Freedom of
+                Information Law (FOIL) requests to a NYC agency. The web application also
+                allows government employees to manage, respond to, and fulfill incoming requests.
+                By providing more information about records requests, members of the public may
+                find what they need without having to create a new public record request.
+            </p>
+            <br>
+            <h4 id="documents">
+                Why aren't all documents uploaded on OpenRECORDS?
+            </h4>
+            <p>
+                City agencies will not publicly release records or information that violates your right to privacy.
+                City agencies will not make records available that have been exempted from disclosure by Federal,
+                State, or Local statute, including records that would impair contract awards or collective bargaining
+                negotiations, are trade secrets, or are compiled for law enforcement purposes and if disclosed would
+                interfere with investigations or judicial proceedings, deprive a person to a fair trial, identify a
+                confidential source, reveal investigative techniques, or endanger a person's life. Records
+                such as reports and data will be posted to the portal 20 business days after they are sent
+                directly to the requester. Records that contain email correspondence from government employees
+                will be sent directly to the requester.
+            </p>
+            <hr>
+            <h4 id="why">
+                History of OpenRECORDS (Previously RecordTrac)
+            </h4>
+            <p>
+                The 2013 Code for America fellows created RecordTrac for the City of Oakland in response to public
+                complaints that people did not know what happened after submitting FOIL requests and that the response
+                time was too long. By making the process transparent, requesters could know when their requests were
+                fulfilled.
+                In 2014, the Department of Records and Information Services and the Department of Information Technology
+                and Telecommunications began working with the open source code from the Oakland application to create
+                additional features and functionality required to meet the FOIL needs of New York City agencies. The
+                resulting FOIL portal, is part of the Mayor’s overall initiative for transparency in government. The
+                initial beta version of OpenRecords was released in March 2015 for use with eight pilot agencies.. The
+                current version 2.0 was released in January 2017 and is used by 21 agencies, with more to be added on a
+                regular basis. The DORIS development team rewrote all of the code to increase the stability and
+                robustness of the application.
+
+            </p>
+        </div>
     </div>
-</div>
 {% endblock %}
