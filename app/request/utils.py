@@ -251,7 +251,7 @@ def create_request(title,
                                          agency_admins=parent_agency.administrators,
                                          guid_for_event=guid_for_event,
                                          auth_type_for_event=auth_type_for_event)
-        return request_id
+    return request_id
 
 
 def get_address(form):
