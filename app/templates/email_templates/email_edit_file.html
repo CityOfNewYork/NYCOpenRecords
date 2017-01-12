@@ -28,8 +28,8 @@
     {% endif %}
 
     {% if response_data is not none %}
-        <div class="mceNonEditable">
         {% if agency or response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            <div class="mceNonEditable">
             {% if response_data.data_old['hash'] %}
                 {% if response_data.data_old['name'] %}
                     <p>
@@ -95,8 +95,11 @@
                 </p>
              {% endif %}
             </div>
-        {% endif %}
         </div>
-        <p><br></p>
+        {% endif %}
      {% endif %}
+    <p>
+        Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
+    </p>
+    <p><br></p>
 {% endblock %}

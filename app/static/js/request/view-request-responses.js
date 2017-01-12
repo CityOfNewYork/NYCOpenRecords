@@ -3,6 +3,7 @@ $(function () {
     var responses = null;
     var index = 0;
     var index_increment = 10;
+    var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var request_id = $.trim($('#request-id').text());
 
@@ -225,7 +226,7 @@ $(function () {
                 // SUBMIT!
                 submitBtn.click(function () {
                     $(this).attr("disabled", true);
-                    var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+                    var randomString = getRandomString(32, alphaNumericChars);
                     var emailSummaryHidden = third.find(".email-summary-hidden");
                     emailSummaryHidden.html(third.find(".email-summary").html());
                     emailSummaryHidden.find(".file-links").html(randomString);
