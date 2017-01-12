@@ -455,7 +455,7 @@ class Requests(db.Model):
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
-    category = db.Column(db.String, default='All', nullable=False)
+    category = db.Column(db.String, default='All', nullable=False)  # FIXME: should be nullable, 'All' shouldn't be used
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
