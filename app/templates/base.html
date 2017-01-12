@@ -75,6 +75,9 @@
             </div>
         {% endfor %}
     {% endwith %}
+    {% if not current_user.is_anonymous %}
+        {% include 'auth/session_timeout_modal.html' %}
+    {% endif %}
 </div>
 <div class="wrapper">
     {% block content %}
@@ -90,6 +93,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jstz.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/auth/session-monitor.js') }}"></script>
 {% include 'base.js.html' %}
 {% block custom_script %}
 {% endblock %}

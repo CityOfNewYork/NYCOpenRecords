@@ -110,6 +110,18 @@ def create_app(config_name, jobs_enabled=True):
     def internal_server_error(e):
         return render_template("error/generic.html", status_code=500)
 
+    @app.context_processor
+    def add_session_config():
+        """Add current_app.permanent_session_lifetime converted to milliseconds
+        to context. The config variable PERMANENT_SESSION_LIFETIME is not
+        used because it could be either a timedelta object or an integer
+        representing seconds.
+        """
+        return {
+            'PERMANENT_SESSION_LIFETIME_MS': (
+                app.permanent_session_lifetime.seconds * 1000),
+        }
+
     # Register Blueprints
     from .main import main
     app.register_blueprint(main)
