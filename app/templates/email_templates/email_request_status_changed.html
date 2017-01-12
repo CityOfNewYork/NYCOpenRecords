@@ -1,4 +1,19 @@
-<p>
-    <a href='{{ page }}'>{{ request.id }}</a><br />
-    {% if request.was_acknowledged %}This request{% else %}The acknowledgment for this request{% endif %} is {% if request.status == request_status.OVERDUE %}now <strong>overdue</strong>. Please take immediate action.{% elif request.status == request_status.DUE_SOON %}due {% if days_until_due == 0 %}today.{% else %}in <strong>{{ days_until_due }}</strong> day{% if days_until_due > 1 %}s{% endif %}.{% endif %}{% endif %}
-</p>
+<p><a href='{{ page }}'>{{ request.id }}</a><br/></p>
+<span>
+    {% if request.was_acknowledged %}
+        This request
+    {% else %}
+        The acknowledgement for this request
+    {% endif %}
+    is
+    {% if request.status == request_status.OVERDUE %}
+        now <strong>overdue</strong>
+    {% else %}
+        <strong>due</strong>
+        {% if days_until_due == 0 %}
+            <strong>today</strong>
+        {% else %}
+            <strong>in {{ days_until_due }} business day{% if days_until_due > 1 %}s{% endif %}</strong>
+        {% endif %}.
+    {% endif %}
+</span>

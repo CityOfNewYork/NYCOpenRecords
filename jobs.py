@@ -89,7 +89,7 @@ def update_request_statuses():
             page = urljoin(current_app.config['BASE_URL'], "{view_request_endpoint}/{request_id}".format(
                 view_request_endpoint=current_app.config['VIEW_REQUEST_ENDPOINT'], request_id=request.id))
             subject = "Requests Due Soon"
-            timedelta_until_due = request.due_date - now
+            days_until_due = calendar.busdaycount(request.due_date, now)
             if request.status != request_status.DUE_SOON:
                 update_object(
                     {"status": request_status.DUE_SOON},
@@ -102,7 +102,7 @@ def update_request_statuses():
                 template=template,
                 request=request,
                 request_status=request_status,
-                days_until_due=timedelta_until_due.days,
+                days_until_due=days_until_due,
                 agency_name=request.agency.name,
                 page=page,
             )
@@ -117,7 +117,7 @@ def update_request_statuses():
                     template + ".html",
                     request=request,
                     request_status=request_status,
-                    days_until_due=timedelta_until_due.days,
+                    days_until_due=days_until_due,
                     agency_name=request.agency.name,
                     page=page,
                 )
