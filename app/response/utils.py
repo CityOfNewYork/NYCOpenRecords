@@ -1250,7 +1250,7 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     :type email_content_requester: str
 
     """
-    subject = 'Response Edited'
+    subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
@@ -1301,7 +1301,7 @@ def _send_delete_response_email(request_id, response):
             request_id=request_id,
             response=response,
             response_type=response_type),
-        'Response Deleted',
+        '{request_id}: Response Deleted'.format(request_id=request_id),
         to=get_agency_emails(request_id))
 
 
