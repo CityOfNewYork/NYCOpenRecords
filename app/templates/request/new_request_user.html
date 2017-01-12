@@ -22,14 +22,14 @@
                 {# Category of requests #}
                 {{ form.request_category.label(class='request-heading') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
-                      data-content="Selecting a category helps clarify which agency will receive the request."
+                      data-content="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_category(id='request-category', class='input-block-level') }}<br>
                 {# Agency request belongs to #}
                 {{ form.request_agency.label(class='request-heading agency-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
-                      data-content="List of agencies that would handle your request."
+                      data-content="List of all agencies available within OpenRecords that would handle your request."
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
