@@ -56,7 +56,7 @@ def create_request(title,
                    description,
                    category,
                    tz_name,
-                   agency=None,
+                   agency_ein=None,
                    first_name=None,
                    last_name=None,
                    submission=DIRECT_INPUT,
@@ -74,7 +74,7 @@ def create_request(title,
     :param title: request title
     :param description: detailed description of the request
     :param tz_name: client's timezone name
-    :param agency: agency_ein selected for the request
+    :param agency_ein: agency_ein selected for the request
     :param first_name: first name of the requester
     :param last_name: last name of the requester
     :param submission: request submission method
@@ -88,7 +88,7 @@ def create_request(title,
     :param upload_path: file path of the validated upload
     """
     # 1. Generate the request id
-    request_id = generate_request_id(agency)
+    request_id = generate_request_id(agency_ein)
 
     # 2a. Generate Email Notification Text for Agency
     # agency_email = generate_email_template('agency_acknowledgment.html', request_id=request_id)
@@ -110,7 +110,7 @@ def create_request(title,
     request = Requests(
         id=request_id,
         title=title,
-        agency_ein=agency,
+        agency_ein=agency_ein,
         category=category,
         description=description,
         date_created=date_created,
@@ -227,7 +227,7 @@ def create_request(title,
     ))
 
     # 11. Create the elasticsearch request doc only if agency has been onboarded
-    agency = Agencies.query.filter_by(ein=agency).first()
+    agency = Agencies.query.filter_by(ein=agency_ein).one()
 
     # (Now that we can associate the request with its requester.)
     if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
@@ -237,25 +237,21 @@ def create_request(title,
     if agency.administrators:
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
-        for admin in agency.administrators:
-            user_request = UserRequests(user_guid=admin.guid,
-                                        auth_user_type=admin.auth_user_type,
-                                        request_user_type=user_type_request.AGENCY,
-                                        request_id=request_id,
-                                        permissions=Roles.query.filter_by(
-                                            name=role.AGENCY_ADMIN).first().permissions)
-            create_object(user_request)
-            create_object(Events(
-                request_id,
-                guid_for_event,
-                auth_type_for_event,
-                event_type.USER_ADDED,
-                previous_value=None,
-                new_value=user_request.val_for_events,
-                response_id=None,
-                timestamp=datetime.utcnow()
-            ))
-    return request_id
+        _create_agency_user_requests(request_id=request_id,
+                                     agency_admins=agency.adminstrators,
+                                     guid_for_event=guid_for_event,
+                                     auth_type_for_event=auth_type_for_event)
+
+    # 13. Add all parent agency administrators to the request.
+    parent_agency_ein = _get_parent_ein(agency.parent_ein)
+    if agency.ein != parent_agency_ein:
+        parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one()
+        if parent_agency.administrators:
+            _create_agency_user_requests(request_id=request_id,
+                                         agency_admins=parent_agency.administrators,
+                                         guid_for_event=guid_for_event,
+                                         auth_type_for_event=auth_type_for_event)
+        return request_id
 
 
 def get_address(form):
@@ -359,7 +355,8 @@ def generate_request_id(agency_ein):
     :return: generated FOIL Request ID (FOIL - year - agency ein - 5 digits for request number)
     """
     if agency_ein:
-        agency = Agencies.query.filter_by(ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
+        agency = Agencies.query.filter_by(
+            ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
         parent_ein = _get_parent_ein(agency.parent_ein)
         next_request_number = Agencies.query.filter_by(
             ein=parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
@@ -465,3 +462,33 @@ def _get_parent_ein(parent_ein):
     :return: String
     """
     return "0{}".format(parent_ein)
+
+
+def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth_type_for_event):
+    """
+    Creates user_requests entries for agency administrators.
+    :param request_id: Request being created
+    :param agency_users: List of Users
+    :param guid_for_event: guid used to create request events
+    :param auth_type_for_event: user_auth_type from constants
+    :return:
+    """
+
+    for admin in agency_admins:
+        user_request = UserRequests(user_guid=admin.guid,
+                                    auth_user_type=admin.auth_user_type,
+                                    request_user_type=user_type_request.AGENCY,
+                                    request_id=request_id,
+                                    permissions=Roles.query.filter_by(
+                                        name=role.AGENCY_ADMIN).first().permissions)
+        create_object(user_request)
+        create_object(Events(
+            request_id,
+            guid_for_event,
+            auth_type_for_event,
+            event_type.USER_ADDED,
+            previous_value=None,
+            new_value=user_request.val_for_events,
+            response_id=None,
+            timestamp=datetime.utcnow()
+        ))
