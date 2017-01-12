@@ -238,7 +238,7 @@ def create_request(title,
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
         # privileges
         _create_agency_user_requests(request_id=request_id,
-                                     agency_admins=agency.adminstrators,
+                                     agency_admins=agency.administrators,
                                      guid_for_event=guid_for_event,
                                      auth_type_for_event=auth_type_for_event)
 
