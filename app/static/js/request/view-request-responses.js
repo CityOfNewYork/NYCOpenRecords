@@ -226,13 +226,12 @@ $(function () {
                 submitBtn.click(function () {
                     $(this).attr("disabled", true);
                     var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-                    var emailSummary = third.find(".email-summary");
-                    emailSummary.find(".file-links").html(randomString);
+                    var emailSummaryHidden = third.find(".email-summary-hidden");
+                    emailSummaryHidden.html(third.find(".email-summary").html());
+                    emailSummaryHidden.find(".file-links").html(randomString);
                     first.find("input[name='replace-string']").val(randomString);
-                    first.find("input[name='email_content']").val(emailSummary.html());
+                    first.find("input[name='email_content']").val(emailSummaryHidden.html());
                     var form = first.find("form").serializeArray();
-                    // var email_content = second.find("#email-content-" + response_id).val();
-                    // form.push({ name: "email_content", value: emailSummary.html() });
                     $.ajax({
                         url: "/response/" + response_id,
                         type: "PATCH",
