@@ -17,9 +17,13 @@ from app.constants import (
     response_privacy,
     response_type,
     determination_type,
+    role_name,
+    user_type_auth,
     ACKNOWLEDGMENT_DAYS_DUE,
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
+from app.lib.user_information import create_mailing_address
+from app.request.utils import generate_guid
 from app.lib.date_utils import (
     get_timezone_offset,
     get_due_date,
@@ -175,19 +179,19 @@ def transfer_requests(request):
     }
 
     query = ("INSERT INTO requests ("
-             "id,"
-             "agency_ein,"
-             "category,"
-             "title,"
-             "description,"
-             "date_created,"
-             "date_submitted,"
-             "due_date,"
-             "submission,"
-             "status,"
-             "privacy,"
-             "agency_description,"
-             "agency_description_release_date)"
+             "id, "
+             "agency_ein, "
+             "category, "
+             "title, "
+             "description, "
+             "date_created, "
+             "date_submitted, "
+             "due_date, "
+             "submission, "
+             "status, "
+             "privacy, "
+             "agency_description, "
+             "agency_description_release_date) "
              "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
     CUR_V2.execute(query, (
@@ -209,13 +213,13 @@ def transfer_requests(request):
 
 def _create_response(child, type_, release_date, privacy=None, date_created=None):
     query = ("INSERT INTO responses ("
-             "request_id,"
-             "privacy,"
-             "date_modified,"
-             "release_date,"
-             "deleted,"
-             '"type",'
-             "is_editable)"
+             "request_id, "
+             "privacy, "
+             "date_modified, "
+             "release_date, "
+             "deleted, "
+             '"type", '
+             "is_editable) "
              "VALUES (%s, %s, %s, %s, %s, %s, %s)")
 
     if date_created is None:
@@ -252,8 +256,8 @@ def transfer_notes(note):
                                    _get_note_release_date(note))
 
     query = ("INSERT INTO notes ("
-             "id,"
-             "content)"
+             "id, "
+             "content) "
              "VALUES (%s, %s)")
 
     CUR_V2.execute(query, (
@@ -269,9 +273,9 @@ def transfer_denials(note):
                                    privacy=response_privacy.RELEASE_AND_PUBLIC)
 
     query = ("INSERT INTO determinations ("
-             "id,"
-             "dtype,"
-             "reason)"
+             "id, "
+             "dtype, "
+             "reason) "
              "VALUES (%s, %s, %s)")
 
     CUR_V2.execute(query, (
@@ -288,9 +292,9 @@ def transfer_closings(note):
                                    privacy=response_privacy.RELEASE_AND_PUBLIC)
 
     query = ("INSERT INTO determinations ("
-             "id,"
-             "dtype,"
-             "reason)"
+             "id, "
+             "dtype, "
+             "reason) "
              "VALUES (%s, %s, %s)")
 
     reason = note.text.lstrip('{"').rstrip('"}').replace('","', '|')
@@ -317,9 +321,9 @@ def transfer_acknowledgments(email):
                                    date_created=email.time_sent)
 
     query = ("INSERT INTO determinations ("
-             "id,"
-             "dtype,"
-             '"date")'
+             "id, "
+             "dtype, "
+             '"date") '
              "VALUES (%s, %s, %s)")
 
     CUR_V1.execute("SELECT date_received FROM request WHERE id = '%s'" % email.request_id)
@@ -343,9 +347,9 @@ def transfer_reopenings(email):
                                    date_created=email.time_sent)
 
     query = ("INSERT INTO determinations ("
-             "id,"
-             "dtype,"
-             '"date")'
+             "id, "
+             "dtype, "
+             '"date") '
              "VALUES (%s, %s, %s)")
 
     CUR_V1.execute("SELECT due_date FROM request WHERE id = '%s'" % email.request_id)
@@ -367,10 +371,10 @@ def transfer_extensions(email):
                                    date_created=email.time_sent)
 
     query = ("INSERT INTO determinations ("
-             "id,"
-             "dtype,"
-             "reason,"
-             '"date")'
+             "id, "
+             "dtype, "
+             "reason, "
+             '"date") '
              "VALUES (%s, %s, %s, %s)")
 
     # FIXME: how do we handle multiple extensions? request.prev_status might help...
@@ -405,9 +409,9 @@ def transfer_files(record):
 
     # TODO: in script that transfers files, update files table (mime type, size, hash)
     query = ("INSERT INTO files ("
-             "id,"
-             "title,"
-             '"name")'
+             "id, "
+             "title, "
+             '"name") '
              "VALUES (%s, %s, %s)")
 
     if record.description is None or record.description.strip() == '':
@@ -428,9 +432,9 @@ def transfer_links(record):
                                    _get_record_release_date(record))
 
     query = ("INSERT INTO links ("
-             "id,"
-             "title,"
-             "url)"
+             "id, "
+             "title, "
+             "url) "
              "VALUES (%s, %s, %s)")
 
     CUR_V2.execute(query, (
@@ -446,8 +450,8 @@ def transfer_instructions(record):
                                    _get_record_release_date(record))
 
     query = ("INSERT INTO instructions ("
-             "id,"
-             "content)"
+             "id, "
+             "content) "
              "VALUES (%s, %s)")
 
     if record.description is None or record.description.strip() == '':
@@ -469,10 +473,10 @@ def transfer_emails(email):
                                    date_created=email.time_sent)
 
     query = ("INSERT INTO emails ("
-             "id,"
-             '"to",'
-             "subject,"
-             "body)"
+             "id, "
+             '"to", '
+             "subject, "
+             "body) "
              "VALUES (%s, %s, %s, %s)")
 
     CUR_V1.execute("SELECT email FROM public.user WHERE id = %s"
@@ -489,13 +493,76 @@ def transfer_emails(email):
     ))
 
 
+# TODO: ignore users with null department_id, backup_for, contact_for and with a '.gov' email
+# TODO: ignore users with null name, email, alias...?
 @setup_transfer('Users', "SELECT * FROM public.user")
 def transfer_users(user):
-    pass
+    # get agency_ein and auth_user_type
+    auth_user_type = user_type_auth.AGENCY_LDAP_USER
+    if user.department_id:
+        CUR_V1.execute("SELECT name FROM department WHERE id = %s" % user.department_id)
+        agency_ein = AGENCY_V1_NAME_TO_EIN[CUR_V1.fetchone().name]
+    elif user.backup_for:
+        agency_ein = AGENCY_V1_NAME_TO_EIN[user.backup_for]
+    elif user.contact_for:
+        agency_ein = AGENCY_V1_NAME_TO_EIN[user.contact_for]  # TODO: is this valid?
+    else:
+        agency_ein = None
+        auth_user_type = user_type_auth.ANONYMOUS_USER
+
+    mailing_address = create_mailing_address(
+        user.address1,
+        user.city,
+        user.state,
+        user.zipcode,
+        user.address2
+    )
+    query = ("INSERT INTO users ("
+             "guid, "
+             "auth_user_type, "
+             "agency_ein, "
+             "is_super, "
+             "is_agency_admin, "
+             "is_agency_active, "
+             "first_name, "
+             "middle_initial, "
+             "last_name, "
+             "email, "
+             "email_validated, "
+             "terms_of_use_accepted, "
+             "title, "
+             "organization, "
+             "phone_number, "
+             "fax_number, "
+             "mailing_address) "
+             "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+    CUR_V1.execute(query, (
+        generate_guid(),
+        auth_user_type,
+        agency_ein,
+        False,  # is_super
+        user.is_staff,  # is_agency_active
+        user.role == role_name.AGENCY_ADMIN,  # is_agency_admin
+        user.first_name.title(),
+        None,  # middle_initial
+        user.last_name.title(),
+        user.email,
+        False,  # email_validated
+        False,  # terms_of_user_accepted
+        None,  # Title
+        None,  # Organization
+        user.phone,
+        user.fax,
+        mailing_address
+    ))
 
 
 def transfer_all():
     transfer_requests()
+    transfer_users()
+    # transfer_user_requests()
+
     # Responses
     transfer_notes()
     transfer_files()
@@ -510,4 +577,4 @@ def transfer_all():
 
 
 if __name__ == "__main__":
-    transfer_all()
+    transfer_users()
