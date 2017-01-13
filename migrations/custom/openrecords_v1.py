@@ -1,11 +1,14 @@
 """
 Migrate data from OpenRecords V1 database.
 
+Usage:
+    PYTHONPATH=/.../openrecords_v2_0 python migrations/custom/openrecords_v1.py
+
 """
 import json
-import psycopg2
 import psycopg2.extras
 
+from functools import wraps
 from datetime import datetime
 
 from app import calendar
@@ -14,11 +17,30 @@ from app.constants import (
     response_privacy,
     response_type,
     determination_type,
+    ACKNOWLEDGMENT_DAYS_DUE,
 )
-from app.lib.date_utils import get_timezone_offset
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
+from app.lib.date_utils import (
+    get_timezone_offset,
+    get_due_date,
+    process_due_date,
+)
 
+try:
+    import progressbar
+    SHOW_PROGRESSBAR = True
+except ImportError:
+    SHOW_PROGRESSBAR = False
+
+
+CONN_V1 = psycopg2.connect(database="openrecords_v1", user="vagrant")
+CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev", user="vagrant")
+CUR_V1 = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+CUR_V2 = CONN_V2.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    
 DEFAULT_CATEGORY = 'All'
 DUE_SOON_DAYS_THRESHOLD = 2
+TZ_NY = 'America/New_York'
 
 AGENCY_V1_NAME_TO_EIN = {
     "Administration for Children's Services": "0067",
@@ -93,13 +115,62 @@ PRIVACY = [
 ]
 
 
-def transfer_request(row_v1, cur_v1, cur_v2):
-    cur_v1.execute("SELECT name FROM department WHERE id = %s" % row_v1.department_id)
+class MockProgressBar(object):
+    """ Mock progressbar.ProgressBar """
 
-    agency_ein = AGENCY_V1_NAME_TO_EIN[cur_v1.fetchone().name]
+    def __init__(self, max_value):
+        self.max = max_value
+
+    def update(self, num):
+        pass
+
+    def finish(self):
+        print(self.max, end='')
+
+
+def setup_transfer(tablename, query):
+    def decorator(transfer_func):
+        @wraps(transfer_func)
+        def wrapped():
+            CUR_V1.execute(query)
+            bar = progressbar.ProgressBar if SHOW_PROGRESSBAR else MockProgressBar
+            bar = bar(max_value=CUR_V1.rowcount)
+            print(tablename + "...")
+            for i, row in enumerate(CUR_V1.fetchall()):
+                transfer_func(row)
+                bar.update(i + 1)
+            CONN_V2.commit()
+            bar.finish()
+            print()
+        return wrapped
+    return decorator
+
+
+def _get_compatible_status(request):
+    if request.status in [request_status.CLOSED, request_status.OPEN]:
+        status = request.status
+    else:
+        now = datetime.now()
+        due_soon_date = calendar.addbusdays(
+            now, DUE_SOON_DAYS_THRESHOLD
+        ).replace(hour=23, minute=59, second=59)  # the entire day
+        if now > request.due_date:
+            status = request_status.OVERDUE
+        elif due_soon_date >= request.due_date:
+            status = request_status.DUE_SOON
+        else:
+            status = request_status.IN_PROGRESS
+    return status
+
+
+@setup_transfer("Requests", "SELECT * FROM request")
+def transfer_requests(request):
+    CUR_V1.execute("SELECT name FROM department WHERE id = %s" % request.department_id)
+
+    agency_ein = AGENCY_V1_NAME_TO_EIN[CUR_V1.fetchone().name]
 
     privacy = {
-        "title": bool(row_v1.title_private),
+        "title": bool(request.title_private),
         "agency_description": True  # row_v1.description_private NOT USED  # FIXME: some should be public by now
     }
 
@@ -119,220 +190,324 @@ def transfer_request(row_v1, cur_v1, cur_v2):
              "agency_description_release_date)"
              "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
-    cur_v2.execute(query, (
-        row_v1.id,                          # id
-        agency_ein,                         # agency id
-        DEFAULT_CATEGORY,                   # category
-        row_v1.summary,                     # title
-        row_v1.text,                        # description
-        row_v1.date_created,                # date_created
-        row_v1.date_received,               # date_submitted
-        row_v1.due_date,                    # due_date
-        row_v1.offline_submission_type,     # submission
-        _get_compatible_status(row_v1),      # status
-        json.dumps(privacy),                # privacy
-        row_v1.agency_description,          # agency_description
-        row_v1.agency_description_due_date  # agency_description_release_date
+    CUR_V2.execute(query, (
+        request.id,                             # id
+        agency_ein,                             # agency id
+        DEFAULT_CATEGORY,                       # category
+        request.summary,                        # title
+        request.text,                           # description
+        request.date_created,                   # date_created
+        request.date_received,                  # date_submitted
+        request.due_date,                       # due_date
+        request.offline_submission_type,        # submission
+        _get_compatible_status(request),        # status
+        json.dumps(privacy),                    # privacy
+        request.agency_description,             # agency_description
+        request.agency_description_due_date     # agency_description_release_date
     ))
 
 
-def _get_compatible_status(row):
-    if row.status in [request_status.CLOSED, request_status.OPEN]:
-        status = row.status
-    else:
-        now = datetime.now()
-        due_soon_date = calendar.addbusdays(
-            now, DUE_SOON_DAYS_THRESHOLD
-        ).replace(hour=23, minute=59, second=59)  # the entire day
-        if now > row.due_date:
-            status = request_status.OVERDUE
-        elif due_soon_date >= row.due_date:
-            status = request_status.DUE_SOON
-        else:
-            status = request_status.IN_PROGRESS
-    return status
-
-
-def _create_response(child, type_, cur_v2, conn_v2, privacy=None, date_created=None):
+def _create_response(child, type_, release_date, privacy=None, date_created=None):
     query = ("INSERT INTO responses ("
              "request_id,"
              "privacy,"
              "date_modified,"
+             "release_date,"
              "deleted,"
-             "type,"
+             '"type",'
              "is_editable)"
-             "VALUES (%s, %s, %s, %s, %s, %s)")
+             "VALUES (%s, %s, %s, %s, %s, %s, %s)")
 
     if date_created is None:
         date_created = child.date_created
 
-    date_created_utc = date_created - get_timezone_offset(date_created, 'America/New_York')
+    date_created_utc = date_created - get_timezone_offset(date_created, TZ_NY)
 
-    cur_v2.execute(query, (
+    CUR_V2.execute(query, (
         child.request_id,                      # request_id
         privacy or PRIVACY[child.privacy],     # privacy
-        date_created_utc,                      # date_modified # offset
+        date_created_utc,                      # date_modified
+        release_date,                          # release_date
         False,                                 # deleted
         type_,                                 # type
         True                                   # is_editable
     ))
 
-    conn_v2.commit()
+    CONN_V2.commit()
 
-    cur_v2.execute("SELECT LASTVAL()")
-    return cur_v2.fetchone().lastval
-
-
-def transfer_notes(cur_v1, cur_v2, conn_v2):
-    cur_v1.execute("SELECT * FROM note WHERE text NOT LIKE '%Request extended:%' AND text NOT LIKE '{%}'")
-
-    for note in cur_v1.fetchall():
-
-        response_id = _create_response(note, response_type.NOTE, cur_v2, conn_v2)
-
-        query = ("INSERT INTO notes ("
-                 "id,"
-                 "content)"
-                 "VALUES (%s, %s)")
-
-        cur_v2.execute(query, (
-            response_id,    # id
-            note.text       # content
-        ))
-
-        conn_v2.commit()
+    CUR_V2.execute("SELECT LASTVAL()")
+    return CUR_V2.fetchone().lastval
 
 
-def transfer_denials(cur_v1, cur_v2, conn_v2):
-    cur_v1.execute("SELECT * FROM note WHERE text LIKE '{%is denied%'")
-
-    for note in cur_v1.fetchall():
-
-        response_id = _create_response(note, response_type.DETERMINATION, cur_v2, conn_v2,
-                                       privacy=response_privacy.RELEASE_AND_PUBLIC)
-
-        query = ("INSERT INTO determinations ("
-                 "id,"
-                 "dtype,"
-                 "reason)"
-                 "VALUES (%s, %s, %s)")
-
-        cur_v2.execute(query, (
-            response_id,
-            determination_type.DENIAL,
-            note.text.lstrip('{"').rstrip('"}').replace('","', '|')
-        ))
-
-        conn_v2.commit()
+def _get_note_release_date(note):
+    if PRIVACY[note.privacy] == response_privacy.RELEASE_AND_PUBLIC:
+        release_date = calendar.addbusdays(note.date_created, RELEASE_PUBLIC_DAYS)
+        return release_date - get_timezone_offset(release_date, TZ_NY)
+    return None
 
 
-def transfer_closings(cur_v1, cur_v2, conn_v2):
-    cur_v1.execute("SELECT * FROM note WHERE text LIKE '{%}' and text NOT LIKE '%denied%'")
+@setup_transfer("Notes", "SELECT * FROM note WHERE text NOT LIKE '%Request extended:%' AND text NOT LIKE '{%}'")
+def transfer_notes(note):
+    response_id = _create_response(note, response_type.NOTE,
+                                   _get_note_release_date(note))
 
-    for note in cur_v1.fetchall():
+    query = ("INSERT INTO notes ("
+             "id,"
+             "content)"
+             "VALUES (%s, %s)")
 
-        response_id = _create_response(note, response_type.DETERMINATION, cur_v2, conn_v2,
-                                       privacy=response_privacy.RELEASE_AND_PUBLIC)
-
-        query = ("INSERT INTO determinations ("
-                 "id,"
-                 "dtype,"
-                 "reason)"
-                 "VALUES (%s, %s, %s)")
-
-        reason = note.text.lstrip('{"').rstrip('"}').replace('","', '|')
-        if reason == '':
-            reason = 'No reasons for closing provided.'
-
-        cur_v2.execute(query, (
-            response_id,
-            determination_type.CLOSING,
-            reason
-        ))
-
-        conn_v2.commit()
+    CUR_V2.execute(query, (
+        response_id,    # id
+        note.text       # content
+    ))
 
 
-def transfer_acknowledgments(cur_v1, cur_v2, conn_v2):
-    cur_v1.execute("SELECT * FROM email_notification WHERE subject LIKE '%Acknowledged%'")
+@setup_transfer("Denials", "SELECT * FROM note WHERE text LIKE '{%is denied%'")
+def transfer_denials(note):
+    response_id = _create_response(note, response_type.DETERMINATION,
+                                   _get_note_release_date(note),
+                                   privacy=response_privacy.RELEASE_AND_PUBLIC)
 
-    for email in cur_v1.fetchall():
+    query = ("INSERT INTO determinations ("
+             "id,"
+             "dtype,"
+             "reason)"
+             "VALUES (%s, %s, %s)")
 
-        response_id = _create_response(email, response_type.DETERMINATION, cur_v2, conn_v2,
-                                       privacy=response_privacy.RELEASE_AND_PUBLIC,
-                                       date_created=email.time_sent)
-
-        query = ("INSERT INTO determinations ("
-                 "id,"
-                 "dtype,"
-                 # "reason,"  # TODO: fetch reason from email content or leave null
-                 "date)"
-                 "VALUES (%s, %s, %s)")
-
-        cur_v1.execute("SELECT date_received FROM request WHERE id = '%s'" % email.request_id)
-        date = calendar.addbusdays(
-            cur_v1.fetchone().date_received,
-            5 + int(email.email_content['acknowledge_status'].rstrip(" days"))  # TODO: verify days to add
-        )
-
-        cur_v2.execute(query, (
-            response_id,
-            determination_type.ACKNOWLEDGMENT,
-            date
-        ))
+    CUR_V2.execute(query, (
+        response_id,
+        determination_type.DENIAL,
+        note.text.lstrip('{"').rstrip('"}').replace('","', '|')
+    ))
 
 
-def transfer_reopenings(cur_v1, cur_v2, conn_v2):
-    cur_v1.execute("SELECT * FROM email_notification WHERE subject LIKE '%reopened%'")
+@setup_transfer("Closings", "SELECT * FROM note WHERE text LIKE '{%}' and text NOT LIKE '%denied%'")
+def transfer_closings(note):
+    response_id = _create_response(note, response_type.DETERMINATION,
+                                   _get_note_release_date(note),
+                                   privacy=response_privacy.RELEASE_AND_PUBLIC)
 
-    for email in cur_v1.fetchall():
+    query = ("INSERT INTO determinations ("
+             "id,"
+             "dtype,"
+             "reason)"
+             "VALUES (%s, %s, %s)")
 
-        response_id = _create_response(email, response_type.DETERMINATION, cur_v2, conn_v2,
-                                       privacy=response_privacy.RELEASE_AND_PUBLIC,
-                                       date_created=email.time_sent)
+    reason = note.text.lstrip('{"').rstrip('"}').replace('","', '|')
+    if reason == '':
+        reason = 'No reasons for closing provided.'
 
-        query = ("INSERT INTO determinations ("
-                 "id,"
-                 "dtype,"
-                 "date)"
-                 "VALUES (%s, %s, %s)")
-
-        date = datetime.now()  # FIXME: date should be the due_date at the time of reopening
-
-        cur_v2.execute(query, (
-            response_id,
-            determination_type.ACKNOWLEDGMENT,
-            date
-        ))
+    CUR_V2.execute(query, (
+        response_id,
+        determination_type.CLOSING,
+        reason
+    ))
 
 
-def transfer_all(cur_v1, cur_v2, conn_v2):
-    # Requests
-    cur_v1.execute("SELECT * FROM request")
-    for row in cur_v1.fetchall():
-        transfer_request(row, cur_v1, cur_v2)
-    conn_v2.commit()
+def _get_email_release_date(email):
+    release_date = calendar.addbusdays(email.time_sent, RELEASE_PUBLIC_DAYS)
+    return release_date - get_timezone_offset(release_date, TZ_NY)
 
+
+@setup_transfer("Acknowledgments", "SELECT * FROM email_notification WHERE subject LIKE '%Acknowledged%'")
+def transfer_acknowledgments(email):
+    response_id = _create_response(email, response_type.DETERMINATION,
+                                   _get_email_release_date(email),
+                                   privacy=response_privacy.RELEASE_AND_PUBLIC,
+                                   date_created=email.time_sent)
+
+    query = ("INSERT INTO determinations ("
+             "id,"
+             "dtype,"
+             '"date")'
+             "VALUES (%s, %s, %s)")
+
+    CUR_V1.execute("SELECT date_received FROM request WHERE id = '%s'" % email.request_id)
+    date = get_due_date(
+        CUR_V1.fetchone().date_received,
+        ACKNOWLEDGMENT_DAYS_DUE + int(email.email_content['acknowledge_status'].rstrip(" days")),
+        TZ_NY
+    )
+    CUR_V2.execute(query, (
+        response_id,
+        determination_type.ACKNOWLEDGMENT,
+        date
+    ))
+
+
+@setup_transfer("Re-Openings", "SELECT * FROM email_notification WHERE subject LIKE '%reopened%'")
+def transfer_reopenings(email):
+    response_id = _create_response(email, response_type.DETERMINATION,
+                                   _get_email_release_date(email),
+                                   privacy=response_privacy.RELEASE_AND_PUBLIC,
+                                   date_created=email.time_sent)
+
+    query = ("INSERT INTO determinations ("
+             "id,"
+             "dtype,"
+             '"date")'
+             "VALUES (%s, %s, %s)")
+
+    CUR_V1.execute("SELECT due_date FROM request WHERE id = '%s'" % email.request_id)
+    due_date = CUR_V1.fetchone().due_date
+    date = due_date - get_timezone_offset(due_date, TZ_NY)
+
+    CUR_V2.execute(query, (
+        response_id,
+        determination_type.ACKNOWLEDGMENT,
+        date
+    ))
+
+
+@setup_transfer('Extensions', "SELECT * FROM email_notification WHERE subject LIKE '%Extension%'")
+def transfer_extensions(email):
+    response_id = _create_response(email, response_type.DETERMINATION,
+                                   _get_email_release_date(email),
+                                   privacy=response_privacy.RELEASE_AND_PUBLIC,
+                                   date_created=email.time_sent)
+
+    query = ("INSERT INTO determinations ("
+             "id,"
+             "dtype,"
+             "reason,"
+             '"date")'
+             "VALUES (%s, %s, %s, %s)")
+
+    # FIXME: how do we handle multiple extensions? request.prev_status might help...
+    date = email.email_content['due_date']
+    if email.email_content['days_after'] == -1:  # if custom
+        date = datetime.strptime(date, '%m/%d/%Y')
+    else:
+        date = datetime.strptime(date, '%Y-%m-%d')
+    date = process_due_date(date, TZ_NY)
+
+    CUR_V2.execute(query, (
+        response_id,
+        determination_type.EXTENSION,
+        date
+    ))
+
+
+def _get_record_release_date(record):
+    if PRIVACY[record.privacy] == response_privacy.RELEASE_AND_PUBLIC:
+        if record.release_date is not None:
+            release_date = record.release_date
+        else:
+            release_date = calendar.addbusdays(record.date_created, RELEASE_PUBLIC_DAYS)
+        return release_date - get_timezone_offset(release_date, TZ_NY)
+    return None
+
+
+@setup_transfer('Files', "SELECT * FROM record WHERE filename IS NOT NULL AND filename != ''")
+def transfer_files(record):
+    response_id = _create_response(record, response_type.FILE,
+                                   _get_record_release_date(record))
+
+    # TODO: in script that transfers files, update files table (mime type, size, hash)
+    query = ("INSERT INTO files ("
+             "id,"
+             "title,"
+             '"name")'
+             "VALUES (%s, %s, %s)")
+
+    if record.description is None or record.description.strip() == '':
+        title = record.filename
+    else:
+        title = record.description
+
+    CUR_V2.execute(query, (
+        response_id,
+        title,
+        record.filename
+    ))
+
+
+@setup_transfer('Links', "SELECT * FROM record WHERE url IS NOT NULL and url != '1'")
+def transfer_links(record):
+    response_id = _create_response(record, response_type.LINK,
+                                   _get_record_release_date(record))
+
+    query = ("INSERT INTO links ("
+             "id,"
+             "title,"
+             "url)"
+             "VALUES (%s, %s, %s)")
+
+    CUR_V2.execute(query, (
+        response_id,
+        record.description,
+        record.url
+    ))
+
+
+@setup_transfer('Instructions', "SELECT * FROM record WHERE access IS NOT NULL")
+def transfer_instructions(record):
+    response_id = _create_response(record, response_type.INSTRUCTIONS,
+                                   _get_record_release_date(record))
+
+    query = ("INSERT INTO instructions ("
+             "id,"
+             "content)"
+             "VALUES (%s, %s)")
+
+    if record.description is None or record.description.strip() == '':
+        content = record.access
+    else:
+        content = ':\n\n'.join((record.description, record.access))
+
+    CUR_V2.execute(query, (
+        response_id,
+        content
+    ))
+
+
+@setup_transfer('Emails', "SELECT * FROM email_notification")
+def transfer_emails(email):
+    response_id = _create_response(email, response_type.EMAIL,
+                                   _get_email_release_date(email),
+                                   privacy=response_privacy.PRIVATE,
+                                   date_created=email.time_sent)
+
+    query = ("INSERT INTO emails ("
+             "id,"
+             '"to",'
+             "subject,"
+             "body)"
+             "VALUES (%s, %s, %s, %s)")
+
+    CUR_V1.execute("SELECT email FROM public.user WHERE id = %s"
+                   % email.recipient)
+    to = CUR_V1.fetchone().email
+
+    # FIXME: subject like '%assigned%' or subject like '%Submitted%'; does not have email_text, find body
+
+    CUR_V2.execute(query, (
+        response_id,
+        to,
+        email.subject,
+        email.email_content['email_text']
+    ))
+
+
+@setup_transfer('Users', "SELECT * FROM public.user")
+def transfer_users(user):
+    pass
+
+
+def transfer_all():
+    transfer_requests()
     # Responses
-    transfer_notes(cur_v1, cur_v2, conn_v2)
+    transfer_notes()
+    transfer_files()
+    transfer_links()
+    transfer_instructions()
     # Responses: Determinations
-    transfer_denials(cur_v1, cur_v2, conn_v2)
-    transfer_closings(cur_v1, cur_v2, conn_v2)
-    transfer_acknowledgments(cur_v1, cur_v2, conn_v2)
-    transfer_reopenings(cur_v1, cur_v2, conn_v2)
+    transfer_denials()
+    transfer_closings()
+    transfer_acknowledgments()
+    transfer_reopenings()
     # TODO: transfer_extensions()
 
 
-def main():
-    conn_v1 = psycopg2.connect(database="openrecords_v1", user="vagrant")
-    conn_v2 = psycopg2.connect(database="openrecords_v2_0_dev", user="vagrant")
-    cur_v1 = conn_v1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    cur_v2 = conn_v2.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-
-    # transfer_all(cur_v1, cur_v2, conn_v2)
-
-    transfer_reopenings(cur_v1, cur_v2, conn_v2)
-
-
 if __name__ == "__main__":
-    main()
+    transfer_all()
