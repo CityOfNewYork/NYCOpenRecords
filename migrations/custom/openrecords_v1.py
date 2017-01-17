@@ -5,6 +5,7 @@ Usage:
     PYTHONPATH=/.../openrecords_v2_0 python migrations/custom/openrecords_v1.py
 
 """
+import math
 import json
 import psycopg2.extras
 
@@ -39,9 +40,11 @@ except ImportError:
 
 CONN_V1 = psycopg2.connect(database="openrecords_v1", user="vagrant")
 CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev", user="vagrant")
+CUR_V1_X = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 CUR_V1 = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 CUR_V2 = CONN_V2.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    
+
+CHUNKSIZE = 500
 DEFAULT_CATEGORY = 'All'
 DUE_SOON_DAYS_THRESHOLD = 2
 TZ_NY = 'America/New_York'
@@ -136,14 +139,15 @@ def setup_transfer(tablename, query):
     def decorator(transfer_func):
         @wraps(transfer_func)
         def wrapped():
-            CUR_V1.execute(query)
+            CUR_V1_X.execute(query)
             bar = progressbar.ProgressBar if SHOW_PROGRESSBAR else MockProgressBar
-            bar = bar(max_value=CUR_V1.rowcount)
+            bar = bar(max_value=CUR_V1_X.rowcount)
             print(tablename + "...")
-            for i, row in enumerate(CUR_V1.fetchall()):
-                transfer_func(row)
-                bar.update(i + 1)
-            CONN_V2.commit()
+            for chunk in range(math.ceil(CUR_V1_X.rowcount / CHUNKSIZE)):
+                for i, row in enumerate(CUR_V1_X.fetchmany(CHUNKSIZE)):
+                    transfer_func(row)
+                    bar.update(i + 1 + (chunk * CHUNKSIZE))
+                CONN_V2.commit()
             bar.finish()
             print()
         return wrapped
