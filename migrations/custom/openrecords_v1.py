@@ -12,6 +12,8 @@ import psycopg2.extras
 from functools import wraps
 from datetime import datetime
 
+from nameparser import HumanName
+
 from app import calendar
 from app.constants import (
     request_status,
@@ -50,6 +52,7 @@ DUE_SOON_DAYS_THRESHOLD = 2
 TZ_NY = 'America/New_York'
 
 AGENCY_V1_NAME_TO_EIN = {
+    # None = no ein yet found
     "Administration for Children's Services": "0067",
     "Board of Correction": "0073",
     "Board of Elections": "0003",
@@ -89,15 +92,15 @@ AGENCY_V1_NAME_TO_EIN = {
     "Human Resources Administration": "0069",
     "Landmarks Preservation Commission": "0136",
     "Law Department": "0025",
-    # "Loft Board": "",
+    "Loft Board": None,
     "Mayor's Office of Contract Services": "002H",
     "Mayor's Office of Media and Entertainment": "002M",
     "New York City Fire Department": "0057",
     "New York City Housing Authority": "0996",
-    # "New York City Housing Development Corporation": "",
-    "NYC Emergency Management": "0017",  # NYC Offic of Emergency Management
+    "New York City Housing Development Corporation": None,
+    "NYC Emergency Management": "0017",  # NYC Office of Emergency Management
     "Office of Administrative Trials and Hearings": "0820",
-    # "Office of Collective Bargaining": "",
+    "Office of Collective Bargaining": None,
     "Office of Environmental Remediation": "002K",  # Mayor's Office of Environmental Remediation
     "Office of Labor Relations": "0214",  # NYC Office of Labor Relations
     "Office of Long-Term Planning and Sustainability": "002T",
@@ -108,7 +111,7 @@ AGENCY_V1_NAME_TO_EIN = {
     "Office of the Mayor": "0002",  # Mayor's Office
     "Office of the Special Narcotics Prosecutor": "0906",  # NYC Office of the Special Narcotics Prosecutor
     "Police Department": "0056",
-    # "Procurement Policy Board": "",
+    "Procurement Policy Board": None,
     "School Construction Authority": "0044",
     "Small Business Services": "0801",  # Department of Small Business Services
     "Taxi and Limousine Commission": "0156",
@@ -497,19 +500,16 @@ def transfer_emails(email):
     ))
 
 
-# TODO: ignore users with null department_id, backup_for, contact_for and with a '.gov' email
-# TODO: ignore users with null name, email, alias...?
-@setup_transfer('Users', "SELECT * FROM public.user")
+@setup_transfer('Users', "SELECT * FROM public.user "
+                         "WHERE alias NOT IN (SELECT name FROM department) "
+                         "AND alias IS NOT NULL "
+                         "OR (first_name IS NOT NULL AND last_name IS NOT NULL)")
 def transfer_users(user):
     # get agency_ein and auth_user_type
     auth_user_type = user_type_auth.AGENCY_LDAP_USER
     if user.department_id:
         CUR_V1.execute("SELECT name FROM department WHERE id = %s" % user.department_id)
         agency_ein = AGENCY_V1_NAME_TO_EIN[CUR_V1.fetchone().name]
-    elif user.backup_for:
-        agency_ein = AGENCY_V1_NAME_TO_EIN[user.backup_for]
-    elif user.contact_for:
-        agency_ein = AGENCY_V1_NAME_TO_EIN[user.contact_for]  # TODO: is this valid?
     else:
         agency_ein = None
         auth_user_type = user_type_auth.ANONYMOUS_USER
@@ -521,13 +521,16 @@ def transfer_users(user):
         user.zipcode,
         user.address2
     )
+
+    name = HumanName(user.alias)  # alias assumed never none
+
     query = ("INSERT INTO users ("
              "guid, "
              "auth_user_type, "
              "agency_ein, "
              "is_super, "
-             "is_agency_admin, "
              "is_agency_active, "
+             "is_agency_admin, "
              "first_name, "
              "middle_initial, "
              "last_name, "
@@ -539,26 +542,26 @@ def transfer_users(user):
              "phone_number, "
              "fax_number, "
              "mailing_address) "
-             "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+             "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
-    CUR_V1.execute(query, (
-        generate_guid(),
-        auth_user_type,
-        agency_ein,
-        False,  # is_super
-        user.is_staff,  # is_agency_active
-        user.role == role_name.AGENCY_ADMIN,  # is_agency_admin
-        user.first_name.title(),
-        None,  # middle_initial
-        user.last_name.title(),
-        user.email,
-        False,  # email_validated
-        False,  # terms_of_user_accepted
-        None,  # Title
-        None,  # Organization
-        user.phone,
-        user.fax,
-        mailing_address
+    CUR_V2.execute(query, (
+        generate_guid(),                                    # guid
+        auth_user_type,                                     # auth_user_type
+        agency_ein,                                         # agency_ein
+        False,                                              # is_super
+        user.is_staff,                                      # is_agency_active
+        user.role == role_name.AGENCY_ADMIN,                # is_agency_admin
+        name.first.title().strip(),                         # first_name
+        name.middle[0].upper() if name.middle else None,    # middle_initial
+        name.last.title().strip(),                          # last_name
+        user.email,                                         # email
+        False,                                              # email_validated
+        False,                                              # terms_of_user_accepted
+        None,                                               # title
+        None,                                               # organization
+        user.phone if user.phone != 'None' else None,       # phone_number
+        user.fax if user.fax != 'None' else None,           # fax_number
+        json.dumps(mailing_address)                         # mailing_address
     ))
 
 

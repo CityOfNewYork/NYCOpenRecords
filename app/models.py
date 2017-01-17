@@ -261,8 +261,8 @@ class Users(UserMixin, db.Model):
     terms_of_use_accepted = db.Column(db.Boolean)
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
-    phone_number = db.Column(db.String(15))
-    fax_number = db.Column(db.String(15))
+    phone_number = db.Column(db.String(25))
+    fax_number = db.Column(db.String(25))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
 
     # Relationships

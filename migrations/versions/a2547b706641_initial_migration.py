@@ -81,8 +81,8 @@ def upgrade():
                     sa.Column('terms_of_use_accepted', sa.Boolean(), nullable=True),
                     sa.Column('title', sa.String(length=64), nullable=True),
                     sa.Column('organization', sa.String(length=128), nullable=True),
-                    sa.Column('phone_number', sa.String(length=15), nullable=True),
-                    sa.Column('fax_number', sa.String(length=15), nullable=True),
+                    sa.Column('phone_number', sa.String(length=25), nullable=True),
+                    sa.Column('fax_number', sa.String(length=25), nullable=True),
                     sa.Column('mailing_address', postgresql.JSON(astext_type=sa.Text()), nullable=True),
                     sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
                     sa.PrimaryKeyConstraint('guid', 'auth_user_type')
