@@ -22,7 +22,9 @@ from app.constants import (
     determination_type,
     role_name,
     user_type_auth,
+    user_type_request,
     ACKNOWLEDGMENT_DAYS_DUE,
+    permission
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.lib.user_information import create_mailing_address
@@ -138,7 +140,7 @@ class MockProgressBar(object):
         print(self.max, end='')
 
 
-def setup_transfer(tablename, query):
+def transfer(tablename, query):
     def decorator(transfer_func):
         @wraps(transfer_func)
         def wrapped():
@@ -174,7 +176,7 @@ def _get_compatible_status(request):
     return status
 
 
-@setup_transfer("Requests", "SELECT * FROM request")
+@transfer("Requests", "SELECT * FROM request")
 def transfer_requests(request):
     CUR_V1.execute("SELECT name FROM department WHERE id = %s" % request.department_id)
 
@@ -182,7 +184,7 @@ def transfer_requests(request):
 
     privacy = {
         "title": bool(request.title_private),
-        "agency_description": True  # row_v1.description_private NOT USED  # FIXME: some should be public by now
+        "agency_description": request.agency_description_due_date is None
     }
 
     query = ("INSERT INTO requests ("
@@ -257,7 +259,7 @@ def _get_note_release_date(note):
     return None
 
 
-@setup_transfer("Notes", "SELECT * FROM note WHERE text NOT LIKE '%Request extended:%' AND text NOT LIKE '{%}'")
+@transfer("Notes", "SELECT * FROM note WHERE text NOT LIKE '%Request extended:%' AND text NOT LIKE '{%}'")
 def transfer_notes(note):
     response_id = _create_response(note, response_type.NOTE,
                                    _get_note_release_date(note))
@@ -273,7 +275,7 @@ def transfer_notes(note):
     ))
 
 
-@setup_transfer("Denials", "SELECT * FROM note WHERE text LIKE '{%is denied%'")
+@transfer("Denials", "SELECT * FROM note WHERE text LIKE '{%is denied%'")
 def transfer_denials(note):
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_note_release_date(note),
@@ -292,7 +294,7 @@ def transfer_denials(note):
     ))
 
 
-@setup_transfer("Closings", "SELECT * FROM note WHERE text LIKE '{%}' and text NOT LIKE '%denied%'")
+@transfer("Closings", "SELECT * FROM note WHERE text LIKE '{%}' and text NOT LIKE '%denied%'")
 def transfer_closings(note):
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_note_release_date(note),
@@ -320,7 +322,7 @@ def _get_email_release_date(email):
     return release_date - get_timezone_offset(release_date, TZ_NY)
 
 
-@setup_transfer("Acknowledgments", "SELECT * FROM email_notification WHERE subject LIKE '%Acknowledged%'")
+@transfer("Acknowledgments", "SELECT * FROM email_notification WHERE subject LIKE '%Acknowledged%'")
 def transfer_acknowledgments(email):
     response_id = _create_response(email, response_type.DETERMINATION,
                                    _get_email_release_date(email),
@@ -346,7 +348,7 @@ def transfer_acknowledgments(email):
     ))
 
 
-@setup_transfer("Re-Openings", "SELECT * FROM email_notification WHERE subject LIKE '%reopened%'")
+@transfer("Re-Openings", "SELECT * FROM email_notification WHERE subject LIKE '%reopened%'")
 def transfer_reopenings(email):
     response_id = _create_response(email, response_type.DETERMINATION,
                                    _get_email_release_date(email),
@@ -370,7 +372,7 @@ def transfer_reopenings(email):
     ))
 
 
-@setup_transfer('Extensions', "SELECT * FROM email_notification WHERE subject LIKE '%Extension%'")
+@transfer('Extensions', "SELECT * FROM email_notification WHERE subject LIKE '%Extension%'")
 def transfer_extensions(email):
     response_id = _create_response(email, response_type.DETERMINATION,
                                    _get_email_release_date(email),
@@ -409,7 +411,7 @@ def _get_record_release_date(record):
     return None
 
 
-@setup_transfer('Files', "SELECT * FROM record WHERE filename IS NOT NULL AND filename != ''")
+@transfer('Files', "SELECT * FROM record WHERE filename IS NOT NULL AND filename != ''")
 def transfer_files(record):
     response_id = _create_response(record, response_type.FILE,
                                    _get_record_release_date(record))
@@ -433,7 +435,7 @@ def transfer_files(record):
     ))
 
 
-@setup_transfer('Links', "SELECT * FROM record WHERE url IS NOT NULL and url != '1'")
+@transfer('Links', "SELECT * FROM record WHERE url IS NOT NULL and url != '1'")
 def transfer_links(record):
     response_id = _create_response(record, response_type.LINK,
                                    _get_record_release_date(record))
@@ -451,7 +453,7 @@ def transfer_links(record):
     ))
 
 
-@setup_transfer('Instructions', "SELECT * FROM record WHERE access IS NOT NULL")
+@transfer('Instructions', "SELECT * FROM record WHERE access IS NOT NULL")
 def transfer_instructions(record):
     response_id = _create_response(record, response_type.INSTRUCTIONS,
                                    _get_record_release_date(record))
@@ -472,7 +474,7 @@ def transfer_instructions(record):
     ))
 
 
-@setup_transfer('Emails', "SELECT * FROM email_notification")
+@transfer('Emails', "SELECT * FROM email_notification")
 def transfer_emails(email):
     response_id = _create_response(email, response_type.EMAIL,
                                    _get_email_release_date(email),
@@ -500,10 +502,13 @@ def transfer_emails(email):
     ))
 
 
-@setup_transfer('Users', "SELECT * FROM public.user "
-                         "WHERE alias NOT IN (SELECT name FROM department) "
-                         "AND alias IS NOT NULL "
-                         "OR (first_name IS NOT NULL AND last_name IS NOT NULL)")
+user_ids_to_guids = {}  # global var, bad omen, untimely death approaches
+
+
+@transfer('Users', "SELECT * FROM public.user "
+                   "WHERE alias NOT IN (SELECT name FROM department) "
+                   "AND alias IS NOT NULL "
+                   "OR (first_name IS NOT NULL AND last_name IS NOT NULL)")
 def transfer_users(user):
     # get agency_ein and auth_user_type
     auth_user_type = user_type_auth.AGENCY_LDAP_USER
@@ -523,6 +528,9 @@ def transfer_users(user):
     )
 
     name = HumanName(user.alias)  # alias assumed never none
+
+    guid = generate_guid()
+    user_ids_to_guids[user.id] = guid
 
     query = ("INSERT INTO users ("
              "guid, "
@@ -545,7 +553,7 @@ def transfer_users(user):
              "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
     CUR_V2.execute(query, (
-        generate_guid(),                                    # guid
+        guid,                                               # guid
         auth_user_type,                                     # auth_user_type
         agency_ein,                                         # agency_ein
         False,                                              # is_super
@@ -565,10 +573,63 @@ def transfer_users(user):
     ))
 
 
+@transfer("User Requests (Assigned Users)", "SELECT * FROM owner WHERE active is TRUE")
+def transfer_user_requests_assigned_users(owner):
+    if owner.user_id in user_ids_to_guids:  # bar count will be greater than what is transferred
+
+        CUR_V2.execute("SELECT permissions FROM roles WHERE name = '%s'" %
+                       (role_name.AGENCY_ADMIN if owner.is_point_person
+                        else role_name.AGENCY_OFFICER))
+
+        query = ("INSERT INTO user_requests ("
+                 "user_guid, "
+                 "auth_user_type, "
+                 "request_id, "
+                 "request_user_type, "
+                 "permissions) "
+                 "VALUES (%s, %s, %s, %s, %s)")
+
+        CUR_V2.execute(query, (
+            user_ids_to_guids[owner.user_id],
+            user_type_auth.AGENCY_LDAP_USER,
+            owner.request_id,
+            user_type_request.AGENCY,
+            CUR_V2.fetchone().permissions
+        ))
+
+
+@transfer("Use Requests (Requesters)", "SELECT * FROM request")
+def transfer_user_requests_requesters(request):
+    CUR_V1.execute("SELECT user_id FROM subscriber WHERE request_id = '%s'" % request.id)
+
+    user_id = None
+    for subscriber in CUR_V1.fetchall():
+        if subscriber.user_id in user_ids_to_guids:
+            user_id = subscriber.user_id
+            break  # just one requester
+
+    query = ("INSERT INTO user_requests ("
+             "user_guid, "
+             "auth_user_type, "
+             "request_id, "
+             "request_user_type, "
+             "permissions) "
+             "VALUES (%s, %s, %s, %s, %s)")
+
+    CUR_V2.execute(query, (
+        user_ids_to_guids[user_id],
+        user_type_auth.ANONYMOUS_USER,
+        request.id,
+        user_type_request.REQUESTER,
+        permission.NONE
+    ))
+
+
 def transfer_all():
     transfer_requests()
     transfer_users()
-    # transfer_user_requests()
+    transfer_user_requests_assigned_users()
+    transfer_user_requests_requesters()
 
     # Responses
     transfer_notes()
@@ -584,4 +645,7 @@ def transfer_all():
 
 
 if __name__ == "__main__":
+    transfer_requests()
     transfer_users()
+    transfer_user_requests_assigned_users()
+    transfer_user_requests_requesters()
