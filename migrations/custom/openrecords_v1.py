@@ -39,6 +39,7 @@ from app.lib.date_utils import (
 SHOW_PROGRESSBAR = True
 try:
     import progressbar
+
     MOCK_PROGRESSBAR = False
 except ImportError:
     MOCK_PROGRESSBAR = True
@@ -166,7 +167,9 @@ def transfer(tablename, query):
             if SHOW_PROGRESSBAR:
                 bar.finish()
             print()
+
         return wrapped
+
     return decorator
 
 
@@ -189,8 +192,6 @@ def _get_compatible_status(request):
 
 @transfer("Requests", "SELECT * FROM request")
 def transfer_requests(request):
-
-    # FIXME: offset dates!!!
     CUR_V1.execute("SELECT name FROM department WHERE id = %s" % request.department_id)
 
     agency_ein = AGENCY_V1_NAME_TO_EIN[CUR_V1.fetchone().name]
@@ -217,19 +218,19 @@ def transfer_requests(request):
              "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
     CUR_V2.execute(query, (
-        request.id,                             # id
-        agency_ein,                             # agency id
-        DEFAULT_CATEGORY,                       # category
-        request.summary,                        # title
-        request.text,                           # description
-        request.date_created,                   # date_created
-        request.date_received,                  # date_submitted
-        request.due_date,                       # due_date
-        request.offline_submission_type,        # submission
-        _get_compatible_status(request),        # status
-        json.dumps(privacy),                    # privacy
-        request.agency_description,             # agency_description
-        request.agency_description_due_date     # agency_description_release_date
+        request.id,  # id
+        agency_ein,  # agency id
+        DEFAULT_CATEGORY,  # category
+        request.summary,  # title
+        request.text,  # description
+        request.date_created - get_timezone_offset(request.date_created, TZ_NY),  # date_created
+        request.date_received - get_timezone_offset(request.date_received, TZ_NY),  # date_submitted
+        request.due_date - get_timezone_offset(request.due_date, TZ_NY),  # due_date
+        request.offline_submission_type,  # submission
+        _get_compatible_status(request),  # status
+        json.dumps(privacy),  # privacy
+        request.agency_description,  # agency_description
+        request.agency_description_due_date  # agency_description_release_date
     ))
 
 
@@ -256,13 +257,13 @@ def _create_response(child, type_, release_date, privacy=None, date_created=None
         request_id = child.id
 
     CUR_V2.execute(query, (
-        request_id,                            # request_id
-        privacy or PRIVACY[child.privacy],     # privacy
-        date_created_utc,                      # date_modified
-        release_date,                          # release_date
-        False,                                 # deleted
-        type_,                                 # type
-        True                                   # is_editable
+        request_id,  # request_id
+        privacy or PRIVACY[child.privacy],  # privacy
+        date_created_utc,  # date_modified
+        release_date,  # release_date
+        False,  # deleted
+        type_,  # type
+        True  # is_editable
     ))
 
     CONN_V2.commit()
@@ -293,13 +294,25 @@ def transfer_notes(note):
              "VALUES (%s, %s)")
 
     CUR_V2.execute(query, (
-        response_id,    # id
-        note.text       # content
+        response_id,  # id
+        note.text  # content
     ))
 
 
-# TODO: use reasons or email subject like '%Denied%', CHECK DUE DATE (less than 5 days)
-@transfer("Denials", "SELECT * FROM note WHERE text LIKE '{%is denied%'")
+@transfer("Denials",
+          "SELECT * "
+          "FROM note "
+          "WHERE request_id IN ("
+          "  SELECT DISTINCT id"
+          "  FROM request"
+          "  WHERE status = 'Closed'"
+          "        AND id NOT IN (SELECT request_id"
+          "                       FROM email_notification"
+          "                       WHERE subject LIKE '%Acknowledge%')"
+          "        AND id NOT IN (SELECT id"
+          "                       FROM request"
+          "                       WHERE status != 'Open'"
+          "                             AND NOT (status = 'Closed' AND prev_status = 'Open')))")
 def transfer_denials(note):
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_release_date(note.date_created),
@@ -318,8 +331,21 @@ def transfer_denials(note):
     ))
 
 
-# TODO: not right, 'denied' can be found in closings
-@transfer("Closings", "SELECT * FROM note WHERE text LIKE '{%}' and text NOT LIKE '%denied%'")
+@transfer("Closings",
+          "SELECT * "
+          "FROM note "
+          "WHERE request_id NOT IN ("
+          "  SELECT DISTINCT id"
+          "  FROM request"
+          "  WHERE status = 'Closed'"
+          "        AND id NOT IN (SELECT request_id"
+          "                       FROM email_notification"
+          "                       WHERE subject LIKE '%Acknowledge%')"
+          "        AND id NOT IN (SELECT id"
+          "                       FROM request"
+          "                       WHERE status != 'Open'"
+          "                             AND NOT (status = 'Closed' AND prev_status = 'Open')))"
+          "      AND text LIKE '{%}'")
 def transfer_closings(note):
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_release_date(note.date_created),
@@ -374,8 +400,8 @@ def transfer_acknowledgments_from_email(email):
 @transfer("Acknowledgments (from `request`)",
           "SELECT * "
           "FROM request "
-          "WHERE id NOT IN (SELECT request_id "
-          "                 FROM email_notification "
+          "WHERE id NOT IN (SELECT request_id"
+          "                 FROM email_notification"
           "                 WHERE subject LIKE '%Acknowledged%')"
           "      AND status != 'Open'"
           "      AND NOT (status = 'Closed' AND prev_status = 'Open')")
@@ -639,23 +665,23 @@ def transfer_users(user_ids_to_guids, user):
              "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
     CUR_V2.execute(query, (
-        guid,                                               # guid
-        auth_user_type,                                     # auth_user_type
-        agency_ein,                                         # agency_ein
-        False,                                              # is_super
-        user.is_staff,                                      # is_agency_active
-        user.role == role_name.AGENCY_ADMIN,                # is_agency_admin
-        name.first.title().strip(),                         # first_name
-        name.middle[0].upper() if name.middle else None,    # middle_initial
-        name.last.title().strip(),                          # last_name
-        user.email,                                         # email
-        False,                                              # email_validated
-        False,                                              # terms_of_user_accepted
-        None,                                               # title
-        None,                                               # organization
-        user.phone if user.phone != 'None' else None,       # phone_number
-        user.fax if user.fax != 'None' else None,           # fax_number
-        json.dumps(mailing_address)                         # mailing_address
+        guid,  # guid
+        auth_user_type,  # auth_user_type
+        agency_ein,  # agency_ein
+        False,  # is_super
+        user.is_staff,  # is_agency_active
+        user.role == role_name.AGENCY_ADMIN,  # is_agency_admin
+        name.first.title().strip(),  # first_name
+        name.middle[0].upper() if name.middle else None,  # middle_initial
+        name.last.title().strip(),  # last_name
+        user.email,  # email
+        False,  # email_validated
+        False,  # terms_of_user_accepted
+        None,  # title
+        None,  # organization
+        user.phone if user.phone != 'None' else None,  # phone_number
+        user.fax if user.fax != 'None' else None,  # fax_number
+        json.dumps(mailing_address)  # mailing_address
     ))
 
 
@@ -713,6 +739,7 @@ def transfer_user_requests_requesters(user_ids_to_guids, request):
 
 def transfer_all():
     transfer_requests()
+
     user_ids_to_guids = {}
     transfer_users(user_ids_to_guids)
     transfer_user_requests_assigned_users(user_ids_to_guids)
@@ -735,7 +762,4 @@ def transfer_all():
 
 
 if __name__ == "__main__":
-    # transfer_requests()
-    transfer_acknowledgments_from_request()
-    # transfer_extensions_from_note()
-    # transfer_extensions_from_email()
+    transfer_all()
