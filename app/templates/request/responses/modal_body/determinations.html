@@ -1,11 +1,13 @@
 {% if response.dtype in (determination_type.ACKNOWLEDGMENT, determination_type.REOPENING) %}
     <p>Expected date of completion: <strong>{{ moment(response.date).format('dddd, MMMM D, YYYY [at] h:mm A')}}</strong></p>
-    {% if response.reason %}
+    {% if response.reason is not none %}
         <p>{{ response.reason }}</p>
     {% endif %}
 {% elif response.dtype == determination_type.EXTENSION %}
     <p>Due date changed to: <strong>{{ moment(response.date).format('dddd, MMMM D, YYYY [at] h:mm A') }}</strong></p>
-    <p>{{ response.reason }}</p>
+    {% if response.reason is not none %}
+        <p>{{ response.reason }}</p>
+    {% endif %}
 {% elif response.dtype in (determination_type.DENIAL, determination_type.CLOSING) %}
     {{ response.reason | format_ultimate_determination_reason | safe }}
 {% endif %}
