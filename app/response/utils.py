@@ -45,7 +45,7 @@ from app.lib.date_utils import (
     get_due_date,
     process_due_date,
     get_release_date,
-    get_timezone_offset
+    local_to_utc,
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
@@ -268,7 +268,8 @@ def add_reopening(request_id, date, tz_name, email_content):
 
     """
     if Requests.query.filter_by(id=request_id).one().status == request_status.CLOSED:
-        new_due_date = process_due_date(datetime.strptime(date, '%Y-%m-%d'), tz_name)
+        date = datetime.strptime(date, '%Y-%m-%d')
+        new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
         response = Determinations(
             request_id,
@@ -444,14 +445,12 @@ def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        new_due_date = process_due_date(datetime.strptime(custom_due_date, '%Y-%m-%d'),
-                                        tz_name)
+        date = datetime.strptime(custom_due_date, '%Y-%m-%d')
+        new_due_date = process_due_date(local_to_utc(date, tz_name))
     else:
         new_due_date = get_due_date(
             Requests.query.filter_by(id=request_id).one().due_date,
-            int(extension_length),
-            tz_name
-        )
+            int(extension_length))
     return new_due_date
 
 
@@ -616,11 +615,12 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
 
     :return: the HTML of the rendered email template of a reopening
     """
+    date = datetime.strptime(data['date'], '%Y-%m-%d')
     return jsonify({"template": render_template(
         email_template,
         request_id=request_id,
         agency_name=agency_name,
-        date=process_due_date(datetime.strptime(data['date'], '%Y-%m-%d'), data['tz_name']),
+        date=process_due_date(local_to_utc(date, data['tz_name'])),
         page=page
     )}), 200
 
@@ -1198,8 +1198,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
-        release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
-        release_date = release_date + get_timezone_offset(release_date, tz_name)
+        release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name)
         email_content_requester = email_content.replace(replace_string,
                                                         render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,
