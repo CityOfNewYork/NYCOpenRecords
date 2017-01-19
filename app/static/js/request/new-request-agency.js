@@ -56,7 +56,8 @@ $(document).ready(function () {
 
     // Datepicker for date request was received when creating a new request
     $(".dtpick").datepicker({
-        dateFormat: "yy-mm-dd"
+        dateFormat: "yy-mm-dd",
+        maxDate: 0
     }).keydown(false);
 
     // Loop through required fields and apply a data-parsley-required attribute to them
