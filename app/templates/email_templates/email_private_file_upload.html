@@ -6,13 +6,15 @@
         <p>
             The following file(s) were added to <a href='{{ page }}'>{{ request_id }}</a> and are private:
         </p>
-        <ul>
-            {% for file in private_links %}
-                <li style="list-style: none">
-                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
-                </li>
-            {% endfor %}
-        </ul>
+        <div class="file-links">
+            <ul>
+                {% for file in private_links %}
+                    <li style="list-style: none">
+                        {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
     <p><br></p>
 {% else %}
