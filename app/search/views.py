@@ -10,7 +10,7 @@ from flask import (
 from flask.helpers import send_file
 from flask_login import current_user
 
-from app.lib.date_utils import get_timezone_offset
+from app.lib.date_utils import utc_to_local
 from app.lib.utils import eval_request_bool
 from app.models import Requests
 from app.search import search
@@ -217,7 +217,7 @@ def requests_doc(doc_type):
                 break
         if total != 0:
             dt = datetime.utcnow()
-            timestamp = dt + get_timezone_offset(dt, tz_name) if tz_name is not None else dt
+            timestamp = dt + utc_to_local(dt, tz_name) if tz_name is not None else dt
             return send_file(
                 BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
                 attachment_filename="FOIL_requests_results_{}.csv".format(

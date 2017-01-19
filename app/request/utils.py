@@ -28,10 +28,14 @@ from app.constants import (
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
 from app.constants.submission_methods import DIRECT_INPUT
 from app.constants.user_type_auth import ANONYMOUS_USER
-from app.lib.date_utils import get_following_date, get_due_date
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
 from app.lib.redis_utils import redis_set_file_metadata
+from app.lib.date_utils import (
+    get_following_date,
+    get_due_date,
+    local_to_utc,
+)
 from app.models import (
     Requests,
     Agencies,
@@ -99,12 +103,12 @@ def create_request(title,
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
     date_created = datetime.utcnow()
-    date_submitted = (agency_date_submitted
+    date_submitted = (local_to_utc(agency_date_submitted, tz_name)
                       if current_user.is_agency
                       else get_following_date(date_created))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE, tz_name)
+    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE)
 
     # 5. Create Request
     request = Requests(
