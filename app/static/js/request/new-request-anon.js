@@ -87,6 +87,8 @@ $(document).ready(function () {
     // Specify length requirement of certain fields
     $('#request-title').attr('data-parsley-maxlength', 90);
     $('#request-description').attr('data-parsley-maxlength', 5000);
+    $('#first-name').attr("data-parsely-maxlength", 32);
+    $('#last-name').attr("data-parsely-maxlength", 64);
     $("#email").attr("data-parsley-maxlength", 254);
     $('#phone').attr('data-parsley-length','[14,14]');
     $('#fax').attr('data-parsley-length','[14,14]');
@@ -238,6 +240,13 @@ $(document).ready(function () {
         characterCounter("#description-character-count", 5000, $(this).val().length)
     });
 
+    $('#first-name').keyup(function() {
+        characterCounter("#first-name-character-count", 32, $(this).val().length)
+    });
+
+    $('#last-name').keyup(function() {
+        characterCounter("#last-name-character-count", 64, $(this).val().length)
+    });
 });
 
 

@@ -92,12 +92,12 @@
                     information so that the agency can respond to your request for records.</p>
                 {# First name of user #}
                 {{ form.first_name.label(class='request-heading first-name-label') }}
-                {{ form.first_name(id='first-name', class='input-block-level',
-                placeholder='John') }}<br>
+                {{ form.first_name(id='first-name', class='input-block-level', placeholder='John', maxlength=32) }}
+                <h5 id="first-name-character-count">32 characters remaining</h5><br>
                 {# Last name of user #}
                 {{ form.last_name.label(class='request-heading last-name-label') }}
-                {{ form.last_name(id='last-name', class='input-block-level',
-                placeholder='Doe') }}<br>
+                {{ form.last_name(id='last-name', class='input-block-level', placeholder='Doe', maxlength=64) }}
+                <h5 id="last-name-character-count">64 characters remaining</h5><br>
                 {# Email of user #}
                 {{ form.email.label(class='request-heading email-label') }}
                 {{ form.email(id='email', class='input-block-level',

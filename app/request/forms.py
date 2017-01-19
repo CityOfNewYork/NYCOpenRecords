@@ -87,6 +87,7 @@ class AgencyUserRequestForm(Form):
     request_date = DateTimeField("Date (required)", format="%Y-%m-%d", default=datetime.today)
 
     # Personal Information
+    # TODO: when refactoring these classes, include length and other validators
     first_name = StringField('First Name (required)')
     last_name = StringField('Last Name (required)')
     user_title = StringField('Title')
