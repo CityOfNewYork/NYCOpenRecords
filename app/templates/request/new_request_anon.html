@@ -23,14 +23,14 @@
                 {# Dropdown field Category for a Request #}
                 {{ form.request_category.label(class='request-heading') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
-                      data-content="Selecting a category helps clarify which agency will receive the request."
+                      data-content="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_category(id='request-category', class='input-block-level') }}<br>
                 {# Field for the agency that the request will be submitted to #}
                 {{ form.request_agency.label(class='request-heading agency-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
-                      data-content="List of agencies that would handle your request."
+                      data-content="List of all agencies available within OpenRecords that would handle your request."
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
@@ -92,12 +92,12 @@
                     information so that the agency can respond to your request for records.</p>
                 {# First name field #}
                 {{ form.first_name.label(class='request-heading first-name-label') }}
-                {{ form.first_name(id='first-name', class='input-block-level',
-                placeholder='John') }}<br>
+                {{ form.first_name(id='first-name', class='input-block-level', placeholder='John', maxlength=32) }}
+                <h5 id="first-name-character-count">32 characters remaining</h5><br>
                 {# Last name field #}
                 {{ form.last_name.label(class='request-heading last-name-label') }}
-                {{ form.last_name(id='last-name', class='input-block-level',
-                placeholder='Doe') }}<br>
+                {{ form.last_name(id='last-name', class='input-block-level', placeholder='Doe', maxlength=64) }}
+                <h5 id="last-name-character-count">64 characters remaining</h5><br>
                 {# Email field #}
                 {{ form.email.label(class='request-heading email-label') }}
                 {{ form.email(id='email', class='input-block-level',

@@ -39,7 +39,7 @@ def update_request_statuses():
             # FIXME: Need to use built in url_for: page = url_for('request.view', request_id=request.id)
             page = urljoin(current_app.config['BASE_URL'], "{view_request_endpoint}/{request_id}".format(
                 view_request_endpoint=current_app.config['VIEW_REQUEST_ENDPOINT'], request_id=request.id))
-            subject = "Request Overdue"
+            subject = "Request {request_id} Overdue".format(request_id=request.id)
             if request.status != request_status.OVERDUE:
                 update_object(
                     {"status": request_status.OVERDUE},
@@ -88,7 +88,7 @@ def update_request_statuses():
             # FIXME: Need to use built in url_for: page = url_for('request.view', request_id=request.id)
             page = urljoin(current_app.config['BASE_URL'], "{view_request_endpoint}/{request_id}".format(
                 view_request_endpoint=current_app.config['VIEW_REQUEST_ENDPOINT'], request_id=request.id))
-            subject = "Requests Due Soon"
+            subject = "Request {request_id} Due Soon".format(request_id=request.id)
             days_until_due = calendar.busdaycount(request.due_date, now)
             if request.status != request_status.DUE_SOON:
                 update_object(

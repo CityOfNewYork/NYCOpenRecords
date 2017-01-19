@@ -2,6 +2,7 @@ from pytz import timezone
 from business_calendar import FOLLOWING
 from app import calendar
 from app.lib import NYCHolidays
+from flask import current_app
 
 DEFAULT_YEARS_HOLIDAY_LIST = 5
 
@@ -16,7 +17,7 @@ def get_following_date(date_created):
     return calendar.addbusdays(date_created, FOLLOWING)
 
 
-def get_due_date(date_submitted, days_until_due, tz_name):
+def get_due_date(date_submitted, days_until_due):
     """
     Generates the due date for a request.
 
@@ -26,23 +27,34 @@ def get_due_date(date_submitted, days_until_due, tz_name):
 
     :return: due date with time set to 5:00 PM EST (10:00 PM UTC)
     """
-    return process_due_date(calendar.addbusdays(date_submitted, days_until_due), tz_name)
+    return process_due_date(calendar.addbusdays(date_submitted, days_until_due))
 
 
-def process_due_date(due_date, tz_name):
+def process_due_date(due_date):
     """
-    Returns the given datetime object with a utc time equivalent to 5:00 PM EST.
+    Returns the given datetime object with a utc time equivalent to 5:00 PM local time (app).
 
     :param due_date: unprocessed request due date
-    :param tz_name: client's timezone name
     :return: naive datetime object
     """
-    date = due_date.replace(hour=17, minute=00, second=00, microsecond=00)
-    return date - get_timezone_offset(due_date, tz_name)
+    # set to app's local time
+    date = utc_to_local(due_date, current_app.config['APP_TIMEZONE'])
+    # set to 5:00 PM
+    date = date.replace(hour=17, minute=00, second=00, microsecond=00)
+    # revert to utc and return
+    return local_to_utc(date, current_app.config['APP_TIMEZONE'])
+
+
+def local_to_utc(date, tz_name):
+    return date - get_timezone_offset(date, tz_name)
+
+
+def utc_to_local(date, tz_name):
+    return date + get_timezone_offset(date, tz_name)
 
 
 def get_timezone_offset(date, tz_name):
-    return timezone('US/Eastern').localize(date).utcoffset() * 2 - timezone(tz_name).localize(date).utcoffset()
+    return timezone(tz_name).localize(date).utcoffset()
 
 
 def get_holidays_date_list(year_start, year_end=None):
@@ -62,12 +74,5 @@ def get_holidays_date_list(year_start, year_end=None):
 
 
 def get_release_date(initial_date, days_until_release, tz_name):
-    """
-
-    :param initial_date:
-    :param days_until_release:
-    :param tz_name:
-    :return:
-    """
     release_date = calendar.addbusdays(initial_date, days_until_release)
-    return release_date - get_timezone_offset(release_date, tz_name)
+    return utc_to_local(release_date, tz_name)

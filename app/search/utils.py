@@ -15,7 +15,7 @@ from app.search.constants import (
     MOCK_EMPTY_ELASTICSEARCH_RESULT
 )
 from app.lib.utils import InvalidUserException
-from app.lib.date_utils import get_timezone_offset
+from app.lib.date_utils import utc_to_local
 
 
 def recreate():
@@ -464,7 +464,7 @@ def convert_dates(results, dt_format=None, tz_name=None):
         for field in ("date_submitted", "date_due", "date_created"):
             dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
             if tz_name:
-                dt += get_timezone_offset(dt, tz_name)
+                dt = utc_to_local(dt, tz_name)
             hit["_source"][field] = dt.strftime(dt_format) if dt_format is not None else dt
 
 

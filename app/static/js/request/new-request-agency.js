@@ -56,7 +56,8 @@ $(document).ready(function () {
 
     // Datepicker for date request was received when creating a new request
     $(".dtpick").datepicker({
-        dateFormat: "yy-mm-dd"
+        dateFormat: "yy-mm-dd",
+        maxDate: 0
     }).keydown(false);
 
     // Loop through required fields and apply a data-parsley-required attribute to them
@@ -69,6 +70,8 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
     $('#request-title').attr('data-parsley-maxlength', 90);
     $('#request-description').attr('data-parsley-maxlength', 5000);
+    $('#first-name').attr("data-parsely-maxlength", 32);
+    $('#last-name').attr("data-parsely-maxlength", 64);
     $("#email").attr("data-parsley-maxlength", 254);
     $('#phone').attr('data-parsley-length','[14,14]');
     $('#fax').attr('data-parsley-length','[14,14]');
@@ -221,6 +224,14 @@ $(document).ready(function () {
 
     $('#request-description').keyup(function () {
         characterCounter("#description-character-count", 5000, $(this).val().length)
+    });
+
+    $('#first-name').keyup(function() {
+        characterCounter("#first-name-character-count", 32, $(this).val().length)
+    });
+
+    $('#last-name').keyup(function() {
+        characterCounter("#last-name-character-count", 64, $(this).val().length)
     });
 
 });
