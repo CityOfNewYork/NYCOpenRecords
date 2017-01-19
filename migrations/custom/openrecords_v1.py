@@ -141,6 +141,7 @@ class MockProgressBar(object):
         self.max_value = max_value
 
     def update(self, num):
+        # TODO: vt100 erase line: ? / max_value
         pass
 
     def finish(self):
@@ -494,11 +495,14 @@ def transfer_extensions_from_email(email):
     ))
 
 
-# TODO: manual extensions for notes with null due_date and days_after
+# TODO: manual extensions for notes with null `due_date` and `days_after`
 @transfer('Extensions (from `note`)',
-          "SELECT * FROM note WHERE text LIKE 'Request extended:%' "
-          "AND date_created < '2016-06-13' AND due_date IS NOT NULL "
-          "AND days_after IS NOT NULL")
+          "SELECT * "
+          "FROM note "
+          "WHERE text LIKE 'Request extended:%' "
+          "      AND date_created < '2016-06-13' "
+          "      AND due_date IS NOT NULL "
+          "      AND days_after IS NOT NULL")
 def transfer_extensions_from_note(note):
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_release_date(note.date_created),
@@ -624,9 +628,11 @@ def transfer_emails(email):
 def transfer_users(user_ids_to_guids, user):
     # get agency_ein and auth_user_type
     auth_user_type = user_type_auth.AGENCY_LDAP_USER
+    is_active = False
     if user.department_id:
         CUR_V1.execute("SELECT name FROM department WHERE id = %s" % user.department_id)
         agency_ein = AGENCY_V1_NAME_TO_EIN[CUR_V1.fetchone().name]
+        is_active = True
     else:
         agency_ein = None
         auth_user_type = user_type_auth.ANONYMOUS_USER
@@ -675,8 +681,8 @@ def transfer_users(user_ids_to_guids, user):
         name.middle[0].upper() if name.middle else None,  # middle_initial
         name.last.title().strip(),  # last_name
         user.email,  # email
-        False,  # email_validated
-        False,  # terms_of_user_accepted
+        is_active,  # email_validated
+        is_active,  # terms_of_user_accepted
         None,  # title
         None,  # organization
         user.phone if user.phone != 'None' else None,  # phone_number
@@ -737,6 +743,10 @@ def transfer_user_requests_requesters(user_ids_to_guids, request):
     ))
 
 
+def assign_admins():
+    pass
+
+
 def transfer_all():
     transfer_requests()
 
@@ -763,3 +773,4 @@ def transfer_all():
 
 if __name__ == "__main__":
     transfer_all()
+    assign_admins()
