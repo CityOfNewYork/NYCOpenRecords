@@ -30,7 +30,8 @@ function characterCounter (target, limit, currentLength) {
      *
      * */
     var length = limit - currentLength;
-    $(target).text(length + " characters remaining");
+    var s = length === 1 ? "" : "s";
+    $(target).text(length + " character" + s + " remaining");
     if (length == 0) {
         $(target).css("color", "red");
     }
