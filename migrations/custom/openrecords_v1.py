@@ -39,7 +39,6 @@ from app.lib.date_utils import (
 SHOW_PROGRESSBAR = True
 try:
     import progressbar
-
     MOCK_PROGRESSBAR = False
 except ImportError:
     MOCK_PROGRESSBAR = True
@@ -141,11 +140,11 @@ class MockProgressBar(object):
         self.max_value = max_value
 
     def update(self, num):
-        # TODO: vt100 erase line: ? / max_value
-        pass
+        print('{} / {}  ({:.0f}%)'.format(num, self.max_value, (num / self.max_value) * 100))
+        print("\x1b[1A\x1b[2K", end='')
 
     def finish(self):
-        print(self.max_value, end='')
+        print('{0} / {0} (100%)'.format(self.max_value), end='')
 
 
 def transfer(tablename, query):
@@ -744,7 +743,57 @@ def transfer_user_requests_requesters(user_ids_to_guids, request):
 
 
 def assign_admins():
-    pass
+    """
+    Assign every agency admin to their agency's requests if
+    they have not been assigned already.
+
+    Why would there be agencies with unassigned admins?
+        In V1, special users that represented agencies as a whole
+        would be automatically assigned. V2 no longer handles assigning
+        these types of users so they are never transferred.
+    """
+    print("Assigning Administrators...")
+    CUR_V2.execute("SELECT permissions FROM roles WHERE name = '%s'" % role_name.AGENCY_ADMIN)
+    admin_permissions = CUR_V2.fetchone().permissions
+
+    CUR_V2.execute("SELECT * "
+                   "FROM users "
+                   "WHERE is_agency_active IS TRUE "
+                   "      AND is_agency_admin IS TRUE")
+
+    for user in CUR_V2.fetchall():
+        user_name = "{} {}{}".format(
+            user.first_name,
+            user.middle_initial + '. ' if user.middle_initial else '',
+            user.last_name
+        )
+        CUR_V2.execute("SELECT * FROM requests WHERE agency_ein = '%s'" % user.agency_ein)
+        print("Found {} requests for {}. Assigned to... ".format(CUR_V2.rowcount, user_name), end='')
+        num_assigned = 0
+        for request in CUR_V2.fetchall():
+            CUR_V2.execute("SELECT COUNT(*) "
+                           "FROM user_requests "
+                           "WHERE request_id = %s "
+                           "      AND user_guid = %s "
+                           "      AND auth_user_type = %s",
+                           (request.id, user.guid, user.auth_user_type))
+            if CUR_V2.fetchone().count == 0:  # TODO: verify int 0
+                # user has not been assigned to this request
+                CUR_V2.execute("INSERT INTO user_requests ("
+                               "user_guid, "
+                               "auth_user_type, "
+                               "request_id, "
+                               "request_user_type, "
+                               "permissions) "
+                               "VALUES (%s, %s, %s, %s, %s)",
+                               (user.guid,
+                                user.auth_user_type,
+                                request.id,
+                                user_type_request.AGENCY,
+                                admin_permissions))
+                num_assigned += 1
+        CONN_V2.commit()
+        print(num_assigned)
 
 
 def transfer_all():
