@@ -30,11 +30,7 @@ from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.request.utils import generate_guid
 from app.lib import NYCHolidays
 from app.lib.user_information import create_mailing_address
-from app.lib.date_utils import (
-    get_timezone_offset,
-    get_due_date,
-    process_due_date,
-)
+from app.lib.date_utils import local_to_utc
 
 SHOW_PROGRESSBAR = True
 try:
@@ -51,7 +47,7 @@ CUR_V2 = CONN_V2.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
 CAL = Calendar(
     workdays=[MO, TU, WE, TH, FR],
-    holidays=[str(key) for key in NYCHolidays(years=[2016, 2017]).keys()]
+    holidays=[str(key) for key in NYCHolidays(years=[y for y in range(2015, 2019)]).keys()]
 )
 CHUNKSIZE = 500
 DEFAULT_CATEGORY = 'All'
@@ -140,11 +136,12 @@ class MockProgressBar(object):
         self.max_value = max_value
 
     def update(self, num):
-        print('{} / {}  ({:.0f}%)'.format(num, self.max_value, (num / self.max_value) * 100))
+        print('{:.0f}% ({} of {})'.format(
+            (num / self.max_value) * 100, num, self.max_value))
         print("\x1b[1A\x1b[2K", end='')
 
     def finish(self):
-        print('{0} / {0} (100%)'.format(self.max_value), end='')
+        print('100% ({0} of {0})'.format(self.max_value))
 
 
 def transfer(tablename, query):
@@ -171,6 +168,15 @@ def transfer(tablename, query):
         return wrapped
 
     return decorator
+
+
+def _get_due_date(date_submitted, days_until_due):
+    return _process_due_date(CAL.addbusdays(date_submitted, days_until_due))
+
+
+def _process_due_date(due_date):
+    date = due_date.replace(hour=17, minute=00, second=00, microsecond=00)
+    return local_to_utc(date, TZ_NY)
 
 
 def _get_compatible_status(request):
@@ -223,9 +229,9 @@ def transfer_requests(request):
         DEFAULT_CATEGORY,  # category
         request.summary,  # title
         request.text,  # description
-        request.date_created - get_timezone_offset(request.date_created, TZ_NY),  # date_created
-        request.date_received - get_timezone_offset(request.date_received, TZ_NY),  # date_submitted
-        request.due_date - get_timezone_offset(request.due_date, TZ_NY),  # due_date
+        local_to_utc(request.date_created, TZ_NY),  # date_created
+        local_to_utc(request.date_received, TZ_NY),  # date_submitted
+        local_to_utc(request.due_date, TZ_NY),  # due_date
         request.offline_submission_type,  # submission
         _get_compatible_status(request),  # status
         json.dumps(privacy),  # privacy
@@ -248,7 +254,7 @@ def _create_response(child, type_, release_date, privacy=None, date_created=None
     if date_created is None:
         date_created = child.date_created
 
-    date_created_utc = date_created - get_timezone_offset(date_created, TZ_NY)
+    date_created_utc = local_to_utc(date_created, TZ_NY)
 
     try:
         request_id = child.request_id
@@ -274,7 +280,7 @@ def _create_response(child, type_, release_date, privacy=None, date_created=None
 
 def _get_release_date(start_date):
     release_date = CAL.addbusdays(start_date, RELEASE_PUBLIC_DAYS)
-    return release_date - get_timezone_offset(release_date, TZ_NY)
+    return local_to_utc(release_date, TZ_NY)
 
 
 def _get_note_release_date(note):
@@ -384,11 +390,19 @@ def transfer_acknowledgments_from_email(email):
              '"date") '
              "VALUES (%s, %s, %s)")
 
-    CUR_V1.execute("SELECT date_received FROM request WHERE id = '%s'" % email.request_id)
-    date = get_due_date(
-        CUR_V1.fetchone().date_received,
-        ACKNOWLEDGMENT_DAYS_DUE + int(email.email_content['acknowledge_status'].rstrip(" days")),
-        TZ_NY
+    CUR_V1.execute("SELECT email_content "
+                   "FROM email_notification "
+                   "WHERE request_id = '{}' "
+                   "      AND subject LIKE '%FOIL Request Submitted%'".format(email.request_id))
+    result = CUR_V1.fetchone()
+    if result is not None:
+        original_due_date = datetime.strptime(result.email_content['due_date'], '%Y-%m-%d')
+    else:
+        CUR_V1.execute("SELECT date_received FROM request WHERE id = '%s'" % email.request_id)
+        original_due_date = CAL.addbusdays(CUR_V1.fetchone().date_received, ACKNOWLEDGMENT_DAYS_DUE)
+    date = _get_due_date(
+        original_due_date,
+        int(email.email_content['acknowledge_status'].rstrip(" days"))
     )
     CUR_V2.execute(query, (
         response_id,
@@ -415,20 +429,25 @@ def transfer_acknowledgments_from_request(request):
     For a request that...
                                 responses.date_modified     acknowledgments.date
     ...has NOT been extended:   request.date_received       request.due_date
-    ...has been extended:       request.date_received       date_received + 20 (minimum)
+    ...has been extended:       request.date_received       date_received + 5 + 20 (minimum)
 
     """
     # get dates
     date_created = request.date_received
     if not request.extended:
-        date = request.due_date
+        final_due_date = request.due_date
+        date = _process_due_date(final_due_date)
     else:
-        date = CAL.addbusdays(request.date_received, MIN_DAYS_AFTER_ACKNOWLEDGE)
+        original_due_date = CAL.addbusdays(request.date_received, ACKNOWLEDGMENT_DAYS_DUE)
+        date = _get_due_date(
+            original_due_date,
+            MIN_DAYS_AFTER_ACKNOWLEDGE
+        )
 
     response_id = _create_response(request, response_type.DETERMINATION,
                                    _get_release_date(date_created),
                                    privacy=response_privacy.RELEASE_AND_PUBLIC,
-                                   date_created=date)
+                                   date_created=date_created)
 
     query = ("INSERT INTO determinations ("
              "id, "
@@ -439,10 +458,11 @@ def transfer_acknowledgments_from_request(request):
     CUR_V2.execute(query, (
         response_id,
         determination_type.ACKNOWLEDGMENT,
-        date - get_timezone_offset(date, TZ_NY)
+        date
     ))
 
 
+# TODO: Re-Openings before 6/13/2016 cannot be found
 @transfer("Re-Openings", "SELECT * FROM email_notification WHERE subject LIKE '%reopened%'")
 def transfer_reopenings(email):
     response_id = _create_response(email, response_type.DETERMINATION,
@@ -458,7 +478,7 @@ def transfer_reopenings(email):
 
     CUR_V1.execute("SELECT due_date FROM request WHERE id = '%s'" % email.request_id)
     due_date = CUR_V1.fetchone().due_date
-    date = due_date - get_timezone_offset(due_date, TZ_NY)
+    date = local_to_utc(due_date, TZ_NY)
 
     CUR_V2.execute(query, (
         response_id,
@@ -485,7 +505,7 @@ def transfer_extensions_from_email(email):
         date = datetime.strptime(date, '%m/%d/%Y')
     else:
         date = datetime.strptime(date, '%Y-%m-%d')
-    date = process_due_date(date, TZ_NY)
+    date = _process_due_date(date)
 
     CUR_V2.execute(query, (
         response_id,
@@ -499,7 +519,7 @@ def transfer_extensions_from_email(email):
           "SELECT * "
           "FROM note "
           "WHERE text LIKE 'Request extended:%' "
-          "      AND date_created < '2016-06-13' "
+          "      AND date_created < '2016-06-13' "  # date email notifications for responses began
           "      AND due_date IS NOT NULL "
           "      AND days_after IS NOT NULL")
 def transfer_extensions_from_note(note):
@@ -527,7 +547,7 @@ def _get_record_release_date(record):
             release_date = record.release_date
         else:
             release_date = CAL.addbusdays(record.date_created, RELEASE_PUBLIC_DAYS)
-        return release_date - get_timezone_offset(release_date, TZ_NY)
+        return local_to_utc(release_date, TZ_NY)
     return None
 
 
@@ -594,7 +614,12 @@ def transfer_instructions(record):
     ))
 
 
-@transfer('Emails', "SELECT * FROM email_notification")
+# TODO: Handle emails where recipient does not have an email address?
+@transfer('Emails', "SELECT * "
+                    "FROM email_notification "
+                    "WHERE recipient NOT IN (SELECT id "
+                    "                        FROM public.user "
+                    "                        WHERE email is NULL)")
 def transfer_emails(email):
     response_id = _create_response(email, response_type.EMAIL,
                                    release_date=None,
@@ -622,8 +647,9 @@ def transfer_emails(email):
 
 @transfer('Users', "SELECT * FROM public.user "
                    "WHERE alias NOT IN (SELECT name FROM department) "
-                   "AND alias IS NOT NULL "
-                   "OR (first_name IS NOT NULL AND last_name IS NOT NULL)")
+                   "      AND alias IS NOT NULL "
+                   "      OR (first_name IS NOT NULL "
+                   "          AND last_name IS NOT NULL)")
 def transfer_users(user_ids_to_guids, user):
     # get agency_ein and auth_user_type
     auth_user_type = user_type_auth.AGENCY_LDAP_USER
@@ -715,7 +741,7 @@ def transfer_user_requests_assigned_users(user_ids_to_guids, owner):
         ))
 
 
-@transfer("Use Requests (Requesters)", "SELECT * FROM request")
+@transfer("User Requests (Requesters)", "SELECT * FROM request")
 def transfer_user_requests_requesters(user_ids_to_guids, request):
     CUR_V1.execute("SELECT user_id FROM subscriber WHERE request_id = '%s'" % request.id)
 
@@ -777,7 +803,7 @@ def assign_admins():
                            "      AND user_guid = %s "
                            "      AND auth_user_type = %s",
                            (request.id, user.guid, user.auth_user_type))
-            if CUR_V2.fetchone().count == 0:  # TODO: verify int 0
+            if CUR_V2.fetchone().count == 0:
                 # user has not been assigned to this request
                 CUR_V2.execute("INSERT INTO user_requests ("
                                "user_guid, "

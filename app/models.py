@@ -557,6 +557,13 @@ class Requests(db.Model):
             Determinations.dtype == determination_type.ACKNOWLEDGMENT
         ).first() is not None
 
+    @property
+    def was_denied(self):
+        return self.responses.filter(
+            Responses.type == response_type.DETERMINATION,
+            Determinations.dtype == determination_type.DENIAL
+        ).first() is not None
+
     def es_update(self):
         es.update(
             index=current_app.config["ELASTICSEARCH_INDEX"],
