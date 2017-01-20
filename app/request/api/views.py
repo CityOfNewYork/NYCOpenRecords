@@ -126,8 +126,8 @@ def get_request_responses():
 
     template_path = 'request/responses/'
     response_jsons = []
-    for i, response in enumerate(responses):
-
+    row_count = 0
+    for response in responses:
         # If a user is anonymous or a public user who is not the requester AND the date for Release and Public is in
         # the future, do not generate response row
 
@@ -140,10 +140,11 @@ def get_request_responses():
                 'type': response.type
             }
             if eval_request_bool(flask_request.args.get('with_template')):
+                row_count += 1
                 row = render_template(
                     template_path + 'row.html',
                     response=response,
-                    row_num=start + i + 1,
+                    row_num=start + row_count,
                     response_type=response_type,
                     determination_type=determination_type,
                     show_preview=not (response.type == response_type.DETERMINATION and
