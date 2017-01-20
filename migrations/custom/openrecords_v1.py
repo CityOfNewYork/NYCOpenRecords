@@ -1,12 +1,18 @@
 """
 Migrate data from OpenRecords V1 database.
 
+Dependencies (not listed in requirements.txt)
+    nameparser
+    progressbar2 (optional)
+
 Usage:
     PYTHONPATH=/.../openrecords_v2_0 python migrations/custom/openrecords_v1.py
 
 """
+import os
 import math
 import json
+import paramiko
 import psycopg2.extras
 
 from functools import wraps
@@ -822,6 +828,48 @@ def assign_admins():
         print(num_assigned)
 
 
+# TODO: maybe run this before transfer_files to add mime_type, size, hash all in one go
+def copy_files():
+    """
+    Copy files to data directory.
+    """
+    ssh_path = '/home/vagrant/.ssh'
+    private_key_path = os.path.join(ssh_path, 'id_rsa')
+
+    # used for load_host_keys... would be nice if it actually worked!
+    host_keys_path = os.path.join(ssh_path, 'known_hosts')
+
+    # ssh jcastillo@10.132.41.26
+    ssh_joel = paramiko.SSHClient()
+    ssh_joel.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_joel.connect('10.132.41.26',
+                     username='jcastillo',
+                     pkey=paramiko.RSAKey(filename=private_key_path))
+
+    # open channel from 'localhost' to 'msplva-driofl02.csc.nycnet'
+    transport = ssh_joel.get_transport()
+    channel = transport.open_channel("direct-tcpip",
+                                     dest_addr=('msplva-driofl02.csc.nycnet', 22),
+                                     src_addr=('localhost', 22))
+
+    # ssh openfoil@msplva-driofl02.csc.nycnet (via channel)
+    ssh_openfoil = paramiko.SSHClient()
+    ssh_openfoil.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_openfoil.connect('localhost',
+                         username='openfoil',
+                         password='password',  # TODO: prompt user before script runs
+                         sock=channel)
+
+    # open SFTP session
+    sftp = ssh_openfoil.open_sftp()
+
+    # TODO: copy, copy, copy
+
+    ssh_openfoil.close()
+    channel.close()
+    ssh_joel.close()
+
+
 def transfer_all():
     transfer_requests()
 
@@ -847,5 +895,6 @@ def transfer_all():
 
 
 if __name__ == "__main__":
-    transfer_all()
-    assign_admins()
+    # transfer_all()
+    # assign_admins()
+    copy_files()
