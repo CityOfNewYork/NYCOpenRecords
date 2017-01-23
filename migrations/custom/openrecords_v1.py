@@ -13,6 +13,7 @@ import os
 import math
 import json
 
+import magic
 import paramiko
 import psycopg2.extras
 
@@ -20,6 +21,7 @@ from io import BytesIO
 from getpass import getpass
 from functools import wraps
 from datetime import datetime
+from tempfile import TemporaryFile
 
 from nameparser import HumanName
 from business_calendar import Calendar, MO, TU, WE, TH, FR
@@ -41,6 +43,13 @@ from app.request.utils import generate_guid
 from app.lib import NYCHolidays
 from app.lib.user_information import create_mailing_address
 from app.lib.date_utils import local_to_utc
+from app.lib.file_utils import (
+    _sftp_get_size,
+    _sftp_get_hash,
+    _sftp_exists,
+    _raise_if_too_big,
+    MaxTransferSizeExceededException
+)
 
 SHOW_PROGRESSBAR = True
 try:
@@ -561,8 +570,36 @@ def _get_record_release_date(record):
     return None
 
 
+def _sftp_get_mime_type(sftp, path):
+    """
+    The only difference between this and file utils is the
+    substitution of current_app.config['MAGIC_FILE'] with ...
+    """
+    with TemporaryFile() as tmp:
+        try:
+            sftp.getfo(path, tmp, _raise_if_too_big)
+        except MaxTransferSizeExceededException:
+            pass
+        tmp.seek(0)
+        if '/vagrant/openrecords_v2_0/magic':
+            # Check using custom mime database file
+            m = magic.Magic(
+                magic_file='/vagrant/openrecords_v2_0/magic',
+                mime=True)
+            mime_type = m.from_buffer(tmp.read())
+        else:
+            mime_type = magic.from_buffer(tmp.read(), mime=True)
+    return mime_type
+
+
 @transfer('Files', "SELECT * FROM record WHERE filename IS NOT NULL AND filename != ''")
-def transfer_files(record):
+def transfer_files(sftp, record):
+    path = os.path.join('/home/vagrant/openrecords_v2_0/', record.request_id, record.filename)
+
+    hash = _sftp_get_hash(sftp, path)
+    size = _sftp_get_size(sftp, path)
+    mime_type = _sftp_get_mime_type(sftp, path)
+
     response_id = _create_response(record, response_type.FILE,
                                    _get_record_release_date(record))
 
@@ -570,8 +607,11 @@ def transfer_files(record):
     query = ("INSERT INTO files ("
              "id, "
              "title, "
-             '"name") '
-             "VALUES (%s, %s, %s)")
+             '"name", '
+             "mime_type, "
+             "hash, "
+             '"size") '
+             "VALUES (%s, %s, %s, %s, %s, %s)")
 
     if record.description is None or record.description.strip() == '':
         title = record.filename
@@ -581,7 +621,10 @@ def transfer_files(record):
     CUR_V2.execute(query, (
         response_id,
         title,
-        record.filename
+        record.filename,
+        mime_type,
+        hash,
+        size
     ))
 
 
@@ -786,16 +829,22 @@ def get_ssh_credentials():
     return private_key_path, password
 
 
+def _get_sftp_openrecords():
+    transport = paramiko.Transport(('localhost', 22))
+    transport.connect(
+        username='vagrant',
+        pkey=paramiko.RSAKey(filename='/home/vagrant/.ssh/id_rsa'))
+    return paramiko.SFTPClient.from_transport(transport), transport
+
+
 def copy_files(private_key_path, password):
     """
     Copy files to data directory.
     """
+    print("Setting up connection... ", end='')
+
     # ssh OpenRecords V2 sftp server
-    transport_openrecords = paramiko.Transport(('localhost', 22))
-    transport_openrecords.connect(
-        username='vagrant',
-        pkey=paramiko.RSAKey(filename='/home/vagrant/.ssh/id_rsa'))
-    sftp_openrecords = paramiko.SFTPClient.from_transport(transport_openrecords)
+    sftp_openrecords, transport_openrecords = _get_sftp_openrecords()
 
     # ssh jcastillo@10.132.41.26
     ssh_jcastillo = paramiko.SSHClient()
@@ -833,29 +882,44 @@ def copy_files(private_key_path, password):
         # open SFTP session
         sftp_openfoil = ssh_openfoil.open_sftp()
 
+        print("Done!")
+
         # SFTP_DIR_FROM_CONFIG = "/home/vagrant/openrecords_v2_0"  # TODO: get from config?
-        sftp_openfoil.chdir('/data/uploads/public')
         sftp_openrecords.chdir('/home/vagrant/openrecords_v2_0')
 
-        print('Copying Files...')
-        foil_dirs = sftp_openfoil.listdir()
-        bar = progressbar.ProgressBar if not MOCK_PROGRESSBAR else MockProgressBar
-        bar = bar(max_value=len(foil_dirs))
-        file_count = 0
-        for foil_dir in foil_dirs:
-            sftp_openrecords.mkdir(foil_dir)
-            files = sftp_openfoil.listdir(foil_dir)
-            if len(files) > 1:
-                bar.max_value += len(files) - 1
-            for file_ in files:
-                with BytesIO() as fl:
-                    filepath = os.path.join(foil_dir, file_)
-                    sftp_openfoil.getfo(filepath, fl)
-                    fl.seek(0)
-                    sftp_openrecords.putfo(fl, filepath)
-                file_count += 1
-            bar.update(file_count)
-        bar.finish()
+        def _copy_files():
+            foil_dirs = sftp_openfoil.listdir()
+            bar = progressbar.ProgressBar if not MOCK_PROGRESSBAR else MockProgressBar
+            bar = bar(max_value=len(foil_dirs))  # set max_value to number of directories
+            file_count = 0
+            for foil_dir in foil_dirs:
+                if not _sftp_exists(sftp_openrecords, foil_dir):
+                    sftp_openrecords.mkdir(foil_dir)
+                files = sftp_openfoil.listdir(foil_dir)
+                if len(files) > 1:
+                    # increment max_value by the number of files present in directory
+                    # minus the count provided by the directory itself
+                    bar.max_value += len(files) - 1
+                elif len(files) == 0:
+                    # decrement max_value since the directory is empty
+                    bar.max_value -= 1
+                for file_ in files:
+                    # the actual copying happens here
+                    with BytesIO() as fl:
+                        filepath = os.path.join(foil_dir, file_)
+                        sftp_openfoil.getfo(filepath, fl)
+                        fl.seek(0)
+                        sftp_openrecords.putfo(fl, filepath)
+                    file_count += 1
+                bar.update(file_count)
+            bar.finish()
+
+        print('Copying Public Files...')
+        sftp_openfoil.chdir('/data/uploads/public')
+        _copy_files()
+        print('Copying Private Files...')
+        sftp_openfoil.chdir('/data/uploads/private')
+        _copy_files()
 
         # close connections
         list(map(lambda x: x.close(), (
@@ -879,10 +943,16 @@ def transfer_all():
 
     # Responses
     transfer_notes()
-    transfer_files()
+
+    sftp, transport = _get_sftp_openrecords()
+    transfer_files(sftp)
+    sftp.close()
+    transport.close()
+
     transfer_links()
     transfer_instructions()
     transfer_emails()
+
     # Responses: Determinations
     transfer_denials()
     transfer_closings()
@@ -948,8 +1018,7 @@ def assign_admins():
 
 
 if __name__ == "__main__":
-    # copy_files(*get_ssh_credentials())
-
-    # transfer_all()
-    # assign_admins()
+    copy_files(*get_ssh_credentials())
+    transfer_all()
+    assign_admins()
 
