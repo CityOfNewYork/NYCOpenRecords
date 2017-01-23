@@ -22,6 +22,7 @@ from getpass import getpass
 from functools import wraps
 from datetime import datetime
 from tempfile import TemporaryFile
+from contextlib import contextmanager
 
 from nameparser import HumanName
 from business_calendar import Calendar, MO, TU, WE, TH, FR
@@ -206,7 +207,7 @@ def transfer(tablename, query):
 
 def _get_due_date(date_submitted, days_until_due):
     """
-    Script compatible app.lib.date_utils.get_due_date
+    Script-compatible app.lib.date_utils.get_due_date
 
     :param date_submitted: local time expected (to match v1 db)
     """
@@ -215,7 +216,7 @@ def _get_due_date(date_submitted, days_until_due):
 
 def _process_due_date(due_date):
     """
-    Script compatible app.lib.date_utils.process_due_date
+    Script-compatible app.lib.date_utils.process_due_date
 
     :param due_date: local time expected (to match v1 db)
     """
@@ -619,7 +620,7 @@ def _get_record_release_date(record):
 
 def _sftp_get_mime_type(sftp, path):
     """
-    Script compatible app.lib.file_utils._sftp_get_mime_type.
+    Script-compatible app.lib.file_utils._sftp_get_mime_type.
 
     The only difference between this and its file_utils counterpart
     is the substitution of current_app.config['MAGIC_FILE'] with
@@ -882,12 +883,19 @@ def get_ssh_credentials():
     return private_key_path, password
 
 
-def _get_sftp_openrecords():
+@contextmanager
+def sftp_openrecords_v2_ctx():
+    """
+    Script-compatible app.lib.file_utils.sftp_ctx
+    """
     transport = paramiko.Transport((CONFIG.SFTP_HOSTNAME, CONFIG.SFTP_PORT))
     transport.connect(
         username='vagrant',
         pkey=paramiko.RSAKey(filename=CONFIG.SFTP_RSA_KEY_FILE))
-    return paramiko.SFTPClient.from_transport(transport), transport
+    sftp = paramiko.SFTPClient.from_transport(transport)
+    yield sftp
+    sftp.close()
+    transport.close()
 
 
 def copy_files(private_key_path, password):
@@ -896,93 +904,90 @@ def copy_files(private_key_path, password):
     """
     print("Setting up connection... ", end='')
 
-    # ssh OpenRecords V2 sftp server
-    sftp_openrecords, transport_openrecords = _get_sftp_openrecords()
+    with sftp_openrecords_v2_ctx() as sftp_openrecords:
 
-    # ssh jcastillo@10.132.41.26
-    ssh_jcastillo = paramiko.SSHClient()
-    ssh_jcastillo.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_jcastillo.connect(
-        '10.132.41.26',
-        username='jcastillo',
-        pkey=paramiko.RSAKey(filename=private_key_path))
+        # ssh jcastillo@10.132.41.26
+        ssh_jcastillo = paramiko.SSHClient()
+        ssh_jcastillo.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_jcastillo.connect(
+            '10.132.41.26',
+            username='jcastillo',
+            pkey=paramiko.RSAKey(filename=private_key_path))
 
-    # open channel from 'localhost' to 'msplva-driofl02.csc.nycnet'
-    transport_openfoil = ssh_jcastillo.get_transport()
-    channel = transport_openfoil.open_channel(
-        "direct-tcpip",
-        dest_addr=('msplva-driofl02.csc.nycnet', 22),
-        src_addr=('localhost', 22))
+        # open channel from 'localhost' to 'msplva-driofl02.csc.nycnet'
+        transport_openfoil = ssh_jcastillo.get_transport()
+        channel = transport_openfoil.open_channel(
+            "direct-tcpip",
+            dest_addr=('msplva-driofl02.csc.nycnet', 22),
+            src_addr=('localhost', 22))
 
-    try:
-        # ssh openfoil@msplva-driofl02.csc.nycnet (via channel)
-        ssh_openfoil = paramiko.SSHClient()
-        ssh_openfoil.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_openfoil.connect('localhost',
-                             username='openfoil',
-                             password=password,
-                             sock=channel)
-    except AuthenticationException as e:
-        list(map(lambda x: x.close(), (
-            sftp_openrecords,
-            transport_openrecords,
-            channel,
-            transport_openfoil,
-            ssh_jcastillo
-        )))
-        print(e)
-    else:
-        # open SFTP session
-        sftp_openfoil = ssh_openfoil.open_sftp()
+        try:
+            # ssh openfoil@msplva-driofl02.csc.nycnet (via channel)
+            ssh_openfoil = paramiko.SSHClient()
+            ssh_openfoil.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_openfoil.connect('localhost',
+                                 username='openfoil',
+                                 password=password,
+                                 sock=channel)
+        except AuthenticationException as e:
+            list(map(lambda x: x.close(), (
+                channel,
+                transport_openfoil,
+                ssh_jcastillo
+            )))
+            print(e)
+        else:
+            # open SFTP session
+            sftp_openfoil = ssh_openfoil.open_sftp()
 
-        print("Done!")
+            print("Done!")  # "Setting up connection... Done!"
 
-        sftp_openrecords.chdir(CONFIG.SFTP_UPLOAD_DIRECTORY)
+            sftp_openrecords.chdir(CONFIG.SFTP_UPLOAD_DIRECTORY)
 
-        def _copy_files():
-            foil_dirs = sftp_openfoil.listdir()
-            bar = progressbar.ProgressBar if not MOCK_PROGRESSBAR else MockProgressBar
-            bar = bar(max_value=len(foil_dirs))  # set max_value to number of directories
-            file_count = 0
-            for foil_dir in foil_dirs:
-                if not _sftp_exists(sftp_openrecords, foil_dir):
-                    sftp_openrecords.mkdir(foil_dir)
-                files = sftp_openfoil.listdir(foil_dir)
-                if len(files) > 1:
-                    # increment max_value by the number of files present in directory
-                    # minus the count provided by the directory itself
-                    bar.max_value += len(files) - 1
-                elif len(files) == 0:
-                    # decrement max_value since the directory is empty
-                    bar.max_value -= 1
-                for file_ in files:
-                    # the actual copying happens here
-                    with BytesIO() as fl:
-                        filepath = os.path.join(foil_dir, file_)
-                        sftp_openfoil.getfo(filepath, fl)
-                        fl.seek(0)
-                        sftp_openrecords.putfo(fl, filepath)
-                    file_count += 1
-                bar.update(file_count)
-            bar.finish()
+            def _copy_files():
+                foil_dirs = sftp_openfoil.listdir()
+                bar = progressbar.ProgressBar if not MOCK_PROGRESSBAR else MockProgressBar
+                # set max_value to number of directories in the anticipation that, for
+                # most foil request directories, there exists at least one uploaded file
+                bar = bar(max_value=len(foil_dirs))
+                file_count = 0
+                for foil_dir in foil_dirs:
+                    if not _sftp_exists(sftp_openrecords, foil_dir):
+                        sftp_openrecords.mkdir(foil_dir)
+                    files = sftp_openfoil.listdir(foil_dir)
+                    if len(files) > 1:
+                        # increment max_value by the number of files present in directory
+                        # minus the count provided by the directory itself
+                        bar.max_value += len(files) - 1
+                    elif len(files) == 0:
+                        # decrement max_value since the directory is empty
+                        bar.max_value -= 1
+                    for file_ in files:
+                        # the actual copying happens here
+                        with BytesIO() as fl:
+                            filepath = os.path.join(foil_dir, file_)
+                            sftp_openfoil.getfo(filepath, fl)
+                            fl.seek(0)
+                            sftp_openrecords.putfo(fl, filepath)
+                        file_count += 1
+                    bar.update(file_count)
+                bar.finish()
 
-        print('Copying Public Files...')
-        sftp_openfoil.chdir(V1_UPLOAD_DIR_PUBLIC)
-        _copy_files()
-        print('Copying Private Files...')
-        sftp_openfoil.chdir(V1_UPLOAD_DIR_PRIVATE)
-        _copy_files()
+            print('Copying Public Files...')
+            sftp_openfoil.chdir(V1_UPLOAD_DIR_PUBLIC)
+            _copy_files()
+            print('Copying Private Files...')
+            sftp_openfoil.chdir(V1_UPLOAD_DIR_PRIVATE)
+            _copy_files()
 
-        # close connections
-        list(map(lambda x: x.close(), (
-            sftp_openrecords,
-            transport_openrecords,
-            sftp_openfoil,
-            ssh_openfoil,
-            channel,
-            transport_openfoil,
-            ssh_jcastillo
-        )))
+            # close connections
+            list(map(lambda x: x.close(), (
+                sftp_openfoil,
+                ssh_openfoil,
+                channel,
+                transport_openfoil,
+                ssh_jcastillo
+            )))
 
 
 def transfer_all():
@@ -995,16 +1000,11 @@ def transfer_all():
 
     # Responses
     transfer_notes()
-
-    sftp, transport = _get_sftp_openrecords()
-    transfer_files(sftp)
-    sftp.close()
-    transport.close()
-
+    with sftp_openrecords_v2_ctx() as sftp:
+        transfer_files(sftp)
     transfer_links()
     transfer_instructions()
     transfer_emails()
-
     # Responses: Determinations
     transfer_denials()
     transfer_closings()
