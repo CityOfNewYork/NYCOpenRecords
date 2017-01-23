@@ -12,14 +12,18 @@ Usage:
 import os
 import math
 import json
+
 import paramiko
 import psycopg2.extras
 
+from io import BytesIO
+from getpass import getpass
 from functools import wraps
 from datetime import datetime
 
 from nameparser import HumanName
 from business_calendar import Calendar, MO, TU, WE, TH, FR
+from paramiko.ssh_exception import AuthenticationException
 
 from app.constants import (
     request_status,
@@ -774,6 +778,121 @@ def transfer_user_requests_requesters(user_ids_to_guids, request):
     ))
 
 
+def get_ssh_credentials():
+    print("Credentials for jcastillo@10.132.41.26")
+    private_key_path = input("private key file path: ")
+    print("Credentials for openfoil@msplva-driofl02.csc.nycnet")
+    password = getpass("password: ")
+    return private_key_path, password
+
+
+def copy_files(private_key_path, password):
+    """
+    Copy files to data directory.
+    """
+    # ssh OpenRecords V2 sftp server
+    transport_openrecords = paramiko.Transport(('localhost', 22))
+    transport_openrecords.connect(
+        username='vagrant',
+        pkey=paramiko.RSAKey(filename='/home/vagrant/.ssh/id_rsa'))
+    sftp_openrecords = paramiko.SFTPClient.from_transport(transport_openrecords)
+
+    # ssh jcastillo@10.132.41.26
+    ssh_jcastillo = paramiko.SSHClient()
+    ssh_jcastillo.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_jcastillo.connect(
+        '10.132.41.26',
+        username='jcastillo',
+        pkey=paramiko.RSAKey(filename=private_key_path))
+
+    # open channel from 'localhost' to 'msplva-driofl02.csc.nycnet'
+    transport_openfoil = ssh_jcastillo.get_transport()
+    channel = transport_openfoil.open_channel(
+        "direct-tcpip",
+        dest_addr=('msplva-driofl02.csc.nycnet', 22),
+        src_addr=('localhost', 22))
+
+    try:
+        # ssh openfoil@msplva-driofl02.csc.nycnet (via channel)
+        ssh_openfoil = paramiko.SSHClient()
+        ssh_openfoil.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_openfoil.connect('localhost',
+                             username='openfoil',
+                             password=password,
+                             sock=channel)
+    except AuthenticationException as e:
+        list(map(lambda x: x.close(), (
+            sftp_openrecords,
+            transport_openrecords,
+            channel,
+            transport_openfoil,
+            ssh_jcastillo
+        )))
+        print(e)
+    else:
+        # open SFTP session
+        sftp_openfoil = ssh_openfoil.open_sftp()
+
+        # SFTP_DIR_FROM_CONFIG = "/home/vagrant/openrecords_v2_0"  # TODO: get from config?
+        sftp_openfoil.chdir('/data/uploads/public')
+        sftp_openrecords.chdir('/home/vagrant/openrecords_v2_0')
+
+        print('Copying Files...')
+        foil_dirs = sftp_openfoil.listdir()
+        bar = progressbar.ProgressBar if not MOCK_PROGRESSBAR else MockProgressBar
+        bar = bar(max_value=len(foil_dirs))
+        file_count = 0
+        for foil_dir in foil_dirs:
+            sftp_openrecords.mkdir(foil_dir)
+            files = sftp_openfoil.listdir(foil_dir)
+            if len(files) > 1:
+                bar.max_value += len(files) - 1
+            for file_ in files:
+                with BytesIO() as fl:
+                    filepath = os.path.join(foil_dir, file_)
+                    sftp_openfoil.getfo(filepath, fl)
+                    fl.seek(0)
+                    sftp_openrecords.putfo(fl, filepath)
+                file_count += 1
+            bar.update(file_count)
+        bar.finish()
+
+        # close connections
+        list(map(lambda x: x.close(), (
+            sftp_openrecords,
+            transport_openrecords,
+            sftp_openfoil,
+            ssh_openfoil,
+            channel,
+            transport_openfoil,
+            ssh_jcastillo
+        )))
+
+
+def transfer_all():
+    transfer_requests()
+
+    user_ids_to_guids = {}
+    transfer_users(user_ids_to_guids)
+    transfer_user_requests_assigned_users(user_ids_to_guids)
+    transfer_user_requests_requesters(user_ids_to_guids)
+
+    # Responses
+    transfer_notes()
+    transfer_files()
+    transfer_links()
+    transfer_instructions()
+    transfer_emails()
+    # Responses: Determinations
+    transfer_denials()
+    transfer_closings()
+    transfer_acknowledgments_from_email()
+    transfer_acknowledgments_from_request()
+    transfer_reopenings()
+    transfer_extensions_from_note()
+    transfer_extensions_from_email()
+
+
 def assign_admins():
     """
     Assign every agency admin to their agency's requests if
@@ -828,73 +947,9 @@ def assign_admins():
         print(num_assigned)
 
 
-# TODO: maybe run this before transfer_files to add mime_type, size, hash all in one go
-def copy_files():
-    """
-    Copy files to data directory.
-    """
-    ssh_path = '/home/vagrant/.ssh'
-    private_key_path = os.path.join(ssh_path, 'id_rsa')
-
-    # used for load_host_keys... would be nice if it actually worked!
-    host_keys_path = os.path.join(ssh_path, 'known_hosts')
-
-    # ssh jcastillo@10.132.41.26
-    ssh_joel = paramiko.SSHClient()
-    ssh_joel.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_joel.connect('10.132.41.26',
-                     username='jcastillo',
-                     pkey=paramiko.RSAKey(filename=private_key_path))
-
-    # open channel from 'localhost' to 'msplva-driofl02.csc.nycnet'
-    transport = ssh_joel.get_transport()
-    channel = transport.open_channel("direct-tcpip",
-                                     dest_addr=('msplva-driofl02.csc.nycnet', 22),
-                                     src_addr=('localhost', 22))
-
-    # ssh openfoil@msplva-driofl02.csc.nycnet (via channel)
-    ssh_openfoil = paramiko.SSHClient()
-    ssh_openfoil.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_openfoil.connect('localhost',
-                         username='openfoil',
-                         password='password',  # TODO: prompt user before script runs
-                         sock=channel)
-
-    # open SFTP session
-    sftp = ssh_openfoil.open_sftp()
-
-    # TODO: copy, copy, copy
-
-    ssh_openfoil.close()
-    channel.close()
-    ssh_joel.close()
-
-
-def transfer_all():
-    transfer_requests()
-
-    user_ids_to_guids = {}
-    transfer_users(user_ids_to_guids)
-    transfer_user_requests_assigned_users(user_ids_to_guids)
-    transfer_user_requests_requesters(user_ids_to_guids)
-
-    # Responses
-    transfer_notes()
-    transfer_files()
-    transfer_links()
-    transfer_instructions()
-    transfer_emails()
-    # Responses: Determinations
-    transfer_denials()
-    transfer_closings()
-    transfer_acknowledgments_from_email()
-    transfer_acknowledgments_from_request()
-    transfer_reopenings()
-    transfer_extensions_from_note()
-    transfer_extensions_from_email()
-
-
 if __name__ == "__main__":
+    # copy_files(*get_ssh_credentials())
+
     # transfer_all()
     # assign_admins()
-    copy_files()
+
