@@ -34,6 +34,7 @@ def sftp_ctx():
                       pkey=paramiko.RSAKey(filename=current_app.config['SFTP_RSA_KEY_FILE']))
     sftp = paramiko.SFTPClient.from_transport(transport)
     yield sftp
+    sftp.close()
     transport.close()
 
 
