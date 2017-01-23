@@ -76,7 +76,7 @@ def ldap_login():
                 session['user_id'] = current_user.get_id()
 
                 return_to_url = request.form.get('return_to_url')
-                url = return_to_url if return_to_url is not None else url_for('main.index')
+                url = return_to_url if return_to_url else url_for('main.index')
                 return redirect(url)
 
             flash("Invalid username/password combination.", category="danger")
@@ -90,7 +90,7 @@ def ldap_login():
         return render_template(
             'auth/ldap_login_form.html',
             login_form=login_form,
-            return_to_url=request.args.get('return_to_url'))
+            return_to_url=request.args.get('return_to_url', ''))
 
 
 @auth.route('/ldap_logout', methods=['GET'])
