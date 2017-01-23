@@ -1,5 +1,5 @@
 """
-Migrate data from OpenRecords V1 database.
+Migrate data and files from OpenRecords V1 database and file server.
 
 Dependencies (not listed in requirements.txt)
     nameparser
@@ -26,6 +26,8 @@ from tempfile import TemporaryFile
 from nameparser import HumanName
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from paramiko.ssh_exception import AuthenticationException
+
+from config import config
 
 from app.constants import (
     request_status,
@@ -58,6 +60,12 @@ try:
 except ImportError:
     MOCK_PROGRESSBAR = True
 
+CONFIG = config['default']  # FIXME: should be 'production'
+
+V1_UPLOAD_DIR = '/data/uploads'
+V1_UPLOAD_DIR_PUBLIC = os.path.join(V1_UPLOAD_DIR, 'public')
+V1_UPLOAD_DIR_PRIVATE = os.path.join(V1_UPLOAD_DIR, 'private')
+
 CONN_V1 = psycopg2.connect(database="openrecords_v1", user="vagrant")
 CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev", user="vagrant")
 CUR_V1_X = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
@@ -71,7 +79,7 @@ CAL = Calendar(
 CHUNKSIZE = 500
 DEFAULT_CATEGORY = 'All'
 DUE_SOON_DAYS_THRESHOLD = 2
-TZ_NY = 'America/New_York'
+TZ_NY = CONFIG.APP_TIMEZONE
 MIN_DAYS_AFTER_ACKNOWLEDGE = 20
 
 AGENCY_V1_NAME_TO_EIN = {
@@ -149,7 +157,10 @@ PRIVACY = [
 
 
 class MockProgressBar(object):
-    """ Mock progressbar.ProgressBar """
+    """
+    Mock progressbar.ProgressBar
+    (Used if progressbar2 is not installed.)
+    """
 
     def __init__(self, max_value):
         self.max_value = max_value
@@ -165,6 +176,10 @@ class MockProgressBar(object):
 
 def transfer(tablename, query):
     def decorator(transfer_func):
+        """
+        Run args.transfer_func for every row fetched by args.query,
+        committing every 500 rows.
+        """
         @wraps(transfer_func)
         def wrapped(*args):
             CUR_V1_X.execute(query)
@@ -190,15 +205,32 @@ def transfer(tablename, query):
 
 
 def _get_due_date(date_submitted, days_until_due):
+    """
+    Script compatible app.lib.date_utils.get_due_date
+
+    :param date_submitted: local time expected (to match v1 db)
+    """
     return _process_due_date(CAL.addbusdays(date_submitted, days_until_due))
 
 
 def _process_due_date(due_date):
+    """
+    Script compatible app.lib.date_utils.process_due_date
+
+    :param due_date: local time expected (to match v1 db)
+    """
     date = due_date.replace(hour=17, minute=00, second=00, microsecond=00)
     return local_to_utc(date, TZ_NY)
 
 
 def _get_compatible_status(request):
+    """
+    Get compatible v1 request status for v2.
+
+    Any v1 status that is not 'Closed' or 'Open' is
+    determined by the request's due date.
+
+    """
     if request.status in [request_status.CLOSED, request_status.OPEN]:
         status = request.status
     else:
@@ -398,6 +430,19 @@ def transfer_closings(note):
           "FROM email_notification "
           "WHERE subject LIKE '%Acknowledged%'")
 def transfer_acknowledgments_from_email(email):
+    """
+    An acknowledgment is created for every email with a subject
+    containing the string 'Acknowledged'.
+
+    For requests associated with submission notification emails,
+    their original due date (pre-acknowledgment) is calculated
+    via the email's content ('due date').
+    Otherwise, the date is set to the request's reception date
+    plus 5 days (acknowledgment days until due).
+
+    The due date at the time of acknowledgment is then calculated
+    via the corresponding email's content ('acknowledgment status').
+    """
     response_id = _create_response(email, response_type.DETERMINATION,
                                    _get_release_date(email.time_sent),
                                    privacy=response_privacy.RELEASE_AND_PUBLIC,
@@ -414,11 +459,13 @@ def transfer_acknowledgments_from_email(email):
                    "WHERE request_id = '{}' "
                    "      AND subject LIKE '%FOIL Request Submitted%'".format(email.request_id))
     result = CUR_V1.fetchone()
+
     if result is not None:
         original_due_date = datetime.strptime(result.email_content['due_date'], '%Y-%m-%d')
     else:
         CUR_V1.execute("SELECT date_received FROM request WHERE id = '%s'" % email.request_id)
         original_due_date = CAL.addbusdays(CUR_V1.fetchone().date_received, ACKNOWLEDGMENT_DAYS_DUE)
+
     date = _get_due_date(
         original_due_date,
         int(email.email_content['acknowledge_status'].rstrip(" days"))
@@ -448,7 +495,7 @@ def transfer_acknowledgments_from_request(request):
     For a request that...
                                 responses.date_modified     acknowledgments.date
     ...has NOT been extended:   request.date_received       request.due_date
-    ...has been extended:       request.date_received       date_received + 5 + 20 (minimum)
+    ...has been extended:       request.date_received       date_received + 5 + 20
 
     """
     # get dates
@@ -572,8 +619,12 @@ def _get_record_release_date(record):
 
 def _sftp_get_mime_type(sftp, path):
     """
-    The only difference between this and file utils is the
-    substitution of current_app.config['MAGIC_FILE'] with ...
+    Script compatible app.lib.file_utils._sftp_get_mime_type.
+
+    The only difference between this and its file_utils counterpart
+    is the substitution of current_app.config['MAGIC_FILE'] with
+    CONFIG.MAGIC_FILE.
+
     """
     with TemporaryFile() as tmp:
         try:
@@ -581,10 +632,10 @@ def _sftp_get_mime_type(sftp, path):
         except MaxTransferSizeExceededException:
             pass
         tmp.seek(0)
-        if '/vagrant/openrecords_v2_0/magic':
+        if CONFIG.MAGIC_FILE:
             # Check using custom mime database file
             m = magic.Magic(
-                magic_file='/vagrant/openrecords_v2_0/magic',
+                magic_file=CONFIG.MAGIC_FILE,
                 mime=True)
             mime_type = m.from_buffer(tmp.read())
         else:
@@ -594,8 +645,7 @@ def _sftp_get_mime_type(sftp, path):
 
 @transfer('Files', "SELECT * FROM record WHERE filename IS NOT NULL AND filename != ''")
 def transfer_files(sftp, record):
-    path = os.path.join('/home/vagrant/openrecords_v2_0/', record.request_id, record.filename)
-
+    path = os.path.join(CONFIG.SFTP_UPLOAD_DIRECTORY, record.request_id, record.filename)
     hash = _sftp_get_hash(sftp, path)
     size = _sftp_get_size(sftp, path)
     mime_type = _sftp_get_mime_type(sftp, path)
@@ -603,7 +653,6 @@ def transfer_files(sftp, record):
     response_id = _create_response(record, response_type.FILE,
                                    _get_record_release_date(record))
 
-    # TODO: in script that transfers files, update files table (mime type, size, hash)
     query = ("INSERT INTO files ("
              "id, "
              "title, "
@@ -822,6 +871,10 @@ def transfer_user_requests_requesters(user_ids_to_guids, request):
 
 
 def get_ssh_credentials():
+    """
+    Prompt user for and return credentials necessary
+    for remote access to the server holding v1 request files.
+    """
     print("Credentials for jcastillo@10.132.41.26")
     private_key_path = input("private key file path: ")
     print("Credentials for openfoil@msplva-driofl02.csc.nycnet")
@@ -830,16 +883,16 @@ def get_ssh_credentials():
 
 
 def _get_sftp_openrecords():
-    transport = paramiko.Transport(('localhost', 22))
+    transport = paramiko.Transport((CONFIG.SFTP_HOSTNAME, CONFIG.SFTP_PORT))
     transport.connect(
         username='vagrant',
-        pkey=paramiko.RSAKey(filename='/home/vagrant/.ssh/id_rsa'))
+        pkey=paramiko.RSAKey(filename=CONFIG.SFTP_RSA_KEY_FILE))
     return paramiko.SFTPClient.from_transport(transport), transport
 
 
 def copy_files(private_key_path, password):
     """
-    Copy files to data directory.
+    Copy v1 files to v2 data directory.
     """
     print("Setting up connection... ", end='')
 
@@ -884,8 +937,7 @@ def copy_files(private_key_path, password):
 
         print("Done!")
 
-        # SFTP_DIR_FROM_CONFIG = "/home/vagrant/openrecords_v2_0"  # TODO: get from config?
-        sftp_openrecords.chdir('/home/vagrant/openrecords_v2_0')
+        sftp_openrecords.chdir(CONFIG.SFTP_UPLOAD_DIRECTORY)
 
         def _copy_files():
             foil_dirs = sftp_openfoil.listdir()
@@ -915,10 +967,10 @@ def copy_files(private_key_path, password):
             bar.finish()
 
         print('Copying Public Files...')
-        sftp_openfoil.chdir('/data/uploads/public')
+        sftp_openfoil.chdir(V1_UPLOAD_DIR_PUBLIC)
         _copy_files()
         print('Copying Private Files...')
-        sftp_openfoil.chdir('/data/uploads/private')
+        sftp_openfoil.chdir(V1_UPLOAD_DIR_PRIVATE)
         _copy_files()
 
         # close connections
@@ -1021,4 +1073,3 @@ if __name__ == "__main__":
     copy_files(*get_ssh_credentials())
     transfer_all()
     assign_admins()
-
