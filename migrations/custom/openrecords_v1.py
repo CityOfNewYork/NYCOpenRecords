@@ -198,7 +198,6 @@ def transfer(tablename, query):
                 CONN_V2.commit()
             if SHOW_PROGRESSBAR:
                 bar.finish()
-            print()
 
         return wrapped
 
@@ -250,6 +249,13 @@ def _get_compatible_status(request):
 
 @transfer("Requests", "SELECT * FROM request")
 def transfer_requests(request):
+    """
+    Since categories were not stored per request in v1, transferred
+    requests are given a category of "All" (the default for v2 requests).
+
+    Since agency description privacy was not stored in v1, the privacy for
+    transferred requests is set if no description due date is present.
+    """
     CUR_V1.execute("SELECT name FROM department WHERE id = %s" % request.department_id)
 
     agency_ein = AGENCY_V1_NAME_TO_EIN[CUR_V1.fetchone().name]
@@ -292,7 +298,14 @@ def transfer_requests(request):
     ))
 
 
-def _create_response(child, type_, release_date, privacy=None, date_created=None):
+def _create_response(obj, type_, release_date, privacy=None, date_created=None):
+    """
+    Create openrecords_v2.public.responses row.
+
+    :param obj: database record containing request id (via `id` or `request_id`)
+                and privacy (if not provided as kwarg)
+    :returns: response id
+    """
     query = ("INSERT INTO responses ("
              "request_id, "
              "privacy, "
@@ -304,19 +317,19 @@ def _create_response(child, type_, release_date, privacy=None, date_created=None
              "VALUES (%s, %s, %s, %s, %s, %s, %s)")
 
     if date_created is None:
-        date_created = child.date_created
+        date_created = obj.date_created
 
     date_created_utc = local_to_utc(date_created, TZ_NY)
 
     try:
-        request_id = child.request_id
+        request_id = obj.request_id
     except AttributeError:
-        assert 'FOIL' in child.id
-        request_id = child.id
+        assert 'FOIL' in obj.id
+        request_id = obj.id
 
     CUR_V2.execute(query, (
         request_id,  # request_id
-        privacy or PRIVACY[child.privacy],  # privacy
+        privacy or PRIVACY[obj.privacy],  # privacy
         date_created_utc,  # date_modified
         release_date,  # release_date
         False,  # deleted
@@ -372,6 +385,12 @@ def transfer_notes(note):
           "                       WHERE status != 'Open'"
           "                             AND NOT (status = 'Closed' AND prev_status = 'Open')))")
 def transfer_denials(note):
+    """
+    Any note corresponding to a request that was NOT determined to have an
+    acknowledgment through transfer_acknowledgments_from_email and
+    transfer_acknowledgments_from_request, is considered a note representing
+    a denial.
+    """
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_release_date(note.date_created),
                                    privacy=response_privacy.RELEASE_AND_PUBLIC)
@@ -403,8 +422,15 @@ def transfer_denials(note):
           "                       FROM request"
           "                       WHERE status != 'Open'"
           "                             AND NOT (status = 'Closed' AND prev_status = 'Open')))"
-          "      AND text LIKE '{%}'")
+          "        AND text LIKE '{%}'")
 def transfer_closings(note):
+    """
+    Any note corresponding to a request that was determined to have an
+    acknowledgment through transfer_acknowledgments_from_email and
+    transfer_acknowledgments_from_request and containing a text in the
+    format "{...}" (indicating a list of reasons), is considered a not
+    representing a closing.
+    """
     response_id = _create_response(note, response_type.DETERMINATION,
                                    _get_release_date(note.date_created),
                                    privacy=response_privacy.RELEASE_AND_PUBLIC)
@@ -532,6 +558,11 @@ def transfer_acknowledgments_from_request(request):
 # TODO: Re-Openings before 6/13/2016 cannot be found
 @transfer("Re-Openings", "SELECT * FROM email_notification WHERE subject LIKE '%reopened%'")
 def transfer_reopenings(email):
+    """
+    Since v1 Re-openings do not require a new request due date, the `date` field of
+    transferred re-openings is set to the current due date of the associated request.
+
+    """
     response_id = _create_response(email, response_type.DETERMINATION,
                                    _get_release_date(email.time_sent),
                                    privacy=response_privacy.RELEASE_AND_PUBLIC,
@@ -646,6 +677,10 @@ def _sftp_get_mime_type(sftp, path):
 
 @transfer('Files', "SELECT * FROM record WHERE filename IS NOT NULL AND filename != ''")
 def transfer_files(sftp, record):
+    """
+    It is assumed all v1 uploads have been copied to the v2 file server.
+    This function will FAIL otherwise!
+    """
     path = os.path.join(CONFIG.SFTP_UPLOAD_DIRECTORY, record.request_id, record.filename)
     hash = _sftp_get_hash(sftp, path)
     size = _sftp_get_size(sftp, path)
@@ -698,6 +733,10 @@ def transfer_links(record):
 
 @transfer('Instructions', "SELECT * FROM record WHERE access IS NOT NULL")
 def transfer_instructions(record):
+    """
+    For records with non-null description fields, the description and access
+    content are joined and stored in instructions.content.
+    """
     response_id = _create_response(record, response_type.INSTRUCTIONS,
                                    _get_record_release_date(record))
 
@@ -754,6 +793,14 @@ def transfer_emails(email):
                    "      OR (first_name IS NOT NULL "
                    "          AND last_name IS NOT NULL)")
 def transfer_users(user_ids_to_guids, user):
+    """
+    Agency users are determined by the presence of a department_id, otherwise
+    a user is stored as anonymous.
+    A user's first and last name and middle initial are parsed from `alias`.
+
+    :param user_ids_to_guids: empty dictionary that will be populated
+
+    """
     # get agency_ein and auth_user_type
     auth_user_type = user_type_auth.AGENCY_LDAP_USER
     is_active = False
@@ -821,7 +868,12 @@ def transfer_users(user_ids_to_guids, user):
 
 @transfer("User Requests (Assigned Users)", "SELECT * FROM owner WHERE active is TRUE")
 def transfer_user_requests_assigned_users(user_ids_to_guids, owner):
-    if owner.user_id in user_ids_to_guids:  # bar count will be greater than what is transferred
+    """
+    :param user_ids_to_guids: the presence of owner.user_id within this dictionary indicates
+                              a transferable user request.
+    :return: -1 if user_id not found (used to shift max_value of progress bar)
+    """
+    if owner.user_id in user_ids_to_guids:
 
         CUR_V2.execute("SELECT permissions FROM roles WHERE name = '%s'" %
                        (role_name.AGENCY_ADMIN if owner.is_point_person
@@ -842,10 +894,16 @@ def transfer_user_requests_assigned_users(user_ids_to_guids, owner):
             user_type_request.AGENCY,
             CUR_V2.fetchone().permissions
         ))
+    else:
+        return -1  # owner from query not used
 
 
 @transfer("User Requests (Requesters)", "SELECT * FROM request")
 def transfer_user_requests_requesters(user_ids_to_guids, request):
+    """
+    User ids are fetched from v1 subscriber table.
+    :param user_ids_to_guids: used to fetch generated requester guid
+    """
     CUR_V1.execute("SELECT user_id FROM subscriber WHERE request_id = '%s'" % request.id)
 
     user_id = None
@@ -888,7 +946,7 @@ def sftp_openrecords_v2_ctx():
     """
     Script-compatible app.lib.file_utils.sftp_ctx
     """
-    transport = paramiko.Transport((CONFIG.SFTP_HOSTNAME, CONFIG.SFTP_PORT))
+    transport = paramiko.Transport((CONFIG.SFTP_HOSTNAME, int(CONFIG.SFTP_PORT)))
     transport.connect(
         username='vagrant',
         pkey=paramiko.RSAKey(filename=CONFIG.SFTP_RSA_KEY_FILE))
@@ -991,6 +1049,9 @@ def copy_files(private_key_path, password):
 
 
 def transfer_all():
+    """
+    Migrate all data from v1 to v2 db (call all transfer functions).
+    """
     transfer_requests()
 
     user_ids_to_guids = {}
