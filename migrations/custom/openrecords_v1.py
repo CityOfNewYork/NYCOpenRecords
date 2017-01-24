@@ -682,7 +682,7 @@ def transfer_files(sftp, record):
     This function will FAIL otherwise!
     """
     path = os.path.join(CONFIG.SFTP_UPLOAD_DIRECTORY, record.request_id, record.filename)
-    hash = _sftp_get_hash(sftp, path)
+    hash_ = _sftp_get_hash(sftp, path)
     size = _sftp_get_size(sftp, path)
     mime_type = _sftp_get_mime_type(sftp, path)
 
@@ -708,7 +708,7 @@ def transfer_files(sftp, record):
         title,
         record.filename,
         mime_type,
-        hash,
+        hash_,
         size
     ))
 
