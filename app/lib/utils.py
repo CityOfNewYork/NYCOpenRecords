@@ -21,7 +21,7 @@ class UserRequestException(Exception):
         :param request_id: request that was not closed
         """
         super(UserRequestException, self).__init__(
-            'Unable to {} request: {}\nReason: {}.'.format(action, request_id, reason)
+            'Unable to {} request: {}\nReason: {}'.format(action, request_id, reason)
         )
 
 

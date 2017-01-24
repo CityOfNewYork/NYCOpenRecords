@@ -225,12 +225,12 @@ def add_closing(request_id, reason_ids, email_content):
                 if privacy[0] != RELEASE_AND_PUBLIC:
                     raise UserRequestException(action="close",
                                                request_id=current_request.id,
-                                               reason=reason + "or all Responses must be public"
+                                               reason=reason + "or all Responses must be public."
                                                )
             if current_request.privacy['title']:
                 raise UserRequestException(action="close",
                                            request_id=current_request.id,
-                                           reason=reason + "or Title must be public"
+                                           reason=reason + "or Title must be public."
                                            )
         update_object(
             {'status': request_status.CLOSED},
