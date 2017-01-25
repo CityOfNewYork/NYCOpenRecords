@@ -19,9 +19,9 @@
         sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
         timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes
         minPingInterval: 60 * 1000,  // 1 minute
-        pingUrl: '/ping',
-        logoutUrl: '/auth/logout',
-        timeoutUrl: '/auth/logout?timeout=1&next=',
+        pingUrl: '{{ BASE_URL }}/ping',
+        logoutUrl: '{{ BASE_URL }}/auth/logout',
+        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=1&next=',
         // The "mouseup" event was used instead of "click" because some of the
         // inner elements on some pages have click event handlers that stop propagation.
         activityEvents: 'mouseup',
