@@ -20,7 +20,6 @@ from flask_login import (
     current_user,
     current_app
 )
-from ast import literal_eval
 
 from app.auth import auth
 from app.auth.forms import ManageUserAccountForm, LDAPLoginForm
