@@ -220,9 +220,12 @@ def add_closing(request_id, reason_ids, email_content):
     if current_request.status != request_status.CLOSED:
         if current_request.privacy['agency_description'] or not current_request.agency_description:
             reason = "Agency Description must be public and not empty, "
-            for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(
-                            Responses.type != response_type.NOTE, Responses.type != response_type.EMAIL).all():
-                if privacy[0] != RELEASE_AND_PUBLIC:
+            for response in current_request.responses.filter(
+                            Responses.type != response_type.NOTE,
+                            Responses.type != response_type.EMAIL,
+                            Responses.deleted == False).all():
+                if response.privacy != RELEASE_AND_PUBLIC and not (
+                                response.type == response_type.FILE and not response.is_editable):
                     raise UserRequestException(action="close",
                                                request_id=current_request.id,
                                                reason=reason + "or all Responses must be public."
