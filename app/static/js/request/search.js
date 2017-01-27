@@ -9,7 +9,8 @@ $(function() {
         canSearch = true,
         searchBtn = $("#search"),
         dateReq = $("#date-req"),
-        noResultsFound = true;
+        noResultsFound = true,
+        generateDocBtn = $("#generate-document");
 
 
     // Date stuff
@@ -30,8 +31,9 @@ $(function() {
             .addClass("bad-input-text")
             .attr('data-content', msg)
             .popover('show');
-        if (highlightDateRequirement)
+        if (highlightDateRequirement) {
             dateReq.css("color", "red");
+        }
         return false;
     }
 
@@ -106,8 +108,9 @@ $(function() {
             canSearch = true;
             searchBtn.attr("disabled", false);
             dateReq.css("color", "black");
-            if (!noResultsFound)
+            if (!noResultsFound) {
                 generateDocBtn.attr("disabled", false);
+            }
         }
     }
 
@@ -170,7 +173,6 @@ $(function() {
 
     var next = $("#next");
     var prev = $("#prev");
-    var generateDocBtn = $("#generate-document");
 
     function search() {
 
@@ -291,20 +293,21 @@ $(function() {
     }
 
     generateDocBtn.click(function () {
-        if (canSearch)
+        if (canSearch) {
             search();
+        }
     });
     $(".status").click(function () {
-        resetAndSearch()
+        resetAndSearch();
     });
     searchBtn.click(function () {
-        resetAndSearch()
+        resetAndSearch();
     });
     $("#size").change(function () {
-        resetAndSearch()
+        resetAndSearch();
     });
     $("#agency_ein").change(function () {
-        resetAndSearch()
+        resetAndSearch();
     });
     next.click(function () {
         if (canSearch && end < total) {
