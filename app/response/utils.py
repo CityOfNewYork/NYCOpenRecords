@@ -1203,7 +1203,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
-        release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name)
+        release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
         email_content_requester = email_content.replace(replace_string,
                                                         render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,

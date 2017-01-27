@@ -34,7 +34,6 @@
                     <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
                 {% endfor %}
             </div>
-            <br/>
         {% endif %}
         {% if agency %}
             {% for key, value in response_data.data_old.items() %}
@@ -53,4 +52,8 @@
             {% endfor %}
         {% endif %}
     {% endif %}
+    <p>
+        Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
+    </p>
+    <p><br></p>
 {% endblock %}
