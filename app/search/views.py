@@ -217,7 +217,7 @@ def requests_doc(doc_type):
                 break
         if total != 0:
             dt = datetime.utcnow()
-            timestamp = dt + utc_to_local(dt, tz_name) if tz_name is not None else dt
+            timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
             return send_file(
                 BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
                 attachment_filename="FOIL_requests_results_{}.csv".format(
