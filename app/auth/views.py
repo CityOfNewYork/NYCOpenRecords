@@ -73,6 +73,7 @@ def ldap_login():
 
             if authenticated:
                 login_user(user)
+                session.regenerate()  # KVSession.regenerate()
                 session['user_id'] = current_user.get_id()
 
                 return_to_url = request.form.get('return_to_url')
