@@ -98,6 +98,7 @@ def ldap_login():
 @auth.route('/ldap_logout', methods=['GET'])
 def ldap_logout(timed_out=None):
     logout_user()
+    session.regenerate()
     if timed_out is not None:
         flash("Your session timed out. Please login again", category='info')
     return redirect(url_for('main.index'))
