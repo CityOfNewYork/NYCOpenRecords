@@ -89,7 +89,7 @@
                     <div class="col-sm-4">
                         {% if current_user.is_agency %}
                             <div class="row">
-                                <h4><label>Date Received</label>
+                                <h4><label>Date Received*</label>
                                     <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
                                            data-content="This field allows you to search for requests that were received between two specific dates.">
                                         <span class="glyphicon glyphicon-question-sign"></span>
@@ -97,16 +97,18 @@
                                 </h4>
                                 <div class="col-sm-6 no-pad-left">
                                     <label for="date-rec-from">From:</label>
-                                    <input type="text" id="date-rec-from" name="date_rec_from">
+                                    <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                                           type="text" id="date-rec-from" name="date_rec_from">
                                 </div>
                                 <div class="col-sm-6 no-pad-right">
                                     <label for="date-rec-to">To:</label>
-                                    <input type="text" id="date-rec-to" name="date_rec_to">
+                                    <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                                           type="text" id="date-rec-to" name="date_rec_to">
                                 </div>
                             </div>
                             <br>
                             <div class="row">
-                                <h4><label>Date Due</label>
+                                <h4><label>Date Due*</label>
                                     <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Due"
                                            data-content="This field allows you to search for requests that are due between two specific dates.">
                                         <span class="glyphicon glyphicon-question-sign"></span>
@@ -114,25 +116,37 @@
                                 </h4>
                                 <div class="col-sm-6 no-pad-left">
                                     <label for="date-due-from">From:</label>
-                                    <input type="text" id="date-due-from" name="date_due_from">
+                                    <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                                           type="text" id="date-due-from" name="date_due_from">
                                 </div>
                                 <div class="col-sm-6 no-pad-right">
                                     <label for="date-due-to">To:</label>
-                                    <input type="text" id="date-due-to" name="date_due_to">
+                                    <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                                           type="text" id="date-due-to" name="date_due_to">
                                 </div>
                             </div>
+                            <br>
+                            <div class="row" id="date-req">
+                                <strong>*From</strong> must be less than <strong>To</strong>.
+                            </div>
                         {% else %}
-                            <h4><label>Date Received</label>
+                            <h4><label>Date Received*</label>
                                 <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
                                        data-content="This field allows you to search for requests that were received between two specific dates.">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </small>
                             </h4>
                             <label for="date-rec-from">From:</label>
-                            <input type="text" id="date-rec-from" name="date_rec_from">
+                            <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                                   type="text" id="date-rec-from" name="date_rec_from">
                             <br>
                             <label for="date-rec-to">To:</label>
-                            <input type="text" id="date-rec-to" name="date_rec_to">
+                            <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                                   type="text" id="date-rec-to" name="date_rec_to">
+                            <br>
+                            <div id="date-req">
+                                <strong>*From</strong> must be less than <strong>To</strong>.
+                            </div>
                         {% endif %}
                     </div>
                     <div class="col-sm-4">
