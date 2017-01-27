@@ -17,6 +17,7 @@ class Config:
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
 
     APP_TIMEZONE = os.environ.get('APP_TIMEZONE') or 'US/Eastern'
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE') or True
 
     # Note: BASE_URL and VIEW_REQUEST_ENDPOINT used for the automatic status update job (jobs.py)
     BASE_URL = os.environ.get('BASE_URL')
