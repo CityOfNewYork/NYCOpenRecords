@@ -8,7 +8,6 @@ from logging import Formatter
 from logging.handlers import TimedRotatingFileHandler
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from datetime import datetime
 from flask import (
     Flask,
     render_template,
