@@ -23,7 +23,11 @@
         {% endif %}
         <p class="lead">
             If you would like to report this error, please
-            <a href="{{ url_for("main.contact") }}">contact us</a>.
+            {% if tracy_id %}
+                <a href="{{ url_for("main.contact", error_id="OpenRecords Error: {}".format(tracy_id)) }}">contact us</a>.
+            {% else %}
+                <a href="{{ url_for("main.contact") }}">contact us</a>.
+            {% endif %}
         </p>
         <p class="lead">
             {% if tracy_id %}
