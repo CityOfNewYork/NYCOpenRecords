@@ -159,7 +159,7 @@ class ProductionConfig(Config):
     # TODO: complete me
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
 config = {
     'development': DevelopmentConfig,
