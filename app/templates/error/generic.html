@@ -25,5 +25,10 @@
             If you would like to report this error, please
             <a href="{{ url_for("main.contact") }}">contact us</a>.
         </p>
+        <p class="lead">
+            {% if tracy_id %}
+                Include the following id as part of your report:<br><strong>{{ tracy_id }}</strong>
+            {% endif %}
+        </p>
     </div>
 {% endblock %}
