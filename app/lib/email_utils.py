@@ -28,8 +28,7 @@ def send_async_email(msg):
     try:
         mail.send(msg)
     except Exception as e:
-        print("Error sending email:", e)
-        # TODO: we ought to email ourselves
+        current_app.logger.exception("Failed to Send Email {} : {}".format(msg, e))
 
 
 def send_contact_email(subject, body, sender):

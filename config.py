@@ -85,7 +85,7 @@ class Config:
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', "True") == "True"
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_SUBJECT_PREFIX = os.environ.get('SUBJECT_PREFIX')
+    MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
 
     # TODO: should be a constant

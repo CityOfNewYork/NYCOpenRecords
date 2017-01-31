@@ -1,3 +1,5 @@
+
+
 """
     app.file.utils
     ~~~~~~~~~~~~~~~~
@@ -33,9 +35,13 @@ def sftp_ctx():
     transport.connect(username=current_app.config['SFTP_USERNAME'],
                       pkey=paramiko.RSAKey(filename=current_app.config['SFTP_RSA_KEY_FILE']))
     sftp = paramiko.SFTPClient.from_transport(transport)
-    yield sftp
-    sftp.close()
-    transport.close()
+    try:
+        yield sftp
+    except Exception as e:
+        current_app.logger.error("Exception occurred with SFTP: {}".format(e))
+    finally:
+        sftp.close()
+        transport.close()
 
 
 def _sftp_switch(sftp_func):

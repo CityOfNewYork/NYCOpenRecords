@@ -1332,9 +1332,9 @@ def safely_send_and_add_email(request_id,
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
         _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
-        print('Must include: To, CC, or BCC')
+        current_app.logger.exception('Must include: To, CC, or BCC')
     except Exception as e:
-        print("Error:", e)
+        current_app.logger.exception("Error: {}".format(e))
 
 
 def create_response_event(events_type, response):

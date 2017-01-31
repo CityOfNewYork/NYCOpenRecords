@@ -29,8 +29,7 @@ def create_object(obj):
         db.session.add(obj)
         db.session.commit()
     except Exception as e:
-        print("Failed to CREATE {} : {}".format(obj, e))
-        print(sys.exc_info())
+        current_app.logger.exception("Failed to CREATE {} : {}".format(obj, e))
         db.session.rollback()
         return None
     else:
@@ -68,8 +67,7 @@ def update_object(data, obj_type, obj_id):
         try:
             db.session.commit()
         except Exception as e:
-            print("Failed to UPDATE {} : {}".format(obj, e))
-            print(sys.exc_info())
+            current_app.logger.exception("Failed to UPDATE {} : {}".format(obj, e))
             db.session.rollback()
         else:
             # update elasticsearch
@@ -91,8 +89,7 @@ def delete_object(obj):
         db.session.commit()
         return True
     except Exception as e:
-        print("Failed to DELETE {} : {}".format(obj, e))
-        print(sys.exc_info())
+        current_app.logger.exception("Failed to DELETE {} : {}".format(obj, e))
         db.session.rollback()
         return False
 
@@ -111,8 +108,7 @@ def bulk_delete(query):
         db.session.commit()
         return num_deleted
     except Exception as e:
-        print(e)
-        print(sys.exc_info())
+        current_app.logger.exception("Failed to BULK DELETE {} : {}".format(query, e))
         db.session.rollback()
         return 0
 
