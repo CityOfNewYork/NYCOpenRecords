@@ -30,7 +30,7 @@ $(function() {
         dateElem
             .addClass("bad-input-text")
             .attr('data-content', msg)
-            .popover('show');
+            .popover(msg === null ? 'hide' : 'show');
         if (highlightDateRequirement) {
             dateReq.css("color", "red");
         }
@@ -70,7 +70,7 @@ $(function() {
                         return dateInvalid(checkDateElem, "This date does not fall on a business day.");
                     }
                     else if (!validComp) {
-                        return dateInvalid(checkDateElem, "", true);
+                        return dateInvalid(checkDateElem, null, true);
                     }
                     else {
                         return dateValid(checkDateElem);
