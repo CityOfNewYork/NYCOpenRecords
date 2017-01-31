@@ -390,7 +390,6 @@ class Users(UserMixin, db.Model):
                 db.session.add(user)
             db.session.commit()
 
-
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
 

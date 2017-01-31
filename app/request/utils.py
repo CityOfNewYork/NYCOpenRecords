@@ -319,9 +319,9 @@ def _quarantine_upload_no_id(upload_file):
     :return: the file path to the quarantined upload
     """
     with NamedTemporaryFile(
-            dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-            suffix='.{}'.format(secure_filename(upload_file.filename)),
-            delete=False
+        dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+        suffix='.{}'.format(secure_filename(upload_file.filename)),
+        delete=False
     ) as fp:
         upload_file.save(fp)
         return fp.name

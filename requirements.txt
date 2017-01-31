@@ -37,6 +37,7 @@ ldap3==2.1.1
 lxml==3.6.4
 Mako==1.0.4
 MarkupSafe==0.23
+oauthlib==2.0.1  # requests-oauthlib
 paramiko==2.0.2
 pyasn1==0.1.9  # cryptography, paramiko
 psycopg2==2.6.2
@@ -48,6 +49,7 @@ python-magic==0.4.12
 pytz==2016.6.1
 redis==2.10.5
 requests==2.11.1
+requests-oauthlib==0.7.0
 simplekv==0.10.0
 six==1.10.0
 SQLAlchemy==1.1.4
