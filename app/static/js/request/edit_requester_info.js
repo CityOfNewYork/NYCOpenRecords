@@ -72,6 +72,8 @@ $(function () {
             required[i].attr("data-parsley-required-message", "");
         }
         email.attr("data-parsley-maxlength", 254);
+        title.attr("data-parsley-maxlength", 64);
+        organization.attr("data-parsley-maxlength", 128);
         zipCode.attr("data-parsley-length", "[5,5]");
         telephone.attr("data-parsley-length", "[14,14]");
         fax.attr("data-parsley-length", "[14,14]");
