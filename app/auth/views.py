@@ -30,8 +30,8 @@ from app.auth.forms import ManageUserAccountForm, LDAPLoginForm  # TODO: Manage 
 from app.auth.utils import (
     ldap_authentication,
     find_user_by_email,
-    process_user_data,
-    remove_and_revoke_access_token,
+    handle_user_data,
+    revoke_and_remove_access_token,
 )
 from app.constants.web_services import USER_ENDPOINT, AUTH_ENDPOINT
 
@@ -46,15 +46,26 @@ def login():
     If no token exists, send the user to the authorization url
     (first leg of the OAuth 2 workflow).
 
-    :return:
+    * NOTE *
+    Since we are using OAuth Mobile Application Flow to fetch the information
+    normally retrieved in a SAML Assertion, the url resulting from authorization
+    is in the format 'redirect_uri#access_token=123guid=ABC...'. Notice the fragment
+    identifier ('#') in place of what would normally be the '?'. Since Flask drops
+    everything after the identifier, we must extract these values client-side in
+    order to forward them to the server. Therefore, the redirect uri we are using
+    is our home page (main.index) which detects the presence of an access token
+    and redirects to the intended OAuth callback (auth.authorize).
+
+    https://tools.ietf.org/html/rfc3986#section-3.5
+
     """
-    return_to_url = request.args.get('return_to_url')
+    return_to_url = request.args.get('return_to_url')  # TODO: Test with USE_OAUTH
 
     if current_app.config['USE_LDAP']:
         return redirect(url_for('auth.ldap_login', return_to_url=return_to_url))
 
     elif current_app.config['USE_OAUTH']:
-        if session['token']:
+        if session.get('token') is not None:
             oauth = OAuth2Session(
                 client=MobileApplicationClient(client_id=current_app.config['CLIENT_ID']),
                 token=session['token']
@@ -62,7 +73,7 @@ def login():
             user_json = oauth.get(
                 urljoin(current_app.config['WEB_SERVICES_URL'], USER_ENDPOINT)
             ).json()  # TODO: handle error (before attempting to get json?)
-            user = process_user_data(
+            return redirect(handle_user_data(
                 user_json['guid'],
                 user_json['userType'],
                 user_json['email'],
@@ -70,12 +81,12 @@ def login():
                 user_json.get('middleInitial'),
                 user_json.get('lastName'),
                 user_json.get('validated'),
-                user_json.get('termsOfUse')
-            )
-            login_user(user)
-            return redirect(return_to_url if return_to_url else url_for('main.index'))
+                user_json.get('termsOfUse'),
+                return_to_url
+            ))
         else:
-            redirect_uri = url_for('auth.authorize')
+            # redirect_uri = urljoin(request.host_url, url_for('main.index'))
+            redirect_uri = 'https://openrecords-staging.appdev.records.nycnet/'
             if return_to_url:
                 redirect_uri += '?return_to_url=' + return_to_url
             oauth = OAuth2Session(
@@ -90,30 +101,30 @@ def login():
 
 
 @auth.route('/authorize', methods=['GET'])
-def oauth_callback():
+def authorize():
     """
+    Store access token and a UTC timestamp for its
+    expiration date and time in the session, then
+    process SAML Assertion information.
+
     See: https://nyc4d.nycnet/nycidauthentication.shtml
     """
     session['token'] = {
         'access_token': request.args['access_token'],
         'token_type': request.args['token_type']
     }
-    session['token_expires_at'] = datetime.utcnow().timestamp() + request.args['expires_in']
+    session['token_expires_at'] = datetime.utcnow().timestamp() + int(request.args['expires_in'])
 
-    user = process_user_data(
+    return redirect(handle_user_data(
         request.args['GUID'],
         request.args['userType'],
-        request.args['email'],
+        request.args['mail'],
         request.args.get('givenName'),
         request.args.get('middleName'),
         request.args.get('sn'),
         request.args.get('nycExtTOUVersion'),
-        request.args.get('nycExtEmailValidationFlag')
-    )
-    login_user(user)
-
-    return_to_url = request.args.get('return_to_url')
-    return redirect(return_to_url if return_to_url else url_for('main.index'))
+        request.args.get('nycExtEmailValidationFlag'),
+        request.args.get('return_to_url')))
 
 
 @auth.route('/logout', methods=['GET'])
@@ -125,7 +136,7 @@ def logout():
 
     elif current_app.config['USE_OAUTH']:
         if 'token' in session:
-            remove_and_revoke_access_token()
+            revoke_and_remove_access_token()
         if timed_out is not None:
             flash("Your session timed out. Please login again", category='info')
         return redirect(url_for("main.index"))

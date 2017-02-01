@@ -8,15 +8,16 @@ import hmac
 import requests
 
 from hashlib import sha1
+from base64 import b64encode
 from urllib.parse import urljoin
 
 from flask import (
     current_app,
     session,
     url_for,
-    redirect,
+    request,
 )
-from flask_login import current_user
+from flask_login import login_user
 from app import login_manager
 from app.models import Users
 from app.constants import user_type_auth, USER_ID_DELIMITER
@@ -32,6 +33,9 @@ from app.constants.web_services import (
 from app.lib.db_utils import create_object, update_object
 
 from ldap3 import Server, Tls, Connection
+
+
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'True'  # TODO: if endpoint does not use https
 
 
 @login_manager.user_loader
@@ -60,10 +64,7 @@ def find_user_by_email(email):
     return Users.query.filter_by(**criteria).first()
 
 
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'True'  # TODO: if endpoint does not use https
-
-
-def remove_and_revoke_access_token():
+def revoke_and_remove_access_token():
     """
     Invoke the Delete OAuth User Web Service
     to revoke an access token and remove the
@@ -72,34 +73,58 @@ def remove_and_revoke_access_token():
     Assumes the access token (i.e. 'token')
     is stored in the session.
     """
-    params = {
-        "accessToken": session['token'],
-        "userName": current_app.config['NYC_ID_USERNAME']
-    }
-    params['signature'] = generate_signature(
-        current_app.config['NYC_ID_PASSWORD'],
-        generate_string_to_sign(
-            USER_ENDPOINT,
-            params,
-            method="DELETE"
-        )
+    response = _web_services_request(
+        USER_ENDPOINT,
+        {
+            "accessToken": session['token'],
+            "userName": current_app.config['NYC_ID_USERNAME'],
+        },
+        method="DELETE"
     )
-    response = requests.delete(
-        urljoin(current_app.config["WEB_SERVICE_URL"],
-                USER_ENDPOINT),
-        data=params
-    )
+    # TODO: handle error
     session.pop('token')
 
 
-def process_user_data(guid,
-                      user_type,
-                      email,
-                      first_name=None,
-                      middle_initial=None,
-                      last_name=None,
-                      terms_of_use=None,
-                      email_validation_flag=None):
+def handle_user_data(guid,
+                     user_type,
+                     email,
+                     first_name=None,
+                     middle_initial=None,
+                     last_name=None,
+                     terms_of_use=None,
+                     email_validation_flag=None,
+                     return_to_url=None):
+    """
+    Essentially a wrapper for _process_user_data.
+    If a redirect url is returned, return that url.
+    If a user is returned, login that user and return
+    the specified return_to_url or the home page url.
+    """
+    redirect_required, user_or_url = _process_user_data(
+        guid,
+        user_type,
+        email,
+        first_name,
+        middle_initial,
+        last_name,
+        terms_of_use,
+        email_validation_flag
+    )
+    if redirect_required:
+        return user_or_url
+    else:
+        login_user(user_or_url)
+        return return_to_url if return_to_url else url_for('main.index')
+
+
+def _process_user_data(guid,
+                       user_type,
+                       email,
+                       first_name,
+                       middle_initial,
+                       last_name,
+                       terms_of_use,
+                       email_validation_flag):
     """
     Kickoff email validation (if the user did not authenticate
     with a federated identity) or terms-of-use acceptance if the
@@ -118,12 +143,25 @@ def process_user_data(guid,
     agency supervisor must email us requesting that user be added
     to the agency.
 
-    :return: user that has been found or created
+    :return: (redirect required?, user that has been found or created OR redirect url)
     """
-    validate_email(email_validation_flag, guid, email, user_type)
-    accept_terms_of_use(terms_of_use, guid, user_type)
-    enroll(guid, user_type)
+    possible_redirect_actions = [{
+        "function": _validate_email,
+        "args": [email_validation_flag, guid, email, user_type]
+    }, {
+        "function": _accept_terms_of_use,
+        "args": [terms_of_use, guid, user_type]
+    }]
+    for action in possible_redirect_actions:
+        redirect_url = action["function"](*action["args"])
+        if redirect_url:
+            return True, redirect_url
 
+    _enroll(guid, user_type)
+
+    import ipdb
+    ipdb.set_trace()
+    
     mailbox, domain = email.split['@']
 
     if first_name is None:
@@ -134,13 +172,13 @@ def process_user_data(guid,
         user = find_user_by_email(email)
 
     if user is not None:
-        update_user_data(user,
-                         guid,
-                         user_type,
-                         email,
-                         first_name,
-                         middle_initial,
-                         last_name)
+        _update_user_data(user,
+                          guid,
+                          user_type,
+                          email,
+                          first_name,
+                          middle_initial,
+                          last_name)
     else:
         user = create_object(Users(
             guid=guid,
@@ -153,10 +191,10 @@ def process_user_data(guid,
             terms_of_use_accepted=True,
         ))
 
-    return user
+    return False, user
 
 
-def update_user_data(user, guid, user_type, email, first_name, middle_initial, last_name):
+def _update_user_data(user, guid, user_type, email, first_name, middle_initial, last_name):
     """
     Update specified user with the information provided, which is
     assumed to have originated from an NYC Service Account, and set
@@ -180,7 +218,7 @@ def update_user_data(user, guid, user_type, email, first_name, middle_initial, l
     )
 
 
-def validate_email(email_validation_flag, guid, email_address, user_type):
+def _validate_email(email_validation_flag, guid, email_address, user_type):
     """
     If the user_type is not associated with a federated identity,
     no email validation is necessary.
@@ -189,6 +227,7 @@ def validate_email(email_validation_flag, guid, email_address, user_type):
     email validation flag is
     - not provided
     - 'TRUE'
+    - 'true'
     - 'Unavailable'
     - True
 
@@ -197,137 +236,132 @@ def validate_email(email_validation_flag, guid, email_address, user_type):
     the Email Validation Web Service is invoked.
 
     If the returned validation status equals false,
-    the user is sent to the 'Email Confirmation Required' page
-    to request another validation email.
+    return url to the 'Email Confirmation Required' page
+    where the user can request a validation email.
 
+    :return: redirect url or None
     """
-    if user_type not in user_type_auth.FEDERATED_USER_TYPES or (
+    if user_type in user_type_auth.FEDERATED_USER_TYPES or (
             email_validation_flag is not None
-            and email_validation_flag not in ['TRUE', 'Unavailable', True]):
-        string_to_sign = 'GET{path}{guid}{user_name}'.format(
-            path=EMAIL_VALIDATION_STATUS_ENDPOINT,
-            guid=guid,
-            user_name=current_app.config['NYC_ID_USERNAME'])
-        response = requests.get(
-            urljoin(current_app.config['WEB_SERVICES_URL'],
-                    EMAIL_VALIDATION_STATUS_ENDPOINT),
+            and email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
+        response = _web_services_request(
+            EMAIL_VALIDATION_STATUS_ENDPOINT,
             {
-                'guid': guid,
-                'userName': current_app.config['NYC_ID_USERNAME'],
-                'signature': generate_signature(current_app.config['NYC_ID_PASSWORD'],
-                                                string_to_sign)
-            })
-        # TODO: handle error
+                "guid": guid,
+                "userName": current_app.config['NYC_ID_USERNAME']
+            }
+        )
+        # TODO: handle and log errors
         if not response.json()['validated']:
             # redirect to Email Confirmation Required page
-            redirect('{url}?{email_address}&{target}'.format(
+            return '{url}?emailAddress={email_address}&target={target}'.format(
                 url=urljoin(current_app.config['WEB_SERVICES_URL'],
                             EMAIL_VALIDATION_ENDPOINT),
                 email_address=email_address,
-                target=url_for('auth.login')
-            ))
+                target=b64encode(
+                    # b'https://openrecords-staging.appdev.records.nycnet/'
+                    urljoin(request.host_url, url_for('auth.login')).encode()
+                ).decode()
+            )
 
 
-def accept_terms_of_use(terms_of_use, guid, user_type):
+def _accept_terms_of_use(terms_of_use, guid, user_type):
     """
     If the user has logged in using the NYC Employees button
     (assumes this means their user_type is 'Saml2In: NYC Employees'),
     no TOU acceptance is necessary.
 
-    Invokes the Terms of Use Web Service to determine if the
-    user has accepted the latest TOU version. If not, the user
-    is sent to the 'NYC. TOU' page to accept the latest
-    terms of use.
+    Otherwise, invoke the Terms of Use Web Service to determine
+    if the user has accepted the latest TOU version.
+    If not, return url to 'NYC. TOU' page where the user can
+    accept the latest terms of use.
 
+    :return: redirect url or None
     """
-    # TODO: check this if statement
-    if terms_of_use is not True or user_type != user_type_auth.AGENCY_USER:  # must be True, nothing else!
-        string_to_sign = 'GET{path}{guid}{user_name}{user_type}'.format(
-            path=TOU_STATUS_ENDPOINT,
-            guid=guid,
-            user_name=current_app.config['NYC_ID_USERNAME'],
-            user_type=user_type
-        )
-        response = requests.get(
-            urljoin(current_app.config['WEB_SERVICES_URL'],
-                    TOU_STATUS_ENDPOINT),
+    if user_type != user_type_auth.AGENCY_USER and terms_of_use is not True:  # must be True, nothing else!
+        response = _web_services_request(
+            TOU_STATUS_ENDPOINT,
             {
-                'guid': guid,
-                'userName': current_app.config['NYC_ID_USERNAME'],
-                'userType': user_type,
-                'signature': generate_signature(current_app.config['NYC_ID_PASSWORD'],
-                                                string_to_sign)
-            })
-        # TODO: handle error (abort(500))
+                "guid": guid,
+                "userName": current_app.config['NYC_ID_USERNAME'],
+                "userType": user_type,
+            }
+        )
+        # TODO: handle error (abort(500) if necessary)
         if not response.json()['current']:
             # redirect to NYC. TOU page
-            redirect('{url}?{target}'.format(
+            return '{url}?target={target}'.format(
                 url=urljoin(current_app.config['WEB_SERVICES_URL'],
                             TOU_ENDPOINT),
-                target=url_for('auth.login')
-            ))
+                target=b64encode(
+                    # b'https://openrecords-staging.appdev.records.nycnet/'
+                    urljoin(request.host_url, url_for('auth.login')).encode()
+                ).decode()
+            )
 
 
-def enroll(guid, user_type):
+def _enroll(guid, user_type):
     """
     Retrieve enrollment statues for a specified
     user and, if the user has not yet been enrolled,
     create an enrollment record for that user.
     """
-    params = {  # TODO: test with test info
+    params = {
         "guid": guid,
         "userType": user_type,
-        "userName": current_user.config['NYC_ID_USERNAME'],
+        "userName": current_app.config['NYC_ID_USERNAME'],
     }
-    params["signature"] = generate_signature(
-        current_app.config['NYC_ID_PASSWORD'],
-        generate_string_to_sign(
-            ENROLLMENT_STATUS_ENDPOINT,
-            params
-        )
-    )
-    response = requests.get(
-        urljoin(current_app.config['WEB_SERVICE_URL'],
-                ENROLLMENT_STATUS_ENDPOINT),
-        params
+    response = _web_services_request(
+        ENROLLMENT_STATUS_ENDPOINT,
+        params.copy()  # 'signature' will be added
     )
     # TODO: handle error (if response.status_code != 200, then check which code)
     if not response.json():  # empty json = no enrollment record
-        string_to_sign = 'PUT{path}{guid}{user_name}{user_type}'.format(
-            path=ENROLLMENT_ENDPOINT,
-            guid=guid,
-            user_name=current_app.config['NYC_ID_USERNAME'],
-            user_type=user_type
+        response = _web_services_request(
+            ENROLLMENT_ENDPOINT,
+            params,
+            method='PUT'
         )
-        response = requests.put(
-            urljoin(current_app.config['WEB_SERVICE_URL'],
-                    ENROLLMENT_ENDPOINT),
-            {
-                "guid": guid,
-                "userName": current_app.config['NYC_ID_USERNAME'],
-                "userType": user_type,
-                "signature": generate_signature(current_app.config['NYC_ID_PASSWORD'],
-                                                string_to_sign)
-            }
-        )
+        # TODO: handle error
 
 
-# TODO: this
-def unenroll():
+def _unenroll(guid, user_type):
     """
-    Included for possible future use...
-
+    Delete an enrollment.
+    *Included for possible future use.*
     """
-    pass
+    response = _web_services_request(
+        ENROLLMENT_ENDPOINT,
+        {
+            "guid": guid,
+            "userType": user_type,
+            "userName": current_app.config['NYC_ID_USERNAME']
+        },
+        method='DELETE'
+    )
+    # TODO: handle error
 
 
-def generate_string_to_sign(path, params, method='GET'):
+def _web_services_request(endpoint, params, method='GET'):
+    params['signature'] = _generate_signature(
+        current_app.config['NYC_ID_PASSWORD'],
+        _generate_string_to_sign(method, endpoint, params)
+    )
+    return requests.request(
+        method,
+        urljoin(current_app.config['WEB_SERVICES_URL'], endpoint),
+        verify=current_app.config['VERIFY_WEB_SERVICES'],
+        params=params  # query string parameters always used
+    )
+
+
+def _generate_string_to_sign(method, path, params):
     """
     Generate a string that can be signed to produce an
     authentication signature.
 
-    :param path: path part of HTTP request URI
     :param method: HTTP method
+    :param path: path part of HTTP request URI
     :param params: querystring parameters
     :return: string to sign
     """
@@ -342,9 +376,9 @@ def generate_string_to_sign(path, params, method='GET'):
     )
 
 
-def generate_signature(password, string):
+def _generate_signature(password, string):
     """
-    Generate an authentication signature using HMAC-SHA1
+    Generate an NYC.ID Web Services authentication signature using HMAC-SHA1
 
     https://nyc4d.nycnet/nycid/web-services.shtml#signature
 
@@ -359,7 +393,8 @@ def generate_signature(password, string):
                              digestmod=sha1)
         signature = hmac_sha1.hexdigest()
     except Exception as e:
-        print("Failed to generate signature: ", e)
+        current_app.logger.error("Failed to generate NYC ID.Web Services "
+                                 "authentication signature: ", e)
     return signature
 
 
@@ -384,12 +419,6 @@ def ldap_authentication(email, password):
 def _ldap_server_connect():
     """
     Connect to an LDAP server
-    :param ldap_server: LDAP Server Hostname / IP Address
-    :param ldap_port: Port to use on LDAP server
-    :param ldap_use_tls: Use a secure connection to the LDAP server
-    :param ldap_cert_path: Certificate for Secure connection to LDAP
-    :param ldap_sa_bind_dn: LDAP Bind Distinguished Name for Service Account
-    :param ldap_sa_password: LDAP Service Account password
     :return: LDAP Context
     """
     ldap_server = current_app.config['LDAP_SERVER']

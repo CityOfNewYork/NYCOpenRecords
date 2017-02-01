@@ -48,6 +48,7 @@ class Config:
     IDP = os.environ.get('IDP')
     USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
     WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
+    VERIFY_WEB_SERVICES = os.environ.get('VERIFY_WEB_SERVICES') == "True"
     NYC_ID_USERNAME = os.environ.get('NYC_ID_USERNAME')
     NYC_ID_PASSWORD = os.environ.get('NYC_ID_PASSWORD')
     USE_LDAP = os.environ.get('USE_LDAP') == "True"
