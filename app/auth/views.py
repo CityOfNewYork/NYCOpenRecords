@@ -31,9 +31,10 @@ from app.auth.utils import (
     ldap_authentication,
     find_user_by_email,
     handle_user_data,
+    fetch_user_json,
     revoke_and_remove_access_token,
 )
-from app.constants.web_services import USER_ENDPOINT, AUTH_ENDPOINT
+from app.constants.web_services import AUTH_ENDPOINT
 
 
 @auth.route('/login', methods=['GET'])
@@ -66,15 +67,9 @@ def login():
 
     elif current_app.config['USE_OAUTH']:
         if session.get('token') is not None:
-            oauth = OAuth2Session(
-                client=MobileApplicationClient(client_id=current_app.config['CLIENT_ID']),
-                token=session['token']
-            )
-            user_json = oauth.get(
-                urljoin(current_app.config['WEB_SERVICES_URL'], USER_ENDPOINT)
-            ).json()  # TODO: handle error (before attempting to get json?)
+            user_json = fetch_user_json()
             return redirect(handle_user_data(
-                user_json['guid'],
+                user_json['id'],
                 user_json['userType'],
                 user_json['email'],
                 user_json.get('firstName'),
@@ -85,8 +80,8 @@ def login():
                 return_to_url
             ))
         else:
-            # redirect_uri = urljoin(request.host_url, url_for('main.index'))
-            redirect_uri = 'https://openrecords-staging.appdev.records.nycnet/'
+            redirect_uri = urljoin(request.host_url, url_for('main.index'))
+            # redirect_uri = 'https://openrecords-staging.appdev.records.nycnet/'
             if return_to_url:
                 redirect_uri += '?return_to_url=' + return_to_url
             oauth = OAuth2Session(
@@ -139,6 +134,8 @@ def logout():
             revoke_and_remove_access_token()
         if timed_out is not None:
             flash("Your session timed out. Please login again", category='info')
+        logout_user()
+        session.regenerate()
         return redirect(url_for("main.index"))
 
     return abort(404)
@@ -160,7 +157,7 @@ def ldap_login():
 
             if authenticated:
                 login_user(user)
-                session.regenerate()  # KVSession.regenerate()
+                session.regenerate()
                 session['user_id'] = current_user.get_id()
 
                 return_to_url = request.form.get('return_to_url')

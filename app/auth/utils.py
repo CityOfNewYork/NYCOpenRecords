@@ -35,9 +35,6 @@ from app.lib.db_utils import create_object, update_object
 from ldap3 import Server, Tls, Connection
 
 
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'True'  # TODO: if endpoint does not use https
-
-
 @login_manager.user_loader
 def user_loader(user_id):
     """
@@ -70,19 +67,39 @@ def revoke_and_remove_access_token():
     to revoke an access token and remove the
     token from the session.
 
-    Assumes the access token (i.e. 'token')
-    is stored in the session.
+    Assumes the access token is stored in the session.
     """
     response = _web_services_request(
         USER_ENDPOINT,
         {
-            "accessToken": session['token'],
+            "accessToken": session['token']['access_token'],
             "userName": current_app.config['NYC_ID_USERNAME'],
         },
         method="DELETE"
     )
     # TODO: handle error
     session.pop('token')
+
+
+def fetch_user_json():
+    """
+    Invoke the Get OAuth User Web Service to fetch
+    a JSON-formatted user:
+    https://nyc4d.nycnet/nycid/search.shtml#json-formatted-users
+
+    Assumes the access token is stored in the session.
+
+    :return: user data json dict
+    """
+    response = _web_services_request(
+        USER_ENDPOINT,
+        {
+            "accessToken": session['token']['access_token'],
+            "userName": current_app.config['NYC_ID_USERNAME']
+        }
+    )
+    # TODO: handle error
+    return response.json()
 
 
 def handle_user_data(guid,
@@ -114,7 +131,16 @@ def handle_user_data(guid,
         return user_or_url
     else:
         login_user(user_or_url)
+        _session_regenerate_persist_token()
         return return_to_url if return_to_url else url_for('main.index')
+
+
+def _session_regenerate_persist_token():
+    token = session['token']
+    token_expires_at = session['token_expires_at']
+    session.regenerate()
+    session['token'] = token
+    session['token_expires_at'] = token_expires_at
 
 
 def _process_user_data(guid,
@@ -159,10 +185,7 @@ def _process_user_data(guid,
 
     _enroll(guid, user_type)
 
-    import ipdb
-    ipdb.set_trace()
-    
-    mailbox, domain = email.split['@']
+    mailbox, domain = email.split('@')
 
     if first_name is None:
         first_name = mailbox
@@ -171,6 +194,7 @@ def _process_user_data(guid,
     if user is None:
         user = find_user_by_email(email)
 
+    # update or create user
     if user is not None:
         _update_user_data(user,
                           guid,
@@ -180,7 +204,7 @@ def _process_user_data(guid,
                           middle_initial,
                           last_name)
     else:
-        user = create_object(Users(
+        user = Users(
             guid=guid,
             auth_user_type=user_type,
             first_name=first_name,
@@ -189,7 +213,8 @@ def _process_user_data(guid,
             email=email,
             email_validated=True,
             terms_of_use_accepted=True,
-        ))
+        )
+        create_object(user)
 
     return False, user
 
