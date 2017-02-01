@@ -81,6 +81,9 @@ $(function () {
         zipCode.attr("data-parsley-length-message", "The Zipcode must be 5 digits long.");
         telephone.attr("data-parsley-length-message", "The phone number must be 10 digits long.");
         fax.attr("data-parsley-length-message", "The fax number must be 10 digits long.");
+
+        characterCounter("#user-title-character-count", 64, title.val().length);
+        characterCounter("#organization-character-count", 128, organization.val().length);
     });
 
     var errorMessage = $(".contact-form-error-message");
@@ -121,5 +124,13 @@ $(function () {
             $("#user-info").parsley().reset();
         }
         errorMessage.html("");
+    });
+
+    title.keyup(function() {
+        characterCounter("#user-title-character-count", 64, $(this).val().length)
+    });
+
+    organization.keyup(function() {
+        characterCounter("#organization-character-count", 128, $(this).val().length)
     });
 });

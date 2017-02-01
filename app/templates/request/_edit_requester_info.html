@@ -27,9 +27,11 @@
 
                     {{ edit_requester_form.title.label }}
                     {{ edit_requester_form.title(id='inputTitle', class='form-control', maxlength="64") }}
+                    <h5 id="user-title-character-count">64 characters remaining</h5>
 
                     {{ edit_requester_form.organization.label }}
                     {{ edit_requester_form.organization(id='inputOrganization', class='form-control', maxlength="128") }}
+                    <h5 id="organization-character-count">128 characters remaining</h5>
 
                     {{ edit_requester_form.phone.label }}
                     {{ edit_requester_form.phone(id='inputTelephone', class='form-control') }}
