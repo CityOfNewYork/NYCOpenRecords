@@ -81,7 +81,7 @@ def login():
             ))
         else:
             redirect_uri = urljoin(request.host_url, url_for('main.index'))
-            # redirect_uri = 'https://openrecords-staging.appdev.records.nycnet/'
+            # redirect_uri = 'https://openrecords-staging.appdev.records.nycnet/'  # TODO: remove me before PR
             if return_to_url:
                 redirect_uri += '?return_to_url=' + return_to_url
             oauth = OAuth2Session(

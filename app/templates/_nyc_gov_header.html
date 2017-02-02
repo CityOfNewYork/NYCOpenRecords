@@ -7,10 +7,14 @@
                         <a href="{{ url_for('auth.logout') }}">Log Out</a>
                     </span>
                 </span>
-                {% if current_user.is_public %}
+                {% if current_user.has_nyc_id_profile %}
                     <img class="vert-divide-right" alt="" src="{{ url_for('static', filename='img/upper-header-divider.gif') }}">
                     <span class="upper-header-b">
-                        <a href="{{ config['IDP'] }}/account?target=https://nyc.gov/openrecords&returnOnSave=true">Profile</a>
+                        <!--
+                            See: base.js.html
+                            'href' value generated based on current page and app environment (stg, prod, etc.)
+                        -->
+                        <a id="profile-link" href="#">Profile</a>
                     </span>
                 {% endif %}
             {% else %}

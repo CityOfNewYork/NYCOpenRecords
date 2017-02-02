@@ -323,7 +323,7 @@ def search_requests(query,
                  'title',
                  'agency_description',
                  'description'],
-        size=size,
+        size=min(size, MAX_RESULT_SIZE),
         from_=start,
         sort=sort,
     )

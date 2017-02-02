@@ -305,6 +305,10 @@ class Users(UserMixin, db.Model):
         return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES
 
     @property
+    def has_nyc_id_profile(self):
+        return self.auth_user_type in user_type_auth.NYC_ID_PROFILE_USER_TYPES
+
+    @property
     def is_anonymous_requester(self):
         """
         Checks to see if the user is an anonymous requester

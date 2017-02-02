@@ -2,6 +2,7 @@
 .. module:: auth.views.
 
    :synopsis: Authentication utilities for NYC OpenRecords
+
 """
 import ssl
 import hmac
@@ -71,10 +72,7 @@ def revoke_and_remove_access_token():
     """
     response = _web_services_request(
         USER_ENDPOINT,
-        {
-            "accessToken": session['token']['access_token'],
-            "userName": current_app.config['NYC_ID_USERNAME'],
-        },
+        {"accessToken": session['token']['access_token']},
         method="DELETE"
     )
     # TODO: handle error
@@ -93,10 +91,7 @@ def fetch_user_json():
     """
     response = _web_services_request(
         USER_ENDPOINT,
-        {
-            "accessToken": session['token']['access_token'],
-            "userName": current_app.config['NYC_ID_USERNAME']
-        }
+        {"accessToken": session['token']['access_token']}
     )
     # TODO: handle error
     return response.json()
@@ -271,10 +266,7 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
             and email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
             EMAIL_VALIDATION_STATUS_ENDPOINT,
-            {
-                "guid": guid,
-                "userName": current_app.config['NYC_ID_USERNAME']
-            }
+            {"guid": guid}
         )
         # TODO: handle and log errors
         if not response.json()['validated']:
@@ -308,8 +300,7 @@ def _accept_terms_of_use(terms_of_use, guid, user_type):
             TOU_STATUS_ENDPOINT,
             {
                 "guid": guid,
-                "userName": current_app.config['NYC_ID_USERNAME'],
-                "userType": user_type,
+                "userType": user_type
             }
         )
         # TODO: handle error (abort(500) if necessary)
@@ -333,12 +324,11 @@ def _enroll(guid, user_type):
     """
     params = {
         "guid": guid,
-        "userType": user_type,
-        "userName": current_app.config['NYC_ID_USERNAME'],
+        "userType": user_type
     }
     response = _web_services_request(
         ENROLLMENT_STATUS_ENDPOINT,
-        params.copy()  # 'signature' will be added
+        params.copy()  # signature regenerated
     )
     # TODO: handle error (if response.status_code != 200, then check which code)
     if not response.json():  # empty json = no enrollment record
@@ -359,8 +349,7 @@ def _unenroll(guid, user_type):
         ENROLLMENT_ENDPOINT,
         {
             "guid": guid,
-            "userType": user_type,
-            "userName": current_app.config['NYC_ID_USERNAME']
+            "userType": user_type
         },
         method='DELETE'
     )
@@ -368,6 +357,17 @@ def _unenroll(guid, user_type):
 
 
 def _web_services_request(endpoint, params, method='GET'):
+    """
+    Perform a request on an NYC.ID Web Services endpoint.
+    'userName' and 'signature' are added to the specified params.
+
+    :param endpoint: web services endpoint (e.g. "/account/validateEmail.htm")
+    :param params: request parameters excluding 'userName' and 'signature'
+    :param method: HTTP method
+    :return: request response
+    """
+    params['userName'] = current_app.config['NYC_ID_USERNAME']
+    # don't refactor to use dict.update() - signature relies on userName param
     params['signature'] = _generate_signature(
         current_app.config['NYC_ID_PASSWORD'],
         _generate_string_to_sign(method, endpoint, params)

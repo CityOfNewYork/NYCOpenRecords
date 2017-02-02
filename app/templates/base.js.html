@@ -1,4 +1,18 @@
 <script type="text/javascript">
+
+    {% if current_user.has_nyc_id_profile %}
+        /* Set profile link href value with 'target' parameter being the current page
+         * (base64 encoded: https://nyc4d.nycnet/nycid/account-profile.shtml)
+         *
+         * NOTE: webServicesUrl must be manually changed to match app environment.
+         */
+        var webServicesUrl = "https://nyc-stg-web.csc.nycnet";
+        $("#profile-link").attr(
+            "href",
+            webServicesUrl + "/account?returnOnSave=true&target=" + btoa(window.location.href)
+        );
+    {% endif %}
+
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             /*
