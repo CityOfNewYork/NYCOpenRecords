@@ -249,7 +249,7 @@ def _get_compatible_status(request):
 
 
 @transfer("Requests", "SELECT * FROM request")
-def transfer_requests(request):
+def transfer_requests(agency_next_request_number, request):
     """
     Since categories were not stored per request in v1, transferred
     requests are given a category of "All" (the default for v2 requests).
@@ -297,6 +297,13 @@ def transfer_requests(request):
         request.agency_description,  # agency_description
         request.agency_description_due_date  # agency_description_release_date
     ))
+
+    if agency_next_request_number.get(agency_ein) is not None:
+        agency_next_request_number[agency_ein] = max(
+            agency_next_request_number[agency_ein],
+            int(request.id[14:]))
+    else:
+        agency_next_request_number[agency_ein] = int(request.id[14:])
 
 
 def _create_response(obj, type_, release_date, privacy=None, date_created=None):
@@ -1049,11 +1056,21 @@ def copy_files(private_key_path, password):
             )))
 
 
+def update_agencies_next_request_numbers(agency_next_request_number):
+    for agency_ein, next_request_number in agency_next_request_number.items():
+        CUR_V2.execute("UPDATE agencies SET next_request_number = %s WHERE ein = '%s'" %
+                       (next_request_number + 1, agency_ein))
+    CONN_V2.commit()
+
+
 def transfer_all():
     """
     Migrate all data from v1 to v2 db (call all transfer functions).
     """
-    transfer_requests()
+    agency_next_request_number = {}
+    transfer_requests(agency_next_request_number)
+
+    update_agencies_next_request_numbers(agency_next_request_number)
 
     user_ids_to_guids = {}
     transfer_users(user_ids_to_guids)
