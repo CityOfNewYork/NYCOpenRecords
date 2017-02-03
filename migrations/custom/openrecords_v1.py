@@ -67,8 +67,9 @@ V1_UPLOAD_DIR = '/data/uploads'
 V1_UPLOAD_DIR_PUBLIC = os.path.join(V1_UPLOAD_DIR, 'public')
 V1_UPLOAD_DIR_PRIVATE = os.path.join(V1_UPLOAD_DIR, 'private')
 
-CONN_V1 = psycopg2.connect(database="openrecords_v1", user="vagrant")
-CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev", user="vagrant")
+DB_USERNAME = input("DB username: ")   # nasty, I know
+CONN_V1 = psycopg2.connect(database="openrecords_v1", user=DB_USERNAME)
+CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev", user=DB_USERNAME)
 CUR_V1_X = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 CUR_V1 = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 CUR_V2 = CONN_V2.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
