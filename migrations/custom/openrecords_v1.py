@@ -948,7 +948,7 @@ def sftp_openrecords_v2_ctx():
     """
     transport = paramiko.Transport((CONFIG.SFTP_HOSTNAME, int(CONFIG.SFTP_PORT)))
     transport.connect(
-        username='vagrant',
+        username=CONFIG.SFTP_USERNAME,
         pkey=paramiko.RSAKey(filename=CONFIG.SFTP_RSA_KEY_FILE))
     sftp = paramiko.SFTPClient.from_transport(transport)
     yield sftp
