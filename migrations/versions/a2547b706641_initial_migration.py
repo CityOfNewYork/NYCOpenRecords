@@ -142,7 +142,7 @@ def upgrade():
                                       'YahooSSO', 'LinkedInSSO',
                                       'GoogleSSO', 'EDIRSSO', 'AnonymousUser', name='auth_user_type'), nullable=True),
                     sa.Column('response_id', sa.Integer(), nullable=True),
-                    sa.Column('type', sa.String(length=30), nullable=True),
+                    sa.Column('type', sa.String(length=64), nullable=True),
                     sa.Column('timestamp', sa.DateTime(), nullable=True),
                     sa.Column('previous_value', postgresql.JSON(astext_type=sa.Text()), nullable=True),
                     sa.Column('new_value', postgresql.JSON(astext_type=sa.Text()), nullable=True),

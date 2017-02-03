@@ -646,7 +646,7 @@ class Events(db.Model):
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    type = db.Column(db.String(30))
+    type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_value = db.Column(JSON)
     new_value = db.Column(JSON)
