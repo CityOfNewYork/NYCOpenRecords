@@ -114,7 +114,7 @@ def deploy():
     )))
 
     es_recreate()
-    create_users()
+    # create_users()
 
 
 @manager.command

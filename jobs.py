@@ -27,11 +27,15 @@ def update_request_statuses():
         ).replace(hour=23, minute=59, second=59)  # the entire day
 
         requests_overdue = Requests.query.filter(
-            Requests.due_date < now).all()
+            Requests.due_date < now,
+            Requests.status != request_status.CLOSED
+        ).all()
 
         requests_due_soon = Requests.query.filter(
             Requests.due_date > now,
-            Requests.due_date <= due_soon_date).all()
+            Requests.due_date <= due_soon_date,
+            Requests.status != request_status.CLOSED
+        ).all()
 
         template = "email_templates/email_request_status_changed"
 

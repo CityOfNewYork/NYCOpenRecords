@@ -261,8 +261,8 @@ class Users(UserMixin, db.Model):
     terms_of_use_accepted = db.Column(db.Boolean)
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
-    phone_number = db.Column(db.String(15))
-    fax_number = db.Column(db.String(15))
+    phone_number = db.Column(db.String(25))
+    fax_number = db.Column(db.String(25))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
 
     # Relationships
@@ -455,7 +455,7 @@ class Requests(db.Model):
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
-    category = db.Column(db.String, default='All', nullable=False)
+    category = db.Column(db.String, default='All', nullable=False)  # FIXME: should be nullable, 'All' shouldn't be used
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
@@ -557,6 +557,13 @@ class Requests(db.Model):
             Determinations.dtype == determination_type.ACKNOWLEDGMENT
         ).first() is not None
 
+    @property
+    def was_denied(self):
+        return self.responses.filter(
+            Responses.type == response_type.DETERMINATION,
+            Determinations.dtype == determination_type.DENIAL
+        ).first() is not None
+
     def es_update(self):
         es.update(
             index=current_app.config["ELASTICSEARCH_INDEX"],
@@ -639,7 +646,7 @@ class Events(db.Model):
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    type = db.Column(db.String(30))
+    type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_value = db.Column(JSON)
     new_value = db.Column(JSON)
