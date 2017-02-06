@@ -78,8 +78,6 @@
         $(document).on('focusout', '.request-editable', function (e) {
             if ($('.request-editable').parsley().isValid() == false) {
                 $('.request-editable').parsley().validate();
-                e.preventDefault();
-                e.stopPropagation();
             }
             else {
                 $('.request-editable').submit();
