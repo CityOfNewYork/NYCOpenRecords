@@ -6,6 +6,9 @@ $(function () {
     var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var request_id = $.trim($('#request-id').text());
+    var navButtons = $('#responses-nav-buttons');
+    var prevButton = navButtons.find(".prev");
+    var nextButton = navButtons.find(".next");
 
     // get first set of responses on page load
     $.ajax({
@@ -18,7 +21,8 @@ $(function () {
         success: function (data) {
             responses = data.responses;
             if (responses.length > index_increment) {
-                $('#responses-nav-buttons').show();
+                navButtons.show();
+                prevButton.attr("disabled", true);
             }
             showResponses();
         },
@@ -75,21 +79,27 @@ $(function () {
         })
     }
 
-    var nav_buttons = $('#responses-nav-buttons');
-
     // replaces currently displayed responses with previous 10 responses
-    nav_buttons.find('.prev').click(function () {
+    prevButton.click(function () {
+        nextButton.attr("disabled", false);
         if (index !== 0) {
             index -= index_increment;
+            if (index === 0) {
+                $(this).attr("disabled", true);
+            }
             showResponses();
         }
     });
 
     // replaces currently displayed responses with next 10 responses
-    nav_buttons.find('.next').click(function () {
+    nextButton.click(function () {
+        prevButton.attr("disabled", false);
         index += index_increment;
         if (index == responses.length - index_increment) {
             loadMoreResponses();
+        }
+        if (responses.length < index + index_increment) {
+            nextButton.attr("disabled", true);
         }
         if (responses.length < index) {
             index -= index_increment;

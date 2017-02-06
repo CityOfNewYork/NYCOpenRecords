@@ -6,7 +6,7 @@
         <strong>{{ response | format_response_type }}</strong>
     </div>
     <div class="col-md-6 metadata-preview">
-        {% if show_preview %}
+        {% if show_preview and response.preview is not none %}
             {{ response.preview }}
         {% endif %}
     </div>

@@ -616,7 +616,12 @@ def get_response_content(response_id):
                         return fu.send_file(*filepath_parts, as_attachment=True)
                     else:
                         return redirect(url_for(
-                            'auth.index',
-                            sso2=True,
-                            return_to=flask_request.base_url))
+                            'auth.login',
+                            return_to_url=url_for('request.view', request_id=response_.request_id)
+                        ))
+                        # TODO: restore after saml/oauth implementation
+                        # return redirect(url_for(
+                        #     'auth.index',
+                        #     sso2=True,
+                        #     return_to=flask_request.base_url))
     return abort(404)

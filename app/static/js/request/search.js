@@ -3,9 +3,15 @@ $(function() {
     // set time zone name
     $("input[name='tz_name']").val(jstz.determine().name());
 
-    var start = 0;
-    var end = 0;
-    var total = 0;
+    var start = 0,
+        end = 0,
+        total = 0,
+        canSearch = true,
+        searchBtn = $("#search"),
+        dateReq = $("#date-req"),
+        noResultsFound = true,
+        generateDocBtn = $("#generate-document");
+
 
     // Date stuff
     function elemToDate(elem) {
@@ -18,6 +24,24 @@ $(function() {
         date.setMonth(parseInt(elem.val().substr(0, 2)) - 1);
         date.setDate(parseInt(elem.val().substr(3, 2)));
         return date;
+    }
+
+    function dateInvalid(dateElem, msg, highlightDateRequirement) {
+        dateElem
+            .addClass("bad-input-text")
+            .attr('data-content', msg)
+            .popover(msg === null ? 'hide' : 'show');
+        if (highlightDateRequirement) {
+            dateReq.css("color", "red");
+        }
+        return false;
+    }
+
+    function dateValid(dateElem) {
+        dateElem
+            .removeClass("bad-input-text")
+            .popover('hide');
+        return true;
     }
 
     function valiDate(checkDateElem, compDateElem, isLessThan) {
@@ -42,26 +66,29 @@ $(function() {
                     var checkDate = elemToDate(checkDateElem);
                     var validComp = compDate !== null ?
                         (isLessThan ? checkDate < compDate : checkDate > compDate) : true;
-                    if (!notHolidayOrWeekend(checkDate, false) || !validComp) {
-                        checkDateElem.addClass("bad-input-text");
+                    if (!notHolidayOrWeekend(checkDate, false)) {
+                        return dateInvalid(checkDateElem, "This date does not fall on a business day.");
+                    }
+                    else if (!validComp) {
+                        return dateInvalid(checkDateElem, null, true);
                     }
                     else {
-                        checkDateElem.removeClass("bad-input-text");
+                        return dateValid(checkDateElem);
                     }
                 }
                 catch (err) {
                     // failure parsing date string
-                    checkDateElem.addClass("bad-input-text");
+                    return dateInvalid(checkDateElem, "This is not a valid date.");
                 }
             }
             else {
                 // missing full date string length
-                checkDateElem.addClass("bad-input-text");
+                return dateInvalid(checkDateElem, "This is not a valid date.");
             }
         }
         else {
             // empty value is valid (no filtering)
-            checkDateElem.removeClass("bad-input-text");
+            return dateValid(checkDateElem);
         }
     }
 
@@ -70,8 +97,21 @@ $(function() {
         * Check that 'fromDateElem' is less than 'toDateElem'
         * and that both dates are not holidays or weekends.
         * */
-        valiDate(fromDateElem, toDateElem, true);
-        valiDate(toDateElem, fromDateElem, false);
+        var fromValid = valiDate(fromDateElem, toDateElem, true),
+            toValid = valiDate(toDateElem, fromDateElem, false);
+        if (!fromValid || !toValid) {
+            canSearch = false;
+            searchBtn.attr("disabled", true);
+            generateDocBtn.attr("disabled", true);
+        }
+        else {
+            canSearch = true;
+            searchBtn.attr("disabled", false);
+            dateReq.css("color", "black");
+            if (!noResultsFound) {
+                generateDocBtn.attr("disabled", false);
+            }
+        }
     }
 
     var datepickerOptions = {
@@ -105,11 +145,11 @@ $(function() {
 
     // keypress 'Enter' = click search button
     $("#search-section").keyup(function(e){
-        if(e.keyCode === 13) {
-            $("#search").click();
+        if (canSearch && e.keyCode === 13) {
+            searchBtn.click();
         }
     });
-    // but don't submit form (generate csv)
+    // but don't submit form (it is only used to generate results document)
     $("#search-form").on("keyup, keypress", function(e){
         var keyCode = e.keyCode || e.which;
         if (keyCode === 13) {
@@ -133,7 +173,6 @@ $(function() {
 
     var next = $("#next");
     var prev = $("#prev");
-    var generateDocBtn = $("#generate-document");
 
     function search() {
 
@@ -148,6 +187,7 @@ $(function() {
             data: $("#search-form").serializeArray(),
             success: function(data) {
                 if (data.total !== 0) {
+                    noResultsFound = false;
                     results.html(data.results);
                     flask_moment_render_all();
                     pageInfo.text(
@@ -172,6 +212,7 @@ $(function() {
                     generateDocBtn.attr("disabled", false);
                 }
                 else {
+                    noResultsFound = true;
                     results.html("<li class='list-group-item text-center'>" +
                         "No results found.</li>");
                     pageInfo.text("");
@@ -218,38 +259,6 @@ $(function() {
         $("input[name='start']").val(val);
     }
 
-    generateDocBtn.click(function() {
-        search();
-    });
-    $(".status").click(function() {
-        setStart(0);
-        search();
-    });
-    $("#search").click(function() {
-        setStart(0);
-        search();
-    });
-    $("#size").change(function() {
-        setStart(0);
-        search();
-    });
-    $("#agency_ein").change(function() {
-        setStart(0);
-        search();
-    });
-    next.click(function() {
-        if (end < total) {
-            setStart(start + parseInt($("#size").val()));
-            search();
-        }
-    });
-    prev.click(function() {
-        if (start > 0) {
-            setStart(start - parseInt($("#size").val()));
-            search();
-        }
-    });
-
     // Sorting
     var sortOrderToGlyphicon = {
         desc: "glyphicon-triangle-bottom",
@@ -276,11 +285,50 @@ $(function() {
         icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
     }
 
-    $(".sort-field").click(function() {
-        setStart(0);
-        cycleSort($(this));
-        // fill hidden inputs
-        $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
-        search();
+    function resetAndSearch() {
+        if (canSearch) {
+            setStart(0);
+            search();
+        }
+    }
+
+    generateDocBtn.click(function () {
+        if (canSearch) {
+            search();
+        }
+    });
+    $(".status").click(function () {
+        resetAndSearch();
+    });
+    searchBtn.click(function () {
+        resetAndSearch();
+    });
+    $("#size").change(function () {
+        resetAndSearch();
+    });
+    $("#agency_ein").change(function () {
+        resetAndSearch();
+    });
+    next.click(function () {
+        if (canSearch && end < total) {
+            setStart(start + parseInt($("#size").val()));
+            search();
+        }
+    });
+    prev.click(function () {
+        if (canSearch && start > 0) {
+            setStart(start - parseInt($("#size").val()));
+            search();
+        }
+    });
+
+    $(".sort-field").click(function () {
+        if (canSearch) {
+            setStart(0);
+            cycleSort($(this));
+            // fill hidden inputs
+            $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
+            search();
+        }
     });
 });

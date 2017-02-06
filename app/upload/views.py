@@ -139,7 +139,7 @@ def post(request_id):
                     }
             except Exception as e:
                 redis.set(key, upload_status.ERROR)
-                print("Upload for file '{}' failed: {}".format(filename, e))
+                current_app.logger.exception("Upload for file '{}' failed: {}".format(filename, e))
                 response = {
                     "files": [{
                         "name": filename,
@@ -232,7 +232,7 @@ def delete(r_id_type, r_id, filecode):
             else:
                 response = {"error": "Upload not found."}
         except Exception as e:
-            print("Error on DELETE /upload/: {}".format(e))
+            current_app.logger.exception("Error on DELETE /upload/: {}".format(e))
             response = {"error": "Failed to delete '{}'".format(filename)}
 
     return jsonify(response), 200

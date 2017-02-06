@@ -1,13 +1,22 @@
 import atexit
 from datetime import date
 
+import os
 import redis
+import logging
+from logging import Formatter
+from logging.handlers import TimedRotatingFileHandler
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import Flask, render_template
+from flask import (
+    Flask,
+    render_template,
+    request as flask_request,
+)
 from flask_apscheduler import APScheduler
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
+from flask_tracy import Tracy
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -19,6 +28,7 @@ from apscheduler.triggers.cron import CronTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from app.lib import NYCHolidays, jinja_filters
+from app.constants import OPENRECORDS_DL_EMAIL
 
 from config import config, Config
 
@@ -29,6 +39,7 @@ db = SQLAlchemy()
 csrf = CsrfProtect()
 moment = Moment()
 mail = Mail()
+tracy = Tracy()
 login_manager = LoginManager()
 scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
@@ -57,6 +68,20 @@ def create_app(config_name, jobs_enabled=True):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+
+    # TODO: handler_info, handler_debug, handler_warn
+
+    handler_error = TimedRotatingFileHandler(
+        os.path.join(app.config['LOGFILE_DIRECTORY'],
+                     'error',
+                     'openrecords_{}_error.log'.format(app.config['APP_VERSION_STRING'])),
+        when='D', interval=1, backupCount=60)
+    handler_error.setLevel(logging.ERROR)
+    handler_error.setFormatter(Formatter(
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]\n'
+    ))
+    app.logger.addHandler(handler_error)
 
     app.jinja_env.filters['format_response_type'] = jinja_filters.format_response_type
     app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
@@ -110,7 +135,8 @@ def create_app(config_name, jobs_enabled=True):
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        return render_template("error/generic.html", status_code=500)
+        app.logger.error('Error found for request with Tracy ID: {}'.format(flask_request._tracy_id))
+        return render_template("error/generic.html", status_code=500, tracy_id=flask_request._tracy_id)
 
     @app.context_processor
     def add_session_config():

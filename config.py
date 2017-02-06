@@ -16,7 +16,9 @@ class Config:
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
 
+    APP_VERSION_STRING = os.environ.get('APP_VERSION_STRING')
     APP_TIMEZONE = os.environ.get('APP_TIMEZONE') or 'US/Eastern'
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE') == 'True'
 
     # Note: BASE_URL and VIEW_REQUEST_ENDPOINT used for the automatic status update job (jobs.py)
     BASE_URL = os.environ.get('BASE_URL')
@@ -83,7 +85,7 @@ class Config:
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', "True") == "True"
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_SUBJECT_PREFIX = os.environ.get('SUBJECT_PREFIX')
+    MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
 
     # TODO: should be a constant
@@ -158,7 +160,7 @@ class ProductionConfig(Config):
     # TODO: complete me
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
 config = {
     'development': DevelopmentConfig,

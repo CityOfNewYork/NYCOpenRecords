@@ -129,7 +129,7 @@ def create_docs():
         chunk_size=100,
         raise_on_error=True
     )
-    print("Successfully created %s docs." % num_success)
+    current_app.logger.info("Successfully created {} docs.".format(num_success))
 
 
 def update_docs():

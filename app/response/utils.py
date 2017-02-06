@@ -219,17 +219,22 @@ def add_closing(request_id, reason_ids, email_content):
     current_request = Requests.query.filter_by(id=request_id).one()
     if current_request.status != request_status.CLOSED:
         if current_request.privacy['agency_description'] or not current_request.agency_description:
-            for privacy in current_request.responses.with_entities(Responses.privacy, Responses.type).filter(
-                            Responses.type != response_type.NOTE, Responses.type != response_type.EMAIL).all():
-                if privacy[0] != RELEASE_AND_PUBLIC:
-                    raise UserRequestException(action="close",
-                                               request_id=current_request.id,
-                                               reason="Agency Description is private and responses are not public"
-                                               )
+            reason = "Agency Description must be public and not empty, "
+            if current_request.responses.filter(
+                Responses.type != response_type.NOTE,  # ignore Notes
+                Responses.type != response_type.EMAIL,  # ignore Emails
+                Responses.deleted == False,  # ignore deleted responses
+                Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
+                Responses.is_editable == True  # ignore non-editable responses
+            ).first() is not None:
+                raise UserRequestException(action="close",
+                                           request_id=current_request.id,
+                                           reason=reason + "or all Responses (excluding Notes) must be public."
+                                           )
             if current_request.privacy['title']:
                 raise UserRequestException(action="close",
                                            request_id=current_request.id,
-                                           reason="Agency Description is private and title is private"
+                                           reason=reason + "or Title must be public."
                                            )
         update_object(
             {'status': request_status.CLOSED},
@@ -1198,7 +1203,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
     agency_name = Requests.query.filter_by(id=request_id).first().agency.name
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
-        release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name)
+        release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
         email_content_requester = email_content.replace(replace_string,
                                                         render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,
@@ -1327,9 +1332,9 @@ def safely_send_and_add_email(request_id,
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
         _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
-        print('Must include: To, CC, or BCC')
+        current_app.logger.exception('Must include: To, CC, or BCC')
     except Exception as e:
-        print("Error:", e)
+        current_app.logger.exception("Error: {}".format(e))
 
 
 def create_response_event(events_type, response):

@@ -53,7 +53,8 @@ def contact():
             flash('Your message has been sent. We will get back to you.', category='success')
         else:
             flash('Cannot send email.', category='danger')
-    return render_template('main/contact.html')
+    error_id = request.args.get('error_id', '')
+    return render_template('main/contact.html', error_id=error_id)
 
 
 @main.route('/faq', methods=['GET'])

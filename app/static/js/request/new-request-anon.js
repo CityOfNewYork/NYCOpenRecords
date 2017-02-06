@@ -90,6 +90,8 @@ $(document).ready(function () {
     $('#first-name').attr("data-parsely-maxlength", 32);
     $('#last-name').attr("data-parsely-maxlength", 64);
     $("#email").attr("data-parsley-maxlength", 254);
+    $("#user-title").attr("data-parsley-maxlength", 64);
+    $("#user-organization").attr("data-parsley-maxlength", 128);
     $('#phone').attr('data-parsley-length','[14,14]');
     $('#fax').attr('data-parsley-length','[14,14]');
     $('#zipcode').attr('data-parsley-length', '[5,5]');
@@ -247,6 +249,15 @@ $(document).ready(function () {
     $('#last-name').keyup(function() {
         characterCounter("#last-name-character-count", 64, $(this).val().length)
     });
+
+    $("#user-title").keyup(function() {
+        characterCounter("#user-title-character-count", 64, $(this).val().length)
+    });
+
+    $("#user-organization").keyup(function() {
+        characterCounter("#organization-character-count", 128, $(this).val().length)
+    });
+
 });
 
 

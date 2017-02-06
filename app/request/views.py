@@ -252,7 +252,7 @@ def view(request_id):
     show_agency_description = False
     if (
         current_user in current_request.agency_users or
-        current_request.requester is current_user or
+        current_request.requester == current_user or
         (
             current_request.agency_description_release_date and
             current_request.agency_description_release_date < datetime.utcnow() and not
@@ -260,6 +260,9 @@ def view(request_id):
         )
     ):
         show_agency_description = True
+    show_title = (current_user in current_request.agency_users or
+                  current_request.requester == current_user or
+                  not current_request.privacy['title'])
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -277,6 +280,7 @@ def view(request_id):
         active_users=active_users,
         permissions=permissions,
         show_agency_description=show_agency_description,
+        show_title=show_title,
         is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL)
     )
