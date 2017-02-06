@@ -67,9 +67,20 @@ V1_UPLOAD_DIR = '/data/uploads'
 V1_UPLOAD_DIR_PUBLIC = os.path.join(V1_UPLOAD_DIR, 'public')
 V1_UPLOAD_DIR_PRIVATE = os.path.join(V1_UPLOAD_DIR, 'private')
 
-DB_USERNAME = input("DB username: ")   # nasty, I know
-CONN_V1 = psycopg2.connect(database="openrecords_v1", user=DB_USERNAME)
-CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev", user=DB_USERNAME)
+DB_USERNAME = input("DB username: ")  # nasty, I know
+DB_HOST = input("DB host: ") or None
+DB_PORT = input("DB port (5432): ") or '5432'
+DB_SSLMODE = input("DB ssl mode: ") or None
+CONN_V1 = psycopg2.connect(database="openrecords_v1",
+                           user=DB_USERNAME,
+                           host=DB_HOST,
+                           port=DB_PORT,
+                           sslmode=DB_SSLMODE)
+CONN_V2 = psycopg2.connect(database="openrecords_v2_0_dev",
+                           user=DB_USERNAME,
+                           host=DB_HOST,
+                           port=DB_PORT,
+                           sslmode=DB_SSLMODE)
 CUR_V1_X = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 CUR_V1 = CONN_V1.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 CUR_V2 = CONN_V2.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
@@ -943,10 +954,17 @@ def get_ssh_credentials():
     for remote access to the server holding v1 request files.
     """
     print("Credentials for jcastillo@10.132.41.26")
-    private_key_path = input("private key file path: ")
+    choice = input("private key file or password? (k/p): ")
+    prompt, jcastillo_use_password = {
+        'k': ("private key file path", False),
+        'p': ("password", True)
+    }.get(choice.lower())
+    jcastillo_password_or_key_file = input("{}: ".format(prompt))
+
     print("Credentials for openfoil@msplva-driofl02.csc.nycnet")
-    password = getpass("password: ")
-    return private_key_path, password
+    openfoil_password = getpass("password: ")
+
+    return jcastillo_use_password, jcastillo_password_or_key_file, openfoil_password
 
 
 @contextmanager
@@ -964,7 +982,7 @@ def sftp_openrecords_v2_ctx():
     transport.close()
 
 
-def copy_files(private_key_path, password):
+def copy_files(jcastillo_use_password, jcastillo_password_or_key_file, openfoil_password):
     """
     Copy v1 files to v2 data directory.
     """
@@ -975,10 +993,13 @@ def copy_files(private_key_path, password):
         # ssh jcastillo@10.132.41.26
         ssh_jcastillo = paramiko.SSHClient()
         ssh_jcastillo.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        password_or_pkey = ({'password': jcastillo_password_or_key_file }
+                            if jcastillo_use_password
+                            else {'pkey': paramiko.RSAKey(filename=jcastillo_password_or_key_file)})
         ssh_jcastillo.connect(
             '10.132.41.26',
             username='jcastillo',
-            pkey=paramiko.RSAKey(filename=private_key_path))
+            **password_or_pkey)
 
         # open channel from 'localhost' to 'msplva-driofl02.csc.nycnet'
         transport_openfoil = ssh_jcastillo.get_transport()
@@ -993,7 +1014,7 @@ def copy_files(private_key_path, password):
             ssh_openfoil.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh_openfoil.connect('localhost',
                                  username='openfoil',
-                                 password=password,
+                                 password=openfoil_password,
                                  sock=channel)
         except AuthenticationException as e:
             list(map(lambda x: x.close(), (
