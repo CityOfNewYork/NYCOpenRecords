@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    $(function() {
+    $(function () {
         var dateSelectVal = "-1";
 
         var form = $("#add-acknowledgment");
@@ -19,12 +19,12 @@
 
         // Parsley
         var required = [date, days];
-        for (i = 0; i < required.length; i++ ) {
+        for (i = 0; i < required.length; i++) {
             required[i].attr("data-parsley-required", "");
         }
         info.attr("data-parsley-maxlength", "5000");
 
-        info.keyup(function() {
+        info.keyup(function () {
             characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
         });
 
@@ -39,7 +39,7 @@
         date.keydown(false);
 
         // Reveal/Hide Date Picker
-        days.change(function() {
+        days.change(function () {
             if ($(this).val() === dateSelectVal) {
                 date.parent().show();
                 info.attr("data-parsley-required", "");
@@ -55,7 +55,7 @@
             }
         });
 
-        next1.click(function(e) {
+        next1.click(function (e) {
             if (date.is(":visible")) {
                 date.parsley().validate();
                 info.parsley().validate();
@@ -87,7 +87,7 @@
                         }),
                         tz_name: jstz.determine().name()
                     },
-                    success: function(data) {
+                    success: function (data) {
                         emailContent = second.find(".email-content-hidden");
                         emailContent.html(data.template);
                         flask_moment_render_all();
@@ -99,7 +99,7 @@
             }
         });
 
-        next2.click(function() {
+        next2.click(function () {
             tinyMCE.triggerSave();
 
             $.ajax({
@@ -110,7 +110,7 @@
                     type: "acknowledgment",
                     email_content: second.find("#acknowledgment-email-body").val(),
                 },
-                success: function(data) {
+                success: function (data) {
                     third.find(".email-summary").html(data.template);
                     third.find("input[name='email-summary']").val(data.template);
                     third.find("input[name='tz-name']").val(jstz.determine().name());
@@ -122,17 +122,17 @@
             third.show();
         });
 
-        prev2.click(function() {
+        prev2.click(function () {
             second.hide();
             first.show();
         });
 
-        prev3.click(function() {
+        prev3.click(function () {
             third.hide();
             second.show();
         });
 
-        form.submit(function() {
+        form.submit(function () {
             submit.attr("disabled", true);
         });
 
