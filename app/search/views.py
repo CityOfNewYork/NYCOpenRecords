@@ -92,6 +92,7 @@ def requests():
         request.args.get('sort_date_submitted'),
         request.args.get('sort_date_due'),
         request.args.get('sort_title'),
+        request.args.get('tz_name')
         # eval_request_bool(request.args.get('by_phrase')),
         # eval_request_bool(request.args.get('highlight')),
     )
@@ -121,10 +122,7 @@ def requests_doc(doc_type):
 
     Document name format: "FOIL_requests_results_<timestamp:MM_DD_YYYY_at_HH_mm_pp>"
 
-    In addition to the request parameters required for searching,
-    a client's time zone name (param: tz_name) may be provided.
-    Doing so will offset the timestamp present in the file name and
-    in any date-specific result fields.
+    Request parameters are identical to those of /search/requests.
 
     :param doc_type: document type ('csv' only)
     """
@@ -182,6 +180,7 @@ def requests_doc(doc_type):
                 request.args.get('sort_date_submitted'),
                 request.args.get('sort_date_due'),
                 request.args.get('sort_title'),
+                tz_name
             )
             total = results["hits"]["total"]
             if total != 0:

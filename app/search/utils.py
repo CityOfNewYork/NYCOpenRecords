@@ -11,11 +11,12 @@ from app.constants import (
     request_status
 )
 from app.search.constants import (
-    DATE_RANGE_FORMAT,
+    ES_DATE_RANGE_FORMAT,
+    DT_DATE_RANGE_FORMAT,
     MOCK_EMPTY_ELASTICSEARCH_RESULT
 )
 from app.lib.utils import InvalidUserException
-from app.lib.date_utils import utc_to_local
+from app.lib.date_utils import utc_to_local, local_to_utc
 
 
 def recreate():
@@ -160,6 +161,7 @@ def search_requests(query,
                     sort_date_submitted,
                     sort_date_due,
                     sort_title,
+                    tz_name,
                     by_phrase=False,
                     highlight=False):
     """
@@ -190,6 +192,7 @@ def search_requests(query,
     :param sort_date_submitted: date received/submitted sort direction
     :param sort_date_due: date due sort direction
     :param sort_title: title sort direction
+    :param tz_name: timezone name (e.g. "America/New_York")
     :param by_phrase: use phrase matching instead of full-text?
     :param highlight: return highlights?
         if True, will come at a slight performance cost (in order to
@@ -245,21 +248,26 @@ def search_requests(query,
     match_type = 'match_phrase' if by_phrase else 'match'
 
     # set date ranges
+    def datestr_local_to_utc(datestr):
+        return local_to_utc(
+            datetime.strptime(datestr, DT_DATE_RANGE_FORMAT), tz_name
+        ).strftime(DT_DATE_RANGE_FORMAT)
+
     date_ranges = []
     if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
         range_filters = {}
         if date_rec_from or date_rec_to:
-            range_filters['date_submitted'] = {'format': DATE_RANGE_FORMAT}
+            range_filters['date_submitted'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
-            range_filters['date_due'] = {'format': DATE_RANGE_FORMAT}
+            range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_rec_from:
-            range_filters['date_submitted']['gte'] = date_rec_from
+            range_filters['date_submitted']['gte'] = datestr_local_to_utc(date_rec_from)
         if date_rec_to:
-            range_filters['date_submitted']['lte'] = date_rec_to
+            range_filters['date_submitted']['lt'] = datestr_local_to_utc(date_rec_to)
         if date_due_from:
-            range_filters['date_due']['gte'] = date_due_from
+            range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
         if date_due_to:
-            range_filters['date_due']['lte'] = date_due_to
+            range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
         if date_rec_from or date_rec_to:
             date_ranges.append({'range': {'date_submitted': range_filters['date_submitted']}})
         if date_due_from or date_due_to:
