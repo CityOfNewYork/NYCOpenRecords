@@ -371,23 +371,24 @@ class Users(UserMixin, db.Model):
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
-                user = cls(
-                    guid=str(uuid4()),
-                    auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
-                    agency_ein=row['agency_ein'],
-                    is_super=eval(row['is_super']),
-                    is_agency_admin=eval(row['is_agency_admin']),
-                    is_agency_active=eval(row['is_agency_active']),
-                    first_name=row['first_name'],
-                    middle_initial=row['middle_initial'],
-                    last_name=row['last_name'],
-                    email=row['email'],
-                    email_validated=eval(row['email_validated']),
-                    terms_of_use_accepted=eval(row['terms_of_use_accepted']),
-                    phone_number=row['phone_number'],
-                    fax_number=row['fax_number']
-                )
-                db.session.add(user)
+                if Users.query.filter_by(email=row['email']).first() is None:
+                    user = cls(
+                        guid=str(uuid4()),
+                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
+                        agency_ein=row['agency_ein'],
+                        is_super=eval(row['is_super']),
+                        is_agency_admin=eval(row['is_agency_admin']),
+                        is_agency_active=eval(row['is_agency_active']),
+                        first_name=row['first_name'],
+                        middle_initial=row['middle_initial'],
+                        last_name=row['last_name'],
+                        email=row['email'],
+                        email_validated=eval(row['email_validated']),
+                        terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+                        phone_number=row['phone_number'],
+                        fax_number=row['fax_number']
+                    )
+                    db.session.add(user)
             db.session.commit()
 
 
