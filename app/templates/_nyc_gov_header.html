@@ -4,7 +4,8 @@
             {% if current_user.is_authenticated %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="{{ url_for('auth.logout') }}">Log Out</a>
+                        <a id="logout" href="{{ url_for('auth.logout') }}">Log Out</a>
+                        <img id="img-logout-cors-bypass" />
                     </span>
                 </span>
                 {% if current_user.has_nyc_id_profile %}

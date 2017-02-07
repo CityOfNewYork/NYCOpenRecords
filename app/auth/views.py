@@ -28,11 +28,12 @@ from flask_login import (
 from app.auth import auth
 from app.auth.forms import ManageUserAccountForm, LDAPLoginForm  # TODO: Manage Account
 from app.auth.utils import (
+    revoke_and_remove_access_token,
     ldap_authentication,
     find_user_by_email,
     handle_user_data,
     fetch_user_json,
-    revoke_and_remove_access_token,
+    is_safe_url,
 )
 from app.constants.web_services import AUTH_ENDPOINT
 
@@ -40,6 +41,8 @@ from app.constants.web_services import AUTH_ENDPOINT
 @auth.route('/login', methods=['GET'])
 def login():
     """
+    Based off of: https://flask-login.readthedocs.io/en/latest/#login-example
+
     If using LDAP, see ldap_login().
 
     If using SAML/OAuth, check for the presence of an access token
@@ -54,44 +57,43 @@ def login():
     identifier ('#') in place of what would normally be the '?'. Since Flask drops
     everything after the identifier, we must extract these values client-side in
     order to forward them to the server. Therefore, the redirect uri we are using
-    is our home page (main.index) which detects the presence of an access token
+    is our home page (main.index, along with the 'next' url if present)
+    which contains a script that detects the presence of an access token
     and redirects to the intended OAuth callback (auth.authorize).
 
     https://tools.ietf.org/html/rfc3986#section-3.5
 
     """
-    return_to_url = request.args.get('return_to_url')  # TODO: Test with USE_OAUTH
+    next_url = request.args.get('next')
 
     if current_app.config['USE_LDAP']:
-        return redirect(url_for('auth.ldap_login', return_to_url=return_to_url))
+        return redirect(url_for('auth.ldap_login', next=next_url))
 
     elif current_app.config['USE_OAUTH']:
         if session.get('token') is not None:
-            user_json = fetch_user_json()
-            return redirect(handle_user_data(
-                user_json['id'],
-                user_json['userType'],
-                user_json['email'],
-                user_json.get('firstName'),
-                user_json.get('middleInitial'),
-                user_json.get('lastName'),
-                user_json.get('validated'),
-                user_json.get('termsOfUse'),
-                return_to_url
-            ))
-        else:
-            redirect_uri = urljoin(request.host_url, url_for('main.index'))
-            # redirect_uri = 'https://openrecords-staging.appdev.records.nycnet/'  # TODO: remove me before PR
-            if return_to_url:
-                redirect_uri += '?return_to_url=' + return_to_url
-            oauth = OAuth2Session(
-                client=MobileApplicationClient(client_id=current_app.config['NYC_ID_USERNAME']),
-                redirect_uri=redirect_uri
-            )
-            auth_url, _ = oauth.authorization_url(
-                urljoin(current_app.config['WEB_SERVICES_URL'], AUTH_ENDPOINT)
-            )
-            return redirect(auth_url)
+            status, user_json = fetch_user_json()
+            if status == 200:
+                return handle_user_data(
+                    user_json['id'],
+                    user_json['userType'],
+                    user_json['email'],
+                    user_json.get('firstName'),
+                    user_json.get('middleInitial'),
+                    user_json.get('lastName'),
+                    user_json.get('validated'),
+                    user_json.get('termsOfUse'),
+                    next_url)
+
+        redirect_uri = urljoin(request.host_url, url_for('main.index', next=next_url))
+
+        oauth = OAuth2Session(
+            client=MobileApplicationClient(client_id=current_app.config['NYC_ID_USERNAME']),
+            redirect_uri=redirect_uri
+        )
+        auth_url, _ = oauth.authorization_url(
+            urljoin(current_app.config['WEB_SERVICES_URL'], AUTH_ENDPOINT)
+        )
+        return redirect(auth_url)
     return abort(404)
 
 
@@ -110,7 +112,7 @@ def authorize():
     }
     session['token_expires_at'] = datetime.utcnow().timestamp() + int(request.args['expires_in'])
 
-    return redirect(handle_user_data(
+    return handle_user_data(
         request.args['GUID'],
         request.args['userType'],
         request.args['mail'],
@@ -119,7 +121,7 @@ def authorize():
         request.args.get('sn'),
         request.args.get('nycExtTOUVersion'),
         request.args.get('nycExtEmailValidationFlag'),
-        request.args.get('return_to_url')))
+        request.args.get('next'))
 
 
 @auth.route('/logout', methods=['GET'])
@@ -143,7 +145,7 @@ def logout():
 
 # LDAP -----------------------------------------------------------------------------------------------------------------
 
-@auth.route('/ldap_login', methods=['GET', 'POST'])
+@auth.route('/ldap_login', methods=['GET', 'POST'])  # TODO: test LDAP login
 def ldap_login():
     login_form = LDAPLoginForm()
     if request.method == 'POST':
@@ -160,10 +162,11 @@ def ldap_login():
                 session.regenerate()
                 session['user_id'] = current_user.get_id()
 
-                return_to_url = request.form.get('return_to_url')
-                url = return_to_url if return_to_url else url_for('main.index')
+                next_url = request.form.get('next')
+                if not is_safe_url(next_url):
+                    return abort(400, "The provided 'next' url for the login redirect is not safe.")
 
-                return redirect(url)
+                return redirect(next_url or url_for('main.index'))
 
             flash("Invalid username/password combination.", category="danger")
             return render_template('auth/ldap_login_form.html', login_form=login_form)
@@ -176,7 +179,7 @@ def ldap_login():
         return render_template(
             'auth/ldap_login_form.html',
             login_form=login_form,
-            return_to_url=request.args.get('return_to_url', ''))
+            next_url=request.args.get('next', ''))
 
 
 @auth.route('/ldap_logout', methods=['GET'])

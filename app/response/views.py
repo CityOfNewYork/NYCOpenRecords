@@ -19,8 +19,9 @@ from flask import (
     after_this_request,
     abort
 )
-from flask_login import current_user
+from flask_login import current_user, login_url
 
+from app import login_manager
 from app.constants import permission
 from app.constants.response_type import FILE
 from app.constants.response_privacy import (
@@ -615,13 +616,8 @@ def get_response_content(response_id):
                             return resp
                         return fu.send_file(*filepath_parts, as_attachment=True)
                     else:
-                        return redirect(url_for(
-                            'auth.login',
-                            return_to_url=url_for('request.view', request_id=response_.request_id)
+                        return redirect(login_url(
+                            login_manager.login_view,
+                            next_url=url_for('request.view', request_id=response_.request_id)
                         ))
-                        # TODO: restore after saml/oauth implementation
-                        # return redirect(url_for(
-                        #     'auth.index',
-                        #     sso2=True,
-                        #     return_to=flask_request.base_url))
     return abort(404)

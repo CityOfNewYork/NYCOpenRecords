@@ -180,3 +180,7 @@ input[type="radio"], input[type="checkbox"] {
     /* inline-block space fix */
     margin-right: -4px;
 }
+
+#img-logout-cors-bypass {
+    width: 0;
+}

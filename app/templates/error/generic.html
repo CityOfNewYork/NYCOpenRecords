@@ -34,5 +34,9 @@
                 Include the following id as part of your report:<br><strong>{{ tracy_id }}</strong>
             {% endif %}
         </p>
+        {% if message %}
+            <br>
+            <p><strong>Additional Information</strong>: {{ message }}</p>
+        {% endif %}
     </div>
 {% endblock %}

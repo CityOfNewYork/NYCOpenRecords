@@ -10,11 +10,12 @@ from app.admin.forms import (
     ActivateAgencyUserForm
 )
 from flask import render_template, abort
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 
 @admin.route('/')
 @admin.route('/<agency_ein>')
+@login_required
 def main(agency_ein=None):
     if not current_user.is_anonymous:
         if current_user.is_super:

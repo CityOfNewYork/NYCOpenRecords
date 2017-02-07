@@ -7,7 +7,7 @@
             <br>
             <form method="POST" action="{{ url_for('auth.ldap_login') }}">
                 {{ login_form.csrf_token }}
-                <input type="hidden" value="{{ return_to_url }}" name="return_to_url">
+                <input type="hidden" value="{{ next_url }}" name="next">
                 <p>
                     {{ login_form.email.label }}
                     {{ login_form.email(class="form-control") }}

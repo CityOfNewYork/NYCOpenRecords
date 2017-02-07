@@ -7,7 +7,7 @@ from operator import ior
 from functools import reduce
 from uuid import uuid4
 
-from flask import current_app
+from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
@@ -271,7 +271,15 @@ class Users(UserMixin, db.Model):
 
     @property
     def is_authenticated(self):
-        return True
+        """
+        Verifies the access token currently stored in the user's session
+        by invoking the OAuth User Web Service and checking the response.
+        If the token is invalid, ensure that the user is logged out.
+        """
+        if session.get('token') is not None:
+            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
+            return oauth_user_web_service_request().status_code == 200
+        return False
 
     @property
     def is_active(self):

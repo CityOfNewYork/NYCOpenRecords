@@ -122,7 +122,8 @@ def create_app(config_name, jobs_enabled=True):
     # Error Handlers
     @app.errorhandler(400)
     def bad_request(e):
-        return render_template("error/generic.html", status_code=400)
+        return render_template("error/generic.html", status_code=400,
+                               message=e.description or None)
 
     @app.errorhandler(403)
     def forbidden(e):

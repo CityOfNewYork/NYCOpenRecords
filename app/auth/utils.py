@@ -10,13 +10,15 @@ import requests
 
 from hashlib import sha1
 from base64 import b64encode
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from flask import (
     current_app,
     session,
     url_for,
     request,
+    abort,
+    redirect,
 )
 from flask_login import login_user
 from app import login_manager
@@ -48,6 +50,13 @@ def user_loader(user_id):
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
 
 
+def is_safe_url(target):
+    """ Taken from http://flask.pocoo.org/snippets/62/ """
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+
 def find_user_by_email(email):
     """
     Find a user by email address stored in the database.
@@ -62,19 +71,31 @@ def find_user_by_email(email):
     return Users.query.filter_by(**criteria).first()
 
 
+def oauth_user_web_service_request(method="GET"):
+    """
+    Invoke the OAuth User Web Service with specified method.
+    https://nyc4d.nycnet/nycid/mobile.shtml#get-oauth-user-web-service
+
+    * Assumes the access token is stored in the session. *
+
+    :returns: response for user web services request
+    """
+    return _web_services_request(
+        USER_ENDPOINT,
+        {"accessToken": session['token']['access_token']},
+        method=method
+    )
+
+
 def revoke_and_remove_access_token():
     """
     Invoke the Delete OAuth User Web Service
     to revoke an access token and remove the
     token from the session.
 
-    Assumes the access token is stored in the session.
+    * Assumes the access token is stored in the session. *
     """
-    response = _web_services_request(
-        USER_ENDPOINT,
-        {"accessToken": session['token']['access_token']},
-        method="DELETE"
-    )
+    response = oauth_user_web_service_request("DELETE")
     # TODO: handle error
     session.pop('token')
 
@@ -82,19 +103,15 @@ def revoke_and_remove_access_token():
 def fetch_user_json():
     """
     Invoke the Get OAuth User Web Service to fetch
-    a JSON-formatted user:
+    a JSON-formatted user.
     https://nyc4d.nycnet/nycid/search.shtml#json-formatted-users
 
-    Assumes the access token is stored in the session.
+    * Assumes the access token is stored in the session. *
 
-    :return: user data json dict
+    :return: response status code, user data json dict
     """
-    response = _web_services_request(
-        USER_ENDPOINT,
-        {"accessToken": session['token']['access_token']}
-    )
-    # TODO: handle error
-    return response.json()
+    response = oauth_user_web_service_request()
+    return response.status_code, response.json()
 
 
 def handle_user_data(guid,
@@ -105,12 +122,14 @@ def handle_user_data(guid,
                      last_name=None,
                      terms_of_use=None,
                      email_validation_flag=None,
-                     return_to_url=None):
+                     next_url=None):
     """
-    Essentially a wrapper for _process_user_data.
-    If a redirect url is returned, return that url.
-    If a user is returned, login that user and return
-    the specified return_to_url or the home page url.
+    Interpret the result of processing the specified
+    user data and act accordingly:
+    - If a redirect url is returned, redirect to that url.
+    - If a user is returned, login that user and return
+      a redirect to the specified next_url, the home page url,
+      or to the 404 page if next_url is provided and is unsafe.
     """
     redirect_required, user_or_url = _process_user_data(
         guid,
@@ -123,11 +142,15 @@ def handle_user_data(guid,
         email_validation_flag
     )
     if redirect_required:
-        return user_or_url
+        return redirect(user_or_url)
     else:
         login_user(user_or_url)
         _session_regenerate_persist_token()
-        return return_to_url if return_to_url else url_for('main.index')
+
+        if not is_safe_url(next_url):
+            return abort(400, "The provided login redirect url (next) is unsafe.")
+
+        return redirect(next_url or url_for('main.index'))
 
 
 def _session_regenerate_persist_token():
@@ -261,7 +284,7 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
 
     :return: redirect url or None
     """
-    if user_type in user_type_auth.FEDERATED_USER_TYPES or (
+    if user_type not in user_type_auth.FEDERATED_USER_TYPES and (
             email_validation_flag is not None
             and email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
@@ -276,8 +299,7 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
                             EMAIL_VALIDATION_ENDPOINT),
                 email_address=email_address,
                 target=b64encode(
-                    # b'https://openrecords-staging.appdev.records.nycnet/'
-                    urljoin(request.host_url, url_for('auth.login')).encode()
+                    urljoin(request.host_url, url_for(login_manager.login_view)).encode()
                 ).decode()
             )
 
@@ -310,8 +332,7 @@ def _accept_terms_of_use(terms_of_use, guid, user_type):
                 url=urljoin(current_app.config['WEB_SERVICES_URL'],
                             TOU_ENDPOINT),
                 target=b64encode(
-                    # b'https://openrecords-staging.appdev.records.nycnet/'
-                    urljoin(request.host_url, url_for('auth.login')).encode()
+                    urljoin(request.host_url, url_for(login_manager.login_view)).encode()
                 ).decode()
             )
 

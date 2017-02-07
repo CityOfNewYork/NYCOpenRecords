@@ -4,13 +4,25 @@
         /* Set profile link href value with 'target' parameter being the current page
          * (base64 encoded: https://nyc4d.nycnet/nycid/account-profile.shtml)
          *
-         * NOTE: webServicesUrl must be manually changed to match app environment.
+         * NOTE: webServicesUrl must be manually changed to match the app environment.
          */
         var webServicesUrl = "https://nyc-stg-web.csc.nycnet";
         $("#profile-link").attr(
             "href",
             webServicesUrl + "/account?returnOnSave=true&target=" + btoa(window.location.href)
         );
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+        /* This is a workaround for logging out of the NYC.ID IDP (bypassing CORS).
+         * The logout url is set as an img tag's src attribute when 'Logout' is clicked.
+         *
+         * NOTE: logoutUrl must be manually changed to match the app environment.
+         */
+        var logoutUrl = "https://login-stg.nycid.nycnet/osp/a/t1/auth/app/logout";
+        $("#logout").click(function() {
+            $("#img-logout-cors-bypass").attr("src", logoutUrl);
+        });
     {% endif %}
 
     $.ajaxSetup({
