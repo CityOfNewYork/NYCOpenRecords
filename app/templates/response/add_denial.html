@@ -21,7 +21,17 @@
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="second" hidden>
-                <h4>The following will be emailed to the requester:</h4>
+                <h4>Edit Email Body</h4>
+                <div class="form-group">
+                    <div class="email-content-hidden" hidden></div>
+                    <textarea title="denial-email-body" name="denial-email-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="third" hidden>
+                <h4 class="confirmation-header"></h4>
                 <div class="wrap-text email-summary"></div>
                 <input type="hidden" name="email-summary">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
