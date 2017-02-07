@@ -23,7 +23,6 @@ def get_due_date(date_submitted, days_until_due):
 
     :param date_submitted: date submitted which is the date_created rounded off to the next business day
     :param days_until_due: number of business days until a request is due
-    :param tz_name: client's timezone name
 
     :return: due date with time set to 5:00 PM EST (10:00 PM UTC)
     """

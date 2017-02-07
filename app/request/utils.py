@@ -434,7 +434,7 @@ def send_confirmation_email(request, agency, user):
                                     page=page)
 
     try:
-        # if the requester supplied an email sent it to the request and bcc the agency
+        # if the requester supplied an email, send it to the request and bcc the agency
         if requester_email:
             safely_send_and_add_email(
                 request.id,

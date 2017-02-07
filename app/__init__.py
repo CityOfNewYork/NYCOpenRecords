@@ -89,8 +89,9 @@ def create_app(config_name, jobs_enabled=True):
 
     recaptcha.init_app(app)
     bootstrap.init_app(app)
-    tracy.init_app(app)
-    es.init_app(app, use_ssl=app.config['ELASTICSEARCH_USE_SSL'])
+    es.init_app(app,
+                use_ssl=app.config['ELASTICSEARCH_USE_SSL'],
+                verify_certs=app.config['ELASTICSEARCH_VERIFY_CERTS'])
     db.init_app(app)
     csrf.init_app(app)
     moment.init_app(app)
