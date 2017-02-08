@@ -224,6 +224,7 @@ class Users(UserMixin, db.Model):
     guid and auth_user_type are combined to create a composite primary key
     agency_ein - a foreign key that links to the primary key of the agency table
     email - a string containing the user's email
+    notification_email - a string containing the user's email for notifications
     first_name - a string containing the user's first name
     middle_initial - a string containing the user's middle initial
     last_name - a string containing the user's last name
@@ -257,6 +258,7 @@ class Users(UserMixin, db.Model):
     middle_initial = db.Column(db.String(1))
     last_name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(254))
+    notification_email = db.Column(db.String(254), nullable=True, default=None)
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean)
     title = db.Column(db.String(64))
@@ -354,6 +356,7 @@ class Users(UserMixin, db.Model):
             "guid": self.guid,
             "auth_user_type": self.auth_user_type,
             "email": self.email,
+            "notification_email": self.notification_email,
             "first_name": self.first_name,
             "last_name": self.last_name,
             "title": self.title,

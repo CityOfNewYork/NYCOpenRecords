@@ -69,4 +69,5 @@ def get_agency_emails(request_id):
     :return: list of agency emails or ['agency@email.com'] (for testing)
     """
     request = Requests.query.filter_by(id=request_id).one()
-    return [user.email for user in request.agency_users] + [request.agency.default_email] or ['agency@email.com']
+    return list(set([user.notification_email if user.notification_email is not None else user.email for user in
+                     request.agency_users] + [request.agency.default_email]))
