@@ -1,6 +1,6 @@
 from flask_wtf import Form
 from wtforms import SelectField, SelectMultipleField
-from app.constants import permission
+from app.constants import permission, role_name
 from app.models import Roles
 
 
@@ -17,9 +17,12 @@ class AddUserRequestForm(Form):
             ]
         self.user.choices.insert(0, (0, ''))
         self.user.default = self.user.choices[0]
-        self.roles.choices = [
-            (roles.id, roles.name) for roles in Roles.query.all()
-            ]
+        self.roles.choices = []
+        for role in Roles.query.all():
+            if role.name == role_name.AGENCY_ADMIN:
+                self.roles.choices.append((role.id, 'Request Administrator'))
+            else:
+                self.roles.choices.append((role.id, role.name))
         self.roles.choices.sort(key=lambda tup: tup[1])
         self.roles.default = Roles.query.filter_by(name='Anonymous User').one().id
         self.process()
@@ -41,9 +44,12 @@ class EditUserRequestForm(Form):
             ]
         self.user.choices.insert(0, (0, ''))
         self.user.default = self.user.choices[0]
-        self.roles.choices = [
-            (roles.id, roles.name) for roles in Roles.query.all()
-            ]
+        self.roles.choices = []
+        for role in Roles.query.all():
+            if role.name == role_name.AGENCY_ADMIN:
+                self.roles.choices.append((role.id, 'Request Administrator'))
+            else:
+                self.roles.choices.append((role.id, role.name))
         self.roles.choices.insert(0, (0, ''))
         self.roles.choices.sort(key=lambda tup: tup[1])
         self.process()
