@@ -61,7 +61,7 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_c
     send_async_email.delay(msg)
 
 
-def get_agency_emails(request_id):
+def get_agency_emails(request_id, admins_only=False):
     """
     Gets a list of the agency emails (assigned users and default email)
 
@@ -69,5 +69,10 @@ def get_agency_emails(request_id):
     :return: list of agency emails or ['agency@email.com'] (for testing)
     """
     request = Requests.query.filter_by(id=request_id).one()
+
+    if admins_only:
+        return list(set(user.notification_email if user.notification_email is not None else user.email for user in
+                        request.agency.administrators))
+
     return list(set([user.notification_email if user.notification_email is not None else user.email for user in
                      request.agency_users] + [request.agency.default_email]))

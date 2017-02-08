@@ -15,6 +15,7 @@ from app.models import (
     Events,
 )
 from app.lib.utils import UserRequestException
+from app.lib.email_utils import get_agency_emails
 from app.constants import event_type, permission, user_type_request
 
 
@@ -35,7 +36,7 @@ def add_user_request(request_id, user_guid, permissions):
 
     user = Users.query.filter_by(guid=user_guid).one()
 
-    agency_admin_emails = _get_agency_admin_emails(request_id)
+    agency_admin_emails = get_agency_emails(request_id, admins_only=True)
 
     added_permissions = []
     for i, val in enumerate(permission.ALL):
@@ -98,7 +99,7 @@ def edit_user_request(request_id, user_guid, permissions):
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).one()
 
-    agency_admin_emails = _get_agency_admin_emails(request_id)
+    agency_admin_emails = get_agency_emails(request_id, admins_only=True)
 
     added_permissions = []
     removed_permissions = []
@@ -159,7 +160,7 @@ def remove_user_request(request_id, user_guid):
     """
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).first()
-    agency_admin_emails = _get_agency_admin_emails(request_id)
+    agency_admin_emails = get_agency_emails(request_id, admins_only=True)
 
     # send email to agency administrators
     safely_send_and_add_email(
@@ -188,23 +189,6 @@ def remove_user_request(request_id, user_guid):
 
     create_user_request_event(event_type.USER_REMOVED, user_request)
     delete_object(user_request)
-
-
-def _get_agency_admin_emails(request_id):
-    """
-    Retrieve a list of agency administrator emails
-    :param request_id: FOIL request id
-    :return: list(Agency Adminstrator Emails)
-    """
-
-    agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
-
-    agency_administrators = Users.query.filter_by(agency_ein=agency_ein,
-                                                  is_agency_admin=True,
-                                                  is_agency_active=True
-                                                  ).all()
-
-    return [user.email for user in agency_administrators]
 
 
 def create_user_request_event(events_type, user_request, old_permissions=None):
