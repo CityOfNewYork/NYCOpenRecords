@@ -24,7 +24,7 @@ class AddUserRequestForm(Form):
             else:
                 self.roles.choices.append((role.id, role.name))
         self.roles.choices.sort(key=lambda tup: tup[1])
-        self.roles.default = Roles.query.filter_by(name='Anonymous User').one().id
+        self.roles.default = Roles.query.filter_by(name=role_name.ANONYMOUS).one().id
         self.process()
         self.permission.choices = [
             (i, p.label) for i, p in enumerate(permission.ALL)

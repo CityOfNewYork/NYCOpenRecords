@@ -6,6 +6,7 @@ from datetime import datetime
 from operator import ior
 from functools import reduce
 from uuid import uuid4
+from urllib.parse import urljoin
 
 from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
@@ -567,6 +568,24 @@ class Requests(db.Model):
             Responses.type == response_type.DETERMINATION,
             Determinations.dtype == determination_type.DENIAL
         ).first() is not None
+
+    @property
+    def days_until_due(self):
+        return calendar.busdaycount(datetime.utcnow(), self.due_date)
+
+    @property
+    def url(self):
+        """
+        Flask.request-independent url.
+
+        Since we cannot use SERVER_NAME in config (and, by extension, 'url_for'),
+        BASE_URL and VIEW_REQUEST_ENDPOINT will have to do.
+        """
+        return urljoin(current_app.config['BASE_URL'],
+                       "{view_request_endpoint}/{request_id}".format(
+                           view_request_endpoint=current_app.config['VIEW_REQUEST_ENDPOINT'],
+                           request_id=self.id
+                       ))
 
     def es_update(self):
         es.update(
