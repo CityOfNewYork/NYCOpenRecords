@@ -196,6 +196,21 @@ def create_user(agency=False,
 
 
 @manager.command
+def fix_due_dates():  # for "America/New_York"
+    """
+    Forgot to set due date hour to 5:00 PM in migration script before
+    converting to utc. Besides having the incorrect time, this also means
+    certain due dates do not fall on business days.
+    """
+    from app.lib.db_utils import update_object
+    for request in Requests.query.all():
+        update_object(
+            {"due_date": request.due_date.replace(hour=22, minute=00, second=00, microsecond=00)},
+            Requests,
+            request.id)
+
+
+@manager.command
 def routes():
     from flask import url_for
     from urllib.parse import unquote

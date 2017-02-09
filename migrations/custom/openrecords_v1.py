@@ -301,7 +301,7 @@ def transfer_requests(agency_next_request_number, request):
         request.text,  # description
         local_to_utc(request.date_created, TZ_NY),  # date_created
         local_to_utc(request.date_received, TZ_NY),  # date_submitted
-        local_to_utc(request.due_date, TZ_NY),  # due_date
+        local_to_utc(request.due_date, TZ_NY),  # due_date  # FIXME: we did not get_due_date (shift to 5 PM)
         request.offline_submission_type,  # submission
         _get_compatible_status(request),  # status
         json.dumps(privacy),  # privacy
