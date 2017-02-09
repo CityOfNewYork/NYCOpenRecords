@@ -28,7 +28,7 @@ def update_request_statuses():
     and send a notification email to agency admins listing the requests.
     """
     with scheduler.app.app_context():
-        now = datetime.utcnow().replace(hour=8, minute=0, second=0)
+        now = datetime.utcnow()
         due_soon_date = calendar.addbusdays(
             now, current_app.config['DUE_SOON_DAYS_THRESHOLD']
         ).replace(hour=23, minute=59, second=59)  # the entire day

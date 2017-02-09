@@ -75,3 +75,14 @@ def get_holidays_date_list(year_start, year_end=None):
 def get_release_date(initial_date, days_until_release, tz_name):
     release_date = calendar.addbusdays(initial_date, days_until_release)
     return utc_to_local(release_date, tz_name)
+
+
+def fix_due_dates_for_new_york():
+    """ Forgot to set due date hour to 5:00 PM in migration script. """
+    from app.models import Requests
+    from app.lib.db_utils import update_object
+    for request in Requests.query.all():
+        update_object(
+            {"due_date": request.due_date.replace(hour=22, minute=00, second=00, microsecond=00)},
+            Requests,
+            request.id)

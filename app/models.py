@@ -571,7 +571,7 @@ class Requests(db.Model):
 
     @property
     def days_until_due(self):
-        return calendar.busdaycount(datetime.utcnow(), self.due_date)
+        return calendar.busdaycount(datetime.utcnow(), self.due_date.replace(hour=23, minute=59, second=59))
 
     @property
     def url(self):
