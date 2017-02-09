@@ -28,7 +28,7 @@ def update_request_statuses():
     and send a notification email to agency admins listing the requests.
     """
     with scheduler.app.app_context():
-        now = datetime.utcnow()  # TODO: test with 3 am too
+        now = datetime.utcnow().replace(hour=8, minute=0, second=0)
         due_soon_date = calendar.addbusdays(
             now, current_app.config['DUE_SOON_DAYS_THRESHOLD']
         ).replace(hour=23, minute=59, second=59)  # the entire day
@@ -36,23 +36,36 @@ def update_request_statuses():
         requests_overdue = Requests.query.filter(
             Requests.due_date < now,
             Requests.status != request_status.CLOSED
+        ).order_by(
+            Requests.due_date.asc()
         ).all()
 
         requests_due_soon = Requests.query.filter(
             Requests.due_date > now,
             Requests.due_date <= due_soon_date,
             Requests.status != request_status.CLOSED
+        ).order_by(
+            Requests.due_date.asc()
         ).all()
 
         agencies_to_requests_overdue = {}
+        agencies_to_acknowledgments_overdue = {}
         agencies_to_requests_due_soon = {}
+        agencies_to_acknowledgments_due_soon = {}
 
+        def add_to_agencies_to_request_dict(req, agencies_to_request_dict):
+            if req.agency.ein not in agencies_to_request_dict:
+                agencies_to_request_dict[req.agency.ein] = [req]
+            else:
+                agencies_to_request_dict[req.agency.ein].append(req)
+
+        # OVERDUE
         for request in requests_overdue:
 
-            if request.agency.ein not in agencies_to_requests_overdue:
-                agencies_to_requests_overdue[request.agency.ein] = [request]
+            if request.was_acknowledged:
+                add_to_agencies_to_request_dict(request, agencies_to_requests_overdue)
             else:
-                agencies_to_requests_overdue[request.agency.ein].append(request)
+                add_to_agencies_to_request_dict(request, agencies_to_acknowledgments_overdue)
 
             if request.status != request_status.OVERDUE:
                 update_object(
@@ -60,12 +73,13 @@ def update_request_statuses():
                     Requests,
                     request.id)
 
+        # DUE SOON
         for request in requests_due_soon:
 
-            if request.agency.ein not in agencies_to_requests_due_soon:
-                agencies_to_requests_due_soon[request.agency.ein] = [request]
+            if request.was_acknowledged:
+                add_to_agencies_to_request_dict(request, agencies_to_requests_due_soon)
             else:
-                agencies_to_requests_due_soon[request.agency.ein].append(request)
+                add_to_agencies_to_request_dict(request, agencies_to_acknowledgments_due_soon)
 
             if request.status != request_status.DUE_SOON:
                 update_object(
@@ -73,18 +87,30 @@ def update_request_statuses():
                     Requests,
                     request.id)
 
-        # mail to agency admins for each agency
-        for agency_ein, agency_requests_overdue in agencies_to_requests_overdue.items():
-            agency_requests_due_soon = agencies_to_requests_due_soon.get(agency_ein, [])
+        # get all possible agencies to email
+        agency_eins = set(
+            list(agencies_to_requests_overdue) +
+            list(agencies_to_acknowledgments_overdue) +
+            list(agencies_to_requests_due_soon) +
+            list(agencies_to_acknowledgments_due_soon))
 
-            user_emails = list(set(admin.notfication_email or admin.email for admin  # TODO: test notification email
+        # mail to agency admins for each agency
+        for agency_ein in agency_eins:
+            agency_requests_overdue = agencies_to_requests_overdue.get(agency_ein, [])
+            agency_acknowledgments_overdue = agencies_to_acknowledgments_overdue.get(agency_ein, [])
+            agency_requests_due_soon = agencies_to_requests_due_soon.get(agency_ein, [])
+            agency_acknowledgments_due_soon = agencies_to_acknowledgments_due_soon.get(agency_ein, [])
+
+            user_emails = list(set(admin.notification_email or admin.email for admin
                                    in Agencies.query.filter_by(ein=agency_ein).one().administrators))
             send_email(
                 STATUSES_EMAIL_SUBJECT,
                 to=user_emails,
                 template=STATUSES_EMAIL_TEMPLATE,
                 requests_overdue=agency_requests_overdue,
-                requests_due_soon=agency_requests_due_soon
+                acknowledgments_overdue=agency_acknowledgments_overdue,
+                requests_due_soon=agency_requests_due_soon,
+                acknowledgments_due_soon=agency_acknowledgments_due_soon
             )
             email = Emails(
                 request.id,
@@ -96,7 +122,9 @@ def update_request_statuses():
                 body=render_template(
                     STATUSES_EMAIL_TEMPLATE + ".html",
                     requests_overdue=agency_requests_overdue,
-                    requests_due_soon=agency_requests_due_soon
+                    acknowledgments_overdue=agency_acknowledgments_overdue,
+                    requests_due_soon=agency_requests_due_soon,
+                    acknowledgments_due_soon=agency_acknowledgments_due_soon
                 )
             )
             create_object(email)
