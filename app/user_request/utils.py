@@ -69,7 +69,7 @@ def add_user_request(request_id, user_guid, permissions):
             added_permissions=[capability.label for capability in added_permissions],
         ),
         'User Added to Request {}'.format(request_id),
-        to=[user.email])
+        to=[user.notification_email or user.email])
 
     user_request = UserRequests(
         user_guid=user.guid,
@@ -137,7 +137,7 @@ def edit_user_request(request_id, user_guid, permissions):
             removed_permissions=[capability.label for capability in removed_permissions],
         ),
         'User Permissions Edited for Request {}'.format(request_id),
-        to=[user_request.user.email])
+        to=[user_request.user.notification_email or user_request.user.email])
 
     old_permissions = user_request.permissions
 
