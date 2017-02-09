@@ -175,6 +175,7 @@ def view_all():
     )
 
 
+@request.route('/<request_id>', methods=['GET'])
 @request.route('/view/<request_id>', methods=['GET'])
 def view(request_id):
     """
