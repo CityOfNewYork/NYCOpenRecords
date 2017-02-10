@@ -221,11 +221,11 @@ def add_closing(request_id, reason_ids, email_content):
         if current_request.privacy['agency_description'] or not current_request.agency_description:
             reason = "Agency Description must be public and not empty, "
             if current_request.responses.filter(
-                Responses.type != response_type.NOTE,  # ignore Notes
-                Responses.type != response_type.EMAIL,  # ignore Emails
-                Responses.deleted == False,  # ignore deleted responses
-                Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
-                Responses.is_editable == True  # ignore non-editable responses
+                            Responses.type != response_type.NOTE,  # ignore Notes
+                            Responses.type != response_type.EMAIL,  # ignore Emails
+                            Responses.deleted == False,  # ignore deleted responses
+                            Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
+                            Responses.is_editable == True  # ignore non-editable responses
             ).first() is not None:
                 raise UserRequestException(action="close",
                                            request_id=current_request.id,
@@ -564,15 +564,37 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
 
 
 def _denial_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for denying a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered template of a closing
+    """
+    reasons = [Reasons.query.filter_by(id=reason_id).one().content
+               for reason_id in data.getlist('reason_ids[]')]
+    header = "The following will be email to the Requester:"
+    if eval_request_bool(data['confirmation']):
+        default_content = False
+        content = data['email_content']
+    else:
+        default_content = True
+        content = None
     return jsonify({"template": render_template(
         email_template,
+        default_content=default_content,
+        content=content,
         request_id=request_id,
         agency_name=agency_name,
-        reasons=[Reasons.query.filter_by(id=reason_id).one().content
-                 for reason_id in data.getlist('reason_ids[]')],
+        reasons=reasons,
         agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
-        page=page
-    )}), 200
+        page=page),
+        "header": header
+    }), 200
 
 
 def _closing_email_handler(request_id, data, page, agency_name, email_template):
@@ -605,7 +627,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         reasons=reasons,
         agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page),
-        "header": header}), 200
+        "header": header
+    }), 200
 
 
 def _reopening_email_handler(request_id, data, page, agency_name, email_template):

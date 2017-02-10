@@ -6,6 +6,7 @@ from datetime import datetime
 from operator import ior
 from functools import reduce
 from uuid import uuid4
+from urllib.parse import urljoin
 
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
@@ -224,6 +225,7 @@ class Users(UserMixin, db.Model):
     guid and auth_user_type are combined to create a composite primary key
     agency_ein - a foreign key that links to the primary key of the agency table
     email - a string containing the user's email
+    notification_email - a string containing the user's email for notifications
     first_name - a string containing the user's first name
     middle_initial - a string containing the user's middle initial
     last_name - a string containing the user's last name
@@ -257,12 +259,13 @@ class Users(UserMixin, db.Model):
     middle_initial = db.Column(db.String(1))
     last_name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(254))
+    notification_email = db.Column(db.String(254), nullable=True, default=None)
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean)
     title = db.Column(db.String(64))
     organization = db.Column(db.String(128))  # Outside organization
-    phone_number = db.Column(db.String(15))
-    fax_number = db.Column(db.String(15))
+    phone_number = db.Column(db.String(25))
+    fax_number = db.Column(db.String(25))
     mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
 
     # Relationships
@@ -365,6 +368,7 @@ class Users(UserMixin, db.Model):
             "guid": self.guid,
             "auth_user_type": self.auth_user_type,
             "email": self.email,
+            "notification_email": self.notification_email,
             "first_name": self.first_name,
             "last_name": self.last_name,
             "title": self.title,
@@ -382,23 +386,24 @@ class Users(UserMixin, db.Model):
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
-                user = cls(
-                    guid=str(uuid4()),
-                    auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
-                    agency_ein=row['agency_ein'],
-                    is_super=eval(row['is_super']),
-                    is_agency_admin=eval(row['is_agency_admin']),
-                    is_agency_active=eval(row['is_agency_active']),
-                    first_name=row['first_name'],
-                    middle_initial=row['middle_initial'],
-                    last_name=row['last_name'],
-                    email=row['email'],
-                    email_validated=eval(row['email_validated']),
-                    terms_of_use_accepted=eval(row['terms_of_use_accepted']),
-                    phone_number=row['phone_number'],
-                    fax_number=row['fax_number']
-                )
-                db.session.add(user)
+                if Users.query.filter_by(email=row['email']).first() is None:
+                    user = cls(
+                        guid=str(uuid4()),
+                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
+                        agency_ein=row['agency_ein'],
+                        is_super=eval(row['is_super']),
+                        is_agency_admin=eval(row['is_agency_admin']),
+                        is_agency_active=eval(row['is_agency_active']),
+                        first_name=row['first_name'],
+                        middle_initial=row['middle_initial'],
+                        last_name=row['last_name'],
+                        email=row['email'],
+                        email_validated=eval(row['email_validated']),
+                        terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+                        phone_number=row['phone_number'],
+                        fax_number=row['fax_number']
+                    )
+                    db.session.add(user)
             db.session.commit()
 
     def __init__(self, **kwargs):
@@ -465,7 +470,7 @@ class Requests(db.Model):
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
-    category = db.Column(db.String, default='All', nullable=False)
+    category = db.Column(db.String, default='All', nullable=False)  # FIXME: should be nullable, 'All' shouldn't be used
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
@@ -567,6 +572,31 @@ class Requests(db.Model):
             Determinations.dtype == determination_type.ACKNOWLEDGMENT
         ).first() is not None
 
+    @property
+    def was_denied(self):
+        return self.responses.filter(
+            Responses.type == response_type.DETERMINATION,
+            Determinations.dtype == determination_type.DENIAL
+        ).first() is not None
+
+    @property
+    def days_until_due(self):
+        return calendar.busdaycount(datetime.utcnow(), self.due_date.replace(hour=23, minute=59, second=59))
+
+    @property
+    def url(self):
+        """
+        Flask.request-independent url.
+
+        Since we cannot use SERVER_NAME in config (and, by extension, 'url_for'),
+        BASE_URL and VIEW_REQUEST_ENDPOINT will have to do.
+        """
+        return urljoin(current_app.config['BASE_URL'],
+                       "{view_request_endpoint}/{request_id}".format(
+                           view_request_endpoint=current_app.config['VIEW_REQUEST_ENDPOINT'],
+                           request_id=self.id
+                       ))
+
     def es_update(self):
         es.update(
             index=current_app.config["ELASTICSEARCH_INDEX"],
@@ -649,7 +679,7 @@ class Events(db.Model):
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
-    type = db.Column(db.String(30))
+    type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_value = db.Column(JSON)
     new_value = db.Column(JSON)
