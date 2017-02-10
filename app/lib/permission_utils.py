@@ -1,10 +1,9 @@
 from functools import wraps
 
-from flask import (
-    abort
-)
-from flask_login import current_user
+from flask import abort, request, redirect
+from flask_login import current_user, login_url
 from sqlalchemy.orm.exc import NoResultFound
+from app import login_manager
 from app.constants import permission
 from app.models import (
     Users,
@@ -29,8 +28,9 @@ def has_permission(permission: int):
     def decorator(f):
         @wraps(f)
         def decorated_function(request_id, *args, **kwargs):
-            if current_user.is_anonymous:
-                return abort(403)
+            if not current_user.is_authenticated or current_user.is_anonymous:
+                return redirect(login_url(login_manager.login_view,
+                                          next_url=request.url))
             return f(request_id) if is_allowed(user=current_user, request_id=request_id,
                                                permission=permission) else abort(403)
 

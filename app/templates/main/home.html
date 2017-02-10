@@ -46,7 +46,7 @@
          * Also include 'next' url (or any other querystring parameters)
          * if present in the redirect uri.
          */
-        if (window.location.hash.indexOf('access_token=') !== -1) {  // TODO: test in firefox
+        if (window.location.hash.indexOf('access_token=') !== -1) {
             window.location = window.location.origin
                 + '/auth/authorize?'
                 + window.location.hash.substring(1)  // remove leading '#'

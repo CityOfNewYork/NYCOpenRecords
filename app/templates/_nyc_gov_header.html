@@ -1,11 +1,14 @@
 <div class="nycidm-header">
     <div class="upper-header-black">
         <div class="container-nycidm">
-            {% if current_user.is_authenticated %}
+            {% if not current_user.is_anonymous %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
+                        <!--
+                            See: base.js.html
+                            NYC.ID IDP logout url based on app environment (stg, prod, etc.)
+                        -->
                         <a id="logout" href="{{ url_for('auth.logout') }}">Log Out</a>
-                        <img id="img-logout-cors-bypass" />
                     </span>
                 </span>
                 {% if current_user.has_nyc_id_profile %}

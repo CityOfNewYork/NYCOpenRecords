@@ -67,7 +67,10 @@ def find_user_by_email(email):
     """
     criteria = {'email': email}
     if current_app.config['USE_LDAP']:
-        criteria['is_agency_active'] = True
+        criteria = {
+            "is_agency_active": True,
+            "auth_user_type": user_type_auth.AGENCY_LDAP_USER
+        }
     return Users.query.filter_by(**criteria).first()
 
 
@@ -387,6 +390,7 @@ def _web_services_request(endpoint, params, method='GET'):
     :param method: HTTP method
     :return: request response
     """
+    current_app.logger.info("NYC.ID Web Services Requests: {} {}".format(method, endpoint))
     params['userName'] = current_app.config['NYC_ID_USERNAME']
     # don't refactor to use dict.update() - signature relies on userName param
     params['signature'] = _generate_signature(
