@@ -45,7 +45,6 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     SAML_PATH = (os.environ.get('SAML_PATH') or
                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
-    IDP_BASE_URL = os.environ.get('IDP_BASE_URL')
 
     USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
     WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
