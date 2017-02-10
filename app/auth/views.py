@@ -1,7 +1,7 @@
 """
 .. module:: auth.views.
 
-   :synopsis: Handles SAML and LDAP authentication endpoints for NYC OpenRecords
+   :synopsis: Handles OAUTH and LDAP authentication endpoints for NYC OpenRecords
 
 """
 from datetime import datetime
@@ -26,7 +26,7 @@ from flask_login import (
     current_app
 )
 from app.auth import auth
-from app.auth.forms import ManageUserAccountForm, LDAPLoginForm  # TODO: Manage Account
+from app.auth.forms import ManageUserAccountForm, LDAPLoginForm
 from app.auth.utils import (
     revoke_and_remove_access_token,
     ldap_authentication,
@@ -54,10 +54,10 @@ def login():
     Since we are using OAuth Mobile Application Flow to fetch the information
     normally retrieved in a SAML Assertion, the url resulting from authorization
     is in the format 'redirect_uri#access_token=123guid=ABC...'. Notice the fragment
-    identifier ('#') in place of what would normally be the '?'. Since Flask drops
-    everything after the identifier, we must extract these values client-side in
-    order to forward them to the server. Therefore, the redirect uri we are using
-    is our home page (main.index, along with the 'next' url if present)
+    identifier ('#') in place of what would normally be the '?' separator.
+    Since Flask drops everything after the identifier, we must extract these values
+    client-side in order to forward them to the server. Therefore, the redirect uri
+    we are using is our home page (main.index, along with the 'next' url if present)
     which contains a script that detects the presence of an access token
     and redirects to the intended OAuth callback (auth.authorize).
 
@@ -141,6 +141,11 @@ def logout():
         return redirect(url_for("main.index"))
 
     return abort(404)
+
+
+@auth.route('/manage', methods=['GET', 'POST'])
+def manage():
+    pass
 
 
 # LDAP -----------------------------------------------------------------------------------------------------------------

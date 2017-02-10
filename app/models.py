@@ -274,7 +274,6 @@ class Users(UserMixin, db.Model):
         """
         Verifies the access token currently stored in the user's session
         by invoking the OAuth User Web Service and checking the response.
-        If the token is invalid, ensure that the user is logged out.
         """
         if session.get('token') is not None:
             from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)

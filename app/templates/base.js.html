@@ -11,7 +11,7 @@
      *  logoutUrl = "https://login-stg.nycid.nycnet/osp/a/t1/auth/app/logout"                 *
      *                                                                                        *
      *  PRD                                                                                   *
-     *  webServicesUrl = "https://www1.nyc.gov                                                *
+     *  webServicesUrl = "https://www1.nyc.gov"                                               *
      *  logoutUrl = https://login-stg.nycid.nycnet/osp/a/t1/auth/app/logout                   *
      *                                                                                        *
      *-**************************************************************************************-*/
@@ -23,7 +23,6 @@
         /* Set profile link href value with 'target' parameter being the current page
          * (base64 encoded: https://nyc4d.nycnet/nycid/account-profile.shtml)
          */
-
         $("#profile-link").attr(
             "href",
             webServicesUrl + "/account?returnOnSave=true&target=" + btoa(window.location.href)

@@ -12,7 +12,8 @@ from app.constants import (
 )
 from app.search.constants import (
     DATE_RANGE_FORMAT,
-    MOCK_EMPTY_ELASTICSEARCH_RESULT
+    MOCK_EMPTY_ELASTICSEARCH_RESULT,
+    MAX_RESULT_SIZE,
 )
 from app.lib.utils import InvalidUserException
 from app.lib.date_utils import utc_to_local
