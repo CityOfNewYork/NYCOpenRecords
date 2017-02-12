@@ -10,7 +10,7 @@ from urllib.parse import urljoin, urlparse
 from flask import current_app, request, session
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 from app import login_manager
-from app.constants import USER_ID_DELIMITER
+from app.constants import USER_ID_DELIMITER, user_type_auth
 from app.lib.db_utils import create_object, update_object
 from app.models import Agencies, Users
 
@@ -246,7 +246,8 @@ def find_user(email):
     :param email: Email address
     :return: User object.
     """
-    return Users.query.filter_by(email=email, is_agency_active=True).first()
+    return Users.query.filter_by(email=email, is_agency_active=True,
+                                 auth_user_type=user_type_auth.AGENCY_LDAP_USER).first()
 
 
 def ldap_authentication(email, password):
