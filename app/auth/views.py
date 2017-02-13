@@ -26,6 +26,7 @@ from flask_login import (
     current_app
 )
 from app.auth import auth
+from app.auth.constants.error_msg import UNSAFE_NEXT_URL
 from app.auth.forms import ManageUserAccountForm, LDAPLoginForm
 from app.auth.utils import (
     revoke_and_remove_access_token,
@@ -169,7 +170,7 @@ def ldap_login():
 
                 next_url = request.form.get('next')
                 if not is_safe_url(next_url):
-                    return abort(400, "The provided 'next' url for the login redirect is not safe.")
+                    return abort(400, UNSAFE_NEXT_URL)
 
                 return redirect(next_url or url_for('main.index'))
 

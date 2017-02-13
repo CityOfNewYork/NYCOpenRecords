@@ -8,6 +8,7 @@ import ssl
 import hmac
 import requests
 
+from json import dumps
 from hashlib import sha1
 from base64 import b64encode
 from urllib.parse import urljoin, urlparse
@@ -33,6 +34,7 @@ from app.constants.web_services import (
     ENROLLMENT_ENDPOINT,
     ENROLLMENT_STATUS_ENDPOINT,
 )
+from app.auth.constants import error_msg
 from app.lib.db_utils import create_object, update_object
 
 from ldap3 import Server, Tls, Connection
@@ -104,9 +106,9 @@ def revoke_and_remove_access_token():
 
     * Assumes the access token is stored in the session. *
     """
-    response = oauth_user_web_service_request("DELETE")
-    if response.status_code != 200:  # TODO: display message
-        current_app.logger.error("Failed to revoke access token")
+    _check_web_services_response(
+        oauth_user_web_service_request("DELETE"),
+        error_msg.REVOKE_TOKEN_FAILURE)
     session.pop('token')
 
 
@@ -158,7 +160,7 @@ def handle_user_data(guid,
         _session_regenerate_persist_token()
 
         if not is_safe_url(next_url):
-            return abort(400, "The provided login redirect url (next) is unsafe.")
+            return abort(400, error_msg.UNSAFE_NEXT_URL)
 
         return redirect(next_url or url_for('main.index'))
 
@@ -312,8 +314,8 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
             EMAIL_VALIDATION_STATUS_ENDPOINT,
             {"guid": guid}
         )
-        # TODO: handle and log errors
-        if not response.json()['validated']:
+        _check_web_services_response(response, error_msg.EMAIL_STATUS_CHECK_FAILURE)
+        if not response.json().get('validated', False):
             # redirect to Email Confirmation Required page
             return '{url}?emailAddress={email_address}&target={target}'.format(
                 url=urljoin(current_app.config['WEB_SERVICES_URL'],
@@ -346,8 +348,8 @@ def _accept_terms_of_use(terms_of_use, guid, user_type):
                 "userType": user_type
             }
         )
-        # TODO: handle error (abort(500) if necessary)
-        if not response.json()['current']:
+        _check_web_services_response(response, error_msg.TOU_STATUS_CHECK_FAILURE)
+        if not response.json().get('current', False):
             # redirect to NYC. TOU page
             return '{url}?target={target}'.format(
                 url=urljoin(current_app.config['WEB_SERVICES_URL'],
@@ -372,14 +374,15 @@ def _enroll(guid, user_type):
         ENROLLMENT_STATUS_ENDPOINT,
         params.copy()  # signature regenerated
     )
-    # TODO: handle error (if response.status_code != 200, then check which code)
-    if not response.json():  # empty json = no enrollment record
-        response = _web_services_request(
-            ENROLLMENT_ENDPOINT,
-            params,
-            method='PUT'
-        )
-        # TODO: handle error
+    _check_web_services_response(response, error_msg.ENROLLMENT_STATUS_CHECK_FAILURE)
+    if response.status_code != 200 or not response.json():  # empty json = no enrollment record
+        _check_web_services_response(
+            _web_services_request(
+                ENROLLMENT_ENDPOINT,
+                params,
+                method='PUT'
+            ),
+            error_msg.ENROLLMENT_FAILURE)
 
 
 def _unenroll(guid, user_type):
@@ -387,15 +390,21 @@ def _unenroll(guid, user_type):
     Delete an enrollment.
     *Included for possible future use.*
     """
-    response = _web_services_request(
-        ENROLLMENT_ENDPOINT,
-        {
-            "guid": guid,
-            "userType": user_type
-        },
-        method='DELETE'
-    )
-    # TODO: handle error
+    _check_web_services_response(
+        _web_services_request(
+            ENROLLMENT_ENDPOINT,
+            {
+                "guid": guid,
+                "userType": user_type
+            },
+            method='DELETE'
+        ),
+        error_msg.UNENROLLMENT_FAILURE)
+
+
+def _check_web_services_response(response, msg):
+    if response.status_code != 200:
+        current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
 
 
 def _web_services_request(endpoint, params, method='GET'):
