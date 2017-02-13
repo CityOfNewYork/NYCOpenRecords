@@ -12,14 +12,19 @@
 
             {{ form.csrf_token }}
 
-            {{ form.user_title.label(class='request-heading') }}
-            {{ form.user_title(id='user-title', class='input-block-level',
+            {{ form.title.label(class='request-heading') }}
+            {{ form.title(id='title', class='input-block-level',
                 placeholder='Your role in your organization (if applicable)') }}<br>
 
-            {{ form.user_organization.label(class='request-heading') }}
-            {{ form.user_organization(id='user-organization', class='input-block-level',
+            {{ form.organization.label(class='request-heading') }}
+            {{ form.organization(id='organization', class='input-block-level',
                 placeholder='Your organization (if applicable)') }}<br>
             <div class="contact-form-error-message"></div>
+
+            {{ form.notification_email.label(class='request-heading') }}
+            {{ form.notification_email(id='email', class='input-block-level',
+                placeholder='you@email.com') }}<br>
+
             {{ form.phone_number.label(class='request-heading') }}
             {{ form.phone_number(id='phone', class='input-block-level',
                 placeholder='(555) 555-5555') }}<br>
@@ -29,11 +34,11 @@
                 placeholder='(555) 555-5555') }}<br>
 
             <div class="request-heading">Address</div>
-            Address Line 1
+            {{ form.address_one.label }}
             {{ form.address_one(id='address-line-1', class='input-block-level',
                 placeholder='123 Main Street') }}<br>
 
-            Address Line 2
+            {{ form.address_two.label }}
             {{ form.address_two(id='address_two', class='input-block-level',
                 placeholder='Apartment 3D') }}<br>
             <div class="row-fluid">

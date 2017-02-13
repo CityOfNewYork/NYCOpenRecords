@@ -21,7 +21,7 @@ from flask import (
     abort,
     redirect,
 )
-from flask_login import login_user
+from flask_login import login_user, current_user
 from app import login_manager
 from app.models import Users
 from app.constants import user_type_auth, USER_ID_DELIMITER
@@ -36,6 +36,7 @@ from app.constants.web_services import (
 )
 from app.auth.constants import error_msg
 from app.lib.db_utils import create_object, update_object
+from app.lib.user_information import create_mailing_address
 
 from ldap3 import Server, Tls, Connection
 
@@ -50,6 +51,30 @@ def user_loader(user_id):
     """
     user_id = user_id.split(USER_ID_DELIMITER)
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
+
+
+def update_openrecords_user(form):
+    """
+    Update OpenRecords-specific user attributes.
+    :param form: validated ManageUserAccountForm
+    :type form: app.auth.forms.ManageUserAccountForm
+    """
+    update_object(
+        {
+            'title': form.title.data,
+            'organization': form.organization.data,
+            'notification_email': form.notification_email.data,
+            'phone_number': form.phone_number.data,
+            'fax_number': form.fax_number.data,
+            'mailing_address': create_mailing_address(
+                form.address_one.data or None,
+                form.city.data or None,
+                form.state.data or None,
+                form.zipcode.data or None,
+                form.address_two.data or None)
+        },
+        Users,
+        (current_user.guid, current_user.auth_user_type))
 
 
 def is_safe_url(target):
@@ -403,6 +428,10 @@ def _unenroll(guid, user_type):
 
 
 def _check_web_services_response(response, msg):
+    """
+    Log an error message if the specified response's
+    status code is not 200.
+    """
     if response.status_code != 200:
         current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
 

@@ -23,7 +23,8 @@ from flask_login import (
     login_user,
     logout_user,
     current_user,
-    current_app
+    current_app,
+    login_required,
 )
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
@@ -35,6 +36,7 @@ from app.auth.utils import (
     handle_user_data,
     fetch_user_json,
     is_safe_url,
+    update_openrecords_user,
 )
 from app.constants.web_services import AUTH_ENDPOINT
 
@@ -145,8 +147,22 @@ def logout():
 
 
 @auth.route('/manage', methods=['GET', 'POST'])
+@login_required
 def manage():
-    pass
+    form = ManageUserAccountForm(user=current_user)
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            print(form.title.data)
+            update_openrecords_user(form)
+            redirect(url_for('auth.manage'))
+        else:
+            flash("Account cannot be updated.", category="danger")
+            return render_template('auth/manage_account.html', form=form)
+    else:
+        form.autofill()
+
+    return render_template('auth/manage_account.html', form=form)
 
 
 # LDAP -----------------------------------------------------------------------------------------------------------------
