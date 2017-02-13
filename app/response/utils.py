@@ -314,8 +314,18 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
 
     """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date, tz_name)
+    days_until_due = calendar.busdaycount(datetime.utcnow(), new_due_date.replace(hour=23, minute=59, second=59))
+    if new_due_date < datetime.utcnow():
+        new_status = request_status.OVERDUE
+    elif days_until_due <= current_app.config['DUE_SOON_DAYS_THRESHOLD']:
+        new_status = request_status.DUE_SOON
+    else:
+        new_status = request_status.IN_PROGRESS
     update_object(
-        {'due_date': new_due_date},
+        {
+            'due_date': new_due_date,
+            'status': new_status
+        },
         Requests,
         request_id)
     privacy = RELEASE_AND_PUBLIC
