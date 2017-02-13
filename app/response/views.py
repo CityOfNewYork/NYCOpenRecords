@@ -454,7 +454,6 @@ def patch(response_id):
 
     privacy = patch_form.pop('privacy', None)
 
-
     if privacy:
         # Check permissions for editing the privacy if required.
 

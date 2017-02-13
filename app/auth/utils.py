@@ -60,18 +60,24 @@ def is_safe_url(target):
 def find_user_by_email(email):
     """
     Find a user by email address stored in the database.
-    If LDAP login is being used, non-agency users are ignored.
+    If LDAP login is being used, non-agency users and users
+    without an LDAP auth type are ignored.
+    If OAUTH login is being used, anonymous users are ignored.
 
     :param email: Email address
     :return: User object or None if no user found.
     """
-    criteria = {'email': email}
     if current_app.config['USE_LDAP']:
-        criteria = {
-            "is_agency_active": True,
-            "auth_user_type": user_type_auth.AGENCY_LDAP_USER
-        }
-    return Users.query.filter_by(**criteria).first()
+        return Users.query.filter_by(
+            email=email,
+            is_agency_active=True,
+            auth_user_type=user_type_auth.AGENCY_LDAP_USER
+        ).first()
+    elif current_app.config['USE_OAUTH']:
+        return Users.query.filter(
+            Users.email == email,
+            Users.auth_user_type != user_type_auth.ANONYMOUS_USER
+        ).first()
 
 
 def oauth_user_web_service_request(method="GET"):
@@ -99,7 +105,8 @@ def revoke_and_remove_access_token():
     * Assumes the access token is stored in the session. *
     """
     response = oauth_user_web_service_request("DELETE")
-    # TODO: handle error
+    if response.status_code != 200:  # TODO: display message
+        current_app.logger.error("Failed to revoke access token")
     session.pop('token')
 
 
@@ -247,18 +254,29 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
     `email_validated` and `terms_of_use_accepted` (this function
     should be called AFTER email validation and terms-of-use acceptance
     has been completed).
+
+    Update any database objects this user is associated with.
+    - user_requests
+    - events
+    In order to prevent a possbile negative performance impact
+    (due to foreign keys CASCADE), guid and user_type are compared with
+    stored user attributes and are excluded from the update if both are identical.
     """
+    updated_data = {
+        'email': email,
+        'first_name': first_name,
+        'middle_initial': middle_initial,
+        'last_name': last_name,
+        'email_validated': True,
+        'terms_of_use_accepted': True,
+    }
+    if guid != user.guid or user_type != user.auth_user_type:
+        updated_data.update(
+            guid=guid,
+            auth_user_type=user_type
+        )
     update_object(
-        {
-            'guid': guid,
-            'auth_user_type': user_type,
-            'email': email,
-            'first_name': first_name,
-            'middle_initial': middle_initial,
-            'last_name': last_name,
-            'email_validated': True,
-            'terms_of_use_accepted': True,
-        },
+        updated_data,
         Users,
         (user.guid, user.auth_user_type)
     )

@@ -598,25 +598,26 @@ class Requests(db.Model):
                        ))
 
     def es_update(self):
-        es.update(
-            index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
-            id=self.id,
-            body={
-                'doc': {
-                    'title': self.title,
-                    'description': self.description,
-                    'agency_description': self.agency_description,
-                    'title_private': self.privacy['title'],
-                    'agency_description_private': self.privacy['agency_description'],
-                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                    'status': self.status,
-                    'requester_name': self.requester.name,
-                    'public_title': 'Private' if self.privacy['title'] else self.title
-                }
-            },
-            # refresh='wait_for'
-        )
+        if self.agency.is_active:
+            es.update(
+                index=current_app.config["ELASTICSEARCH_INDEX"],
+                doc_type='request',
+                id=self.id,
+                body={
+                    'doc': {
+                        'title': self.title,
+                        'description': self.description,
+                        'agency_description': self.agency_description,
+                        'title_private': self.privacy['title'],
+                        'agency_description_private': self.privacy['agency_description'],
+                        'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                        'status': self.status,
+                        'requester_name': self.requester.name,
+                        'public_title': 'Private' if self.privacy['title'] else self.title
+                    }
+                },
+                # refresh='wait_for'
+            )
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
@@ -687,7 +688,8 @@ class Events(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type]
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
         ),
     )
 
@@ -864,7 +866,8 @@ class UserRequests(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type]
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
         ),
     )
 

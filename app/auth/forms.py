@@ -10,7 +10,11 @@ from wtforms import (
     StringField,
     SelectField,
     PasswordField,
-    SubmitField
+    SubmitField,
+)
+from wtforms.validators import (
+    Length,
+    Email
 )
 
 from app.constants import STATES
@@ -26,15 +30,17 @@ class ManageUserAccountForm(Form):
         Mailing Address: The user's mailing address; Optional;
             Format: Address One, Address Two, City, State, Zip (5 Digits)
     """
-    user_title = StringField('Title')
-    user_organization = StringField('Organization')
-    phone_number = StringField('Phone')
-    fax_number = StringField('Fax')
+    title = StringField('Title', validators=[Length(max=64)])
+    organization = StringField('Organization', validators=[Length(max=254)])
+    notification_email = StringField('Notification Email', validators=[Email(), Length(max=254)])
+    # TODO: prefill with email if notification email not present
+    phone_number = StringField('Phone', validators=[Length(25)])
+    fax_number = StringField('Fax', validators=[Length(25)])
     address_one = StringField('Address Line One')
     address_two = StringField('Address Line Two')
     city = StringField('City')
     state = SelectField('State', choices=STATES, default='NY')
-    zipcode = StringField('Zip Code (5 Digits)')
+    zipcode = StringField('Zip Code (5 Digits)', validators=[Length(max=5)])
 
     submit = SubmitField('Update OpenRecords Account')
 
