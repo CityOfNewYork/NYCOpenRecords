@@ -83,8 +83,8 @@ def login():
                     user_json.get('firstName'),
                     user_json.get('middleInitial'),
                     user_json.get('lastName'),
-                    user_json.get('validated'),
                     user_json.get('termsOfUse'),
+                    user_json.get('validated'),
                     next_url)
 
         redirect_uri = urljoin(request.host_url, url_for('main.index', next=next_url))

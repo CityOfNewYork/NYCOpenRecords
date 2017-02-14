@@ -311,7 +311,8 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
     """
-    If the user_type is associated with a federated identity,
+    If the user did not log in via NYC.ID
+    (i.e. user_type is not 'EDIRSSO'),
     no email validation is necessary.
 
     A email is considered to have been validated if the
@@ -331,9 +332,9 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
 
     :return: redirect url or None
     """
-    if user_type not in user_type_auth.PUBLIC_USER_TYPES and (
-            email_validation_flag is not None
-            and email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
+    if user_type == user_type_auth.PUBLIC_USER_NYC_ID and (
+            email_validation_flag is not None and
+            email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
             EMAIL_VALIDATION_STATUS_ENDPOINT,
             {"guid": guid}
@@ -354,7 +355,7 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
 def _accept_terms_of_use(terms_of_use, guid, user_type):
     """
     If the user has logged in using the NYC Employees button
-    (assumes this means their user_type is 'Saml2In: NYC Employees'),
+    (i.e. the user_type is 'Saml2In: NYC Employees'),
     no TOU acceptance is necessary.
 
     Otherwise, invoke the Terms of Use Web Service to determine
