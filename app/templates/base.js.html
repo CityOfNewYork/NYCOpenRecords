@@ -40,10 +40,10 @@
             if (typeof afterTimeout === "function") {
                 afterTimeout();
             }
-        }, 500);
+        }, 1000);
     }
 
-    {%  if not current_user.is_anonymous %}
+    {% if not current_user.is_anonymous %}
         $("#logout").click(function(e) {
             /* Before sending user to auth.logout page, open a new tab
              * and logout of the NYC.ID IDP (and close the tab after completion).
