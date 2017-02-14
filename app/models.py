@@ -316,7 +316,7 @@ class Users(UserMixin, db.Model):
 
     @property
     def has_nyc_id_profile(self):
-        return self.auth_user_type in user_type_auth.NYC_ID_PROFILE_USER_TYPES
+        return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
 
     @property
     def is_anonymous_requester(self):

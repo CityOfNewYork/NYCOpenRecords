@@ -78,7 +78,7 @@ def update_openrecords_user(form):
 
 
 def is_safe_url(target):
-    """ Taken from http://flask.pocoo.org/snippets/62/ """
+    """ Taken from http://flask.pocoo.org/snippets/62/ with the help of Liam Neeson """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
@@ -311,7 +311,7 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
     """
-    If the user_type is not associated with a federated identity,
+    If the user_type is associated with a federated identity,
     no email validation is necessary.
 
     A email is considered to have been validated if the
@@ -322,8 +322,7 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
     - 'Unavailable'
     - True
 
-    If the email validation flag is not one of the above (i.e. FALSE)
-    and the user_type is not associated with a federated identity,
+    If the email validation flag is not one of the above (i.e. FALSE),
     the Email Validation Web Service is invoked.
 
     If the returned validation status equals false,
@@ -332,7 +331,7 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
 
     :return: redirect url or None
     """
-    if user_type not in user_type_auth.FEDERATED_USER_TYPES and (
+    if user_type not in user_type_auth.PUBLIC_USER_TYPES and (
             email_validation_flag is not None
             and email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
