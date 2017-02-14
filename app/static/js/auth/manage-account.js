@@ -32,10 +32,10 @@ $(document).ready(function () {
     zip.mask("99999");
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = [phone, fax, address1, city, zip, email, state];
-    for (var i = 0 ; i < required_fields.length ; i++) {
-        required_fields[i].attr("data-parsley-required", "");
-        required_fields[i].attr("data-parsley-required-message", "")
+    var requiredFields = [phone, fax, address1, city, zip, email, state];
+    for (var i = 0 ; i < requiredFields.length ; i++) {
+        requiredFields[i].attr("data-parsley-required", "");
+        requiredFields[i].attr("data-parsley-required-message", "");
     }
 
     // Specify length requirement of certain fields
@@ -74,8 +74,8 @@ $(document).ready(function () {
                 city.parsley().isValid()
             )
         ) {
-            for (var i = 0; i < required_fields.length; i++) {
-                required_fields[i].removeAttr("data-parsley-required");
+            for (var i = 0; i < requiredFields.length; i++) {
+                requiredFields[i].removeAttr("data-parsley-required");
             }
         }
         else {
@@ -84,7 +84,7 @@ $(document).ready(function () {
                 "<strong>Notification Email</strong>, <strong>Phone</strong>, " +
                 "<strong>Fax</strong>, and/or <strong>Address</strong> " +
                 "(with <strong>City</strong>, <strong>State</strong>, and <strong>Zip code</strong>.)"
-            )
+            );
         }
     });
 

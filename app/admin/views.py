@@ -10,7 +10,7 @@ from app.admin.forms import (
     ActivateAgencyUserForm
 )
 from flask import render_template, abort
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 
 @admin.route('/')
