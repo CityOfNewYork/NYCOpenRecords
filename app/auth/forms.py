@@ -21,7 +21,25 @@ from wtforms.validators import (
 from app.constants import STATES
 
 
-class ManageUserAccountForm(Form):
+class StripperForm(Form):
+    """
+    Any field data that can be stripped, will be stripped.
+    http://stackoverflow.com/questions/26232165/automatically-strip-all-values-in-wtforms
+    """
+    class Meta:
+        def bind_field(self, form, unbound_field, options):
+            filters = unbound_field.kwargs.get('filters', [])
+            filters.append(strip_filter)
+            return unbound_field.bind(form=form, filters=filters, **options)
+
+
+def strip_filter(value):
+    if value is not None and hasattr(value, 'strip'):
+        return value.strip()
+    return value
+
+
+class ManageUserAccountForm(StripperForm):
     """
     This form manages the OpenRecords specific account fields for a user account:
         Title: The job title for the user (e.g. Reporter); This is optional
@@ -31,8 +49,6 @@ class ManageUserAccountForm(Form):
         Fax Number: The user's fax number: This is optional
         Mailing Address: The user's mailing address; Optional;
             Format: Address One, Address Two, City, State, Zip (5 Digits)
-
-        * One method of contact must be provided.
     """
     title = StringField('Title', validators=[Length(max=64), Optional()])
     organization = StringField('Organization', validators=[Length(max=254), Optional()])
@@ -69,12 +85,13 @@ class ManageUserAccountForm(Form):
                 self.zipcode.data = self.user.mailing_address.get('zip')
 
     def validate(self):
+        """ One mthod of contact must be provided. """
         base_is_valid = super(ManageUserAccountForm, self).validate()
         return base_is_valid and bool(
             self.notification_email.data or
             self.phone_number.data or
             self.fax_number.data or
-            (
+            (  # mailing address
                 self.address_one.data and
                 self.city.data and
                 self.state.data and
