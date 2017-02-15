@@ -782,6 +782,12 @@ class Responses(db.Model):
         val['privacy'] = self.privacy
         return val
 
+    @property
+    def is_public(self):
+        return (self.privacy == response_privacy.RELEASE_AND_PUBLIC and
+                self.release_date is not None and
+                datetime.utcnow() > self.release_date)
+
     def __repr__(self):
         return '<Responses %r>' % self.id
 

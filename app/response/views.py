@@ -550,12 +550,6 @@ def get_response_content(response_id):
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
 
-    # if ((current_user.is_authenticated
-    #    and current_user not in response_.request.agency_users
-    #    and response_.request.requester != current_user)
-    #    or flask_request.args.get('token') is None):
-    #     return abort(403)
-
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
             current_app.config["UPLOAD_DIRECTORY"],
@@ -573,21 +567,30 @@ def get_response_content(response_id):
         )
         token = flask_request.args.get('token')
         if fu.exists(filepath):
-            if token is not None:
-                resptok = ResponseTokens.query.filter_by(
-                    token=token, response_id=response_id).first()
-                if resptok is not None:
-                    if (datetime.utcnow() < resptok.expiration_date
-                       and response_.privacy != PRIVATE):
-                        @after_this_request
-                        def remove(resp):
-                            os.remove(serving_path)
-                            return resp
-
-                        return fu.send_file(*filepath_parts, as_attachment=True)
-                    else:
-                        delete_object(resptok)
+            if response_.is_public:
+                # then we just serve the file, anyone can view it
+                @after_this_request
+                def remove(resp):
+                    os.remove(serving_path)
+                    return resp
+                return fu.send_file(*filepath_parts, as_attachment=True)
             else:
+                # check presence of token in url
+                if token is not None:
+                    resptok = ResponseTokens.query.filter_by(
+                        token=token, response_id=response_id).first()
+                    if resptok is not None:
+                        if (datetime.utcnow() < resptok.expiration_date
+                           and response_.privacy != PRIVATE):
+                            @after_this_request
+                            def remove(resp):
+                                os.remove(serving_path)
+                                return resp
+                            return fu.send_file(*filepath_parts, as_attachment=True)
+                        else:
+                            delete_object(resptok)
+
+                # if token not included or is expired, but user is logged in
                 if current_user.is_authenticated:
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
@@ -603,20 +606,12 @@ def get_response_content(response_id):
                             os.remove(serving_path)
                             return resp
                         return fu.send_file(*filepath_parts, as_attachment=True)
+                    # user does not have permission to view file
                     return abort(403)
                 else:
-                    # response is release and public  # TODO: Responses.is_release_public property
-                    if (response_.privacy == RELEASE_AND_PUBLIC
-                       and response_.release_date is not None
-                       and datetime.utcnow() > response_.release_date):
-                        @after_this_request
-                        def remove(resp):
-                            os.remove(serving_path)
-                            return resp
-                        return fu.send_file(*filepath_parts, as_attachment=True)
-                    else:
-                        return redirect(login_url(
-                            login_manager.login_view,
-                            next_url=url_for('request.view', request_id=response_.request_id)
-                        ))
-    return abort(404)
+                    # redirect to login
+                    return redirect(login_url(
+                        login_manager.login_view,
+                        next_url=url_for('request.view', request_id=response_.request_id)
+                    ))
+    return abort(404)  # file does not exist
