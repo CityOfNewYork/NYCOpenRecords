@@ -12,9 +12,6 @@
 
     <link type="image/x-icon" rel="shortcut icon" href="{{ url_for('static', filename='img/favicon-32x32.png') }}"/>
 
-    {{ moment.include_jquery() }}
-    {{ moment.include_moment() }}
-
     {% block custom_css %}
     {% endblock %}
 </head>
@@ -89,6 +86,7 @@
 <script type="text/javascript"
         src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
+{{ moment.include_moment(local_js=url_for('static', filename='js/plugins/moment.min.js')) }}
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
