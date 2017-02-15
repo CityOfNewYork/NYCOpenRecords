@@ -788,6 +788,11 @@ class Responses(db.Model):
                 self.release_date is not None and
                 datetime.utcnow() > self.release_date)
 
+    def make_public(self):
+        self.privacy == response_privacy.RELEASE_AND_PUBLIC
+        self.release_date == calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        db.session.commit()
+
     def __repr__(self):
         return '<Responses %r>' % self.id
 

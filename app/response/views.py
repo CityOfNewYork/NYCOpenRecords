@@ -590,7 +590,7 @@ def get_response_content(response_id):
                         else:
                             delete_object(resptok)
 
-                # if token not included or is expired, but user is logged in
+                # if token not included, nonexistent, or is expired, but user is logged in
                 if current_user.is_authenticated:
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
