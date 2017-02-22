@@ -312,10 +312,16 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES
+        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agency_ein is not None
 
     @property
     def has_nyc_id_profile(self):
+        """
+        Checks to see if the current user has authenticated with
+        NYC.ID, which means they have an NYC.ID Profile.
+
+        :return: Boolean
+        """
         return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
 
     @property
