@@ -66,6 +66,7 @@ def faq():
 def about():
     return render_template('main/about.html')
 
+
 @main.route('/active', methods=['POST'])
 def active():
     """

@@ -8,7 +8,7 @@ from functools import reduce
 from uuid import uuid4
 from urllib.parse import urljoin
 
-from flask import current_app
+from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
@@ -274,7 +274,14 @@ class Users(UserMixin, db.Model):
 
     @property
     def is_authenticated(self):
-        return True
+        """
+        Verifies the access token currently stored in the user's session
+        by invoking the OAuth User Web Service and checking the response.
+        """
+        if session.get('token') is not None:
+            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
+            return oauth_user_web_service_request().status_code == 200
+        return False
 
     @property
     def is_active(self):
@@ -305,7 +312,17 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES
+        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agency_ein is not None
+
+    @property
+    def has_nyc_id_profile(self):
+        """
+        Checks to see if the current user has authenticated with
+        NYC.ID, which means they have an NYC.ID Profile.
+
+        :return: Boolean
+        """
+        return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
 
     @property
     def is_anonymous_requester(self):
@@ -394,7 +411,6 @@ class Users(UserMixin, db.Model):
                     )
                     db.session.add(user)
             db.session.commit()
-
 
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
@@ -588,25 +604,26 @@ class Requests(db.Model):
                        ))
 
     def es_update(self):
-        es.update(
-            index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
-            id=self.id,
-            body={
-                'doc': {
-                    'title': self.title,
-                    'description': self.description,
-                    'agency_description': self.agency_description,
-                    'title_private': self.privacy['title'],
-                    'agency_description_private': self.privacy['agency_description'],
-                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                    'status': self.status,
-                    'requester_name': self.requester.name,
-                    'public_title': 'Private' if self.privacy['title'] else self.title
-                }
-            },
-            # refresh='wait_for'
-        )
+        if self.agency.is_active:
+            es.update(
+                index=current_app.config["ELASTICSEARCH_INDEX"],
+                doc_type='request',
+                id=self.id,
+                body={
+                    'doc': {
+                        'title': self.title,
+                        'description': self.description,
+                        'agency_description': self.agency_description,
+                        'title_private': self.privacy['title'],
+                        'agency_description_private': self.privacy['agency_description'],
+                        'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                        'status': self.status,
+                        'requester_name': self.requester.name,
+                        'public_title': 'Private' if self.privacy['title'] else self.title
+                    }
+                },
+                # refresh='wait_for'
+            )
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
@@ -677,7 +694,8 @@ class Events(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type]
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
         ),
     )
 
@@ -770,6 +788,17 @@ class Responses(db.Model):
         val['privacy'] = self.privacy
         return val
 
+    @property
+    def is_public(self):
+        return (self.privacy == response_privacy.RELEASE_AND_PUBLIC and
+                self.release_date is not None and
+                datetime.utcnow() > self.release_date)
+
+    def make_public(self):
+        self.privacy = response_privacy.RELEASE_AND_PUBLIC
+        self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        db.session.commit()
+
     def __repr__(self):
         return '<Responses %r>' % self.id
 
@@ -854,7 +883,8 @@ class UserRequests(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type]
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
         ),
     )
 
