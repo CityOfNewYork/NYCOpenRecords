@@ -21,7 +21,7 @@ from wtforms.validators import (
 from app.constants import STATES
 
 
-class StripperForm(Form):
+class StripFieldsForm(Form):
     """
     Any field data that can be stripped, will be stripped.
     http://stackoverflow.com/questions/26232165/automatically-strip-all-values-in-wtforms
@@ -39,7 +39,7 @@ def strip_filter(value):
     return value
 
 
-class ManageUserAccountForm(StripperForm):
+class ManageUserAccountForm(StripFieldsForm):
     """
     This form manages the OpenRecords specific account fields for a user account:
         Title: The job title for the user (e.g. Reporter); This is optional
