@@ -11,6 +11,7 @@ from app.constants import (
     request_status
 )
 from app.search.constants import (
+    MAX_RESULT_SIZE,
     ES_DATE_RANGE_FORMAT,
     DT_DATE_RANGE_FORMAT,
     MOCK_EMPTY_ELASTICSEARCH_RESULT
@@ -101,26 +102,27 @@ def create_docs():
 
     operations = []
     for r in requests:
-        operations.append({
-            '_op_type': 'create',
-            '_id': r.id,
-            'title': r.title,
-            'description': r.description,
-            'agency_description': r.agency_description,
-            'requester_name': r.requester.name,
-            'title_private': r.privacy['title'],
-            'agency_description_private': r.privacy['agency_description'],
-            'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
-            'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
-            'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
-            'submission': r.submission,
-            'status': r.status,
-            'requester_id': r.requester.get_id(),
-            'agency_ein': r.agency_ein,
-            'agency_name': r.agency.name,
-            'public_title': 'Private' if r.privacy['title'] else r.title,
-            # public_agency_description
-        })
+        if r.agency.is_active:
+            operations.append({
+                '_op_type': 'create',
+                '_id': r.id,
+                'title': r.title,
+                'description': r.description,
+                'agency_description': r.agency_description,
+                'requester_name': r.requester.name,
+                'title_private': r.privacy['title'],
+                'agency_description_private': r.privacy['agency_description'],
+                'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
+                'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
+                'submission': r.submission,
+                'status': r.status,
+                'requester_id': r.requester.get_id(),
+                'agency_ein': r.agency_ein,
+                'agency_name': r.agency.name,
+                'public_title': 'Private' if r.privacy['title'] else r.title,
+                # public_agency_description
+            })
 
     num_success, _ = bulk(
         es,
@@ -331,7 +333,7 @@ def search_requests(query,
                  'title',
                  'agency_description',
                  'description'],
-        size=size,
+        size=min(size, MAX_RESULT_SIZE),
         from_=start,
         sort=sort,
     )

@@ -22,17 +22,22 @@
             <h1>Hmmm... it looks like this page can't be found.</h1>
         {% endif %}
         <p class="lead">
-            If you would like to report this error, please
+            Try again or try refreshing this page. If the issue persists, please
             {% if tracy_id %}
                 <a href="{{ url_for("main.contact", error_id="OpenRecords Error: {}".format(tracy_id)) }}">contact us</a>.
             {% else %}
-                <a href="{{ url_for("main.contact") }}">contact us</a>.
+                <a href="{{ url_for("main.contact") }}">contact us</a>
             {% endif %}
+            and report this error.
         </p>
         <p class="lead">
             {% if tracy_id %}
                 Include the following id as part of your report:<br><strong>{{ tracy_id }}</strong>
             {% endif %}
         </p>
+        {% if message %}
+            <br>
+            <p><strong>Additional Information</strong>: {{ message }}</p>
+        {% endif %}
     </div>
 {% endblock %}
