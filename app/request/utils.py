@@ -35,6 +35,7 @@ from app.lib.date_utils import (
     get_following_date,
     get_due_date,
     local_to_utc,
+    utc_to_local,
 )
 from app.models import (
     Requests,
@@ -102,13 +103,19 @@ def create_request(title,
     # 3b. Send Email Notification Text for Requester
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
-    date_created = datetime.utcnow()
-    date_submitted = (local_to_utc(agency_date_submitted, tz_name)
-                      if current_user.is_agency
-                      else get_following_date(date_created))
+    date_created_local = utc_to_local(datetime.utcnow(), tz_name)
+    date_submitted_local = (agency_date_submitted
+                            if current_user.is_agency
+                            else get_following_date(date_created_local))
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
-    due_date = get_due_date(date_submitted, ACKNOWLEDGMENT_DAYS_DUE)
+    due_date = get_due_date(
+        date_submitted_local,
+        ACKNOWLEDGMENT_DAYS_DUE,
+        tz_name)
+
+    date_created = local_to_utc(date_created_local, tz_name)
+    date_submitted = local_to_utc(date_submitted_local, tz_name)
 
     # 5. Create Request
     request = Requests(

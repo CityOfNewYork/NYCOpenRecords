@@ -278,6 +278,8 @@ class Users(UserMixin, db.Model):
         Verifies the access token currently stored in the user's session
         by invoking the OAuth User Web Service and checking the response.
         """
+        if current_app.config['USE_LDAP']:
+            return True
         if session.get('token') is not None:
             from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
             return oauth_user_web_service_request().status_code == 200
@@ -346,7 +348,7 @@ class Users(UserMixin, db.Model):
             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
-    def get_id(self):  # FIXME: should not be getter
+    def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
     def from_id(self, user_id):  # Might come in useful

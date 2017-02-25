@@ -10,7 +10,6 @@ logs/
 received-emails/
 ldap/
 Vagrantfile
-.vagrant/
 .pem
 .crt
 .key
@@ -108,7 +107,6 @@ ENV/
 
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.Python
 [Bb]in
 [Ii]nclude
 [Ll]ib64
