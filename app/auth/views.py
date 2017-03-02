@@ -167,7 +167,7 @@ def manage():
 
 # LDAP -----------------------------------------------------------------------------------------------------------------
 
-@auth.route('/ldap_login', methods=['GET', 'POST'])  # TODO: test LDAP login
+@auth.route('/ldap_login', methods=['GET', 'POST'])
 def ldap_login():
     login_form = LDAPLoginForm()
     if request.method == 'POST':

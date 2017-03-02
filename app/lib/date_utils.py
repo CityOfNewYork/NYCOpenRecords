@@ -11,29 +11,32 @@ def get_following_date(date_created):
     """
     Generates the date submitted for a request.
 
-    :param date_created: date the request was made
-    :return: date submitted which is the date_created rounded off to the next business day
+    :param date_created: date (local) the request was made
+    :return: date submitted (local) which is the date_created rounded off to the next business day
     """
     return calendar.addbusdays(date_created, FOLLOWING)
 
 
-def get_due_date(date_submitted, days_until_due):
+def get_due_date(date_submitted, days_until_due, tz_name):
     """
     Generates the due date for a request.
 
-    :param date_submitted: date submitted which is the date_created rounded off to the next business day
+    :param date_submitted: date submitted (local) which is the date_created rounded off to the next business day
     :param days_until_due: number of business days until a request is due
+    :param tz_name: time zone name (e.g. "America/New_York")
 
-    :return: due date with time set to 5:00 PM EST (10:00 PM UTC)
+    :return: due date (utc) with time set to 22:00 PM (5:00 PM EST)
     """
-    return process_due_date(calendar.addbusdays(date_submitted, days_until_due))
+    return process_due_date(
+        local_to_utc(calendar.addbusdays(date_submitted, days_until_due), tz_name)
+    )
 
 
 def process_due_date(due_date):
     """
     Returns the given datetime object with a utc time equivalent to 5:00 PM local time (app).
 
-    :param due_date: unprocessed request due date
+    :param due_date: unprocessed request due date (local)
     :return: naive datetime object
     """
     # set to app's local time
