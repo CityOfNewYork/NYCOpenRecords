@@ -35,7 +35,7 @@ else
   ln -s /vagrant/build_scripts/default/postgresql.conf /data/postgres/
   ln -s /vagrant/build_scripts/default/pg_hba.conf /data/postgres/
 fi
-chown -R posgres:postgres /data/postgres
+chown -R postgres:postgres /data/postgres
 
 # 8. Create postgres key and certificates
 openssl req \
@@ -58,7 +58,7 @@ if [ "$1" = single_server ]; then
   mkdir -p /home/vagrant/.postgresql
   openssl req -new -nodes -keyout client.key -out client.csr -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=openrecords.dev"
   openssl x509 -req -CAcreateserial -in client.csr -CA /data/postgres/root.crt -CAkey /data/postgres/server.key -out client.crt
-  chown -R /home/vagrant/.postgresql/
+  chown -R vagrant:vagrant /home/vagrant/.postgresql/
 fi
 
 # 9. Link Postgres Libraries

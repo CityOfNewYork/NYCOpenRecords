@@ -16,6 +16,7 @@ bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-python35/enable\n' > /etc/profi
 yum -y install rh-postgresql95-postgresql-devel
 yum -y install rh-python35-python-psycopg2
 yum -y install openssl-devel
+yum -y install libffi-devel
 
 # 5. Install Developer Tools
 yum -y groupinstall "Development Tools"
