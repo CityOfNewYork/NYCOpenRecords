@@ -36,7 +36,7 @@ def sftp_ctx():
     try:
         yield sftp
     except Exception as e:
-        current_app.logger.error("Exception occurred with SFTP: {}".format(e))
+        raise paramiko.SFTPError("Exception occurred with SFTP: {}".format(e))
     finally:
         sftp.close()
         transport.close()

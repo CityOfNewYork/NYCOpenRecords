@@ -46,6 +46,7 @@ from app.lib.date_utils import (
     process_due_date,
     get_release_date,
     local_to_utc,
+    utc_to_local,
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
@@ -464,8 +465,12 @@ def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
         new_due_date = process_due_date(local_to_utc(date, tz_name))
     else:
         new_due_date = get_due_date(
-            Requests.query.filter_by(id=request_id).one().due_date,
-            int(extension_length))
+            utc_to_local(
+                Requests.query.filter_by(id=request_id).one().due_date,
+                tz_name
+            ),
+            int(extension_length),
+            tz_name)
     return new_due_date
 
 
