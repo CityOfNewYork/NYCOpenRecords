@@ -1,8 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$redhat_username = "jcastillo-nycrecords"
-$redhat_password = "R%bOjIaNgu"
+$redhat_username = <REDHAT USERNAME>
+$redhat_password = <REDHAT PASSWORD>
 
 Vagrant.configure("2") do |config|
   config.vm.box = "rhel-6.8"
