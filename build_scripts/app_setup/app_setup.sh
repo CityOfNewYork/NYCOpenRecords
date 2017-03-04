@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Copy proxy.sh to profile.d
-cp /vagrant/build_scripts/proxy.sh /etc/profile.d/
-
 # 1. Install Python 3.5
 yum -y install rh-python35
 
