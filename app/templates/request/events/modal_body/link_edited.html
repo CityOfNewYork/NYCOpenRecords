@@ -1,0 +1,21 @@
+{% include "request/events/modal_body/base/heading.html" %}
+<ul>
+    {% if event.new_value.get('url') %}
+        <li>
+            The link url was changed from <strong>{{ event.old_value['url'] }}</strong>
+            to <strong>{{ event.new_value['url'] }}</strong>
+        </li>
+    {% endif %}
+    {% if event.new_value.get('title') %}
+        <li>
+            The link title was changed from <strong>{{ event.old_value['title'] }}</strong>
+            to <strong>{{ event.new_value('title') }}</strong>
+        </li>
+    {% endif %}
+    {% if event.new_value.get('privacy') %}
+        <li>
+            The link response privacy was changed from
+            {% include "request/events/modal_body/base/privacy_change.html" %}
+        </li>
+    {% endif %}
+</ul>

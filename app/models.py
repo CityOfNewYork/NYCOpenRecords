@@ -27,6 +27,7 @@ from app.constants import (
     determination_type,
     response_privacy,
     submission_methods,
+    event_type,
 )
 
 
@@ -701,6 +702,15 @@ class Events(db.Model):
         ),
     )
 
+    response = db.relationship("Responses", backref="events")
+    request = db.relationship("Requests", backref="events")
+    user = db.relationship(
+        "Users",
+        primaryjoin="and_(Events.user_guid == Users.user_guid, "
+                    "Events.auth_user_type == Users.auth_user_type)",
+        backref="events"
+    )
+
     def __init__(self,
                  request_id,
                  user_guid,
@@ -721,6 +731,131 @@ class Events(db.Model):
 
     def __repr__(self):
         return '<Events %r>' % self.id
+
+    @property
+    def affected_user(self):
+        if "user_guid" and "auth_user_type" in self.new_value:
+            return Users.query.filter_by(
+                user_guid=self.new_value["user_guid"],
+                auth_user_type=self.new_value["auth_user_type"]
+            ).one()
+
+    def _format_row_verb(self, verb):
+        return "<strong>{}</strong>".format(verb)
+
+    # FIXME: maybe it makes more sense to include this logic in the template file
+    def html_text_row(self):
+        """
+        Returns html safe string for use in the rows of the history section,
+        or None if this event is not intended for display purposes.
+        """
+        if event_type.REQ_STATUS_CHANGED:
+            return "This request's status was changed to: {}".format(self.new_value['status'])
+
+        valid_types = {
+            event_type.USER_ADDED: "{} user: {}.".format(
+                self._format_row_verb("added"), self.affected_user.name
+            ),
+            event_type.USER_REMOVED: "{} user: {}.".format(
+                self._format_row_verb("removed"), self.affected_user.name
+            ),
+            event_type.USER_PERM_CHANGED: "{} permssions for user: {}.".format(
+                self._format_row_verb("changed"), self.affected_user.name
+            ),
+            event_type.REQUESTER_INFO_EDITED: "{} the requester's information.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.REQ_CREATED: "{} this request.".format(
+                self._format_row_verb("created")
+            ),
+            event_type.AGENCY_REQ_CREATED: "{} this request on behalf of {}".format(
+                self._format_row_verb("created"), self.requester  # TODO: fetch requester
+            ),
+            event_type.REQ_ACKNOWLEDGED: "{} this request.".format(
+                self._format_row_verb("acknowledged")
+            ),
+            event_type.REQ_EXTENDED: "{} this request.".format(
+                self._format_row_verb("extended")
+            ),
+            event_type.REQ_CLOSED: "{} this request.".format(
+                self._format_row_verb("closed")
+            ),
+            event_type.REQ_REOPENED: "{} this request.".format(
+                self._format_row_verb("re-opened")
+            ),
+            event_type.REQ_TITLE_EDITED: "{} the title.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.REQ_AGENCY_DESC_EDITED: "{} the agency description.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.REQ_TITLE_PRIVACY_EDITED: "{} the title privacy.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED: "{} the agency description privacy.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.FILE_ADDED: "{} a file response.".format(
+                self._format_row_verb("added")
+            ),
+            event_type.FILE_EDITED: "{} a file response.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.FILE_REMOVED: "{} a file response.".format(
+                self._format_row_verb("deleted")
+            ),
+            event_type.LINK_ADDED: "{} a link response.".format(
+                self._format_row_verb("added")
+            ),
+            event_type.LINK_EDITED: "{} a link response.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.LINK_REMOVED: "{} a link response.".format(
+                self._format_row_verb("deleted")
+            ),
+            event_type.INSTRUCTIONS_ADDED: "{} offline instructions response.".format(
+                self._format_row_verb("added")
+            ),
+            event_type.INSTRUCTIONS_EDITED: "{} offline instructions response.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.INSTRUCTIONS_REMOVED: "{} offline instructions response.".format(
+                self._format_row_verb("deleted")
+            ),
+            event_type.NOTE_ADDED: "{} a note response.".format(
+                self._format_row_verb("added")
+            ),
+            event_type.NOTE_EDITED: "{} a note response.".format(
+                self._format_row_verb("changed")
+            ),
+            event_type.NOTE_DELETED: "{} a note response.".format(
+                self._format_row_verb("deleted")
+            ),
+        }
+
+        if self.type in valid_types:
+            return ' '.join((self.user.name, valid_types[self.type])
+
+    def html_text_modal(self):
+        """
+        Returns an html safe string for use in the modals of the history section,
+        or None if this event is not intended for display purposes.
+        """
+        valid_types = {
+            event_type.USER_PERM_CHANGED,
+            event_type.REQUESTER_INFO_EDITED,
+            event_type.REQ_TITLE_EDITED,
+            event_type.REQ_AGENCY_DESC_EDITED,
+            event_type.REQ_TITLE_PRIVACY_EDITED,
+            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED,
+            event_type.FILE_EDITED,
+            event_type.LINK_EDITED,
+            event_type.INSTRUCTIONS_EDITED,
+            event_type.NOTE_EDITED,
+        }
+
+        if self.type in valid_types:
+            return valid_types[self.type]
 
 
 class Responses(db.Model):

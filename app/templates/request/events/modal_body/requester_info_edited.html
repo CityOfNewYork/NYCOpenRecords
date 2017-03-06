@@ -1,0 +1,33 @@
+{% include "request/events/modal_body/base/heading.html" %}
+<ul>
+    {% for key, human_key in {
+        'email': 'email',
+        'phone_number': 'phone number',
+        'fax_number': 'fax number',
+        'title': 'title',
+        'organization': 'organization'
+    }.items() %}
+        {% if event.new_value.get(key) %}
+            <li>
+                The requester's {{ human_key }} was changed from <strong>{{ event.previous_value[key] }}</strong>
+                to <strong>{{ event.new_value[key] }}</strong>
+            </li>
+        {% endif %}
+    {% endfor %}
+
+    {% if event.new_value.get('mailing_address') %}
+        {% for key, human_key in {
+            'zip': 'zipcode',
+            'city': 'city',
+            'state': 'state',
+            'address_one': 'address line 1',
+            'address_two': 'address line 2'
+        }.items() %}
+            {% if event.new_value.get(key) %}
+                <li>
+                    The requester's {{ human_key }} was changed from <strong>{{ event.previous_value[key] }}</strong>
+                    to <strong>{{ event.new_value[key] }}</strong>
+                </li>
+            {% endif %}
+    {% endif %}
+</ul>

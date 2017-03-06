@@ -11,7 +11,7 @@ from flask import (
     request as flask_request,
 )
 from datetime import datetime
-from flask_login import current_user
+from flask_login import current_user, login_required
 from app.lib.date_utils import calendar
 from app.request.api import request_api_blueprint
 from app.request.api.utils import create_edit_event
@@ -21,7 +21,7 @@ from app.lib.permission_utils import (
     is_allowed,
     get_permission
 )
-from app.models import Requests, Responses
+from app.models import Requests, Responses, Events
 from app.constants import RESPONSES_INCREMENT
 from app.constants import (
     determination_type,
@@ -123,20 +123,52 @@ def edit_request_info():
 
 
 @request_api_blueprint.route('/history', methods=['GET'])
-def get_request_history():  # TODO: 2.1
+@login_required
+def get_request_history():
     """
-    Retrieves a JSON object of event objects to display the history of a request on the view request page.
+    Returns a set of events (id, type, and template),
+    ordered by date descending, and starting from a specific index.
 
-    :return: json object containing list of 50 history objects from request
+    Request parameters:
+    - start: (int) starting index
+    - request_id: FOIL request id
+    - with_template: (default: False) include html rows for each event
     """
-    request_history_index = int(flask_request.form['request_history_reload_index'])
-    request_history_index_end = (request_history_index + 1) * 50 + 1
-    request_history = []
+    start = int(flask_request.args['start'])
 
-    for i in range(1, request_history_index_end):
-        request_history.append(str(i))
+    current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    return jsonify({})
+    events = Events.query.filter(
+        Events.request_id == current_request.id,
+    ).order_by(
+        desc(Events.timestamp)
+    ).all()[start: start + RESPONSES_INCREMENT]
+
+    template_path = 'request/events/'
+    event_jsons = []
+
+    for i, event in enumerate(events):
+        json = {
+            'id': event.id,
+            'type': event.type
+        }
+
+        if eval_request_bool(flask_request.args.get('with_template')):
+            row = render_template(
+                template_path + 'row.html',
+                event=event,
+                row_num=i,
+            )
+            modal = render_template(
+                template_path + 'modal.html',
+                event=event,
+            )
+            json['template'] = row + modal
+
+        event_jsons.append(json)
+
+    return jsonify(events=event_jsons)
+
 
 
 @request_api_blueprint.route('/responses', methods=['GET'])
