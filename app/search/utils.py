@@ -111,7 +111,7 @@ def create_docs():
                 'agency_description': r.agency_description,
                 'requester_name': r.requester.name,
                 'title_private': r.privacy['title'],
-                'agency_description_private': r.privacy['agency_description'],
+                'agency_description_private': not r.agency_description_released,
                 'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),

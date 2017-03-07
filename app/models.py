@@ -605,6 +605,10 @@ class Requests(db.Model):
                            request_id=self.id
                        ))
 
+    @property
+    def agency_description_released(self):
+        return not self.privacy['agency_description'] and self.agency_description_release_date < datetime.utcnow()
+
     def es_update(self):
         if self.agency.is_active:
             es.update(
@@ -617,7 +621,7 @@ class Requests(db.Model):
                         'description': self.description,
                         'agency_description': self.agency_description,
                         'title_private': self.privacy['title'],
-                        'agency_description_private': self.privacy['agency_description'],
+                        'agency_description_private': not self.agency_description_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                         'status': self.status,
                         'requester_name': self.requester.name,
@@ -640,7 +644,7 @@ class Requests(db.Model):
                 'agency_ein': self.agency_ein,
                 'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
-                'agency_description_private': self.privacy['agency_description'],
+                'agency_description_private': not self.agency_description_released,
                 'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
