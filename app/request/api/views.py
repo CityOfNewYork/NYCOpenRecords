@@ -21,8 +21,9 @@ from app.lib.permission_utils import (
     is_allowed,
     get_permission
 )
+from app.permissions.utils import get_permissions_as_list
 from app.models import Requests, Responses, Events
-from app.constants import RESPONSES_INCREMENT
+from app.constants import RESPONSES_INCREMENT, EVENTS_INCREMENT
 from app.constants import (
     determination_type,
     event_type,
@@ -140,12 +141,26 @@ def get_request_history():
 
     events = Events.query.filter(
         Events.request_id == current_request.id,
+        Events.type.in_(event_type.FOR_REQUEST_HISTORY)
     ).order_by(
         desc(Events.timestamp)
-    ).all()[start: start + RESPONSES_INCREMENT]
+    ).all()[start: start + EVENTS_INCREMENT]
 
     template_path = 'request/events/'
     event_jsons = []
+
+    types_with_modal = [
+        event_type.FILE_EDITED,
+        event_type.INSTRUCTIONS_EDITED,
+        event_type.LINK_EDITED,
+        event_type.NOTE_EDITED,
+        event_type.REQ_AGENCY_DESC_EDITED,
+        event_type.REQ_AGENCY_DESC_PRIVACY_EDITED,
+        event_type.REQ_TITLE_EDITED,
+        event_type.REQ_TITLE_PRIVACY_EDITED,
+        event_type.REQUESTER_INFO_EDITED,
+        event_type.USER_PERM_CHANGED,
+    ]
 
     for i, event in enumerate(events):
         json = {
@@ -158,11 +173,29 @@ def get_request_history():
                 template_path + 'row.html',
                 event=event,
                 row_num=i,
+                # TODO: has_modal
             )
-            modal = render_template(
-                template_path + 'modal.html',
-                event=event,
-            )
+            if event.type in types_with_modal:
+                if event_type.USER_PERM_CHANGED:
+                    previous_permissions = set([
+                        p.label for p in get_permissions_as_list(event.previous_value['permissions'])
+                    ])
+                    new_permissions = set([
+                        p.label for p in get_permissions_as_list(event.new_value['permissions'])
+                    ])
+                    modal = render_template(
+                        template_path + 'modal.html',
+                        event=event,
+                        permissions_granted = list(new_permissions - previous_permissions),
+                        permissions_revoked = list(previous_permissions - new_permissions),
+                    )
+                else:
+                    modal = render_template(
+                        template_path + 'modal.html',
+                        event=event,
+                    )
+            else:
+                modal = ""
             json['template'] = row + modal
 
         event_jsons.append(json)

@@ -46,7 +46,7 @@ class Roles(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    permissions = db.Column(db.Integer)
+    permissions = db.Column(db.Integer)  # TODO: bigint + migrate
 
     @classmethod
     def populate(cls):
@@ -744,7 +744,7 @@ class Events(db.Model):
         return "<strong>{}</strong>".format(verb)
 
     # FIXME: maybe it makes more sense to include this logic in the template file
-    def html_text_row(self):
+    def html_message(self):
         """
         Returns html safe string for use in the rows of the history section,
         or None if this event is not intended for display purposes.
@@ -834,28 +834,7 @@ class Events(db.Model):
         }
 
         if self.type in valid_types:
-            return ' '.join((self.user.name, valid_types[self.type])
-
-    def html_text_modal(self):
-        """
-        Returns an html safe string for use in the modals of the history section,
-        or None if this event is not intended for display purposes.
-        """
-        valid_types = {
-            event_type.USER_PERM_CHANGED,
-            event_type.REQUESTER_INFO_EDITED,
-            event_type.REQ_TITLE_EDITED,
-            event_type.REQ_AGENCY_DESC_EDITED,
-            event_type.REQ_TITLE_PRIVACY_EDITED,
-            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED,
-            event_type.FILE_EDITED,
-            event_type.LINK_EDITED,
-            event_type.INSTRUCTIONS_EDITED,
-            event_type.NOTE_EDITED,
-        }
-
-        if self.type in valid_types:
-            return valid_types[self.type]
+            return ' '.join((self.user.name, valid_types[self.type]))
 
 
 class Responses(db.Model):
@@ -1069,7 +1048,7 @@ class UserRequests(db.Model):
             self.permissions = permissions
         db.session.commit()
 
-    def get_permissions(self):
+    def get_permission_choice_indices(self):
         return [i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)]
 
 

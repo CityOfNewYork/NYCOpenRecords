@@ -1,4 +1,30 @@
 {% include "request/events/modal_body/base/heading.html" %}
-<ul>
+<p>
+    The following privilege change affects {{ event.affected_user.name }}.
+</p>
 
+{% if permissions_granted %}
+<p>
+     Permission{% if %}s{% endif %} granted:
+</p>
+<ul>
+    {% for permission in permissions_granted %}
+        <li>
+            {{ permission }}
+        </li>
+    {% endfor %}
 </ul>
+{% endif %}
+
+{% if permissions_revoked %}
+<p>
+    Permission{% if %}s{% endif %} revoked:
+</p>
+<ul>
+    {% for permission in permission_revoked %}
+        <li>
+            {{ permission }}
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}

@@ -2,7 +2,7 @@ from flask import jsonify
 from app.permissions import permissions
 from app.models import Roles
 from app.constants import permission
-from app.permissions.utils import has_permission
+from app.permissions.utils import in_permissions
 
 
 @permissions.route('/<role>', methods=['GET'])
@@ -14,7 +14,7 @@ def get_role_permissions(role):
     role_permissions = []
 
     for i, perm in enumerate(permission.ALL):
-        if has_permission(role, perm.value):
+        if in_permissions(role.permissions, perm.value):
             role_permissions.append(i)
 
     return jsonify(role_permissions), 200

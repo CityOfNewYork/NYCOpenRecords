@@ -2,7 +2,7 @@
      data-backdrop="static" data-keyboard="false">
     <div class="col-md-1 event-row-num">{{ row_num }}</div>
     <div class="col-md-9">
-        {{ event.html_text_row | safe }}
+        {{ event.html_message | safe }}
     </div>
     <div class="col-md-2">
         {{ moment(event.timestamp).format('D/M/YY h:mm A') }}
