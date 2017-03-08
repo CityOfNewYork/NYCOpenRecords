@@ -25,7 +25,7 @@ mkdir /home/vagrant/.virtualenvs
 virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords_v2_0
 chown -R vagrant:vagrant /home/vagrant
 source /home/vagrant/.virtualenvs/openrecords_v2_0/bin/activate
-pip install -r /vagrant/requirements.txt --no-binary :all:
+pip install -r /vagrant/requirements_rhel.txt --no-binary :all:
 
 # 7. Install telnet-server
 yum -y install telnet-server
