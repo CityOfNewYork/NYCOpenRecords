@@ -29,11 +29,11 @@ mv /data/postgres/pg_hba.conf /data/postgres/pg_hba.conf.orig
 
 # 7. Copy configuration files from home directory (vagrant for vagrant, /export/local/project_name/ for DOITT)
 if [ "$1" != single_server ]; then
-  ln -s /vagrant/build_scripts/db_setup/postgresql.conf /data/postgres/
-  ln -s /vagrant/build_scripts/db_setup/pg_hba.conf /data/postgres/
+  cp -r /vagrant/build_scripts/db_setup/postgresql.conf /data/postgres/
+  cp -r /vagrant/build_scripts/db_setup/pg_hba.conf /data/postgres/
 else
-  ln -s /vagrant/build_scripts/default/postgresql.conf /data/postgres/
-  ln -s /vagrant/build_scripts/default/pg_hba.conf /data/postgres/
+  cp -r /vagrant/build_scripts/default/postgresql.conf /data/postgres/
+  cp -r /vagrant/build_scripts/default/pg_hba.conf /data/postgres/
 fi
 chown -R postgres:postgres /data/postgres
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 1. Install Nginx
-yum -y install rh-nginx18-nginx
+yum -y install rh-nginx18
 
 # 2. Autostart Nginx
 chkconfig rh-nginx18-nginx on
