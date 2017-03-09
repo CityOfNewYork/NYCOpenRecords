@@ -1,85 +1,97 @@
-// TODO: for 2.1
-// // initialize variables
-// var request_history_reload_index = 0; // index to keep track of number of events loaded, load 50 more events for every increment of 1
-// var request_history_index = 0; // index to keep track of which interval of events are shown
-// var request_history; // initialize variable to store list of events
-// var request_history_index_shift = 5; // index number used to increment or decrement request_history_index
-//
-// // hide load-more-history div
-// $(".load-more-history").hide();
-//
-// // loads initial history into div
-// $(document).ready(function () {
-//     $.ajax({
-//         type: "POST",
-//         url: '/request/api/v1.0/history',
-//         data: {request_history_reload_index: request_history_reload_index},
-//         success: function (data) {
-//             request_history = data.request_history;
-//             var request_history_html = '<table class="table"> <tbody>';
-//             for (var i = request_history_index; i < request_history_index + request_history_index_shift; i++) {
-//                 request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
-//             }
-//             document.getElementById("request-history-table").innerHTML = request_history_html;
-//         },
-//         error: function (error) {
-//             console.log(error);
-//         }
-//     });
-// });
-//
-// // replaces currently displayed history events with previous 5 history events
-// function previous_history() {
-//     if (request_history_index != 0) {
-//         request_history_index = request_history_index - request_history_index_shift;
-//         var request_history_html = '<table class="table"> <tbody>';
-//         for (var i = request_history_index; i < request_history_index + request_history_index_shift; i++) {
-//             request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
-//         }
-//         document.getElementById("request-history-table").innerHTML = request_history_html;
-//     }
-//     if (request_history_index == request_history.length - request_history_index_shift) {
-//         $(".load-more-history").show();
-//     } else {
-//         $(".load-more-history").hide();
-//     }
-// }
-//
-// // replaces currently displayed history events with next 5 history events
-// function next_history() {
-//     if (request_history_index != request_history.length - request_history_index_shift) {
-//         request_history_index = request_history_index + request_history_index_shift;
-//         var request_history_html = '<table class="table"> <tbody>';
-//         for (var i = request_history_index; i < request_history_index + request_history_index_shift; i++) {
-//             request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
-//         }
-//         document.getElementById("request-history-table").innerHTML = request_history_html;
-//     }
-//     if (request_history_index == request_history.length - request_history_index_shift) {
-//         $(".load-more-history").show();
-//     } else {
-//         $(".load-more-history").hide();
-//     }
-// }
-//
-// // loads 50 more history events into request_history array
-// function load_more_history() {
-//     request_history_reload_index++;
-//     $.ajax({
-//         type: "POST",
-//         url: '/request/api/v1.0/history',
-//         data: {request_history_reload_index: request_history_reload_index},
-//         success: function (data) {
-//             request_history = data.request_history;
-//             var request_history_html = '<table class="table"> <tbody>';
-//             for (var i = request_history_index; i < request_history_index + request_history_index_shift; i++) {
-//                 request_history_html = request_history_html + '<tr> <td>' + request_history[i] + '</td> </tr>';
-//             }
-//             document.getElementById("request-history-table").innerHTML = request_history_html;
-//         },
-//         error: function (error) {
-//             console.log(error);
-//         }
-//     });
-//     $(".load-more-history").hide();
-// }
+$(function() {
+
+    var events = null;
+    var index = 0;
+    var index_increment = 10;
+    var request_id = $.trim($("#request-id").text());
+    var navButtons = $("#history-nav-buttons");
+    var prevButton = navButtons.find(".prev");
+    var nextButton = navButtons.find(".next");
+
+    $.ajax({
+        url: "/request/api/v1.0/events",
+        data: {
+            start: 0,
+            request_id: request_id,
+            with_template: true
+        },
+        success: function (data) {
+            events = data.events;
+            if (events.length > index_increment) {  // if there are enough events to merit pagination
+                navButtons.show();
+                prevButton.attr("disabled", true);
+            }
+            showHistory();
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+
+    function showHistory() {
+        // clear history (events list)
+        var history = $("#request-history");
+        history.empty();
+
+        if (events.length !== 0) {
+            // advance index
+            var index_incremented = index + index_increment;
+            var end = events.length < index_incremented ? events.length : index_incremented;
+            for (var i = index; i < end; i++) {
+                // add events html
+                history.append(events[i].template);
+            }
+            flask_moment_render_all();
+        }
+        else {
+            // no events, history section remains empty
+            history.text("");
+        }
+    }
+
+    function loadMore() {
+        $.ajax({
+            url: "/request/api/v1.0/events",
+            data: {
+                start: events.length,
+                request_id: request_id,
+                with_template: true
+            },
+            success: function(data) {
+                // append to events
+                events = events.concat(data.events);
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        })
+    }
+
+    // replace currently displayed events with previous set
+    prevButton.click(function () {
+        nextButton.attr("disabled", false);
+        if (index !== 0) {
+            index -= index_increment;
+            if (index == 0) {
+                $(this).attr("disabled", true);
+            }
+            showHistory();
+        }
+    });
+
+    // replace currently displayed events with next set
+    nextButton.click(function () {
+        prevButton.attr("disabled", false);
+        index += index_increment;
+        if (index == events.length - index_increment) {
+            loadMore();
+        }
+        if (events.length < index + index_increment) {
+            nextButton.attr("disabled", true);
+        }
+        if (events.length < index) {
+            index -= index_increment;
+        }
+        showHistory();
+    })
+});

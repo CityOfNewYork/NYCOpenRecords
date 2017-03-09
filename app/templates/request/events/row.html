@@ -1,11 +1,17 @@
-<div class="row event-row" data-toggle="modal" data-target="#event-modal-{{ event.id }}"
+<div class="row event-row {% if has_modal %}has-modal{% endif %}" data-toggle="modal" data-target="#event-modal-{{ event.id }}"
      data-backdrop="static" data-keyboard="false">
-    <div class="col-md-1 event-row-num">{{ row_num }}</div>
-    <div class="col-md-9">
-        {{ event.html_message | safe }}
+    <div class="row">
+        <div class="col-sm-3 event-row-num">
+            {{ row_num }}
+        </div>
+        <div class="col-sm-9 text-right">
+            {{ moment(event.timestamp).format('D/M/YY h:mm A') }}
+        </div>
     </div>
-    <div class="col-md-2">
-        {{ moment(event.timestamp).format('D/M/YY h:mm A') }}
+    <br>
+    <div class="row">
+        <div class="col-sm-12">
+            {{ event.history_row_content | safe }}
+        </div>
     </div>
 </div>
-<!-- TODO: icon for row that has modal -->

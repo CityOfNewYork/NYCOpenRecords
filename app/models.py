@@ -706,7 +706,7 @@ class Events(db.Model):
     request = db.relationship("Requests", backref="events")
     user = db.relationship(
         "Users",
-        primaryjoin="and_(Events.user_guid == Users.user_guid, "
+        primaryjoin="and_(Events.user_guid == Users.guid, "
                     "Events.auth_user_type == Users.auth_user_type)",
         backref="events"
     )
@@ -727,114 +727,107 @@ class Events(db.Model):
         self.type = type_
         self.previous_value = previous_value
         self.new_value = new_value
-        self.timestamp = timestamp
+        self.timestamp = timestamp or datetime.utcnow()
 
     def __repr__(self):
         return '<Events %r>' % self.id
 
     @property
     def affected_user(self):
-        if "user_guid" and "auth_user_type" in self.new_value:
+        if self.new_value is not None and "user_guid" and "auth_user_type" in self.new_value:
             return Users.query.filter_by(
-                user_guid=self.new_value["user_guid"],
+                guid=self.new_value["user_guid"],
                 auth_user_type=self.new_value["auth_user_type"]
             ).one()
 
-    def _format_row_verb(self, verb):
-        return "<strong>{}</strong>".format(verb)
+    class Row(object):
 
-    # FIXME: maybe it makes more sense to include this logic in the template file
-    def html_message(self):
+        def __init__(self, verb, string, affected_user=None):
+            """
+            :param verb: action describing event
+            :param string: format()-ready string where first field is verb and
+                           last field is affected_user, if applicable.
+            :param affected_user: user affected by this event
+            """
+            self.string = string
+            self.verb = self._format_verb(verb)
+            self.affected_user = affected_user
+
+        def __str__(self):
+            format_args = [self.verb]
+            if self.affected_user is not None:
+                format_args += [self.affected_user.name]
+            return self.string.format(*format_args)
+
+        def _format_verb(self, verb):
+            return "<strong>{}</strong>".format(verb)
+
+    @property
+    def history_row_content(self):
         """
         Returns html safe string for use in the rows of the history section,
         or None if this event is not intended for display purposes.
         """
-        if event_type.REQ_STATUS_CHANGED:
+        if self.type == event_type.REQ_STATUS_CHANGED: # TODO: event type is never used, add to job
             return "This request's status was changed to: {}".format(self.new_value['status'])
 
         valid_types = {
-            event_type.USER_ADDED: "{} user: {}.".format(
-                self._format_row_verb("added"), self.affected_user.name
-            ),
-            event_type.USER_REMOVED: "{} user: {}.".format(
-                self._format_row_verb("removed"), self.affected_user.name
-            ),
-            event_type.USER_PERM_CHANGED: "{} permssions for user: {}.".format(
-                self._format_row_verb("changed"), self.affected_user.name
-            ),
-            event_type.REQUESTER_INFO_EDITED: "{} the requester's information.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.REQ_CREATED: "{} this request.".format(
-                self._format_row_verb("created")
-            ),
-            event_type.AGENCY_REQ_CREATED: "{} this request on behalf of {}".format(
-                self._format_row_verb("created"), self.requester  # TODO: fetch requester
-            ),
-            event_type.REQ_ACKNOWLEDGED: "{} this request.".format(
-                self._format_row_verb("acknowledged")
-            ),
-            event_type.REQ_EXTENDED: "{} this request.".format(
-                self._format_row_verb("extended")
-            ),
-            event_type.REQ_CLOSED: "{} this request.".format(
-                self._format_row_verb("closed")
-            ),
-            event_type.REQ_REOPENED: "{} this request.".format(
-                self._format_row_verb("re-opened")
-            ),
-            event_type.REQ_TITLE_EDITED: "{} the title.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.REQ_AGENCY_DESC_EDITED: "{} the agency description.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.REQ_TITLE_PRIVACY_EDITED: "{} the title privacy.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED: "{} the agency description privacy.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.FILE_ADDED: "{} a file response.".format(
-                self._format_row_verb("added")
-            ),
-            event_type.FILE_EDITED: "{} a file response.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.FILE_REMOVED: "{} a file response.".format(
-                self._format_row_verb("deleted")
-            ),
-            event_type.LINK_ADDED: "{} a link response.".format(
-                self._format_row_verb("added")
-            ),
-            event_type.LINK_EDITED: "{} a link response.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.LINK_REMOVED: "{} a link response.".format(
-                self._format_row_verb("deleted")
-            ),
-            event_type.INSTRUCTIONS_ADDED: "{} offline instructions response.".format(
-                self._format_row_verb("added")
-            ),
-            event_type.INSTRUCTIONS_EDITED: "{} offline instructions response.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.INSTRUCTIONS_REMOVED: "{} offline instructions response.".format(
-                self._format_row_verb("deleted")
-            ),
-            event_type.NOTE_ADDED: "{} a note response.".format(
-                self._format_row_verb("added")
-            ),
-            event_type.NOTE_EDITED: "{} a note response.".format(
-                self._format_row_verb("changed")
-            ),
-            event_type.NOTE_DELETED: "{} a note response.".format(
-                self._format_row_verb("deleted")
-            ),
+            event_type.USER_ADDED:
+                self.Row("added", "{} user: {}.", self.affected_user),
+            event_type.USER_REMOVED:
+                self.Row("removed", "{} user: {}.", self.affected_user),
+            event_type.USER_PERM_CHANGED:
+                self.Row("changed", "{} permssions for user: {}.", self.affected_user),
+            event_type.REQUESTER_INFO_EDITED:
+                self.Row("changed", "{} the requester's information."),
+            event_type.REQ_CREATED:
+                self.Row("created", "{} this request."),
+            event_type.AGENCY_REQ_CREATED:
+                self.Row("created", "{} this request on behalf of {}.", self.request.requester),
+            event_type.REQ_ACKNOWLEDGED:
+                self.Row("acknowledged", "{} this request."),
+            event_type.REQ_EXTENDED:
+                self.Row("extended", "{} this request."),
+            event_type.REQ_CLOSED:
+                self.Row("closed", "{} this request."),
+            event_type.REQ_REOPENED:
+                self.Row("re-opened", "{} this request."),
+            event_type.REQ_TITLE_EDITED:
+                self.Row("changed", "{} the title."),
+            event_type.REQ_AGENCY_DESC_EDITED:
+                self.Row("changed", "{} the agency description."),
+            event_type.REQ_TITLE_PRIVACY_EDITED:
+                self.Row("changed", "{} the title privacy."),
+            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED:
+                self.Row("changed", "{} the agency description privacy."),
+            event_type.FILE_ADDED:
+                self.Row("added", "{} a file response."),
+            event_type.FILE_EDITED:
+                self.Row("changed", "{} a file response."),
+            event_type.FILE_REMOVED:
+                self.Row("deleted", "{} a file response."),
+            event_type.LINK_ADDED:
+                self.Row("added", "{} a link response."),
+            event_type.LINK_EDITED:
+                self.Row("changed", "{} a link response."),
+            event_type.LINK_REMOVED:
+                self.Row("deleted", "{} a link response."),
+            event_type.INSTRUCTIONS_ADDED:
+                self.Row("added", "{} an offline instructions response."),
+            event_type.INSTRUCTIONS_EDITED:
+                self.Row("changed", "{} an offline instructions response."),
+            event_type.INSTRUCTIONS_REMOVED:
+                self.Row("deleted", "{} an offline instructions response."),
+            event_type.NOTE_ADDED:
+                self.Row("added", "{} a note response."),
+            event_type.NOTE_EDITED:
+                self.Row("changed", "{} a note response."),
+            event_type.NOTE_DELETED:
+                self.Row("deleted", "{} a note response."),
         }
 
         if self.type in valid_types:
-            return ' '.join((self.user.name, valid_types[self.type]))
+            return ' '.join((self.user.name, str(valid_types[self.type])))
 
 
 class Responses(db.Model):

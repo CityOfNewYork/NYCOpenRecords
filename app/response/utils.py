@@ -1428,12 +1428,21 @@ class ResponseEditor(metaclass=ABCMeta):
 
     @property
     def event_type(self):
-        return {
+        if self.data_new.get('deleted'):
+            response_type_to_event_type = {
+                Files: event_type.FILE_REMOVED,
+                Notes: event_type.NOTE_DELETED,
+                Links: event_type.LINK_REMOVED,
+                Instructions: event_type.INSTRUCTIONS_REMOVED
+            }
+        else:
+            response_type_to_event_type = {
             Files: event_type.FILE_EDITED,
             Notes: event_type.NOTE_EDITED,
             Links: event_type.LINK_EDITED,
             Instructions: event_type.INSTRUCTIONS_EDITED,
-        }[type(self.response)]
+        }
+        return response_type_to_event_type[type(self.response)]
 
     @property
     @abstractmethod

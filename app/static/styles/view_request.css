@@ -21,18 +21,26 @@
     display: none;
 }
 
-#request-responses .response-row {
+#request-responses .response-row,
+#request-history .event-row {
     border-top: 1px solid lightgray;
     padding-top: 1em;
     padding-bottom: 1em;
 }
 
-#request-responses .response-row:hover {
+#request-history .event-row:not(.has-modal) {
+    color: grey;
+}
+
+
+#request-responses .response-row:hover,
+#request-history .event-row.has-modal:hover {
     cursor: pointer;
     background-color: lightgray;
 }
 
-#responses-nav-buttons {
+#responses-nav-buttons,
+#history-nav-buttons {
     padding-bottom: 2em;
 }
 

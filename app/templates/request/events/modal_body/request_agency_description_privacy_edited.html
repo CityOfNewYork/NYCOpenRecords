@@ -1,0 +1,4 @@
+<p>
+    {{ event.user.name }} changed the agency description privacy to
+    {% if event.new_value['privacy'] %}"Private"{% else %}"Public"{% endif %}.
+</p>

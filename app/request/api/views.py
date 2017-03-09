@@ -123,9 +123,9 @@ def edit_request_info():
     return jsonify(edit_request), 200
 
 
-@request_api_blueprint.route('/history', methods=['GET'])
+@request_api_blueprint.route('/events', methods=['GET'])
 @login_required
-def get_request_history():
+def get_request_events():
     """
     Returns a set of events (id, type, and template),
     ordered by date descending, and starting from a specific index.
@@ -169,14 +169,15 @@ def get_request_history():
         }
 
         if eval_request_bool(flask_request.args.get('with_template')):
+            has_modal = event.type in types_with_modal
             row = render_template(
                 template_path + 'row.html',
                 event=event,
-                row_num=i,
-                # TODO: has_modal
+                row_num=start + i + 1,
+                has_modal=has_modal
             )
-            if event.type in types_with_modal:
-                if event_type.USER_PERM_CHANGED:
+            if has_modal:
+                if event.type == event_type.USER_PERM_CHANGED:
                     previous_permissions = set([
                         p.label for p in get_permissions_as_list(event.previous_value['permissions'])
                     ])
@@ -186,12 +187,24 @@ def get_request_history():
                     modal = render_template(
                         template_path + 'modal.html',
                         event=event,
-                        permissions_granted = list(new_permissions - previous_permissions),
-                        permissions_revoked = list(previous_permissions - new_permissions),
+                        modal_body=render_template(
+                            "{}modal_body/{}.html".format(
+                                template_path, event.type.lower()
+                            ),
+                            event=event,
+                            permissions_granted=list(new_permissions - previous_permissions),
+                            permissions_revoked=list(previous_permissions - new_permissions),
+                        ),
                     )
                 else:
                     modal = render_template(
                         template_path + 'modal.html',
+                        modal_body=render_template(
+                            "{}modal_body/{}.html".format(
+                                template_path, event.type.lower()
+                            ),
+                            event=event
+                        ),
                         event=event,
                     )
             else:
