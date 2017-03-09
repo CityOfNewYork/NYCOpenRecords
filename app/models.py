@@ -740,7 +740,7 @@ class Events(db.Model):
                 auth_user_type=self.new_value["auth_user_type"]
             ).one()
 
-    class Row(object):
+    class RowContent(object):
 
         def __init__(self, verb, string, affected_user=None):
             """
@@ -774,57 +774,57 @@ class Events(db.Model):
 
         valid_types = {
             event_type.USER_ADDED:
-                self.Row("added", "{} user: {}.", self.affected_user),
+                self.RowContent("added", "{} user: {}.", self.affected_user),
             event_type.USER_REMOVED:
-                self.Row("removed", "{} user: {}.", self.affected_user),
+                self.RowContent("removed", "{} user: {}.", self.affected_user),
             event_type.USER_PERM_CHANGED:
-                self.Row("changed", "{} permssions for user: {}.", self.affected_user),
+                self.RowContent("changed", "{} permssions for user: {}.", self.affected_user),
             event_type.REQUESTER_INFO_EDITED:
-                self.Row("changed", "{} the requester's information."),
+                self.RowContent("changed", "{} the requester's information."),
             event_type.REQ_CREATED:
-                self.Row("created", "{} this request."),
+                self.RowContent("created", "{} this request."),
             event_type.AGENCY_REQ_CREATED:
-                self.Row("created", "{} this request on behalf of {}.", self.request.requester),
+                self.RowContent("created", "{} this request on behalf of {}.", self.request.requester),
             event_type.REQ_ACKNOWLEDGED:
-                self.Row("acknowledged", "{} this request."),
+                self.RowContent("acknowledged", "{} this request."),
             event_type.REQ_EXTENDED:
-                self.Row("extended", "{} this request."),
+                self.RowContent("extended", "{} this request."),
             event_type.REQ_CLOSED:
-                self.Row("closed", "{} this request."),
+                self.RowContent("closed", "{} this request."),
             event_type.REQ_REOPENED:
-                self.Row("re-opened", "{} this request."),
+                self.RowContent("re-opened", "{} this request."),
             event_type.REQ_TITLE_EDITED:
-                self.Row("changed", "{} the title."),
+                self.RowContent("changed", "{} the title."),
             event_type.REQ_AGENCY_DESC_EDITED:
-                self.Row("changed", "{} the agency description."),
+                self.RowContent("changed", "{} the agency description."),
             event_type.REQ_TITLE_PRIVACY_EDITED:
-                self.Row("changed", "{} the title privacy."),
+                self.RowContent("changed", "{} the title privacy."),
             event_type.REQ_AGENCY_DESC_PRIVACY_EDITED:
-                self.Row("changed", "{} the agency description privacy."),
+                self.RowContent("changed", "{} the agency description privacy."),
             event_type.FILE_ADDED:
-                self.Row("added", "{} a file response."),
+                self.RowContent("added", "{} a file response."),
             event_type.FILE_EDITED:
-                self.Row("changed", "{} a file response."),
+                self.RowContent("changed", "{} a file response."),
             event_type.FILE_REMOVED:
-                self.Row("deleted", "{} a file response."),
+                self.RowContent("deleted", "{} a file response."),
             event_type.LINK_ADDED:
-                self.Row("added", "{} a link response."),
+                self.RowContent("added", "{} a link response."),
             event_type.LINK_EDITED:
-                self.Row("changed", "{} a link response."),
+                self.RowContent("changed", "{} a link response."),
             event_type.LINK_REMOVED:
-                self.Row("deleted", "{} a link response."),
+                self.RowContent("deleted", "{} a link response."),
             event_type.INSTRUCTIONS_ADDED:
-                self.Row("added", "{} an offline instructions response."),
+                self.RowContent("added", "{} an offline instructions response."),
             event_type.INSTRUCTIONS_EDITED:
-                self.Row("changed", "{} an offline instructions response."),
+                self.RowContent("changed", "{} an offline instructions response."),
             event_type.INSTRUCTIONS_REMOVED:
-                self.Row("deleted", "{} an offline instructions response."),
+                self.RowContent("deleted", "{} an offline instructions response."),
             event_type.NOTE_ADDED:
-                self.Row("added", "{} a note response."),
+                self.RowContent("added", "{} a note response."),
             event_type.NOTE_EDITED:
-                self.Row("changed", "{} a note response."),
+                self.RowContent("changed", "{} a note response."),
             event_type.NOTE_DELETED:
-                self.Row("deleted", "{} a note response."),
+                self.RowContent("deleted", "{} a note response."),
         }
 
         if self.type in valid_types:
