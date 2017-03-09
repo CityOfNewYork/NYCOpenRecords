@@ -2,25 +2,25 @@
 <ul>
     {% if event.new_value.get('name') %}
         <li>
-            The file <strong>{{ event.previous_value['name'] }}</strong> was chaanged to
-            <strong>{{ event.new_value['name'] }}</strong>.
+            The file "{{ event.previous_value['name'] }}" was changed to
+            "{{ event.new_value['name'] }}".
         </li>
     {% elif event.new_value.get('hash') %}
         <li>
-            The content of the file <strong>{{ event.response.name }}</strong> was changed.
+            The <strong>content</strong> of the file "{{ event.response.name }}" was changed.
         </li>
     {% endif %}
 
     {% if event.new_value.get('title') %}
         <li>
-            The file response title was changed from <strong>{{ event.previous_value['title'] }}</strong> to
-            <strong>{{ event.new_value['title'] }}</strong>.
+            The file response <strong>title</strong> was changed from "{{ event.previous_value['title'] }}" to
+            "{{ event.new_value['title'] }}".
         </li>
     {% endif %}
 
     {% if event.new_value.get('privacy') %}
         <li>
-            The file response privacy was changed from
+            The file response <strong>privacy</strong> was changed from
             {% include "request/events/modal_body/base/privacy_change.html" %}
         </li>
     {% endif %}

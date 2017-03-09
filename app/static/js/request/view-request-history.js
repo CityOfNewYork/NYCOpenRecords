@@ -60,6 +60,9 @@ $(function() {
             success: function(data) {
                 // append to events
                 events = events.concat(data.events);
+                if (events.length - index_increment == index) {
+                    nextButton.attr("disabled", true);
+                }
             },
             error: function(error) {
                 console.log(error);

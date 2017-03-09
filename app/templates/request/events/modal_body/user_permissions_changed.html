@@ -1,11 +1,11 @@
 {% include "request/events/modal_body/base/heading.html" %}
 <p>
-    The following privilege change affects {{ event.affected_user.name }}.
+    Affected User - <strong>{{ event.affected_user.name }}</strong>
 </p>
 
-{% if permissions_granted %}
+{% if permissions_granted|length > 0 %}
 <p>
-     Permission{% if %}s{% endif %} granted:
+     Granted permission{% if permissions_granted|length > 1 %}s{% endif %}:
 </p>
 <ul>
     {% for permission in permissions_granted %}
@@ -16,12 +16,12 @@
 </ul>
 {% endif %}
 
-{% if permissions_revoked %}
+{% if permissions_revoked|length > 0 %}
 <p>
-    Permission{% if %}s{% endif %} revoked:
+    Revoked permission{% if permissions_revoked|length > 1 %}s{% endif %}:
 </p>
 <ul>
-    {% for permission in permission_revoked %}
+    {% for permission in permissions_revoked %}
         <li>
             {{ permission }}
         </li>
