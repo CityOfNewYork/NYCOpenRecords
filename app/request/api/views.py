@@ -52,12 +52,12 @@ def edit_privacy():
     if title is not None:
         privacy['title'] = title == 'true'
         previous_value['privacy'] = current_request.privacy['title']
-        new_value['privacy'] = title
+        new_value['privacy'] = privacy['title']
         type_ = event_type.REQ_TITLE_PRIVACY_EDITED
     elif agency_desc is not None:
         privacy['agency_description'] = agency_desc == 'true'
         previous_value['privacy'] = current_request.privacy['agency_description']
-        new_value['privacy'] = agency_desc
+        new_value['privacy'] = privacy['agency_description']
         type_ = event_type.REQ_AGENCY_DESC_PRIVACY_EDITED
         if not privacy['agency_description']:
             # if current_request.agency_description_release_date:

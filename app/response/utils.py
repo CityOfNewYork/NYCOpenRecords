@@ -1472,9 +1472,16 @@ class ResponseEditor(metaclass=ABCMeta):
             if value_new is not None:
                 value_orig = str(getattr(self.response, field))
                 if value_new != value_orig:
+                    value_orig = self._bool_check(value_orig)
+                    value_new = self._bool_check(value_new)
                     self.set_data_values(field, value_orig, value_new)
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
+
+    def _bool_check(self, value):
+        if isinstance(value, str) and value.lower() in ("true", "false"):
+            return eval_request_bool(value)
+        return value
 
     def validate_deleted(self):
         """
@@ -1742,9 +1749,3 @@ class RespInstructionsEditor(ResponseEditor):
     @property
     def editable_fields(self):
         return ['content']
-
-
-class RespExtensionEditor(ResponseEditor):
-    @property
-    def editable_fields(self):
-        return ['reason']

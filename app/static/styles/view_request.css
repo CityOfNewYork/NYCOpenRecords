@@ -44,6 +44,10 @@
     padding-bottom: 2em;
 }
 
+.history-row-content {
+    padding-top: 0.5em;
+}
+
 .metadata-preview {
     overflow: hidden;
     text-overflow: ellipsis;

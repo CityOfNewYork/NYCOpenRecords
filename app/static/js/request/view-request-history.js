@@ -2,7 +2,7 @@ $(function() {
 
     var events = null;
     var index = 0;
-    var index_increment = 10;
+    var index_increment = 5;
     var request_id = $.trim($("#request-id").text());
     var navButtons = $("#history-nav-buttons");
     var prevButton = navButtons.find(".prev");
