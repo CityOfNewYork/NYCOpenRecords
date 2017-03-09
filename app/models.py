@@ -768,8 +768,9 @@ class Events(db.Model):
         Returns html safe string for use in the rows of the history section,
         or None if this event is not intended for display purposes.
         """
-        if self.type == event_type.REQ_STATUS_CHANGED: # TODO: event type is never used, add to job
-            return "This request's status was changed to: {}".format(self.new_value['status'])
+        if self.type == event_type.REQ_STATUS_CHANGED:
+            return "This request's status was <strong>changed</strong> to:<br>{}".format(
+                self.new_value['status'])
 
         valid_types = {
             event_type.USER_ADDED:
