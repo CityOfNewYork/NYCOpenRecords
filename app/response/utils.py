@@ -192,8 +192,7 @@ def add_denial(request_id, reason_ids, email_content):
             request_id,
             privacy,
             determination_type.DENIAL,
-            "|".join(Reasons.query.filter_by(id=reason_id).one().content
-                     for reason_id in reason_ids)
+            format_determination_reasons(reason_ids)
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
@@ -247,8 +246,7 @@ def add_closing(request_id, reason_ids, email_content):
             request_id,
             privacy,
             determination_type.CLOSING,
-            "|".join(Reasons.query.filter_by(id=reason_id).one().content
-                     for reason_id in reason_ids)
+            format_determination_reasons(reason_ids)
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
@@ -444,6 +442,10 @@ def add_push():
     """
     # TODO: Implement adding a push
     pass
+
+
+def format_determination_reasons(reason_ids):
+    return "|".join(Reasons.query.filter_by(id=reason_id).one().content for reason_id in reason_ids)
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):

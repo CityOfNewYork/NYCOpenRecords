@@ -159,10 +159,10 @@ class TestingConfig(Config):
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or
                                'postgresql://localhost:5432/openrecords_v2_0_test')
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_test"
 
 
 class ProductionConfig(Config):
-    # TODO: complete me
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
