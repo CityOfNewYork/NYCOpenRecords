@@ -463,10 +463,12 @@ class UserFactory(object):
                     phone_number=None,
                     fax_number=None,
                     mailing_address=None,
-                    email_validated=False,
-                    terms_of_use_accepted=False):
+                    email_validated=True,
+                    terms_of_use_accepted=True):
         if auth_type == user_type_auth.AGENCY_USER:
             assert agency_ein is not None
+        if auth_type == user_type_auth.ANONYMOUS_USER:
+            email_validated, terms_of_use_accepted = False, False
         user = Users(
             guid=guid or self.generate_user_guid(auth_type),
             auth_user_type=auth_type,
