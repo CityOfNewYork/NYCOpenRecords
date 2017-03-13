@@ -1,0 +1,20 @@
+<div class="modal fade" id="event-modal-{{ event.id }}" tabindex="-1"
+     role="dialog" aria-labelledby="#event-modal-label-{{ event.id }}">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="event-id" hidden>{{ event.id }}</div>  <!-- This might not be necessary -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong class="modal-title">
+                    {{ event.type | format_event_type }}
+                </strong>
+            </div>
+            <div class="default">
+                <div class="modal-body">
+                    {{ modal_body | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

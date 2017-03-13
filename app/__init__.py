@@ -83,6 +83,7 @@ def create_app(config_name, jobs_enabled=True):
     ))
     app.logger.addHandler(handler_error)
 
+    app.jinja_env.filters['format_event_type'] = jinja_filters.format_event_type
     app.jinja_env.filters['format_response_type'] = jinja_filters.format_response_type
     app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
     app.jinja_env.filters['format_ultimate_determination_reason'] = jinja_filters.format_ultimate_determination_reason

@@ -502,7 +502,6 @@ def patch(response_id):
         Notes: RespNoteEditor,
         Instructions: RespInstructionsEditor,
         Links: RespLinkEditor,
-        # ...
     }
     editor = editor_for_type[type(resp)](current_user, resp, flask_request)
 

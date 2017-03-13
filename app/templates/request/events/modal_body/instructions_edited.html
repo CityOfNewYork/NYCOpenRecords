@@ -1,0 +1,25 @@
+{% include "request/events/modal_body/base/heading.html" %}
+<ul>
+    {% if event.new_value.get('content') %}
+        <li>
+            <p>
+                The <strong>content</strong> of the instructions was changed from
+            </p>
+            <p>
+                "{{ event.previous_value['content'] }}"
+            </p>
+            <p>
+                to
+            </p>
+            <p>
+                "{{ event.new_value['content'] }}"
+            </p>
+        </li>
+    {% endif %}
+    {% if event.new_value.get('privacy') %}
+        <li>
+            The instructions response <strong>privacy</strong> was changed from
+            {% include "request/events/modal_body/base/privacy_change.html" %}
+        </li>
+    {% endif %}
+</ul>

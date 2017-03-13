@@ -8,7 +8,7 @@ from flask import (
 from app import calendar, scheduler
 from app.models import Requests, Events, Emails, Agencies
 from app.constants import request_status
-from app.constants.event_type import EMAIL_NOTIFICATION_SENT
+from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import update_object, create_object
 from app.lib.email_utils import send_email
@@ -68,6 +68,17 @@ def update_request_statuses():
                 add_to_agencies_to_request_dict(request, agencies_to_acknowledgments_overdue)
 
             if request.status != request_status.OVERDUE:
+                create_object(
+                    Events(
+                        request.id,
+                        user_guid=None,
+                        auth_user_type=None,
+                        type_=REQ_STATUS_CHANGED,
+                        previous_value={"request": request.status},
+                        new_value={"status": request_status.OVERDUE},
+                        response_id=None,
+                    )
+                )
                 update_object(
                     {"status": request_status.OVERDUE},
                     Requests,
@@ -82,6 +93,17 @@ def update_request_statuses():
                 add_to_agencies_to_request_dict(request, agencies_to_acknowledgments_due_soon)
 
             if request.status != request_status.DUE_SOON:
+                create_object(
+                    Events(
+                        request.id,
+                        user_guid=None,
+                        auth_user_type=None,
+                        type_=REQ_STATUS_CHANGED,
+                        previous_value={"status": request.status},
+                        new_value={"status": request_status.DUE_SOON},
+                        response_id=None,
+                    )
+                )
                 update_object(
                     {"status": request_status.DUE_SOON},
                     Requests,
