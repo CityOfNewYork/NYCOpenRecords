@@ -45,7 +45,7 @@ class Roles(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    permissions = db.Column(db.Integer)
+    permissions = db.Column(db.BigInteger)
 
     @classmethod
     def populate(cls):

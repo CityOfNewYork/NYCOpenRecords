@@ -21,11 +21,22 @@ from app.lib.date_utils import utc_to_local, local_to_utc
 
 
 def recreate():
-    """ For when you feel lazy. """
-    es.indices.delete(current_app.config["ELASTICSEARCH_INDEX"],
-                      ignore=[400, 404])
+    """
+    Recreate elasticsearch indices and request docs.
+    """
+    delete_indices()
     create_index()
     create_docs()
+
+
+def delete_indices():
+    """
+    Delete all elasticsearch indices, ignoring errors.
+    """
+    es.indices.delete(
+        current_app.config["ELASTICSEARCH_INDEX"],
+        ignore=[400, 404]
+    )
 
 
 def create_index():
@@ -95,7 +106,7 @@ def create_index():
 
 def create_docs():
     """
-    Create elasticsearch request docs for every request stored in our db.
+    Create elasticsearch request docs for every request db record.
     """
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
@@ -139,7 +150,7 @@ def update_docs():
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
     for r in requests:
-        r.es_update()  # TODO: in bulk, if needed at some point
+        r.es_update()  # TODO: in bulk, if re-creating starts to get too slow
 
 
 def search_requests(query,

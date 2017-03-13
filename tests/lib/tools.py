@@ -23,6 +23,7 @@ from app.models import (
     Agencies,
     UserRequests,
     Roles,
+    Responses,
 )
 from app.constants import (
     ACKNOWLEDGMENT_DAYS_DUE,
@@ -64,12 +65,26 @@ from tests.lib.constants import NON_ANON_USER_GUID_LEN
 class RequestWrapper(object):
     """
     Wrapper class for request objects; provides convenience methods.
-    NOTE: Emails are not sent and no email Events are not created.
+
+    NOTE:
+    - While you will be able to access Requests object attributes directly
+     (e.g. RequestWrapper(Request(...)).id ), dev tools will only provide a suggestion list
+     for methods in this class; should you desire suggestions for the wrapped request
+     you will have to reference it explicitly (e.g. RequestsWrapper(Request(...)).request.id).
+    - Emails are not sent and no email Events are created.
     """
     __files = []
+    __tz_name = current_app.config["APP_TIMEZONE"]
 
-    def __init__(self, request, clean=True):
+    def __init__(self, request, user=None, clean=True):
+        """
+        :param request: the request to wrap
+        :param user: primary user for actions performed
+            if not supplied, will try to fetch matching agency user
+        :param clean: remove artifacts on object deletion?
+        """
         self.request = request
+        self.user = user or request.agency_users.first()
         self.__clean = clean
 
     def __getattr__(self, name):
@@ -92,7 +107,8 @@ class RequestWrapper(object):
                  filepath=None,
                  name=None,
                  mime_type=None,
-                 privacy=response_privacy.PRIVATE):
+                 privacy=response_privacy.PRIVATE,
+                 user=None):
         if filepath is None:
             filename = name or fake.file_name(extension='txt')
             filepath = os.path.join(
@@ -118,48 +134,49 @@ class RequestWrapper(object):
             size=fu.getsize(filepath),
             hash_=fu.get_hash(filepath),
         )
-        create_response_event(event_type.FILE_ADDED, response)
+        self.__create_event(event_type.FILE_ADDED, response, user)
         create_object(response)
         return response
 
-    def add_link(self, title=None, url=None, privacy=response_privacy.PRIVATE):
+    def add_link(self, title=None, url=None, privacy=response_privacy.PRIVATE, user=None):
         response = Links(
             self.request.id,
             privacy,
             title=title or fake.title(),
             url=url or fake.url()
         )
-        create_response_event(event_type.LINK_ADDED, response)
+        self.__create_event(event_type.LINK_ADDED, response, user)
         create_object(response)
         return response
 
-    def add_note(self, content=None, privacy=response_privacy.PRIVATE):
+    def add_note(self, content=None, privacy=response_privacy.PRIVATE, user=None):
         response = Notes(
             self.request.id,
             privacy,
             content=content or fake.paragraph()
         )
-        create_response_event(event_type.NOTE_ADDED, response)
+        self.__create_event(event_type.NOTE_ADDED, response, user)
         create_object(response)
         return response
 
-    def add_instructions(self, content=None, privacy=response_privacy.PRIVATE):
+    def add_instructions(self, content=None, privacy=response_privacy.PRIVATE, user=None):
         response = Instructions(
             self.request.id,
             privacy,
             content=content or fake.paragraph()
         )
-        create_response_event(event_type.INSTRUCTIONS_ADDED, response)
+        self.__create_event(event_type.INSTRUCTIONS_ADDED, response, user)
         create_object(response)
         return response
 
-    def acknowledge(self, info=None, days=None, date=None):
+    def acknowledge(self, info=None, days=None, date=None, user=None):
         if date is not None and info is not None:
             info = fake.paragraph()
         new_due_date = self.__get_new_due_date(days, date)
         return self.__extend(
             determination_type.ACKNOWLEDGMENT,
             new_due_date,
+            user,
             {
                 "due_date": new_due_date,
                 "status": request_status.IN_PROGRESS
@@ -167,7 +184,7 @@ class RequestWrapper(object):
             info
         )
 
-    def extend(self, reason=None, days=None, date=None):
+    def extend(self, reason=None, days=None, date=None, user=None):
         new_due_date = self.__get_new_due_date(days, date)
         days_until_due = calendar.busdaycount(
             datetime.utcnow(), new_due_date.replace(hour=23, minute=59, second=59))
@@ -180,21 +197,23 @@ class RequestWrapper(object):
         return self.__extend(
             determination_type.EXTENSION,
             new_due_date,
+            user,
             {"status": new_status},
             reason or fake.paragraph()
         )
 
-    def reopen(self, date):
+    def reopen(self, date, user=None):
         return self.__extend(
             determination_type.REOPENING,
-            process_due_date(local_to_utc(date, current_app.config["TIMEZONE_NAME"])),
+            process_due_date(local_to_utc(date, self.__tz_name)),
+            user,
             {
                 "status": request_status.IN_PROGRESS,
                 "agency_description_release_date": None
             }
         )
 
-    def __extend(self, extend_type, new_due_date, request_update_data=None, reason=None):
+    def __extend(self, extend_type, new_due_date, user, request_update_data=None, reason=None):
         request_update_data["due_date"] = new_due_date
         update_object(
             request_update_data,
@@ -209,32 +228,31 @@ class RequestWrapper(object):
             new_due_date
         )
         create_object(response)
-        create_response_event(extend_type, response)
+        self.__create_event(extend_type, response, user)
         return response
 
     def __get_new_due_date(self, days=None, date=None):
         assert days is not None or date is not None
-        tz_name = current_app.config["TIMEZONE_NAME"]
         if days is None:
             date = datetime.strptime(date, '%Y-%m-%d')
-            new_due_date = process_due_date(local_to_utc(date, tz_name))
+            new_due_date = process_due_date(local_to_utc(date, self.__tz_name))
         else:
             new_due_date = get_due_date(
                 utc_to_local(
                     self.request.due_date,
-                    tz_name
+                    self.__tz_name
                 ),
                 int(days),
-                tz_name)
+                self.__tz_name)
         return new_due_date
 
-    def deny(self, reason_ids=None):
-        return self.__close(determination_type.DENIAL, reason_ids)
+    def deny(self, reason_ids=None, user=None):
+        return self.__close(determination_type.DENIAL, user, reason_ids)
 
-    def close(self, reason_ids=None):
-        return self.__close(determination_type.CLOSING, reason_ids)
+    def close(self, reason_ids=None, user=None):
+        return self.__close(determination_type.CLOSING, user, reason_ids)
 
-    def __close(self, close_type, reason_ids=None):
+    def __close(self, close_type, user, reason_ids=None):
         if reason_ids is None:
             reasons = "|".join(
                 (r.content for r in
@@ -263,21 +281,76 @@ class RequestWrapper(object):
             reasons,
         )
         create_object(response)
-        create_response_event(event_type.REQ_CLOSED, response)
+        self.__create_event(event_type.REQ_CLOSED, response, user)
         return response
 
-    def set_due_soon(self, date=None):  # TODO
-        # assert date >  date <  # DUE_SOON_DAYS
-        pass
+    def set_due_soon(self, days=None, shift_dates=True):
+        """
+        Shift request date field values, with due date set to up to 2 days
+        (DUE_SOON_DAYS_THRESHOLD) from now, and sets request statues to "due_soon".
 
-    def set_overdue(self, date=None):  # TODO
-        assert date > datetime.utcnow()
+        :param days: days until request is due (max: 2)
+        :param shift_dates: shift dates or only change status?
+        """
+        days = min(days, current_app.config["DUE_SOON_DAYS_THRESHOLD"])
+        self.__set_due_soon_or_overdue(
+            request_status.OVERDUE,
+            calendar.addbusdays(
+                datetime.utcnow(), days
+            ).replace(hour=23, minute=59, second=59),
+            shift_dates
+        )
 
-    def add_user(self, user, permissions=None, role=None):
+    def set_overdue(self, shift_dates=True):
+        """
+        Shift request date field values, with due date set to yesterday,
+        and sets request statues to "overdue".
+
+        :param shift_dates: shift dates or only change status?
+        """
+        self.__set_due_soon_or_overdue(
+            request_status.DUE_SOON,
+            calendar.addbusdays(datetime.utcnow(), -1),
+            shift_dates
+        )
+
+    def __set_due_soon_or_overdue(self, status, new_due_date, shift_dates):
+        data = {"status": status}
+        if shift_dates:
+            shift = new_due_date - self.request.due_date,
+            data.update({
+                "due_date": new_due_date,
+                "date_submitted": self.request.date_submitted + shift,
+                "date_created": self.request.date_created + shift,
+                "agency_description_release_date": (
+                    self.request.agency_description_release_date + shift
+                    if self.request.agency_description_release_date
+                    else None
+                )
+            })
+        create_object(
+            Events(
+                self.request.id,
+                user_guid=None,
+                auth_user_type=None,
+                type_=event_type.REQ_STATUS_CHANGED,
+                previous_value={"request": self.request.status},
+                new_value={"status": status},
+                response_id=None
+            )
+        )
+        update_object(data, Requests, self.request.id)
+
+    def add_user(self, user, permissions=None, role=None, agent=None):
         """
         Assign user to request.
         A role name or permissions must be supplied if the supplied user is not anonymous nor public
         (i.e. is an agency user) as there are multiple roles to choose from for agency users.
+        :param user: user to add
+        :param permissions: permissions to grant to user
+        :param role: role from which to retrieve permissions to grant to user
+        :param agent: user performing this action
+        :return: created UserRequests object
         """
         if role is None and permissions is None:
             assert user.auth_user_type in (user_type_auth.ANONYMOUS_USER, user_type_auth.PUBLIC_USER_TYPES)
@@ -294,13 +367,18 @@ class RequestWrapper(object):
             permissions=permissions
         )
         create_object(user_request)
-        create_user_request_event(event_type.USER_ADDED, user_request)
+        self.__create_event(event_type.USER_ADDED, user_request, agent)
         return user_request
 
-    def edit_user(self, user, perms_set=None, perms_add=None, perms_remove=None):
+    def edit_user(self, user, perms_set=None, perms_add=None, perms_remove=None, agent=None):
         """
-        Edit assigned user permissions.
+        Edit assigned user permissions for request.
         At least one permission-specific argument must be passed.
+        :param user: user to edit
+        :param perms_set: permissions to set
+        :param perms_add: permissions to add
+        :param perms_remove: permissions to remove
+        :param agent: user performing this action
         """
         assert perms_set or perms_add or perms_remove
         user_request = UserRequests.filter_by(
@@ -315,17 +393,37 @@ class RequestWrapper(object):
             user_request.add_permissions(perms_add)
         if perms_remove:
             user_request.remove_permissions(perms_remove)
-        create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions)
+        self.__create_event(event_type.USER_PERM_CHANGED, user_request, agent,
+                            old_permissions=old_permissions)
 
-    def remove_user(self, user):
-        """ Un-assign user. """
+    def remove_user(self, user, agent=None):
+        """
+        Un-assign user from request.
+        :param user: user to remove
+        :param agent: user performing this action
+        """
         user_request = UserRequests.filter_by(
             user_guid=user.guid,
             auth_user_type=user.auth_user_type,
             request_id=self.request.id
         ).one()
-        create_user_request_event(event_type.USER_REMOVED, user_request)
+        self.__create_event(event_type.USER_REMOVED, user_request, agent)
         delete_object(user_request)
+
+    def __create_event(self, type_, obj, user=None, **kwargs):
+        """
+        Create a Responses or UserRequests event.
+        :param type_: event type
+        :param obj: Responses or UserRequests object
+        :param user: user creating event
+        """
+        assert (isinstance(obj, Responses) or isinstance(obj, UserRequests))
+        assert (user or self.user), "a user must be provided when creating a Responses or UserRequests event"
+        user = user or self.user
+        if isinstance(obj, Responses):
+            create_response_event(type_, obj, user)
+        elif isinstance(obj, UserRequests):
+            create_user_request_event(type_, obj, user=user, **kwargs)
 
     def __del__(self):
         """
@@ -363,7 +461,8 @@ class RequestsFactory(object):
                        category=None,
                        privacy=None,
                        submission=None,
-                       status=request_status.OPEN):
+                       status=request_status.OPEN,
+                       tz_name=current_app.config["APP_TIMEZONE"]):
         """
         Create a request as the supplied user. An anonymous requester
         will be created if the supplied user is an agency user.
@@ -386,7 +485,6 @@ class RequestsFactory(object):
         agency_ein = agency_ein or self.agency_ein or user.agency_ein or get_random_agency().ein
 
         # create dates
-        tz_name = current_app.config["TIMEZONE_NAME"]
         date_created_local = utc_to_local(datetime.utcnow(), tz_name)
         date_submitted_local = date_submitted or get_following_date(date_created_local)
         due_date = due_date or get_due_date(date_submitted_local, ACKNOWLEDGMENT_DAYS_DUE, tz_name)
@@ -409,7 +507,8 @@ class RequestsFactory(object):
         )
         if agency_description is not None:
             request.agency_description = agency_description
-        request = RequestWrapper(request)
+        create_object(request)
+        request = RequestWrapper(request, self.agency_user)
 
         # create events
         timestamp = datetime.utcnow()
@@ -418,7 +517,7 @@ class RequestsFactory(object):
             auth_user_type=user.auth_user_type,
             request_id=request.id,
             type_=event_type.REQ_CREATED,
-            timestamp=timedelta,
+            timestamp=timestamp,
             new_value=request.val_for_events
         ))
         if user.is_agency:
@@ -441,7 +540,8 @@ class RequestsFactory(object):
         return self.create_request(self.__uf.create_anonymous_user(), **kwargs)
 
     def create_request_as_agency_user(self, **kwargs):
-        return self.create_request(self.agency_user, **kwargs)
+        return self.create_request(
+            self.agency_user, agency_ein=self.agency_user.agency_ein, **kwargs)
 
     def create_request_as_public_user(self, **kwargs):
         return self.create_request(self.public_user, **kwargs)
@@ -476,7 +576,7 @@ class UserFactory(object):
             email=email or fake.email(),
             first_name=first_name or fake.first_name(),
             last_name=last_name or fake.last_name(),
-            title=title or fake.title(),
+            title=title or fake.user_title(),
             organization=organization or fake.organization(),
             phone_number=phone_number or fake.phone_number(),
             fax_number=fax_number or fake.fax_number(),
@@ -495,7 +595,7 @@ class UserFactory(object):
             agency_ein=agency_ein or get_random_agency().ein)
 
     def create_public_user(self):
-        return self.create_user(random.choice(user_type_auth.PUBLIC_USER_TYPES))
+        return self.create_user(random.choice(list(user_type_auth.PUBLIC_USER_TYPES)))
 
     @staticmethod
     def generate_user_guid(auth_type):

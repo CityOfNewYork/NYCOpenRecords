@@ -1,6 +1,7 @@
 import unittest
 from app import create_app, db
-from app.models import Roles, Agencies
+from app.models import Roles, Agencies, Reasons
+from app.search.utils import create_index, delete_indices
 
 
 class BaseTestCase(unittest.TestCase):
@@ -11,12 +12,14 @@ class BaseTestCase(unittest.TestCase):
     def setUpClass(cls):
         with cls.app.app_context():
             db.create_all()
+            create_index()
 
     @classmethod
     def tearDownClass(cls):
         with cls.app.app_context():
             db.session.remove()
             db.drop_all()
+            delete_indices()
 
     def setUp(self):
         self.client = self.app.test_client()
@@ -37,5 +40,8 @@ class BaseTestCase(unittest.TestCase):
 
     @staticmethod
     def populate_database():
-        Roles.populate()
-        Agencies.populate()
+        list(map(lambda x: x.populate(), (
+            Roles,
+            Agencies,
+            Reasons,
+        )))

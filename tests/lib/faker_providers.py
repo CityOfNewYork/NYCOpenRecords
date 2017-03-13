@@ -1,5 +1,5 @@
 """
-    Faker Providers with aliases for OpenRecords entities.
+    Faker Providers including aliases for OpenRecords entities.
 """
 import random
 from faker import Faker
@@ -11,7 +11,7 @@ fake = Faker()
 
 class UserDataProvider(BaseProvider):
 
-    def title(self):
+    def user_title(self):
         return fake.job()
 
     def organization(self):

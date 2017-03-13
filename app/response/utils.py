@@ -1377,7 +1377,7 @@ def safely_send_and_add_email(request_id,
         current_app.logger.exception("Error: {}".format(e))
 
 
-def create_response_event(events_type, response):
+def create_response_event(events_type, response, user=current_user):
     """
     Create and store event object for given response.
 
@@ -1386,8 +1386,8 @@ def create_response_event(events_type, response):
 
     """
     event = Events(request_id=response.request_id,
-                   user_guid=response.request.requester.guid if current_user.is_anonymous else current_user.guid,
-                   auth_user_type=user_type_auth.ANONYMOUS_USER if current_user.is_anonymous else current_user.auth_user_type,
+                   user_guid=response.request.requester.guid if user.is_anonymous else user.guid,
+                   auth_user_type=user_type_auth.ANONYMOUS_USER if user.is_anonymous else user.auth_user_type,
                    type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
