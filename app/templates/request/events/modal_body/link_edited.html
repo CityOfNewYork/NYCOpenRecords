@@ -2,8 +2,9 @@
 <ul>
     {% if event.new_value.get('url') %}
         <li>
-            The link <strong>url</strong> was changed from "{{ event.previous_value['url'] }}"
-            to "{{ event.new_value['url'] }}".
+            The link <strong>url</strong> was changed from <a
+                href="{{ event.previous_value['url'] }}">{{ event.previous_value['url'] }}</a>
+            to <a href="{{ event.new_value['url'] }}">{{ event.new_value['url'] }}</a>.
         </li>
     {% endif %}
     {% if event.new_value.get('title') %}

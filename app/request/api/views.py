@@ -216,7 +216,6 @@ def get_request_events():
     return jsonify(events=event_jsons)
 
 
-
 @request_api_blueprint.route('/responses', methods=['GET'])
 def get_request_responses():
     """
