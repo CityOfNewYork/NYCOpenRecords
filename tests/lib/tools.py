@@ -534,6 +534,9 @@ class RequestsFactory(object):
         if user.is_agency:
             request.add_user(self.__uf.create_anonymous_user())
 
+        # create request doc now that requester is set
+        request.es_create()
+
         return request
 
     def create_request_as_anonymous_user(self, **kwargs):
@@ -567,6 +570,8 @@ class UserFactory(object):
                     terms_of_use_accepted=True):
         if auth_type == user_type_auth.AGENCY_USER:
             assert agency_ein is not None
+        else:
+            assert agency_ein is None
         if auth_type == user_type_auth.ANONYMOUS_USER:
             email_validated, terms_of_use_accepted = False, False
         user = Users(
