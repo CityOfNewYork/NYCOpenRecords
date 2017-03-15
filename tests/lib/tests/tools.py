@@ -14,16 +14,11 @@ from tests.lib.tools import (
 class UserFactoryTests(BaseTestCase):
 
     def setUp(self):
+        super().setUp()
         self.uf = UserFactory()
 
     def test_create_user(self):
         auth_type = user_type_auth.PUBLIC_USER_NYC_ID
-
-        # user 1
-        u1 = self.uf.create_user(auth_type)
-        u1 = Users.query.get((u1.guid, u1.auth_user_type))
-
-        # user 2
         email = "shrimp@mail.com"
         first_name = "Bubba"
         last_name = "Gump"
@@ -35,11 +30,17 @@ class UserFactoryTests(BaseTestCase):
             "address_one": "P. Sherman 42",
             "address_two": "Apt. B",
             "city": "Sydney",
-            "state":  "Australia",  # yeah
+            "state": "Australia",  # oh yeah
             "zip": "10101"
         }
         email_validated = False
         terms_of_use_accepted = False
+
+        # user 1
+        u1 = self.uf.create_user(auth_type)
+        u1 = Users.query.get((u1.guid, u1.auth_user_type))
+
+        # user 2
         u2 = self.uf.create_user(
             auth_type,
             email=email,
@@ -53,12 +54,12 @@ class UserFactoryTests(BaseTestCase):
             email_validated=email_validated,
             terms_of_use_accepted=terms_of_use_accepted
         )
-        u2 = Users.query.get(u2.guid, u2.auth_user_type)
+        u2 = Users.query.get((u2.guid, u2.auth_user_type))
 
         # user 1
         self.assertEquals(
             [
-                u1.user_auth_type,
+                u1.auth_user_type,
                 u1.agency_ein,
                 type(u1.email),
                 type(u1.first_name),
@@ -90,7 +91,7 @@ class UserFactoryTests(BaseTestCase):
         # user 2
         self.assertEqual(
             [
-                u2.user_auth_type,
+                u2.auth_user_type,
                 u2.agency_ein,
                 u2.email,
                 u2.first_name,

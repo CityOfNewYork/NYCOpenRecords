@@ -24,12 +24,12 @@ def recreate():
     """
     Recreate elasticsearch indices and request docs.
     """
-    delete_indices()
+    delete_index()
     create_index()
     create_docs()
 
 
-def delete_indices():
+def delete_index():
     """
     Delete all elasticsearch indices, ignoring errors.
     """

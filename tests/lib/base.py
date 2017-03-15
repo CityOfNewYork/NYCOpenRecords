@@ -1,12 +1,12 @@
 import unittest
 from app import create_app, db
 from app.models import Roles, Agencies, Reasons
-from app.search.utils import create_index, delete_indices
+from app.search.utils import create_index, delete_index
 
 
 class BaseTestCase(unittest.TestCase):
 
-    app = create_app('testing')
+    app = create_app('testing', jobs_enabled=False)
 
     @classmethod
     def setUpClass(cls):
@@ -19,7 +19,7 @@ class BaseTestCase(unittest.TestCase):
         with cls.app.app_context():
             db.session.remove()
             db.drop_all()
-            delete_indices()
+            delete_index()
 
     def setUp(self):
         self.client = self.app.test_client()
