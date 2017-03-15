@@ -236,8 +236,11 @@ class SearchRequestsForm(Form):
 
     # category = SelectField('Category', get_categories())
 
-    def __init__(self):
+    def __init__(self, user):
         super(SearchRequestsForm, self).__init__()
-        self.agency_ein.choices = get_agency_choices()
-        self.agency_ein.choices.insert(0, ('', 'All'))
+        if user.is_agency:
+            self.agency_ein.choices = [(user.agency.ein, user.agency.name)]
+        else:
+            self.agency_ein.choices = get_agency_choices()
+            self.agency_ein.choices.insert(0, ('', 'All'))
         # Why choices must be set in constructor I do not know... some db issue
