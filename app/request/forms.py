@@ -232,15 +232,17 @@ class CloseRequestForm(FinishRequestForm):
 
 
 class SearchRequestsForm(Form):
-    agency_ein = SelectField('Agency')  # , choices=get_agency_choices())
+    agency_ein = SelectField('Agency')
 
     # category = SelectField('Category', get_categories())
 
     def __init__(self, user):
         super(SearchRequestsForm, self).__init__()
+        self.agency_ein.choices = get_agency_choices()
+        # set default value of agency select field to agency user's agency
         if user.is_agency:
-            self.agency_ein.choices = [(user.agency.ein, user.agency.name)]
+            self.agency_ein.default = user.agency.ein
+            self.process()
         else:
-            self.agency_ein.choices = get_agency_choices()
             self.agency_ein.choices.insert(0, ('', 'All'))
         # Why choices must be set in constructor I do not know... some db issue
