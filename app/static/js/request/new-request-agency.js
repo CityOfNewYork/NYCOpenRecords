@@ -58,7 +58,11 @@ $(document).ready(function () {
     $(".dtpick").datepicker({
         dateFormat: "yy-mm-dd",
         maxDate: 0
-    }).keydown(false);
+    }).keydown(function (e) {
+        // prevent keyboard input except for tab
+        if (e.keyCode !== 9)
+            e.preventDefault();
+    });
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var required_fields = ['request-title','request-description', 'request-agency', 'first-name','last-name','email',
