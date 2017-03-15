@@ -344,8 +344,14 @@ class RequestWrapper(object):
     def add_user(self, user, permissions=None, role=None, agent=None):
         """
         Assign user to request.
-        A role name or permissions must be supplied if the supplied user is not anonymous nor public
-        (i.e. is an agency user) as there are multiple roles to choose from for agency users.
+        If a role is not supplied, one will be provided and permissions
+        will be set based on the user's status:
+            anonymous           role_name.ANONYMOUS
+            public              role_name.PUBLIC_REQUESTER
+            agency admin        role_name.AGENCY_ADMIN
+            agency user         role_name.AGENCY_OFFICER
+            agency inactive     role_name.AGENCY_HELPER
+
         :param user: user to add
         :param permissions: permissions to grant to user
         :param role: role from which to retrieve permissions to grant to user
@@ -353,11 +359,15 @@ class RequestWrapper(object):
         :return: created UserRequests object
         """
         if role is None and permissions is None:
-            assert user.auth_user_type in (user_type_auth.ANONYMOUS_USER, user_type_auth.PUBLIC_USER_TYPES)
-            role = {
-                user_type_auth.ANONYMOUS_USER: role_name.ANONYMOUS,
-                user_type_auth.PUBLIC_USER_TYPES: role_name.PUBLIC_REQUESTER
-            }[user.auth_user_type]
+            if user.auth_user_type == user_type_auth.ANONYMOUS_USER:
+                role = role_name.ANONYMOUS
+            elif user.auth_user_type in user_type_auth.PUBLIC_USER_TYPES:
+                role = role_name.PUBLIC_REQUESTER
+            elif user.auth_user_type == user_type_auth.AGENCY_USER:
+                if user.is_agency_active:
+                    role = role_name.AGENCY_ADMIN if user.is_agency_admin else role_name.AGENCY_OFFICER
+                else:
+                    role = role_name.AGENCY_HELPER
         permissions = permissions or Roles.query.filter_by(name=role).one().permissions
         user_request = UserRequests(
             user_guid=user.guid,
@@ -500,8 +510,8 @@ class RequestsFactory(object):
             date_created=date_created or datetime.utcnow(),
             date_submitted=date_submitted,
             due_date=due_date,
-            category=category,
-            privacy=privacy,
+            category=category,  # TODO
+            privacy=privacy,  # TODO
             submission=submission or random.choice(submission_methods.ALL),
             status=status,
         )
@@ -529,7 +539,7 @@ class RequestsFactory(object):
                 timestamp=timestamp
             ))
 
-        # add users TODO: assign other agency users
+        # add users TODO: assign other agency admins
         request.add_user(user)
         if user.is_agency:
             request.add_user(self.__uf.create_anonymous_user())
@@ -567,11 +577,13 @@ class UserFactory(object):
                     fax_number=None,
                     mailing_address=None,
                     email_validated=True,
-                    terms_of_use_accepted=True):
+                    terms_of_use_accepted=True,
+                    is_agency_active=False,  # TODO: tests for these two
+                    is_agency_admin=False):
         if auth_type == user_type_auth.AGENCY_USER:
             assert agency_ein is not None
         else:
-            assert agency_ein is None
+            assert all((agency_ein is None, not is_agency_active, not is_agency_admin))
         if auth_type == user_type_auth.ANONYMOUS_USER:
             email_validated, terms_of_use_accepted = False, False
         user = Users(
@@ -587,7 +599,10 @@ class UserFactory(object):
             fax_number=fax_number or fake.fax_number(),
             mailing_address=mailing_address or fake.mailing_address(),
             email_validated=email_validated,
-            terms_of_use_accepted=terms_of_use_accepted)
+            terms_of_use_accepted=terms_of_use_accepted,
+            is_agency_active=is_agency_active,
+            is_agency_admin=is_agency_admin,
+        )
         create_object(user)
         return user
 

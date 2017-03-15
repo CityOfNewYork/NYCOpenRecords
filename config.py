@@ -154,7 +154,7 @@ class TestingConfig(Config):
     TESTING = True
     VIRUS_SCAN_ENABLED = True
     USE_SFTP = False
-    UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
+    UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data_test/')
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or
