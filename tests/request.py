@@ -21,12 +21,9 @@ class RequestViewsTests(BaseTestCase):
     def test_view_all_agency(self, render_template_patch, search_requests_form_patch):
         """
         Test render_template in request.views.view_all is called once for logged in agency user.
-
-        :param render_template_patch: patch render_template method from request.views
-        :param search_requests_form_patch: patch SearchRequestsForm form object from request.views
         """
         # login agency_user
-        with self.client as client:
+        with self.client as client:  # TODO: login_user_for_client_session(client)
             with client.session_transaction() as session:
                 session['user_id'] = self.agency_user.get_id()
                 session['_fresh'] = True
@@ -45,9 +42,6 @@ class RequestViewsTests(BaseTestCase):
     def test_view_all_anon(self, render_template_patch, search_requests_form_patch):
         """
         Test render_template in request.views.view_all is called once for anonymous user.
-
-        :param render_template_patch: patch render_template method from request.views
-        :param search_requests_form_patch: patch SearchRequestsForm form object from request.views
         """
         with self.client:
             self.client.get('/request/view_all')

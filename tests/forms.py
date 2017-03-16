@@ -21,7 +21,7 @@ class SearchRequestsFormTests(BaseTestCase):
         self.assertEqual(form.agency_ein.default, None)
 
         # agency user
-        login_user(self.agency_user)
+        login_user(self.agency_user)  # TODO: create a context manager for login_user
         form = SearchRequestsForm()
         self.assertEqual(form.agency_ein.default, self.agency_user.agency_ein)
         logout_user()
