@@ -6,6 +6,7 @@
 
 from datetime import datetime
 
+from flask_login import current_user
 from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import (
@@ -232,7 +233,7 @@ class CloseRequestForm(FinishRequestForm):
 
 
 class SearchRequestsForm(Form):
-    agency_ein = SelectField('Agency')  # , choices=get_agency_choices())
+    agency_ein = SelectField('Agency')
 
     # category = SelectField('Category', get_categories())
 
@@ -240,4 +241,7 @@ class SearchRequestsForm(Form):
         super(SearchRequestsForm, self).__init__()
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
-        # Why choices must be set in constructor I do not know... some db issue
+        # set default value of agency select field to agency user's agency
+        if current_user.is_agency:
+            self.agency_ein.default = current_user.agency.ein
+            self.process()
