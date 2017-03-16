@@ -191,11 +191,12 @@ class Agencies(db.Model):
     )
 
     @classmethod
-    def populate(cls):
+    def populate(cls, csv_name=None):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        with open(current_app.config['AGENCY_DATA'], 'r') as data:
+        filename = csv_name or current_app.config['AGENCY_DATA']
+        with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
@@ -389,8 +390,9 @@ class Users(UserMixin, db.Model):
         }
 
     @classmethod
-    def populate(cls):
-        with open(current_app.config['STAFF_DATA'], 'r') as data:
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['STAFF_DATA']
+        with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
 
             for row in dictreader:

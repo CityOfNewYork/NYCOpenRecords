@@ -94,6 +94,17 @@ def create_user(first_name, last_name, email):
     print(user)
 
 
+@manager.option('-u', '--users', dest='users', action='store_true')
+@manager.option('-a', '--agencies', dest='agencies', action='store_true')
+@manager.option('-f', '--filename', dest='filename', default=None, required=True)
+def import_data(users, agencies, filename):
+    """Import data from CSV file."""
+    if users:
+        Users.populate(csv_name=filename)
+    elif agencies:
+        Agencies.populate(csv_name=filename)
+
+
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
 @manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='coverage')
 def test(cov=False, test_name=None):
