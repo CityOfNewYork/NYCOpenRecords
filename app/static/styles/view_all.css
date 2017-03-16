@@ -75,3 +75,15 @@
     width: 4em;
     display: inline;
 }
+
+.advanced-options-div {
+    margin-top: 5px;
+}
+
+#advanced-options-toggle {
+    text-decoration: none;
+}
+
+#advanced-options-toggle:hover {
+    text-decoration: underline;
+}

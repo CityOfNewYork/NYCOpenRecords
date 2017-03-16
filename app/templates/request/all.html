@@ -27,9 +27,6 @@
                     This will save time for you and for the City of New York.
                 </p>
             </div>
-{#            <div class="col-sm-3 text-center" id="new-request">#}
-{#                <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-primary">Request a<br>New Record</a>#}
-{#            </div>#}
         </div>
         <br>
         <!-- Search & Filters -->
@@ -48,6 +45,15 @@
                     <input type="hidden" name="sort_date_due">
                     <input type="hidden" name="sort_title">
                 </div>
+                {% if current_user.is_agency %}
+                    <div class="row">
+                        <div class="col-sm-12 no-pad-left no-pad-right">
+                            <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV
+                            </button>
+                            <span id="generate-document-error"></span>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </form>
         <div class="row">
@@ -96,7 +102,7 @@
                 </button>
             </div>
         </div>
-        <div class="col-sm-12 request-record-button" id="new-request" hidden>
+        <div class="col-sm-12 request-record-button" id="new-request">
             <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
         </div>
     </div>

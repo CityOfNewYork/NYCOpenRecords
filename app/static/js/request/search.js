@@ -10,9 +10,7 @@ $(function() {
         searchBtn = $("#search"),
         dateReq = $("#date-req"),
         noResultsFound = true,
-        generateDocBtn = $("#generate-document"),
-        newRequestBtn = $("#new-request");
-
+        generateDocBtn = $("#generate-document");
 
     // Date stuff
     function elemToDate(elem) {
@@ -211,7 +209,6 @@ $(function() {
                     end = start + data.count;
                     if (end === total) {
                         next.hide();
-                        newRequestBtn.show();
                     }
                     else {
                         next.show();
@@ -333,8 +330,6 @@ $(function() {
             setStart(start - parseInt($("#size").val()));
             search();
         }
-        if (newRequestBtn.is(":visible"))
-            newRequestBtn.hide();
     });
 
     $(".sort-field").click(function () {
@@ -347,8 +342,10 @@ $(function() {
         }
     });
 
-    $("#filter-button").click(function() {
+    // Toggle advanced search options (hide/show) and glyphicons directions on click
+    $("#advanced-options-toggle").click(function() {
         $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
-        $("#advanced-search-options").toggle()
+        $("#advanced-search-options").toggle();
+        return false;
     });
 });
