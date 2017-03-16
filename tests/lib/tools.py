@@ -445,7 +445,7 @@ class RequestWrapper(object):
                     fu.remove(path)
 
 
-class RequestsFactory(object):
+class RequestFactory(object):
     """
     Class for generating requests.
     """
@@ -469,7 +469,8 @@ class RequestsFactory(object):
                        date_submitted=None,
                        due_date=None,
                        category=None,
-                       privacy=None,
+                       title_privacy=True,
+                       agency_desc_privacy=True,
                        submission=None,
                        status=request_status.OPEN,
                        tz_name=current_app.config["APP_TIMEZONE"]):
@@ -490,12 +491,12 @@ class RequestsFactory(object):
         # check agency_ein
         if (agency_ein is not None or self.agency_ein is not None) \
                 and user.auth_user_type == user_type_auth.AGENCY_USER:
-            assert agency_ein or self.agency_ein  == user.agency_ein, \
+            assert (agency_ein or self.agency_ein) == user.agency_ein, \
                 "user's agency ein must match supplied agency ein"
         agency_ein = agency_ein or self.agency_ein or user.agency_ein or get_random_agency().ein
 
         # create dates
-        date_created_local = utc_to_local(datetime.utcnow(), tz_name)
+        date_created_local = utc_to_local(date_created or datetime.utcnow(), tz_name)
         date_submitted_local = date_submitted or get_following_date(date_created_local)
         due_date = due_date or get_due_date(date_submitted_local, ACKNOWLEDGMENT_DAYS_DUE, tz_name)
         date_created = date_created or local_to_utc(date_created_local, tz_name)
@@ -510,13 +511,12 @@ class RequestsFactory(object):
             date_created=date_created or datetime.utcnow(),
             date_submitted=date_submitted,
             due_date=due_date,
-            category=category,  # TODO
-            privacy=privacy,  # TODO
+            category=category,
+            privacy={"title": title_privacy, "agency_description": agency_desc_privacy},
             submission=submission or random.choice(submission_methods.ALL),
             status=status,
         )
-        if agency_description is not None:
-            request.agency_description = agency_description
+        request.agency_description = agency_description or fake.agency_description()
         create_object(request)
         request = RequestWrapper(request, self.agency_user)
 
@@ -578,7 +578,7 @@ class UserFactory(object):
                     mailing_address=None,
                     email_validated=True,
                     terms_of_use_accepted=True,
-                    is_agency_active=False,  # TODO: tests for these two
+                    is_agency_active=False,
                     is_agency_admin=False):
         if auth_type == user_type_auth.AGENCY_USER:
             assert agency_ein is not None
@@ -606,16 +606,17 @@ class UserFactory(object):
         create_object(user)
         return user
 
-    def create_anonymous_user(self):
-        return self.create_user(user_type_auth.ANONYMOUS_USER)
+    def create_anonymous_user(self, **kwargs):
+        return self.create_user(user_type_auth.ANONYMOUS_USER, **kwargs)
 
-    def create_agency_user(self, agency_ein=None):
+    def create_agency_user(self, agency_ein=None, **kwargs):
         return self.create_user(
             user_type_auth.AGENCY_USER,
-            agency_ein=agency_ein or get_random_agency().ein)
+            agency_ein=agency_ein or get_random_agency().ein,
+            **kwargs)
 
-    def create_public_user(self):
-        return self.create_user(random.choice(list(user_type_auth.PUBLIC_USER_TYPES)))
+    def create_public_user(self, **kwargs):
+        return self.create_user(random.choice(list(user_type_auth.PUBLIC_USER_TYPES)), **kwargs)
 
     @staticmethod
     def generate_user_guid(auth_type):

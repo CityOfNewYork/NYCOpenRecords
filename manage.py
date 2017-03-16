@@ -94,10 +94,10 @@ def create_user(first_name, last_name, email):
 
 
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
-@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='coverage')
-def test(coverage=False, test_name=None):
+@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='cov')
+def test(cov=False, test_name=None):
     """Run the unit tests."""
-    if coverage and not os.environ.get('FLASK_COVERAGE'):
+    if cov and not os.environ.get('FLASK_COVERAGE'):
         import sys
         os.environ['FLASK_COVERAGE'] = '1'
         os.execvp(sys.executable, [sys.executable] + sys.argv)

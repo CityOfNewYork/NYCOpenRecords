@@ -1,7 +1,7 @@
 import unittest
 from app import create_app, db
 from app.models import Roles, Agencies, Reasons
-from app.search.utils import create_index, delete_index
+from app.search.utils import create_index, delete_index, delete_docs
 
 
 class BaseTestCase(unittest.TestCase):
@@ -28,6 +28,7 @@ class BaseTestCase(unittest.TestCase):
         self.populate_database()
 
     def tearDown(self):
+        delete_docs()
         self.clear_database()
         self.app_context.pop()
 

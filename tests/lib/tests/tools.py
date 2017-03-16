@@ -7,6 +7,7 @@ from app.models import (
     Events,
 )
 from app.constants import (
+    event_type,
     user_type_auth,
     request_status,
     submission_methods,
@@ -15,12 +16,13 @@ from app.constants import (
 from app.lib.date_utils import (
     local_to_utc,
     utc_to_local,
+    get_due_date,
     get_following_date,
 )
 from tests.lib.base import BaseTestCase
 from tests.lib.tools import (
     UserFactory,
-    RequestsFactory,
+    RequestFactory,
     RequestWrapper,
 )
 
@@ -34,6 +36,11 @@ class UserFactoryTests(BaseTestCase):
 
     def test_create_user(self):
         auth_type = user_type_auth.PUBLIC_USER_NYC_ID
+
+        # user 1 (default kwargs)
+        u1 = self.uf.create_user(auth_type)
+
+        # user 2
         email = "shrimp@mail.com"
         first_name = "Bubba"
         last_name = "Gump"
@@ -50,11 +57,6 @@ class UserFactoryTests(BaseTestCase):
         }
         email_validated = False
         terms_of_use_accepted = False
-
-        # user 1 (default kwargs)
-        u1 = self.uf.create_user(auth_type)
-
-        # user 2
         u2 = self.uf.create_user(
             auth_type,
             email=email,
@@ -94,13 +96,19 @@ class UserFactoryTests(BaseTestCase):
             fax_number=fax_number,
             mailing_address=mailing_address)
 
-    def test_create_user_wrong_agency_ein(self):
+    def test_create_user_wrong_agency_attributes(self):
 
         with self.assertRaises(AssertionError):
             self.uf.create_user(user_type_auth.AGENCY_USER)
 
         with self.assertRaises(AssertionError):
             self.uf.create_user(user_type_auth.ANONYMOUS_USER, agency_ein=self.agency_ein)
+
+        with self.assertRaises(AssertionError):
+            self.uf.create_user(user_type_auth.ANONYMOUS_USER, is_agency_active=True)
+
+        with self.assertRaises(AssertionError):
+            self.uf.create_user(user_type_auth.ANONYMOUS_USER, is_agency_admin=True)
 
     def test_create_anonymous_user(self):
         user = self.uf.create_anonymous_user()
@@ -115,7 +123,7 @@ class UserFactoryTests(BaseTestCase):
 
     def test_create_agency_user(self):
         u1 = self.uf.create_agency_user()
-        u2 = self.uf.create_agency_user(self.agency_ein)
+        u2 = self.uf.create_agency_user(self.agency_ein, is_agency_active=True, is_agency_admin=True)
 
         # user 1
         self.assertTrue(u1.agency_ein in (a[0] for a in Agencies.query.with_entities(Agencies.ein).all()))
@@ -127,6 +135,7 @@ class UserFactoryTests(BaseTestCase):
             terms_of_use_accepted=True,
             fuzzy=True
         )
+
         # user 2
         self.__assert_user_data_correct(
             u2,
@@ -134,7 +143,9 @@ class UserFactoryTests(BaseTestCase):
             agency_ein=self.agency_ein,
             email_validated=True,
             terms_of_use_accepted=True,
-            fuzzy=True
+            fuzzy=True,
+            is_agency_admin=True,
+            is_agency_active=True,
         )
 
     def test_create_public_user(self):
@@ -163,7 +174,9 @@ class UserFactoryTests(BaseTestCase):
                                    organization=None,
                                    phone_number=None,
                                    fax_number=None,
-                                   mailing_address=None):
+                                   mailing_address=None,
+                                   is_agency_active=False,
+                                   is_agency_admin=False):
         """
         Retrieves Users database records and compares its data to the supplied argument value.
         If fuzzy is True, only types are checked for the user-specific kwargs.
@@ -173,13 +186,17 @@ class UserFactoryTests(BaseTestCase):
             user.auth_user_type,
             user.agency_ein,
             user.email_validated,
-            user.terms_of_use_accepted
+            user.terms_of_use_accepted,
+            user.is_agency_active,
+            user.is_agency_admin,
         ]
         check_list = [
             auth_type,
             agency_ein,
             email_validated,
             terms_of_use_accepted,
+            is_agency_active,
+            is_agency_admin,
         ]
         if fuzzy:
             user_list += [
@@ -221,16 +238,13 @@ class UserFactoryTests(BaseTestCase):
                 organization,
                 phone_number,
                 fax_number,
-                mailing_address
+                mailing_address,
             ]
 
         self.assertEqual(user_list, check_list)
 
-    def test_generate_guid(self):
-        pass
 
-
-class RequestsFactoryTest(BaseTestCase):
+class RequestFactoryTests(BaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -238,40 +252,105 @@ class RequestsFactoryTest(BaseTestCase):
         self.parent_ein_1 = "860"
         self.agency_ein_2 = "0002"
         self.user_1 = UserFactory().create_agency_user(self.agency_ein_1)
-        self.rf = RequestsFactory()
-        self.rf_agency_1 = RequestsFactory(agency_ein=self.agency_ein_1)
-        self.rf_agency_2 = RequestsFactory(agency_ein=self.agency_ein_2)
+        self.rf = RequestFactory()
+        self.rf_agency_1 = RequestFactory(agency_ein=self.agency_ein_1)
+        self.rf_agency_2 = RequestFactory(agency_ein=self.agency_ein_2)
         self.tz_name = current_app.config["APP_TIMEZONE"]
+        # TODO: create agency admins and test if assigned
 
-    def test_create_request(self):
-        r1 = self.rf.create_request(self.user_1)  # TODO: test same with rf_agency_1
-        r1 = Requests.query.get(r1.id)
-
-        self.assertEqual(
-            [
-                r1.id,
-                type(r1.title),
-                type(r1.description),
-                # r1.category, TODO
-                # r1.privacy, TODO
-                r1.agency_ein,
-                r1.status
-            ],
-            [
-                "FOIL-{}-{}-00001".format(datetime.today().year, self.parent_ein_1),
-                str,  # title
-                str,  # description
-                self.user_1.agency_ein,
-                request_status.OPEN
-            ]
+    def test_create_request_default(self):
+        request = self.rf.create_request(self.user_1)
+        self.__assert_request_data_correct(
+            self.user_1,
+            request,
+            self.parent_ein_1,
+            default=True,
         )
-        # check submission method
-        self.assertTrue(r1.submission in submission_methods.ALL)
-        # dates
-        self.assertTrue(r1.date_submitted == local_to_utc(
-            get_following_date(utc_to_local(r1.date_created, self.tz_name)),
-            self.tz_name))
-        # TODO: date_due
+        # check associated users
+        requester = Users.query.filter_by(auth_user_type=user_type_auth.ANONYMOUS_USER).one()
+        self.assertEqual(request.requester, requester)
+        self.assertTrue(self.user_1 in request.agency_users)
+
+    def test_create_request_custom(self):
+        title = "Where did all the fish go?"
+        description = "I demand to know where all of my fish ran off to."
+        agency_description = "Inquiry into the disappearance local marine life."
+        category = "Fishies"
+        title_privacy = False
+        ag_privacy = False
+        submission = submission_methods.IN_PERSON
+        status = request_status.IN_PROGRESS
+        date_created = datetime.utcnow()
+        due_date = date_created + timedelta(days=90)
+        request = self.rf.create_request(
+            self.user_1,
+            title,
+            description,
+            agency_description,
+            self.user_1.agency_ein,
+            date_created,
+            due_date=due_date,
+            category=category,
+            title_privacy=title_privacy,
+            agency_desc_privacy=ag_privacy,
+            submission=submission,
+            status=status
+        )
+        self.__assert_request_data_correct(
+            self.user_1,
+            request,
+            self.parent_ein_1,
+            title=title,
+            description=description,
+            agency_description=agency_description,
+            agency_ein=self.agency_ein_1,
+            date_created=date_created,
+            due_date=due_date,
+            category=category,
+            title_privacy=title_privacy,
+            agency_desc_privacy=ag_privacy,
+            submission=submission,
+            status=status
+        )
+        # check associated users
+        requester = Users.query.filter_by(auth_user_type=user_type_auth.ANONYMOUS_USER).one()
+        self.assertEqual(request.requester, requester)
+        self.assertTrue(self.user_1 in request.agency_users)
+
+    def test_create_request_agency_ein(self):
+        # TODO: rf_agency_1
+        pass
+
+    def test_create_request_as_anonymous_user(self):
+        request = self.rf.create_request_as_anonymous_user()
+        user = Users.query.filter_by(auth_user_type=user_type_auth.ANONYMOUS_USER).one()
+        self.__assert_request_data_correct(
+            user,
+            request,
+            request.agency.parent_ein,
+            default=True
+        )
+        self.assertEqual(request.requester, user)
+
+    def test_create_request_as_agency_user(self):
+        request = self.rf.create_request_as_agency_user()
+        self.__assert_request_data_correct(
+            self.rf.agency_user,
+            request,
+            self.rf.agency_user.agency.parent_ein,
+            default=True
+        )
+
+    def test_create_request_as_public_user(self):
+        request = self.rf.create_request_as_public_user()
+        self.__assert_request_data_correct(
+            self.rf.public_user,
+            request,
+            request.agency.parent_ein,
+            default=True
+        )
+        self.assertEqual(request.requester, self.rf.public_user)
+        # self.assertTrue(self.rf.agency_user in request.agency_users)
 
     def test_create_request_wrong_dates(self):
         now = datetime.utcnow()
@@ -296,3 +375,114 @@ class RequestsFactoryTest(BaseTestCase):
 
         with self.assertRaises(AssertionError):
             self.rf_agency_2.create_request(self.user_1)
+
+    def __assert_request_data_correct(self,
+                                      user,
+                                      request,
+                                      agency_parent_ein,
+                                      default=False,
+                                      title=None,
+                                      description=None,
+                                      agency_description=None,
+                                      agency_ein=None,
+                                      date_created=None,
+                                      due_date=None,
+                                      category='All',
+                                      title_privacy=True,
+                                      agency_desc_privacy=True,
+                                      submission=None,
+                                      status=request_status.OPEN):
+        request = Requests.query.get(request.id)
+
+        privacy = {"title": title_privacy, "agency_description": agency_desc_privacy}
+        agency_ein = agency_ein or user.agency_ein or request.agency_ein
+        date_created_local = utc_to_local(date_created or request.date_created, self.tz_name)
+        date_submitted_local = get_following_date(date_created_local)
+
+        if default:
+            self.assertTrue(request.submission in submission_methods.ALL)
+            request_list = [
+                type(request.title),
+                type(request.description),
+                type(request.agency_description)
+            ]
+            check_list = [
+                str,
+                str,
+                str
+            ]
+        else:
+            request_list = [
+                request.title,
+                request.description,
+                request.agency_description,
+                request.date_created,
+                request.submission,
+            ]
+            check_list = [
+                title,
+                description,
+                agency_description,
+                date_created,
+                submission,
+            ]
+        request_list += [
+            request.id,
+            request.category,
+            request.privacy,
+            request.agency_ein,
+            request.status,
+            request.date_submitted,
+            request.due_date,
+        ]
+        check_list += [
+            "FOIL-{}-{}-00001".format(datetime.today().year, agency_parent_ein),
+            category,
+            privacy,
+            agency_ein,
+            status,
+            local_to_utc(date_submitted_local, self.tz_name),
+            due_date or get_due_date(date_submitted_local, ACKNOWLEDGMENT_DAYS_DUE, self.tz_name)
+        ]
+        self.assertEqual(request_list, check_list)
+
+        # check associated events
+        event_req_created = Events.query.filter_by(type=event_type.REQ_CREATED).one()
+        self.assertEqual(
+            [
+                event_req_created.user_guid,
+                event_req_created.auth_user_type,
+                event_req_created.request_id,
+                event_req_created.response_id,
+                event_req_created.previous_value,
+                event_req_created.new_value,
+            ],
+            [
+                user.guid,
+                user.auth_user_type,
+                request.id,
+                None,  # response_id
+                None,  # previous_value
+                request.val_for_events  # new_value
+            ]
+        )
+        if user.is_agency:
+            event_agency_req_created = Events.query.filter_by(type=event_type.AGENCY_REQ_CREATED).one()
+            self.assertEqual(
+                [
+                    event_agency_req_created.user_guid,
+                    event_agency_req_created.auth_user_type,
+                    event_agency_req_created.request_id,
+                    event_agency_req_created.response_id,
+                    event_agency_req_created.previous_value,
+                    event_agency_req_created.new_value,
+                ],
+                [
+                    user.guid,
+                    user.auth_user_type,
+                    request.id,
+                    None,  # response_id
+                    None,  # previous_value
+                    None,  # new_value
+                ]
+            )

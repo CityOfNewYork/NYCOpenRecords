@@ -39,6 +39,22 @@ def delete_index():
     )
 
 
+def delete_docs():
+    """
+    Delete all elasticsearch request docs.
+    """
+    es.indices.refresh(
+        index=current_app.config["ELASTICSEARCH_INDEX"],
+    )
+    es.delete_by_query(
+        index=current_app.config["ELASTICSEARCH_INDEX"],
+        doc_type="request",
+        body={"query": {"match_all": {}}},
+        conflicts="proceed",
+        wait_for_completion=True,
+        refresh=True,
+    )
+
 def create_index():
     """
     Create elasticsearch index with mappings for request docs.
