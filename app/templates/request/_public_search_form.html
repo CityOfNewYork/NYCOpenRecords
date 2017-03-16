@@ -1,0 +1,109 @@
+<div class="col-sm-6">
+    <h4><label for="query">Search By</label>
+        <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Search By"
+               data-content="This field allows you to search by key words in the various fields of a request.">
+            <span class="glyphicon glyphicon-question-sign"></span>
+        </small>
+    </h4>
+</div>
+<div class="col-sm-10">
+    <input type="text" id="query" name="query">
+</div>
+<div class="col-sm-2">
+    <button type="button" class="btn btn-info" id="filter-button">Filter&nbsp;<span class="glyphicon glyphicon-triangle-bottom"></span>
+    </button>
+</div>
+<div id="advanced-search-options" hidden>
+    <div class="col-sm-4">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="foil_id">
+                FOIL ID
+            </label>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="title" checked>
+                Title
+            </label>
+        </div>
+        {% if not current_user.is_anonymous %}
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="description">
+                    Description
+                </label>
+            </div>
+        {% endif %}
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="agency_description" checked>
+                Agency Description
+            </label>
+        </div>
+        <br>
+        <select id="size" name="size" title="size" class="input-block-level">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
+        <strong>&nbsp;Results Per Page</strong>
+    </div>
+    <div class="col-sm-4">
+        <h4><label>Date Received*</label>
+            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
+                   data-content="This field allows you to search for requests that were received between
+                                                    two specific dates.">
+                <span class="glyphicon glyphicon-question-sign"></span>
+            </small>
+        </h4>
+        <label for="date-rec-from">From:</label>
+        <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+               type="text" id="date-rec-from" name="date_rec_from">
+        <br>
+        <label for="date-rec-to">To:</label>
+        <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+               type="text" id="date-rec-to" name="date_rec_to">
+        <br>
+        <div id="date-req">
+            <strong>*From</strong> must be before <strong>To</strong>.
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <h4>{{ form.agency_ein.label }}
+            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency"
+                   data-content="This section allows you to search by different agencies.">
+                <span class="glyphicon glyphicon-question-sign"></span>
+            </small>
+        </h4>
+        {{ form.agency_ein(class="input-block-level") }}
+        <br>
+        <h4><label>Status</label>
+            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"
+                   data-content="This field allows you to search by status of the request.">
+                <span class="glyphicon glyphicon-question-sign"></span>
+            </small>
+        </h4>
+        <div class="status open checkbox">
+            <label>
+                <input type="checkbox" name="open" checked>
+                Open
+            </label>
+        </div>
+        <div class="status closed checkbox">
+            <label>
+                <input type="checkbox" name="closed" checked>
+                Closed
+            </label>
+        </div>
+        <!-- hidden inputs with out-of-form counterparts must have identical values -->
+        <input type="hidden" name="tz_name">
+        <input type="hidden" name="start">
+        <input type="hidden" name="sort_date_submitted">
+        <input type="hidden" name="sort_date_due">
+        <input type="hidden" name="sort_title">
+        <div class="text-right">
+            <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
+        </div>
+    </div>
+</div>

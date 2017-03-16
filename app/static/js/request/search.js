@@ -342,4 +342,8 @@ $(function() {
             search();
         }
     });
+
+    $("#filter-button").click(function() {
+        $("#advanced-search-options").toggle()
+    });
 });
