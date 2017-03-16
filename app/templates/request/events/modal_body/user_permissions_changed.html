@@ -1,0 +1,30 @@
+{% include "request/events/modal_body/base/heading.html" %}
+<p>
+    Affected User - <strong>{{ event.affected_user.name }}</strong>
+</p>
+
+{% if permissions_granted|length > 0 %}
+<p>
+     Granted permission{% if permissions_granted|length > 1 %}s{% endif %}:
+</p>
+<ul>
+    {% for permission in permissions_granted %}
+        <li>
+            {{ permission }}
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if permissions_revoked|length > 0 %}
+<p>
+    Revoked permission{% if permissions_revoked|length > 1 %}s{% endif %}:
+</p>
+<ul>
+    {% for permission in permissions_revoked %}
+        <li>
+            {{ permission }}
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}

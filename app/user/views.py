@@ -319,7 +319,9 @@ def patch(user_id):
 
             if old:  # something besides status changed ('new' holds user guid and auth type)
                 create_object(Events(
-                    type_=event_type.USER_INFO_EDITED,
+                    type_=(event_type.REQUESTER_INFO_EDITED
+                           if user_.is_anonymous_requester
+                           else event_type.USER_INFO_EDITED),
                     previous_value=old,
                     new_value=new,
                     **event_kwargs

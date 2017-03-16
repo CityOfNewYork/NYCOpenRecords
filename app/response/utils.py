@@ -1430,12 +1430,21 @@ class ResponseEditor(metaclass=ABCMeta):
 
     @property
     def event_type(self):
-        return {
+        if self.data_new.get('deleted'):
+            response_type_to_event_type = {
+                Files: event_type.FILE_REMOVED,
+                Notes: event_type.NOTE_DELETED,
+                Links: event_type.LINK_REMOVED,
+                Instructions: event_type.INSTRUCTIONS_REMOVED
+            }
+        else:
+            response_type_to_event_type = {
             Files: event_type.FILE_EDITED,
             Notes: event_type.NOTE_EDITED,
             Links: event_type.LINK_EDITED,
             Instructions: event_type.INSTRUCTIONS_EDITED,
-        }[type(self.response)]
+        }
+        return response_type_to_event_type[type(self.response)]
 
     @property
     @abstractmethod
@@ -1465,9 +1474,16 @@ class ResponseEditor(metaclass=ABCMeta):
             if value_new is not None:
                 value_orig = str(getattr(self.response, field))
                 if value_new != value_orig:
+                    value_orig = self._bool_check(value_orig)
+                    value_new = self._bool_check(value_new)
                     self.set_data_values(field, value_orig, value_new)
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
+
+    def _bool_check(self, value):
+        if isinstance(value, str) and value.lower() in ("true", "false"):
+            return eval_request_bool(value)
+        return value
 
     def validate_deleted(self):
         """
@@ -1735,9 +1751,3 @@ class RespInstructionsEditor(ResponseEditor):
     @property
     def editable_fields(self):
         return ['content']
-
-
-class RespExtensionEditor(ResponseEditor):
-    @property
-    def editable_fields(self):
-        return ['reason']

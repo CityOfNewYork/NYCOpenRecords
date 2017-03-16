@@ -1,8 +1,23 @@
-def has_permission(perm, permission_value):
+from app.constants import permission
+
+
+def in_permissions(permissions, value):
     """
-    Given a permission value, check if the specified permission is activated.
-    :param perm: Specific permission (one of app.constants.permission)
-    :param permission_value: Permission Value (UserRequests.permissions)
-    :return: Boolean
+    Given a permissions mask, check if the specified permission value is within those permissions.
+
+    :param permissions: permissions set as integer mask
+    :param value: permission value to look for
+
+    :type permissions: int
+    :type value: int
+
+    :return: is value in permissions?
     """
-    return bool(permission_value & perm.permissions)
+    return bool(permissions & value)
+
+
+def get_permissions_as_list(permissions):
+    """
+    Given a permissions mask, return a list of app.constants.permission.PermissionPair
+    """
+    return [perm for perm in permission.ALL if in_permissions(permissions, perm.value)]

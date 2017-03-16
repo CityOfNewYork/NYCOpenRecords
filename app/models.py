@@ -27,6 +27,7 @@ from app.constants import (
     determination_type,
     response_privacy,
     submission_methods,
+    event_type,
 )
 
 
@@ -701,6 +702,15 @@ class Events(db.Model):
         ),
     )
 
+    response = db.relationship("Responses", backref="events")
+    request = db.relationship("Requests", backref="events")
+    user = db.relationship(
+        "Users",
+        primaryjoin="and_(Events.user_guid == Users.guid, "
+                    "Events.auth_user_type == Users.auth_user_type)",
+        backref="events"
+    )
+
     def __init__(self,
                  request_id,
                  user_guid,
@@ -717,10 +727,116 @@ class Events(db.Model):
         self.type = type_
         self.previous_value = previous_value
         self.new_value = new_value
-        self.timestamp = timestamp
+        self.timestamp = timestamp or datetime.utcnow()
 
     def __repr__(self):
         return '<Events %r>' % self.id
+
+    @property
+    def affected_user(self):
+        if self.new_value is not None and "user_guid" and "auth_user_type" in self.new_value:
+            return Users.query.filter_by(
+                guid=self.new_value["user_guid"],
+                auth_user_type=self.new_value["auth_user_type"]
+            ).one()
+
+    class RowContent(object):
+
+        def __init__(self, event, verb, string, affected_user=None, no_user_string=None):
+            """
+            :param verb: action describing event
+            :param string: format()-ready string where first field is verb and
+                           last field is affected_user, if applicable.
+            :param affected_user: user affected by this event
+            :param no_user_string: format()-ready string where there is no event user
+            """
+            self.event = event
+            self.string = string
+            self.verb = self._format_verb(verb)
+            self.affected_user = affected_user
+            self.no_user_string = no_user_string
+
+        def __str__(self):
+            format_args = [self.verb]
+            if self.affected_user is not None:
+                format_args += [self.affected_user.name]
+            if self.no_user_string is not None and self.event.user is None:
+                string = self.no_user_string
+            else:
+                string = ' '.join((self.event.user.name, self.string))
+            return string.format(*format_args)
+
+        @staticmethod
+        def _format_verb(verb):
+            return "<strong>{}</strong>".format(verb)
+
+    @property
+    def history_row_content(self):
+        """
+        Returns html safe string for use in the rows of the history section,
+        or None if this event is not intended for display purposes.
+        """
+        if self.type == event_type.REQ_STATUS_CHANGED:
+            return "This request's status was <strong>changed</strong> to:<br>{}".format(
+                self.new_value['status'])
+
+        valid_types = {
+            event_type.USER_ADDED:
+                self.RowContent(self, "added", "{} user: {}.", self.affected_user, "User {}: {}."),
+            event_type.USER_REMOVED:
+                self.RowContent(self, "removed", "{} user: {}.", self.affected_user),
+            event_type.USER_PERM_CHANGED:
+                self.RowContent(self, "changed", "{} permssions for user: {}.", self.affected_user),
+            event_type.REQUESTER_INFO_EDITED:
+                self.RowContent(self, "changed", "{} the requester's information."),
+            event_type.REQ_CREATED:
+                self.RowContent(self, "created", "{} this request."),
+            event_type.AGENCY_REQ_CREATED:
+                self.RowContent(self, "created", "{} this request on behalf of {}.", self.request.requester),
+            event_type.REQ_ACKNOWLEDGED:
+                self.RowContent(self, "acknowledged", "{} this request."),
+            event_type.REQ_EXTENDED:
+                self.RowContent(self, "extended", "{} this request."),
+            event_type.REQ_CLOSED:
+                self.RowContent(self, "closed", "{} this request."),
+            event_type.REQ_REOPENED:
+                self.RowContent(self, "re-opened", "{} this request."),
+            event_type.REQ_TITLE_EDITED:
+                self.RowContent(self, "changed", "{} the title."),
+            event_type.REQ_AGENCY_DESC_EDITED:
+                self.RowContent(self, "changed", "{} the agency description."),
+            event_type.REQ_TITLE_PRIVACY_EDITED:
+                self.RowContent(self, "changed", "{} the title privacy."),
+            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED:
+                self.RowContent(self, "changed", "{} the agency description privacy."),
+            event_type.FILE_ADDED:
+                self.RowContent(self, "added", "{} a file response."),
+            event_type.FILE_EDITED:
+                self.RowContent(self, "changed", "{} a file response."),
+            event_type.FILE_REMOVED:
+                self.RowContent(self, "deleted", "{} a file response."),
+            event_type.LINK_ADDED:
+                self.RowContent(self, "added", "{} a link response."),
+            event_type.LINK_EDITED:
+                self.RowContent(self, "changed", "{} a link response."),
+            event_type.LINK_REMOVED:
+                self.RowContent(self, "deleted", "{} a link response."),
+            event_type.INSTRUCTIONS_ADDED:
+                self.RowContent(self, "added", "{} an offline instructions response."),
+            event_type.INSTRUCTIONS_EDITED:
+                self.RowContent(self, "changed", "{} an offline instructions response."),
+            event_type.INSTRUCTIONS_REMOVED:
+                self.RowContent(self, "deleted", "{} an offline instructions response."),
+            event_type.NOTE_ADDED:
+                self.RowContent(self, "added", "{} a note response."),
+            event_type.NOTE_EDITED:
+                self.RowContent(self, "changed", "{} a note response."),
+            event_type.NOTE_DELETED:
+                self.RowContent(self, "deleted", "{} a note response."),
+        }
+
+        if self.type in valid_types:
+            return str(valid_types[self.type])
 
 
 class Responses(db.Model):
@@ -934,7 +1050,7 @@ class UserRequests(db.Model):
             self.permissions = permissions
         db.session.commit()
 
-    def get_permissions(self):
+    def get_permission_choice_indices(self):
         return [i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)]
 
 
