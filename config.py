@@ -61,9 +61,6 @@ class Config:
     LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
     LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
 
-    # Database Settings
-    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
-
     # Redis Settings
     REDIS_HOST = os.environ.get('REDIS_HOST') or 'localhost'
     REDIS_PORT = os.environ.get('REDIS_PORT') or '6379'
@@ -97,7 +94,9 @@ class Config:
     EMAIL_TEMPLATE_DIR = 'email_templates/'
 
     # Flask-SQLAlchemy
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # remove once this becomes the default
+    SQLALCHEMY_POOL_SIZE = 1
 
     # Upload Settings
     # TODO: change naming since quarantine is used as a serving directory as well

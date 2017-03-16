@@ -30,7 +30,7 @@ from app.request.utils import (
 from app.constants import user_type_auth
 from app.lib.user_information import create_mailing_address
 
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
 manager = Manager(app)
 migrate = Migrate(app, db)
 
@@ -106,7 +106,7 @@ def import_data(users, agencies, filename):
 
 
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
-@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='coverage')
+@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='cov')
 def test(cov=False, test_name=None):
     """Run the unit tests."""
     if cov and not os.environ.get('FLASK_COVERAGE'):

@@ -5,7 +5,7 @@ from app.models import Roles, Agencies
 
 class BaseTestCase(unittest.TestCase):
 
-    app = create_app('testing')
+    app = create_app('testing', jobs_enabled=False)
 
     @classmethod
     def setUpClass(cls):
