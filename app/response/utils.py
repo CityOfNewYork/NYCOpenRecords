@@ -201,6 +201,9 @@ def add_denial(request_id, reason_ids, email_content):
             Requests,
             request_id
         )
+        email_content = ''.join((email_content, render_template('email_templates/request_determination_text.html',
+                                                                title=response.request.title,
+                                                                description=response.request.description)))
         _send_response_email(request_id,
                              privacy,
                              email_content,
