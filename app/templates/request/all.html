@@ -13,7 +13,7 @@
 {% block content %}
     <div class="container-fluid" id="main">
         <div class="row">
-            <div class="col-sm-9">
+            <div class="col-sm-12">
                 <h1>Explore OpenRecords Requests
                     <small data-toggle="popover" data-placement="bottom" data-trigger="hover" title="Explore OpenRecords Requests"
                            data-content="This page will help you view all requests that have been made public.">
@@ -27,9 +27,9 @@
                     This will save time for you and for the City of New York.
                 </p>
             </div>
-            <div class="col-sm-3 text-center" id="new-request">
-                <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-primary">Request a<br>New Record</a>
-            </div>
+{#            <div class="col-sm-3 text-center" id="new-request">#}
+{#                <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-primary">Request a<br>New Record</a>#}
+{#            </div>#}
         </div>
         <br>
         <!-- Search & Filters -->
@@ -41,6 +41,12 @@
                     {% else %}
                         {% include 'request/_public_search_form.html' %}
                     {% endif %}
+                    <!-- hidden inputs with out-of-form counterparts must have identical values -->
+                    <input type="hidden" name="tz_name">
+                    <input type="hidden" name="start">
+                    <input type="hidden" name="sort_date_submitted">
+                    <input type="hidden" name="sort_date_due">
+                    <input type="hidden" name="sort_title">
                 </div>
             </div>
         </form>
@@ -89,6 +95,9 @@
                     <span class="glyphicon glyphicon-chevron-right"></span>
                 </button>
             </div>
+        </div>
+        <div class="col-sm-12 request-record-button" id="new-request" hidden>
+            <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
         </div>
     </div>
 {% endblock %}

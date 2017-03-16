@@ -10,7 +10,8 @@ $(function() {
         searchBtn = $("#search"),
         dateReq = $("#date-req"),
         noResultsFound = true,
-        generateDocBtn = $("#generate-document");
+        generateDocBtn = $("#generate-document"),
+        newRequestBtn = $("#new-request");
 
 
     // Date stuff
@@ -210,6 +211,7 @@ $(function() {
                     end = start + data.count;
                     if (end === total) {
                         next.hide();
+                        newRequestBtn.show();
                     }
                     else {
                         next.show();
@@ -331,6 +333,8 @@ $(function() {
             setStart(start - parseInt($("#size").val()));
             search();
         }
+        if (newRequestBtn.is(":visible"))
+            newRequestBtn.hide();
     });
 
     $(".sort-field").click(function () {
@@ -344,6 +348,7 @@ $(function() {
     });
 
     $("#filter-button").click(function() {
+        $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
         $("#advanced-search-options").toggle()
     });
 });
