@@ -1,0 +1,27 @@
+{% include "request/events/modal_body/base/heading.html" %}
+<ul>
+    {% if event.new_value.get('name') %}
+        <li>
+            The file "{{ event.previous_value['name'] }}" was changed to
+            "{{ event.new_value['name'] }}".
+        </li>
+    {% elif event.new_value.get('hash') %}
+        <li>
+            The <strong>content</strong> of the file "{{ event.response.name }}" was changed.
+        </li>
+    {% endif %}
+
+    {% if event.new_value.get('title') %}
+        <li>
+            The file response <strong>title</strong> was changed from "{{ event.previous_value['title'] }}" to
+            "{{ event.new_value['title'] }}".
+        </li>
+    {% endif %}
+
+    {% if event.new_value.get('privacy') %}
+        <li>
+            The file response <strong>privacy</strong> was changed from
+            {% include "request/events/modal_body/base/privacy_change.html" %}
+        </li>
+    {% endif %}
+</ul>

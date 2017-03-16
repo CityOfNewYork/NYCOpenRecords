@@ -248,7 +248,7 @@ def view(request_id):
     assigned_user_permissions = {}
     for u in assigned_users:
         assigned_user_permissions[u.guid] = UserRequests.query.filter_by(
-            request_id=request_id, user_guid=u.guid).one().get_permissions()
+            request_id=request_id, user_guid=u.guid).one().get_permission_choice_indices()
 
     show_agency_description = False
     if (

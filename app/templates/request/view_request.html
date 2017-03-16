@@ -158,21 +158,15 @@
                 </div>
             {% endif %}
             <!-- Response Column -->
-            <div class="col-sm-12">
-                <h3 class="wrap-text">Responses
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
-                           data-content="Use the Responses section to access all agency correspondence and documents provided in response to this request.">
-                        <span class="glyphicon glyphicon-question-sign"></span>
-                    </small>
-                </h3>
+            <div class="col-sm-{% if current_user.is_agency %}7{% else %}12{% endif %}">
                 {% include 'request/_view_request_responses.html' %}
             </div>
-
-            <!-- History Column -->
-            {#            <div class="col-sm-3">#}
-            {#                <h3 class="wrap-text">History</h3>#}
-            {#                {% include 'request/_view_request_history.html' %}#}
-            {#            </div>#}
+            {% if current_user.is_agency %}
+                <!-- History Column -->
+                <div class="col-sm-5">
+                    {% include 'request/_view_request_history.html' %}
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
@@ -198,7 +192,10 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
-    {#    <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>#}
+    {% if current_user.is_agency %}
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
+    {% endif %}
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>

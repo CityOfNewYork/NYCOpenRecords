@@ -1,0 +1,12 @@
+<p>
+    {{ event.user.name }} changed the agency description from
+</p>
+<p>
+    "{{ event.previous_value['agency_description'] or ""}}"
+</p>
+<p>
+    to
+</p>
+<p>
+    "{{ event.new_value['agency_description'] }}"
+</p>
