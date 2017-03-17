@@ -45,11 +45,11 @@ class UserFactoryTests(BaseTestCase):
         first_name = "Bubba"
         last_name = "Gump"
         title = "Prawn Meister"
-        organization = "Supa Shrimp Inc."
-        phone_number = "(111) 111-1111"
-        fax_number = "(222) 222-2222"
+        organization = "Mail-Order Shrimp Inc."
+        phone_number = "(123) 456-7890"
+        fax_number = "(098) 765-4321"
         mailing_address = {
-            "address_one": "P. Sherman 42",
+            "address_one": "P. Sherman 42 Wallaby Way",
             "address_two": "Apt. B",
             "city": "Sydney",
             "state": "Australia",  # oh yeah
@@ -248,28 +248,30 @@ class RequestFactoryTests(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        self.agency_ein_1 = "0860"
-        self.parent_ein_1 = "860"
-        self.agency_ein_2 = "0002"
-        self.user_1 = UserFactory().create_agency_user(self.agency_ein_1)
+        self.agency_ein_860 = "0860"
+        self.parent_ein_860 = "860"
+        self.agency_ein_002 = "0002"
+        uf = UserFactory()
+        self.user_860 = uf.create_agency_user(self.agency_ein_860)
+        self.admin_860 = uf.create_agency_admin(self.agency_ein_860)
         self.rf = RequestFactory()
-        self.rf_agency_1 = RequestFactory(agency_ein=self.agency_ein_1)
-        self.rf_agency_2 = RequestFactory(agency_ein=self.agency_ein_2)
+        self.rf_agency_860 = RequestFactory(agency_ein=self.agency_ein_860)
+        self.rf_agency_002 = RequestFactory(agency_ein=self.agency_ein_002)
         self.tz_name = current_app.config["APP_TIMEZONE"]
-        # TODO: create agency admins and test if assigned
 
     def test_create_request_default(self):
-        request = self.rf.create_request(self.user_1)
+        request = self.rf.create_request(self.user_860)
         self.__assert_request_data_correct(
-            self.user_1,
+            self.user_860,
             request,
-            self.parent_ein_1,
+            self.parent_ein_860,
             default=True,
         )
         # check associated users
         requester = Users.query.filter_by(auth_user_type=user_type_auth.ANONYMOUS_USER).one()
         self.assertEqual(request.requester, requester)
-        self.assertTrue(self.user_1 in request.agency_users)
+        self.assertFalse(self.user_860 in request.agency_users)
+        self.assertTrue(self.admin_860 in request.agency_users)
 
     def test_create_request_custom(self):
         title = "Where did all the fish go?"
@@ -283,11 +285,11 @@ class RequestFactoryTests(BaseTestCase):
         date_created = datetime.utcnow()
         due_date = date_created + timedelta(days=90)
         request = self.rf.create_request(
-            self.user_1,
+            self.user_860,
             title,
             description,
             agency_description,
-            self.user_1.agency_ein,
+            self.user_860.agency_ein,
             date_created,
             due_date=due_date,
             category=category,
@@ -297,13 +299,13 @@ class RequestFactoryTests(BaseTestCase):
             status=status
         )
         self.__assert_request_data_correct(
-            self.user_1,
+            self.user_860,
             request,
-            self.parent_ein_1,
+            self.parent_ein_860,
             title=title,
             description=description,
             agency_description=agency_description,
-            agency_ein=self.agency_ein_1,
+            agency_ein=self.agency_ein_860,
             date_created=date_created,
             due_date=due_date,
             category=category,
@@ -315,11 +317,18 @@ class RequestFactoryTests(BaseTestCase):
         # check associated users
         requester = Users.query.filter_by(auth_user_type=user_type_auth.ANONYMOUS_USER).one()
         self.assertEqual(request.requester, requester)
-        self.assertTrue(self.user_1 in request.agency_users)
+        self.assertFalse(self.user_860 in request.agency_users)
+        self.assertTrue(self.admin_860 in request.agency_users)
 
     def test_create_request_agency_ein(self):
-        # TODO: rf_agency_1
-        pass
+        request = self.rf_agency_860.create_request_as_public_user()
+        self.__assert_request_data_correct(
+            self.rf_agency_860.public_user,
+            request,
+            self.parent_ein_860,
+            default=True
+        )
+        self.assertTrue(self.admin_860 in request.agency_users)
 
     def test_create_request_as_anonymous_user(self):
         request = self.rf.create_request_as_anonymous_user()
@@ -340,6 +349,7 @@ class RequestFactoryTests(BaseTestCase):
             self.rf.agency_user.agency.parent_ein,
             default=True
         )
+        self.assertFalse(self.rf.agency_user in request.agency_users)
 
     def test_create_request_as_public_user(self):
         request = self.rf.create_request_as_public_user()
@@ -350,31 +360,30 @@ class RequestFactoryTests(BaseTestCase):
             default=True
         )
         self.assertEqual(request.requester, self.rf.public_user)
-        # self.assertTrue(self.rf.agency_user in request.agency_users)
 
     def test_create_request_wrong_dates(self):
         now = datetime.utcnow()
         tomorrow = now + timedelta(days=1)
 
         with self.assertRaises(AssertionError):
-            self.rf.create_request(self.user_1, due_date=now, date_created=now)
+            self.rf.create_request(self.user_860, due_date=now, date_created=now)
 
         with self.assertRaises(AssertionError):
-            self.rf.create_request(self.user_1, due_date=now, date_submitted=now)
+            self.rf.create_request(self.user_860, due_date=now, date_submitted=now)
 
         with self.assertRaises(AssertionError):
-            self.rf.create_request(self.user_1, due_date=now, date_created=tomorrow)
+            self.rf.create_request(self.user_860, due_date=now, date_created=tomorrow)
 
         with self.assertRaises(AssertionError):
-            self.rf.create_request(self.user_1, due_date=now, date_submitted=tomorrow)
+            self.rf.create_request(self.user_860, due_date=now, date_submitted=tomorrow)
 
     def test_create_request_wrong_agency_ein(self):
 
         with self.assertRaises(AssertionError):
-            self.rf.create_request(self.user_1, agency_ein=self.agency_ein_2)
+            self.rf.create_request(self.user_860, agency_ein=self.agency_ein_002)
 
         with self.assertRaises(AssertionError):
-            self.rf_agency_2.create_request(self.user_1)
+            self.rf_agency_002.create_request(self.user_860)
 
     def __assert_request_data_correct(self,
                                       user,
@@ -486,3 +495,7 @@ class RequestFactoryTests(BaseTestCase):
                     None,  # new_value
                 ]
             )
+
+
+class RequestWrapperTests(BaseTestCase):
+    pass

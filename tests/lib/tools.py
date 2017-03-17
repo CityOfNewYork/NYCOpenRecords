@@ -539,10 +539,13 @@ class RequestFactory(object):
                 timestamp=timestamp
             ))
 
-        # add users TODO: assign other agency admins
-        request.add_user(user)
-        if user.is_agency:
+        # add users
+        if user.is_public or user.is_anonymous_requester:
+            request.add_user(user)
+        if user.is_agency:  # then create and add anonymous requester
             request.add_user(self.__uf.create_anonymous_user())
+        for admin in Agencies.query.filter_by(ein=agency_ein).one().administrators:
+            request.add_user(admin)
 
         # create request doc now that requester is set
         request.es_create()
@@ -614,6 +617,9 @@ class UserFactory(object):
             user_type_auth.AGENCY_USER,
             agency_ein=agency_ein or get_random_agency().ein,
             **kwargs)
+
+    def create_agency_admin(self, agency_ein=None, **kwargs):
+        return self.create_agency_user(agency_ein, is_agency_active=True, is_agency_admin=True, **kwargs)
 
     def create_public_user(self, **kwargs):
         return self.create_user(random.choice(list(user_type_auth.PUBLIC_USER_TYPES)), **kwargs)
