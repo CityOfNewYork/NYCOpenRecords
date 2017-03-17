@@ -105,8 +105,7 @@ class RequestWrapper(object):
     def add_file(self,
                  title=None,
                  filepath=None,
-                 name=None,
-                 mime_type=None,
+                 name=None,  # will be ignored if filepath supplied
                  privacy=response_privacy.PRIVATE,
                  user=None):
         if filepath is None:
@@ -116,26 +115,25 @@ class RequestWrapper(object):
                 self.request.id,
                 filename)
         else:
-            filename = name or os.path.basename(filepath)
+            filename = os.path.basename(filepath)
 
         if not fu.exists(filepath):
-            fu.makedirs(os.path.dirname(filepath), exists_ok=True)
+            fu.makedirs(os.path.dirname(filepath), exist_ok=True)
             with open(filepath, "w") as fp:
                 fp.write(fake.file_content())
-
-        self.__files.append(filepath)
+            self.__files.append(filepath)
 
         response = Files(
             self.request.id,
             privacy=privacy,
             title=title or fake.title(),
             name=filename,
-            mime_type=mime_type or fu.get_mime_type(filepath),
+            mime_type=fu.get_mime_type(filepath),
             size=fu.getsize(filepath),
             hash_=fu.get_hash(filepath),
         )
-        self.__create_event(event_type.FILE_ADDED, response, user)
         create_object(response)
+        self.__create_event(event_type.FILE_ADDED, response, user)
         return response
 
     def add_link(self, title=None, url=None, privacy=response_privacy.PRIVATE, user=None):
@@ -145,8 +143,8 @@ class RequestWrapper(object):
             title=title or fake.title(),
             url=url or fake.url()
         )
-        self.__create_event(event_type.LINK_ADDED, response, user)
         create_object(response)
+        self.__create_event(event_type.LINK_ADDED, response, user)
         return response
 
     def add_note(self, content=None, privacy=response_privacy.PRIVATE, user=None):
@@ -155,8 +153,8 @@ class RequestWrapper(object):
             privacy,
             content=content or fake.paragraph()
         )
-        self.__create_event(event_type.NOTE_ADDED, response, user)
         create_object(response)
+        self.__create_event(event_type.NOTE_ADDED, response, user)
         return response
 
     def add_instructions(self, content=None, privacy=response_privacy.PRIVATE, user=None):
@@ -165,8 +163,8 @@ class RequestWrapper(object):
             privacy,
             content=content or fake.paragraph()
         )
-        self.__create_event(event_type.INSTRUCTIONS_ADDED, response, user)
         create_object(response)
+        self.__create_event(event_type.INSTRUCTIONS_ADDED, response, user)
         return response
 
     def acknowledge(self, info=None, days=None, date=None, user=None):

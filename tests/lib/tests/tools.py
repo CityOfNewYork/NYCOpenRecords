@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from flask import current_app
 from app.models import (
@@ -5,11 +6,13 @@ from app.models import (
     Requests,
     Agencies,
     Events,
+    Responses,
 )
 from app.constants import (
     event_type,
     user_type_auth,
     request_status,
+    response_privacy,
     submission_methods,
     ACKNOWLEDGMENT_DAYS_DUE,
 )
@@ -23,8 +26,8 @@ from tests.lib.base import BaseTestCase
 from tests.lib.tools import (
     UserFactory,
     RequestFactory,
-    RequestWrapper,
 )
+from tests.lib.constants import SCREAM_FILE
 
 
 class UserFactoryTests(BaseTestCase):
@@ -499,8 +502,8 @@ class RequestWrapperTests(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        rf = RequestFactory()
-        self.request = rf.create_request_as_anonymous_user()
+        self.rf = RequestFactory()
+        self.request = self.rf.create_request_as_anonymous_user()
 
     def test_set_title(self):
         title = "The Time Has Come"
@@ -526,9 +529,114 @@ class RequestWrapperTests(BaseTestCase):
         request = Requests.query.get(self.request.id)
         self.assertEqual(request.privacy["agency_description"], privacy)
 
-    # def test_add_file(self):
-    #     pass
-    #
+    def test_add_file_default(self):
+        response = self.request.add_file()
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.mime_type,
+                type(response.title),
+                type(response.name),
+                type(response.size),
+                type(response.hash)
+            ],
+            [
+                self.request.id,
+                response_privacy.PRIVATE,
+                'text/plain',
+                str,  # title
+                str,  # filename
+                int,  # size
+                str,  # hash
+            ]
+        )
+        self.assertTrue(response.size > 0)
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(
+                    current_app.config["UPLOAD_DIRECTORY"],
+                    self.request.id,
+                    response.name
+                )
+            )
+        )
+        self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.agency_user)
+
+    def test_add_file_custom_without_path(self):
+        title = "Having Fun Isn't Hard"
+        name = "libary_card"
+        privacy = response_privacy.RELEASE_AND_PUBLIC
+        response = self.request.add_file(
+            title=title,
+            name=name,
+            privacy=privacy,
+            user=self.rf.public_user,
+        )
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.title,
+                response.name,
+                response.mime_type,
+                type(response.size),
+                type(response.hash)
+            ],
+            [
+                self.request.id,
+                privacy,
+                title,
+                name,
+                "text/plain",
+                int,  # size
+                str,  # hash
+            ]
+        )
+        self.assertTrue(response.size > 0)
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(
+                    current_app.config["UPLOAD_DIRECTORY"],
+                    self.request.id,
+                    response.name
+                )
+            )
+        )
+        self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.public_user)
+
+    def test_add_file_custom_with_path(self):
+        title = "Open Wide"
+        response = self.request.add_file(
+            title=title,
+            name="dont_mind_me",
+            filepath=SCREAM_FILE.path,
+        )
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.title,
+                response.name,
+                response.mime_type,
+                response.size,
+                response.hash
+            ],
+            [
+                self.request.id,
+                response_privacy.PRIVATE,
+                title,
+                SCREAM_FILE.name,
+                SCREAM_FILE.mime_type,
+                SCREAM_FILE.size,
+                SCREAM_FILE.hash
+            ]
+        )
+        self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.agency_user)
+
     # def test_add_link(self):
     #     pass
     #
@@ -571,3 +679,24 @@ class RequestWrapperTests(BaseTestCase):
     # def test_destructor(self):
     #     pass
     #
+
+    def __assert_response_event(self, type_, response, user):
+        event = Events.query.filter_by(response_id=response.id).one()
+        self.assertEqual(
+            [
+                event.user_guid,
+                event.auth_user_type,
+                event.request_id,
+                event.type,
+                event.previous_value,
+                event.new_value
+            ],
+            [
+                user.guid,
+                user.auth_user_type,
+                self.request.id,
+                type_,
+                None,
+                response.val_for_events,
+            ]
+        )
