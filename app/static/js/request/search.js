@@ -346,6 +346,5 @@ $(function() {
     $("#advanced-options-toggle").click(function() {
         $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
         $("#advanced-search-options").toggle();
-        return false;
     });
 });

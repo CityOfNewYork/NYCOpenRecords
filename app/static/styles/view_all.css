@@ -81,7 +81,8 @@
 }
 
 #advanced-options-toggle {
-    text-decoration: none;
+    color: #337ab7;
+    cursor: pointer;
 }
 
 #advanced-options-toggle:hover {
