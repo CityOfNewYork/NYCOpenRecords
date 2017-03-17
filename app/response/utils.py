@@ -40,7 +40,7 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
-from app.constants import permission
+from app.constants import permission, CLOSING_FULFILLED_IDS
 from app.lib.date_utils import (
     get_due_date,
     process_due_date,
@@ -201,7 +201,7 @@ def add_denial(request_id, reason_ids, email_content):
             Requests,
             request_id
         )
-        email_content = ''.join((email_content, render_template('email_templates/request_determination_text.html',
+        email_content = ''.join((email_content, render_template('email_templates/determination_request_text.html',
                                                                 title=response.request.title,
                                                                 description=response.request.description)))
         _send_response_email(request_id,
@@ -258,6 +258,11 @@ def add_closing(request_id, reason_ids, email_content):
             Requests,
             request_id
         )
+        # append request information to email body if request is not fulfilled
+        if not set(reason_ids) & CLOSING_FULFILLED_IDS:
+            email_content = ''.join((email_content, render_template('email_templates/determination_request_text.html',
+                                                                    title=current_request.title,
+                                                                    description=current_request.description)))
         _send_response_email(request_id,
                              privacy,
                              email_content,
@@ -629,15 +634,21 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
-    reasons = [Reasons.query.filter_by(id=reason_id).one().content
-               for reason_id in data.getlist('reason_ids[]')]
-    header = "The following will be emailed to the Requester:"
     if eval_request_bool(data['confirmation']):
+        header = "The following will be emailed to the Requester:"
+        reasons = None
         default_content = False
         content = data['email_content']
+        fulfilled = True
+        if not set(data.getlist('reason_ids[]')) & CLOSING_FULFILLED_IDS:
+            fulfilled = False
     else:
+        reasons = [Reasons.query.filter_by(id=reason_id).one().content
+                   for reason_id in data.getlist('reason_ids[]')]
         default_content = True
         content = None
+        header = None
+        fulfilled = None
     return jsonify({"template": render_template(
         email_template,
         default_content=default_content,
@@ -646,7 +657,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=reasons,
         agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
-        page=page),
+        page=page,
+        fulfilled=fulfilled),
         "header": header
     }), 200
 
