@@ -9,7 +9,7 @@ from string import (
     digits,
 )
 from sqlalchemy.sql.expression import func
-from app import calendar
+from app import calendar, db
 from app.models import (
     Requests,
     Reasons,
@@ -92,15 +92,19 @@ class RequestWrapper(object):
 
     def set_title(self, title: str):
         self.request.title = title
+        db.session.commit()  # FIXME: ?
 
     def set_agency_description(self, agency_description: str):
         self.request.agency_description = agency_description
+        db.session.commit()
 
     def set_title_privacy(self, privacy: bool):
         self.request.privacy["title"] = privacy
+        db.session.commit()
 
     def set_agency_description_privacy(self, privacy: bool):
         self.request.privacy["agency_description"] = privacy
+        db.session.commit()
 
     def add_file(self,
                  title=None,
@@ -516,7 +520,8 @@ class RequestFactory(object):
             submission=submission or random.choice(submission_methods.ALL),
             status=status,
         )
-        request.agency_description = agency_description or fake.agency_description()
+        if agency_description is not None:
+            request.agency_description = agency_description
         create_object(request)
         request = RequestWrapper(request, self.agency_user)
 

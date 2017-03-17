@@ -413,12 +413,10 @@ class RequestFactoryTests(BaseTestCase):
             request_list = [
                 type(request.title),
                 type(request.description),
-                type(request.agency_description)
             ]
             check_list = [
                 str,
                 str,
-                str
             ]
         else:
             request_list = [
@@ -498,4 +496,4 @@ class RequestFactoryTests(BaseTestCase):
 
 
 class RequestWrapperTests(BaseTestCase):
-    pass
+    pass  # TODO
