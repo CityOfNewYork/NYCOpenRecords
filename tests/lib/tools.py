@@ -255,7 +255,7 @@ class RequestWrapper(object):
                  ).order_by(
                      func.random()
                  ).limit(
-                     random.randrange(5)
+                     random.randrange(1, 6)
                  ).all()))
         else:
             reasons = format_determination_reasons(reason_ids)

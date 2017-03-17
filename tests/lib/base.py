@@ -44,6 +44,8 @@ class BaseTestCase(unittest.TestCase):
         meta = db.metadata
         for table in reversed(meta.sorted_tables):
             db.session.execute(table.delete())
+        for sequence in ("reasons_id_seq", "roles_id_seq"):
+            db.session.execute("ALTER SEQUENCE {} RESTART WITH 1;".format(sequence))
         db.session.commit()
 
     @staticmethod

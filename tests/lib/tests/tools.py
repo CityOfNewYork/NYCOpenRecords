@@ -14,6 +14,7 @@ from app.constants import (
     request_status,
     response_privacy,
     submission_methods,
+    determination_type,
     ACKNOWLEDGMENT_DAYS_DUE,
 )
 from app.lib.date_utils import (
@@ -22,6 +23,7 @@ from app.lib.date_utils import (
     get_due_date,
     get_following_date,
 )
+from app.response.utils import format_determination_reasons
 from tests.lib.base import BaseTestCase
 from tests.lib.tools import (
     UserFactory,
@@ -637,15 +639,122 @@ class RequestWrapperTests(BaseTestCase):
         )
         self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.agency_user)
 
-    # def test_add_link(self):
-    #     pass
-    #
-    # def test_add_note(self):
-    #     pass
-    #
-    # def test_add_instructions(self):
-    #     pass
-    #
+    def test_add_link(self):
+        response = self.request.add_link()
+
+        title = "Urlification"
+        url = "http://url.com"
+        privacy = response_privacy.RELEASE_AND_PUBLIC
+        response_custom = self.request.add_link(title, url, privacy, self.rf.public_user)
+
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                type(response.title),
+                type(response.url)
+            ],
+            [
+                self.request.id,
+                response_privacy.PRIVATE,
+                str,  # title
+                str,  # url
+            ]
+        )
+        self.__assert_response_event(event_type.LINK_ADDED, response, self.rf.agency_user)
+
+        response = Responses.query.get(response_custom.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.title,
+                response.url
+            ],
+            [
+                self.request.id,
+                privacy,
+                title,
+                url
+            ]
+        )
+        self.__assert_response_event(event_type.LINK_ADDED, response, self.rf.public_user)
+
+    def test_add_note(self):
+        response = self.request.add_note()
+
+        content = "I. AM. A. NOTE."
+        privacy = response_privacy.RELEASE_AND_PUBLIC
+        response_custom = self.request.add_note(content, privacy, self.rf.public_user)
+
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                type(response.content)
+            ],
+            [
+                self.request.id,
+                response_privacy.PRIVATE,
+                str
+            ]
+        )
+        self.__assert_response_event(event_type.NOTE_ADDED, response, self.rf.agency_user)
+
+        response = Responses.query.get(response_custom.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.content
+            ],
+            [
+                self.request.id,
+                privacy,
+                content
+            ]
+        )
+        self.__assert_response_event(event_type.NOTE_ADDED, response, self.rf.public_user)
+
+    def test_add_instructions(self):
+        response = self.request.add_instructions()
+
+        content = "I want to play a game. In the room to your left you will find..."
+        privacy = response_privacy.RELEASE_AND_PUBLIC
+        response_custom = self.request.add_instructions(content, privacy, self.rf.public_user)
+
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                type(response.content)
+            ],
+            [
+                self.request.id,
+                response_privacy.PRIVATE,
+                str
+            ]
+        )
+        self.__assert_response_event(event_type.INSTRUCTIONS_ADDED, response, self.rf.agency_user)
+
+        response = Responses.query.get(response_custom.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.content
+            ],
+            [
+                self.request.id,
+                privacy,
+                content
+            ]
+        )
+        self.__assert_response_event(event_type.INSTRUCTIONS_ADDED, response, self.rf.public_user)
+
     # def test_acknowledge(self):
     #     pass
     #
@@ -654,13 +763,87 @@ class RequestWrapperTests(BaseTestCase):
     #
     # def test_reopen(self):
     #     pass
-    #
-    # def test_deny(self):
-    #     pass
-    #
-    # def test_close(self):
-    #     pass
-    #
+
+    def test_close_default(self):
+        response = self.request.close()
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.dtype,
+                type(response.reason)
+            ],
+            [
+                self.request.id,
+                response_privacy.RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                str
+            ]
+        )
+        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.agency_user)
+
+    def test_close_custom(self):
+        reason_ids = [1, 2, 3]
+        response_custom = self.request.close(reason_ids, self.rf.public_user)
+        response = Responses.query.get(response_custom.id)
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.dtype,
+                response.reason
+            ],
+            [
+                self.request.id,
+                response_privacy.RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                format_determination_reasons(reason_ids)
+            ]
+        )
+        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.public_user)
+
+    def test_deny_default(self):
+        response = self.request.deny()
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.dtype,
+                type(response.reason)
+            ],
+            [
+                self.request.id,
+                response_privacy.RELEASE_AND_PUBLIC,
+                determination_type.DENIAL,
+                str
+            ]
+        )
+        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.agency_user)
+
+    def test_deny_custom(self):
+        reason_ids = [19, 20, 21]
+        response_custom = self.request.deny(reason_ids, self.rf.public_user)
+        response = Responses.query.get(response_custom.id)
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.dtype,
+                response.reason
+            ],
+            [
+                self.request.id,
+                response_privacy.RELEASE_AND_PUBLIC,
+                determination_type.DENIAL,
+                format_determination_reasons(reason_ids)
+            ]
+        )
+        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.public_user)
+
     # def test_set_due_soon(self):
     #     pass
     #
