@@ -1,7 +1,12 @@
 import unittest
-from app import create_app, db
+from app import create_app, db, es
 from app.models import Roles, Agencies, Reasons
-from app.search.utils import create_index, delete_index, delete_docs
+from app.search.utils import (
+    create_index,
+    delete_index,
+    delete_docs,
+    index_exists,
+)
 
 
 class BaseTestCase(unittest.TestCase):
@@ -12,6 +17,8 @@ class BaseTestCase(unittest.TestCase):
     def setUpClass(cls):
         with cls.app.app_context():
             db.create_all()
+            if index_exists():
+                delete_index()
             create_index()
 
     @classmethod

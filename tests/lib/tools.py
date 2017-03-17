@@ -91,20 +91,16 @@ class RequestWrapper(object):
         return getattr(self.request, name)
 
     def set_title(self, title: str):
-        self.request.title = title
-        db.session.commit()  # FIXME: ?
+        self.__update({"title": title})
 
     def set_agency_description(self, agency_description: str):
-        self.request.agency_description = agency_description
-        db.session.commit()
+        self.__update({"agency_description": agency_description})
 
     def set_title_privacy(self, privacy: bool):
-        self.request.privacy["title"] = privacy
-        db.session.commit()
+        self.__update({"privacy": {"title": privacy}})
 
     def set_agency_description_privacy(self, privacy: bool):
-        self.request.privacy["agency_description"] = privacy
-        db.session.commit()
+        self.__update({"privacy": {"agency_description": privacy}})
 
     def add_file(self,
                  title=None,
@@ -219,11 +215,7 @@ class RequestWrapper(object):
 
     def __extend(self, extend_type, new_due_date, user, request_update_data=None, reason=None):
         request_update_data["due_date"] = new_due_date
-        update_object(
-            request_update_data,
-            Requests,
-            self.request.id
-        )
+        self.__update(request_update_data)
         response = Determinations(
             self.request.id,
             response_privacy.RELEASE_AND_PUBLIC,
@@ -269,14 +261,12 @@ class RequestWrapper(object):
                  ).all()))
         else:
             reasons = format_determination_reasons(reason_ids)
-        update_object(
+        self.__update(
             {
                 "status": request_status.CLOSED,
                 "agency_descripton_release_date": calendar.addbusdays(
                     datetime.utcnow(), RELEASE_PUBLIC_DAYS)
-            },
-            Requests,
-            self.request.id
+            }
         )
         response = Determinations(
             self.request.id,
@@ -343,6 +333,9 @@ class RequestWrapper(object):
                 response_id=None
             )
         )
+        self.__update(data)
+
+    def __update(self, data):
         update_object(data, Requests, self.request.id)
 
     def add_user(self, user, permissions=None, role=None, agent=None):

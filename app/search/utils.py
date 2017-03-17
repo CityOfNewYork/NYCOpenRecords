@@ -29,6 +29,13 @@ def recreate():
     create_docs()
 
 
+def index_exists():
+    """
+    Return whether the elasticsearch index exists or not.
+    """
+    return es.indices.exists(current_app.config["ELASTICSEARCH_INDEX"])
+
+
 def delete_index():
     """
     Delete all elasticsearch indices, ignoring errors.

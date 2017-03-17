@@ -496,4 +496,78 @@ class RequestFactoryTests(BaseTestCase):
 
 
 class RequestWrapperTests(BaseTestCase):
-    pass  # TODO
+
+    def setUp(self):
+        super().setUp()
+        rf = RequestFactory()
+        self.request = rf.create_request_as_anonymous_user()
+
+    def test_set_title(self):
+        title = "The Time Has Come"
+        self.request.set_title(title)
+        request = Requests.query.get(self.request.id)
+        self.assertEqual(request.title, title)
+
+    def test_set_agency_description(self):
+        agency_description = "To talk of many things."
+        self.request.set_agency_description(agency_description)
+        request = Requests.query.get(self.request.id)
+        self.assertEqual(request.agency_description, agency_description)
+
+    def test_set_title_privacy(self):
+        privacy = not self.request.privacy["title"]
+        self.request.set_title_privacy(privacy)
+        request = Requests.query.get(self.request.id)
+        self.assertEqual(request.privacy["title"], privacy)
+
+    def test_set_agency_description_privacy(self):
+        privacy = not self.request.privacy["agency_description"]
+        self.request.set_agency_description_privacy(privacy)
+        request = Requests.query.get(self.request.id)
+        self.assertEqual(request.privacy["agency_description"], privacy)
+
+    # def test_add_file(self):
+    #     pass
+    #
+    # def test_add_link(self):
+    #     pass
+    #
+    # def test_add_note(self):
+    #     pass
+    #
+    # def test_add_instructions(self):
+    #     pass
+    #
+    # def test_acknowledge(self):
+    #     pass
+    #
+    # def test_extend(self):
+    #     pass
+    #
+    # def test_reopen(self):
+    #     pass
+    #
+    # def test_deny(self):
+    #     pass
+    #
+    # def test_close(self):
+    #     pass
+    #
+    # def test_set_due_soon(self):
+    #     pass
+    #
+    # def test_set_overdue(self):
+    #     pass
+    #
+    # def add_user(self):
+    #     pass
+    #
+    # def edit_user(self):
+    #     pass
+    #
+    # def remove_user(self):
+    #     pass
+    #
+    # def test_destructor(self):
+    #     pass
+    #
