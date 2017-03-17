@@ -102,9 +102,11 @@
                 </button>
             </div>
         </div>
-        <div class="col-sm-12 request-record-button" id="new-request">
-            <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
-        </div>
+        {% if not current_user.is_agency %}
+            <div class="col-sm-12 request-record-button" id="new-request">
+                <a href="{{ url_for('request.new') }}" role="button" class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 
