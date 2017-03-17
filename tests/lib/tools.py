@@ -99,7 +99,7 @@ class RequestWrapper(object):
     def set_title_privacy(self, privacy: bool):
         self.__update({"privacy": {"title": privacy}})
 
-    def set_agency_description_privacy(self, privacy: bool):
+    def set_agency_description_privacy(self, privacy: bool): # TODO: change_release_date=False
         self.__update({"privacy": {"agency_description": privacy}})
 
     def add_file(self,
@@ -276,7 +276,7 @@ class RequestWrapper(object):
         self.__create_event(event_type.REQ_CLOSED, response, user)
         return response
 
-    def set_due_soon(self, days=None, shift_dates=True):
+    def set_due_soon(self, days=current_app.config["DUE_SOON_DAYS_THRESHOLD"], shift_dates=True):
         """
         Shift request date field values, with due date set to up to 2 days
         (DUE_SOON_DAYS_THRESHOLD) from now, and sets request statues to "due_soon".
@@ -286,10 +286,10 @@ class RequestWrapper(object):
         """
         days = min(days, current_app.config["DUE_SOON_DAYS_THRESHOLD"])
         self.__set_due_soon_or_overdue(
-            request_status.OVERDUE,
+            request_status.DUE_SOON,
             calendar.addbusdays(
                 datetime.utcnow(), days
-            ).replace(hour=23, minute=59, second=59),
+            ).replace(hour=23, minute=59, second=59, microsecond=0),
             shift_dates
         )
 
@@ -301,15 +301,17 @@ class RequestWrapper(object):
         :param shift_dates: shift dates or only change status?
         """
         self.__set_due_soon_or_overdue(
-            request_status.DUE_SOON,
-            calendar.addbusdays(datetime.utcnow(), -1),
+            request_status.OVERDUE,
+            calendar.addbusdays(
+                datetime.utcnow(), -1
+            ).replace(microsecond=0),
             shift_dates
         )
 
     def __set_due_soon_or_overdue(self, status, new_due_date, shift_dates):
         data = {"status": status}
         if shift_dates:
-            shift = new_due_date - self.request.due_date,
+            shift = new_due_date - self.request.due_date
             data.update({
                 "due_date": new_due_date,
                 "date_submitted": self.request.date_submitted + shift,
@@ -326,7 +328,7 @@ class RequestWrapper(object):
                 user_guid=None,
                 auth_user_type=None,
                 type_=event_type.REQ_STATUS_CHANGED,
-                previous_value={"request": self.request.status},
+                previous_value={"status": self.request.status},
                 new_value={"status": status},
                 response_id=None
             )
@@ -458,7 +460,7 @@ class RequestFactory(object):
                        user,
                        title=None,
                        description=None,
-                       agency_description=None,
+                       agency_description=None,  # TODO: agency_description_release_date
                        agency_ein=None,
                        date_created=None,
                        date_submitted=None,
@@ -513,6 +515,7 @@ class RequestFactory(object):
         )
         if agency_description is not None:
             request.agency_description = agency_description
+            # TODO: set agency_description_release_date
         create_object(request)
         request = RequestWrapper(request, self.agency_user)
 

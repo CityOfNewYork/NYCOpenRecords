@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from flask import current_app
+from app import calendar
 from app.models import (
     Users,
     Requests,
@@ -844,12 +845,99 @@ class RequestWrapperTests(BaseTestCase):
         )
         self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.public_user)
 
-    # def test_set_due_soon(self):
-    #     pass
-    #
-    # def test_set_overdue(self):
-    #     pass
-    #
+    def test_set_due_soon(self):
+        self.__test_due_soon_or_overdue(
+            request_status.DUE_SOON,
+            calendar.addbusdays(
+                datetime.utcnow(), current_app.config["DUE_SOON_DAYS_THRESHOLD"]
+            ).replace(hour=23, minute=59, second=59, microsecond=0),
+        )
+
+    def test_set_due_soon_no_shift(self):
+        self.__test_due_soon_or_overdue(request_status.DUE_SOON, no_shift=True)
+
+    def test_set_overdue(self):
+        self.__test_due_soon_or_overdue(
+            request_status.OVERDUE,
+            calendar.addbusdays(
+                datetime.utcnow(), -1
+            ).replace(microsecond=0)
+        )
+
+    def test_set_overdue_no_shift(self):
+        self.__test_due_soon_or_overdue(request_status.OVERDUE, no_shift=True)
+
+    def __test_due_soon_or_overdue(self, status, due_date=None, no_shift=False):
+        if no_shift:
+            due_date = self.request.due_date
+            date_submitted = self.request.date_submitted
+            date_created = self.request.date_created
+
+            {request_status.DUE_SOON: self.request.set_due_soon,
+             request_status.OVERDUE: self.request.set_overdue
+            }[status](shift_dates=False)
+
+            request = Requests.query.get(self.request.id)
+            self.assertEqual(
+                [
+                    request.status,
+                    request.due_date,
+                    request.date_submitted,
+                    request.date_created
+                ],
+                [
+                    status,
+                    due_date,
+                    date_submitted,
+                    date_created
+                ]
+            )
+        else:
+            shift = due_date - self.request.due_date
+            date_submitted = self.request.date_submitted + shift
+            date_created = self.request.date_created + shift
+            old_status = self.request.status
+
+            {request_status.DUE_SOON: self.request.set_due_soon,
+             request_status.OVERDUE: self.request.set_overdue
+             }[status]()
+
+            request = Requests.query.get(self.request.id)
+            self.assertEqual(
+                [
+                    request.status,
+                    request.due_date,
+                    request.date_submitted,
+                    request.date_created,
+                    # TODO: request.agency_description_release_date
+                ],
+                [
+                    status,
+                    due_date,
+                    date_submitted,
+                    date_created
+                ]
+            )
+            event = Events.query.filter_by(type=event_type.REQ_STATUS_CHANGED).one()
+            self.assertEqual(
+                [
+                    event.request_id,
+                    event.user_guid,
+                    event.auth_user_type,
+                    event.previous_value,
+                    event.new_value,
+                    event.response_id
+                ],
+                [
+                    self.request.id,
+                    None,  # user_guid
+                    None,  # auth_user_type
+                    {"status": old_status},
+                    {"status": status},
+                    None
+                ]
+            )
+
     # def add_user(self):
     #     pass
     #
