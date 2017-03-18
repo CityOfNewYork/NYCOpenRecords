@@ -4,14 +4,19 @@ from flask import current_app
 from app import calendar
 from app.models import (
     Users,
+    Roles,
     Requests,
     Agencies,
     Events,
     Responses,
+    UserRequests,
 )
 from app.constants import (
+    permission,
+    role_name,
     event_type,
     user_type_auth,
+    user_type_request,
     request_status,
     response_privacy,
     submission_methods,
@@ -506,6 +511,7 @@ class RequestWrapperTests(BaseTestCase):
     def setUp(self):
         super().setUp()
         self.rf = RequestFactory()
+        self.uf = UserFactory()
         self.request = self.rf.create_request_as_anonymous_user()
 
     def test_set_title(self):
@@ -938,18 +944,167 @@ class RequestWrapperTests(BaseTestCase):
                 ]
             )
 
-    # def add_user(self):
-    #     pass
-    #
-    # def edit_user(self):
-    #     pass
-    #
-    # def remove_user(self):
-    #     pass
-    #
-    # def test_destructor(self):
-    #     pass
-    #
+    def test_add_user_anonymous(self):
+        self.__test_add_user_default(
+            self.uf.create_anonymous_user(),
+            user_type_request.REQUESTER,
+            role_name.ANONYMOUS
+        )
+
+    def test_user_public(self):
+        self.__test_add_user_default(
+            self.uf.create_public_user(),
+            user_type_request.REQUESTER,
+            role_name.PUBLIC_REQUESTER
+        )
+
+    def test_add_user_agency_inactive(self):
+        self.__test_add_user_default(
+            self.uf.create_agency_user(agency_ein=self.request.agency.ein),
+            user_type_request.AGENCY,
+            role_name.AGENCY_HELPER
+        )
+
+    def test_add_user_agency_active(self):
+        self.__test_add_user_default(
+            self.uf.create_agency_user(agency_ein=self.request.agency.ein,
+                                       is_agency_active=True),
+            user_type_request.AGENCY,
+            role_name.AGENCY_OFFICER
+        )
+
+    def test_add_user_agency_admin(self):
+        self.__test_add_user_default(
+            self.uf.create_agency_admin(agency_ein=self.request.agency.ein),
+            user_type_request.AGENCY,
+            role_name.AGENCY_ADMIN
+        )
+
+    def __test_add_user_default(self, user, request_user_type, role):
+        user_request = self.request.add_user(user)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.assertEqual(
+            [
+                user_request.request_id,
+                user_request.request_user_type,
+                user_request.permissions
+            ],
+            [
+                self.request.id,
+                request_user_type,
+                Roles.query.filter_by(name=role).one().permissions
+            ]
+        )
+        self.__assert_user_request_event(event_type.USER_ADDED, user_request, self.rf.agency_user)
+
+    def test_add_user_custom_agent(self):
+        user = self.uf.create_anonymous_user()
+        agency_user = self.uf.create_agency_user(agency_ein=self.request.agency.ein)
+        user_request = self.request.add_user(user, agent=agency_user)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.__assert_user_request_event(event_type.USER_ADDED, user_request, agency_user)
+
+    def test_add_user_custom_role(self):
+        user = self.uf.create_anonymous_user()
+        rname = role_name.PUBLIC_NON_REQUESTER
+        user_request = self.request.add_user(user, role=rname)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.assertEqual(
+            user_request.permissions,
+            Roles.query.filter_by(name=rname).one().permissions
+        )
+
+    def test_add_user_custom_permissions(self):
+        user = self.uf.create_anonymous_user()
+        permissions = permission.ADD_LINK
+        user_request = self.request.add_user(user, permissions=permissions)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.assertEqual(user_request.permissions, permissions)
+
+    def test_edit_user_set_permissions(self):
+        user = self.uf.create_public_user()
+        user_request = self.request.add_user(user)
+        old_permissions = user_request.permissions
+        permissions = permission.ADD_FILE | permission.ADD_OFFLINE_INSTRUCTIONS
+        self.request.edit_user(user, perms_set=permissions)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.assertEqual(user_request.permissions, permissions)
+        self.__assert_user_request_event(
+            event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions)
+
+    def test_edit_user_add_permissions(self):
+        user = self.uf.create_public_user()
+        user_request = self.request.add_user(user)
+        old_permissions = user_request.permissions
+        permissions = permission.ADD_OFFLINE_INSTRUCTIONS
+        self.request.edit_user(user, perms_add=permissions)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.assertEqual(user_request.permissions, permissions | old_permissions)
+        self.__assert_user_request_event(
+            event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions)
+
+    def test_edit_user_remove_permissions(self):
+        user = self.uf.create_public_user()
+        user_request = self.request.add_user(user)
+        old_permissions = user_request.permissions
+        self.request.edit_user(user, perms_remove=old_permissions)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.assertEqual(user_request.permissions, permission.NONE)
+        self.__assert_user_request_event(
+            event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions)
+
+    def test_edit_user_as_agent(self):
+        user = self.uf.create_anonymous_user()
+        agency_user = self.uf.create_agency_user(agency_ein=self.request.agency.ein)
+        user_request = self.request.add_user(user)
+        old_permissions = user_request.permissions
+        user_request = self.request.edit_user(perms_set=permission.NONE, agent=agency_user)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.__assert_user_request_event(
+            event_type.USER_PERM_CHANGED, user_request, agency_user, old_permissions)
+
+    def test_edit_user_missing_permissions(self):
+        user = self.uf.create_anonymous_user()
+        with self.assertRaises(AssertionError):
+            self.request.edit_user()
+
+    def test_remove_user(self):
+        user = self.uf.create_anonymous_user()
+        user_request = self.request.add_user(user)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.request.remove_user(user)
+        self.__assert_user_request_event(event_type.USER_REMOVED, user_request, user)
+        self.assertTrue(UserRequests.query.filter_by(user_guid=user.guid).first() is None)
+
+    def test_remove_user_as_agent(self):
+        user = self.uf.create_anonymous_user()
+        agency_user = self.uf.create_agency_user(agency_ein=self.request.agency.ein)
+        user_request = self.request.add_user(user, agent=agency_user)
+        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.request.remove_user(user)
+        self.__assert_user_request_event(event_type.USER_REMOVED, user_request, agency_user)
+
+    def test_destructor(self):
+        response = self.request.add_file()
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(
+                    current_app.config["UPLOAD_DIRECTORY"],
+                    self.request.id,
+                    response.name
+                )
+            )
+        )
+        del response
+        self.assertFalse(
+            os.path.exists(
+                os.path.join(
+                    current_app.config["UPLOAD_DIRECTORY"],
+                    self.request.id,
+                    response.name
+                )
+            )
+        )
 
     def __assert_response_event(self, type_, response, user):
         event = Events.query.filter_by(response_id=response.id).one()
@@ -969,5 +1124,24 @@ class RequestWrapperTests(BaseTestCase):
                 type_,
                 None,
                 response.val_for_events,
+            ]
+        )
+
+    def __assert_user_request_event(self, type_, user_request, user, old_permissions=None):
+        event = Events.query.filter_by(type=type_)
+        self.assertEqual(
+            [
+                event.request_id,
+                event.user_guid,
+                event.auth_user_type,
+                event.previous_value,
+                event.new_value
+            ],
+            [
+                self.request.id,
+                user.guid,
+                user.auth_user_type,
+                {"permissions": old_permissions} if old_permissions else None,
+                user_request.val_for_events
             ]
         )

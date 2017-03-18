@@ -80,7 +80,7 @@ class RequestWrapper(object):
         """
         :param request: the request to wrap
         :param user: primary user for actions performed
-            if not supplied, will try to fetch matching agency user
+            if not supplied, will try to fetch assigned user
         :param clean: remove artifacts on object deletion?
         """
         self.request = request
@@ -99,7 +99,7 @@ class RequestWrapper(object):
     def set_title_privacy(self, privacy: bool):
         self.__update({"privacy": {"title": privacy}})
 
-    def set_agency_description_privacy(self, privacy: bool): # TODO: change_release_date=False
+    def set_agency_description_privacy(self, privacy: bool):  # TODO: change_release_date=False
         self.__update({"privacy": {"agency_description": privacy}})
 
     def add_file(self,
