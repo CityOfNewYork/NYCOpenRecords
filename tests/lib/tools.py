@@ -168,17 +168,15 @@ class RequestWrapper(object):
         return response
 
     def acknowledge(self, info=None, days=None, date=None, user=None):
-        if date is not None and info is not None:
+        if date is not None and info is None:
+            # info required if custom date used
             info = fake.paragraph()
         new_due_date = self.__get_new_due_date(days, date)
         return self.__extend(
             determination_type.ACKNOWLEDGMENT,
             new_due_date,
             user,
-            {
-                "due_date": new_due_date,
-                "status": request_status.IN_PROGRESS
-            },
+            {"status": request_status.IN_PROGRESS},
             info
         )
 
@@ -228,7 +226,6 @@ class RequestWrapper(object):
     def __get_new_due_date(self, days=None, date=None):
         assert days is not None or date is not None
         if days is None:
-            date = datetime.strptime(date, '%Y-%m-%d')
             new_due_date = process_due_date(local_to_utc(date, self.__tz_name))
         else:
             new_due_date = get_due_date(
@@ -236,7 +233,7 @@ class RequestWrapper(object):
                     self.request.due_date,
                     self.__tz_name
                 ),
-                int(days),
+                days,
                 self.__tz_name)
         return new_due_date
 

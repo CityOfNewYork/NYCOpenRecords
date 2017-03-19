@@ -27,6 +27,7 @@ from app.lib.date_utils import (
     local_to_utc,
     utc_to_local,
     get_due_date,
+    process_due_date,
     get_following_date,
 )
 from app.response.utils import format_determination_reasons
@@ -513,6 +514,7 @@ class RequestWrapperTests(BaseTestCase):
         self.rf = RequestFactory()
         self.uf = UserFactory()
         self.request = self.rf.create_request_as_anonymous_user()
+        self.tz_name = current_app.config["APP_TIMEZONE"]
 
     def test_set_title(self):
         title = "The Time Has Come"
@@ -762,14 +764,101 @@ class RequestWrapperTests(BaseTestCase):
         )
         self.__assert_response_event(event_type.INSTRUCTIONS_ADDED, response, self.rf.public_user)
 
-    # def test_acknowledge(self):
-    #     pass
-    #
-    # def test_extend(self):
-    #     pass
-    #
-    # def test_reopen(self):
-    #     pass
+    def test_acknowledge_days(self):
+        days = 30
+        info = "Informative information that will inform you."
+        due_date = get_due_date(
+            utc_to_local(
+                self.request.due_date,
+                self.tz_name
+            ),
+            days,
+            self.tz_name
+        )
+        response = self.request.acknowledge(info=info, days=days)
+        self.__test_extension(response, determination_type.ACKNOWLEDGMENT, info, due_date)
+
+    def test_acknowledge_date(self):
+        date = calendar.addbusdays(datetime.now(), 100)
+        response = self.request.acknowledge(date=date)
+        due_date = process_due_date(local_to_utc(date, self.tz_name))
+        self.__test_extension(response, determination_type.ACKNOWLEDGMENT, str, due_date)
+
+    def test_acknowledge_missing_args(self):
+        with self.assertRaises(AssertionError):
+            self.request.acknowledge()
+
+    def test_extend_days(self):
+        days = 20
+        reason = "Reasonable reasoning for the rational reasoner."
+        response = self.request.extend(reason=reason, days=days)
+        due_date = get_due_date(
+            utc_to_local(
+                self.request.due_date,
+                self.tz_name
+            ),
+            days,
+            self.tz_name
+        )
+        self.__test_extension(response, determination_type.EXTENSION, reason, due_date)
+
+    def test_extend_date_due_soon(self):
+        date = calendar.addbusdays(utc_to_local(self.request.due_date, self.tz_name), -1)
+        response = self.request.extend(date=date)
+        due_date = process_due_date(local_to_utc(date, self.tz_name))
+        self.__test_extension(
+            response, determination_type.EXTENSION, str, due_date, request_status.DUE_SOON)
+
+    def test_extend_date_overdue(self):
+        date = calendar.addbusdays(utc_to_local(self.request.due_date, self.tz_name), 1)
+        response = self.request.extend(date=date)
+        due_date = process_due_date(local_to_utc(date, self.tz_name))
+        self.__test_extension(
+            response, determination_type.EXTENSION, str, due_date, request_status.OVERDUE)
+
+    def test_reopen(self):
+        date = calendar.addbusdays(utc_to_local(self.request.due_date, self.tz_name), 1)
+        response = self.request.reopen(date)
+        due_date = process_due_date(local_to_utc(date, self.tz_name))
+        self.__test_extension(response, determination_type.REOPENING, None, due_date)
+        self.assertEqual(self.request.agency_description, None)
+
+    def __test_extension(self,
+                         response,
+                         type_,
+                         reason,
+                         due_date,
+                         status=request_status.IN_PROGRESS,
+                         user=None):
+        response = Responses.query.get(response.id)
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.dtype,
+                type(response.reason) if isinstance(reason, type) else response.reason,
+                response.date
+            ],
+            [
+                self.request.id,
+                response_privacy.RELEASE_AND_PUBLIC,
+                type_,
+                reason,
+                due_date
+            ]
+        )
+        request = Requests.query.get(self.request.id)
+        self.assertEqual(
+            [
+                request.status,
+                request.due_date,
+            ],
+            [
+                status,
+                due_date
+            ]
+        )
+        self.__assert_response_event(type_, response, user or self.rf.agency_user)
 
     def test_close_default(self):
         response = self.request.close()
