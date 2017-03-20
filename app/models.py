@@ -1095,7 +1095,6 @@ class Notes(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.NOTE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String(5000))
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1133,7 +1132,6 @@ class Files(Responses):
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
     hash = db.Column(db.String)
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1173,7 +1171,6 @@ class Links(Responses):
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String)
     url = db.Column(db.String)
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1205,7 +1202,6 @@ class Instructions(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.INSTRUCTIONS}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1255,7 +1251,6 @@ class Determinations(Responses):
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1316,7 +1311,6 @@ class Emails(Responses):
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
     body = db.Column(db.String)
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
