@@ -210,6 +210,7 @@ class RequestWrapper(object):
         )
 
     def __extend(self, extend_type, new_due_date, user, request_update_data=None, reason=None):
+        assert new_due_date > self.request.due_date
         request_update_data["due_date"] = new_due_date
         self.__update(request_update_data)
         response = Determinations(
@@ -384,12 +385,12 @@ class RequestWrapper(object):
         :param perms_remove: permissions to remove
         :param agent: user performing this action
         """
-        assert perms_set or perms_add or perms_remove
-        user_request = UserRequests.filter_by(
+        assert perms_set is not None or perms_add is not None or perms_remove is not None
+        user_request = UserRequests.query.filter_by(
             user_guid=user.guid,
             auth_user_type=user.auth_user_type,
             request_id=self.request.id
-        ).one().id
+        ).one()
         old_permissions = user_request.permissions
         if perms_set:
             user_request.set_permissions(perms_set)
@@ -406,7 +407,7 @@ class RequestWrapper(object):
         :param user: user to remove
         :param agent: user performing this action
         """
-        user_request = UserRequests.filter_by(
+        user_request = UserRequests.query.filter_by(
             user_guid=user.guid,
             auth_user_type=user.auth_user_type,
             request_id=self.request.id

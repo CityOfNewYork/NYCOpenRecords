@@ -1,4 +1,6 @@
 import os
+from operator import ior
+from functools import reduce
 from datetime import datetime, timedelta
 from flask import current_app
 from app import calendar
@@ -791,7 +793,6 @@ class RequestWrapperTests(BaseTestCase):
     def test_extend_days(self):
         days = 20
         reason = "Reasonable reasoning for the rational reasoner."
-        response = self.request.extend(reason=reason, days=days)
         due_date = get_due_date(
             utc_to_local(
                 self.request.due_date,
@@ -800,21 +801,31 @@ class RequestWrapperTests(BaseTestCase):
             days,
             self.tz_name
         )
+        response = self.request.extend(reason=reason, days=days)
         self.__test_extension(response, determination_type.EXTENSION, reason, due_date)
 
     def test_extend_date_due_soon(self):
-        date = calendar.addbusdays(utc_to_local(self.request.due_date, self.tz_name), -1)
-        response = self.request.extend(date=date)
+        request = self.rf.create_request_as_anonymous_user(due_date=datetime.utcnow())
+        date = calendar.addbusdays(utc_to_local(request.due_date, self.tz_name), 1)
         due_date = process_due_date(local_to_utc(date, self.tz_name))
+        response = request.extend(date=date)
         self.__test_extension(
-            response, determination_type.EXTENSION, str, due_date, request_status.DUE_SOON)
+            response, determination_type.EXTENSION, str, due_date, request_status.DUE_SOON, request=request)
 
     def test_extend_date_overdue(self):
-        date = calendar.addbusdays(utc_to_local(self.request.due_date, self.tz_name), 1)
-        response = self.request.extend(date=date)
+        request = self.rf.create_request_as_anonymous_user(
+            due_date=calendar.addbusdays(datetime.utcnow(), -2))
+        date = calendar.addbusdays(utc_to_local(request.due_date, self.tz_name), 1)
         due_date = process_due_date(local_to_utc(date, self.tz_name))
+        response = request.extend(date=date)
         self.__test_extension(
-            response, determination_type.EXTENSION, str, due_date, request_status.OVERDUE)
+            response, determination_type.EXTENSION, str, due_date, request_status.OVERDUE, request=request)
+
+    # TODO: prevent users from extending a request to a date that will still result in an OVERDUE status
+    def test_extend_bad_due_date(self):
+        with self.assertRaises(AssertionError):
+            self.request.extend(date=calendar.addbusdays(
+                utc_to_local(self.request.due_date, self.tz_name), -1))
 
     def test_reopen(self):
         date = calendar.addbusdays(utc_to_local(self.request.due_date, self.tz_name), 1)
@@ -829,7 +840,9 @@ class RequestWrapperTests(BaseTestCase):
                          reason,
                          due_date,
                          status=request_status.IN_PROGRESS,
-                         user=None):
+                         user=None,
+                         request=None):
+        request_id = request.id if request is not None else self.request.id
         response = Responses.query.get(response.id)
         self.assertEqual(
             [
@@ -840,14 +853,14 @@ class RequestWrapperTests(BaseTestCase):
                 response.date
             ],
             [
-                self.request.id,
+                request_id,
                 response_privacy.RELEASE_AND_PUBLIC,
                 type_,
                 reason,
                 due_date
             ]
         )
-        request = Requests.query.get(self.request.id)
+        request = Requests.query.get(request_id)
         self.assertEqual(
             [
                 request.status,
@@ -858,7 +871,7 @@ class RequestWrapperTests(BaseTestCase):
                 due_date
             ]
         )
-        self.__assert_response_event(type_, response, user or self.rf.agency_user)
+        self.__assert_response_event(type_, response, user or self.rf.agency_user, request)
 
     def test_close_default(self):
         response = self.request.close()
@@ -1040,7 +1053,7 @@ class RequestWrapperTests(BaseTestCase):
             role_name.ANONYMOUS
         )
 
-    def test_user_public(self):
+    def test_add_user_public(self):
         self.__test_add_user_default(
             self.uf.create_public_user(),
             user_type_request.REQUESTER,
@@ -1095,7 +1108,7 @@ class RequestWrapperTests(BaseTestCase):
 
     def test_add_user_custom_role(self):
         user = self.uf.create_anonymous_user()
-        rname = role_name.PUBLIC_NON_REQUESTER
+        rname = role_name.PUBLIC_REQUESTER
         user_request = self.request.add_user(user, role=rname)
         user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
         self.assertEqual(
@@ -1114,10 +1127,10 @@ class RequestWrapperTests(BaseTestCase):
         user = self.uf.create_public_user()
         user_request = self.request.add_user(user)
         old_permissions = user_request.permissions
-        permissions = permission.ADD_FILE | permission.ADD_OFFLINE_INSTRUCTIONS
+        permissions = [permission.ADD_FILE, permission.ADD_OFFLINE_INSTRUCTIONS]
         self.request.edit_user(user, perms_set=permissions)
         user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
-        self.assertEqual(user_request.permissions, permissions)
+        self.assertEqual(user_request.permissions, reduce(ior, permissions))
         self.__assert_user_request_event(
             event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions)
 
@@ -1125,53 +1138,54 @@ class RequestWrapperTests(BaseTestCase):
         user = self.uf.create_public_user()
         user_request = self.request.add_user(user)
         old_permissions = user_request.permissions
-        permissions = permission.ADD_OFFLINE_INSTRUCTIONS
+        permissions = [permission.ADD_OFFLINE_INSTRUCTIONS]
         self.request.edit_user(user, perms_add=permissions)
         user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
-        self.assertEqual(user_request.permissions, permissions | old_permissions)
+        self.assertEqual(user_request.permissions, permissions[0] | old_permissions)
         self.__assert_user_request_event(
             event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions)
 
     def test_edit_user_remove_permissions(self):
         user = self.uf.create_public_user()
         user_request = self.request.add_user(user)
-        old_permissions = user_request.permissions
+        old_permissions = [user_request.permissions]
         self.request.edit_user(user, perms_remove=old_permissions)
         user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
         self.assertEqual(user_request.permissions, permission.NONE)
         self.__assert_user_request_event(
-            event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions)
+            event_type.USER_PERM_CHANGED, user_request, self.rf.agency_user, old_permissions[0])
 
     def test_edit_user_as_agent(self):
         user = self.uf.create_anonymous_user()
         agency_user = self.uf.create_agency_user(agency_ein=self.request.agency.ein)
         user_request = self.request.add_user(user)
         old_permissions = user_request.permissions
-        user_request = self.request.edit_user(perms_set=permission.NONE, agent=agency_user)
-        user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
+        self.request.edit_user(user, perms_set=permission.NONE, agent=agency_user)
+        user_request = UserRequests.query.filter_by(user_guid=user.guid).one()
         self.__assert_user_request_event(
             event_type.USER_PERM_CHANGED, user_request, agency_user, old_permissions)
 
     def test_edit_user_missing_permissions(self):
         user = self.uf.create_anonymous_user()
         with self.assertRaises(AssertionError):
-            self.request.edit_user()
+            self.request.edit_user(user)
 
     def test_remove_user(self):
         user = self.uf.create_anonymous_user()
         user_request = self.request.add_user(user)
         user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
         self.request.remove_user(user)
-        self.__assert_user_request_event(event_type.USER_REMOVED, user_request, user)
+        self.__assert_user_request_event(event_type.USER_REMOVED, user_request, self.rf.agency_user)
         self.assertTrue(UserRequests.query.filter_by(user_guid=user.guid).first() is None)
 
     def test_remove_user_as_agent(self):
         user = self.uf.create_anonymous_user()
         agency_user = self.uf.create_agency_user(agency_ein=self.request.agency.ein)
-        user_request = self.request.add_user(user, agent=agency_user)
+        user_request = self.request.add_user(user)
         user_request = UserRequests.query.filter_by(user_guid=user_request.user_guid).one()
-        self.request.remove_user(user)
+        self.request.remove_user(user, agent=agency_user)
         self.__assert_user_request_event(event_type.USER_REMOVED, user_request, agency_user)
+        self.assertTrue(UserRequests.query.filter_by(user_guid=user.guid).first() is None)
 
     def test_destructor(self):
         response = self.request.add_file()
@@ -1184,18 +1198,19 @@ class RequestWrapperTests(BaseTestCase):
                 )
             )
         )
-        del response
+        request_id = self.request.id
+        del self.request
         self.assertFalse(
             os.path.exists(
                 os.path.join(
                     current_app.config["UPLOAD_DIRECTORY"],
-                    self.request.id,
+                    request_id,
                     response.name
                 )
             )
         )
 
-    def __assert_response_event(self, type_, response, user):
+    def __assert_response_event(self, type_, response, user, request=None):
         event = Events.query.filter_by(response_id=response.id).one()
         self.assertEqual(
             [
@@ -1209,7 +1224,7 @@ class RequestWrapperTests(BaseTestCase):
             [
                 user.guid,
                 user.auth_user_type,
-                self.request.id,
+                request.id if request is not None else self.request.id,
                 type_,
                 None,
                 response.val_for_events,
@@ -1217,7 +1232,8 @@ class RequestWrapperTests(BaseTestCase):
         )
 
     def __assert_user_request_event(self, type_, user_request, user, old_permissions=None):
-        event = Events.query.filter_by(type=type_)
+        # get latest event with type `type_`
+        event = Events.query.filter_by(type=type_).order_by(Events.timestamp.desc()).first()
         self.assertEqual(
             [
                 event.request_id,
@@ -1230,7 +1246,7 @@ class RequestWrapperTests(BaseTestCase):
                 self.request.id,
                 user.guid,
                 user.auth_user_type,
-                {"permissions": old_permissions} if old_permissions else None,
+                {"permissions": old_permissions} if old_permissions is not None else None,
                 user_request.val_for_events
             ]
         )
