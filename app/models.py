@@ -576,17 +576,8 @@ class Requests(db.Model):
 
     @property
     def was_acknowledged(self):
-        return self.responses.filter(
-            Responses.type == response_type.DETERMINATION,
-            Determinations.dtype == determination_type.ACKNOWLEDGMENT
-        ).first() is not None
-
-    @property
-    def was_denied(self):
-        return self.responses.filter(
-            Responses.type == response_type.DETERMINATION,
-            Determinations.dtype == determination_type.DENIAL
-        ).first() is not None
+        return self.responses.join(Determinations).filter(
+            Determinations.dtype == determination_type.ACKNOWLEDGMENT).first() is not None
 
     @property
     def days_until_due(self):

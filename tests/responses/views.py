@@ -8,11 +8,16 @@ from tests.lib.tools import (
     RequestFactory,
     UserFactory,
     TestHelpers,
-    login_user_with_client
+    login_user_with_client,
 )
 
-from app.constants import request_status
-from app.response.utils import add_closing
+from app.constants import (
+    response_privacy,
+    determination_type,
+    event_type
+)
+from app.models import Determinations, Events
+from app.response.utils import add_closing, format_determination_reasons
 
 
 class ResponseViewsTests(BaseTestCase, TestHelpers):
@@ -117,5 +122,42 @@ class ResponseUtilsTests(BaseTestCase):
         self.request.set_agency_description_privacy(privacy=False)
         reasons = ['1', '2', '3']
         add_closing(self.request.id, reasons, 'email body')
-        self.assertEqual(self.request.status, request_status.CLOSED)
+        response = self.request.responses.join(Determinations).filter(
+            Determinations.dtype == determination_type.CLOSING).one()
+        self.assertEqual(
+            [
+                response.request_id,
+                response.privacy,
+                response.dtype,
+                response.reason
+            ],
+            [
+                self.request.id,
+                response_privacy.RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                format_determination_reasons(reasons)
+            ]
+        )
+        self.__assert_response_event(event_type.REQ_CLOSED, response, self.admin_860)
         logout_user()
+
+    def __assert_response_event(self, type_, response, user, request=None):
+        event = Events.query.filter_by(response_id=response.id).one()
+        self.assertEqual(
+            [
+                event.user_guid,
+                event.auth_user_type,
+                event.request_id,
+                event.type,
+                event.previous_value,
+                event.new_value
+            ],
+            [
+                user.guid,
+                user.auth_user_type,
+                request.id if request is not None else self.request.id,
+                type_,
+                None,
+                response.val_for_events,
+            ]
+        )
