@@ -4,9 +4,8 @@ from flask import jsonify
 from unittest.mock import patch
 
 from tests.lib.base import BaseTestCase
-from tests.lib.tools import create_user
+from tests.lib.tools import UserFactory
 
-from app.constants import user_type_auth
 from app.lib.date_utils import get_holidays_date_list, DEFAULT_YEARS_HOLIDAY_LIST
 
 
@@ -14,7 +13,8 @@ class RequestViewsTests(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        self.agency_user = create_user(user_type_auth.AGENCY_USER)
+        uf = UserFactory()
+        self.agency_admin = uf.create_agency_admin()
 
     @patch('app.request.views.SearchRequestsForm')
     @patch('app.request.views.render_template', return_value=jsonify({}))  # FIXME: return_value
@@ -25,7 +25,7 @@ class RequestViewsTests(BaseTestCase):
         # login agency_user
         with self.client as client:  # TODO: login_user_for_client_session(client)
             with client.session_transaction() as session:
-                session['user_id'] = self.agency_user.get_id()
+                session['user_id'] = self.agency_admin.get_id()
                 session['_fresh'] = True
             self.client.get('/request/view_all')
             render_template_patch.assert_called_once_with(
