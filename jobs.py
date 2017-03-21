@@ -1,5 +1,4 @@
 from datetime import datetime
-from urllib.parse import urljoin
 
 from flask import (
     render_template,

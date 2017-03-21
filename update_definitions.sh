@@ -2,6 +2,9 @@
 # Copyright (c) 2009 McAfee, Inc. All Rights Reserved.
 # required programs: unzip, ftp, awk, echo, cut, ls, printf
 
+# THIS FILE SHOULD BE EXECUTED FROM THE DIRECTORY WHERE UVSCAN HAS BEEN INSTALLED
+# (/usr/local/uvscan/ by default)
+
 ### defaults: do not modify
 unset md5checker leave_files debug
 
