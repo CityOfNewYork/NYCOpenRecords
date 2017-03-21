@@ -693,3 +693,28 @@ def get_random_date(start, end):
         seconds=random.randint(
             0, int((end - start).total_seconds())
         ))
+
+
+def login_user_with_client(client, user_id):
+    with client.session_transaction() as session:
+        session['user_id'] = user_id
+        session['fresh'] = True
+
+
+class TestHelpers(object):
+    """
+    Mixin class for unittests.
+    """
+    def assert_flashes(self, expected_message, expected_category):
+        """
+        Assert flash messages are flashed properly with expected message and category.
+        :param expected_message: expected flash message
+        :param expected_category: expected flash category
+        """
+        with self.client.session_transaction() as session:
+            try:
+                category, message = session['_flashes'][0]
+            except KeyError:
+                raise AssertionError('Nothing was flashed')
+            assert expected_message in message
+            assert expected_category == category
