@@ -2,12 +2,14 @@ import os
 import random
 import app.lib.file_utils as fu
 from itertools import product
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from flask import current_app
 from string import (
     ascii_lowercase,
     digits,
 )
+from flask_login import login_user, logout_user
 from sqlalchemy.sql.expression import func
 from app import calendar, db
 from app.models import (
@@ -699,6 +701,13 @@ def login_user_with_client(client, user_id):
     with client.session_transaction() as session:
         session['user_id'] = user_id
         session['fresh'] = True
+
+
+@contextmanager
+def flask_login_user(user):
+    login_user(user)
+    yield
+    logout_user()
 
 
 class TestHelpers(object):
