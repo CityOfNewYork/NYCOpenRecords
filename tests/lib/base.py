@@ -39,3 +39,4 @@ class BaseTestCase(unittest.TestCase):
     def populate_database():
         Roles.populate()
         Agencies.populate()
+

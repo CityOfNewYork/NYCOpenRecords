@@ -94,8 +94,8 @@ def create_user(first_name, last_name, email):
     print(user)
 
 
-@manager.option('-u', '--users', dest='users', action='store_true')
-@manager.option('-a', '--agencies', dest='agencies', action='store_true')
+@manager.option('-u', '--users', dest='users', action='store_true', default=False, required=False)
+@manager.option('-a', '--agencies', dest='agencies', action='store_true', default=False, required=False)
 @manager.option('-f', '--filename', dest='filename', default=None, required=True)
 def import_data(users, agencies, filename):
     """Import data from CSV file."""
