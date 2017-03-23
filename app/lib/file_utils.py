@@ -17,10 +17,72 @@ from contextlib import contextmanager
 from flask import current_app, send_from_directory
 
 TRANSFER_SIZE_LIMIT = 512000  # 512 kb
-FILE_READ_SIZE_LIMIT = 1000000  # 1 mb
+
 
 class MaxTransferSizeExceededException(Exception):
     pass
+
+
+class DecryptKeyException(Exception):
+    pass
+
+
+class FileCrypter(object):
+    CHUNKSIZE = 10000000  # 10 mb
+    LEN_ENCRYPTED_DIFF = 40
+
+    def __init__(self, chunksize=CHUNKSIZE):
+        self.__box = nacl.secret.SecretBox(self.__key)
+        self.__chunksize_encrypt = chunksize
+        self.__chunksize_decrypt = chunksize + self.LEN_ENCRYPTED_DIFF
+
+    def encrypt(self, src, dest):
+        """
+        Save a encrypted version of a file to a desired location.
+
+        :param src: source path of file to encrypt
+        :param dest: destination file path
+        """
+        self.__crypt(src, dest, self.__box.encrypt)
+
+    def decrypt(self, src, dest):
+        """
+        Save a decrypted version of a file to a desired location.
+
+        :param src: source path of file to encrypt
+        :param dest: destination file path
+        """
+        self.__crypt(src, dest, self.__box.decrypt)
+
+    def __crypt(self, src, dest, method):
+        """
+        Encrypt or Decrypt a source file and write to a destination file in chunks.
+
+        :param src: source file path
+        :param dest: destination file path
+        :param method: self.__box.decrypt or self.__box.encrypt
+        """
+        assert src != dest, ""
+        with open(src, "rb") as src_, open(dest, "wb") as dest_:
+            chunksize = self.__chunksize_encrypt if method == self.__box.encrypt else self.__chunksize_decrypt
+            for chunk in iter(lambda: src_.read(chunksize), b''):
+                dest_.write(method(chunk))
+
+    @property
+    def __key(self):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(
+            "10.132.41.210",
+            username="palisand",
+            pkey=paramiko.RSAKey(filename="/home/vagrant/.ssh/id_rsa")
+        )
+        cmd = "decrypt {}".format(current_app.config["NACL_BOX_KEY"])
+        _, stdout, stderr = ssh.exec_command(cmd)
+        err = stderr.read()
+        if err:
+            raise DecryptKeyException(err)
+        return stdout.read()
 
 
 @contextmanager
@@ -225,63 +287,3 @@ def os_get_hash(path):
 @_sftp_switch(_sftp_send_file)
 def send_file(directory, filename, **kwargs):
     return send_from_directory(directory, filename, **kwargs)
-
-
-class FileCrypter(object):
-    CHUNKSIZE = 10000000  # 10 mb
-    LEN_ENCRYPTED_DIFF = 40
-
-    def __init__(self, chunksize=CHUNKSIZE):
-        self.__box = nacl.secret.SecretBox(self.__key)
-        self.__chunksize_encrypt = chunksize
-        self.__chunksize_decrypt = chunksize + self.LEN_ENCRYPTED_DIFF
-
-    def encrypt(self, src, dest):
-        """
-        Save a encrypted version of a file to a desired location.
-
-        :param src: source path of file to encrypt
-        :param dest: destination file path
-        """
-        self.__crypt(src, dest, self.__box.encrypt)
-
-    def decrypt(self, src, dest):
-        """
-        Save a decrypted version of a file to a desired location.
-
-        :param src: source path of file to encrypt
-        :param dest: destination file path
-        """
-        self.__crypt(src, dest, self.__box.decrypt)
-
-    def __crypt(self, src, dest, method):
-        """
-        Encrypt or Decrypt a source file and write to a destination file in chunks.
-
-        :param src: source file path
-        :param dest: destination file path
-        :param method: self.__box.decrypt or self.__box.encrypt
-        """
-        assert src != dest, ""
-        with open(src, "rb") as src_, open(dest, "wb") as dest_:
-            chunksize = self.__chunksize_encrypt if method == self.__box.encrypt else self.__chunksize_decrypt
-            for chunk in iter(lambda: src_.read(chunksize), b''):
-                dest_.write(method(chunk))
-
-    @property
-    def __key(self):
-        ssh_keystore = paramiko.SSHClient()
-        # ssh_keystore.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        ssh_keystore.connect(
-            "127.0.0.1",
-            username="palisand",
-            pkey=paramiko.RSAKey(filename="~/.ssh/id_rsa"))
-        cmd = "decrypt {}".format(current_app.config["NACL_BOX_KEY"])
-        stdin, stdout, stderr = ssh_keystore.exec_command(cmd)
-        # if stderr.read() != "":
-        #     raise DencryptKeyError
-        return stdout.read()
-
-
-def test():
-    crypter = FileCrypter()
