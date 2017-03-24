@@ -24,10 +24,7 @@ from flask_login import current_user, login_url
 from app import login_manager
 from app.constants import permission
 from app.constants.response_type import FILE
-from app.constants.response_privacy import (
-    PRIVATE,
-    RELEASE_AND_PUBLIC
-)
+from app.constants.response_privacy import PRIVATE
 from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object

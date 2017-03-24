@@ -208,7 +208,10 @@ def add_denial(request_id, reason_ids, email_content):
                              privacy,
                              email_content,
                              'Request {} Closed'.format(request_id))
-    # TODO: raise exception on else
+    else:
+        raise UserRequestException(action="close",
+                                   request_id=request_id,
+                                   reason="Request is already closed")
 
 
 def add_closing(request_id, reason_ids, email_content):
@@ -268,7 +271,10 @@ def add_closing(request_id, reason_ids, email_content):
                              privacy,
                              email_content,
                              'Request {} Closed'.format(request_id))
-    # TODO: raise exception on else
+    else:
+        raise UserRequestException(action="close",
+                                   request_id=request_id,
+                                   reason="Request is already closed")
 
 
 def add_reopening(request_id, date, tz_name, email_content):
