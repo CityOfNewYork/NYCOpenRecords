@@ -51,7 +51,7 @@ def update_object(data, obj_type, obj_id):
 
     :return: was the record updated successfully?
     """
-    obj = get_obj(obj_type, obj_id)
+    obj = get_object(obj_type, obj_id)
 
     if obj:
         for attr, value in data.items():
@@ -113,12 +113,10 @@ def bulk_delete(query):
         return 0
 
 
-def get_obj(obj_type, obj_id):
+def get_object(obj_type, obj_id):
     """
-
-    :param obj_type:
-    :param obj_id:
-    :return:
+    Safely retrieve a database record by its id
+    and its sqlalchemy object type.
     """
     if not obj_id:
         return None

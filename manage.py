@@ -35,7 +35,6 @@ manager = Manager(app)
 migrate = Migrate(app, db)
 
 
-#
 # class Celery(Command):
 #     """
 #     Start Celery

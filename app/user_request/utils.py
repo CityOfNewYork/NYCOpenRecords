@@ -191,7 +191,7 @@ def remove_user_request(request_id, user_guid):
     delete_object(user_request)
 
 
-def create_user_request_event(events_type, user_request, old_permissions=None):
+def create_user_request_event(events_type, user_request, old_permissions=None, user=current_user):
     """
     Create an Event for the addition, removal, or updating of a UserRequest
 
@@ -202,8 +202,8 @@ def create_user_request_event(events_type, user_request, old_permissions=None):
         previous_value = None
     create_object(Events(
         user_request.request_id,
-        current_user.guid,
-        current_user.auth_user_type,
+        user.guid,
+        user.auth_user_type,
         events_type,
         previous_value=previous_value,
         new_value=user_request.val_for_events,

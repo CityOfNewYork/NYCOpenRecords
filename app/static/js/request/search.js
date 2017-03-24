@@ -12,7 +12,6 @@ $(function() {
         noResultsFound = true,
         generateDocBtn = $("#generate-document");
 
-
     // Date stuff
     function elemToDate(elem) {
         /*
@@ -341,5 +340,11 @@ $(function() {
             $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
             search();
         }
+    });
+
+    // Toggle advanced search options (hide/show) and glyphicons directions on click
+    $("#advanced-options-toggle").click(function() {
+        $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
+        $("#advanced-search-options").toggle();
     });
 });
