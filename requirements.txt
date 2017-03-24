@@ -45,6 +45,7 @@ pipdeptree==0.9.0  # pip dependency tree
 psycopg2==2.6.2
 pyasn1==0.2.2
 pycrypto==2.6.1
+pynacl==1.1.1
 pyOpenSSL==16.2.0
 pyparsing==2.1.10
 python-dateutil==2.5.3

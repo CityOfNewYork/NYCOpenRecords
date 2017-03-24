@@ -11,6 +11,7 @@ import magic
 import hashlib
 import paramiko
 import nacl.secret
+from io import BytesIO
 from tempfile import TemporaryFile
 from functools import wraps
 from contextlib import contextmanager
@@ -70,6 +71,8 @@ class FileCrypter(object):
 
     @property
     def __key(self):
+        key_filename = current_app.config["FILE_ENCRYPTION_KEY_FILE"]
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(
@@ -77,12 +80,34 @@ class FileCrypter(object):
             username="palisand",
             pkey=paramiko.RSAKey(filename="/home/vagrant/.ssh/id_rsa")
         )
-        cmd = "decrypt {}".format(current_app.config["NACL_BOX_KEY"])
+
+        # copy encrypted key file to server
+        sftp = ssh.open_sftp()
+        sftp.put(key_filename, key_filename)
+
+        # create unencrypted key file on server
+        cmd = "/usr/local/bin/gpg --batch --quiet --yes --passphrase password {}".format(key_filename)
         _, stdout, stderr = ssh.exec_command(cmd)
+
+        # check for and raise if command failed
         err = stderr.read()
         if err:
+            sftp.close()
+            ssh.close()
             raise DecryptKeyException(err)
-        return stdout.read()
+        else:
+            # retrieve unencrypted key file contents
+            with BytesIO() as fp:
+                sftp.getfo("key", fp)  # TODO: remove magic "key"
+                fp.seek(os.SEEK_SET)
+                key = fp.read().rstrip()
+            # remove key files from server
+            sftp.remove("key")
+            sftp.remove(key_filename)
+            sftp.close()
+            ssh.close()
+
+        return key
 
 
 @contextmanager

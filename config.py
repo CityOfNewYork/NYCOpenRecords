@@ -112,6 +112,8 @@ class Config:
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
+    FILE_ENCRYPTION_KEY_FILE = os.environ.get('FILE_ENCRYPTION_KEY_FILE') or "key.gpg"
+
     # ReCaptcha
     RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
     RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
@@ -135,6 +137,29 @@ class Config:
         pass
 
 
+def get_sqlalchemy_database_uri(name, host="localhost", port="5432", env="DATABASE_URL"):
+    """
+    Returns the sqlalchemy database uri with the following methods,
+    with each subsequent method serving as a fallback to the one prior:
+    - Fetch from supplied env(vironment variable key)
+    - Assemble from env vars "DATABSE_HOST", "DATABASE_PORT", "DATABASE_NAME"
+    - Assemble from supplied name, host, and port
+
+    :param name: the default database name
+    :param host: the default database host
+    :param port: the default database port
+    """
+    host_, port_, name_ = os.environ.get("DATABASE_HOST"), \
+                          os.environ.get("DATABASE_PORT"), \
+                          os.environ.get("DATABASE_NAME")
+    uri_template = "postgresql://{}/{}"
+    return os.environ.get(env) or (
+        uri_template.format(":".join((host_, port_)), name_)
+        if host_ and port_ and name_
+        else uri_template.format(":".join((host, port)), name)
+    )
+
+
 class DevelopmentConfig(Config):
     DEBUG = True
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
@@ -143,8 +168,7 @@ class DevelopmentConfig(Config):
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Development]'
     MAIL_SENDER = 'OpenRecords - Dev Admin <donotreply@records.nyc.gov>'
-    SQLALCHEMY_DATABASE_URI = (os.environ.get('DATABASE_URL') or
-                               'postgresql://localhost:5432/openrecords_v2_0_dev')
+    SQLALCHEMY_DATABASE_URI = get_sqlalchemy_database_uri('openrecords_v2_0_dev')
     # Using Vagrant? Try: 'postgresql://vagrant@/openrecords_v2_0_dev'
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_dev"
     MAGIC_FILE = os.environ.get('MAGIC_FILE')
@@ -157,15 +181,14 @@ class TestingConfig(Config):
     UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data_test/')
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
-    SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or
-                               'postgresql://localhost:5432/openrecords_v2_0_test')
+    SQLALCHEMY_DATABASE_URI = get_sqlalchemy_database_uri('openrecords_v2_0_test', env="TEST_DATABASE_URL")
     ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_test"
 
 
 class ProductionConfig(Config):
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = get_sqlalchemy_database_uri("openrecords_v2_0")
 
 config = {
     'development': DevelopmentConfig,
