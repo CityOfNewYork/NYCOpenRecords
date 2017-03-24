@@ -727,3 +727,33 @@ class TestHelpers(object):
                 raise AssertionError('Nothing was flashed')
             assert expected_message in message
             assert expected_category == category
+
+    def assert_response_event(self, request_id, type_, response, user):
+        """
+
+        :param request_id:
+        :param type_:
+        :param response:
+        :param user:
+        :param request:
+        :return:
+        """
+        event = Events.query.filter_by(response_id=response.id).one()
+        self.assertEqual(
+            [
+                event.user_guid,
+                event.auth_user_type,
+                event.request_id,
+                event.type,
+                event.previous_value,
+                event.new_value
+            ],
+            [
+                user.guid,
+                user.auth_user_type,
+                request_id,
+                type_,
+                None,
+                response.val_for_events,
+            ]
+        )

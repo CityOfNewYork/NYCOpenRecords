@@ -62,6 +62,7 @@ def delete_docs():
         refresh=True,
     )
 
+
 def create_index():
     """
     Create elasticsearch index with mappings for request docs.

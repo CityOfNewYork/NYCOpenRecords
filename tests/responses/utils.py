@@ -6,6 +6,7 @@ from tests.lib.base import BaseTestCase
 from tests.lib.tools import (
     UserFactory,
     RequestFactory,
+    TestHelpers,
     flask_login_user
 )
 
@@ -15,7 +16,7 @@ from app.constants import (
     determination_type
 )
 from app.lib.utils import UserRequestException
-from app.models import Determinations, Events
+from app.models import Determinations
 from app.response.utils import (
     add_denial,
     add_closing,
@@ -23,7 +24,7 @@ from app.response.utils import (
 )
 
 
-class ResponseUtilsTests(BaseTestCase):
+class ResponseUtilsTests(BaseTestCase, TestHelpers):
     def setUp(self):
         super().setUp()
         self.agency_ein_860 = "0860"
@@ -64,7 +65,7 @@ class ResponseUtilsTests(BaseTestCase):
                 format_determination_reasons(self.denial_reasons)
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.admin_860)
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.admin_860)
 
     def test_add_denial_invalid_request(self):
         with flask_login_user(self.admin_860):
@@ -81,8 +82,8 @@ class ResponseUtilsTests(BaseTestCase):
     def test_add_closing(self, send_response_email_patch):
         with flask_login_user(self.admin_860):
             self.request.acknowledge(days=30)
-            self.request.set_agency_description(agency_description='blah')
-            self.request.set_agency_description_privacy(privacy=False)
+            self.request.set_agency_description('blah')
+            self.request.set_agency_description_privacy(False)
             add_closing(self.request.id, self.closing_reasons, self.email_content)
             send_response_email_patch.assert_called_once_with(
                 self.request.id,
@@ -106,7 +107,7 @@ class ResponseUtilsTests(BaseTestCase):
                 format_determination_reasons(self.closing_reasons)
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.admin_860)
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.admin_860)
 
     def test_add_closing_already_closed(self):
         with flask_login_user(self.admin_860):
@@ -156,7 +157,7 @@ class ResponseUtilsTests(BaseTestCase):
                 format_determination_reasons(self.closing_reasons)
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.admin_860, request_title_public)
+        self.assert_response_event(request_title_public.id, event_type.REQ_CLOSED, response, self.admin_860)
 
     @patch('app.response.utils._send_response_email')
     def test_add_closing_not_fulfilled_reasons(self, send_response_email_patch):
@@ -190,25 +191,4 @@ class ResponseUtilsTests(BaseTestCase):
                 format_determination_reasons(not_fulfilled_reasons)
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.admin_860)
-
-    def __assert_response_event(self, type_, response, user, request=None):
-        event = Events.query.filter_by(response_id=response.id).one()
-        self.assertEqual(
-            [
-                event.user_guid,
-                event.auth_user_type,
-                event.request_id,
-                event.type,
-                event.previous_value,
-                event.new_value
-            ],
-            [
-                user.guid,
-                user.auth_user_type,
-                request.id if request is not None else self.request.id,
-                type_,
-                None,
-                response.val_for_events,
-            ]
-        )
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.admin_860)
