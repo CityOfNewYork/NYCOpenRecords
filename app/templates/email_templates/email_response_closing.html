@@ -17,4 +17,7 @@
     <p><br></p>
 {% else %}
     {{ content | safe }}
+    {% if not fulfilled %}
+        <div><strong>NOTE:</strong> The request information will be attached to the email body.</div>
+    {% endif %}
 {% endif %}

@@ -109,6 +109,11 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
         )
         self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.admin_860)
 
+    def test_add_closing_invalid_request(self):
+        with flask_login_user(self.admin_860):
+            with self.assertRaises(NoResultFound):
+                add_closing('FOIL-2017-002-00001', self.closing_reasons, self.email_content)
+
     def test_add_closing_already_closed(self):
         with flask_login_user(self.admin_860):
             self.request.close()
