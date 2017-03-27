@@ -101,3 +101,5 @@ EMAIL_TEMPLATE_FOR_TYPE = {
 OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"
 
 CLOSING_FULFILLED_IDS = {'1', '2', '3', '4', '5', '6'}
+
+TINYMCE_EDITABLE_P_TAG = '<p id="editable-p">&nbsp;</p>'

@@ -40,7 +40,11 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
-from app.constants import permission, CLOSING_FULFILLED_IDS
+from app.constants import (
+    permission,
+    CLOSING_FULFILLED_IDS,
+    TINYMCE_EDITABLE_P_TAG
+)
 from app.lib.date_utils import (
     get_due_date,
     process_due_date,
@@ -650,6 +654,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         fulfilled = True
         if not set(data.getlist('reason_ids[]')) & CLOSING_FULFILLED_IDS:
             fulfilled = False
+        if content.endswith(TINYMCE_EDITABLE_P_TAG):
+            content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
     else:
         reasons = [Reasons.query.filter_by(id=reason_id).one().content
                    for reason_id in data.getlist('reason_ids[]')]

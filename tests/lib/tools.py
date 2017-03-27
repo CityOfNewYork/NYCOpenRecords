@@ -730,13 +730,12 @@ class TestHelpers(object):
 
     def assert_response_event(self, request_id, type_, response, user):
         """
+        Assert event created is properly committed with correct fields.
 
-        :param request_id:
-        :param type_:
-        :param response:
-        :param user:
-        :param request:
-        :return:
+        :param request_id: FOIL request ID
+        :param type_: type of event
+        :param response: response object
+        :param user: user object
         """
         event = Events.query.filter_by(response_id=response.id).one()
         self.assertEqual(
