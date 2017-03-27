@@ -56,6 +56,9 @@
         user.change(function () {
             if (user.val() != 0) {
                 options.show();
+                if (role.val()) {
+                    role.val(0);
+                }
                 setCurrentPermissions();
             } else {
                 options.hide();
