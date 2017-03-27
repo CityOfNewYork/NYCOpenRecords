@@ -22,9 +22,9 @@
 
         user.change(function () {
             if (user.val() != 0) {
-                options.show();
                 role.val('2');
-                permission.val(null)
+                permission.val(null);
+                options.show();
             } else {
                 options.hide()
             }
