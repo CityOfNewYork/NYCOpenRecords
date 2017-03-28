@@ -8,6 +8,7 @@
         var prev = second.find(".prev");
         var submit = second.find(".submit");
 
+        var options = first.find("#add_options");
         var role = first.find("#role");
         var user = first.find("#user");
         var permission = first.find("#permission");
@@ -20,7 +21,14 @@
         });
 
         user.change(function () {
-            $("#add_options").show();
+            if (user.val() != 0) {  // if this choice actually pertains to a user
+                // set the role to Anonymous User
+                first.find("#role option:contains('Anonymous User')").prop("selected", true);
+                permission.val(null);
+                options.show();
+            } else {
+                options.hide()
+            }
         });
 
         next.click(function () {
