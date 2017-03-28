@@ -35,7 +35,7 @@
             </div>
 
             <!-- Action Button Column -->
-            {% if (current_user in request.agency_users) or (is_requester and (request.status != status.OPEN) or (request.status != status.CLOSED)) %}
+            {% if (current_user in request.agency_users) or (is_requester and ((request.status != status.OPEN) or (request.status != status.CLOSED))) %}
                 <div class="col-md-12"><h3>Actions</h3>
                     <div class="tabbable tabs-left" id="mobile-toggle">
                         <ul class="nav nav-tabs">

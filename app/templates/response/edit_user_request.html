@@ -18,10 +18,12 @@
                     {{ edit_user_request_form.user(id="user", class="form-control") }}
                     <div id="edit_options" hidden>
                         {{ edit_user_request_form.roles.label }}<br>
-                        {{ edit_user_request_form.roles(id="role", class="form-control") }}
+                        {{ edit_user_request_form.roles(id="role", class="form-control") }}<br>
+                        <div id="ie-message" class="alert alert-info" hidden><strong>NOTE:</strong> Hold control and
+                            click to select multiple permissions.
+                        </div>
                         {{ edit_user_request_form.permission.label }}<br>
                         {{ edit_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
-
                         <button type="button" class="next pull-right btn btn-primary">Next</button>
                     </div>
                 </div>
