@@ -19,10 +19,7 @@
                 </div>
                 <div id="add_options" hidden>
                     {{ add_user_request_form.roles.label }}<br>
-                    {{ add_user_request_form.roles(id="role", class="form-control") }}<br>
-                    <div id="ie-message" class="alert alert-info" hidden><strong>NOTE:</strong> Hold control and click
-                        to select multiple permissions.
-                    </div>
+                    {{ add_user_request_form.roles(id="role", class="form-control") }}
                     {{ add_user_request_form.permission.label }}<br>
                     {{ add_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
