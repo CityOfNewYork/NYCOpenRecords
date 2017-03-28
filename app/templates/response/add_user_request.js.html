@@ -21,8 +21,9 @@
         });
 
         user.change(function () {
-            if (user.val() != 0) {
-                role.val('2');
+            if (user.val() != 0) {  // if this choice actually pertains to a user
+                // set the role to Anonymous User
+                first.find("#role option:contains('Anonymous User')").prop("selected", true);
                 permission.val(null);
                 options.show();
             } else {
