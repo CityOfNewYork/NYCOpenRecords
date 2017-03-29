@@ -155,7 +155,6 @@ def deploy():
     )))
 
     es_recreate()
-    # create_users()
 
 
 @manager.command
@@ -163,20 +162,6 @@ def es_recreate():
     """Recreate elasticsearch index and request docs."""
     from app.search.utils import recreate
     recreate()
-
-
-@manager.command
-def create_search_set():
-    """Create a number of requests for test purposes."""
-    from tests.lib.tools import create_requests_search_set
-    from app.constants.user_type_auth import PUBLIC_USER_TYPES
-    import random
-
-    users = random.sample(PUBLIC_USER_TYPES, 2)
-    for i in enumerate(users):
-        users[i[0]] = Users.query.filter_by(auth_user_type=users[i[0]]).first()
-
-    create_requests_search_set(users[0], users[1])
 
 
 @manager.command
