@@ -162,7 +162,7 @@
                 {% include 'request/_view_request_responses.html' %}
             </div>
             <!-- Actions for Public Users -->
-            {% if is_requester and (request.status != status.OPEN or request.status != status.CLOSED) %}
+            {% if is_requester and request.status not in [status.OPEN, status.CLOSED] %}
                 <div class="col-sm-12" id="add-note-public-user">
                     {% include "response/add_note.html" %}
                 </div>
