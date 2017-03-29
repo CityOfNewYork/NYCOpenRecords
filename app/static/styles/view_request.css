@@ -62,3 +62,8 @@
 .re-opened-row {
     white-space: nowrap;
 }
+
+#add-note-public-user {
+    display: inline-block;
+    padding-top: 20px;
+}

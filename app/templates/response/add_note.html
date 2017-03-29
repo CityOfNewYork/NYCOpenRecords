@@ -2,7 +2,7 @@
 
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-    <div class="col-sm-9">
+    <div class="col-sm-{% if current_user.is_agency%}9{% else %}12{% endif %}">
         <div class="note-control">
             <legend>
                 Add Note
