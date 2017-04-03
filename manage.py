@@ -184,6 +184,61 @@ def fix_due_dates():  # for "America/New_York"
 
 
 @manager.command
+def fix_anonymous_requesters():
+    """
+    Ensures there is only one anonymous requester per request by
+    creating a new anonymous requester (User) for every User Requests record with
+    a duplicate anonymous requester guid and updates the User Requests record.
+    The new user will be identical to the existing one with the exception of the guid.
+    """
+    from app.constants import user_type_request
+    from app.request.utils import generate_guid
+    from app.lib.db_utils import create_object, update_object
+
+    guids = db.engine.execute("""
+SELECT
+  user_requests.user_guid AS "GUID"
+FROM user_requests
+  JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
+WHERE user_requests.request_user_type = 'requester'
+GROUP BY user_requests.user_guid
+HAVING COUNT(user_requests.request_id) > 1;
+    """)
+
+    for guid, in guids:
+        # get all User Requests with dups, excluding the first (since we need to change all but 1)
+        for ur in UserRequests.query.filter_by(
+                user_guid=guid, request_user_type=user_type_request.REQUESTER
+        ).offset(1):
+            user = Users.query.filter_by(guid=guid, auth_user_type=user_type_auth.ANONYMOUS_USER).one()
+            new_guid = generate_guid()
+            print("{} -> {}".format(guid, new_guid))
+            # create new anonymous requester with new guid
+            create_object(
+                Users(
+                    guid=new_guid,
+                    auth_user_type=user_type_auth.ANONYMOUS_USER,
+                    email=user.email,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    title=user.title,
+                    organization=user.organization,
+                    email_validated=False,
+                    terms_of_use_accepted=False,
+                    phone_number=user.phone_number,
+                    fax_number=user.fax_number,
+                    mailing_address=user.mailing_address
+                )
+            )
+            # update user request with new guid
+            update_object(
+                {"user_guid": new_guid},
+                UserRequests,
+                (ur.user_guid, ur.auth_user_type, ur.request_id)
+            )
+
+
+@manager.command
 def routes():
     from flask import url_for
     from urllib.parse import unquote
