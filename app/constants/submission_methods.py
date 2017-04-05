@@ -16,3 +16,13 @@ AS_CHOICES = [
     (IN_PERSON, IN_PERSON),
     (THREE_ONE_ONE, THREE_ONE_ONE)
 ]
+
+ALL = [
+    DIRECT_INPUT,
+    FAX,
+    PHONE,
+    EMAIL,
+    MAIL,
+    IN_PERSON,
+    THREE_ONE_ONE
+]

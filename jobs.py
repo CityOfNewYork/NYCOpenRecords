@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from flask import (
     render_template,
     current_app,

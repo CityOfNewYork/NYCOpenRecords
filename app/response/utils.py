@@ -192,8 +192,7 @@ def add_denial(request_id, reason_ids, email_content):
             request_id,
             privacy,
             determination_type.DENIAL,
-            "|".join(Reasons.query.filter_by(id=reason_id).one().content
-                     for reason_id in reason_ids)
+            format_determination_reasons(reason_ids)
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
@@ -247,8 +246,7 @@ def add_closing(request_id, reason_ids, email_content):
             request_id,
             privacy,
             determination_type.CLOSING,
-            "|".join(Reasons.query.filter_by(id=reason_id).one().content
-                     for reason_id in reason_ids)
+            format_determination_reasons(reason_ids)
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
@@ -444,6 +442,10 @@ def add_push():
     """
     # TODO: Implement adding a push
     pass
+
+
+def format_determination_reasons(reason_ids):
+    return "|".join(Reasons.query.filter_by(id=reason_id).one().content for reason_id in reason_ids)
 
 
 def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
@@ -1375,7 +1377,7 @@ def safely_send_and_add_email(request_id,
         current_app.logger.exception("Error: {}".format(e))
 
 
-def create_response_event(events_type, response):
+def create_response_event(events_type, response, user=current_user):
     """
     Create and store event object for given response.
 
@@ -1384,8 +1386,8 @@ def create_response_event(events_type, response):
 
     """
     event = Events(request_id=response.request_id,
-                   user_guid=response.request.requester.guid if current_user.is_anonymous else current_user.guid,
-                   auth_user_type=user_type_auth.ANONYMOUS_USER if current_user.is_anonymous else current_user.auth_user_type,
+                   user_guid=response.request.requester.guid if user.is_anonymous else user.guid,
+                   auth_user_type=user_type_auth.ANONYMOUS_USER if user.is_anonymous else user.auth_user_type,
                    type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
