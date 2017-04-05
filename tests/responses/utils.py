@@ -114,6 +114,12 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
             with self.assertRaises(NoResultFound):
                 add_closing('FOIL-2017-002-00001', self.closing_reasons, self.email_content)
 
+    def test_add_closing_not_acknowledged(self):
+        with flask_login_user(self.admin_860):
+            self.request.close()
+            with self.assertRaises(UserRequestException):
+                add_closing(self.request.id, self.closing_reasons, self.email_content)
+
     def test_add_closing_already_closed(self):
         with flask_login_user(self.admin_860):
             self.request.close()
