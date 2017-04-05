@@ -65,7 +65,7 @@ $(document).ready(function () {
     });
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['request-title','request-description', 'request-agency', 'first-name','last-name','email',
+    var required_fields = ['request-title','request-description', 'first-name','last-name','email',
         'phone','fax','address-line-1', 'method-received','request-date', 'city','zipcode'];
     for (i = 0 ; i < required_fields.length ; i++){
         $('#' + required_fields[i]).attr('data-parsley-required','');
@@ -130,8 +130,8 @@ $(document).ready(function () {
 
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
-    // Called when validation is used and checks that at least one form of contact was filled out
-    $('#request-form').parsley().on('form:validate', function (formInstance) {
+    // Checks that at least one form of contact was filled out in addition to the rest of the form.
+    $('#request-form').parsley().on('form:validate', function () {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
         for (i = 0 ; i < required_fields.length ; i++){
            $('#' + required_fields[i]).attr('data-parsley-required','');
@@ -146,25 +146,16 @@ $(document).ready(function () {
         if ($('#email').parsley().isValid() ||
             $('#phone').parsley().isValid() ||
             $('#fax').parsley().isValid() ||
-            ($('#address-line-1').parsley().isValid() &&
-            $('#state').parsley().isValid() &&
-            $('#zipcode').parsley().isValid() &&
-            $('#city').parsley().isValid())
-            &&
-            ($('#request-agency').parsley().isValid() &&
-            $('#request-title').parsley().isValid() &&
-            $('#request-description').parsley().isValid() &&
-            $('#first-name').parsley().isValid() &&
-            $('#last-name').parsley().isValid())
+            ($('#address-line-1').parsley().isValid() && $('#state').parsley().isValid() && $('#zipcode').parsley().isValid() && $('#city').parsley().isValid())
         ) {
             // If at least one of the fields are validated then remove required from the rest of the contact fields that aren't being filled out
-                $('#city').removeAttr('data-parsley-required');
-                $('#state').removeAttr('data-parsley-required');
-                $('#zipcode').removeAttr('data-parsley-required');
-                $('#phone').removeAttr('data-parsley-required');
-                $('#fax').removeAttr('data-parsley-required');
-                $('#address-line-1').removeAttr('data-parsley-required');
-                $('#email').removeAttr('data-parsley-required');
+            $('#city').removeAttr('data-parsley-required');
+            $('#state').removeAttr('data-parsley-required');
+            $('#zipcode').removeAttr('data-parsley-required');
+            $('#phone').removeAttr('data-parsley-required');
+            $('#fax').removeAttr('data-parsley-required');
+            $('#address-line-1').removeAttr('data-parsley-required');
+            $('#email').removeAttr('data-parsley-required');
         }
         else {
             // If none of the fields are valid then produce an error message and apply required fields.
@@ -187,7 +178,6 @@ $(document).ready(function () {
             $(window).scrollTop($(".title-label").offset().top);
         }
         else if ($("#request-description").parsley().isValid() === false ) {
-            $("#request-description").attr('data-parsley-no-focus', '');
             $(window).scrollTop($(".description-label").offset().top);
         }
         else if ($("#request-file").parsley().isValid() === false) {
