@@ -11,6 +11,7 @@ from urllib.parse import urljoin
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy.orm.exc import NoResultFound
 
 from app import db, es, calendar
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
@@ -576,8 +577,11 @@ class Requests(db.Model):
 
     @property
     def was_acknowledged(self):
-        return self.responses.join(Determinations).filter(
-            Determinations.dtype == determination_type.ACKNOWLEDGMENT).first() is not None
+        try:
+            self.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one()
+            return True
+        except NoResultFound:
+            return False
 
     @property
     def days_until_due(self):
