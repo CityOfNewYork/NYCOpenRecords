@@ -1,7 +1,9 @@
 # manage.py
 
+import sys
+
 import os
-import subprocess
+from flask_script.commands import InvalidCommand
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -11,7 +13,7 @@ if os.environ.get('FLASK_COVERAGE'):
     COV.start()
 
 from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager, Shell, Command, Option
+from flask_script import Manager, Shell
 
 from app import create_app, db
 from app.models import (
@@ -71,8 +73,17 @@ manager.add_command("db", MigrateCommand)
 @manager.option('-f', '--fname', dest='first_name', default=None)
 @manager.option('-l', '--lname', dest='last_name', default=None)
 @manager.option('-e', '--email', dest='email', default=None)
-def create_user(first_name, last_name, email):
+def create_user(first_name=None, last_name=None, email=None):
     """Create an agency user."""
+    if first_name is None:
+        raise InvalidCommand("First name is required")
+
+    if last_name is None:
+        raise InvalidCommand("Last name is required")
+
+    if email is None:
+        raise InvalidCommand("Email is required")
+
     user = Users(
         guid=generate_guid(),
         auth_user_type=user_type_auth.AGENCY_LDAP_USER,
@@ -207,4 +218,8 @@ def routes():
 
 
 if __name__ == "__main__":
-    manager.run()
+    try:
+        manager.run()
+    except InvalidCommand as err:
+        print(err, file=sys.stderr)
+        sys.exit(1)
