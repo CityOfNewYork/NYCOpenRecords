@@ -1,3 +1,5 @@
-# sample scan of quarantine directory and subdirectories
-# the scan will run at 00:00 on the first of every month
-0 0 1 * * /usr/local/bin/uvscan --summary --atime-preserve --analyze -r --secure quarantine/data/
+# scan uploads directory on the first day of every month at midnight
+0 0 1 * * /usr/local/bin/uvscan --summary --atime-preserve --analyze -r --secure <PATH-TO-UPLOAD-DIRECTORY> >> <PATH-TO-LOG-FILE>
+
+# update virus definitions daily at midnight
+0 0 * * * sudo /usr/local/uvscan/update_definitions.sh
