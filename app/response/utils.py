@@ -44,7 +44,6 @@ from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
 from app.constants import (
     permission,
-    CLOSING_FULFILLED_IDS,
     TINYMCE_EDITABLE_P_TAG
 )
 from app.lib.date_utils import (
@@ -207,9 +206,6 @@ def add_denial(request_id, reason_ids, email_content):
             Requests,
             request_id
         )
-        email_content = ''.join((email_content, render_template('email_templates/determination_request_text.html',
-                                                                title=response.request.title,
-                                                                description=response.request.description)))
         _send_response_email(request_id,
                              privacy,
                              email_content,
@@ -268,11 +264,6 @@ def add_closing(request_id, reason_ids, email_content):
             Requests,
             request_id
         )
-        # append request information to email body if request is not fulfilled
-        if not set(reason_ids) & CLOSING_FULFILLED_IDS:
-            email_content = ''.join((email_content, render_template('email_templates/determination_request_text.html',
-                                                                    title=current_request.title,
-                                                                    description=current_request.description)))
         _send_response_email(request_id,
                              privacy,
                              email_content,
@@ -617,6 +608,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     reasons = [Reasons.query.filter_by(id=reason_id).one().content
                for reason_id in data.getlist('reason_ids[]')]
     header = CONFIRMATION_HEADER_TO_REQUESTER
+    req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
         default_content = False
         content = data['email_content']
@@ -627,10 +619,9 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         email_template,
         default_content=default_content,
         content=content,
-        request_id=request_id,
+        request=req,
         agency_name=agency_name,
         reasons=reasons,
-        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page),
         "header": header
     }), 200
@@ -648,14 +639,16 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
+    req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
         header = CONFIRMATION_HEADER_TO_REQUESTER
         reasons = None
         default_content = False
         content = data['email_content']
-        fulfilled = True
-        if not set(data.getlist('reason_ids[]')) & CLOSING_FULFILLED_IDS:
-            fulfilled = False
+        denied = False
+        if determination_type.DENIAL in [r.type for r in
+                                         Reasons.query.filter(Reasons.id.in_(data.getlist('reason_ids[]')))]:
+            denied = True
         if content.endswith(TINYMCE_EDITABLE_P_TAG):
             content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
     else:
@@ -664,17 +657,16 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         default_content = True
         content = None
         header = None
-        fulfilled = None
+        denied = None
     return jsonify({"template": render_template(
         email_template,
         default_content=default_content,
         content=content,
-        request_id=request_id,
+        request=req,
         agency_name=agency_name,
         reasons=reasons,
-        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page,
-        fulfilled=fulfilled),
+        denied=denied),
         "header": header
     }), 200
 
