@@ -53,8 +53,15 @@
         });
 
         var options = $("#edit_options");
+        var ua = window.navigator.userAgent;
         user.change(function () {
             if (user.val() != 0) {
+                if (role.val()) {
+                    role.val(0);
+                }
+                if (~ua.indexOf("MSIE ") || ~ua.indexOf("Trident/") || ~ua.indexOf("Edge")) {
+                    first.find("#ie-message").show();
+                }
                 options.show();
                 setCurrentPermissions();
             } else {
