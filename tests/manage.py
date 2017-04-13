@@ -31,7 +31,7 @@ class CreateUserTests(BaseTestCase):
         with self.assertRaises(InvalidCommand):
             create_user(first_name='John', email='bladerunnerperftest01@dsny.nyc.gov')
 
-    def test_called_create_user_missing_first_name(self):
+    def test_called_create_user_missing_email(self):
         self.assertEquals(Users.query.filter_by(email='bladerunnerperftest01@dsny.nyc.gov').first(), None)
         with self.assertRaises(InvalidCommand):
             create_user(first_name='John', last_name='Doe')
