@@ -29,7 +29,7 @@ class Config:
     REASON_DATA = (os.environ.get('REASONS_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
     STAFF_DATA = (os.environ.get('STAFF_DATA') or
-                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'staff.csv'))
+                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'staff.csv'))
 
     DUE_SOON_DAYS_THRESHOLD = os.environ.get('DUE_SOON_DAYS_THRESHOLD') or 2
 
@@ -51,7 +51,7 @@ class Config:
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     SAML_PATH = (os.environ.get('SAML_PATH') or
-                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
 
     USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
     WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
@@ -135,6 +135,7 @@ class Config:
                                 ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
+
     # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod
@@ -154,19 +155,25 @@ def get_sqlalchemy_database_uri(name, host="localhost", port="5432", env="DATABA
     :param host: the default database host
     :param port: the default database port
     """
-    user_, host_, port_, name_ = os.environ.get("DATABASE_USER"), \
-                                 os.environ.get("DATABASE_HOST"), \
-                                 os.environ.get("DATABASE_PORT"), \
-                                 os.environ.get("DATABASE_NAME")
-    if user_:
-        host_ = "@".join((user_, host_))
+    user, password, host_, port_, name_ = (
+        os.environ.get("DATABASE_USER"),
+        os.environ.get("DATABASE_PASSWORD"),
+        os.environ.get("DATABASE_HOST"),
+        os.environ.get("DATABASE_PORT"),
+        os.environ.get("DATABASE_NAME")
+    )
 
-    uri_template = "postgresql://{}/{}"
+    if user and host_:
+        if password:
+            user = ":".join((user, password))
+        host_ = "@".join((user, host_))
+
+    uri_template = "postgresql://{}:{}/{}"
 
     return os.environ.get(env) or (
-        uri_template.format(":".join((host_, port_)), name_)
+        uri_template.format(host_, port_, name_)
         if host_ and port_ and name_
-        else uri_template.format(":".join((host, port)), name)
+        else uri_template.format(host, port, name)
     )
 
 
@@ -199,6 +206,7 @@ class ProductionConfig(Config):
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
     SQLALCHEMY_DATABASE_URI = get_sqlalchemy_database_uri("openrecords_v2_0")
+
 
 config = {
     'development': DevelopmentConfig,
