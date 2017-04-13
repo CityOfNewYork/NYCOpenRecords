@@ -139,7 +139,7 @@ def _rename_and_encrypt(rename_func):
     file into a destination file and delete the source file.
     
     :param rename_func: function that calls os.rename with 
-        only its first two arguments (src, dest)
+        ONLY its first 2 arguments (src, dest)
     """
     @wraps(rename_func)
     def wrapper(oldpath, newpath):
@@ -342,7 +342,9 @@ def get_mime_type(path):
 
 
 def os_get_mime_type(path):
-    """ WARNING: This should only be used for files in quarantine (unencrypted or on app server)! """
+    """ 
+    * WARNING: This should only be used for files in quarantine (unencrypted or on app server)! * 
+    """
     if current_app.config['MAGIC_FILE']:
         # Check using custom mime database file
         m = magic.Magic(
@@ -364,7 +366,9 @@ def get_hash(path):
 
 
 def os_get_hash(path):
-    """ WARNING: This should only be used for files in quarantine (unencrypted or on app server)! """
+    """
+    * WARNING: This should only be used for files in quarantine (unencrypted or on app server)! *
+    """
     sha1 = hashlib.sha1()
     with open(path, 'rb') as fp:
         for chunk in iter(lambda: fp.read(FILE_READ_SIZE_LIMIT), b''):  # TODO: test this
