@@ -18,13 +18,13 @@ from contextlib import contextmanager
 from flask import current_app, send_from_directory
 
 TRANSFER_SIZE_LIMIT = 512000  # 512 kb
+FILE_READ_SIZE_LIMIT = 10000000  # 10 mb
 
 
-class MaxTransferSizeExceededException(Exception):
-    pass
-
+# Encryption -----------------------------------------------------------------------------------------------------------
 
 class DecryptKeyException(Exception):
+    """ Raised on failure when decrypting decryption key. """
     pass
 
 
@@ -63,7 +63,7 @@ class FileCrypter(object):
         :param dest: destination file path
         :param method: self.__box.decrypt or self.__box.encrypt
         """
-        assert src != dest, ""
+        assert src != dest, "Encryption source and destination must differ."
         with open(src, "rb") as src_, open(dest, "wb") as dest_:
             chunksize = self.__chunksize_encrypt if method == self.__box.encrypt else self.__chunksize_decrypt
             for chunk in iter(lambda: src_.read(chunksize), b''):
@@ -98,7 +98,7 @@ class FileCrypter(object):
         else:
             # retrieve unencrypted key file contents
             with BytesIO() as fp:
-                sftp.getfo("key", fp)  # TODO: remove magic "key"
+                sftp.getfo("key", fp)  # FIXME: magic "key"
                 fp.seek(os.SEEK_SET)
                 key = fp.read().rstrip()
             # remove key files from server
@@ -108,6 +108,55 @@ class FileCrypter(object):
             ssh.close()
 
         return key
+
+
+def _use_decrypter(os_func):
+    """
+    Check if app is using FILE_ENCRYPTION and, if so, perform the necessary
+    decryption before calling os_func with a path to a temporary unencrypted file.
+
+    :param os_func: function using the os module to perform some file-related 
+        activity that involves retrieving data/metadata from a single file
+        * MUST have the signature "os_func(path)" *
+    """
+    @wraps(os_func)
+    def wrapper(path):
+        if current_app.config['USE_FILE_ENCRYPTION']:
+            crypter = FileCrypter()
+            with TemporaryFile() as tmp:
+                crypter.decrypt(path, tmp.name)
+                os_func(path)
+        else:
+            os_func(path)
+
+    return wrapper
+
+
+def _rename_and_encrypt(rename_func):
+    """
+    Check if app is using FILE_ENCRYPTION and, if so, rather than
+    calling rename_func, save an encrypted version of a provided source
+    file into a destination file and delete the source file.
+    
+    :param rename_func: function that calls os.rename with 
+        only its first two arguments (src, dest)
+    """
+    @wraps(rename_func)
+    def wrapper(oldpath, newpath):
+        if current_app.config['USE_FILE_ENCRYPTION']:
+            crypter = FileCrypter()
+            crypter.encrypt(oldpath, newpath)
+            os.remove(oldpath)
+        else:
+            rename_func(oldpath, newpath)
+    return wrapper
+
+
+# SFTP -----------------------------------------------------------------------------------------------------------------
+
+class MaxTransferSizeExceededException(Exception):
+    """ Raised when exceeding upper limit on SFTP transfer size. """
+    pass
 
 
 @contextmanager
@@ -138,9 +187,12 @@ def _sftp_switch(sftp_func):
     the os library to accomplish the same file-related action).
     """
     def decorator(os_func):
+        """
+        :param os_func: function using the os module to perform some file-related activity 
+        """
         @wraps(os_func)
         def wrapper(*args, **kwargs):
-            if current_app.config['USE_SFTP']:
+            if current_app.config['USE_SFTP'] and not current_app.config['USE_FILE_ENCRYPTION']:
                 with sftp_ctx() as sftp:
                     return sftp_func(sftp, *args, **kwargs)
             else:
@@ -236,6 +288,9 @@ def _sftp_send_file(sftp, directory, filename, **kwargs):
     return send_from_directory(*os.path.split(localpath), **kwargs)
 
 
+# OS -------------------------------------------------------------------------------------------------------------------
+
+@_use_decrypter
 @_sftp_switch(_sftp_get_size)
 def getsize(path):
     return os.path.getsize(path)
@@ -261,11 +316,13 @@ def remove(path):
     os.remove(path)
 
 
+@_rename_and_encrypt
 @_sftp_switch(_sftp_rename)
 def rename(oldpath, newpath):
     os.rename(oldpath, newpath)
 
 
+@_rename_and_encrypt
 @_sftp_switch(_sftp_move)
 def move(oldpath, newpath):
     """
@@ -275,12 +332,17 @@ def move(oldpath, newpath):
     os.rename(oldpath, newpath)
 
 
+@_use_decrypter
 @_sftp_switch(_sftp_get_mime_type)
 def get_mime_type(path):
+    """
+    Returns the mimetype of a file (e.g. "img/png").
+    """
     return os_get_mime_type(path)
 
 
 def os_get_mime_type(path):
+    """ WARNING: This should only be used for files in quarantine (unencrypted or on app server)! """
     if current_app.config['MAGIC_FILE']:
         # Check using custom mime database file
         m = magic.Magic(
@@ -292,16 +354,17 @@ def os_get_mime_type(path):
     return mime_type
 
 
+@_use_decrypter
 @_sftp_switch(_sftp_get_hash)
 def get_hash(path):
     """
-    Returns the sha1 hash of a file a string of
-    hexadecimal digits.
+    Returns the sha1 hash of a file as a string of hexadecimal digits.
     """
     return os_get_hash(path)
 
 
 def os_get_hash(path):
+    """ WARNING: This should only be used for files in quarantine (unencrypted or on app server)! """
     sha1 = hashlib.sha1()
     with open(path, 'rb') as fp:
         for chunk in iter(lambda: fp.read(FILE_READ_SIZE_LIMIT), b''):  # TODO: test this
@@ -309,6 +372,7 @@ def os_get_hash(path):
     return sha1.hexdigest()
 
 
+@_use_decrypter
 @_sftp_switch(_sftp_send_file)
-def send_file(directory, filename, **kwargs):
-    return send_from_directory(directory, filename, **kwargs)
+def send_file(path, **kwargs):
+    return send_from_directory(os.path.dirname(path), os.path.basename(path), **kwargs)

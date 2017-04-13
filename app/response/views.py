@@ -554,11 +554,10 @@ def get_response_content(response_id):
             current_app.config["UPLOAD_DIRECTORY"],
             response_.request_id
         )
-        filepath_parts = (
+        filepath = os.path.join(
             upload_path,
             response_.name
         )
-        filepath = os.path.join(*filepath_parts)
         serving_path = os.path.join(
             current_app.config['UPLOAD_SERVING_DIRECTORY'],
             response_.request_id,
@@ -572,7 +571,7 @@ def get_response_content(response_id):
                 def remove(resp):
                     os.remove(serving_path)
                     return resp
-                return fu.send_file(*filepath_parts, as_attachment=True)
+                return fu.send_file(filepath, as_attachment=True)
             else:
                 # check presence of token in url
                 if token is not None:
@@ -585,7 +584,7 @@ def get_response_content(response_id):
                             def remove(resp):
                                 os.remove(serving_path)
                                 return resp
-                            return fu.send_file(*filepath_parts, as_attachment=True)
+                            return fu.send_file(filepath, as_attachment=True)
                         else:
                             delete_object(resptok)
 
@@ -604,7 +603,7 @@ def get_response_content(response_id):
                         def remove(resp):
                             os.remove(serving_path)
                             return resp
-                        return fu.send_file(*filepath_parts, as_attachment=True)
+                        return fu.send_file(filepath, as_attachment=True)
                     # user does not have permission to view file
                     return abort(403)
                 else:
