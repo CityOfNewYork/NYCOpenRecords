@@ -25,6 +25,7 @@ from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CsrfProtect
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from app.lib import NYCHolidays, jinja_filters
@@ -117,6 +118,13 @@ def create_app(config_name, jobs_enabled=True):
             jobs.update_request_statuses,
             name="Update requests statuses every day at 3 AM.",
             trigger=CronTrigger(hour=3),
+        )
+        scheduler.add_job(
+            'check_sanity',
+            jobs.check_sanity,
+            name="Check if scheduler is running every morning at 8 AM.",
+            trigger=IntervalTrigger(minutes=20)  # TODO: switch to cron below after testing
+            # trigger=CronTrigger(hour=8)
         )
 
         scheduler.start()
