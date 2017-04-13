@@ -12,7 +12,7 @@ import hashlib
 import paramiko
 import nacl.secret
 from io import BytesIO
-from tempfile import TemporaryFile
+from tempfile import TemporaryFile, NamedTemporaryFile
 from functools import wraps
 from contextlib import contextmanager
 from flask import current_app, send_from_directory
@@ -124,11 +124,11 @@ def _use_decrypter(os_func):
     def wrapper(path):
         if current_app.config['USE_ENCRYPTION']:
             crypter = FileCrypter()
-            with TemporaryFile() as tmp:
+            with NamedTemporaryFile() as tmp:
                 crypter.decrypt(path, tmp.name)
-                os_func(path)
+                return os_func(tmp.name)
         else:
-            os_func(path)
+            return os_func(path)
 
     return wrapper
 
@@ -289,12 +289,12 @@ def _sftp_send_file(sftp, directory, filename, **kwargs):
     return send_from_directory(*os.path.split(localpath), **kwargs)
 
 
-# OS -------------------------------------------------------------------------------------------------------------------
+# OS (Base) ------------------------------------------------------------------------------------------------------------
 
 @_use_decrypter
 @_sftp_switch(_sftp_get_size)
 def getsize(path):
-    return os.path.getsize(path)
+    return os.path.getsize(path)  # possible shortcut with ENCRYPTION, size - 40 (LEN_ENCRYPTED_DIFF)
 
 
 @_sftp_switch(_sftp_exists)
@@ -337,7 +337,7 @@ def move(oldpath, newpath):
 @_sftp_switch(_sftp_get_mime_type)
 def get_mime_type(path):
     """
-    Returns the mimetype of a file (e.g. "img/png").
+    Returns the mimetype of a file (e.g. "image/jpeg").
     """
     return os_get_mime_type(path)
 
@@ -372,7 +372,7 @@ def os_get_hash(path):
     """
     sha1 = hashlib.sha1()
     with open(path, 'rb') as fp:
-        for chunk in iter(lambda: fp.read(FILE_READ_SIZE_LIMIT), b''):  # TODO: test this
+        for chunk in iter(lambda: fp.read(FILE_READ_SIZE_LIMIT), b''):
             sha1.update(chunk)
     return sha1.hexdigest()
 
