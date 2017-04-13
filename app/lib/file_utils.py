@@ -71,22 +71,22 @@ class FileCrypter(object):
 
     @property
     def __key(self):
-        key_filename = current_app.config["FILE_ENCRYPTION_KEY_FILE"]
+        key_gpg_filename = current_app.config["ENCRYPTION_GPG_KEY_FILENAME"]
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(
-            "10.132.41.210",
-            username="palisand",
-            pkey=paramiko.RSAKey(filename="/home/vagrant/.ssh/id_rsa")
+            current_app.config["ENCRYPTION_HOST"],
+            username=current_app.config["ENCRYPTION_USERNAME"],
+            pkey=paramiko.RSAKey(filename=current_app.config["ENCRYPTION_RSA_KEY_FILEPATH"])
         )
 
-        # copy encrypted key file to server
+        # copy encrypted key file to server (key.gpg -> server://key.gpg)
         sftp = ssh.open_sftp()
-        sftp.put(key_filename, key_filename)
+        sftp.put(key_gpg_filename, key_gpg_filename)
 
-        # create unencrypted key file on server
-        cmd = "/usr/local/bin/gpg --batch --quiet --yes --passphrase password {}".format(key_filename)
+        # create unencrypted key file on server (server://key)
+        cmd = "/usr/local/bin/gpg --batch --quiet --yes --passphrase password {}".format(key_gpg_filename)
         _, stdout, stderr = ssh.exec_command(cmd)
 
         # check for and raise if command failed
@@ -97,13 +97,14 @@ class FileCrypter(object):
             raise DecryptKeyException(err)
         else:
             # retrieve unencrypted key file contents
+            key_filename, _ = os.path.splitext(key_gpg_filename)  # key.gpg -> key
             with BytesIO() as fp:
-                sftp.getfo("key", fp)  # FIXME: magic "key"
+                sftp.getfo(key_filename, fp)
                 fp.seek(os.SEEK_SET)
                 key = fp.read().rstrip()
             # remove key files from server
-            sftp.remove("key")
             sftp.remove(key_filename)
+            sftp.remove(key_gpg_filename)
             sftp.close()
             ssh.close()
 
@@ -112,7 +113,7 @@ class FileCrypter(object):
 
 def _use_decrypter(os_func):
     """
-    Check if app is using FILE_ENCRYPTION and, if so, perform the necessary
+    Check if app is using ENCRYPTION and, if so, perform the necessary
     decryption before calling os_func with a path to a temporary unencrypted file.
 
     :param os_func: function using the os module to perform some file-related 
@@ -121,7 +122,7 @@ def _use_decrypter(os_func):
     """
     @wraps(os_func)
     def wrapper(path):
-        if current_app.config['USE_FILE_ENCRYPTION']:
+        if current_app.config['USE_ENCRYPTION']:
             crypter = FileCrypter()
             with TemporaryFile() as tmp:
                 crypter.decrypt(path, tmp.name)
@@ -134,7 +135,7 @@ def _use_decrypter(os_func):
 
 def _rename_and_encrypt(rename_func):
     """
-    Check if app is using FILE_ENCRYPTION and, if so, rather than
+    Check if app is using ENCRYPTION and, if so, rather than
     calling rename_func, save an encrypted version of a provided source
     file into a destination file and delete the source file.
     
@@ -143,7 +144,7 @@ def _rename_and_encrypt(rename_func):
     """
     @wraps(rename_func)
     def wrapper(oldpath, newpath):
-        if current_app.config['USE_FILE_ENCRYPTION']:
+        if current_app.config['USE_ENCRYPTION']:
             crypter = FileCrypter()
             crypter.encrypt(oldpath, newpath)
             os.remove(oldpath)
@@ -192,7 +193,7 @@ def _sftp_switch(sftp_func):
         """
         @wraps(os_func)
         def wrapper(*args, **kwargs):
-            if current_app.config['USE_SFTP'] and not current_app.config['USE_FILE_ENCRYPTION']:
+            if current_app.config['USE_SFTP'] and not current_app.config['USE_ENCRYPTION']:
                 with sftp_ctx() as sftp:
                     return sftp_func(sftp, *args, **kwargs)
             else:

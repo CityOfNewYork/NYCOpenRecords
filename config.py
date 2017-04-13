@@ -41,6 +41,13 @@ class Config:
     SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
+    # File Encryption
+    USE_ENCRYPTION = os.environ.get('USE_ENCRYPTION') == 'True'
+    ENCRYPTION_HOST = os.environ.get('ENCRYPTION_HOST') or os.environ.get('DATABASE_HOST')
+    ENCRYPTION_USERNAME = os.environ.get('ENCRYPTION_USERNAME')
+    ENCRYPTION_RSA_KEY_FILEPATH = os.environ.get('ENCRYPTION_RSA_KEY_FILEPATH')
+    ENCRYPTION_GPG_KEY_FILENAME = os.environ.get('ENCRYPTION_GPG_KEY_FILENAME') or "key.gpg"
+
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     SAML_PATH = (os.environ.get('SAML_PATH') or
@@ -112,8 +119,6 @@ class Config:
     MAGIC_FILE = (os.environ.get('MAGIC_FILE') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
-    FILE_ENCRYPTION_KEY_FILE = os.environ.get('FILE_ENCRYPTION_KEY_FILE') or "key.gpg"
-
     # ReCaptcha
     RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
     RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
@@ -149,10 +154,15 @@ def get_sqlalchemy_database_uri(name, host="localhost", port="5432", env="DATABA
     :param host: the default database host
     :param port: the default database port
     """
-    host_, port_, name_ = os.environ.get("DATABASE_HOST"), \
-                          os.environ.get("DATABASE_PORT"), \
-                          os.environ.get("DATABASE_NAME")
+    user_, host_, port_, name_ = os.environ.get("DATABASE_USER"), \
+                                 os.environ.get("DATABASE_HOST"), \
+                                 os.environ.get("DATABASE_PORT"), \
+                                 os.environ.get("DATABASE_NAME")
+    if user_:
+        host_ = "@".join((user_, host_))
+
     uri_template = "postgresql://{}/{}"
+
     return os.environ.get(env) or (
         uri_template.format(":".join((host_, port_)), name_)
         if host_ and port_ and name_
