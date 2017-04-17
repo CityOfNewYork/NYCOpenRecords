@@ -1,4 +1,4 @@
-from flask import render_template
+from random import choice
 from sqlalchemy.orm.exc import NoResultFound
 from unittest.mock import patch
 
@@ -16,7 +16,7 @@ from app.constants import (
     determination_type
 )
 from app.lib.utils import UserRequestException
-from app.models import Determinations
+from app.models import Determinations, Reasons
 from app.response.utils import (
     add_denial,
     add_closing,
@@ -34,8 +34,8 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
         self.rf_agency_860 = RequestFactory(agency_ein=self.agency_ein_860)
         self.request = self.rf_agency_860.create_request_as_public_user()
         self.email_content = 'test email body'
-        self.closing_reasons = ['1', '2', '3']
-        self.denial_reasons = ['19', '20', '21']
+        self.closing_reasons = [choice([r.id for r in Reasons.query.filter_by(type=determination_type.CLOSING).all()])]
+        self.denial_reasons = [choice([r.id for r in Reasons.query.filter_by(type=determination_type.DENIAL).all()])]
 
     @patch('app.response.utils._send_response_email')
     def test_add_denial(self, send_response_email_patch):
@@ -44,9 +44,7 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
             send_response_email_patch.assert_called_once_with(
                 self.request.id,
                 response_privacy.RELEASE_AND_PUBLIC,
-                ''.join((self.email_content, render_template('email_templates/determination_request_text.html',
-                                                             title=self.request.title,
-                                                             description=self.request.description))),
+                self.email_content,
                 'Request {} Closed'.format(self.request.id)
             )
         response = self.request.responses.join(Determinations).filter(
@@ -181,9 +179,7 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
             send_response_email_patch.assert_called_once_with(
                 self.request.id,
                 response_privacy.RELEASE_AND_PUBLIC,
-                ''.join((self.email_content, render_template('email_templates/determination_request_text.html',
-                                                             title=self.request.title,
-                                                             description=self.request.description))),
+                self.email_content,
                 'Request {} Closed'.format(self.request.id)
             )
         response = self.request.responses.join(Determinations).filter(
