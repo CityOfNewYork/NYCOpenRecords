@@ -7,6 +7,7 @@ from operator import ior
 from functools import reduce
 from uuid import uuid4
 from urllib.parse import urljoin
+from warnings import warn
 
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
@@ -192,14 +193,17 @@ class Agencies(db.Model):
     )
 
     @classmethod
-    def populate(cls):
+    def populate(cls, csv_name=None):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        with open(current_app.config['AGENCY_DATA'], 'r') as data:
+        filename = csv_name or current_app.config['AGENCY_DATA']
+        with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
-
             for row in dictreader:
+                if Agencies.query.filter_by(ein=row['ein']).first() is not None:
+                    warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
+                    continue
                 agency = cls(
                     ein=row['ein'],
                     parent_ein=row['parent_ein'],
@@ -390,8 +394,9 @@ class Users(UserMixin, db.Model):
         }
 
     @classmethod
-    def populate(cls):
-        with open(current_app.config['STAFF_DATA'], 'r') as data:
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['STAFF_DATA']
+        with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
 
             for row in dictreader:

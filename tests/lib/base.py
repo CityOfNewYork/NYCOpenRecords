@@ -10,16 +10,17 @@ from app.search.utils import (
 
 
 class BaseTestCase(unittest.TestCase):
-
     app = create_app('testing', jobs_enabled=False)
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, create_db=True, create_es_index=True):
         with cls.app.app_context():
-            db.create_all()
-            if index_exists():
-                delete_index()
-            create_index()
+            if create_db:
+                db.create_all()
+            if create_es_index:
+                if index_exists():
+                    delete_index()
+                create_index()
 
     @classmethod
     def tearDownClass(cls):
@@ -28,11 +29,12 @@ class BaseTestCase(unittest.TestCase):
             db.drop_all()
             delete_index()
 
-    def setUp(self):
+    def setUp(self, populate=True):
         self.client = self.app.test_client()
         self.app_context = self.app.app_context()
         self.app_context.push()
-        self.populate_database()
+        if populate:
+            self.populate_database()
 
     def tearDown(self):
         delete_docs()

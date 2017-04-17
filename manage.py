@@ -1,7 +1,9 @@
 # manage.py
 
+import sys
+
 import os
-import subprocess
+from flask_script.commands import InvalidCommand
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -11,7 +13,7 @@ if os.environ.get('FLASK_COVERAGE'):
     COV.start()
 
 from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager, Shell, Command, Option
+from flask_script import Manager, Shell
 
 from app import create_app, db
 from app.models import (
@@ -71,8 +73,17 @@ manager.add_command("db", MigrateCommand)
 @manager.option('-f', '--fname', dest='first_name', default=None)
 @manager.option('-l', '--lname', dest='last_name', default=None)
 @manager.option('-e', '--email', dest='email', default=None)
-def create_user(first_name, last_name, email):
+def create_user(first_name=None, last_name=None, email=None):
     """Create an agency user."""
+    if first_name is None:
+        raise InvalidCommand("First name is required")
+
+    if last_name is None:
+        raise InvalidCommand("Last name is required")
+
+    if email is None:
+        raise InvalidCommand("Email is required")
+
     user = Users(
         guid=generate_guid(),
         auth_user_type=user_type_auth.AGENCY_LDAP_USER,
@@ -91,6 +102,17 @@ def create_user(first_name, last_name, email):
     db.session.commit()
 
     print(user)
+
+
+@manager.option('-u', '--users', dest='users', action='store_true', default=False, required=False)
+@manager.option('-a', '--agencies', dest='agencies', action='store_true', default=False, required=False)
+@manager.option('-f', '--filename', dest='filename', default=None, required=True)
+def import_data(users, agencies, filename):
+    """Import data from CSV file."""
+    if users:
+        Users.populate(csv_name=filename)
+    elif agencies:
+        Agencies.populate(csv_name=filename)
 
 
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
@@ -144,7 +166,6 @@ def deploy():
     )))
 
     es_recreate()
-    # create_users()
 
 
 @manager.command
@@ -152,20 +173,6 @@ def es_recreate():
     """Recreate elasticsearch index and request docs."""
     from app.search.utils import recreate
     recreate()
-
-
-@manager.command
-def create_search_set():
-    """Create a number of requests for test purposes."""
-    from tests.lib.tools import create_requests_search_set
-    from app.constants.user_type_auth import PUBLIC_USER_TYPES
-    import random
-
-    users = random.sample(PUBLIC_USER_TYPES, 2)
-    for i in enumerate(users):
-        users[i[0]] = Users.query.filter_by(auth_user_type=users[i[0]]).first()
-
-    create_requests_search_set(users[0], users[1])
 
 
 @manager.command
@@ -266,4 +273,8 @@ def routes():
 
 
 if __name__ == "__main__":
-    manager.run()
+    try:
+        manager.run()
+    except InvalidCommand as err:
+        print(err, file=sys.stderr)
+        sys.exit(1)

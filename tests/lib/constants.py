@@ -1,13 +1,11 @@
 import os
 
-
 NON_ANON_USER_GUID_LEN = 6
 
 DATA_FIXTURES_DIR = "fixtures/data/"
 
 
 class _Fixture(object):
-
     def __init__(self, name, size, hash, mime_type):
         self.__name = name
         self.__size = size
@@ -51,4 +49,23 @@ SCREAM_FILE = _Fixture(
     'image/png'
 )
 
+USERS_CSV_FILE_NAME = "test_users.csv"
+USERS_CSV_FILE_PATH = os.path.join(
+    os.path.abspath(
+        os.path.dirname(
+            os.path.dirname(__file__)
+        )
+    ),
+    DATA_FIXTURES_DIR,
+    USERS_CSV_FILE_NAME)
+AGENCIES_CSV_FILE_NAME = "test_agencies.csv"
+AGENCIES_CSV_FILE_PATH = os.path.join(
+    os.path.abspath(
+        os.path.dirname(
+            os.path.dirname(__file__)
+        )
+    ),
+    DATA_FIXTURES_DIR,
+    AGENCIES_CSV_FILE_NAME)
 
+NON_ANON_USER_GUID_LEN = 6
