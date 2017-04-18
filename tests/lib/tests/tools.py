@@ -37,6 +37,7 @@ from tests.lib.base import BaseTestCase
 from tests.lib.tools import (
     UserFactory,
     RequestFactory,
+    TestHelpers
 )
 from tests.lib.constants import SCREAM_FILE
 
@@ -509,7 +510,7 @@ class RequestFactoryTests(BaseTestCase):
             )
 
 
-class RequestWrapperTests(BaseTestCase):
+class RequestWrapperTests(BaseTestCase, TestHelpers):
 
     def setUp(self):
         super().setUp()
@@ -575,7 +576,7 @@ class RequestWrapperTests(BaseTestCase):
                 )
             )
         )
-        self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.FILE_ADDED, response, self.rf.agency_user)
 
     def test_add_file_custom_without_path(self):
         title = "Having Fun Isn't Hard"
@@ -618,7 +619,7 @@ class RequestWrapperTests(BaseTestCase):
                 )
             )
         )
-        self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.public_user)
+        self.assert_response_event(self.request.id, event_type.FILE_ADDED, response, self.rf.public_user)
 
     def test_add_file_custom_with_path(self):
         title = "Open Wide"
@@ -648,7 +649,7 @@ class RequestWrapperTests(BaseTestCase):
                 SCREAM_FILE.hash
             ]
         )
-        self.__assert_response_event(event_type.FILE_ADDED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.FILE_ADDED, response, self.rf.agency_user)
 
     def test_add_link(self):
         response = self.request.add_link()
@@ -673,7 +674,7 @@ class RequestWrapperTests(BaseTestCase):
                 str,  # url
             ]
         )
-        self.__assert_response_event(event_type.LINK_ADDED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.LINK_ADDED, response, self.rf.agency_user)
 
         response = Responses.query.get(response_custom.id)
         self.assertEqual(
@@ -690,7 +691,7 @@ class RequestWrapperTests(BaseTestCase):
                 url
             ]
         )
-        self.__assert_response_event(event_type.LINK_ADDED, response, self.rf.public_user)
+        self.assert_response_event(self.request.id, event_type.LINK_ADDED, response, self.rf.public_user)
 
     def test_add_note(self):
         response = self.request.add_note()
@@ -712,7 +713,7 @@ class RequestWrapperTests(BaseTestCase):
                 str
             ]
         )
-        self.__assert_response_event(event_type.NOTE_ADDED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.NOTE_ADDED, response, self.rf.agency_user)
 
         response = Responses.query.get(response_custom.id)
         self.assertEqual(
@@ -727,7 +728,7 @@ class RequestWrapperTests(BaseTestCase):
                 content
             ]
         )
-        self.__assert_response_event(event_type.NOTE_ADDED, response, self.rf.public_user)
+        self.assert_response_event(self.request.id, event_type.NOTE_ADDED, response, self.rf.public_user)
 
     def test_add_instructions(self):
         response = self.request.add_instructions()
@@ -749,7 +750,7 @@ class RequestWrapperTests(BaseTestCase):
                 str
             ]
         )
-        self.__assert_response_event(event_type.INSTRUCTIONS_ADDED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.INSTRUCTIONS_ADDED, response, self.rf.agency_user)
 
         response = Responses.query.get(response_custom.id)
         self.assertEqual(
@@ -764,7 +765,7 @@ class RequestWrapperTests(BaseTestCase):
                 content
             ]
         )
-        self.__assert_response_event(event_type.INSTRUCTIONS_ADDED, response, self.rf.public_user)
+        self.assert_response_event(self.request.id, event_type.INSTRUCTIONS_ADDED, response, self.rf.public_user)
 
     def test_acknowledge_days(self):
         days = 30
@@ -871,7 +872,7 @@ class RequestWrapperTests(BaseTestCase):
                 due_date
             ]
         )
-        self.__assert_response_event(type_, response, user or self.rf.agency_user, request)
+        self.assert_response_event(request.id, type_, response, user or self.rf.agency_user)
 
     def test_close_default(self):
         response = self.request.close()
@@ -890,7 +891,7 @@ class RequestWrapperTests(BaseTestCase):
                 str
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.rf.agency_user)
 
     def test_close_custom(self):
         reason_ids = [1, 2, 3]
@@ -911,7 +912,7 @@ class RequestWrapperTests(BaseTestCase):
                 format_determination_reasons(reason_ids)
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.public_user)
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.rf.public_user)
 
     def test_deny_default(self):
         response = self.request.deny()
@@ -930,7 +931,7 @@ class RequestWrapperTests(BaseTestCase):
                 str
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.agency_user)
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.rf.agency_user)
 
     def test_deny_custom(self):
         reason_ids = [19, 20, 21]
@@ -951,7 +952,7 @@ class RequestWrapperTests(BaseTestCase):
                 format_determination_reasons(reason_ids)
             ]
         )
-        self.__assert_response_event(event_type.REQ_CLOSED, response, self.rf.public_user)
+        self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.rf.public_user)
 
     def test_set_due_soon(self):
         self.__test_due_soon_or_overdue(
@@ -1208,27 +1209,6 @@ class RequestWrapperTests(BaseTestCase):
                     response.name
                 )
             )
-        )
-
-    def __assert_response_event(self, type_, response, user, request=None):
-        event = Events.query.filter_by(response_id=response.id).one()
-        self.assertEqual(
-            [
-                event.user_guid,
-                event.auth_user_type,
-                event.request_id,
-                event.type,
-                event.previous_value,
-                event.new_value
-            ],
-            [
-                user.guid,
-                user.auth_user_type,
-                request.id if request is not None else self.request.id,
-                type_,
-                None,
-                response.val_for_events,
-            ]
         )
 
     def __assert_user_request_event(self, type_, user_request, user, old_permissions=None):

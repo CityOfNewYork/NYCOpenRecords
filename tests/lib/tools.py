@@ -2,12 +2,14 @@ import os
 import random
 import app.lib.file_utils as fu
 from itertools import product
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from flask import current_app
 from string import (
     ascii_lowercase,
     digits,
 )
+from flask_login import login_user, logout_user
 from sqlalchemy.sql.expression import func
 from app import calendar, db
 from app.models import (
@@ -693,3 +695,64 @@ def get_random_date(start, end):
         seconds=random.randint(
             0, int((end - start).total_seconds())
         ))
+
+
+def login_user_with_client(client, user_id):
+    with client.session_transaction() as session:
+        session['user_id'] = user_id
+        session['fresh'] = True
+
+
+@contextmanager
+def flask_login_user(user):
+    login_user(user)
+    yield
+    logout_user()
+
+
+class TestHelpers(object):
+    """
+    Mixin class for unittests.
+    """
+    def assert_flashes(self, expected_message, expected_category):
+        """
+        Assert flash messages are flashed properly with expected message and category.
+        :param expected_message: expected flash message
+        :param expected_category: expected flash category
+        """
+        with self.client.session_transaction() as session:
+            try:
+                category, message = session['_flashes'][0]
+            except KeyError:
+                raise AssertionError('Nothing was flashed')
+            assert expected_message in message
+            assert expected_category == category
+
+    def assert_response_event(self, request_id, type_, response, user):
+        """
+        Assert event created is properly committed with correct fields.
+
+        :param request_id: FOIL request ID
+        :param type_: type of event
+        :param response: response object
+        :param user: user object
+        """
+        event = Events.query.filter_by(response_id=response.id).one()
+        self.assertEqual(
+            [
+                event.user_guid,
+                event.auth_user_type,
+                event.request_id,
+                event.type,
+                event.previous_value,
+                event.new_value
+            ],
+            [
+                user.guid,
+                user.auth_user_type,
+                request_id,
+                type_,
+                None,
+                response.val_for_events,
+            ]
+        )

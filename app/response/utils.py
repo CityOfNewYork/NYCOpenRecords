@@ -36,11 +36,16 @@ from app.constants import (
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
-    EMAIL_TEMPLATE_FOR_TYPE
+    EMAIL_TEMPLATE_FOR_TYPE,
+    CONFIRMATION_HEADER_TO_REQUESTER,
+    CONFIRMATION_HEADER_TO_AGENCY
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
-from app.constants import permission
+from app.constants import (
+    permission,
+    TINYMCE_EDITABLE_P_TAG
+)
 from app.lib.date_utils import (
     get_due_date,
     process_due_date,
@@ -205,6 +210,10 @@ def add_denial(request_id, reason_ids, email_content):
                              privacy,
                              email_content,
                              'Request {} Closed'.format(request_id))
+    else:
+        raise UserRequestException(action="close",
+                                   request_id=request_id,
+                                   reason="Request is already closed")
 
 
 def add_closing(request_id, reason_ids, email_content):
@@ -217,7 +226,7 @@ def add_closing(request_id, reason_ids, email_content):
 
     """
     current_request = Requests.query.filter_by(id=request_id).one()
-    if current_request.status != request_status.CLOSED:
+    if current_request.status != request_status.CLOSED and current_request.was_acknowledged:
         if current_request.privacy['agency_description'] or not current_request.agency_description:
             reason = "Agency Description must be public and not empty, "
             if current_request.responses.filter(
@@ -259,6 +268,10 @@ def add_closing(request_id, reason_ids, email_content):
                              privacy,
                              email_content,
                              'Request {} Closed'.format(request_id))
+    else:
+        raise UserRequestException(action="close",
+                                   request_id=request_id,
+                                   reason="Request is already closed or has not been acknowledged")
 
 
 def add_reopening(request_id, date, tz_name, email_content):
@@ -552,7 +565,7 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     :return: the HTML of the rendered template of an acknowledgement
     """
     acknowledgment = data.get('acknowledgment')
-    header = "The following will be emailed to the Requester:"
+    header = CONFIRMATION_HEADER_TO_REQUESTER
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
@@ -594,7 +607,8 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     """
     reasons = [Reasons.query.filter_by(id=reason_id).one().content
                for reason_id in data.getlist('reason_ids[]')]
-    header = "The following will be email to the Requester:"
+    header = CONFIRMATION_HEADER_TO_REQUESTER
+    req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
         default_content = False
         content = data['email_content']
@@ -605,10 +619,9 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         email_template,
         default_content=default_content,
         content=content,
-        request_id=request_id,
+        request=req,
         agency_name=agency_name,
         reasons=reasons,
-        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
         page=page),
         "header": header
     }), 200
@@ -626,24 +639,34 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
-    reasons = [Reasons.query.filter_by(id=reason_id).one().content
-               for reason_id in data.getlist('reason_ids[]')]
-    header = "The following will be emailed to the Requester:"
+    req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
+        header = CONFIRMATION_HEADER_TO_REQUESTER
+        reasons = None
         default_content = False
         content = data['email_content']
+        denied = False
+        if determination_type.DENIAL in [r.type for r in
+                                         Reasons.query.filter(Reasons.id.in_(data.getlist('reason_ids[]')))]:
+            denied = True
+        if content.endswith(TINYMCE_EDITABLE_P_TAG):
+            content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
     else:
+        reasons = [Reasons.query.filter_by(id=reason_id).one().content
+                   for reason_id in data.getlist('reason_ids[]')]
         default_content = True
         content = None
+        header = None
+        denied = None
     return jsonify({"template": render_template(
         email_template,
         default_content=default_content,
         content=content,
-        request_id=request_id,
+        request=req,
         agency_name=agency_name,
         reasons=reasons,
-        agency_appeals_email=Requests.query.filter_by(id=request_id).one().agency.appeals_email,
-        page=page),
+        page=page,
+        denied=denied),
         "header": header
     }), 200
 
@@ -773,7 +796,7 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     :return: the HTML of the rendered template of an extension response
     """
     extension = data.get('extension')
-    header = "The following will be emailed to the Requester:"
+    header = CONFIRMATION_HEADER_TO_REQUESTER
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
@@ -831,10 +854,10 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         files = json.loads(files)
         default_content = True
         content = None
-        header = "The following will be emailed to the Requester:"
+        header = CONFIRMATION_HEADER_TO_REQUESTER
         if eval_request_bool(data['is_private']):
             email_template = 'email_templates/email_private_file_upload.html'
-            header = "The following will be emailed to all Assigned Users:"
+            header = CONFIRMATION_HEADER_TO_AGENCY
         for file_ in files:
             file_link = {'filename': file_['filename'],
                          'title': file_['title'],
@@ -894,9 +917,9 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
         content = None
         privacy = link.get('privacy')
         if privacy == PRIVATE:
-            header = "The following will be emailed to all Assigned Users:"
+            header = CONFIRMATION_HEADER_TO_AGENCY
         else:
-            header = "The following will be emailed to the Requester:"
+            header = CONFIRMATION_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -944,9 +967,9 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         privacy = note.get('privacy')
         # use private email template for note if privacy is private
         if privacy == PRIVATE:
-            header = "The following will be emailed to all Assigned Users:"
+            header = CONFIRMATION_HEADER_TO_AGENCY
         else:
-            header = "The following will be emailed to the Requester:"
+            header = CONFIRMATION_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -991,9 +1014,9 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
         content = None
         privacy = instruction.get('privacy')
         if privacy == PRIVATE:
-            header = "The following will be emailed to all Assigned Users:"
+            header = CONFIRMATION_HEADER_TO_AGENCY
         else:
-            header = "The following will be emailed to the Requester:"
+            header = CONFIRMATION_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,

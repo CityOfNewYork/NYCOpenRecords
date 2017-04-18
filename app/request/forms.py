@@ -204,7 +204,7 @@ class FinishRequestForm(Form):
         self.reasons.choices = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
-                Reasons.type == self.ultimate_determination_type,
+                Reasons.type.in_(self.ultimate_determination_type),
                 or_(
                     Reasons.agency_ein == agency_ein,
                     Reasons.agency_ein == None
@@ -224,12 +224,12 @@ class FinishRequestForm(Form):
 
 class DenyRequestForm(FinishRequestForm):
     reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
-    ultimate_determination_type = determination_type.DENIAL
+    ultimate_determination_type = [determination_type.DENIAL]
 
 
 class CloseRequestForm(FinishRequestForm):
     reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
-    ultimate_determination_type = determination_type.CLOSING
+    ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
 
 
 class SearchRequestsForm(Form):

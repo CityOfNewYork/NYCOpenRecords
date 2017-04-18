@@ -151,6 +151,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    WTF_CSRF_ENABLED = False  # TODO: retrieve and pass the token (via header or input value) for testing
     VIRUS_SCAN_ENABLED = True
     USE_SFTP = False
     UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data_test/')
