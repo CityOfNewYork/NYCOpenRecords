@@ -2,6 +2,7 @@ import os
 from operator import ior
 from functools import reduce
 from datetime import datetime, timedelta
+from random import sample
 from flask import current_app
 from app import calendar
 from app.models import (
@@ -12,6 +13,7 @@ from app.models import (
     Events,
     Responses,
     UserRequests,
+    Reasons
 )
 from app.constants import (
     permission,
@@ -894,7 +896,7 @@ class RequestWrapperTests(BaseTestCase, TestHelpers):
         self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.rf.agency_user)
 
     def test_close_custom(self):
-        reason_ids = [1, 2, 3]
+        reason_ids = sample(set([r.id for r in Reasons.query.filter_by(type=determination_type.CLOSING).all()]), 3)
         response_custom = self.request.close(reason_ids, self.rf.public_user)
         response = Responses.query.get(response_custom.id)
         response = Responses.query.get(response.id)
@@ -934,7 +936,7 @@ class RequestWrapperTests(BaseTestCase, TestHelpers):
         self.assert_response_event(self.request.id, event_type.REQ_CLOSED, response, self.rf.agency_user)
 
     def test_deny_custom(self):
-        reason_ids = [19, 20, 21]
+        reason_ids = sample(set([r.id for r in Reasons.query.filter_by(type=determination_type.DENIAL).all()]), 3)
         response_custom = self.request.deny(reason_ids, self.rf.public_user)
         response = Responses.query.get(response_custom.id)
         response = Responses.query.get(response.id)

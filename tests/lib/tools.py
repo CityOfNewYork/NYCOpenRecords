@@ -101,8 +101,10 @@ class RequestWrapper(object):
     def set_title_privacy(self, privacy: bool):
         self.__update({"privacy": {"title": privacy}})
 
-    def set_agency_description_privacy(self, privacy: bool):  # TODO: change_release_date=False
-        self.__update({"privacy": {"agency_description": privacy}})
+    def set_agency_description_privacy(self, privacy: bool):
+        release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS) if not privacy else None
+        self.__update({"privacy": {"agency_description": privacy},
+                       "agency_description_release_date": release_date})
 
     def add_file(self,
                  title=None,
@@ -262,7 +264,7 @@ class RequestWrapper(object):
         self.__update(
             {
                 "status": request_status.CLOSED,
-                "agency_descripton_release_date": calendar.addbusdays(
+                "agency_description_release_date": calendar.addbusdays(
                     datetime.utcnow(), RELEASE_PUBLIC_DAYS)
             }
         )
@@ -515,7 +517,9 @@ class RequestFactory(object):
         )
         if agency_description is not None:
             request.agency_description = agency_description
-            # TODO: set agency_description_release_date
+        if agency_desc_privacy is not None:
+            request.agency_description_release_date = calendar.addbusdays(
+                datetime.utcnow(), RELEASE_PUBLIC_DAYS) if not agency_desc_privacy else None
         create_object(request)
         request = RequestWrapper(request, self.agency_user)
 
