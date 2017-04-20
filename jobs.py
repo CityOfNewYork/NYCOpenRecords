@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 from flask import (
     render_template,
@@ -10,7 +11,6 @@ from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import update_object, create_object
 from app.lib.email_utils import send_email
-import traceback
 
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context, app.test_request_context() might come in handy.
@@ -39,7 +39,7 @@ def update_request_statuses():
             send_email(
                 subject="Update Request Statuses Failure",
                 to=[OPENRECORDS_DL_EMAIL],
-                email_content=traceback.format_exec()
+                email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
             )
 
 
