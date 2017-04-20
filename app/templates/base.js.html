@@ -1,23 +1,7 @@
 <script type="text/javascript">
 
-    /*-**************************************************************************************-*
-     *                             !!! I M P O R T A N T !!!                                  *
-     *                             -------------------------                                  *
-     *                                                                                        *
-     * 'webServicesUrl' and 'logoutUrl' must be manually changed to match the app environment *
-     *                                                                                        *
-     *  STG                                                                                   *
-     *  webServicesUrl = "https://nyc-stg-web.csc.nycnet"                                     *
-     *  logoutUrl = "https://login-stg.nycid.nycnet/osp/a/t1/auth/app/logout"                 *
-     *                                                                                        *
-     *  PRD                                                                                   *
-     *  webServicesUrl = "https://www1.nyc.gov"                                               *
-     *  logoutUrl = https://login-stg.nycid.nycnet/osp/a/t1/auth/app/logout                   *
-     *                                                                                        *
-     *-**************************************************************************************-*/
-
-    var webServicesUrl = "https://nyc-stg-web.csc.nycnet",
-        logoutUrl = "https://login-stg.nycid.nycnet/osp/a/t1/auth/app/logout";
+    var webServicesUrl = "{{ config.WEB_SERVICES_URL }}",
+        logoutUrl = "{{ config.LOGOUT_URL }}";
 
     {% if current_user.has_nyc_id_profile %}
         /* Set profile link href value with 'target' parameter being the current page
