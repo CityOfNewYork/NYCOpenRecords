@@ -10,6 +10,8 @@ from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import update_object, create_object
 from app.lib.email_utils import send_email
+from io import StringIO
+import traceback
 
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context, app.test_request_context() might come in handy.
@@ -35,10 +37,15 @@ def update_request_statuses():
         try:
             _update_request_statuses()
         except Exception as e:
+            import pdb;
+            pdb.set_trace()
+            fp = StringIO()
+            traceback.print_exc(file=fp)
+            message = fp.getvalue()
             send_email(
                 subject="Update Request Statuses Failure",
                 to=[OPENRECORDS_DL_EMAIL],
-                email_content=str(e)
+                email_content=message
             )
 
 
@@ -52,98 +59,85 @@ def _update_request_statuses():
         now, current_app.config['DUE_SOON_DAYS_THRESHOLD']
     ).replace(hour=23, minute=59, second=59)  # the entire day
 
-    requests_overdue = Requests.query.filter(
-        Requests.due_date < now,
-        Requests.status != request_status.CLOSED
-    ).order_by(
-        Requests.due_date.asc()
-    ).all()
+    agencies = Agencies.query.with_entities(Agencies.ein).filter_by(is_active=True).all()
 
-    requests_due_soon = Requests.query.filter(
-        Requests.due_date > now,
-        Requests.due_date <= due_soon_date,
-        Requests.status != request_status.CLOSED
-    ).order_by(
-        Requests.due_date.asc()
-    ).all()
+    for agency_ein, in agencies:
+        requests_overdue = Requests.query.filter(
+            Requests.due_date < now,
+            Requests.status != request_status.CLOSED,
+            Requests.agency_ein == agency_ein
+        ).order_by(
+            Requests.due_date.asc()
+        ).all()
 
-    agencies_to_requests_overdue = {}
-    agencies_to_acknowledgments_overdue = {}
-    agencies_to_requests_due_soon = {}
-    agencies_to_acknowledgments_due_soon = {}
+        requests_due_soon = Requests.query.filter(
+            Requests.due_date > now,
+            Requests.due_date <= due_soon_date,
+            Requests.status != request_status.CLOSED,
+            Requests.agency_ein == agency_ein
+        ).order_by(
+            Requests.due_date.asc()
+        ).all()
 
-    def add_to_agencies_to_request_dict(req, agencies_to_request_dict):
-        if req.agency.ein not in agencies_to_request_dict:
-            agencies_to_request_dict[req.agency.ein] = [req]
-        else:
-            agencies_to_request_dict[req.agency.ein].append(req)
+        agency_requests_overdue = []
+        agency_acknowledgments_overdue = []
+        agency_requests_due_soon = []
+        agency_acknowledgments_due_soon = []
 
-    # OVERDUE
-    for request in requests_overdue:
+        # OVERDUE
+        for request in requests_overdue:
 
-        if request.was_acknowledged:
-            add_to_agencies_to_request_dict(request, agencies_to_requests_overdue)
-        else:
-            add_to_agencies_to_request_dict(request, agencies_to_acknowledgments_overdue)
+            if request.was_acknowledged:
+                agency_requests_overdue.append(request)
+            else:
+                agency_acknowledgments_overdue.append(request)
 
-        if request.status != request_status.OVERDUE:
-            create_object(
-                Events(
-                    request.id,
-                    user_guid=None,
-                    auth_user_type=None,
-                    type_=REQ_STATUS_CHANGED,
-                    previous_value={"request": request.status},
-                    new_value={"status": request_status.OVERDUE},
-                    response_id=None,
+            if request.status != request_status.OVERDUE:
+                create_object(
+                    Events(
+                        request.id,
+                        user_guid=None,
+                        auth_user_type=None,
+                        type_=REQ_STATUS_CHANGED,
+                        previous_value={"request": request.status},
+                        new_value={"status": request_status.OVERDUE},
+                        response_id=None,
+                    )
                 )
-            )
-            update_object(
-                {"status": request_status.OVERDUE},
-                Requests,
-                request.id)
+                update_object(
+                    {"status": request_status.OVERDUE},
+                    Requests,
+                    request.id)
 
-    # DUE SOON
-    for request in requests_due_soon:
+        # DUE SOON
+        for request in requests_due_soon:
 
-        if request.was_acknowledged:
-            add_to_agencies_to_request_dict(request, agencies_to_requests_due_soon)
-        else:
-            add_to_agencies_to_request_dict(request, agencies_to_acknowledgments_due_soon)
+            if request.was_acknowledged:
+                agency_requests_due_soon.append(request)
+            else:
+                agency_acknowledgments_due_soon.append(request)
 
-        if request.status != request_status.DUE_SOON:
-            create_object(
-                Events(
-                    request.id,
-                    user_guid=None,
-                    auth_user_type=None,
-                    type_=REQ_STATUS_CHANGED,
-                    previous_value={"status": request.status},
-                    new_value={"status": request_status.DUE_SOON},
-                    response_id=None,
+            if request.status != request_status.DUE_SOON:
+                create_object(
+                    Events(
+                        request.id,
+                        user_guid=None,
+                        auth_user_type=None,
+                        type_=REQ_STATUS_CHANGED,
+                        previous_value={"status": request.status},
+                        new_value={"status": request_status.DUE_SOON},
+                        response_id=None,
+                    )
                 )
-            )
-            update_object(
-                {"status": request_status.DUE_SOON},
-                Requests,
-                request.id)
+                update_object(
+                    {"status": request_status.DUE_SOON},
+                    Requests,
+                    request.id)
 
-    # get all possible agencies to email
-    agency_eins = set(
-        list(agencies_to_requests_overdue) +
-        list(agencies_to_acknowledgments_overdue) +
-        list(agencies_to_requests_due_soon) +
-        list(agencies_to_acknowledgments_due_soon))
-
-    # mail to agency admins for each agency
-    for agency_ein in agency_eins:
-        agency_requests_overdue = agencies_to_requests_overdue.get(agency_ein, [])
-        agency_acknowledgments_overdue = agencies_to_acknowledgments_overdue.get(agency_ein, [])
-        agency_requests_due_soon = agencies_to_requests_due_soon.get(agency_ein, [])
-        agency_acknowledgments_due_soon = agencies_to_acknowledgments_due_soon.get(agency_ein, [])
-
+        # mail to agency admins for each agency
         user_emails = list(set(admin.notification_email or admin.email for admin
                                in Agencies.query.filter_by(ein=agency_ein).one().administrators))
+
         send_email(
             STATUSES_EMAIL_SUBJECT,
             to=user_emails,

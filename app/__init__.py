@@ -123,8 +123,8 @@ def create_app(config_name, jobs_enabled=True):
             'check_sanity',
             jobs.check_sanity,
             name="Check if scheduler is running every morning at 8 AM.",
-            trigger=IntervalTrigger(minutes=20)  # TODO: switch to cron below after testing
-            # trigger=CronTrigger(hour=8)
+            # trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
+            trigger=CronTrigger(hour=8)
         )
 
         scheduler.start()
