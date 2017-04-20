@@ -10,7 +10,6 @@ from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import update_object, create_object
 from app.lib.email_utils import send_email
-from io import StringIO
 import traceback
 
 # NOTE: (For Future Reference)
@@ -36,16 +35,11 @@ def update_request_statuses():
     with scheduler.app.app_context():
         try:
             _update_request_statuses()
-        except Exception as e:
-            import pdb;
-            pdb.set_trace()
-            fp = StringIO()
-            traceback.print_exc(file=fp)
-            message = fp.getvalue()
+        except Exception:
             send_email(
                 subject="Update Request Statuses Failure",
                 to=[OPENRECORDS_DL_EMAIL],
-                email_content=message
+                email_content=traceback.format_exec()
             )
 
 
