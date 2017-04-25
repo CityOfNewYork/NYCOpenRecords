@@ -45,7 +45,7 @@
                 </div>
             </div>
             <br>
-            {% if current_user.is_agency or current_user == request.requester %}
+            {% if current_user.is_agency %}
                 <div class="row">
                     <div class="request-label lead">Description:</div>
                     <div class="request-description-text lead">{{ request.description }}</div>
