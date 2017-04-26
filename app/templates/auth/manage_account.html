@@ -7,7 +7,7 @@
 
 <div id="container-fluid">
     <div class="col-sm-12">
-        <form method="post" class="form" role="form" id="request-form" data-parsley-validate>
+        <span method="post" class="form" role="form" id="request-form" data-parsley-validate>
             <h1 class="text-center">Manage OpenRecords Account
             <small data-toggle="popover"
                    data-placement="bottom"
@@ -43,6 +43,11 @@
             <div class="contact-form-error-message"></div>
 
             {{ form.notification_email.label(class='request-heading') }}
+            <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Notification Email"
+                  data-content="This email may be changed for receiving notifications from the OpenRecords portal.
+                  Your login email will not be changed."
+                  class="glyphicon glyphicon-question-sign">
+            </span>
             {{ form.notification_email(
                 id='email',
                 class='input-block-level',
