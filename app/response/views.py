@@ -19,9 +19,8 @@ from flask import (
     after_this_request,
     abort
 )
-from flask_login import current_user, login_url
+from flask_login import current_user
 
-from app import login_manager
 from app.constants import permission
 from app.constants.response_type import FILE
 from app.constants.response_privacy import (
@@ -454,6 +453,7 @@ def patch(response_id):
 
     privacy = patch_form.pop('privacy', None)
 
+
     if privacy:
         # Check permissions for editing the privacy if required.
 
@@ -550,6 +550,12 @@ def get_response_content(response_id):
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
 
+    # if ((current_user.is_authenticated
+    #    and current_user not in response_.request.agency_users
+    #    and response_.request.requester != current_user)
+    #    or flask_request.args.get('token') is None):
+    #     return abort(403)
+
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
             current_app.config["UPLOAD_DIRECTORY"],
@@ -573,6 +579,7 @@ def get_response_content(response_id):
                 def remove(resp):
                     os.remove(serving_path)
                     return resp
+
                 return fu.send_file(*filepath_parts, as_attachment=True)
             else:
                 # check presence of token in url
@@ -586,6 +593,7 @@ def get_response_content(response_id):
                             def remove(resp):
                                 os.remove(serving_path)
                                 return resp
+
                             return fu.send_file(*filepath_parts, as_attachment=True)
                         else:
                             delete_object(resptok)
@@ -594,24 +602,24 @@ def get_response_content(response_id):
                 if current_user.is_authenticated:
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
-                        or current_user.is_agency)
+                         or current_user.is_agency)
                         # user is associated with request
                         and UserRequests.query.filter_by(
                             request_id=response_.request_id,
                             user_guid=current_user.guid,
                             auth_user_type=current_user.auth_user_type
-                       ).first() is not None):
+                    ).first() is not None):
                         @after_this_request
                         def remove(resp):
                             os.remove(serving_path)
                             return resp
+
                         return fu.send_file(*filepath_parts, as_attachment=True)
                     # user does not have permission to view file
                     return abort(403)
                 else:
-                    # redirect to login
-                    return redirect(login_url(
-                        login_manager.login_view,
-                        next_url=url_for('request.view', request_id=response_.request_id)
+                    return redirect(url_for(
+                        'auth.login',
+                        return_to_url=url_for('request.view', request_id=response_.request_id)
                     ))
-    return abort(404)  # file does not exist
+    return abort(404)

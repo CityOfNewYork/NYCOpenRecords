@@ -16,7 +16,6 @@ PUBLIC_USER_YAHOO = 'YahooSSO'
 PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
 
 PUBLIC_USER_TYPES = frozenset((
-    # user types associated with a federated identity
     PUBLIC_USER_NYC_ID,
     PUBLIC_USER_FACEBOOK,
     PUBLIC_USER_LINKEDIN,

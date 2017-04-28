@@ -38,19 +38,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% block custom_script %}
-    <script type="text/javascript">
-        /* Redirect to OAuth callback if authorization location intended
-         * (i.e. includes 'access_token=' after fragment identifier).
-         * Also include 'next' url (or any other querystring parameters)
-         * if present in the redirect uri.
-         */
-        if (window.location.hash.indexOf('access_token=') !== -1) {
-            window.location = window.location.origin
-                + '/auth/authorize?'
-                + window.location.hash.substring(1)  // remove leading '#'
-                + (window.location.search ? '&' + window.location.search.substring(1) : '');  // remove leading '?'
-        }
-    </script>
-{% endblock %}

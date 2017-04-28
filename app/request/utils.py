@@ -23,6 +23,7 @@ from app.constants import (
     event_type,
     role_name as role,
     ACKNOWLEDGMENT_DAYS_DUE,
+    REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request,
 )
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
@@ -35,7 +36,7 @@ from app.lib.date_utils import (
     get_following_date,
     get_due_date,
     local_to_utc,
-    utc_to_local,
+    utc_to_local
 )
 from app.models import (
     Requests,
@@ -111,7 +112,7 @@ def create_request(title,
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(
         date_submitted_local,
-        ACKNOWLEDGMENT_DAYS_DUE,
+        ACKNOWLEDGMENT_DAYS_DUE if current_user.is_agency else REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
         tz_name)
 
     date_created = local_to_utc(date_created_local, tz_name)
@@ -326,9 +327,9 @@ def _quarantine_upload_no_id(upload_file):
     :return: the file path to the quarantined upload
     """
     with NamedTemporaryFile(
-        dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-        suffix='.{}'.format(secure_filename(upload_file.filename)),
-        delete=False
+            dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            suffix='.{}'.format(secure_filename(upload_file.filename)),
+            delete=False
     ) as fp:
         upload_file.save(fp)
         return fp.name

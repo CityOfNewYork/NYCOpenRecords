@@ -1,7 +1,7 @@
 from app.constants import response_type, determination_type
 
 ACKNOWLEDGMENT_DAYS_DUE = 5
-
+REQUESTER_ACKNOWLEDGMENT_DAYS_DUE = 4
 CATEGORIES = [
     ('', 'All'),
     ('Business', 'Business'),

@@ -41,8 +41,8 @@ from app.upload.utils import (
 )
 
 
-@upload.route('/<request_id>', methods=['POST'])
 @login_required
+@upload.route('/<request_id>', methods=['POST'])
 def post(request_id):
     """
     Create a new upload.
@@ -150,8 +150,8 @@ def post(request_id):
         return jsonify(response), 200
 
 
-@upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
 @login_required
+@upload.route('/<r_id_type>/<r_id>/<filecode>', methods=['DELETE'])
 def delete(r_id_type, r_id, filecode):
     """
     Removes an uploaded file.

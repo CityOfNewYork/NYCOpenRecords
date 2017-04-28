@@ -78,7 +78,7 @@ $(function () {
         telephone.attr("data-parsley-length", "[14,14]");
         fax.attr("data-parsley-length", "[14,14]");
 
-        zipCode.attr("data-parsley-length-message", "The zipcode must be 5 digits long.");
+        zipCode.attr("data-parsley-length-message", "The Zipcode must be 5 digits long.");
         telephone.attr("data-parsley-length-message", "The phone number must be 10 digits long.");
         fax.attr("data-parsley-length-message", "The fax number must be 10 digits long.");
 
@@ -92,8 +92,7 @@ $(function () {
         // Checks that at least one of the contact information fields is filled
         if (email.parsley().isValid() ||
             telephone.parsley().isValid() ||
-            fax.parsley().isValid() ||
-            (
+            fax.parsley().isValid() || (
                 // mailing address
                 addressOne.parsley().isValid() &&
                 state.parsley().isValid() &&
@@ -107,7 +106,7 @@ $(function () {
         }
         else {
             errorMessage.html(
-                "At least one of the following needs to be filled: " +
+                "At least one of the following need to be filled: " +
                 "<strong>Email</strong>, <strong>Phone</strong>, <strong>Fax</strong>, " +
                 "and/or <strong>Address</strong> (with <strong>City</strong>, " +
                 "<strong>State</strong>, and <strong>Zipcode</strong>.)"

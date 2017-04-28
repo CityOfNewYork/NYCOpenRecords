@@ -8,7 +8,7 @@ from functools import reduce
 from uuid import uuid4
 from urllib.parse import urljoin
 
-from flask import current_app, session
+from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 
@@ -274,16 +274,7 @@ class Users(UserMixin, db.Model):
 
     @property
     def is_authenticated(self):
-        """
-        Verifies the access token currently stored in the user's session
-        by invoking the OAuth User Web Service and checking the response.
-        """
-        if current_app.config['USE_LDAP']:
-            return True
-        if session.get('token') is not None:
-            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
-            return oauth_user_web_service_request().status_code == 200
-        return False
+        return True
 
     @property
     def is_active(self):
@@ -314,17 +305,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agency_ein is not None
-
-    @property
-    def has_nyc_id_profile(self):
-        """
-        Checks to see if the current user has authenticated with
-        NYC.ID, which means they have an NYC.ID Profile.
-
-        :return: Boolean
-        """
-        return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
+        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES
 
     @property
     def is_anonymous_requester(self):
@@ -348,7 +329,7 @@ class Users(UserMixin, db.Model):
             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
-    def get_id(self):
+    def get_id(self):  # FIXME: should not be getter
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
     def from_id(self, user_id):  # Might come in useful
@@ -397,7 +378,8 @@ class Users(UserMixin, db.Model):
                 if Users.query.filter_by(email=row['email']).first() is None:
                     user = cls(
                         guid=str(uuid4()),
-                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
+                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
+                            'USE_LDAP'] else user_type_auth.AGENCY_USER,
                         agency_ein=row['agency_ein'],
                         is_super=eval(row['is_super']),
                         is_agency_admin=eval(row['is_agency_admin']),
@@ -629,30 +611,31 @@ class Requests(db.Model):
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
-        es.create(
-            index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
-            id=self.id,
-            body={
-                'title': self.title,
-                'description': self.description,
-                'agency_description': self.agency_description,
-                'agency_ein': self.agency_ein,
-                'agency_name': self.agency.name,
-                'title_private': self.privacy['title'],
-                'agency_description_private': self.privacy['agency_description'],
-                'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
-                'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
-                'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                'submission': self.submission,
-                'status': self.status,
-                'requester_id': (self.requester.get_id()
-                                 if not self.requester.is_anonymous_requester
-                                 else ''),
-                'requester_name': self.requester.name,
-                'public_title': 'Private' if self.privacy['title'] else self.title,
-            }
-        )
+        if self.agency.is_active:
+            es.create(
+                index=current_app.config["ELASTICSEARCH_INDEX"],
+                doc_type='request',
+                id=self.id,
+                body={
+                    'title': self.title,
+                    'description': self.description,
+                    'agency_description': self.agency_description,
+                    'agency_ein': self.agency_ein,
+                    'agency_name': self.agency.name,
+                    'title_private': self.privacy['title'],
+                    'agency_description_private': self.privacy['agency_description'],
+                    'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
+                    'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                    'submission': self.submission,
+                    'status': self.status,
+                    'requester_id': (self.requester.get_id()
+                                     if not self.requester.is_anonymous_requester
+                                     else ''),
+                    'requester_name': self.requester.name,
+                    'public_title': 'Private' if self.privacy['title'] else self.title,
+                }
+            )
 
     def __repr__(self):
         return '<Requests %r>' % self.id
@@ -696,8 +679,7 @@ class Events(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type],
-            onupdate="CASCADE"
+            [Users.guid, Users.auth_user_type]
         ),
     )
 
@@ -796,11 +778,6 @@ class Responses(db.Model):
                 self.release_date is not None and
                 datetime.utcnow() > self.release_date)
 
-    def make_public(self):
-        self.privacy = response_privacy.RELEASE_AND_PUBLIC
-        self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
-        db.session.commit()
-
     def __repr__(self):
         return '<Responses %r>' % self.id
 
@@ -885,8 +862,7 @@ class UserRequests(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type],
-            onupdate="CASCADE"
+            [Users.guid, Users.auth_user_type]
         ),
     )
 
@@ -979,6 +955,7 @@ class Notes(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.NOTE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String(5000))
+
     # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
@@ -1017,6 +994,7 @@ class Files(Responses):
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
     hash = db.Column(db.String)
+
     # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
@@ -1057,6 +1035,7 @@ class Links(Responses):
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String)
     url = db.Column(db.String)
+
     # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
@@ -1089,6 +1068,7 @@ class Instructions(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.INSTRUCTIONS}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
+
     # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
@@ -1139,6 +1119,7 @@ class Determinations(Responses):
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
+
     # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
@@ -1200,6 +1181,7 @@ class Emails(Responses):
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
     body = db.Column(db.String)
+
     # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,

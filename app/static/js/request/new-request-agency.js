@@ -61,7 +61,7 @@ $(document).ready(function () {
     }).keydown(false);
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['request-title','request-description', 'request-agency', 'first-name','last-name','email',
+    var required_fields = ['request-title','request-description','first-name','last-name','email',
         'phone','fax','address-line-1', 'method-received','request-date', 'city','zipcode'];
     for (i = 0 ; i < required_fields.length ; i++){
         $('#' + required_fields[i]).attr('data-parsley-required','');
@@ -127,7 +127,7 @@ $(document).ready(function () {
     // Contact information validation
     $('#email').attr('data-parsley-type', 'email');
     // Called when validation is used and checks that at least one form of contact was filled out
-    $('#request-form').parsley().on('form:validate', function (formInstance) {
+    $('#request-form').parsley().on('form:validate', function () {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
         for (i = 0 ; i < required_fields.length ; i++){
            $('#' + required_fields[i]).attr('data-parsley-required','');
@@ -147,9 +147,10 @@ $(document).ready(function () {
             $('#zipcode').parsley().isValid() &&
             $('#city').parsley().isValid())
             &&
-            ($('#request-agency').parsley().isValid() &&
-            $('#request-title').parsley().isValid() &&
+            ($('#request-title').parsley().isValid() &&
             $('#request-description').parsley().isValid() &&
+	    $('#method-received').parsley().isValid() &&
+	    $('#request-date').parsley().isValid() &&
             $('#first-name').parsley().isValid() &&
             $('#last-name').parsley().isValid())
         ) {

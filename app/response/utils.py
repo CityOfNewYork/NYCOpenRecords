@@ -46,7 +46,7 @@ from app.lib.date_utils import (
     process_due_date,
     get_release_date,
     local_to_utc,
-    utc_to_local,
+    utc_to_local
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
@@ -315,7 +315,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
 
     """
     new_due_date = _get_new_due_date(request_id, length, custom_due_date, tz_name)
-    days_until_due = calendar.busdaycount(datetime.utcnow(), new_due_date.replace(hour=23, minute=59, second=59))
+    days_until_due = calendar.busdaycount(datetime.utcnow(), new_due_date.replace(hour=23,minute=59,second=59))
     if new_due_date < datetime.utcnow():
         new_status = request_status.OVERDUE
     elif days_until_due <= current_app.config['DUE_SOON_DAYS_THRESHOLD']:

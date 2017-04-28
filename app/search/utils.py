@@ -11,7 +11,6 @@ from app.constants import (
     request_status
 )
 from app.search.constants import (
-    MAX_RESULT_SIZE,
     ES_DATE_RANGE_FORMAT,
     DT_DATE_RANGE_FORMAT,
     MOCK_EMPTY_ELASTICSEARCH_RESULT
@@ -122,7 +121,7 @@ def create_docs():
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
                 # public_agency_description
-            })
+           })
 
     num_success, _ = bulk(
         es,
@@ -333,7 +332,7 @@ def search_requests(query,
                  'title',
                  'agency_description',
                  'description'],
-        size=min(size, MAX_RESULT_SIZE),
+        size=size,
         from_=start,
         sort=sort,
     )

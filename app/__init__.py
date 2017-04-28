@@ -25,6 +25,7 @@ from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CsrfProtect
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from app.lib import NYCHolidays, jinja_filters
@@ -76,7 +77,7 @@ def create_app(config_name, jobs_enabled=True):
                      'error',
                      'openrecords_{}_error.log'.format(app.config['APP_VERSION_STRING'])),
         when='D', interval=1, backupCount=60)
-    handler_error.setLevel(logging.ERROR)
+    handler_error.setLevel(logging.DEBUG)
     handler_error.setFormatter(Formatter(
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]\n'
@@ -115,7 +116,16 @@ def create_app(config_name, jobs_enabled=True):
             'update_request_statuses',
             jobs.update_request_statuses,
             name="Update requests statuses every day at 3 AM.",
-            trigger=CronTrigger(hour=3),
+            #trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
+            trigger=CronTrigger(hour=8, minute=30)
+        )
+
+        scheduler.add_job(
+            'check_sanity',
+            jobs.check_sanity,
+            name="Check if scheduler is running every morning at 8 AM.",
+            #trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
+            trigger=CronTrigger(hour=8)
         )
 
         scheduler.start()
@@ -123,8 +133,7 @@ def create_app(config_name, jobs_enabled=True):
     # Error Handlers
     @app.errorhandler(400)
     def bad_request(e):
-        return render_template("error/generic.html", status_code=400,
-                               message=e.description or None)
+        return render_template("error/generic.html", status_code=400)
 
     @app.errorhandler(403)
     def forbidden(e):
@@ -136,8 +145,8 @@ def create_app(config_name, jobs_enabled=True):
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        app.logger.error('Error found for request with Tracy ID: {}'.format(flask_request._tracy_id))
-        return render_template("error/generic.html", status_code=500, tracy_id=flask_request._tracy_id)
+        app.logger.error('Error found for request')
+        return render_template("error/generic.html", status_code=500)
 
     @app.context_processor
     def add_session_config():
