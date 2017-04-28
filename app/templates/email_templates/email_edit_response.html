@@ -1,0 +1,59 @@
+{% extends 'email_templates/email_response.html' %}
+{% block response_content %}
+    {% if not agency %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE %}
+            <p>
+                {% if response.type[0] in ['a', 'e', 'i', 'o', 'u'] %}
+                    An <strong>{{ response | format_response_type | lower }}</strong> in request
+                {% else %}
+                    A <strong>{{ response | format_response_type | lower }}</strong> in request
+                {% endif %}
+                <a href="{{ page }}">
+                    {{ request_id }}
+                </a> has been edited.
+            </p>
+        {% else %}
+            <p>
+                A <strong>{{ response | format_response_type | lower }}</strong> in request
+                <a href="{{ page }}">
+                    {{ request_id }}
+                </a> is available for you to view.
+            </p>
+        {% endif %}
+    {% endif %}
+
+    {% if response_data is not none %}
+        {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency %}
+            <div class="mceNonEditable">
+                {% for key in response_data.requester_viewable_keys %}
+                    <p>
+                        The <strong>{{ key }}</strong> was changed from:
+                    </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                    <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if agency %}
+            {% for key, value in response_data.data_old.items() %}
+                <p>
+                    The <strong>{{ key }}</strong> was changed from:
+                </p>
+                {% if key == 'privacy' %}
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] | format_response_privacy }} </p>
+                    <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
+                {% else %}
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                    <p> to: </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+    <p>
+        Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
+    </p>
+    <p><br></p>
+{% endblock %}

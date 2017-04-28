@@ -1,0 +1,30 @@
+{% block navbar %}
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="openrecords_nav"><a href="{{ url_for('request.new') }}">Request a Record</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('request.view_all') }}">View Requests</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('report.show_report') }}">Reports</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.faq') }}">FAQ</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.about') }}">About</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                {% if not current_user.is_anonymous
+                and ((current_user.is_agency_admin and current_user.is_agency_active)
+                or current_user.is_super) %}
+                    <li class="openrecords_nav"><a href="{{ url_for('admin.main') }}">Agency Administration</a></li>
+                {% endif %}
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div><!--/.container-fluid -->
+</nav>
+{% endblock %}

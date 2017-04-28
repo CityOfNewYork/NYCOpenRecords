@@ -1,0 +1,16 @@
+/* sets controlling div to relative position */
+.note-control {
+    position: relative;
+    padding-bottom: 5rem;
+}
+
+/* sets styles for the labels for the extension form */
+.note-label {
+    font-weight: 400;
+    line-height: 20px;
+}
+
+/* sets the style for the note content textarea */
+#note-content, .note-content {
+    height: 10rem;
+}

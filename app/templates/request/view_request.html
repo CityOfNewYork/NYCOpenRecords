@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
+    <link rel=stylesheet type=text/css
+          href="{{ url_for('static', filename='styles/plugins/bootstrap-editable.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery-ui.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/jquery.fileupload.css') }}">
+    <link rel=stylesheet type=text/css
+          href="{{ url_for('static', filename='styles/plugins/jquery.fileupload-ui.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/request_info.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/status.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/view_request.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_file.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_extension.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_link.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_note.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_instruction.css') }}"/>
+{% endblock %}
+
+{% block title %}
+    {{ request.id }}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="col-sm-12">
+            <!-- Request Info Column -->
+            {% include 'request/_view_request_info.html' %}
+
+            <!-- Status Column -->
+            <div class="col-sm-3">
+                {% include 'request/status.html' %}
+            </div>
+
+            <!-- Action Button Column -->
+            {% if (current_user in request.agency_users) or (is_requester and (request.status != status.OPEN) or (request.status != status.CLOSED)) %}
+                <div class="col-md-12"><h3>Actions</h3>
+                    <div class="tabbable tabs-left" id="mobile-toggle">
+                        <ul class="nav nav-tabs">
+                            {% if request.status != status.CLOSED %}
+                                {% if request.status == status.OPEN or not request.was_acknowledged %}
+                                    {% if permissions['acknowledge'] %}
+                                        <li class="active"><a href="#acknowledge-request"
+                                                              data-toggle="tab">Acknowledge</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if permissions['deny'] %}
+                                        <li><a href="#deny-request" data-toggle="tab">Deny</a></li>
+                                        <li>
+                                    {% endif %}
+                                {% else %}
+                                {% if permissions['add_file'] %}
+                                    <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
+                                {% endif %}
+                                    {% if permissions['add_link'] %}
+                                        <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
+                                    {% endif %}
+                                    {% if permissions['add_instructions'] %}
+                                        <li><a href="#add-instructions" data-toggle="tab">Add Instructions</a></li>
+                                    {% endif %}
+                                    {% if permissions['add_note'] %}
+                                        <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
+                                    {% endif %}
+                                    {% if permissions['extend'] %}
+                                        <li><a href="#extend-request" data-toggle="tab">Extend</a></li>
+                                    {% endif %}
+                                    {% if permissions['close'] %}
+                                        <li><a href="#close-request" data-toggle="tab">Close</a></li>
+                                    {% endif %}
+                                    {% if active_users and permissions['add_user'] %}
+                                        <li><a href="#add-user" data-toggle="tab">Add User</a></li>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['edit_user'] %}
+                                        <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['remove_user'] %}
+                                        <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                {% if permissions['re_open'] %}
+                                    <li class="active"><a href="#reopen-request" data-toggle="tab">Re-Open</a></li>
+                                {% endif %}
+                            {% endif %}
+                        </ul>
+                        <div class="tab-content content-min-height">
+                            {% if request.status != status.CLOSED %}
+                                {% if request.status == status.OPEN  or not request.was_acknowledged %}
+                                    {% if permissions['acknowledge'] %}
+                                        <div class="tab-pane active" id="acknowledge-request">
+                                            {% include "response/add_acknowledgment.html" %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if permissions['deny'] %}
+                                        <div class="tab-pane" id="deny-request">
+                                            {% include "response/add_denial.html" %}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    {% if permissions['add_file'] %}
+                                        <div class="tab-pane active" id="add-file">
+                                            {% include "response/add_file.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if permissions['add_link'] %}
+                                        <div class="tab-pane" id="add-link">
+                                            {% include "response/add_link.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if permissions['add_instructions'] %}
+                                        <div class="tab-pane" id="add-instructions">
+                                            {% include "response/add_instruction.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if permissions['add_note'] %}
+                                        <div class="tab-pane" id="add-note">
+                                            {% include "response/add_note.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if permissions['extend'] %}
+                                        <div class="tab-pane" id="extend-request">
+                                            {% include "response/add_extension.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if permissions['close'] %}
+                                        <div class="tab-pane" id="close-request">
+                                            {% include "response/add_closing.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if active_users and permissions['add_user'] %}
+                                        <div class="tab-pane" id="add-user">
+                                            {% include "response/add_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['edit_user'] %}
+                                        <div class="tab-pane" id="edit-user">
+                                            {% include "response/edit_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['remove_user'] %}
+                                        <div class="tab-pane" id="remove-user">
+                                            {% include "response/remove_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                {% if permissions['re_open'] %}
+                                    <div class="tab-pane active" id="reopen-request">
+                                        {% include "response/add_reopening.html" %}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Response Column -->
+            <div class="col-sm-12">
+                <h3 class="wrap-text">Responses
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                           data-content="Use the Responses section to access all agency correspondence and documents provided in response to this request.">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </small>
+                </h3>
+                {% include 'request/_view_request_responses.html' %}
+            </div>
+
+            <!-- History Column -->
+            {#            <div class="col-sm-3">#}
+            {#                <h3 class="wrap-text">History</h3>#}
+            {#                {% include 'request/_view_request_history.html' %}#}
+            {#            </div>#}
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <!-- TODO: plugins should be minified versions... really hope their standard versions have not been altered -->
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/sprintf.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/action-buttons-mobile-toggle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tmpl.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.iframe-transport.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.fileupload.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-process.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-validate.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.fileupload-ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tinymce/tinymce.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/tinymce/preventdelete.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
+    {#    <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>#}
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/upload/fileupload.js') }}"></script>
+
+    {% if current_user.is_agency and request.requester.is_anonymous_requester and permissions['edit_requester_info'] %}
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='js/request/edit_requester_info.js') }}"></script>
+    {% endif %}
+    {% if current_user.is_agency and request.requester.is_anonymous_requester %}
+        {% include 'request/edit_requester_info.js.html' %}
+    {% endif %}
+    {% if permissions['edit_title_privacy'] or permissions['edit_agency_description_privacy'] %}
+        {% include 'request/_view_request_edit_visibility.js.html' %}
+    {% endif %}
+    {% if permissions['edit_title'] or permissions['edit_agency_description'] %}
+        {% include 'request/_view_request_info_x-editable.js.html' %}
+    {% endif %}
+    {% if permissions['extend'] %}
+        {% include 'response/add_extension.js.html' %}
+    {% endif %}
+    {% if permissions['add_link'] %}
+        {% include 'response/add_link.js.html' %}
+    {% endif %}
+    {% if permissions['add_file'] %}
+        {% include "request/fileupload_add_file.js.html" %}
+        {% include 'response/add_file.js.html' %}
+    {% endif %}
+    {% include "request/fileupload_update_templates.js.html" %}
+    {% if permissions['add_note'] %}
+        {% include 'response/add_note.js.html' %}
+    {% endif %}
+    {% if permissions['add_instructions'] %}
+        {% include 'response/add_instruction.js.html' %}
+    {% endif %}
+    {% if permissions['acknowledge'] %}
+        {% include 'response/add_acknowledgment.js.html' %}
+    {% endif %}
+    {% if permissions['deny'] %}
+        {% include 'response/add_denial.js.html' %}
+    {% endif %}
+    {% if permissions['close'] %}
+        {% include 'response/add_closing.js.html' %}
+    {% endif %}
+    {% if permissions['re_open'] %}
+        {% include 'response/add_reopening.js.html' %}
+    {% endif %}
+    {% if permissions['add_user'] %}
+        {% include 'response/add_user_request.js.html' %}
+    {% endif %}
+    {% if permissions['edit_user'] %}
+        {% include 'response/edit_user_request.js.html' %}
+    {% endif %}
+    {% if permissions['remove_user'] %}
+        {% include 'response/remove_user_request.js.html' %}
+    {% endif %}
+
+{% endblock %}

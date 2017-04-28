@@ -1,0 +1,39 @@
+<form id="edit-user-request" action="/user_request/{{ request.id }}" method="POST">
+
+    {{ edit_user_request_form.csrf_token }}
+
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Edit User in Request
+                <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                       title="Editing User"
+                       data-content="This function allows you to edit an assigned user's permission on the request.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
+            </legend>
+            <div class="first">
+                <div class="form-group">
+                    {{ edit_user_request_form.user.label }}<br>
+                    {{ edit_user_request_form.user(id="user", class="form-control") }}
+                    <div id="edit_options" hidden>
+                        {{ edit_user_request_form.roles.label }}<br>
+                        {{ edit_user_request_form.roles(id="role", class="form-control") }}
+                        {{ edit_user_request_form.permission.label }}<br>
+                        {{ edit_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
+
+                        <button type="button" class="next pull-right btn btn-primary">Next</button>
+                    </div>
+                </div>
+            </div>
+            <div class="second" hidden>
+                <h4>The following will be emailed to&nbsp;<span id="user_name"></span>:</h4>
+                <div class="wrap-text email-summary"></div>
+                <input type="hidden" name="email-summary">
+                <input type="hidden" name="tz-name">
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="submit" class="submit pull-right btn btn-success">Submit</button>
+            </div>
+        </fieldset>
+    </div>
+</form>

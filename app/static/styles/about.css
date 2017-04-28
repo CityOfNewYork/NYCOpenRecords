@@ -1,0 +1,9 @@
+.row-centered {
+    text-align: center;
+    font-size: 15px;
+}
+
+#nyc-seal {
+    float: left;
+    padding-right: 3em;
+}

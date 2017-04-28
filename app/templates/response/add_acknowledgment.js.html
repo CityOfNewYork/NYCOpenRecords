@@ -1,0 +1,140 @@
+<script type="text/javascript">
+    $(function () {
+        var dateSelectVal = "-1";
+
+        var form = $("#add-acknowledgment");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third");
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+        var submit = third.find(".submit");
+
+        var days = first.find("#acknowledgment-days");
+        var date = first.find("#acknowledgment-date");
+        var info = first.find("#acknowledgment-info");
+
+        // Parsley
+        var required = [date, days];
+        for (i = 0; i < required.length; i++) {
+            required[i].attr("data-parsley-required", "");
+        }
+        info.attr("data-parsley-maxlength", "5000");
+
+        info.keyup(function () {
+            characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
+        });
+
+        // Date Picker
+        holiday_dates = {{ holidays | safe }};
+        date.datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend,
+            minDate: "{{ request.due_date }}".split(' ')[0]
+        });
+        date.keydown(false);
+
+        // Reveal/Hide Date Picker
+        days.change(function () {
+            if ($(this).val() === dateSelectVal) {
+                date.parent().show();
+                info.attr("data-parsley-required", "");
+                info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
+                info.attr("data-parsley-minlength", "20");
+            }
+            else {
+                date.parent().hide();
+                info.removeAttr("data-parsley-required", "");
+                info.removeAttr("data-parsley-minlength", "20");
+                info.removeClass("parsley-error");
+                first.find(".parsley-errors-list").children().remove();
+            }
+        });
+
+        next1.click(function (e) {
+            if (date.is(":visible")) {
+                date.parsley().validate();
+                info.parsley().validate();
+                if (!(date.parsley().isValid() && date.parsley().isValid())) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            days.parsley().validate();
+            info.parsley().validate();  // for max length
+
+            if (!(days.parsley().isValid() && info.parsley().isValid())
+            ) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "acknowledgment",
+                        acknowledgment: JSON.stringify({
+                            days: days.val(),
+                            date: date.val(),
+                            info: info.val()
+                        }),
+                        tz_name: jstz.determine().name()
+                    },
+                    success: function (data) {
+                        emailContent = second.find(".email-content-hidden");
+                        emailContent.html(data.template);
+                        flask_moment_render_all();
+                        tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        next2.click(function () {
+            tinyMCE.triggerSave();
+
+            $.ajax({
+                url: "/response/email",
+                type: "POST",
+                data: {
+                    request_id: "{{ request.id }}",
+                    type: "acknowledgment",
+                    email_content: second.find("#acknowledgment-email-body").val(),
+                },
+                success: function (data) {
+                    third.find(".email-summary").html(data.template);
+                    third.find("input[name='email-summary']").val(data.template);
+                    third.find("input[name='tz-name']").val(jstz.determine().name());
+                    third.find(".confirmation-header").text(data.header)
+                }
+            });
+
+            second.hide();
+            third.show();
+        });
+
+        prev2.click(function () {
+            second.hide();
+            first.show();
+        });
+
+        prev3.click(function () {
+            third.hide();
+            second.show();
+        });
+
+        form.submit(function () {
+            submit.attr("disabled", true);
+        });
+
+    });
+</script>

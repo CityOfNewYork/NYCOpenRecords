@@ -1,0 +1,10 @@
+{% if default_content %}
+    <p>
+        The {{ agency_name }} has provided additional
+        information about your Freedom of Information Law (FOIL) ID number <a href='{{ page }}'>{{ request_id }}</a>.
+    </p>
+    {% block response_content %}
+    {% endblock %}
+{% else %}
+    {{ content | safe }}
+{% endif %}

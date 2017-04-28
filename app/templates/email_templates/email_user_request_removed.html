@@ -1,0 +1,9 @@
+{% if admin %}
+    <p>Attention {{ agency_name }} Users,</p>
+
+    <p>{{ name }} has been removed from the request, <a href='{{ page }}'>{{ request_id }}</a>.</p>
+{% else %}
+    <p>Attention {{ name }},</p>
+
+    <p>You have been removed from the request, <a href='{{ page }}'>{{ request_id }}</a>.</p>
+{% endif %}

@@ -1,0 +1,16 @@
+/* sets controlling div to relative position */
+.extension-control {
+    position: relative;
+    padding-bottom: 5rem;
+}
+
+/* sets styles for the labels for the extension form */
+.extension-label {
+    font-weight: 400;
+    line-height: 20px;
+}
+
+/* sets the style for the reason textarea */
+#extension-reason {
+    height: 10rem;
+}

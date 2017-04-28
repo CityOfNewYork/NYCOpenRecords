@@ -1,0 +1,45 @@
+<script type="text/javascript">
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            /*
+             * Include the X-CSRFToken header for methods that are not considered "safe"
+             * (see: https://tools.ietf.org/html/rfc7231.html#section-4.2.1).
+             *
+             * http://flask-wtf.readthedocs.io/en/stable/csrf.html
+             */
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token() }}")
+            }
+        }
+    });
+
+    // Configure and start the session timeout monitor
+    sessMon = sessionMonitor({
+        // Subtract 1 minute to ensure the backend doesn't expire the session first
+        sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
+        timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes
+        minPingInterval: 60 * 1000,  // 1 minute
+        pingUrl: '{{ BASE_URL }}/ping',
+        logoutUrl: '{{ BASE_URL }}/auth/logout',
+        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=1&next=',
+        // The "mouseup" event was used instead of "click" because some of the
+        // inner elements on some pages have click event handlers that stop propagation.
+        activityEvents: 'mouseup',
+        onwarning: function () {
+            $("#session-warning-modal").modal("show");
+        }
+    });
+    $(document).ready(function () {
+        // Configure the session timeout warning modal
+        $("#session-warning-modal")
+            .modal({
+                "backdrop": "static",
+                "keyboard": false,
+                "show": false
+            })
+            .on("click", "#stay-logged-in", sessMon.extendsess)
+            .on("click", "#log-out", sessMon.logout)
+            .find("#remaining-time").text(Math.round(sessMon.timeBeforeWarning / 60 / 1000));
+    });
+    window.sessMon = sessMon;
+</script>

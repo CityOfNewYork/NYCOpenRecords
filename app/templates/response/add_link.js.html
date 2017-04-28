@@ -1,0 +1,110 @@
+<script type="text/javascript">
+$(document).ready(function () {
+    // Hides all other divs except for the first
+    $(".link-control .link-divs").each(function (e) {
+        if (e != 0)
+            $(this).hide();
+    });
+
+    // Handles click events on the first next button
+    $("#link-next-1").click(function () {
+        // Validate link form
+        $("#add-link-form").parsley().validate();
+
+        // If validation fields are valid, proceed with next click function
+        if ($('#add-link-form').parsley().isValid()) {
+            $.ajax({
+                url: "/response/email",
+                type: 'POST',
+                data: {
+                    request_id: "{{ request.id }}",
+                    type: "links",
+                    link: JSON.stringify({
+                        url: $('#link-url').val(),
+                        title: $("#link-title").val(),
+                        privacy: $('.link-privacy:checked').val()
+                    }),
+                    tz_name: jstz.determine().name()
+                },
+                success: function (data) {
+                    emailContent = $(".email-link-content-hidden");
+                    emailContent.html(data.template);
+                    flask_moment_render_all();
+                    tinyMCE.get('email-link-content').setContent(emailContent.html());
+                    $(".link-confirmation-header").text(data.header);
+                }
+            });
+            document.getElementById("link-first").style.display = "none";
+            document.getElementById("link-second").style.display = "block";
+        }
+    });
+
+    // Handles click events on the second next button
+    $("#link-next-2").click(function () {
+        tinyMCE.triggerSave();
+        $.ajax({
+            url: "/response/email",
+            type: 'POST',
+            data: {
+                request_id: "{{ request.id }}",
+                type: "links",
+                email_content: $('#email-link-content').val()
+            },
+            success: function (data) {
+                // Data should be html template page.
+                $("#email-link-summary").html(data.template);
+                $("#email-link-summary-hidden").val(data.template);
+            }
+        });
+        document.getElementById("link-second").style.display = "none";
+        document.getElementById("link-third").style.display = "block";
+    });
+
+    // Handles click events on the first previous button
+    $("#link-prev-1").click(function () {
+        document.getElementById("link-first").style.display = "block";
+        document.getElementById("link-second").style.display = "none";
+    });
+
+    // Handles click events on the second previous button
+    $("#link-prev-2").click(function () {
+        document.getElementById("link-third").style.display = "none";
+        document.getElementById("link-second").style.display = "block";
+    });
+
+    // Disable button on submit
+    $("#add-link-form").submit(function () {
+        $("#link-submit").attr("disabled", true);
+    });
+
+    // Apply parsley data required validation to link title and url
+    $('#link-title').attr('data-parsley-required', '');
+    $('#link-url').attr('data-parsley-required', '');
+
+    // Apply parsley max length validation to link title and url
+    $('#link-title').attr('data-parsley-maxlength', '90');
+    $('#link-url').attr('data-parsley-maxlength', '254');
+
+    // Apply custom validation messages
+    $('#link-title').attr('data-parsley-required-message', 'Link title must be provided.');
+    $('#link-url').attr('data-parsley-required-message', 'URL link must be provided.');
+    $('#link-title').attr('data-parsley-maxlength-message', 'Link title must be less than 90 characters.');
+    $('#link-url').attr('data-parsley-maxlength-message', 'URL link must be less than 254 characters.');
+
+    // Custom validator to validate strict url using regexUrlChecker
+    $('#link-url').attr('data-parsley-urlstrict', '');
+    window.Parsley.addValidator('urlstrict', function (value) {
+            return '' !== value ? regexUrlChecker(value) : false;
+        }).addMessage('en', 'urlstrict', 'This value should be a valid url.');
+
+    // Set character counter for link title
+    $('#link-title').keyup(function () {
+        characterCounter("#link-title-character-count", 90, $(this).val().length)
+    });
+
+    // Set character counter for link url
+    $('#link-url').keyup(function () {
+        characterCounter("#link-url-character-count", 254, $(this).val().length)
+    });
+});
+</script>

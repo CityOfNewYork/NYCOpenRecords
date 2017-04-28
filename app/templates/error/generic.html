@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if status_code == 400 %}
+        Bad Request
+    {% elif status_code == 403 %}
+        Forbidden
+    {% elif status_code == 404 %}
+        Page Not Found
+    {% elif status_code == 500 %}
+        Internal Server Error
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="text-center">
+        {% if status_code in (400, 500) %}
+            <h1>Oops! Something appears to have gone awry.</h1>
+        {% elif status_code == 403 %}
+            <h1>You do not have permission to do this.</h1>
+        {% elif status_code == 404 %}
+            <h1>Hmmm... it looks like this page can't be found.</h1>
+        {% endif %}
+        <p class="lead">
+            If you would like to report this error, please
+            <a href="{{ url_for("main.contact") }}">contact us</a>.
+        </p>
+    </div>
+{% endblock %}

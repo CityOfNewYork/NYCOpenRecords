@@ -1,0 +1,63 @@
+<span>
+    {% if requests_overdue|length > 0 %}
+        The following <strong>request{% if requests_overdue|length > 1 %}s</strong> are
+        {% else %}</strong> is{% endif %} <strong>overdue</strong>:
+        <ul>
+        {% for request in requests_overdue %}
+            <li>
+                <a href="{{ request.url }}">{{ request.id }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if acknowledgments_overdue|length > 0 %}
+        The following <strong>request acknowledgment{% if acknowledgments_overdue|length > 1 %}s</strong> are
+        {% else %}</strong> is{% endif %} <strong>overdue</strong>:
+        <ul>
+            {% for request in acknowledgments_overdue %}
+                <li>
+                    <a href="{{ request.url }}">{{ request.id }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if requests_due_soon|length > 0 %}
+        The following <strong>request{% if requests_due_soon|length > 1 %}s</strong> are
+        {% else %}</strong> is{% endif %} <strong>due soon</strong>:
+        <ul>
+        {% for request in requests_due_soon %}
+            <li>
+                <a href="{{ request.url }}">{{ request.id }}</a> due
+                <strong>
+                    {% if request.days_until_due > 0 %}
+                        in {{ request.days_until_due }} business day{% if request.days_until_due > 1 %}s{% endif %}
+                    {% else %}
+                        today
+                    {% endif %}
+                </strong>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if acknowledgments_due_soon|length > 0 %}
+        The following <strong>request acknowledgment{% if acknowledgments_due_soon|length > 1 %}s</strong> are
+        {% else %}</strong> is{% endif %} <strong>due soon</strong>:
+        <ul>
+            {% for request in acknowledgments_due_soon %}
+                <li>
+                    <a href="{{ request.url }}">{{ request.id }}</a> due
+                    <strong>
+                        {% if request.days_until_due > 0 %}
+                            in {{ request.days_until_due }} business day{% if request.days_until_due > 1 %}s{% endif %}
+                        {% else %}
+                            today
+                        {% endif %}
+                    </strong>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</span>

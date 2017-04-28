@@ -1,0 +1,101 @@
+{% for request in requests %}
+    <a href="{{ url_for("request.view", request_id=request._id) }}"
+    {% if current_user.is_agency %}
+        {% if request._source.status == "Open" %}
+            class="list-group-item open" style="border-left: 5px solid dodgerblue;">
+        {% elif request._source.status == "In Progress" %}
+            class="list-group-item in-progress" style="border-left: 5px solid forestgreen;">
+        {% elif request._source.status == "Due Soon" %}
+            class="list-group-item due-soon" style="border-left: 5px solid darkorange;">
+        {% elif request._source.status == "Overdue" %}
+            class="list-group-item overdue" style="border-left: 5px solid red;">
+        {% elif request._source.status == "Closed" %}
+            class="list-group-item closed" style="border-left: 5px solid dimgray;">
+        {% endif %}
+    {% else %}
+        {% if request._source.status == "Closed" %}
+            class="list-group-item closed" style="border-left: 5px solid dimgray;">
+        {% else %}
+            class="list-group-item open" style="border-left: 5px solid dodgerblue;">
+        {% endif %}
+    {% endif %}
+        <div class="row">
+            <div class="col-sm-2">
+                {{ request._id }}
+            </div>
+            <div class="col-sm-2">
+                {{ moment(request._source.date_submitted).format('MMM DD, YYYY') }}
+            </div>
+            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+                {% if current_user.is_agency %}
+                    {{ request._source.title }}
+                {% else %}
+                    {{ request._source.public_title }}
+                {% endif %}
+            </div>
+            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+                {{ request._source.agency_name }}
+            </div>
+            <div class="col-sm-2">
+                {{ moment(request._source.date_due).format('MMM DD, YYYY') }}
+            </div>
+            {% if current_user.is_agency %}
+                <div class="col-sm-2">
+                    {{ request._source.requester_name }}
+                </div>
+            {% endif %}
+        </div>
+    <!-- Only for testing -->
+{#        <div class="test-info">#}
+{#            <div class="row">#}
+{#                <div class="col-sm-2">#}
+{#                    <strong>Title</strong>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    <strong>Description</strong>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    <strong>Agency Description</strong>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    <strong>Title Private?</strong>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    <strong>Agency Desc Private?</strong>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    <strong>Current User is Requester?</strong>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="row">#}
+{#                <div class="col-sm-2">#}
+{#                    <span {% if request._source.title in query %}style="background-color: lawngreen;"{% endif %}>#}
+{#                    {{ request._source.title }}</span>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    <span {% if request._source.description in query %}style="background-color: lawngreen;"{% endif %}>#}
+{#                    {{ request._source.description }}</span>#}
+{#                </div>#}
+{#                <div class="col-sm-2">#}
+{#                    {% if request._source.agency_description %}#}
+{#                        <span {% if request._source.agency_description in query %}style="background-color: lawngreen;"{% endif %}>#}
+{#                        {{ request._source.agency_description }}</span>#}
+{#                    {% endif %}#}
+{#                </div>#}
+{#                <div class="col-sm-2" style="color: {% if request._source.title_private %}red{% else %}lawngreen{% endif %}">#}
+{#                    {{ request._source.title_private }}#}
+{#                </div>#}
+{#                <div class="col-sm-2" style="color: {% if request._source.agency_description_private %}red{% else %}lawngreen{% endif %}">#}
+{#                    {{ request._source.agency_description_private }}#}
+{#                </div>#}
+{#                <div class="col-sm-2" style="color: {% if current_user.is_anonymous or request._source.requester_id != current_user.get_id() %}red{% else %}lawngreen{% endif %}">#}
+{#                    {% if current_user.is_anonymous %}#}
+{#                        False#}
+{#                    {% else %}#}
+{#                        {{  request._source.requester_id == current_user.get_id() }}#}
+{#                    {% endif %}#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+    </a>
+{% endfor %}

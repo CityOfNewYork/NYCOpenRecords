@@ -1,0 +1,84 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$redhat_username = "jcastillo-nycrecords"
+$redhat_password = "R%bOjIaNgu"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "rhel-6.8"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Customize the amount of memory on the VM:
+    vb.memory = "4096"
+  end
+
+  # Proxy Configuration
+  config.vm.provision "shell" do |s|
+    s.inline = 'sudo cp /vagrant/build_scripts/proxy.sh /etc/profile.d/'
+  end
+
+  config.vm.provision :reload
+
+  # RedHat Subscription Management
+  config.vm.provision "shell" do |s|
+    s.path = "build_scripts/subscription_manager.sh"
+    s.args = [$redhat_username, $redhat_password]
+  end
+
+  config.vm.provision :reload
+
+  config.vm.provision "shell" do |s|
+    s.inline = 'sudo yum -y groupinstall "Development Tools" && sudo /etc/init.d/vboxadd setup && echo "cd /vagrant" >> /home/vagrant/.bash_profile'
+  end
+
+  # Single server VM
+  config.vm.define "default", primary: true do |default|
+    default.vm.network "forwarded_port", guest: 80,   host: 8080
+    default.vm.network "forwarded_port", guest: 443,  host: 8443
+    default.vm.network "forwarded_port", guest: 5000, host: 8000
+    default.vm.network "forwarded_port", guest: 5432, host: 8432
+    default.vm.network "forwarded_port", guest: 8200, host: 8200
+    default.vm.network "private_network", ip: "10.0.0.2"
+    default.vm.provision "shell", path: "build_scripts/web_setup/web_setup.sh", args: 'single_server'
+    default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/es_setup/es_setup.sh", args: 'single_server'
+    default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh"
+  end
+
+
+  config.vm.define "web_1", autostart: false do |web|
+    # Web Server 1 Configuration
+  end
+
+  config.vm.define "web_2", autostart: false do |web|
+    # Web Server 1 Configuration
+  end
+
+  config.vm.define "app_1", autostart: false do |app|
+    # App Server 1 Configuration
+  end
+
+  config.vm.define "app_2", autostart: false do |app|
+    # App Server 2 Configuration
+  end
+
+  config.vm.define "db_1", autostart: false do |db|
+    # Database Server 1 Configuration
+  end
+
+  config.vm.define "db_2", autostart: false do |db|
+    # Database Server 2 Configuration
+  end
+
+  config.vm.define "es_1", autostart: false do |es|
+    # Elasticsearch Server 1 Configuration
+  end
+
+  config.vm.define "es_2", autostart: false do |es|
+    # Elasticsearch Server 1 Configuration
+  end
+
+  config.vm.define "es_3", autostart: false do |es|
+    # Elasticsearch Server 1 Configuration
+  end
+end

@@ -1,0 +1,5 @@
+OPEN = 'Open'
+IN_PROGRESS = 'In Progress'
+DUE_SOON = 'Due Soon'
+OVERDUE = 'Overdue'
+CLOSED = 'Closed'

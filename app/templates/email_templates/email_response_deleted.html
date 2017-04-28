@@ -1,0 +1,12 @@
+<p>
+    The following {{ response | format_response_type }} response in request
+    <a href="{{ page }}">
+        {{ request_id }}
+    </a> has been deleted.
+</p>
+{% if response.type == response_type.FILE %}
+    <p>{{ response.name }}</p>
+{% endif %}
+<p>
+    {{ response.preview }}
+</p>

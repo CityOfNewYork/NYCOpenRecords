@@ -1,0 +1,67 @@
+<form id="add-link-form" action="/response/link/{{ request.id }}" method="POST">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <div class="col-sm-9">
+        <div class="link-control">
+            <legend>
+                Add Link
+                <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Adding Links"
+                       data-content="This function is for adding a link to complete a request.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
+            </legend>
+            <!-- first div of the add-link form -->
+            <div class="link-divs form-group" id="link-first">
+                <div class="form-group">
+                    <label class="link-label">Title</label>
+                    <input type="text" class="disable-enter-submit" id="link-title" name="title" maxlength="90">
+                    <h5 id="link-title-character-count">90 characters remaining</h5>
+                </div>
+                <div class="form-group">
+                    <label class="link-label">URL Link</label>
+                    <input type="text" class="disable-enter-submit" id="link-url" name="url" maxlength="254">
+                    <h5 id="link-url-character-count">254 characters remaining</h5>
+                </div>
+                {% if permissions['edit_link_privacy'] %}
+                    <div class="radio">
+                        <label><input type="radio" class="link-privacy" name="privacy" value="release_public">Release
+                            and Public</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" class="link-privacy" name="privacy" value="release_private">Release
+                            and Private</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" class="link-privacy" name="privacy" value="private"
+                                      checked="checked">Private</label>
+                    </div>
+                {% else %}
+
+                    <div class="radio">
+                        <label><input type="radio" class="link-privacy" name="privacy" value="private"
+                                      checked="checked">Private</label>
+                    </div>
+                {% endif %}
+                <button type="button" class="next-btn btn btn-primary" id="link-next-1">Next</button>
+            </div>
+            <!-- second div of the add-link form containing email content -->
+            <div class="link-divs form-group" id="link-second">
+                <h4>Edit Email Body</h4>
+                <div class="email-link-content-hidden" hidden></div>
+                <textarea class="tinymce-area" name="email-link-content"></textarea>
+                <button type="button" class="prev-btn btn btn-default" id="link-prev-1">Prev</button>
+                <button type="button" class="next-btn btn btn-primary" id="link-next-2">Next</button>
+            </div>
+            <!-- last div of the add-link form containing confirmation and submit -->
+            <div class="link-divs form-group" id="link-third">
+                <h4 class="link-confirmation-header"></h4>
+                <div class="wrap-text" id="email-link-summary"></div>
+                <!-- hidden input to send email summary to backend -->
+                <input type="hidden" name="email-link-summary" id="email-link-summary-hidden">
+                <button type="button" class="prev-btn btn btn-default" id="link-prev-2">Prev</button>
+                <button type="submit" class="submit-btn btn btn-success" id="link-submit">Submit</button>
+            </div>
+        </div>
+    </div>
+</form>

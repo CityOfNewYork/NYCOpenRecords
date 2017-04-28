@@ -1,0 +1,18 @@
+/* sets controlling div to relative position */
+.fileupload-control {
+    position: relative;
+    padding-bottom: 5rem;
+}
+
+.fileupload-update .fileupload-control {
+    padding-bottom: 2rem;
+}
+
+/* sets spacing for uploaded files table */
+.template-row-spacer {
+    padding-top: 1rem;
+}
+
+.template-row-spacer:not(:first-child) {
+    border-top: 1px gainsboro solid;
+}

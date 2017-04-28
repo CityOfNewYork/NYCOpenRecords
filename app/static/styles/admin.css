@@ -1,0 +1,25 @@
+.no-margin-top {
+    margin-top: 0;
+}
+
+.no-margin-bottom {
+    margin-bottom: 0;
+}
+
+.row.user-fields {
+    font-weight: bold;
+    padding-bottom: 1em;
+}
+
+.row.user-info {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+.row.user-info:nth-child(even) {
+    background-color: gainsboro;
+}
+
+.break-word {
+    word-wrap: break-word;
+}

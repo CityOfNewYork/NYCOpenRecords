@@ -1,0 +1,51 @@
+{% if not private_links %}
+    {% if release_public_links and not release_private_links %}
+        <ul>
+            {% for file in release_public_links %}
+                <li style="list-style: none">
+                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if release_private_links and not release_public_links %}
+        <ul>
+            {% for file in release_private_links %}
+                <li style="list-style: none">
+                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if release_public_links and release_private_links %}
+        <ul>
+            {% for file in release_public_links %}
+                <li style="list-style: none">
+                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <p>
+            The links below will be valid until {{ release_date }}.
+            The records accessed through these links will not be publicly accessible. If you need to access these
+            files after this date, please contact the {{ agency_name }} at
+            <a href="mailto:{{ agency_default_email }}">{{ agency_default_email }}</a>
+        </p>
+        <ul>
+            {% for file in release_private_links %}
+                <li style="list-style: none">
+                    {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% else %}
+    <ul>
+        {% for file in private_links %}
+            <li style="list-style: none">
+                {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

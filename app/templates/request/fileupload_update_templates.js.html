@@ -1,0 +1,79 @@
+{% raw %}
+<!-- The template to display files available for upload -->
+<script id="template-upload-update" type="text/x-tmpl">x
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+        <div class="row template-upload fade">
+            <div class="col-sm-5">
+                <p class="name original-name">{%=file.name%}</p>
+                <strong class="error text-danger"></strong>
+            </div>
+            <div class="col-sm-2">
+                <p class="size">Processing...</p>
+                <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                {% if (!i && !o.options.autoUpload) { %}
+                    <button class="btn btn-primary start" disabled>
+                        <i class="glyphicon glyphicon-upload"></i>
+                        <span>Start</span>
+                    </button>
+                {% } %}
+                {% if (!i) { %}
+                    <button class="btn btn-warning cancel">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Cancel</span>
+                    </button>
+                {% } %}
+            </div>
+        </div>
+    {% } %}
+</script>
+<!-- The template to display files after upload -->
+<script id="template-download-update" type="text/x-tmpl">
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+        <div class="row template-download fade" id="{%=file.identifier%}">
+            <div class="col-sm-8">
+                <span class="original-name hidden">{%=file.original_name%}</span>
+                <p class="name">
+                    Filename: <strong><span class="secured-name">{%=file.name%}</span></strong>
+                </p>
+
+                {% if (file.error) { %}
+                    <!-- Error reported using fileupload -->
+                    <div><span class="label label-danger upload-error">Error</span> {%=file.error%}</div>
+                {% } else { %}
+                    <input type="hidden" name="filename" value="{%=file.name%}">
+                {% } %}
+
+                <!-- Error reported post upload (fileuploaddone) -->
+                <div class="error-post-fileupload hidden">
+                    <span class="label label-danger">Error</span>
+                    <span class="error-post-fileupload-msg"></span>
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <span class="size">{%=o.formatFileSize(file.size)%}</span>
+            </div>
+            <div class="col-sm-2">
+                {% if (file.error) { %}
+                    <!-- CANCEL -->
+                    <button class="btn btn-warning cancel">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
+                {% } else { %}
+                    <!-- PROCESSING -->
+                    <img src="/static/img/loading.gif" class="processing-upload" alt="Processing" height="20" width="20">
+                    <!-- REMOVE -->
+                    <button class="remove-post-fileupload btn btn-warning hidden">
+                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <span>Remove</span>
+                    </button>
+                {% } %}
+            </div>
+        </div>
+    {% } %}
+</script>
+{% endraw %}

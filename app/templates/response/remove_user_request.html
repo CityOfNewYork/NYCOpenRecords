@@ -1,0 +1,35 @@
+<form id="remove-user-request">
+
+    {{ remove_user_request_form.csrf_token }}
+
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Remove User from Request
+                <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                       title="Removing User"
+                       data-content="This function allows you to remove an assigned user from the request.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
+            </legend>
+            <div class="first">
+                <div class="form-group">
+                    {{ remove_user_request_form.user.label }}<br>
+                    {{ remove_user_request_form.user(id="user", class="form-control") }}
+                </div>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="second" hidden>
+                <h4>Confirmation:</h4>
+                <div class="form-group">
+                    <p>Are you sure you want to remove this user from the request?</p>
+                    <p>If yes, please enter "REMOVE" in the area below and then press REMOVE.</p>
+                    <br>
+                    <input type="text" class="text-center disable-enter-submit" name="remove-confirm-string" title="remove-confirm">
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="remove pull-right btn btn-danger" disabled>Remove</button>
+            </div>
+        </fieldset>
+    </div>
+</form>

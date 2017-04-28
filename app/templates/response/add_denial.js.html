@@ -1,0 +1,94 @@
+<script type="text/javascript">
+    $(function () {
+        var form = $("#add-denial");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third")
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+        var submit = third.find(".submit");
+
+        var reason_ids = first.find("#denial-reason-ids");
+
+        // Do not reset on click
+        reason_ids.find('option').mousedown(function (e) {
+            e.preventDefault();
+            reason_ids.focus();
+            $(this).prop('selected', !$(this).prop('selected'));
+            return false;
+        });
+
+        // Parsley
+        reason_ids.attr("data-parsley-required", "");
+
+        next1.click(function (e) {
+            reason_ids.parsley().validate();
+
+            if (!reason_ids.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "denial",
+                        confirmation: false,
+                        reason_ids: reason_ids.val(),
+                    },
+                    success: function (data) {
+                        emailContent = second.find(".email-content-hidden");
+                        emailContent.html(data.template);
+                        tinyMCE.get("denial-email-body").setContent(emailContent.html());
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        next2.click(function () {
+            tinyMCE.triggerSave();
+
+            $.ajax({
+                url: "/response/email",
+                type: "POST",
+                data: {
+                    request_id: "{{ request.id }}",
+                    type: "denial",
+                    confirmation: true,
+                    email_content: second.find("#denial-email-body").val(),
+                },
+                success: function (data) {
+                    third.find(".email-summary").html(data.template);
+                    third.find("input[name='email-summary']").val(data.template);
+                    third.find(".confirmation-header").text(data.header)
+                }
+            });
+
+            second.hide();
+            third.show();
+        });
+
+
+        prev2.click(function () {
+            second.hide();
+            first.show();
+        });
+
+        prev3.click(function () {
+            third.hide();
+            second.show();
+        });
+
+        form.submit(function () {
+            submit.attr("disabled", true);
+        });
+
+    });
+</script>

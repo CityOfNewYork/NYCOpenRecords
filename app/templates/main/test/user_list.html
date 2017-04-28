@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenRecords User Testing</title>
+</head>
+<body>
+<table>
+    <tr>
+        <th>GUID</th>
+        <th>USER AUTH TYPE</th>
+        <th>LOGIN USER</th>
+    </tr>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.guid }}</td>
+            <td>{{ user.auth_user_type }}</td>
+            {% if current_user.guid == user.guid %}
+                <td><a href="{{ url_for('main.logout', guid=user.guid) }}">Log out</a></td>
+            {% else %}
+                <td><a href="{{ url_for('main.login', guid=user.guid) }}">Log In</a></td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

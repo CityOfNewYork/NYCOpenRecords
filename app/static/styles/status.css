@@ -1,0 +1,61 @@
+h1 span{
+    font-size: 28px;
+    color: white;
+    border-radius: 6px;
+    padding: 3px;
+    text-align: left;
+}
+
+.panel-heading a:after {
+    font-family: 'Glyphicons Halflings';
+    content:"\e114";
+    float: right;
+    color: grey;
+}
+.panel-heading a.collapsed:after {
+    content:"\e080";
+}
+
+.in-progress {
+    background-color: forestgreen;
+}
+
+.overdue {
+    background-color: red;
+}
+
+.duesoon {
+    background-color: darkorange;
+}
+
+.open {
+    background-color: dodgerblue;
+
+}
+
+.closed {
+    background-color: dimgray;
+}
+
+#requester-popover .popover {
+    width: 200px;
+}
+
+#user-popover .popover {
+    width: 200px;
+}
+
+#requesterModal label {
+    margin-top: 1em;
+}
+
+#requester-name {
+    font-size: 24px;
+
+}
+
+#user-info .message {
+    text-align: right;
+    padding-top: 1em;
+    font-weight: bold;
+}

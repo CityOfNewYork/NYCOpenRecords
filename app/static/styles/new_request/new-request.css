@@ -1,0 +1,88 @@
+/*CSS page shared by new_request.html, new_request_agency.html, new_request_user.html*/
+
+#request-description {
+    height: 15rem
+}
+
+.sideblock {
+    padding-top: 33rem;
+}
+
+.example-title {
+    padding: 1rem 1.5rem;
+    background-color: #efefef;
+}
+
+.example-request {
+    padding: 1rem 1.5rem;
+    background-color: #efefef;
+}
+
+.top-padding {
+    padding-top: 16rem;
+}
+
+.top-padding2 {
+    padding-top: 5rem;
+}
+
+.parsley-errors-list {
+    color: #e74c3c;
+}
+
+#state {
+    height: 50px;
+}
+
+#zipcode {
+    width: 45px;
+}
+
+#upload-control {
+    padding-bottom: 3rem;
+}
+
+#filename {
+    padding-top: 1rem;
+}
+
+.new-request-description-tooltip {
+    padding-left: 300px;
+    padding-right: 25px;
+}
+
+.new-request-description-tooltip {
+    width: 300px;
+}
+
+.popover {
+    max-width: 100%;
+}
+
+#request-form {
+    width: 100%;
+}
+
+.no-padding-left {
+    padding-left: 0;
+}
+
+.captcha {
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+.g-recaptcha {
+    display: inline-block;
+}
+
+.recaptcha-error {
+    text-align: center;
+    color: red;
+}
+
+#processing-submission img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

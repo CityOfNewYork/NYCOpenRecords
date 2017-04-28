@@ -1,0 +1,18 @@
+{% if admin %}
+    <p>Attention {{ agency_name }} Administrators,</p>
+
+    <p>{{ name }} has been added to this request, <a href='{{ page }}'>{{ request_id }}</a>.</p>
+{% else %}
+    <p>Attention {{ name }},</p>
+
+    <p>You have been added to request <a href='{{ page }}'>{{ request_id }}</a>.</p>
+{% endif %}
+
+{% if added_permissions %}
+    <p><strong>Permissions:</strong></p>
+    <ul>
+        {% for permission in added_permissions %}
+            <li>{{ permission }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

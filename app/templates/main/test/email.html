@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+<html>
+{% block content %}
+<head>
+    <title>OpenRecords Email</title>
+</head>
+<body>
+<h1>Email Functionality</h1>
+{% for message in get_flashed_messages() %}
+    <p style="color: red;">{{ message }}</p>
+{% endfor %}
+<form id="email" method="POST">
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    {{ form.to.label }}: {{ form.to }}
+    {{ form.cc.label }}: {{ form.cc }}
+    {{ form.bcc.label }}: {{ form.bcc }}
+    {{ form.subject.label }}: {{ form.subject }}
+    {{ form.submit }}
+</form>
+<hr>
+
+</body>
+{% endblock %}
+</html>

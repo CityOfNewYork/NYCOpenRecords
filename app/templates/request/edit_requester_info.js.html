@@ -1,0 +1,25 @@
+<script type="text/javascript">
+    $(function () {
+        $("#user-info").submit(function (e) {
+            var submitBtn = $(this).find("button[type=submit]");
+            var errorMessageDiv = $(this).find(".contact-form-error-message");
+            submitBtn.attr("disabled", true);
+
+            e.preventDefault();
+            $.ajax({
+                type: "PATCH",
+                url: "/user/{{ request.requester.get_id() }}",
+                data: $(this).serialize(),
+                success: function (response) {
+                    // console.log(response);
+                    location.reload();
+                },
+                error: function(data) {
+                    errorMessageDiv.text(data.responseJSON.error);
+                    submitBtn.attr("disabled", false);
+                }
+            });
+        });
+    });
+</script>
+

@@ -1,0 +1,140 @@
+<script type="text/javascript">
+    var agencyFilter = $("#agency-filter");
+    var agencyUserFilter = $("#agency-user-filter");
+    var userFilterDiv = $("#user-filter");
+
+    var ctx = document.getElementById("reportChart");
+    var reportChart;
+
+    function drawChart(labels, values) {
+        reportChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(149, 180, 149, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        '#328332'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Number of Requests"
+                        },
+                        ticks: {
+                            maxTicksLimit: 10,
+                            beginAtZero: true,
+                            stepSize: Math.min(Math.max.apply(null, values), 10) < 10 ? 1 : false
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Request Status"
+                        }
+                    }]
+                },
+                responsive: false,
+                legend: {
+                    display: false
+                }
+            }
+        });
+    }
+
+    $.ajax({
+        url: "/report/",
+        type: "GET",
+        data: {
+            agency_ein: agencyFilter.val()
+        },
+        success: function (data) {
+            drawChart(data.labels, data.values)
+        }
+    });
+
+    var agency_active;
+    var agency_admin;
+    var current_agency;
+    {% if current_user.is_agency %}
+        agency_active = "{{ current_user.is_agency_active }}";
+        agency_admin = "{{ current_user.is_agency_admin }}";
+        current_agency = "{{ current_user.agency.ein }}";
+    {% else %}
+        agency_active = false;
+        agency_admin = false;
+        current_agency = '';
+    {% endif %}
+
+    var super_user = "{{ current_user.is_super }}";
+
+    agencyFilter.change(function () {
+        $.ajax({
+            url: "/report/",
+            type: "GET",
+            data: {
+                agency_ein: $(this).val()
+            },
+            success: function (data) {
+                for (var i = 0; i < (data.values).length; ++i) {
+                    reportChart.data.datasets[0].data[i] = data.values[i]
+                }
+                var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
+                reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
+                reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
+                reportChart.update();
+
+                if (agency_active || agency_admin || super_user) {
+                    if ((data.active_users.length > 0) && data.show_users) {
+                        var sel = agencyUserFilter;
+                        sel.empty();
+                        for (i = 0; i < (data.active_users).length; i++) {
+                            var opt = document.createElement("option");
+                            opt.innerHTML = data.active_users[i][1];
+                            opt.value = data.active_users[i][0];
+                            sel.append(opt);
+                        }
+                        userFilterDiv.show();
+                    }
+                    else {
+                        userFilterDiv.hide();
+                    }
+                }
+            }
+        });
+    });
+
+    if (agency_admin || super_user || current_agency === agencyFilter.val()) {
+        agencyUserFilter.change(function () {
+            // set agencyEin to value of selected agency if no user is selected
+            var agencyEin = agencyUserFilter.val() === '' ? agencyFilter.val() : '';
+            $.ajax({
+                url: "/report/",
+                type: "GET",
+                data: {
+                    user_guid: $(this).val(),
+                    agency_ein: agencyEin
+                },
+                success: function (data) {
+                    for (var i = 0; i < (data.values).length; ++i) {
+                        reportChart.data.datasets[0].data[i] = data.values[i]
+                    }
+                    var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
+                    reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
+                    reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
+                    reportChart.update();
+                }
+            })
+        });
+    }
+</script>
