@@ -90,7 +90,7 @@
 
     {% endif %}
     <p align="center">
-        {% if not request.was_acknowledged %}
+        {% if not (request.was_acknowledged or request.was_reopened) %}
             Acknowledgment<br>
         {% endif %}
         Due Date: {{ moment(request.due_date).format('MM/DD/YYYY') }}

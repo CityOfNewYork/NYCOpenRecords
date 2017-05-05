@@ -589,6 +589,16 @@ class Requests(db.Model):
             return False
 
     @property
+    def was_reopened(self):
+        return self.responses.join(Determinations).filter(
+            Determinations.dtype == determination_type.REOPENING).first() is not None
+        # try:
+        #     self.responses.join(Determinations).filter(Determinations.dtype == determination_type.REOPENING).first()
+        #     return True
+        # except NoResultFound:
+        #     return False
+
+    @property
     def days_until_due(self):
         return calendar.busdaycount(datetime.utcnow(), self.due_date.replace(hour=23, minute=59, second=59))
 
