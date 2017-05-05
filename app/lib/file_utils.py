@@ -22,10 +22,6 @@ class MaxTransferSizeExceededException(Exception):
     pass
 
 
-class SFTPCredentialsException(Exception):
-    pass
-
-
 @contextmanager
 def sftp_ctx():
     """
@@ -34,15 +30,8 @@ def sftp_ctx():
     """
     transport = paramiko.Transport((current_app.config['SFTP_HOSTNAME'],
                                     int(current_app.config['SFTP_PORT'])))
-    authentication_kwarg = {}
-    if current_app.config['SFTP_PASSWORD']:
-        authentication_kwarg['password'] = current_app.config['SFTP_PASSWORD']
-    elif current_app.config['SFTP_RSA_KEY_FILE']:
-        authentication_kwarg['pkey'] = paramiko.RSAKey(filename=current_app.config['SFTP_RSA_KEY_FILE'])
-    else:
-        raise SFTPCredentialsException
-
-    transport.connect(username=current_app.config['SFTP_USERNAME'], **authentication_kwarg)
+    transport.connect(username=current_app.config['SFTP_USERNAME'],
+                      pkey=paramiko.RSAKey(filename=current_app.config['SFTP_RSA_KEY_FILE']))
     sftp = paramiko.SFTPClient.from_transport(transport)
     try:
         yield sftp
