@@ -38,6 +38,7 @@ class Config:
     SFTP_HOSTNAME = os.environ.get('SFTP_HOSTNAME')
     SFTP_PORT = os.environ.get('SFTP_PORT')
     SFTP_USERNAME = os.environ.get('SFTP_USERNAME')
+    SFTP_PASSWORD = os.environ.get('SFTP_PASSWORD')
     SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
@@ -103,7 +104,7 @@ class Config:
     # TODO: change naming since quarantine is used as a serving directory as well
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
                                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/incoming/'))
-    UPLOAD_SERVING_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
+    UPLOAD_SERVING_DIRECTORY = (os.environ.get('UPLOAD_SERVING_DIRECTORY') or
                                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/outgoing/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
