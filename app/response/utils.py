@@ -226,7 +226,8 @@ def add_closing(request_id, reason_ids, email_content):
 
     """
     current_request = Requests.query.filter_by(id=request_id).one()
-    if current_request.status != request_status.CLOSED and current_request.was_acknowledged:
+    if current_request.status != request_status.CLOSED and (
+                current_request.was_acknowledged or current_request.was_reopened):
         if current_request.privacy['agency_description'] or not current_request.agency_description:
             reason = "Agency Description must be public and not empty, "
             if current_request.responses.filter(
