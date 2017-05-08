@@ -80,3 +80,6 @@ pip-selfcheck.json
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
+
+# Visual Studio Code
+.vscode/
