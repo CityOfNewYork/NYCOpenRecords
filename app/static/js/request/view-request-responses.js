@@ -142,6 +142,12 @@ $(function () {
 
         switch (response_type) {
             case "files":  // TODO: constants?
+                first.find(".fileupload-form").on("keyup keypress", function(e) {  // TODO: global function
+                    if (e.keyCode === 13) {
+                        e.preventDefault();
+                    }
+                });
+
                 next1.click(function (e) {
                     // Validate fileupload form
                     first.find(".fileupload-form").parsley().validate();
