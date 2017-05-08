@@ -142,7 +142,7 @@ $(function () {
 
         switch (response_type) {
             case "files":  // TODO: constants?
-                first.find(".fileupload-form").on("keyup keypress", function(e) {  // TODO: global function
+                first.find(".fileupload-form input").on("keyup keypress", function(e) {  // TODO: global function
                     if (e.keyCode === 13) {
                         e.preventDefault();
                     }
