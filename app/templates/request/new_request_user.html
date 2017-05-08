@@ -39,27 +39,26 @@
                       data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
                       class="glyphicon glyphicon-question-sign">
                 </span>
-                        {{ form.request_title(id='request-title', class='input-block-level',
-                        placeholder='Please provide a short summary of your request.', maxlength="90") }}
-                <h5 id="title-character-count">90 characters remaining</h5>
-                <div class="alert alert-info">
+                <div class="alert alert-warning">
                     <p><b>Note: The agency, category, and topic of your request will be visible to the public. Do not
                             enter personal information here.</b></p>
                 </div>
+                {{ form.request_title(id='request-title', class='input-block-level',
+                    placeholder='Please provide a short summary of your request.', maxlength="90") }}
+                <h5 id="title-character-count">90 characters remaining</h5>
                 {# Description of the request #}
                 {{ form.request_description.label(class='request-heading description-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
                       data-content="Enter a detailed description of the request"
                       class="glyphicon glyphicon-question-sign">
                 </span>
+                <div class="alert alert-warning">
+                    <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
+                </div>
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
                         maxlength="5000") }}
                 <h5 id="description-character-count">5000 characters remaining</h5>
-
-                <div class="alert alert-info">
-                    <p><b>Note: The request details you write here will not be visible to the public. However, the agency may post a description of the records provided.</b></p>
-                </div>
 
                 {# Upload field for user to add files #}
                 <div id="upload-control" class="col-sm-12">
