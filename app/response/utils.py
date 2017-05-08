@@ -124,6 +124,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable):
     :param note_content: string content of the note to be created and stored as a note object
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the note
+    :param is_editable: editability of the note  
 
     """
     response = Notes(request_id, privacy, note_content, is_editable=is_editable)
