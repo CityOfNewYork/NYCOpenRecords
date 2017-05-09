@@ -182,7 +182,8 @@ def add_denial(request_id, reason_ids, email_content):
     :param email_content: email body associated with the denial
 
     """
-    if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
+    request = Requests.query.filter_by(id=request_id).one()
+    if request.status != request_status.CLOSED:
         update_object(
             {'status': request_status.CLOSED},
             Requests,
@@ -198,11 +199,12 @@ def add_denial(request_id, reason_ids, email_content):
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
-        update_object(
-            {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
-            Requests,
-            request_id
-        )
+        if not request.privacy['agency_description'] and request.agency_description is not None:
+            update_object(
+                {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
+                Requests,
+                request_id
+            )
         _send_response_email(request_id,
                              privacy,
                              email_content,

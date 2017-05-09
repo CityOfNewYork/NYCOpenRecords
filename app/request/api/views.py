@@ -58,11 +58,6 @@ def edit_privacy():
         previous_value['privacy'] = current_request.privacy['agency_description']
         new_value['privacy'] = agency_desc
         type_ = event_type.REQ_AGENCY_DESC_PRIVACY_EDITED
-        create_request_info_event(request_id,
-                                  type_,
-                                  previous_value,
-                                  new_value)
-        return jsonify(privacy), 200
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)

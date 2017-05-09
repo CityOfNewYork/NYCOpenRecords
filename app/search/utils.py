@@ -84,6 +84,10 @@ def create_index():
                         "date_created": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "date_received": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
                         }
                     }
                 }
@@ -113,6 +117,9 @@ def create_docs():
                 'agency_description_private': r.privacy['agency_description'],
                 'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_received': r.date_created.strftime(
+                    ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else
+                    r.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': r.submission,
                 'status': r.status,
@@ -159,7 +166,7 @@ def search_requests(query,
                     overdue,
                     size,
                     start,
-                    sort_date_created,
+                    sort_date_received,
                     sort_date_due,
                     sort_title,
                     tz_name,
@@ -218,7 +225,7 @@ def search_requests(query,
     # set sort (list of "field:direction" pairs)
     sort = [
         ':'.join((field, direction)) for field, direction in {
-            'date_created': sort_date_created,
+            'date_received': sort_date_received,
             'date_due': sort_date_due,
             'title.keyword': sort_title}.items() if direction in ("desc", "asc")]
 
@@ -321,7 +328,7 @@ def search_requests(query,
         _source=['requester_id',
                  'date_submitted',
                  'date_due',
-                 'date_created',
+                 'date_received',
                  'status',
                  'agency_ein',
                  'agency_name',
@@ -470,7 +477,7 @@ def convert_dates(results, dt_format=None, tz_name=None):
     :tz_name: time zone name
     """
     for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due", "date_created"):
+        for field in ("date_submitted", "date_due", "date_received"):
             dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
             if tz_name:
                 dt = utc_to_local(dt, tz_name)
