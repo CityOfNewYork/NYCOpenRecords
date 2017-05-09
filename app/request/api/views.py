@@ -14,7 +14,7 @@ from datetime import datetime
 from flask_login import current_user
 from app.lib.date_utils import calendar
 from app.request.api import request_api_blueprint
-from app.request.api.utils import create_edit_event
+from app.request.api.utils import create_request_info_event
 from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.lib.permission_utils import (
@@ -58,34 +58,13 @@ def edit_privacy():
         previous_value['privacy'] = current_request.privacy['agency_description']
         new_value['privacy'] = agency_desc
         type_ = event_type.REQ_AGENCY_DESC_PRIVACY_EDITED
-        if not privacy['agency_description']:
-            # if current_request.agency_description_release_date:
-            previous_value['release_date'] = None
-            release_date = calendar.addbusdays(datetime.utcnow(), offset=20)
-            update_object({'privacy': privacy,
-                           'agency_description_release_date': release_date},
-                          Requests,
-                          current_request.id)
-            new_value['release_date'] = release_date.isoformat()
-        else:
-            previous_value['release_date'] = current_request.agency_description_release_date.isoformat()
-            update_object({'privacy': privacy,
-                           'agency_description_release_date': None},
-                          Requests,
-                          current_request.id)
-            new_value['release_date'] = None
-        create_edit_event(request_id,
-                          type_,
-                          previous_value,
-                          new_value)
-        return jsonify(privacy), 200
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)
-    create_edit_event(request_id,
-                      type_,
-                      previous_value,
-                      new_value)
+    create_request_info_event(request_id,
+                              type_,
+                              previous_value,
+                              new_value)
     return jsonify(privacy), 200
 
 
@@ -115,7 +94,7 @@ def edit_request_info():
     update_object({edit_request['name']: val if val else None},
                   Requests,
                   current_request.id)
-    create_edit_event(request_id,
+    create_request_info_event(request_id,
                       type_,
                       previous_value,
                       new_value)

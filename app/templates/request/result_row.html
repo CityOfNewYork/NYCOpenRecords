@@ -24,7 +24,7 @@
                 {{ request._id }}
             </div>
             <div class="col-sm-2">
-                {{ moment(request._source.date_submitted).format('MMM DD, YYYY') }}
+                {{ moment(request._source.date_received).format('MMM DD, YYYY') }}
             </div>
             <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
                 {% if current_user.is_agency %}

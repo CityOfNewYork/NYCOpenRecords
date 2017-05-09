@@ -84,6 +84,10 @@ def create_index():
                         "date_created": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "date_received": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
                         }
                     }
                 }
@@ -113,6 +117,9 @@ def create_docs():
                 'agency_description_private': r.privacy['agency_description'],
                 'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_received': r.date_created.strftime(
+                    ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else
+                    r.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': r.submission,
                 'status': r.status,
@@ -147,8 +154,8 @@ def search_requests(query,
                     agency_description,
                     description,
                     requester_name,
-                    date_rec_from,
-                    date_rec_to,
+                    date_sub_from,
+                    date_sub_to,
                     date_due_from,
                     date_due_to,
                     agency_ein,
@@ -159,7 +166,7 @@ def search_requests(query,
                     overdue,
                     size,
                     start,
-                    sort_date_submitted,
+                    sort_date_received,
                     sort_date_due,
                     sort_title,
                     tz_name,
@@ -178,8 +185,8 @@ def search_requests(query,
     :param agency_description: search by agency description?
     :param description: search by description?
     :param requester_name: search by requester name?
-    :param date_rec_from: date received/submitted from
-    :param date_rec_to: date received/submitted to
+    :param date_sub_from: date submitted/created from
+    :param date_sub_to: date submitted/created to
     :param date_due_from: date due from
     :param date_due_to: date due to
     :param agency_ein: agency ein to filter by
@@ -190,7 +197,7 @@ def search_requests(query,
     :param overdue: filter by overdue requests?
     :param size: number of requests per page
     :param start: starting index of request result set
-    :param sort_date_submitted: date received/submitted sort direction
+    :param sort_date_created: date submitted/created sort direction
     :param sort_date_due: date due sort direction
     :param sort_title: title sort direction
     :param tz_name: timezone name (e.g. "America/New_York")
@@ -218,7 +225,7 @@ def search_requests(query,
     # set sort (list of "field:direction" pairs)
     sort = [
         ':'.join((field, direction)) for field, direction in {
-            'date_submitted': sort_date_submitted,
+            'date_received': sort_date_received,
             'date_due': sort_date_due,
             'title.keyword': sort_title}.items() if direction in ("desc", "asc")]
 
@@ -255,22 +262,22 @@ def search_requests(query,
         ).strftime(DT_DATE_RANGE_FORMAT)
 
     date_ranges = []
-    if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
+    if any((date_sub_from, date_sub_to, date_due_from, date_due_to)):
         range_filters = {}
-        if date_rec_from or date_rec_to:
-            range_filters['date_submitted'] = {'format': ES_DATE_RANGE_FORMAT}
+        if date_sub_from or date_sub_to:
+            range_filters['date_created'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
             range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
-        if date_rec_from:
-            range_filters['date_submitted']['gte'] = datestr_local_to_utc(date_rec_from)
-        if date_rec_to:
-            range_filters['date_submitted']['lt'] = datestr_local_to_utc(date_rec_to)
+        if date_sub_from:
+            range_filters['date_created']['gte'] = datestr_local_to_utc(date_sub_from)
+        if date_sub_to:
+            range_filters['date_created']['lt'] = datestr_local_to_utc(date_sub_to)
         if date_due_from:
             range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
         if date_due_to:
             range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
-        if date_rec_from or date_rec_to:
-            date_ranges.append({'range': {'date_submitted': range_filters['date_submitted']}})
+        if date_sub_from or date_sub_to:
+            date_ranges.append({'range': {'date_created': range_filters['date_created']}})
         if date_due_from or date_due_to:
             date_ranges.append({'range': {'date_due': range_filters['date_due']}})
 
@@ -321,7 +328,7 @@ def search_requests(query,
         _source=['requester_id',
                  'date_submitted',
                  'date_due',
-                 'date_created',
+                 'date_received',
                  'status',
                  'agency_ein',
                  'agency_name',
@@ -470,7 +477,7 @@ def convert_dates(results, dt_format=None, tz_name=None):
     :tz_name: time zone name
     """
     for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due", "date_created"):
+        for field in ("date_submitted", "date_due", "date_received"):
             dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
             if tz_name:
                 dt = utc_to_local(dt, tz_name)
