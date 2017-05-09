@@ -4,9 +4,9 @@ from app.lib.db_utils import create_object
 from app.models import Events
 
 
-def create_edit_event(request_id, type_, previous_value, new_value):
+def create_request_info_event(request_id, type_, previous_value, new_value):
     """
-    Create and store events object for editing request information into database.
+    Create and store events object for updating the request information into database.
 
     :param request_id: request ID
     :param type_: event type
