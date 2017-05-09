@@ -1218,7 +1218,10 @@ def get_file_links(response, release_public_links, release_private_links, privat
     agency_link = urljoin(flask_request.url_root, path)
     if resp.privacy != PRIVATE:
         if resp.request.requester.is_anonymous_requester:
-            resptoken = ResponseTokens(response.id)
+            resptoken = ResponseTokens(response.id,
+                                       expiration_date=None) if response.privacy == RELEASE_AND_PRIVATE else ResponseTokens(
+                response.id, expiration_date=calendar.addbusdays(
+                    datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS))
             create_object(resptoken)
             params = urlencode({'token': resptoken.token})
             requester_url = urljoin(flask_request.url_root, path)
@@ -1463,11 +1466,11 @@ class ResponseEditor(metaclass=ABCMeta):
             }
         else:
             response_type_to_event_type = {
-            Files: event_type.FILE_EDITED,
-            Notes: event_type.NOTE_EDITED,
-            Links: event_type.LINK_EDITED,
-            Instructions: event_type.INSTRUCTIONS_EDITED,
-        }
+                Files: event_type.FILE_EDITED,
+                Notes: event_type.NOTE_EDITED,
+                Links: event_type.LINK_EDITED,
+                Instructions: event_type.INSTRUCTIONS_EDITED,
+            }
         return response_type_to_event_type[type(self.response)]
 
     @property
