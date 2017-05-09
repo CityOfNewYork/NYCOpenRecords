@@ -102,6 +102,8 @@ def post(request_id):
                     file_type = None
                     if start == 0:
                         valid_file_type, file_type = is_valid_file_type(file_)
+                        if current_user.is_agency_active:
+                            valid_file_type = True
                         if os.path.exists(filepath):
                             # remove existing file (upload 'restarted' for same file)
                             os.remove(filepath)
@@ -116,6 +118,8 @@ def post(request_id):
                             scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
                 else:
                     valid_file_type, file_type = is_valid_file_type(file_)
+                    if current_user.is_agency_active:
+                        valid_file_type = True
                     if valid_file_type:
                         redis.set(key, upload_status.PROCESSING)
                         file_.save(filepath)
