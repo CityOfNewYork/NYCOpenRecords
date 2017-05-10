@@ -77,9 +77,9 @@
             </div>
         </div>
         {% for user in users %}
-            <div class="row user-info">
+            <div class="row user-info break-word">
                 <input type="hidden" name="user-id" value="{{ user.get_id() }}">
-                <div class="col-sm-2" style="word-wrap: break-word">
+                <div class="col-sm-2">
                     {{ user.guid }}
                 </div>
                 <div class="col-sm-3">
