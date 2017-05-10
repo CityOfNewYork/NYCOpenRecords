@@ -14,7 +14,7 @@ from datetime import datetime
 from flask_login import current_user, login_required
 from app.lib.date_utils import calendar
 from app.request.api import request_api_blueprint
-from app.request.api.utils import create_edit_event
+from app.request.api.utils import create_request_info_event
 from app.lib.db_utils import update_object
 from app.lib.utils import eval_request_bool
 from app.lib.permission_utils import (
@@ -75,18 +75,18 @@ def edit_privacy():
                           Requests,
                           current_request.id)
             new_value['release_date'] = None
-        create_edit_event(request_id,
-                          type_,
-                          previous_value,
-                          new_value)
+        create_request_info_event(request_id,
+                                  type_,
+                                  previous_value,
+                                  new_value)
         return jsonify(privacy), 200
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)
-    create_edit_event(request_id,
-                      type_,
-                      previous_value,
-                      new_value)
+    create_request_info_event(request_id,
+                              type_,
+                              previous_value,
+                              new_value)
     return jsonify(privacy), 200
 
 
@@ -116,10 +116,10 @@ def edit_request_info():
     update_object({edit_request['name']: val if val else None},
                   Requests,
                   current_request.id)
-    create_edit_event(request_id,
-                      type_,
-                      previous_value,
-                      new_value)
+    create_request_info_event(request_id,
+                              type_,
+                              previous_value,
+                              new_value)
     return jsonify(edit_request), 200
 
 
@@ -247,10 +247,10 @@ def get_request_responses():
         # the future, do not generate response row
 
         if (current_user in response.request.agency_users) or (
-                current_user == response.request.requester and response.privacy != response_privacy.PRIVATE) or (
-                    response.privacy == response_privacy.RELEASE_AND_PUBLIC
+                        current_user == response.request.requester and response.privacy != response_privacy.PRIVATE) or (
+                            response.privacy == response_privacy.RELEASE_AND_PUBLIC
                     and response.release_date
-                    and response.release_date < datetime.utcnow()):
+                and response.release_date < datetime.utcnow()):
             json = {
                 'id': response.id,
                 'type': response.type

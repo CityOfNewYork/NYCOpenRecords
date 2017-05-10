@@ -71,6 +71,7 @@ from app.models import (
     ResponseTokens,
     Users,
 )
+from app.request.api.utils import create_request_info_event
 
 
 # TODO: class ResponseProducer()
@@ -260,11 +261,21 @@ def add_closing(request_id, reason_ids, email_content):
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
-        update_object(
-            {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
-            Requests,
-            request_id
-        )
+        if current_request.agency_description and not current_request.privacy['agency_description']:
+            date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
+            release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
+                                        current_app.config['APP_TIMEZONE'])
+            update_object(
+                {'agency_description_release_date': release_date},
+                Requests,
+                request_id
+            )
+            create_request_info_event(
+                request_id,
+                event_type.REQ_AGENCY_DESC_DATE_SET,
+                None,
+                {"release_date": release_date.isoformat()}
+            )
         _send_response_email(request_id,
                              privacy,
                              email_content,
@@ -1463,11 +1474,11 @@ class ResponseEditor(metaclass=ABCMeta):
             }
         else:
             response_type_to_event_type = {
-            Files: event_type.FILE_EDITED,
-            Notes: event_type.NOTE_EDITED,
-            Links: event_type.LINK_EDITED,
-            Instructions: event_type.INSTRUCTIONS_EDITED,
-        }
+                Files: event_type.FILE_EDITED,
+                Notes: event_type.NOTE_EDITED,
+                Links: event_type.LINK_EDITED,
+                Instructions: event_type.INSTRUCTIONS_EDITED,
+            }
         return response_type_to_event_type[type(self.response)]
 
     @property
