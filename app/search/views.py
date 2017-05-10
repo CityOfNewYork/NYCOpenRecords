@@ -44,7 +44,7 @@ def requests():
     All Users can filter by:
     - Status, Open (anything not Closed if not agency user)
     - Status, Closed
-    - Date Received
+    - Date Submitted
     - Agency
 
     Only Agency Users can filter by:
