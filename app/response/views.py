@@ -569,6 +569,7 @@ def get_response_content(response_id):
                 def remove(resp):
                     os.remove(serving_path)
                     return resp
+
                 return fu.send_file(*filepath_parts, as_attachment=True)
             else:
                 # check presence of token in url
@@ -576,12 +577,12 @@ def get_response_content(response_id):
                     resptok = ResponseTokens.query.filter_by(
                         token=token, response_id=response_id).first()
                     if resptok is not None:
-                        if (datetime.utcnow() < resptok.expiration_date
-                           and response_.privacy != PRIVATE):
+                        if response_.privacy != PRIVATE:
                             @after_this_request
                             def remove(resp):
                                 os.remove(serving_path)
                                 return resp
+
                             return fu.send_file(*filepath_parts, as_attachment=True)
                         else:
                             delete_object(resptok)
@@ -590,17 +591,18 @@ def get_response_content(response_id):
                 if current_user.is_authenticated:
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
-                        or current_user.is_agency)
+                         or current_user.is_agency)
                         # user is associated with request
                         and UserRequests.query.filter_by(
                             request_id=response_.request_id,
                             user_guid=current_user.guid,
                             auth_user_type=current_user.auth_user_type
-                       ).first() is not None):
+                            ).first() is not None):
                         @after_this_request
                         def remove(resp):
                             os.remove(serving_path)
                             return resp
+
                         return fu.send_file(*filepath_parts, as_attachment=True)
                     # user does not have permission to view file
                     return abort(403)

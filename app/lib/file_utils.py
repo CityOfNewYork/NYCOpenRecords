@@ -10,6 +10,7 @@ import os
 import magic
 import hashlib
 import paramiko
+import shutil
 from tempfile import TemporaryFile
 from functools import wraps
 from contextlib import contextmanager
@@ -148,15 +149,22 @@ def _sftp_get_hash(sftp, path):
 
 
 def _sftp_send_file(sftp, directory, filename, **kwargs):
+    localpath = _get_file_serving_path(directory, filename)
+    if not os.path.exists(localpath):
+        sftp.get(os.path.join(directory, filename), localpath)
+    return send_from_directory(*os.path.split(localpath), **kwargs)
+
+
+def _get_file_serving_path(directory, filename):
+    """
+    Returns the upload serving directory path for a file determined by supplied directory and filename.
+    """
     request_id_folder = os.path.basename(directory)
     localpath = os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'], request_id_folder)
     if not os.path.exists(localpath):
         os.mkdir(localpath)
     path = os.path.join(request_id_folder, filename)
-    localpath = os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'], path)
-    if not os.path.exists(localpath):
-        sftp.get(os.path.join(directory, filename), localpath)
-    return send_from_directory(*os.path.split(localpath), **kwargs)
+    return os.path.join(current_app.config['UPLOAD_SERVING_DIRECTORY'], path)
 
 
 @_sftp_switch(_sftp_get_size)
@@ -233,4 +241,6 @@ def os_get_hash(path):
 
 @_sftp_switch(_sftp_send_file)
 def send_file(directory, filename, **kwargs):
-    return send_from_directory(directory, filename, **kwargs)
+    path = _get_file_serving_path(directory, filename)
+    shutil.copy(os.path.join(directory, filename), path)
+    return send_from_directory(*os.path.split(path), **kwargs)

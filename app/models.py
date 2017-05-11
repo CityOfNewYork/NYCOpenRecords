@@ -1085,17 +1085,13 @@ class ResponseTokens(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String, nullable=False)
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"), nullable=False)
-    expiration_date = db.Column(db.DateTime)
 
     response = db.relationship("Responses", backref=db.backref("token", uselist=False))
 
     def __init__(self,
-                 response_id,
-                 expiration_date=None):
+                 response_id):
         self.token = self.generate_token()
         self.response_id = response_id
-        self.expiration_date = expiration_date or calendar.addbusdays(
-            datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
 
     @staticmethod
     def generate_token():
