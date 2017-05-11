@@ -577,7 +577,7 @@ def get_response_content(response_id):
                     resptok = ResponseTokens.query.filter_by(
                         token=token, response_id=response_id).first()
                     if resptok is not None:
-                        if response_.release_date and response_.privacy != PRIVATE:
+                        if response_.privacy != PRIVATE:
                             @after_this_request
                             def remove(resp):
                                 os.remove(serving_path)
