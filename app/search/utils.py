@@ -302,19 +302,19 @@ def search_requests(query,
     if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
         range_filters = {}
         if date_rec_from or date_rec_to:
-            range_filters['date_submitted'] = {'format': ES_DATE_RANGE_FORMAT}
+            range_filters['date_received'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
             range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_rec_from:
-            range_filters['date_submitted']['gte'] = datestr_local_to_utc(date_rec_from)
+            range_filters['date_received']['gte'] = datestr_local_to_utc(date_rec_from)
         if date_rec_to:
-            range_filters['date_submitted']['lt'] = datestr_local_to_utc(date_rec_to)
+            range_filters['date_received']['lt'] = datestr_local_to_utc(date_rec_to)
         if date_due_from:
             range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
         if date_due_to:
             range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
         if date_rec_from or date_rec_to:
-            date_ranges.append({'range': {'date_submitted': range_filters['date_submitted']}})
+            date_ranges.append({'range': {'date_received': range_filters['date_received']}})
         if date_due_from or date_due_to:
             date_ranges.append({'range': {'date_due': range_filters['date_due']}})
 
