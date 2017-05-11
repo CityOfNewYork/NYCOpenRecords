@@ -23,6 +23,7 @@ from app.constants import (
     event_type,
     role_name as role,
     ACKNOWLEDGMENT_DAYS_DUE,
+    REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request,
 )
 from app.constants.response_privacy import RELEASE_AND_PRIVATE
@@ -111,7 +112,7 @@ def create_request(title,
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(
         date_submitted_local,
-        ACKNOWLEDGMENT_DAYS_DUE,
+        ACKNOWLEDGMENT_DAYS_DUE if current_user.is_agency else REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
         tz_name)
 
     date_created = local_to_utc(date_created_local, tz_name)
