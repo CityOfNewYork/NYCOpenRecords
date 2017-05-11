@@ -618,7 +618,8 @@ class Requests(db.Model):
 
     @property
     def agency_description_released(self):
-        return not self.privacy['agency_description'] and self.agency_description_release_date < datetime.utcnow()
+        return self.status == request_status.CLOSED and not self.privacy['agency_description'] and \
+               self.agency_description_release_date < datetime.utcnow()
 
     def es_update(self):
         if self.agency.is_active:
@@ -658,6 +659,9 @@ class Requests(db.Model):
                 'agency_description_private': not self.agency_description_released,
                 'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_received': self.date_created.strftime(
+                    ES_DATETIME_FORMAT) if self.date_created < self.date_submitted else self.date_submitted.strftime(
+                    ES_DATETIME_FORMAT),
                 'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': self.submission,
                 'status': self.status,
@@ -1081,16 +1085,13 @@ class ResponseTokens(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String, nullable=False)
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"), nullable=False)
-    expiration_date = db.Column(db.DateTime, nullable=True)
 
     response = db.relationship("Responses", backref=db.backref("token", uselist=False))
 
     def __init__(self,
-                 response_id,
-                 expiration_date=None):
+                 response_id):
         self.token = self.generate_token()
         self.response_id = response_id
-        self.expiration_date = expiration_date
 
     @staticmethod
     def generate_token():
