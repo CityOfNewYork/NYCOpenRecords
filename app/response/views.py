@@ -567,7 +567,7 @@ def get_response_content(response_id):
                 # then we just serve the file, anyone can view it
                 @after_this_request
                 def remove(resp):
-                    os.remove(serving_path)
+                    os.remove()
                     return resp
 
                 return fu.send_file(*filepath_parts, as_attachment=True)
