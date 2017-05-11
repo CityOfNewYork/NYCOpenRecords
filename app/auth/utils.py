@@ -103,8 +103,9 @@ def find_user_by_email(email):
     elif current_app.config['USE_OAUTH']:
         return Users.query.filter(
             Users.email == email,
-            Users.auth_user_type != user_type_auth.ANONYMOUS_USER
+            Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
         ).first()
+    return None
 
 
 def oauth_user_web_service_request(method="GET"):
