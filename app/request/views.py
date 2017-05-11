@@ -252,8 +252,7 @@ def view(request_id):
 
     show_agency_description = False
     if (
-        current_user in current_request.agency_users or current_request.agency_description and
-        ((
+        current_user in current_request.agency_users or (current_request.agency_description and ((
             current_request.requester == current_user and
             current_request.status == request_status.CLOSED and not
             current_request.privacy['agency_description']
@@ -262,7 +261,7 @@ def view(request_id):
             current_request.agency_description_release_date and
             current_request.agency_description_release_date < datetime.utcnow() and not
             current_request.privacy['agency_description']
-        ))
+        )))
     ):
         show_agency_description = True
     show_title = (current_user in current_request.agency_users or
