@@ -187,16 +187,24 @@ def add_denial(request_id, reason_ids, email_content):
     :param email_content: email body associated with the denial
 
     """
-    if Requests.query.filter_by(id=request_id).one().status != request_status.CLOSED:
-        update_object(
-            {'status': request_status.CLOSED},
-            Requests,
-            request_id
-        )
-        privacy = RELEASE_AND_PUBLIC
+    request = Requests.query.filter_by(id=request_id).one()
+    if request.status != request_status.CLOSED:
+        if not request.privacy['agency_description'] and request.agency_description is not None:
+            update_object(
+                {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
+                 'status': request_status.CLOSED},
+                Requests,
+                request_id
+            )
+        else:
+            update_object(
+                {'status': request_status.CLOSED},
+                Requests,
+                request_id
+            )
         response = Determinations(
             request_id,
-            privacy,
+            RELEASE_AND_PUBLIC,
             determination_type.DENIAL,
             format_determination_reasons(reason_ids)
         )
@@ -208,7 +216,7 @@ def add_denial(request_id, reason_ids, email_content):
             request_id
         )
         _send_response_email(request_id,
-                             privacy,
+                             RELEASE_AND_PUBLIC,
                              email_content,
                              'Request {} Closed'.format(request_id))
     else:
@@ -247,26 +255,13 @@ def add_closing(request_id, reason_ids, email_content):
                                            request_id=current_request.id,
                                            reason=reason + "or Title must be public."
                                            )
-        update_object(
-            {'status': request_status.CLOSED},
-            Requests,
-            request_id
-        )
-        privacy = RELEASE_AND_PUBLIC
-        response = Determinations(
-            request_id,
-            privacy,
-            determination_type.CLOSING,
-            format_determination_reasons(reason_ids)
-        )
-        create_object(response)
-        create_response_event(event_type.REQ_CLOSED, response)
         if current_request.agency_description and not current_request.privacy['agency_description']:
             date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
             release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
                                         current_app.config['APP_TIMEZONE'])
             update_object(
-                {'agency_description_release_date': release_date},
+                {'agency_description_release_date': release_date,
+                 'status': request_status.CLOSED},
                 Requests,
                 request_id
             )
@@ -276,8 +271,22 @@ def add_closing(request_id, reason_ids, email_content):
                 None,
                 {"release_date": release_date.isoformat()}
             )
+        else:
+            update_object(
+                {'status': request_status.CLOSED},
+                Requests,
+                request_id
+            )
+        response = Determinations(
+            request_id,
+            RELEASE_AND_PUBLIC,
+            determination_type.CLOSING,
+            format_determination_reasons(reason_ids)
+        )
+        create_object(response)
+        create_response_event(event_type.REQ_CLOSED, response)
         _send_response_email(request_id,
-                             privacy,
+                             RELEASE_AND_PUBLIC,
                              email_content,
                              'Request {} Closed'.format(request_id))
     else:

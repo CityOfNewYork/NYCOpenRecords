@@ -618,7 +618,8 @@ class Requests(db.Model):
 
     @property
     def agency_description_released(self):
-        return not self.privacy['agency_description'] and self.agency_description_release_date < datetime.utcnow()
+        return self.status == request_status.CLOSED and not self.privacy['agency_description'] and \
+               self.agency_description_release_date < datetime.utcnow()
 
     def es_update(self):
         if self.agency.is_active:
