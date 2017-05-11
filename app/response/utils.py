@@ -1218,10 +1218,7 @@ def get_file_links(response, release_public_links, release_private_links, privat
     agency_link = urljoin(flask_request.url_root, path)
     if resp.privacy != PRIVATE:
         if resp.request.requester.is_anonymous_requester:
-            resptoken = ResponseTokens(response.id,
-                                       expiration_date=None) if response.privacy == RELEASE_AND_PRIVATE else ResponseTokens(
-                response.id, expiration_date=calendar.addbusdays(
-                    datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS))
+            resptoken = ResponseTokens(response.id)
             create_object(resptoken)
             params = urlencode({'token': resptoken.token})
             requester_url = urljoin(flask_request.url_root, path)

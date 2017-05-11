@@ -577,8 +577,7 @@ def get_response_content(response_id):
                     resptok = ResponseTokens.query.filter_by(
                         token=token, response_id=response_id).first()
                     if resptok is not None:
-                        if ((resptok.expiration_date is None) or (datetime.utcnow() < resptok.expiration_date)
-                           and response_.privacy != PRIVATE):
+                        if response_.release_date and response_.privacy != PRIVATE:
                             @after_this_request
                             def remove(resp):
                                 os.remove(serving_path)
@@ -598,7 +597,7 @@ def get_response_content(response_id):
                             request_id=response_.request_id,
                             user_guid=current_user.guid,
                             auth_user_type=current_user.auth_user_type
-                        ).first() is not None):
+                            ).first() is not None):
                         @after_this_request
                         def remove(resp):
                             os.remove(serving_path)
