@@ -96,14 +96,14 @@
                                     </small>
                                 </h4>
                                 <div class="col-sm-6 no-pad-left">
-                                    <label for="date-sub-from">From:</label>
+                                    <label for="date-rec-from">From:</label>
                                     <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
-                                           type="text" id="date-sub-from" name="date_sub_from">
+                                           type="text" id="date-rec-from" name="date_rec_from">
                                 </div>
                                 <div class="col-sm-6 no-pad-right">
-                                    <label for="date-sub-to">To:</label>
+                                    <label for="date-rec-to">To:</label>
                                     <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
-                                           type="text" id="date-sub-to" name="date_sub_to">
+                                           type="text" id="date-rec-to" name="date_rec_to">
                                 </div>
                             </div>
                             <br>
@@ -136,13 +136,13 @@
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </small>
                             </h4>
-                            <label for="date-sub-from">From:</label>
+                            <label for="date-rec-from">From:</label>
                             <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
-                                   type="text" id="date-sub-from" name="date_sub_from">
+                                   type="text" id="date-rec-from" name="date_rec_from">
                             <br>
-                            <label for="date-sub-to">To:</label>
+                            <label for="date-rec-to">To:</label>
                             <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
-                                   type="text" id="date-sub-to" name="date_sub_to">
+                                   type="text" id="date-rec-to" name="date_rec_to">
                             <br>
                             <div id="date-req">
                                 <strong>*From</strong> must be before <strong>To</strong>.
@@ -199,7 +199,7 @@
                         <!-- hidden inputs with out-of-form counterparts must have identical values -->
                         <input type="hidden" name="tz_name">
                         <input type="hidden" name="start">
-                        <input type="hidden" name="sort_date_created">
+                        <input type="hidden" name="sort_date_submitted">
                         <input type="hidden" name="sort_date_due">
                         <input type="hidden" name="sort_title">
                         <div class="text-right">
@@ -224,7 +224,7 @@
                         <div class="col-sm-2">
                             ID
                         </div>
-                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort_date_created">
+                        <div class="col-sm-2 sort-field" data-sort-order="none" id="sort_date_submitted">
                             Date Submitted <span class="glyphicon" aria-hidden="true"></span>
                         </div>
                         <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %} sort-field"
