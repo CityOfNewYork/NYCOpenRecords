@@ -154,8 +154,8 @@ def search_requests(query,
                     agency_description,
                     description,
                     requester_name,
-                    date_sub_from,
-                    date_sub_to,
+                    date_rec_from,
+                    date_rec_to,
                     date_due_from,
                     date_due_to,
                     agency_ein,
@@ -185,8 +185,8 @@ def search_requests(query,
     :param agency_description: search by agency description?
     :param description: search by description?
     :param requester_name: search by requester name?
-    :param date_sub_from: date submitted/created from
-    :param date_sub_to: date submitted/created to
+    :param date_rec_from: date received from
+    :param date_rec_to: date received to
     :param date_due_from: date due from
     :param date_due_to: date due to
     :param agency_ein: agency ein to filter by
@@ -197,7 +197,7 @@ def search_requests(query,
     :param overdue: filter by overdue requests?
     :param size: number of requests per page
     :param start: starting index of request result set
-    :param sort_date_created: date submitted/created sort direction
+    :param sort_date_received: date received sort direction
     :param sort_date_due: date due sort direction
     :param sort_title: title sort direction
     :param tz_name: timezone name (e.g. "America/New_York")
@@ -262,22 +262,22 @@ def search_requests(query,
         ).strftime(DT_DATE_RANGE_FORMAT)
 
     date_ranges = []
-    if any((date_sub_from, date_sub_to, date_due_from, date_due_to)):
+    if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
         range_filters = {}
-        if date_sub_from or date_sub_to:
-            range_filters['date_created'] = {'format': ES_DATE_RANGE_FORMAT}
+        if date_rec_from or date_rec_to:
+            range_filters['date_received'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
             range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
-        if date_sub_from:
-            range_filters['date_created']['gte'] = datestr_local_to_utc(date_sub_from)
-        if date_sub_to:
-            range_filters['date_created']['lt'] = datestr_local_to_utc(date_sub_to)
+        if date_rec_from:
+            range_filters['date_received']['gte'] = datestr_local_to_utc(date_rec_from)
+        if date_rec_to:
+            range_filters['date_received']['lt'] = datestr_local_to_utc(date_rec_to)
         if date_due_from:
             range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
         if date_due_to:
             range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
-        if date_sub_from or date_sub_to:
-            date_ranges.append({'range': {'date_created': range_filters['date_created']}})
+        if date_rec_from or date_rec_to:
+            date_ranges.append({'range': {'date_received': range_filters['date_received']}})
         if date_due_from or date_due_to:
             date_ranges.append({'range': {'date_due': range_filters['date_due']}})
 
@@ -326,6 +326,7 @@ def search_requests(query,
         doc_type='request',
         body=dsl,
         _source=['requester_id',
+                 'date_created',
                  'date_submitted',
                  'date_due',
                  'date_received',

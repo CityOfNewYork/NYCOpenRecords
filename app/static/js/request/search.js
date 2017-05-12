@@ -131,21 +131,21 @@ $(function() {
         beforeShowDay: notHolidayOrWeekend,
     };
 
-    var dateSubFromElem = $("#date-sub-from");
-    var dateSubToElem = $("#date-sub-to");
+    var dateRecFromElem = $("#date-rec-from");
+    var dateRecToElem = $("#date-rec-to");
     var dateDueFromElem = $("#date-due-from");
     var dateDueToElem = $("#date-due-to");
 
-    var dates = [dateSubFromElem, dateSubToElem, dateDueFromElem, dateDueToElem];
+    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem];
     for (var i = 0; i < dates.length; i++) {
         dates[i].datepicker(datepickerOptions);
         dates[i].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
     }
-    dateSubFromElem.on("input change", function () {
-        valiDates(dateSubFromElem, dateSubToElem);
+    dateRecFromElem.on("input change", function () {
+        valiDates(dateRecFromElem, dateRecToElem);
     });
-    dateSubToElem.on("input change", function () {
-        valiDates(dateSubFromElem, dateSubToElem);
+    dateRecToElem.on("input change", function () {
+        valiDates(dateRecFromElem, dateRecToElem);
     });
     dateDueFromElem.on("input change", function () {
         valiDates(dateDueFromElem, dateDueToElem);
