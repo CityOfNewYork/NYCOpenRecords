@@ -73,9 +73,6 @@ def _update_request_statuses():
             Requests.due_date.asc()
         ).all()
 
-        if not requests_overdue and not requests_due_soon:
-            continue
-
         agency_requests_overdue = []
         agency_acknowledgments_overdue = []
         agency_requests_due_soon = []
