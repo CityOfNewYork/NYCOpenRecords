@@ -6,6 +6,10 @@
         {% for request in requests_overdue %}
             <li>
                 <a href="{{ request.url }}">{{ request.id }}</a>
+                <ul>
+                    <li>Request Title: {{ request.title }}</li>
+                    <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                </ul>
             </li>
         {% endfor %}
         </ul>
@@ -18,6 +22,10 @@
             {% for request in acknowledgments_overdue %}
                 <li>
                     <a href="{{ request.url }}">{{ request.id }}</a>
+                    <ul>
+                        <li>Request Title: {{ request.title }}</li>
+                        <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                    </ul>
                 </li>
             {% endfor %}
         </ul>
@@ -37,6 +45,10 @@
                         today
                     {% endif %}
                 </strong>
+                <ul>
+                    <li>Request Title: {{ request.title }}</li>
+                    <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                </ul>
             </li>
         {% endfor %}
         </ul>
@@ -56,6 +68,10 @@
                             today
                         {% endif %}
                     </strong>
+                    <ul>
+                        <li>Request Title: {{ request.title }}</li>
+                        <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                    </ul>
                 </li>
             {% endfor %}
         </ul>
