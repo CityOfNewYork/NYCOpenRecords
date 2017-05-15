@@ -868,11 +868,12 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
     release_private_links = []
 
     release_date = None
-    agency_default_email = None
+    request = None
 
     files = data.get('files')
     # if data['files'] exists, use email_content as template with specific file email template
     if files is not None:
+        request = Requests.query.filter_by(id=request_id).one()
         files = json.loads(files)
         default_content = True
         content = None
@@ -894,7 +895,6 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
             release_date = get_release_date(datetime.utcnow(),
                                             RELEASE_PUBLIC_DAYS,
                                             data.get('tz_name'))
-            agency_default_email = Requests.query.filter_by(id=request_id).first().agency.default_email
     # use default_content in response template
     else:
         default_content = False
@@ -907,7 +907,9 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 request_id=request_id,
                                                 page=page,
                                                 agency_name=agency_name,
-                                                agency_default_email=agency_default_email,
+                                                agency_default_email=request.agency.default_email,
+                                                public_requester=request.requester.auth_user_type in
+                                                                    user_type_auth.PUBLIC_USER_TYPES,
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
