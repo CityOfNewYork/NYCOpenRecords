@@ -18,39 +18,37 @@
                 <textarea class="input-block-level form-group" id="note-content" name="content"
                           maxlength="500"></textarea>
                 <h5 id="note-content-character-count">500 characters remaining</h5>
-                {% if permissions['edit_note_privacy'] %}
-                    <div class="radio">
-                        <label>
-                            <input type="radio" class="note-privacy" name="privacy" value="release_public">Release
-                            and Public
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" class="note-privacy" name="privacy" value="release_private">Release
-                            and Private
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" class="note-privacy" name="privacy" value="private"
-                                   checked="checked">Private
-                        </label>
-                    </div>
-                {% elif current_user.is_agency %}
-                    <div class="radio">
-                        <label><input type="radio" class="note-privacy" name="privacy" value="private"
-                                      checked="checked">Private</label>
-                    </div>
+                {% if current_user.is_agency %}
+                    {% if permissions['edit_note_privacy']%}
+                        <div class="radio">
+                            <label>
+                                <input type="radio" class="note-privacy" name="privacy" value="release_public">Release
+                                and Public
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" class="note-privacy" name="privacy" value="release_private">Release
+                                and Private
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" class="note-privacy" name="privacy" value="private"
+                                       checked="checked">Private
+                            </label>
+                        </div>
+                    {% else %}
+                        <div class="radio">
+                            <label><input type="radio" class="note-privacy" name="privacy" value="private"
+                                          checked="checked">Private</label>
+                        </div>
+                    {% endif %}
+                    <button type="button" class="next-btn btn btn-primary" id="note-next-1">Next</button>
                 {% elif is_requester %}
-                    <div class="radio">
-                        <label>
-                            <input type="radio" class="note-privacy" name="privacy" value="release_private">Release
-                            and Private
-                        </label>
-                    </div>
+                    <button type="submit" class="submit-btn btn btn-success" id="note-submit">Submit</button>
                 {% endif %}
-                <button type="button" class="next-btn btn btn-primary" id="note-next-1">Next</button>
+
             </div>
             <!-- second div of the add-note form containing email content -->
             <div class="note-divs form-group" id="note-second">

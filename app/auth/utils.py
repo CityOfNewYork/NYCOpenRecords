@@ -97,8 +97,8 @@ def find_user_by_email(email):
     if current_app.config['USE_LDAP']:
         return Users.query.filter_by(
             email=email,
-            is_agency_active=True,
-            auth_user_type=user_type_auth.AGENCY_LDAP_USER
+            # is_agency_active=True,
+            # auth_user_type=user_type_auth.AGENCY_LDAP_USER
         ).first()
     elif current_app.config['USE_OAUTH']:
         return Users.query.filter(
