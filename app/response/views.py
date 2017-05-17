@@ -80,17 +80,19 @@ def response_note(request_id):
 
     current_request = Requests.query.filter_by(id=request_id).first()
     required_fields = []
-    is_editable = True
     privacy = None
+    is_editable = True
+    is_requester = False
 
     if current_user.is_agency:
         required_fields.extend(['content',
                                 'email-note-summary',
                                 'privacy'])
     else:
-        required_fields.extend(['content'])
+        required_fields.append('content')
         is_editable = False
         privacy = RELEASE_AND_PRIVATE
+        is_requester = True
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -104,7 +106,8 @@ def response_note(request_id):
              note_data['content'],
              note_data.get('email-note-summary'),
              note_data.get('privacy') or privacy,
-             is_editable)
+             is_editable,
+             is_requester)
     return redirect(url_for('request.view', request_id=request_id))
 
 
