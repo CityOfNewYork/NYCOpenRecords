@@ -2,10 +2,11 @@ import atexit
 from datetime import date
 
 import os
+import uuid
 import redis
 import logging
 from logging import Formatter
-from logging.handlers import TimedRotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import (
@@ -18,7 +19,7 @@ from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
 from flask_tracy import Tracy
 from flask_kvsession import KVSessionExtension
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
@@ -72,6 +73,22 @@ def create_app(config_name, jobs_enabled=True):
 
     # TODO: handler_info, handler_debug, handler_warn
 
+    mail_handler = SMTPHandler(mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
+                               fromaddr=app.config['MAIL_SENDER'],
+                               toaddrs=OPENRECORDS_DL_EMAIL, subject='OpenRecords Error')
+    mail_handler.setLevel(logging.ERROR)
+    mail_handler.setFormatter(Formatter('''
+        Message Type:       %(levelname)s
+        Location:           %(pathname)s:%(lineno)d
+        Module:             %(module)s
+        Function:           %(funcName)s
+        Time:               %(asctime)s
+
+        Message:
+        %(message)s
+        '''))
+    app.logger.addHandler(mail_handler)
+
     handler_error = TimedRotatingFileHandler(
         os.path.join(app.config['LOGFILE_DIRECTORY'],
                      'error',
@@ -79,6 +96,7 @@ def create_app(config_name, jobs_enabled=True):
         when='D', interval=1, backupCount=60)
     handler_error.setLevel(logging.DEBUG)
     handler_error.setFormatter(Formatter(
+        '------------------------------------------------------------------------------- \n'
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]\n'
     ))
@@ -120,13 +138,13 @@ def create_app(config_name, jobs_enabled=True):
             trigger=CronTrigger(hour=8, minute=30)
         )
 
-        scheduler.add_job(
-            'check_sanity',
-            jobs.check_sanity,
-            name="Check if scheduler is running every morning at 8 AM.",
-            #trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
-            trigger=CronTrigger(hour=8)
-        )
+        # scheduler.add_job(
+        #     'check_sanity',
+        #     jobs.check_sanity,
+        #     name="Check if scheduler is running every morning at 8 AM.",
+        #     #trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
+        #     trigger=CronTrigger(hour=8)
+        # )
 
         scheduler.start()
 
@@ -145,8 +163,28 @@ def create_app(config_name, jobs_enabled=True):
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        app.logger.error('Error found for request')
-        return render_template("error/generic.html", status_code=500)
+        error_id = str(uuid.uuid4())
+        app.logger.error("""Request:   {method} {path}
+            IP:        {ip}
+            User:      {user}
+            Agent:     {agent_platform} | {agent_browser} {agent_browser_version}
+            Raw Agent: {agent}
+            Error ID:  {error_id}
+                    """.format(
+            method=flask_request.method,
+            path=flask_request.path,
+            ip=flask_request.remote_addr,
+            agent_platform=flask_request.user_agent.platform,
+            agent_browser=flask_request.user_agent.browser,
+            agent_browser_version=flask_request.user_agent.version,
+            agent=flask_request.user_agent.string,
+            user=current_user,
+            error_id=error_id
+        ), exc_info=e
+        )
+        return render_template("error/generic.html",
+                               status_code=500,
+                               error_id=error_id)
 
     @app.context_processor
     def add_session_config():

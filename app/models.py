@@ -437,6 +437,9 @@ class Anonymous(AnonymousUserMixin):
         """
         return False
 
+    def __repr__(self):
+        return '<Anonymous User>'
+
 
 class Requests(db.Model):
     """
