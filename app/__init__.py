@@ -92,7 +92,7 @@ def create_app(config_name, jobs_enabled=True):
         os.path.join(app.config['LOGFILE_DIRECTORY'],
                      'error',
                      'openrecords_{}_error.log'.format(app.config['APP_VERSION_STRING'])),
-        when='M', interval=1, backupCount=60)
+        when='midnight', interval=1, backupCount=60)
     handler_error.setLevel(logging.ERROR)
     handler_error.setFormatter(Formatter(
         '------------------------------------------------------------------------------- \n'
