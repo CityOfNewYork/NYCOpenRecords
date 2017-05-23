@@ -23,16 +23,16 @@
         {% endif %}
         <p class="lead">
             Try again or try refreshing this page. If the issue persists, please
-            {% if tracy_id %}
-                <a href="{{ url_for("main.contact", error_id="OpenRecords Error: {}".format(tracy_id)) }}">contact us</a>.
+            {% if error_id %}
+                <a href="{{ url_for("main.contact", error_id="OpenRecords Error: {}".format(error_id)) }}">contact us</a>.
             {% else %}
                 <a href="{{ url_for("main.contact") }}">contact us</a>
             {% endif %}
             and report this error.
         </p>
         <p class="lead">
-            {% if tracy_id %}
-                Include the following id as part of your report:<br><strong>{{ tracy_id }}</strong>
+            {% if error_id %}
+                Include the following id as part of your report:<br><strong>{{ error_id }}</strong>
             {% endif %}
         </p>
         {% if message %}
