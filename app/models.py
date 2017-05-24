@@ -179,7 +179,7 @@ class Agencies(db.Model):
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
-    monitors_sub_agencies = db.Column(db.Boolean(), default=False)
+    agency_features = db.Column(JSON)
 
     administrators = db.relationship(
         'Users',
@@ -221,7 +221,8 @@ class Agencies(db.Model):
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
                     appeals_email=row['appeals_email'],
-                    is_active=eval(row['is_active'])
+                    is_active=eval(row['is_active']),
+                    agency_features=row['agency_features']
                 )
                 db.session.add(agency)
             db.session.commit()

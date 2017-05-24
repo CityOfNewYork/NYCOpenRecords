@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {},
+  "id": "openrecords_fagency_features",
+  "properties": {
+    "monitor_agency_requests": {
+      "id": "/properties/monitor_agency_requests",
+      "items": {
+        "id": "/properties/monitor_agency_requests/items",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "type": "object"
+}

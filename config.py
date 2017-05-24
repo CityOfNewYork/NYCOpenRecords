@@ -29,7 +29,10 @@ class Config:
     REASON_DATA = (os.environ.get('REASONS_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
     STAFF_DATA = (os.environ.get('STAFF_DATA') or
-                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'staff.csv'))
+                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'staff.csv'))
+
+    JSON_SCHEMA_DIRECTORY = (os.environ.get('JSON_SCHEMA_DIRECTORY') or
+                             os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'constants', 'schemas'))
 
     DUE_SOON_DAYS_THRESHOLD = os.environ.get('DUE_SOON_DAYS_THRESHOLD') or 2
 
@@ -45,7 +48,7 @@ class Config:
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     SAML_PATH = (os.environ.get('SAML_PATH') or
-                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
 
     USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
     WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
@@ -129,6 +132,7 @@ class Config:
                                 ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
+
     # https://www.elastic.co/blog/index-vs-type
 
     @staticmethod
@@ -167,6 +171,7 @@ class ProductionConfig(Config):
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+
 
 config = {
     'development': DevelopmentConfig,
