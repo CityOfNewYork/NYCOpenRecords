@@ -49,7 +49,7 @@ def post(request_id):
 
     Handles chunked files through the Content-Range header.
     For filesize validation and more upload logic, see:
-        /static/js/plugins/jquery.fileupload-main.js
+        /static/js/upload/fileupload.js
 
     Optional request body parameters:
     - update (bool)
