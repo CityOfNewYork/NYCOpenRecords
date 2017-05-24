@@ -130,7 +130,19 @@ def revoke_and_remove_access_token():
     token from the session.
 
     * Assumes the access token is stored in the session. *
+    
+    WARNING
+    -------        
+    In the NYC.ID DEV environment, access tokens are
+    automatically revoked on IDP logout, so the revocation
+    executed in here will fail and an error will be logged!
+    
+    Once the change hits NYC.ID PRD, this function should
+    be renamed to "remove_access_token" and should only
+    consist of "session.pop('token')".
+
     """
+    # FIXME: see WARNING above
     _check_web_services_response(
         oauth_user_web_service_request("DELETE"),
         error_msg.REVOKE_TOKEN_FAILURE)
