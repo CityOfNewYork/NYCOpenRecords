@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "definitions": {},
-  "id": "openrecords_fagency_features",
+  "id": "openrecords_agency_features",
   "properties": {
     "monitor_agency_requests": {
       "id": "/properties/monitor_agency_requests",
