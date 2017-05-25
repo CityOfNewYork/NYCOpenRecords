@@ -29,3 +29,5 @@
 "denial","Refer to OpenData","Your request is for data that is available through the City's OpenData site. You may visit http://nyc.gov/opendata to find this information"
 "denial","Refer to Other Agency","Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have the records requested. You should direct your request to a different agency."
 "denial","Refer to Web Link","Your request under the Freedom of Information Law (FOIL) is being closed because the document or information you requested is publicly available."
+"denial","Denied - Reasons Attached","Your request under the Freedom of Information Law (FOIL) is denied. Please see the attached determination letter."
+"closing","Denied - Reasons Attached","Your request under the Freedom of Information Law (FOIL) is denied. Please see the attached determination letter."
