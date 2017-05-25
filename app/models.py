@@ -180,6 +180,8 @@ class Agencies(db.Model):
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
     agency_features = db.Column(JSON)
+    # TODO: Method to insert updates to the agency_features column
+    # TODO: Use validation on agency_features column
 
     administrators = db.relationship(
         'Users',
