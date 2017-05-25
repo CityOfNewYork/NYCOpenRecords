@@ -949,6 +949,10 @@ class Responses(db.Model):
                 self.release_date is not None and
                 datetime.utcnow() > self.release_date)
 
+    @property
+    def creator(self):
+        return Events.query.filter_by(response_id=self.id).one().user
+
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
         self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
