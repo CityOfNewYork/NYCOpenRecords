@@ -12,7 +12,7 @@ def validate_schema(data, schema_name):
     :param schema_name: Name of the schema 
     :return: Boolean
     """
-    with open(os.path.join(current_app.config['JSON_SCHEMA_DIRECTORY'], schema_name, '.json'), 'r') as fp:
+    with open(os.path.join(current_app.config['JSON_SCHEMA_DIRECTORY'], schema_name + '.schema'), 'r') as fp:
         schema = json.load(fp)
 
         try:
