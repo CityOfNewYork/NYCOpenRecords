@@ -1,2 +1,2 @@
-"agency_ein","is_super","is_agency_admin","is_agency_active","first_name","middle_initial","last_name","email","email_validated","terms_of_use_accepted","phone_number","fax_number"
-"0860","True","True","True","Charles","","Xavier","bladerunnerperftest01@dsny.nyc.gov","True","True","(555) 555-5555","",
+"agencies","is_super","first_name","middle_initial","last_name","email","email_validated","terms_of_use_accepted","phone_number","fax_number"
+"0860#True#True#True","True","Charles","","Xavier","bladerunnerperftest01@dsny.nyc.gov","True","True","(555) 555-5555","",

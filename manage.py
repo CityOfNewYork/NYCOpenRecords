@@ -24,7 +24,8 @@ from app.models import (
     Events,
     Reasons,
     Roles,
-    UserRequests
+    UserRequests,
+    AgencyUsers
 )
 from app.request.utils import (
     generate_guid
@@ -60,7 +61,8 @@ def make_shell_context():
         Events=Events,
         Reasons=Reasons,
         Roles=Roles,
-        UserRequests=UserRequests
+        UserRequests=UserRequests,
+        AgencyUsers=AgencyUsers
     )
 
 
