@@ -9,6 +9,8 @@ from app.models import Agencies, Events
 from app.constants.event_type import AGENCY_ACTIVATED
 
 
+# TODO: Manage agency features within this file.
+
 @agency.route('/<agency_ein>', methods=["PATCH"])
 def patch(agency_ein):
     """

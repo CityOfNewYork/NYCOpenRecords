@@ -9,7 +9,6 @@ from flask import (
     redirect,
     session,
     render_template,
-    make_response,
     url_for,
     abort,
     flash
@@ -22,18 +21,11 @@ from flask_login import (
 )
 
 from app.auth import auth
-from app.auth.forms import ManageUserAccountForm, LDAPLoginForm
+from app.auth.forms import LDAPLoginForm
 from app.auth.utils import (
-    prepare_flask_request,
-    init_saml_auth,
-    process_user_data,
-    find_or_create_user,
     ldap_authentication,
     find_user
 )
-from app.lib.user_information import create_mailing_address
-
-from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 
 @auth.route('/login', methods=['GET'])

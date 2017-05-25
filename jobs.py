@@ -13,13 +13,24 @@ from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import update_object, create_object
 from app.lib.email_utils import send_email
 
-
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context,
 # app.test_request_context() is an option.
 
 STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
+
+
+def check_sanity():
+    """
+    Email a messsage indicating the scheduler is still functioning correctly.
+    """
+    with scheduler.app.app_context():
+        send_email(
+            subject="Scheduler Sanity Check",
+            to=[OPENRECORDS_DL_EMAIL],
+            email_content="You got this email, so the OpenRecords scheduler is running."
+        )
 
 
 def update_request_statuses():

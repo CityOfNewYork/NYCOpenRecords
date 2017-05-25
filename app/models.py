@@ -149,13 +149,26 @@ class Agencies(db.Model):
     Define the Agencies class with the following columns and relationships:
 
     ein - the primary key of the agencies table, 3 digit integer that is unique for each agency
-    category - a string containing the category of the agency (ex: business/education)
+    parent_ein - the ein that corresponds to the agency to which the ein belongs. This is used for agencies such as the
+                 Mayor's Office, who have a number of smaller agencies that handle their own FOIL offices.
+    categories - an array of strings containing the category of the agency (ex: business/education)
     name - a string containing the name of the agency
     next_request_number - a sequence containing the next number for the request starting at 1, each agency has its own
                           request number sequence
     default_email - a string containing the default email of the agency regarding general inquiries about requests
     appeal_email - a string containing the appeal email for users regarding the agency closing or denying requests
+    is_active - a boolean field denoting whether an agency is currently using the OpenRecords system to serve FOIL
+                requests. Defaults to False.
+    monitors_sub_agencies - a boolean field that denotes whether administrators for this agency should be able to edit
+                            requests for sub-agencies. Defaults to False.
+    
     administrators - an array of user id strings that identify default admins for an agencies requests
+    standard_users - an array of user id strings that identify agency users (non-admins) for an agencies requests
+    active_users - an array of user id strings that identify agency users (admin and non-admin) that can login to 
+                   OpenRecords.
+    inactive_users - an array of user id strings that identify agency users (admin and non-admin) that cannot login to 
+                     OpenRecords 
+    
     """
     __tablename__ = 'agencies'
     ein = db.Column(db.String(4), primary_key=True)
@@ -166,6 +179,9 @@ class Agencies(db.Model):
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
+    agency_features = db.Column(JSON)
+    # TODO: Method to insert updates to the agency_features column
+    # TODO: Use validation on agency_features column
 
     administrators = db.relationship(
         'Users',
@@ -207,7 +223,8 @@ class Agencies(db.Model):
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
                     appeals_email=row['appeals_email'],
-                    is_active=eval(row['is_active'])
+                    is_active=eval(row['is_active']),
+                    agency_features=row['agency_features']
                 )
                 db.session.add(agency)
             db.session.commit()
