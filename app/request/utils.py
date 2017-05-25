@@ -258,7 +258,8 @@ def create_request(title,
     parent_agency_ein = _get_parent_ein(agency.parent_ein)
     if agency.ein != parent_agency_ein:
         parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one()
-        if parent_agency.administrators:
+        if agency_ein in parent_agency.agency_features.get('monitor_agency_requests',
+                                                           []) and parent_agency.administrators:
             _create_agency_user_requests(request_id=request_id,
                                          agency_admins=parent_agency.administrators,
                                          guid_for_event=guid_for_event,
@@ -327,9 +328,9 @@ def _quarantine_upload_no_id(upload_file):
     :return: the file path to the quarantined upload
     """
     with NamedTemporaryFile(
-        dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-        suffix='.{}'.format(secure_filename(upload_file.filename)),
-        delete=False
+            dir=current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            suffix='.{}'.format(secure_filename(upload_file.filename)),
+            delete=False
     ) as fp:
         upload_file.save(fp)
         return fp.name

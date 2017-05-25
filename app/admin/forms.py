@@ -25,3 +25,5 @@ class SelectAgencyForm(Form):
         if current_agency_ein is not None:
             self.agencies.default = current_agency_ein
             self.process()
+
+# TODO: Add forms to modify agency_features (see models.py:183)
