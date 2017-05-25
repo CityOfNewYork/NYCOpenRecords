@@ -1,10 +1,22 @@
 {% if default_content %}
-    {% if release_public_links and not release_private_links %}
-        <p>
-            The {{ agency_name }} has responded to your FOIL request <a href='{{ page }}'>{{ request_id }}</a> with the
-            following file(s):
-        </p>
-        <div class="mceNonEditable">
+    <p>
+        The {{ agency_name }} has responded to your FOIL request <a href='{{ page }}'>{{ request_id }}</a> with
+        the following file(s).
+    </p>
+
+    <div class="mceNonEditable">
+        {% if public_requester %}
+            <p>
+                <strong>NOTE</strong>: You must be logged in to your OpenRecords account to access the file(s).
+                If you are not logged in, you will be prompted to do so when the link is selected.
+            </p>
+        {% endif %}
+
+        {% if release_public_links %}
+            <p>
+                The file(s) listed below will be accessible to the public on the OpenRecords portal in 20 business days
+                ({{ moment(release_date).format('dddd, MMMM D, YYYY') }}).
+            </p>
             <div class="file-links">
                 <ul>
                     {% for file in release_public_links %}
@@ -14,77 +26,13 @@
                     {% endfor %}
                 </ul>
             </div>
-            <p>
-                These records will not be accessible to the public for 20 days.
-            </p>
-            <p>
-                On {{ moment(release_date).format('dddd, MMMM D, YYYY') }} these files will be publicly available on
-                the OpenRecords portal.
-            </p>
-            <p>
-                Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any
-                necessary action.
-            </p>
-        </div>
-    {% endif %}
+        {% endif %}
 
-    {% if release_private_links and not release_public_links %}
+        {% if release_private_links %}
             <p>
-                The {{ agency_name }} has responded to your FOIL request <a href='{{ page }}'>{{ request_id }}</a> with
-                the following file(s):
-            </p>
-            <div class="mceNonEditable">
-                <div class="file-links">
-                    <ul>
-                        {% for file in release_private_links %}
-                            <li style="list-style: none">
-                                {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <p>
-                    These records will not be publicly available.
-                </p>
-                <p>
-                    These links will be valid until {{ moment(release_date).format('dddd, MMMM D, YYYY') }}.
-                    If you need to access these files after this date, please contact the {{ agency_name }} at
-                    <a href="mailto:{{ agency_default_email }}">{{ agency_default_email }}</a>.
-                </p>
-                <p>
-                    Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any
-                    necessary action.
-                </p>
-            </div>
-    {% endif %}
-
-    {% if release_public_links and release_private_links %}
-        <p>
-            The {{ agency_name }} has responded to your FOIL request <a href='{{ page }}'>{{ request_id }}</a> with
-            the following file(s).
-        </p>
-        <div class="mceNonEditable">
-            <p>
-                These records will not be accessible to the public for 20 days.
-            </p>
-            <p>
-                On {{ moment(release_date).format('dddd, MMMM D, YYYY') }} the files listed below will be publicly
-                available on the OpenRecords portal.
+                The file(s) listed below will not be publicly available on the OpenRecords portal.
             </p>
             <div class="file-links">
-                <ul>
-                    {% for file in release_public_links %}
-                        <li style="list-style: none">
-                            {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <p>
-                    The links below will be valid until {{ moment(release_date).format('dddd, MMMM D, YYYY') }}.
-                    The records accessed through these links will not be publicly accessible. If you need to access these
-                    files after this date, please contact the {{ agency_name }} at
-                    <a href="mailto:{{ agency_default_email }}">{{ agency_default_email }}</a>
-                </p>
                 <ul>
                     {% for file in release_private_links %}
                         <li style="list-style: none">
@@ -93,12 +41,13 @@
                     {% endfor %}
                 </ul>
             </div>
-            <p>
-                Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any
-                necessary action.
-            </p>
-        </div>
-    {% endif %}
+        {% endif %}
+
+        <p>
+            Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any
+            necessary action.
+        </p>
+    </div>
     <p><br></p>
 {% else %}
     {{ content | safe }}
