@@ -1,9 +1,9 @@
 <div>
     Created By:
-    {% if current_user.is_agency %}
-        {{ response.creator.name }}
-    {% elif current_user == response.creator %}
+    {% if current_user == response.creator %}
         You
+    {% elif current_user.is_agency %}
+        {{ response.creator.name }}
     {% else %}
         Agency
     {% endif %}
