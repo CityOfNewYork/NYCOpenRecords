@@ -24,7 +24,7 @@ from flask_login import current_user, login_url
 from app import login_manager
 from app.constants import permission
 from app.constants.response_type import FILE
-from app.constants.response_privacy import PRIVATE
+from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
 from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
 from app.lib.db_utils import delete_object
@@ -78,9 +78,21 @@ def response_note(request_id):
     """
     note_data = flask_request.form
 
-    required_fields = ['content',
-                       'email-note-summary',
-                       'privacy']
+    current_request = Requests.query.filter_by(id=request_id).first()
+    required_fields = []
+    privacy = None
+    is_editable = True
+    is_requester = False
+
+    if current_user.is_agency:
+        required_fields.extend(['content',
+                                'email-note-summary',
+                                'privacy'])
+    else:
+        required_fields.append('content')
+        is_editable = False
+        privacy = RELEASE_AND_PRIVATE
+        is_requester = True
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -90,14 +102,12 @@ def response_note(request_id):
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
-    current_request = Requests.query.filter_by(id=request_id).first()
-    is_editable = False if current_request.requester == current_user else True
-
     add_note(current_request.id,
              note_data['content'],
-             note_data['email-note-summary'],
-             note_data['privacy'],
-             is_editable)
+             note_data.get('email-note-summary'),
+             note_data.get('privacy') or privacy,
+             is_editable,
+             is_requester)
     return redirect(url_for('request.view', request_id=request_id))
 
 
