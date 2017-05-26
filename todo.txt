@@ -1,0 +1,12 @@
+As a user, I want to be able to manage FOIL requests for multiple agencies, so that I can work with my colleagues in my legal department.
+
+Note: This has come up as a request from FISA/OPA and DoITT/MOTI. Both of these agency groups have FOIL Officers that handle requests for both agencies in the group. As a result, this feature needs to be deployed as soon as possible.
+
+Acceptance Criteria:
+[x] Agency Users should be linked to multiple Agency EINs.
+[x] For each agency a user is linked to, they should have both Active and Admin status.
+[ ] If a user is an administrator for an agency, they should be granted admin privileges on any requests submitted to that agency.
+[ ] If a user is an administrator for an agency, they should be able to manage users for that agency in the agency administration tab.
+[ ] Users should not be required to do any additional actions to work on a request for an agency.
+[ ] When submitting a request, agency users need to be able to select which agency from their active agencies they will be submitting a request to.
+[ ] Users should have a "Primary" agency set for the default search results (when deployed).
