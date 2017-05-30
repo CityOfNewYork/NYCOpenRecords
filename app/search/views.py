@@ -73,7 +73,7 @@ def requests():
     query = request.args.get('query')
 
     # Determine if searching for FOIL ID
-    foil_id = eval_request_bool(request.args.get('foil_id')) or re.match(r'^(FOIL|foil)-\d{4}-\d{3}-\d{5}$', query)
+    foil_id = eval_request_bool(request.args.get('foil_id')) or re.match(r'^(FOIL-|foil-|)\d{4}-\d{3}-\d{5}$', query)
 
     results = search_requests(
         query,
