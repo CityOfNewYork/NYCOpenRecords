@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 
 from flask import current_app
 from flask_login import current_user
@@ -257,7 +258,7 @@ def search_requests(query,
 
     # if searching by foil-id, strip "FOIL-"
     if foil_id:
-        query = query.lstrip("FOIL-")
+        query = query.lstrip("FOIL-").lstrip('foil-')
 
     # set sort (list of "field:direction" pairs)
     sort = [
