@@ -257,8 +257,9 @@ def create_request(title,
     # 13. Add all parent agency administrators to the request.
     parent_agency_ein = _get_parent_ein(agency.parent_ein)
     if agency.ein != parent_agency_ein:
-        parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one()
+        parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one_or_none()
         if (
+            parent_agency and
             parent_agency.agency_features is not None and
             agency_ein in parent_agency.agency_features.get('monitor_agency_requests', []) and
             parent_agency.is_active and

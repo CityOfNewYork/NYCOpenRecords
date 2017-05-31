@@ -211,7 +211,7 @@ class Agencies(db.Model):
 
     @property
     def parent(self):
-        return Agencies.query.filter_by(ein='0{}'.format(self.parent_ein)).first()
+        return Agencies.query.filter_by(ein='0{}'.format(self.parent_ein)).one_or_none()
 
     @classmethod
     def populate(cls, csv_name=None):
