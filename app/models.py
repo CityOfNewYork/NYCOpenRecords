@@ -19,7 +19,6 @@ from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
-    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
     role_name,
     user_type_auth,
@@ -208,6 +207,21 @@ class Agencies(db.Model):
         primaryjoin="and_(Agencies.ein == Users.agency_ein, "
                     "Users.is_agency_active == False)"
     )
+
+    @property
+    def formatted_parent_ein(self):
+        """
+        Return the correctly formated EIN for a parent agency.
+
+        Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
+        :param parent_ein: 3 character parent ein
+        :return: String
+        """
+        return "0{}".format(self.parent_ein)
+
+    @property
+    def parent(self):
+        return Agencies.query.filter_by(ein=self.formatted_parent_ein).one_or_none()
 
     @classmethod
     def populate(cls, csv_name=None):
@@ -420,7 +434,8 @@ class Users(UserMixin, db.Model):
                 if Users.query.filter_by(email=row['email']).first() is None:
                     user = cls(
                         guid=str(uuid4()),
-                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
+                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
+                            'USE_LDAP'] else user_type_auth.AGENCY_USER,
                         agency_ein=row['agency_ein'],
                         is_super=eval(row['is_super']),
                         is_agency_admin=eval(row['is_agency_admin']),
@@ -938,7 +953,7 @@ class Responses(db.Model):
         val = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-            }
+        }
         val.pop('id')
         val['privacy'] = self.privacy
         return val
