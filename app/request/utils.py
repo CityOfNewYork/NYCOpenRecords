@@ -255,18 +255,15 @@ def create_request(title,
                                      auth_type_for_event=auth_type_for_event)
 
     # 13. Add all parent agency administrators to the request.
-    parent_agency_ein = _get_parent_ein(agency.parent_ein)
-    if agency.ein != parent_agency_ein:
-        parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one_or_none()
+    if agency != agency.parent:
         if (
-            parent_agency and
-            parent_agency.agency_features is not None and
-            agency_ein in parent_agency.agency_features.get('monitor_agency_requests', []) and
-            parent_agency.is_active and
-            parent_agency.administrators
-            ):
+            agency.parent.agency_features is not None and
+            agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
+            agency.parent.is_active and
+            agency.parent.administrators
+        ):
             _create_agency_user_requests(request_id=request_id,
-                                         agency_admins=parent_agency.administrators,
+                                         agency_admins=agency.parent.administrators,
                                          guid_for_event=guid_for_event,
                                          auth_type_for_event=auth_type_for_event)
     return request_id
@@ -375,12 +372,11 @@ def generate_request_id(agency_ein):
     if agency_ein:
         agency = Agencies.query.filter_by(
             ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
-        parent_ein = _get_parent_ein(agency.parent_ein)
         next_request_number = Agencies.query.filter_by(
-            ein=parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
+            ein=agency.formatted_parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
-                      parent_ein)
+                      agency.formatted_parent_ein)
         agency_ein = agency.parent_ein
         request_id = "FOIL-{0:s}-{1!s}-{2:05d}".format(
             datetime.utcnow().strftime("%Y"), agency_ein, int(next_request_number))
@@ -469,17 +465,6 @@ def send_confirmation_email(request, agency, user):
         print('Must include: To, CC, or BCC')
     except Exception as e:
         print("Error:", e)
-
-
-def _get_parent_ein(parent_ein):
-    """
-    Return the correctly formated EIN for a parent agency.
-
-    Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
-    :param parent_ein: 3 character parent ein
-    :return: String
-    """
-    return "0{}".format(parent_ein)
 
 
 def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth_type_for_event):
