@@ -258,13 +258,17 @@ def create_request(title,
     parent_agency_ein = _get_parent_ein(agency.parent_ein)
     if agency.ein != parent_agency_ein:
         parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one()
-        if agency_ein in parent_agency.agency_features.get('monitor_agency_requests',
-                                                           []) and parent_agency.administrators:
+        if (
+            parent_agency.agency_features is not None and
+            agency_ein in parent_agency.agency_features.get('monitor_agency_requests', []) and
+            parent_agency.is_active and
+            parent_agency.administrators
+            ):
             _create_agency_user_requests(request_id=request_id,
                                          agency_admins=parent_agency.administrators,
                                          guid_for_event=guid_for_event,
                                          auth_type_for_event=auth_type_for_event)
-    return request_id
+        return request_id
 
 
 def get_address(form):

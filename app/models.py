@@ -209,6 +209,10 @@ class Agencies(db.Model):
                     "Users.is_agency_active == False)"
     )
 
+    @property
+    def parent(self):
+        return Agencies.query.filter_by(ein='0{}'.format(self.parent_ein)).first()
+
     @classmethod
     def populate(cls, csv_name=None):
         """
