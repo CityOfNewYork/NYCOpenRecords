@@ -638,6 +638,7 @@ class Requests(db.Model):
 
     @property
     def agency_request_summary_released(self):
+        print(self.id)
         return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
                self.agency_request_summary_release_date < datetime.utcnow()
 

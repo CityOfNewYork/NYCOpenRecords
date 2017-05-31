@@ -203,13 +203,13 @@ def fix_anonymous_requesters():
     from app.lib.db_utils import create_object, update_object
 
     guids = db.engine.execute("""
-SELECT
-  user_requests.user_guid AS "GUID"
-FROM user_requests
-  JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
-WHERE user_requests.request_user_type = 'requester'
-GROUP BY user_requests.user_guid
-HAVING COUNT(user_requests.request_id) > 1;
+        SELECT
+          user_requests.user_guid AS "GUID"
+        FROM user_requests
+          JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
+        WHERE user_requests.request_user_type = 'requester'
+        GROUP BY user_requests.user_guid
+        HAVING COUNT(user_requests.request_id) > 1;
     """)
 
     for guid, in guids:
@@ -243,6 +243,47 @@ HAVING COUNT(user_requests.request_id) > 1;
                 UserRequests,
                 (ur.user_guid, ur.auth_user_type, ur.request_id)
             )
+
+
+@manager.command
+def migrate_to_agency_request_summary():
+    """
+    Updates the events table in the database to use 'agency_request_summary' wherever 'agency_description' was used.
+    
+    """
+
+    agency_description_types = ['request_agency_description_edited', 'request_agency_description_date_set',
+                                'request_agency_description_privacy_edited']
+
+    for event in Events.query.filter(Events.type.like('%agency_description%')).all():
+        if event.type in agency_description_types:
+            event.type = event.type.replace('description', 'request_summary')
+        previous_value = event.previous_value
+
+        if previous_value:
+            for key in previous_value.keys():
+                if key == 'agency_description':
+                    previous_value['agency_request_summary'] = previous_value[key]
+                    del previous_value[key]
+
+        new_value = event.new_value
+        if new_value:
+            for key in new_value.keys():
+                if key == 'agency_description':
+                    new_value['agency_request_summary'] = new_value[key]
+                    del new_value[key]
+
+        db.session.add(event)
+
+        request = Requests.query.filter_by(id=event.request_id).one()
+        try:
+            request.privacy['agency_request_summary'] = request.privacy['agency_description']
+            del request.privacy['agency_description']
+        except KeyError:
+            pass
+
+        db.session.add(request)
+    db.session.commit()
 
 
 @manager.command
