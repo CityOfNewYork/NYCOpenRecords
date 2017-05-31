@@ -13,14 +13,12 @@ from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from app import db, es, calendar
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
-    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
     role_name,
     user_type_auth,
