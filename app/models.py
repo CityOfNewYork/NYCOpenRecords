@@ -94,8 +94,8 @@ class Roles(db.Model):
                 permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_TITLE |
                 permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
                 permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
@@ -123,8 +123,8 @@ class Roles(db.Model):
                 permission.DELETE_LINK |
                 permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
                 permission.ADD_USER_TO_REQUEST |
                 permission.REMOVE_USER_FROM_REQUEST |
                 permission.EDIT_USER_REQUEST_PERMISSIONS |
@@ -420,7 +420,8 @@ class Users(UserMixin, db.Model):
                 if Users.query.filter_by(email=row['email']).first() is None:
                     user = cls(
                         guid=str(uuid4()),
-                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config['USE_LDAP'] else user_type_auth.AGENCY_USER,
+                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
+                            'USE_LDAP'] else user_type_auth.AGENCY_USER,
                         agency_ein=row['agency_ein'],
                         is_super=eval(row['is_super']),
                         is_agency_admin=eval(row['is_agency_admin']),
@@ -529,8 +530,8 @@ class Requests(db.Model):
         nullable=False
     )
     privacy = db.Column(JSON)
-    agency_description = db.Column(db.String(5000))
-    agency_description_release_date = db.Column(db.DateTime)
+    agency_request_summary = db.Column(db.String(5000))
+    agency_request_summary_release_date = db.Column(db.DateTime)
 
     user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
     agency = db.relationship('Agencies', backref='requests', uselist=False)
@@ -557,7 +558,7 @@ class Requests(db.Model):
         viewonly=True
     )
 
-    PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
+    PRIVACY_DEFAULT = {'title': False, 'agency_request_summary': True}
 
     def __init__(
             self,
@@ -636,9 +637,9 @@ class Requests(db.Model):
                        ))
 
     @property
-    def agency_description_released(self):
-        return self.status == request_status.CLOSED and not self.privacy['agency_description'] and \
-               self.agency_description_release_date < datetime.utcnow()
+    def agency_request_summary_released(self):
+        return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
+               self.agency_request_summary_release_date < datetime.utcnow()
 
     def es_update(self):
         if self.agency.is_active:
@@ -650,9 +651,9 @@ class Requests(db.Model):
                     'doc': {
                         'title': self.title,
                         'description': self.description,
-                        'agency_description': self.agency_description,
+                        'agency_request_summary': self.agency_request_summary,
                         'title_private': self.privacy['title'],
-                        'agency_description_private': not self.agency_description_released,
+                        'agency_request_summary_private': not self.agency_request_summary_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                         'status': self.status,
                         'requester_name': self.requester.name,
@@ -671,11 +672,11 @@ class Requests(db.Model):
             body={
                 'title': self.title,
                 'description': self.description,
-                'agency_description': self.agency_description,
+                'agency_request_summary': self.agency_request_summary,
                 'agency_ein': self.agency_ein,
                 'agency_name': self.agency.name,
                 'title_private': self.privacy['title'],
-                'agency_description_private': not self.agency_description_released,
+                'agency_request_summary_private': not self.agency_request_summary_released,
                 'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_received': self.date_created.strftime(
@@ -840,11 +841,11 @@ class Events(db.Model):
                 self.RowContent(self, "re-opened", "{} this request."),
             event_type.REQ_TITLE_EDITED:
                 self.RowContent(self, "changed", "{} the title."),
-            event_type.REQ_AGENCY_DESC_EDITED:
+            event_type.REQ_AGENCY_REQ_SUM_EDITED:
                 self.RowContent(self, "changed", "{} the agency description."),
             event_type.REQ_TITLE_PRIVACY_EDITED:
                 self.RowContent(self, "changed", "{} the title privacy."),
-            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED:
+            event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED:
                 self.RowContent(self, "changed", "{} the agency description privacy."),
             event_type.FILE_ADDED:
                 self.RowContent(self, "added", "{} a file response."),
@@ -938,7 +939,7 @@ class Responses(db.Model):
         val = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-            }
+        }
         val.pop('id')
         val['privacy'] = self.privacy
         return val

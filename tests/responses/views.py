@@ -50,8 +50,8 @@ class ResponseViewsTests(BaseTestCase, TestHelpers):
 
     def test_response_closing(self):
         self.request.acknowledge(days=30)
-        self.request.set_agency_description(agency_description='blah')
-        self.request.set_agency_description_privacy(privacy=False)
+        self.request.set_agency_request_summary(agency_request_summary='blah')
+        self.request.set_agency_request_summary_privacy(privacy=False)
         with self.client as client:
             login_user_with_client(client, self.admin_860.get_id())
             response = self.client.post(
@@ -79,7 +79,7 @@ class ResponseViewsTests(BaseTestCase, TestHelpers):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(urlparse(response.location).path, url_for('request.view', request_id=self.request.id))
 
-    def test_response_closing_no_agency_description(self):
+    def test_response_closing_no_agency_request_summary(self):
         self.request.acknowledge(days=30)
         with self.client as client:
             login_user_with_client(client, self.admin_860.get_id())

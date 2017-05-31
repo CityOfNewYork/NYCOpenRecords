@@ -87,7 +87,7 @@ def create_index():
                             "type": "text",
                             "analyzer": "english"
                         },
-                        "agency_description": {
+                        "agency_request_summary": {
                             "type": "text",
                             "analyzer": "english"
                         },
@@ -97,7 +97,7 @@ def create_index():
                         "title_private": {
                             "type": "boolean",
                         },
-                        "agency_description_private": {
+                        "agency_request_summary_private": {
                             "type": "boolean",
                         },
                         "agency_ein": {
@@ -150,10 +150,10 @@ def create_docs():
                 '_id': r.id,
                 'title': r.title,
                 'description': r.description,
-                'agency_description': r.agency_description,
+                'agency_request_summary': r.agency_request_summary,
                 'requester_name': r.requester.name,
                 'title_private': r.privacy['title'],
-                'agency_description_private': not r.agency_description_released,
+                'agency_request_summary_private': not r.agency_request_summary_released,
                 'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_received': date_received,
@@ -164,7 +164,7 @@ def create_docs():
                 'agency_ein': r.agency_ein,
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
-                # public_agency_description
+                # public_agency_request_summary
             })
 
     num_success, _ = bulk(
@@ -188,7 +188,7 @@ def update_docs():
 def search_requests(query,
                     foil_id,
                     title,
-                    agency_description,
+                    agency_request_summary,
                     description,
                     requester_name,
                     date_rec_from,
@@ -219,7 +219,7 @@ def search_requests(query,
     :param query: string to query for
     :param foil_id: search by request id?
     :param title: search by title?
-    :param agency_description: search by agency description?
+    :param agency_request_summary: search by agency description?
     :param description: search by description?
     :param requester_name: search by requester name?
     :param date_rec_from: date created/submitted from
@@ -251,7 +251,7 @@ def search_requests(query,
         query = query.strip()
 
     # return no results if there is nothing to query by
-    if query and not any((foil_id, title, agency_description,
+    if query and not any((foil_id, title, agency_request_summary,
                           description, requester_name)):
         return MOCK_EMPTY_ELASTICSEARCH_RESULT
 
@@ -322,7 +322,7 @@ def search_requests(query,
     query_fields = {
         'title': title,
         'description': description,
-        'agency_description': agency_description,
+        'agency_request_summary': agency_request_summary,
         'requester_name': requester_name
     }
     dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, match_type)
@@ -372,10 +372,10 @@ def search_requests(query,
                  'agency_name',
                  'requester_name',
                  'title_private',
-                 'agency_description_private',
+                 'agency_request_summary_private',
                  'public_title',
                  'title',
-                 'agency_description',
+                 'agency_request_summary',
                  'description'],
         size=min(size, MAX_RESULT_SIZE),
         from_=start,
@@ -435,10 +435,10 @@ class RequestsDSLGenerator(object):
                 {'term': {'title_private': False}}
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['agency_description']:
+        if self.__query_fields['agency_request_summary']:
             self.__filters = [
-                {self.__match_type: {'agency_description': self.__query}},
-                {'term': {'agency_description_private': False}}
+                {self.__match_type: {'agency_request_summary': self.__query}},
+                {'term': {'agency_request_summary_private': False}}
             ]
             self.__conditions.append(self.__must)
         return self.__should
@@ -456,10 +456,10 @@ class RequestsDSLGenerator(object):
                 }}
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['agency_description']:
+        if self.__query_fields['agency_request_summary']:
             self.__filters = [
-                {self.__match_type: {'agency_description': self.__query}},
-                {'term': {'agency_description_private': False}}
+                {self.__match_type: {'agency_request_summary': self.__query}},
+                {'term': {'agency_request_summary_private': False}}
             ]
             self.__conditions.append(self.__must)
         if self.__query_fields['description']:
@@ -542,9 +542,9 @@ def _process_highlights(results, requester_id=None):
                 and hit['_source']['title_private']
                 and (current_user.is_anonymous or not is_requester)):
                 hit['highlight'].pop('title')
-            if ('agency_description' in hit['highlight']
-                and hit['_source']['agency_description_private']):
-                hit['highlight'].pop('agency_description')
+            if ('agency_request_summary' in hit['highlight']
+                and hit['_source']['agency_request_summary_private']):
+                hit['highlight'].pop('agency_request_summary')
             if ('description' in hit['highlight']
                 and not is_requester):
                 hit['highlight'].pop('description')

@@ -23,14 +23,14 @@
                 tpl: '<textarea id="request-title" class="request-editable" maxlength="90" data-parsley-required data-parsley-maxlength="90" rows="3"></textarea>'
             });
         {% endif %}
-        {% if permissions['edit_agency_description'] %}
-            $('#agency_description').editable({
+        {% if permissions['agency_request_summary'] %}
+            $('#agency_request_summary').editable({
                 pk: "{{ request.id }}",
                 url: '/request/api/v1.0/view/edit',
                 ajaxOptions: {
                     type: 'put'
                 },
-                tpl: '<textarea id="agency-descr" class="request-editable" maxlength="5000" data-parsley-maxlength="5000" rows="3"></textarea>'
+                tpl: '<textarea id="agency-req-sum" class="request-editable" maxlength="5000" data-parsley-maxlength="5000" rows="3"></textarea>'
             });
         {% endif %}
     });

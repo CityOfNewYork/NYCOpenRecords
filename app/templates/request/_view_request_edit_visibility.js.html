@@ -20,7 +20,7 @@
         $.post({
             url: "/request/api/v1.0/edit_privacy",
             data: {
-                agency_desc: $(this).find(' :input').val(),
+                agency_request_summary: $(this).find(' :input').val(),
                 id: "{{ request.id }}"
             }
         });

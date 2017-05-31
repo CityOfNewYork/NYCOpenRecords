@@ -214,10 +214,10 @@
     {% if current_user.is_agency and request.requester.is_anonymous_requester %}
         {% include 'request/edit_requester_info.js.html' %}
     {% endif %}
-    {% if permissions['edit_title_privacy'] or permissions['edit_agency_description_privacy'] %}
+    {% if permissions['edit_title_privacy'] or permissions['edit_agency_request_summary_privacy'] %}
         {% include 'request/_view_request_edit_visibility.js.html' %}
     {% endif %}
-    {% if permissions['edit_title'] or permissions['edit_agency_description'] %}
+    {% if permissions['edit_title'] or permissions['edit_agency_request_summary'] %}
         {% include 'request/_view_request_info_x-editable.js.html' %}
     {% endif %}
     {% if permissions['extend'] %}

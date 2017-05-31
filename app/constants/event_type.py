@@ -13,10 +13,10 @@ REQ_EXTENDED = "request_extended"
 REQ_CLOSED = "request_closed"
 REQ_REOPENED = "request_reopened"
 REQ_TITLE_EDITED = "request_title_edited"
-REQ_AGENCY_DESC_EDITED = "request_agency_description_edited"
+REQ_AGENCY_REQ_SUM_EDITED = "request_agency_request_summary_edited"
 REQ_TITLE_PRIVACY_EDITED = "request_title_privacy_edited"
-REQ_AGENCY_DESC_PRIVACY_EDITED = "request_agency_description_privacy_edited"
-REQ_AGENCY_DESC_DATE_SET = "request_agency_description_date_set"
+REQ_AGENCY_REQ_SUM_PRIVACY_EDITED = "request_agency_request_summary_privacy_edited"
+REQ_AGENCY_REQ_SUM_DATE_SET = "request_agency_request_summary_date_set"
 EMAIL_NOTIFICATION_SENT = "email_notification_sent"
 FILE_ADDED = "file_added"
 FILE_EDITED = "file_edited"
@@ -45,9 +45,9 @@ FOR_REQUEST_HISTORY = [
     REQ_CLOSED,
     REQ_REOPENED,
     REQ_TITLE_EDITED,
-    REQ_AGENCY_DESC_EDITED,
+    REQ_AGENCY_REQ_SUM_EDITED,
     REQ_TITLE_PRIVACY_EDITED,
-    REQ_AGENCY_DESC_PRIVACY_EDITED,
+    REQ_AGENCY_REQ_SUM_PRIVACY_EDITED,
     FILE_ADDED,
     FILE_EDITED,
     FILE_REMOVED,

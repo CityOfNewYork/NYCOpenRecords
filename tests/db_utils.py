@@ -76,7 +76,7 @@ class UpdateObjectTests(BaseTestCase):
         self.assertEqual(self.rf.request.privacy,
                          {
                              'title': False,
-                             'agency_description': True
+                             'agency_request_summary': True
                          })
         # check single value change
         with patch('app.models.Requests.es_update'):
@@ -87,19 +87,19 @@ class UpdateObjectTests(BaseTestCase):
         self.assertEqual(req.privacy,
                          {
                              'title': True,
-                             'agency_description': True
+                             'agency_request_summary': True
                          })
         # check multiple value changes
         with patch('app.models.Requests.es_update'):
             update_object({'privacy': {'title': False,
-                                       'agency_description': False}},
+                                       'agency_request_summary': False}},
                           Requests,
                           self.request_id)
         req = self.refetch_request()
         self.assertEqual(req.privacy,
                          {
                              'title': False,
-                             'agency_description': False
+                             'agency_request_summary': False
                          })
 
     @patch('app.models.Requests.es_update')

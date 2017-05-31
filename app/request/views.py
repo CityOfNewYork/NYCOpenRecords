@@ -233,8 +233,8 @@ def view(request_id):
         'remove_user': permission.REMOVE_USER_FROM_REQUEST,
         'edit_title': permission.EDIT_TITLE,
         'edit_title_privacy': permission.CHANGE_PRIVACY_TITLE,
-        'edit_agency_description': permission.EDIT_AGENCY_DESCRIPTION,
-        'edit_agency_description_privacy': permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION,
+        'edit_agency_request_summary': permission.EDIT_AGENCY_REQUEST_SUMMARY,
+        'edit_agency_request_summary_privacy': permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY,
         'edit_requester_info': permission.EDIT_REQUESTER_INFO
     }
 
@@ -250,20 +250,20 @@ def view(request_id):
         assigned_user_permissions[u.guid] = UserRequests.query.filter_by(
             request_id=request_id, user_guid=u.guid).one().get_permission_choice_indices()
 
-    show_agency_description = False
+    show_agency_request_summary = False
     if (
-        current_user in current_request.agency_users or (current_request.agency_description and ((
+        current_user in current_request.agency_users or (current_request.agency_request_summary and ((
             current_request.requester == current_user and
             current_request.status == request_status.CLOSED and not
-            current_request.privacy['agency_description']
+            current_request.privacy['agency_request_summary']
         ) or (
             current_request.status == request_status.CLOSED and
-            current_request.agency_description_release_date and
-            current_request.agency_description_release_date < datetime.utcnow() and not
-            current_request.privacy['agency_description']
+            current_request.agency_request_summary_release_date and
+            current_request.agency_request_summary_release_date < datetime.utcnow() and not
+            current_request.privacy['agency_request_summary']
         )))
     ):
-        show_agency_description = True
+        show_agency_request_summary = True
     show_title = (current_user in current_request.agency_users or
                   current_request.requester == current_user or
                   not current_request.privacy['title'])
@@ -283,7 +283,7 @@ def view(request_id):
         assigned_users=assigned_users,
         active_users=active_users,
         permissions=permissions,
-        show_agency_description=show_agency_description,
+        show_agency_request_summary=show_agency_request_summary,
         show_title=show_title,
         is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL)
