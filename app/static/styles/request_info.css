@@ -55,7 +55,7 @@
 }
 
 /* wrap and break word on agency description */
-.agency-desc-text {
+.agency-request-summary-text {
     word-wrap: break-word;
 }
 
@@ -73,14 +73,14 @@
 }
 
 /* sets width and font size of agency description text area input (called in xeditable js) */
-#agency-descr {
+#agency-request-summary {
     width: 480px;
     font-size: 21px;
     max-height: 17rem;
 }
 
 /* sets padding on xeditable agency description textarea */
-.agency-desc-text .editable-container {
+.agency-request-summary-text .editable-container {
     padding-top: 10px;
 }
 
@@ -90,7 +90,7 @@
 }
 
 /* sets the div of the agency description to a max height and enables scrolling if overflow */
-.request-info .agency-desc-text {
+.request-info .agency-request-summary-text {
     max-height: 20rem;
     overflow-y: auto;
 }
