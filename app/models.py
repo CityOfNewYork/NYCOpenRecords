@@ -11,7 +11,7 @@ from warnings import warn
 
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
-from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm.exc import NoResultFound
 
 from app import db, es, calendar
@@ -180,7 +180,7 @@ class Agencies(db.Model):
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
-    agency_features = db.Column(JSON)
+    agency_features = db.Column(JSONB)
     # TODO: Method to insert updates to the agency_features column
     # TODO: Use validation on agency_features column
 
@@ -302,7 +302,7 @@ class Users(UserMixin, db.Model):
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
-    mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
+    mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
 
     # Relationships
     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
@@ -543,7 +543,7 @@ class Requests(db.Model):
                 name='status'),
         nullable=False
     )
-    privacy = db.Column(JSON)
+    privacy = db.Column(JSONB)
     agency_request_summary = db.Column(db.String(5000))
     agency_request_summary_release_date = db.Column(db.DateTime)
 
@@ -744,8 +744,8 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_value = db.Column(JSON)
-    new_value = db.Column(JSON)
+    previous_value = db.Column(JSONB)
+    new_value = db.Column(JSONB)
 
     __table_args__ = (
         db.ForeignKeyConstraint(
