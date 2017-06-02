@@ -11,6 +11,7 @@ from warnings import warn
 
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
+from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -631,6 +632,20 @@ class Requests(db.Model):
         #     return True
         # except NoResultFound:
         #     return False
+
+    @property
+    def was_closed(self):
+        return self.responses.join(Determinations).filter(
+            Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
+        ).first() is not None
+
+    @property
+    def date_closed(self):
+        if self.was_closed:
+            return self.responses.join(Determinations).filter(
+                Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
+            ).order_by(desc(Determinations.date_modified)).limit(1).one().date_modified
+        return None
 
     @property
     def days_until_due(self):

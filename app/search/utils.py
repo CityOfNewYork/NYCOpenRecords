@@ -124,6 +124,10 @@ def create_index():
                         "date_received": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "date_closed": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
                         }
                     }
                 }
@@ -158,6 +162,7 @@ def create_docs():
                 'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_received': date_received,
                 'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
+                'date_closed': r.date_closed,
                 'submission': r.submission,
                 'status': r.status,
                 'requester_id': r.requester.get_id(),
@@ -195,6 +200,7 @@ def search_requests(query,
                     date_rec_to,
                     date_due_from,
                     date_due_to,
+                    date_closed,
                     agency_ein,
                     open_,
                     closed,
@@ -226,6 +232,7 @@ def search_requests(query,
     :param date_rec_to: date created/submitted to
     :param date_due_from: date due from
     :param date_due_to: date due to
+    :param date_closed: date closed
     :param agency_ein: agency ein to filter by
     :param open_: filter by opened requests?
     :param closed: filter by closed requests?
@@ -367,6 +374,7 @@ def search_requests(query,
                  'date_due',
                  'date_received',
                  'date_created',
+                 'date_closed',
                  'status',
                  'agency_ein',
                  'agency_name',
