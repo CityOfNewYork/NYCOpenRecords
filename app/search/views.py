@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 from io import StringIO, BytesIO
+import re
 
 from flask import (
     request,
@@ -70,9 +71,13 @@ def requests():
         start = 0
 
     query = request.args.get('query')
+
+    # Determine if searching for FOIL ID
+    foil_id = eval_request_bool(request.args.get('foil_id')) or re.match(r'^(FOIL-|foil-|)\d{4}-\d{3}-\d{5}$', query)
+
     results = search_requests(
         query,
-        eval_request_bool(request.args.get('foil_id')),
+        foil_id,
         eval_request_bool(request.args.get('title')),
         eval_request_bool(request.args.get('agency_description')),
         eval_request_bool(request.args.get('description')) if not current_user.is_anonymous else False,
