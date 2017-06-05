@@ -46,7 +46,8 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm
+    CloseRequestForm,
+    ContactAgencyForm
 )
 from app.request.utils import (
     create_request,
@@ -273,6 +274,7 @@ def view(request_id):
         status=request_status,
         agency_users=current_request.agency_users,
         edit_requester_form=EditRequesterForm(current_request.requester),
+        contact_agency_form=ContactAgencyForm(current_request),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),

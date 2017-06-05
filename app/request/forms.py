@@ -17,6 +17,11 @@ from wtforms import (
     DateTimeField,
     SelectMultipleField,
 )
+from wtforms.validators import (
+    Email,
+    Length,
+    InputRequired
+)
 from sqlalchemy import or_
 
 from app.constants import (
@@ -245,3 +250,17 @@ class SearchRequestsForm(Form):
         if current_user.is_agency:
             self.agency_ein.default = current_user.agency.ein
             self.process()
+
+
+class ContactAgencyForm(Form):
+    name = StringField(u'Name', validators=[InputRequired(), Length(96)])
+    email = StringField(u'Email', validators=[InputRequired(), Length(254), Email()])
+    subject = StringField(u'Subject', validators=[InputRequired(), Length(90)])
+    message = TextAreaField(u'Message', validators=[InputRequired(), Length(5000)])
+
+    def __init__(self, request):
+        super(ContactAgencyForm, self).__init__()
+        if current_user == request.requester:
+            self.name.data = request.requester.name
+            self.email.data = request.requester.email
+        self.subject.data = "Inquiry about {}".format(request.id)

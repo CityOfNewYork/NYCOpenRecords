@@ -95,4 +95,43 @@
         {% endif %}
         Due Date: {{ moment(request.due_date).format('MM/DD/YYYY') }}
     </p>
+    <p align="center"><a data-target="#contact-modal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
+                         href="#contact-modal">Contact the Agency</a></p>
+    <div class="modal fade" id="contact-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">x</span></button>
+                    <h4 class="modal-title">Contact the Agency</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="contact-form">
+                        {{ contact_agency_form.csrf_token }}
+
+                        {{ contact_agency_form.name.label }}
+                        {{ contact_agency_form.name(id="name", class="form-control", maxlength="96") }}
+                        <h5 id="name-character-count">96 characters remaining</h5>
+                        <br/>
+
+                        {{ contact_agency_form.email.label }}
+                        {{ contact_agency_form.email(id="email", class="form-control", maxlength="254") }}
+                        <br/>
+
+                        {{ contact_agency_form.subject.label }}
+                        {{ contact_agency_form.subject(id="subject", class="form-control", maxlength="90") }}
+                        <h5 id="subject-character-count">90 characters remaining</h5>
+                        <br/>
+
+                        {{ contact_agency_form.message.label }}
+                        {{ contact_agency_form.message(id="message", class="form-control", rows="10", maxlength="5000") }}
+                        <h5 id="message-character-count">5000 characters remaining</h5>
+
+                        <br/>
+                        <input id="submit" name="submit" type="submit" value="Send">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
