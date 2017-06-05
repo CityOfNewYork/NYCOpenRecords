@@ -19,7 +19,6 @@ from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
-    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
     role_name,
     user_type_auth,
@@ -221,6 +220,21 @@ class Agencies(db.Model):
         secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
                       "AgencyUsers.auth_user_type == Users.auth_user_type)"
     )
+
+    @property
+    def formatted_parent_ein(self):
+        """
+        Return the correctly formated EIN for a parent agency.
+
+        Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
+        :param parent_ein: 3 character parent ein
+        :return: String
+        """
+        return "0{}".format(self.parent_ein)
+
+    @property
+    def parent(self):
+        return Agencies.query.filter_by(ein=self.formatted_parent_ein).one_or_none()
 
     @classmethod
     def populate(cls, csv_name=None):
@@ -1019,6 +1033,10 @@ class Responses(db.Model):
         return (self.privacy == response_privacy.RELEASE_AND_PUBLIC and
                 self.release_date is not None and
                 datetime.utcnow() > self.release_date)
+
+    @property
+    def creator(self):
+        return Events.query.filter_by(response_id=self.id).one().user
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC

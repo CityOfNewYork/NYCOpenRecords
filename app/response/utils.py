@@ -115,7 +115,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
     return response
 
 
-def add_note(request_id, note_content, email_content, privacy, is_editable):
+def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester):
     """
     Create and store the note object for the specified request.
     Store the note content into the Notes table.
@@ -125,16 +125,27 @@ def add_note(request_id, note_content, email_content, privacy, is_editable):
     :param note_content: string content of the note to be created and stored as a note object
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the note
-    :param is_editable: editability of the note  
+    :param is_editable: editability of the note
+    :param is_requester: requester is creator of the note  
 
     """
     response = Notes(request_id, privacy, note_content, is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
-    if privacy != PRIVATE:
-        subject = 'Response Added to {} - Note'.format(request_id)
-    else:
+    subject = 'Note Added to {}'.format(request_id)
+    if is_requester:
+        email_content = render_template('email_templates/email_response_note.html',
+                                        from_requester=is_requester,
+                                        agency_name=response.request.agency.name,
+                                        note_content=note_content,
+                                        page=urljoin(flask_request.host_url,
+                                                     url_for('request.view', request_id=request_id)),
+                                        request_id=request_id
+                                        )
         subject = 'Note Added to {}'.format(request_id)
+    else:
+        if privacy != PRIVATE:
+            subject = 'Response Added to {} - Note'.format(request_id)
     _send_response_email(request_id,
                          privacy,
                          email_content,
@@ -868,12 +879,11 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
     release_private_links = []
 
     release_date = None
-    request = None
+    request = Requests.query.filter_by(id=request_id).one()
 
     files = data.get('files')
     # if data['files'] exists, use email_content as template with specific file email template
     if files is not None:
-        request = Requests.query.filter_by(id=request_id).one()
         files = json.loads(files)
         default_content = True
         content = None
@@ -909,7 +919,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 agency_name=agency_name,
                                                 agency_default_email=request.agency.default_email,
                                                 public_requester=request.requester.auth_user_type in
-                                                                    user_type_auth.PUBLIC_USER_TYPES,
+                                                                 user_type_auth.PUBLIC_USER_TYPES,
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,

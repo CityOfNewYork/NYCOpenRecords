@@ -1,9 +1,21 @@
+<div>
+    Created By:
+    {% if current_user == response.creator %}
+        You
+    {% elif current_user.is_agency %}
+        {{ response.creator.name }}
+    {% else %}
+        Agency
+    {% endif %}
+</div>
+<br>
+
 {% if (edit_response_permission or edit_privacy_response_permission) and is_editable
 and current_request.status != request_status.CLOSED %}
     <form id="note-update-{{ response.id }}" class="note-update note-form"
           action="/response/{{ response.id }}" method="POST">
 
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <div class="note-error-messages alert alert-danger" hidden></div>
         {% if edit_response_permission %}
