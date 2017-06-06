@@ -1,0 +1,36 @@
+<div class="modal fade" id="contact-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">x</span></button>
+                <h4 class="modal-title">Contact the Agency</h4>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form" action="/request/contact/{{ request.id }}" method="POST">
+                    {{ contact_agency_form.csrf_token }}
+
+                    {{ contact_agency_form.name.label }}
+                    {{ contact_agency_form.name(id="name", class="form-control", maxlength="96") }}
+                    <h5 id="name-character-count">96 characters remaining</h5>
+                    <br/>
+
+                    {{ contact_agency_form.email.label }}
+                    {{ contact_agency_form.email(id="email", class="form-control", type="email", maxlength="254") }}
+                    <br/>
+
+                    {{ contact_agency_form.subject.label }}
+                    {{ contact_agency_form.subject(id="subject", class="form-control", maxlength="90", readonly=true) }}
+                    <br/>
+
+                    {{ contact_agency_form.message.label }}
+                    {{ contact_agency_form.message(id="message", class="form-control", rows="10", maxlength="5000") }}
+                    <h5 id="message-character-count">5000 characters remaining</h5>
+
+                    <br/>
+                    {{ contact_agency_form.submit(id="submit") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

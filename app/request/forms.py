@@ -257,6 +257,7 @@ class ContactAgencyForm(Form):
     email = StringField(u'Email', validators=[InputRequired(), Length(254), Email()])
     subject = StringField(u'Subject', validators=[InputRequired(), Length(90)])
     message = TextAreaField(u'Message', validators=[InputRequired(), Length(5000)])
+    submit = SubmitField(u'Send')
 
     def __init__(self, request):
         super(ContactAgencyForm, self).__init__()

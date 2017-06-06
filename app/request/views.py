@@ -323,3 +323,12 @@ def get_agencies_as_choices():
              for agencies in Agencies.query.all()],
             key=lambda x: x[1])
     return jsonify(choices)
+
+
+@request.route('/contact/<request_id>', methods=['POST'])
+def contact_agency(request_id):
+    """
+    This function handles contacting the agency about a request as a requester. 
+    :return: 
+    """
+    pass
