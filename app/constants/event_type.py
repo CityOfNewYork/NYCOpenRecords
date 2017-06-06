@@ -31,6 +31,7 @@ NOTE_ADDED = "note_added"
 NOTE_EDITED = "note_edited"
 NOTE_DELETED = "note_deleted"
 AGENCY_ACTIVATED = "agency_activated"
+CONTACT_EMAIL_SENT = "contact_email_sent"
 
 FOR_REQUEST_HISTORY = [
     USER_ADDED,

@@ -7,12 +7,17 @@
                 <h4 class="modal-title">Contact the Agency</h4>
             </div>
             <div class="modal-body">
-                <form id="contact-form" action="/request/contact/{{ request.id }}" method="POST">
+                <form id="contact-form" role="form" action="/request/contact/{{ request.id }}" method="POST">
                     {{ contact_agency_form.csrf_token }}
 
-                    {{ contact_agency_form.name.label }}
-                    {{ contact_agency_form.name(id="name", class="form-control", maxlength="96") }}
-                    <h5 id="name-character-count">96 characters remaining</h5>
+                    {{ contact_agency_form.first_name.label }}
+                    {{ contact_agency_form.first_name(id="first-name", class="form-control", maxlength="32") }}
+                    <h5 id="first-name-character-count">32 characters remaining</h5>
+                    <br/>
+
+                    {{ contact_agency_form.last_name.label }}
+                    {{ contact_agency_form.last_name(id="last-name", class="form-control", maxlength="64") }}
+                    <h5 id="last-name-character-count">64 characters remaining</h5>
                     <br/>
 
                     {{ contact_agency_form.email.label }}
@@ -20,7 +25,7 @@
                     <br/>
 
                     {{ contact_agency_form.subject.label }}
-                    {{ contact_agency_form.subject(id="subject", class="form-control", maxlength="90", readonly=true) }}
+                    {{ contact_agency_form.subject(id="subject", class="form-control", readonly=true) }}
                     <br/>
 
                     {{ contact_agency_form.message.label }}

@@ -1,29 +1,36 @@
 $(document).ready(function () {
 
-    var name = $("#name");
+    var firstName = $("#first-name");
+    var lastName = $("#last-name");
     var email = $("#email");
     var subject = $("#subject");
     var message = $("#message");
 
-    name.attr("data-parsley-required", "");
+    firstName.attr("data-parsley-required", "");
+    lastName.attr("data-parsley-required", "");
     email.attr("data-parsley-required", "");
     subject.attr("data-parsley-required", "");
     message.attr("data-parsley-required", "");
 
-    name.attr('data-parsley-required-message', 'This information is required.');
+    firstName.attr('data-parsley-required-message', 'This information is required.');
+    lastName.attr('data-parsley-required-message', 'This information is required.');
     email.attr('data-parsley-required-message', 'This information is required.');
     subject.attr('data-parsley-required-message', 'This information is required.');
     message.attr('data-parsley-required-message', 'This information is required.');
 
-    name.attr('data-parsley-maxlength', 96);
+    firstName.attr('data-parsley-maxlength', 32);
+    lastName.attr('data-parsley-maxlength', 64);
     email.attr("data-parsley-maxlength", 254);
-    subject.attr('data-parsley-maxlength', 90);
     message.attr('data-parsley-maxlength', 5000);
 
     $("#contact-form").parsley();
 
-    name.keyup(function() {
-        characterCounter("#name-character-count", 96, $(this).val().length)
+    firstName.keyup(function() {
+        characterCounter("#first-name-character-count", 32, $(this).val().length)
+    });
+
+    lastName.keyup(function() {
+        characterCounter("#last-name-character-count", 64, $(this).val().length)
     });
 
     message.keyup(function() {

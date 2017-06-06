@@ -253,15 +253,17 @@ class SearchRequestsForm(Form):
 
 
 class ContactAgencyForm(Form):
-    name = StringField(u'Name', validators=[InputRequired(), Length(96)])
-    email = StringField(u'Email', validators=[InputRequired(), Length(254), Email()])
-    subject = StringField(u'Subject', validators=[InputRequired(), Length(90)])
-    message = TextAreaField(u'Message', validators=[InputRequired(), Length(5000)])
+    first_name = StringField(u'First Name', validators=[InputRequired(), Length(max=32)])
+    last_name = StringField(u'Last Name', validators=[InputRequired(), Length(max=64)])
+    email = StringField(u'Email', validators=[InputRequired(), Length(max=254), Email()])
+    subject = StringField(u'Subject')
+    message = TextAreaField(u'Message', validators=[InputRequired(), Length(max=5000)])
     submit = SubmitField(u'Send')
 
     def __init__(self, request):
         super(ContactAgencyForm, self).__init__()
         if current_user == request.requester:
-            self.name.data = request.requester.name
-            self.email.data = request.requester.email
+            self.first_name.data = request.requester.first_name
+            self.last_name.data = request.requester.last_name
+            self.email.data = request.requester.notification_email or request.requester.email
         self.subject.data = "Inquiry about {}".format(request.id)
