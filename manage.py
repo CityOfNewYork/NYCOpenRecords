@@ -25,6 +25,7 @@ from app.request.utils import (
 )
 from app.constants import user_type_auth
 from app.lib.user_information import create_mailing_address
+from app.lib.utils import eval_request_bool
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -76,7 +77,10 @@ manager.add_command("db", MigrateCommand)
 @manager.option('-f', '--fname', dest='first_name', default=None)
 @manager.option('-l', '--lname', dest='last_name', default=None)
 @manager.option('-e', '--email', dest='email', default=None)
-def create_user(first_name=None, last_name=None, email=None):
+@manager.option('-a', '--agency-ein', dest='ein', default=None)
+@manager.option('--is-admin', dest='is_admin', default=False)
+@manager.option('--is-active', dest='is_active', default=False)
+def create_user(first_name=None, last_name=None, email=None, ein=None, is_admin=False, is_active=False):
     """Create an agency user."""
     if first_name is None:
         raise InvalidCommand("First name is required")
@@ -86,6 +90,9 @@ def create_user(first_name=None, last_name=None, email=None):
 
     if email is None:
         raise InvalidCommand("Email is required")
+
+    if ein is None:
+        raise InvalidCommand("Agency EIN is required")
 
     user = Users(
         guid=generate_guid(),
@@ -102,6 +109,16 @@ def create_user(first_name=None, last_name=None, email=None):
         mailing_address=create_mailing_address(None, None, None, None)
     )
     db.session.add(user)
+
+    agency_user = AgencyUsers(
+        user_guid=user.guid,
+        auth_user_type=user.auth_user_type,
+        agency_ein=ein,
+        is_agency_active=is_active,
+        is_agency_admin=is_admin,
+        is_primary_agency=True
+    )
+    db.session.add(agency_user)
     db.session.commit()
 
     print(user)

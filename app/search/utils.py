@@ -524,7 +524,7 @@ def convert_dates(results, dt_format=None, tz_name=None):
 
 def _process_highlights(results, requester_id=None):
     """
-    Removes highlights for private and non-requester fields.
+    Remove highlights for private and non-requester fields.
     Used for non-agency users.
 
     Why this is necessary:

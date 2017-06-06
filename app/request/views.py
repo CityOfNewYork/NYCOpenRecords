@@ -112,7 +112,7 @@ def new():
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         category=None,
-                                        agency_ein=current_user.agency_ein,
+                                        agency_ein=form.request_agency.data,
                                         submission=form.method_received.data,
                                         agency_date_submitted=form.request_date.data,
                                         email=form.email.data,
@@ -202,7 +202,7 @@ def view(request_id):
     assigned_users = []
     if current_user.is_agency:
         for agency_user in current_request.agency.active_users:
-            if not agency_user.is_agency_admin and (agency_user != current_user):
+            if not agency_user in current_request.agency.administrators and (agency_user != current_user):
                 # populate list of assigned users that can be removed from a request
                 if agency_user in current_request.agency_users:
                     assigned_users.append(agency_user)

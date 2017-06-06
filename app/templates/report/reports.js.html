@@ -69,7 +69,7 @@
     {% if current_user.is_agency %}
         agency_active = "{{ current_user.is_agency_active }}";
         agency_admin = "{{ current_user.is_agency_admin }}";
-        current_agency = "{{ current_user.agency.ein }}";
+        current_agency = "{{ current_user.default_agency }}";
     {% else %}
         agency_active = false;
         agency_admin = false;

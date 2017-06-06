@@ -64,7 +64,7 @@ def get():
             requests_closed = len([r for r in active_requests if r[0] == request_status.CLOSED])
             requests_opened = len(active_requests) - requests_closed
             if not (current_user.is_anonymous or current_user.is_public):
-                if (current_user.is_agency and current_user.agency.ein == agency_ein) or current_user.is_super:
+                if (current_user.is_agency and current_user.is_agency_admin(agency_ein)) or current_user.is_super:
                     if current_user.is_agency_admin or current_user.is_super:
                         active_users = sorted(
                             [(user.guid, user.name)

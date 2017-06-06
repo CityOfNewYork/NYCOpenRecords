@@ -1,6 +1,7 @@
 from app.models import Agencies
 from flask_wtf import Form
 from wtforms import SelectField
+from flask_login import current_user
 
 
 class ActivateAgencyUserForm(Form):
@@ -24,6 +25,16 @@ class SelectAgencyForm(Form):
                                              Agencies.name.asc())]
         if current_agency_ein is not None:
             self.agencies.default = current_agency_ein
+            user_agencies = sorted([(agencies.ein, agencies.name)
+                                    for agencies in current_user.agencies],
+                                   key=lambda x: x[1])
+            for user_agency in user_agencies:
+                try:
+                    self.agencies.choices.insert(0, self.agencies.choices.pop(self.agencies.choices.index(user_agency)))
+                except ValueError:
+                    self.agencies.choices.insert(0, self.agencies.choices.pop(
+                        self.agencies.choices.index(
+                            (user_agency[0], '(ACTIVE) {agency_name}'.format(agency_name=user_agency[1])))))
             self.process()
 
 # TODO: Add forms to modify agency_features (see models.py:183)

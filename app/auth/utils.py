@@ -23,7 +23,7 @@ from flask import (
 )
 from flask_login import login_user, current_user
 from app import login_manager
-from app.models import Users
+from app.models import Users, AgencyUsers
 from app.constants import user_type_auth, USER_ID_DELIMITER
 from app.constants.web_services import (
     USER_ENDPOINT,
@@ -56,8 +56,8 @@ def user_loader(user_id):
 def update_openrecords_user(form):
     """
     Update OpenRecords-specific user attributes.
-    :param form: validated ManageUserAccountForm
-    :type form: app.auth.forms.ManageUserAccountForm
+    :param form: validated ManageUserAccountForm or ManageAgencyUserAccountForm
+    :type form: app.auth.forms.ManageUserAccountForm or app.auth.forms.ManageAgencyUserAccountForm
     """
     update_object(
         {
@@ -75,6 +75,18 @@ def update_openrecords_user(form):
         },
         Users,
         (current_user.guid, current_user.auth_user_type))
+
+    if current_user.default_agency != form.default_agency.data:
+        update_object(
+            {'is_primary_agency': False},
+            AgencyUsers,
+            (current_user.guid, current_user.auth_user_type, current_user.default_agency)
+        )
+        update_object(
+            {'is_primary_agency': True},
+            AgencyUsers,
+            (current_user.guid, current_user.auth_user_type, form.default_agency.data)
+        )
 
 
 def is_safe_url(target):
@@ -95,11 +107,11 @@ def find_user_by_email(email):
     :return: User object or None if no user found.
     """
     if current_app.config['USE_LDAP']:
-        return Users.query.filter_by(
+        user = Users.query.filter_by(
             email=email,
-            is_agency_active=True,
             auth_user_type=user_type_auth.AGENCY_LDAP_USER
         ).first()
+        return user if user.agencies is not None else None
     elif current_app.config['USE_OAUTH']:
         return Users.query.filter(
             Users.email == email,
@@ -346,8 +358,8 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
     :return: redirect url or None
     """
     if user_type == user_type_auth.PUBLIC_USER_NYC_ID and (
-            email_validation_flag is not None and
-            email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
+                    email_validation_flag is not None and
+                    email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
             EMAIL_VALIDATION_STATUS_ENDPOINT,
             {"guid": guid}

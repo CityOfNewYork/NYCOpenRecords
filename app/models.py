@@ -325,6 +325,7 @@ class Users(UserMixin, db.Model):
                       "AgencyUsers.is_agency_active == True)",
         lazy='dynamic'
     )
+    agency_users = db.relationship("AgencyUsers", backref="user", lazy='dynamic')
 
     @property
     def is_authenticated(self):
@@ -371,6 +372,15 @@ class Users(UserMixin, db.Model):
         return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agencies is not None
 
     @property
+    def default_agency(self):
+        """
+        Returns the Users default agency ein
+        :return: String
+        """
+        primary_agency = [au.agency_ein for au in self.agency_users if au.is_primary_agency]
+        return primary_agency[0]
+
+    @property
     def has_nyc_id_profile(self):
         """
         Checks to see if the current user has authenticated with
@@ -408,6 +418,28 @@ class Users(UserMixin, db.Model):
     def from_id(self, user_id):  # Might come in useful
         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
+
+    def is_agency_admin(self, ein):
+        """
+        Determine if a user is an admin for the specified agency.
+        :param ein: Agency EIN (4 Character String)
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.agency_ein == ein:
+                return agency.is_agency_admin
+        return False
+
+    def is_agency_active(self, ein):
+        """
+        Determine if a user is active for the specified agency.
+        :param ein: Agency EIN (4 Character String)
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.agency_ein == ein:
+                return agency.is_agency_active
+        return False
 
     @property
     def name(self):
@@ -447,8 +479,6 @@ class Users(UserMixin, db.Model):
         filename = csv_name or current_app.config['STAFF_DATA']
         with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
-            import ipdb;
-            ipdb.set_trace()
             for row in dictreader:
                 if Users.query.filter_by(email=row['email']).first() is None:
                     user = cls(
@@ -465,6 +495,9 @@ class Users(UserMixin, db.Model):
                         phone_number=row['phone_number'],
                         fax_number=row['fax_number']
                     )
+                    db.session.add(user)
+                    db.session.commit()
+
                     agency_eins = row['agencies'].split('|')
                     for agency in agency_eins:
                         ein, is_active, is_admin, is_primary_agency = agency.split('#')
