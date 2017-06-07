@@ -507,14 +507,15 @@ def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth
 
 def create_contact_record(request, first_name, last_name, email, subject, message):
     """
+    Creates Users, Emails, and Events entries for a contact submission for a request.
+    Sends email with message to all agency users associated with
     
-    :param request: 
-    :param first_name:
-    :param last_name:
-    :param email: 
-    :param subject: 
-    :param message: 
-    :return: 
+    :param request: request object
+    :param first_name: sender's first name
+    :param last_name: sender's last name
+    :param email: sender's email
+    :param subject: subject of email
+    :param message: email body
     """
     if current_user == request.requester:
         user = current_user
@@ -535,6 +536,7 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
             user_guid=None,
             auth_user_type=None,
             type_=event_type.USER_CREATED,
+            new_value=user.val_for_events
         ))
 
     body = "Name: {} {}\n\nEmail: {}\n\nSubject: {}\n\nMessage:\n{}".format(
@@ -545,7 +547,7 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
     email_obj = Emails(
         request.id,
         PRIVATE,
-        to=agency_emails,
+        to=','.join([email.replace('{', '').replace('}', '') for email in agency_emails]),
         cc=None,
         bcc=None,
         subject=subject,
@@ -566,6 +568,6 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
     send_contact_email(
         subject,
         agency_emails,
-        body,
+        message,
         email
     )
