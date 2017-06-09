@@ -46,13 +46,15 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm
+    CloseRequestForm,
+    ContactAgencyForm
 )
 from app.request.utils import (
     create_request,
     handle_upload_no_id,
     get_address,
-    send_confirmation_email
+    send_confirmation_email,
+    create_contact_record
 )
 from app.user_request.forms import (
     AddUserRequestForm,
@@ -273,6 +275,7 @@ def view(request_id):
         status=request_status,
         agency_users=current_request.agency_users,
         edit_requester_form=EditRequesterForm(current_request.requester),
+        contact_agency_form=ContactAgencyForm(current_request),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
@@ -321,3 +324,25 @@ def get_agencies_as_choices():
              for agencies in Agencies.query.all()],
             key=lambda x: x[1])
     return jsonify(choices)
+
+
+@request.route('/contact/<request_id>', methods=['POST'])
+def contact_agency(request_id):
+    """
+    This function handles contacting the agency about a request as a requester. 
+    :return: 
+    """
+    current_request = Requests.query.filter_by(id=request_id).one()
+    form = ContactAgencyForm(current_request)
+    del form.subject
+    if form.validate_on_submit():
+        create_contact_record(current_request,
+                              flask_request.form['first_name'],
+                              flask_request.form['last_name'],
+                              flask_request.form['email'],
+                              "Inquiry about {}".format(request_id),
+                              flask_request.form['message'])
+        flash('Your message has been sent.', category='success')
+    else:
+        flash('There was a problem sending your message. Please try again.', category='danger')
+    return redirect(url_for('request.view', request_id=request_id))
