@@ -26,20 +26,29 @@
             <div class="col-sm-2">
                 {{ moment(request._source.date_received).format('MMM DD, YYYY') }}
             </div>
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+            <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %}">
                 {% if current_user.is_agency %}
                     {{ request._source.title }}
                 {% else %}
                     {{ request._source.public_title }}
                 {% endif %}
             </div>
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
-                {{ request._source.agency_name }}
-            </div>
-            <div class="col-sm-2">
+            {% if current_user.is_agency %}
+                <div class="col-sm-1">
+                    {{ request._source.agency_acronym }}
+                </div>
+            {% else %}
+                <div class="col-sm-3">
+                    {{ request._source.agency_name }}
+                </div>
+            {% endif %}
+            <div class="col-sm-{% if current_user.is_agency %}2{% else %}2{% endif %}">
                 {{ moment(request._source.date_due).format('MMM DD, YYYY') }}
             </div>
             {% if current_user.is_agency %}
+                <div class="col-sm-2">
+                    {{ moment(request._source.date_closed).format('MMM DD, YYYY') if request._source.date_closed else '' }}
+                </div>
                 <div class="col-sm-2">
                     {{ request._source.requester_name }}
                 </div>

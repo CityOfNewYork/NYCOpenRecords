@@ -66,17 +66,20 @@
                         <div class="col-sm-2 sort-field" data-sort-order="none" id="sort_date_submitted">
                             Date Submitted <span class="glyphicon" aria-hidden="true"></span>
                         </div>
-                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %} sort-field"
+                        <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %} sort-field"
                              data-sort-order="none" id="sort_title">
                             Title <span class="glyphicon" aria-hidden="true"></span>
                         </div>
-                        <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
-                            Assigned Agency
+                        <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %}">
+                            {% if current_user.is_public %}Assigned {% endif %}Agency
                         </div>
                         <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort_date_due">
                             Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
                         </div>
                         {% if current_user.is_agency %}
+                            <div class="col-sm-2">
+                                Date Closed
+                            </div>
                             <div class="col-sm-2">
                                 Requester Name
                             </div>

@@ -177,6 +177,7 @@ class Agencies(db.Model):
     parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
     name = db.Column(db.String(256), nullable=False)
+    acronym = db.Column(db.String(64), nullable=True)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
@@ -241,6 +242,7 @@ class Agencies(db.Model):
                     parent_ein=row['parent_ein'],
                     categories=row['categories'].split(','),
                     name=row['name'],
+                    acronym=row['acronym'],
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
                     appeals_email=row['appeals_email'],
@@ -634,14 +636,8 @@ class Requests(db.Model):
         #     return False
 
     @property
-    def was_closed(self):
-        return self.responses.join(Determinations).filter(
-            Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
-        ).first() is not None
-
-    @property
     def date_closed(self):
-        if self.was_closed:
+        if self.status == request_status.CLOSED:
             return self.responses.join(Determinations).filter(
                 Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
             ).order_by(desc(Determinations.date_modified)).limit(1).one().date_modified
@@ -684,6 +680,8 @@ class Requests(db.Model):
                         'title_private': self.privacy['title'],
                         'agency_description_private': not self.agency_description_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                        'date_closed': self.date_closed.strftime(
+                            ES_DATETIME_FORMAT) if self.status == request_status.CLOSED is not None else '',
                         'status': self.status,
                         'requester_name': self.requester.name,
                         'public_title': 'Private' if self.privacy['title'] else self.title
@@ -704,6 +702,7 @@ class Requests(db.Model):
                 'agency_description': self.agency_description,
                 'agency_ein': self.agency_ein,
                 'agency_name': self.agency.name,
+                'agency_acronym': self.agency.acronym,
                 'title_private': self.privacy['title'],
                 'agency_description_private': not self.agency_description_released,
                 'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
