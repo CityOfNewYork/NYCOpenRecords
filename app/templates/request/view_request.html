@@ -258,5 +258,7 @@
     {% if permissions['remove_user'] %}
         {% include 'response/remove_user_request.js.html' %}
     {% endif %}
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/view-request-contact.js') }}"></script>
 
 {% endblock %}
