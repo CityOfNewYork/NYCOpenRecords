@@ -133,14 +133,7 @@ class ManageAgencyUserAccountForm(StripFieldsForm):
         """
         super(ManageAgencyUserAccountForm, self).__init__()
         self.user = user
-        self.default_agency.choices = [
-            (a.ein, a.name)
-            for a in user.agencies.all()]
-        for agency in self.default_agency.choices:
-            if user.default_agency == agency[0]:
-                self.default_agency.choices.insert(0,
-                                                   self.default_agency.choices.pop(
-                                                       self.default_agency.choices.index(agency)))
+        self.default_agency.choices = self.user.agencies_for_forms()
 
     def autofill(self):
         if self.user is not None:

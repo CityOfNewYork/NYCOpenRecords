@@ -70,16 +70,20 @@ def patch(user_id):
         except (ValueError, NoResultFound, MultipleResultsFound):
             return jsonify({}), 404
 
+        agency_ein = request.form.get('agency_ein', None)
+        if agency_ein is None:
+            return jsonify({}), 404
+
         updating_self = current_user == user_
         current_user_is_agency_user = (current_user.is_agency
                                        and not current_user.is_super
-                                       and not current_user.is_agency_admin
-                                       and current_user.is_agency_active)
+                                       and not current_user.is_agency_admin(agency_ein)
+                                       and current_user.is_agency_active(agency_ein))
         current_user_is_agency_admin = (current_user.is_agency
                                         and not current_user.is_super
-                                        and current_user.is_agency_admin
-                                        and current_user.is_agency_active)
-        same_agency = current_user.agency is user_.agency
+                                        and current_user.is_agency_admin(agency_ein)
+                                        and current_user.is_agency_active(agency_ein))
+        same_agency = agency_ein in current_user.agencies.all()
         associated_anonymous_requester = (user_.is_anonymous_requester
                                           and current_user.user_requests.filter_by(
                                             request_id=user_.anonymous_request.id

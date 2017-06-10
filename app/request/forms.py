@@ -255,7 +255,7 @@ class SearchRequestsForm(Form):
         self.agency_ein.choices.insert(0, ('', 'All'))
         # set default value of agency select field to agency user's agency
         if current_user.is_agency:
-            self.agency_ein.default = current_user.default_agency
+            self.agency_ein.default = current_user.default_agency_ein
             user_agencies = sorted([(agencies.ein, agencies.name)
                                     for agencies in current_user.agencies],
                                    key=lambda x: x[1])

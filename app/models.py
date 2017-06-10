@@ -363,7 +363,7 @@ class Users(UserMixin, db.Model):
     @property
     def is_agency(self):
         """
-        Checks to see if the current user is an agency user
+        Check to see if the current user is an agency user.
 
         AGENCY_USER = 'Saml2In:NYC Employees'
 
@@ -372,13 +372,23 @@ class Users(UserMixin, db.Model):
         return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agencies is not None
 
     @property
-    def default_agency(self):
+    def default_agency_ein(self):
         """
-        Returns the Users default agency ein
+        Return the Users default agency ein.
         :return: String
         """
-        primary_agency = [au.agency_ein for au in self.agency_users if au.is_primary_agency]
-        return primary_agency[0]
+        agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True).one_or_none()
+        if agency is not None:
+            return agency.agency_ein
+        return None
+
+    @property
+    def default_agency(self):
+        """
+        Return the Users default Agencies object.
+        :return: Agencies
+        """
+        return Agencies.query.filter_by(ein=self.default_agency_ein).one()
 
     @property
     def has_nyc_id_profile(self):
@@ -419,7 +429,7 @@ class Users(UserMixin, db.Model):
         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
 
-    def is_agency_admin(self, ein):
+    def is_agency_admin(self, ein=default_agency_ein):
         """
         Determine if a user is an admin for the specified agency.
         :param ein: Agency EIN (4 Character String)
@@ -430,7 +440,7 @@ class Users(UserMixin, db.Model):
                 return agency.is_agency_admin
         return False
 
-    def is_agency_active(self, ein):
+    def is_agency_active(self, ein=default_agency_ein):
         """
         Determine if a user is active for the specified agency.
         :param ein: Agency EIN (4 Character String)
@@ -440,6 +450,12 @@ class Users(UserMixin, db.Model):
             if agency.agency_ein == ein:
                 return agency.is_agency_active
         return False
+
+    def agencies_for_forms(self):
+        agencies = self.agencies.query.with_entities(Agencies.ein, Agencies.name).all()
+        agencies[0] = (self.default_agency.ein, self.default_agency.name)
+        return agencies
+
 
     @property
     def name(self):

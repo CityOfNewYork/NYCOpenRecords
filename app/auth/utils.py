@@ -76,11 +76,11 @@ def update_openrecords_user(form):
         Users,
         (current_user.guid, current_user.auth_user_type))
 
-    if current_user.default_agency != form.default_agency.data:
+    if current_user.default_agency_ein != form.default_agency.data:
         update_object(
             {'is_primary_agency': False},
             AgencyUsers,
-            (current_user.guid, current_user.auth_user_type, current_user.default_agency)
+            (current_user.guid, current_user.auth_user_type, current_user.default_agency_ein)
         )
         update_object(
             {'is_primary_agency': True},
