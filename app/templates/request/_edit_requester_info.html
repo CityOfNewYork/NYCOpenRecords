@@ -21,51 +21,51 @@
                 {{ edit_requester_form.csrf_token }}
 
                 <div class="modal-body">
-                    {% set public_requester = request.requester.is_public %}
+                    {% set is_public_requester = request.requester.is_public %}
                     <div id="requester-name">{{ request.requester.name }}</div>
                     <div class="contact-form-error-message"></div>
                     {{ edit_requester_form.email.label }}
                     {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', maxlength="254",
-                        readonly=public_requester) }}
+                        readonly=is_public_requester) }}
 
                     {{ edit_requester_form.title.label }}
                     {{ edit_requester_form.title(id='inputTitle', class='form-control', maxlength="64",
-                        readonly=public_requester) }}
+                        readonly=is_public_requester) }}
                     <h5 id="user-title-character-count">64 characters remaining</h5>
 
                     {{ edit_requester_form.organization.label }}
                     {{ edit_requester_form.organization(id='inputOrganization', class='form-control', maxlength="128",
-                        readonly=public_requester) }}
+                        readonly=is_public_requester) }}
                     <h5 id="organization-character-count">128 characters remaining</h5>
 
                     {{ edit_requester_form.phone.label }}
                     {{ edit_requester_form.phone(id='inputTelephone', class='form-control',
-                        readonly=public_requester) }}
+                        readonly=is_public_requester) }}
 
                     {{ edit_requester_form.fax.label }}
-                    {{ edit_requester_form.fax(id='inputFax', class='form-control', readonly=public_requester) }}
+                    {{ edit_requester_form.fax(id='inputFax', class='form-control', readonly=is_public_requester) }}
 
                     {{ edit_requester_form.address_one.label }}
                     {{ edit_requester_form.address_one(id='inputAddressOne', class='form-control',
-                        readonly=public_requester) }}
+                        readonly=is_public_requester) }}
 
                     {{ edit_requester_form.address_two.label }}
                     {{ edit_requester_form.address_two(id='inputAddressTwo', class='form-control',
-                        readonly=public_requester) }}
+                        readonly=is_public_requester) }}
 
                     {{ edit_requester_form.city.label }}
-                    {{ edit_requester_form.city(id='inputCity', class='form-control', readonly=public_requester) }}
+                    {{ edit_requester_form.city(id='inputCity', class='form-control', readonly=is_public_requester) }}
 
                     {{ edit_requester_form.zipcode.label }}
-                    {{ edit_requester_form.zipcode(id='inputZip', class='form-control', readonly=public_requester) }}
+                    {{ edit_requester_form.zipcode(id='inputZip', class='form-control', readonly=is_public_requester) }}
 
                     {{ edit_requester_form.state.label }}
-                    {{ edit_requester_form.state(id='inputState', class='form-control', disabled=public_requester) }}
+                    {{ edit_requester_form.state(id='inputState', class='form-control', disabled=is_public_requester) }}
 
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    {% if not public_requester %}
+                    {% if not is_public_requester %}
                         <button type="submit" class="btn btn-primary" autocomplete="off">Submit</button>
                     {% endif %}
                 </div>
