@@ -452,10 +452,9 @@ class Users(UserMixin, db.Model):
         return False
 
     def agencies_for_forms(self):
-        agencies = self.agencies.query.with_entities(Agencies.ein, Agencies.name).all()
+        agencies = self.agencies.with_entities(Agencies.ein, Agencies.name).all()
         agencies[0] = (self.default_agency.ein, self.default_agency.name)
         return agencies
-
 
     @property
     def name(self):
