@@ -211,7 +211,7 @@ def requests_doc(doc_type):
                         result["_source"]["date_created"],
                         result["_source"]["date_submitted"],
                         result["_source"]["date_due"],
-                        result["_source"]["date_closed"],
+                        result["_source"]["date_closed"] if result["_source"]["date_closed"] else '',
                         result["_source"]["requester_name"],
                         r.requester.email,
                         r.requester.title,

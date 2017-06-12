@@ -544,7 +544,7 @@ def convert_dates(results, dt_format=None, tz_name=None):
     for hit in results["hits"]["hits"]:
         for field in ("date_submitted", "date_due", "date_received", "date_closed"):
             dt_field = hit["_source"].get(field, None)
-            if dt_field is not None and dt_field is not '':
+            if dt_field is not None and dt_field:
                 dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
             else:
                 continue

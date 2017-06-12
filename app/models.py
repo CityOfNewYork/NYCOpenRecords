@@ -681,7 +681,7 @@ class Requests(db.Model):
                         'agency_description_private': not self.agency_description_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                         'date_closed': self.date_closed.strftime(
-                            ES_DATETIME_FORMAT) if self.status == request_status.CLOSED is not None else '',
+                            ES_DATETIME_FORMAT) if self.date_closed is not None else [],
                         'status': self.status,
                         'requester_name': self.requester.name,
                         'public_title': 'Private' if self.privacy['title'] else self.title
