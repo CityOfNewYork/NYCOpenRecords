@@ -42,7 +42,7 @@
                     {{ request._source.agency_name }}
                 </div>
             {% endif %}
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}2{% endif %}">
+            <div class="col-sm-2">
                 {{ moment(request._source.date_due).format('MMM DD, YYYY') }}
             </div>
             {% if current_user.is_agency %}
