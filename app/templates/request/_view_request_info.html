@@ -82,7 +82,7 @@
                     {% if permissions['edit_agency_request_summary'] and request.status != status.CLOSED %}
                         <!-- editable area for agency description -->
                         <a href="#" class="xedit"
-                           id="agency-request-summary">{{ request.agency_request_summary or "Click here to edit the agency description" }}</a>
+                           id="agency_request_summary">{{ request.agency_request_summary or "Click here to edit the agency description" }}</a>
                     {% else %}
                         {% if show_agency_request_summary %}
                             {{ request.agency_request_summary or "" }}

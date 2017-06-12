@@ -24,7 +24,7 @@
             });
         {% endif %}
         {% if permissions['edit_agency_request_summary'] %}
-            $('#agency-request-summary').editable({
+            $('#agency_request_summary').editable({
                 pk: "{{ request.id }}",
                 url: '/request/api/v1.0/view/edit',
                 ajaxOptions: {
