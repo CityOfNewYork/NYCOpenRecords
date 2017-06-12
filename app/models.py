@@ -377,7 +377,9 @@ class Users(UserMixin, db.Model):
         Return the Users default agency ein.
         :return: String
         """
-        agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True).one_or_none()
+        agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True,
+                                                      AgencyUsers.user_guid == self.guid,
+                                                      AgencyUsers.auth_user_type == self.auth_user_type).one_or_none()
         if agency is not None:
             return agency.agency_ein
         return None
