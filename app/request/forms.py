@@ -31,7 +31,7 @@ from app.constants import (
     determination_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons
+from app.models import Reasons, Users
 
 
 class PublicUserRequestForm(Form):
@@ -88,6 +88,7 @@ class AgencyUserRequestForm(Form):
     """
 
     # Request Information
+    request_agency = SelectField('Agency (required)', choices=None)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
     request_date = DateTimeField("Date (required)", format="%Y-%m-%d", default=datetime.today)
@@ -118,6 +119,11 @@ class AgencyUserRequestForm(Form):
 
     # Submit Button
     submit = SubmitField('Submit Request')
+
+    def __init__(self):
+        super(AgencyUserRequestForm, self).__init__()
+        if len(current_user.agencies.all()) > 1:
+            self.request_agency.choices = [(agency.ein, agency.name) for agency in current_user.agencies.all()]
 
 
 class AnonymousRequestForm(Form):
@@ -248,7 +254,12 @@ class SearchRequestsForm(Form):
         self.agency_ein.choices.insert(0, ('', 'All'))
         # set default value of agency select field to agency user's agency
         if current_user.is_agency:
-            self.agency_ein.default = current_user.agency.ein
+            self.agency_ein.default = current_user.default_agency_ein
+            user_agencies = sorted([(agencies.ein, agencies.name)
+                                    for agencies in current_user.agencies],
+                                   key=lambda x: x[1])
+            for agency in user_agencies:
+                self.agency_ein.choices.insert(1, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
             self.process()
 
 

@@ -24,6 +24,12 @@
 
             {{ form.csrf_token }}
 
+            {% if is_agency %}
+                {{ form.default_agency.label(class='request-heading') }}
+                {{ form.default_agency(id='primary-agency', class='input-block-level') }}<br>
+
+            {% endif %}
+
             {{ form.title.label(class='request-heading') }}
             {{ form.title(
                 id='title',
