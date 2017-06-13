@@ -25,8 +25,9 @@ class ReportFilterForm(Form):
         self.agency.choices = get_agency_choices()
         self.agency.choices.insert(0, ('all', 'All'))
         self.user.choices = []
-        user_agencies = sorted([(agencies.ein, agencies.name)
-                                for agencies in current_user.agencies],
-                               key=lambda x: x[1])
-        for user_agency in user_agencies:
-            self.agency.choices.insert(1, self.agency.choices.pop(self.agency.choices.index(user_agency)))
+        if current_user.is_agency:
+            user_agencies = sorted([(agencies.ein, agencies.name)
+                                    for agencies in current_user.agencies],
+                                   key=lambda x: x[1])
+            for user_agency in user_agencies:
+                self.agency.choices.insert(1, self.agency.choices.pop(self.agency.choices.index(user_agency)))
