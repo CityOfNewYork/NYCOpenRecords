@@ -173,7 +173,6 @@ def create_docs():
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
                 # public_agency_request_summary
-            })
             }
 
             if r.date_closed is not None:
