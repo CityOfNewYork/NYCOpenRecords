@@ -100,7 +100,7 @@
                     <div class="radio no-margin-top no-margin-bottom">
                         <label>
                             <input type="radio" name="user-status-{{ loop.index }}"
-                                   {% if not user.is_agency_admin %}checked{% endif %}
+                                   {% if not user.is_agency_admin(agency_ein) %}checked{% endif %}
                                    value="false">
                         </label>
                     </div>
@@ -109,7 +109,7 @@
                     <div class="radio no-margin-top no-margin-bottom">
                         <label>
                             <input type="radio" name="user-status-{{ loop.index }}"
-                                   {% if user.is_agency_admin %}checked{% endif %}
+                                   {% if user.is_agency_admin(agency_ein) %}checked{% endif %}
                                    value="true">
                         </label>
                     </div>

@@ -7,7 +7,7 @@ from flask_login import current_user
 
 from app.user import user
 from app.user_request.utils import create_user_request_event
-from app.models import Users, Events, Roles, UserRequests
+from app.models import Users, Events, Roles, UserRequests, AgencyUsers
 from app.constants import (
     USER_ID_DELIMITER,
     event_type,
@@ -99,6 +99,7 @@ def patch(user_id):
         try:
             rform_copy.pop('is_agency_admin')
             rform_copy.pop('is_agency_active')
+            rform_copy.pop('agency_ein')
             changing_more_than_agency_status = len(rform_copy) != 0
         except KeyError:
             changing_more_than_agency_status = False
@@ -191,7 +192,12 @@ def patch(user_id):
 
         for field in status_fields:
             if status_field_val[field] is not None:
-                cur_val = getattr(user_, field)
+                if field == 'is_agency_admin':
+                    cur_val = user_.is_agency_admin(agency_ein)
+                elif field == 'is_agency_active':
+                    cur_val = user_.is_agency_active(agency_ein)
+                else:
+                    cur_val = getattr(user_, field)
                 new_val = eval_request_bool(status_field_val[field])
                 if cur_val != new_val:
                     old[field] = cur_val
@@ -232,12 +238,19 @@ def patch(user_id):
             if old_address:
                 old['mailing_address'] = old_address
 
-            # update object
-            update_object(
-                new,
-                Users,
-                (guid, auth_type)
-            )
+            if ('is_agency_admin' in new) or ('is_agency_active' in new):
+                new['agency_ein'] = agency_ein
+                update_object(
+                    new,
+                    AgencyUsers,
+                    (guid, auth_type, agency_ein)
+                )
+            else:
+                update_object(
+                    new,
+                    Users,
+                    (guid, auth_type)
+                )
 
             # create event(s)
             event_kwargs = {
@@ -259,6 +272,7 @@ def patch(user_id):
                 # TODO: a better way to store user identifiers (than in the value columns)
                 new_statuses['user_guid'] = user_.guid
                 new_statuses['auth_user_type'] = user_.auth_user_type
+                new_statuses['agency_ein'] = agency_ein
 
                 is_agency_active = new_statuses.get('is_agency_active')
                 is_agency_admin = new_statuses.get('is_agency_admin')
@@ -287,7 +301,7 @@ def patch(user_id):
                         permissions = Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
                         # create UserRequests for ALL existing requests under user's agency where user is not assigned
                         # for where the user *is* assigned, only change the permissions
-                        for req in user_.agency.requests:
+                        for req in user_.agencies.filter_by(ein=agency_ein).one().requests:
                             user_request = UserRequests.query.filter_by(
                                 request_id=req.id,
                                 user_guid=user_.guid,

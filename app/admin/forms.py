@@ -25,7 +25,7 @@ class SelectAgencyForm(Form):
             self.agencies.choices = [
                 (
                     agency.ein,
-                    '({status}) {agency_name})'.format(
+                    '({status}) {agency_name}'.format(
                         status='ACTIVE',
                         agency_name=agency.name
                     ) if agency.is_active else
@@ -34,14 +34,14 @@ class SelectAgencyForm(Form):
                     )
                 )
                 for agency in Agencies.query.order_by(Agencies.is_active.desc(),
-                                                      Agencies.name.asc()).all()
+                                                      Agencies._name.asc()).all()
             ]
         else:
             # Multi-Agency Admin Users will only see the agencies that they administer in the dropdown.
             self.agencies.choices = [
                 (
                     agency.ein,
-                    '({status}) {agency_name})'.format(
+                    '({status}) {agency_name}'.format(
                         status='ACTIVE',
                         agency_name=agency.name
                     ) if agency.is_active else
@@ -50,7 +50,7 @@ class SelectAgencyForm(Form):
                     )
                 )
                 for agency in current_user.agencies.order_by(Agencies.is_active.desc(),
-                                                             Agencies.name.asc()).all()
+                                                             Agencies._name.asc()).all()
             ]
         if agency_ein:
             for agency in self.agencies.choices:
