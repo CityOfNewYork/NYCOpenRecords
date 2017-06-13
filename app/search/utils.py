@@ -106,6 +106,9 @@ def create_index():
                         "agency_name": {
                             "type": "keyword",
                         },
+                        "agency_acronym": {
+                            "type": "keyword"
+                        },
                         "status": {
                             "type": "keyword",
                         },
@@ -122,6 +125,10 @@ def create_index():
                             "format": "strict_date_hour_minute_second",
                         },
                         "date_received": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
+                        },
+                        "date_closed": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
                         }
@@ -145,7 +152,7 @@ def create_docs():
             date_received = r.date_created.strftime(
                 ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else r.date_submitted.strftime(
                 ES_DATETIME_FORMAT)
-            operations.append({
+            operation = {
                 '_op_type': 'create',
                 '_id': r.id,
                 'title': r.title,
@@ -162,10 +169,16 @@ def create_docs():
                 'status': r.status,
                 'requester_id': r.requester.get_id(),
                 'agency_ein': r.agency_ein,
+                'agency_acronym': r.agency.acronym,
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
                 # public_agency_description
-            })
+            }
+
+            if r.date_closed is not None:
+                operation['date_closed'] = r.date_closed
+
+            operations.append(operation)
 
     num_success, _ = bulk(
         es,
@@ -195,6 +208,8 @@ def search_requests(query,
                     date_rec_to,
                     date_due_from,
                     date_due_to,
+                    date_closed_from,
+                    date_closed_to,
                     agency_ein,
                     open_,
                     closed,
@@ -226,6 +241,8 @@ def search_requests(query,
     :param date_rec_to: date created/submitted to
     :param date_due_from: date due from
     :param date_due_to: date due to
+    :param date_closed_from: date closed from
+    :param date_closed_to: date closed to
     :param agency_ein: agency ein to filter by
     :param open_: filter by opened requests?
     :param closed: filter by closed requests?
@@ -299,12 +316,14 @@ def search_requests(query,
         ).strftime(DT_DATE_RANGE_FORMAT)
 
     date_ranges = []
-    if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
+    if any((date_rec_from, date_rec_to, date_due_from, date_due_to, date_closed_from, date_closed_to)):
         range_filters = {}
         if date_rec_from or date_rec_to:
             range_filters['date_received'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
             range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
+        if date_closed_from or date_closed_to:
+            range_filters['date_closed'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_rec_from:
             range_filters['date_received']['gte'] = datestr_local_to_utc(date_rec_from)
         if date_rec_to:
@@ -313,10 +332,16 @@ def search_requests(query,
             range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
         if date_due_to:
             range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
+        if date_closed_from:
+            range_filters['date_closed']['gte'] = datestr_local_to_utc(date_closed_from)
+        if date_closed_to:
+            range_filters['date_closed']['lte'] = datestr_local_to_utc(date_closed_to)
         if date_rec_from or date_rec_to:
             date_ranges.append({'range': {'date_received': range_filters['date_received']}})
         if date_due_from or date_due_to:
             date_ranges.append({'range': {'date_due': range_filters['date_due']}})
+        if date_closed_from or date_closed_to:
+            date_ranges.append({'range': {'date_closed': range_filters['date_closed']}})
 
     # generate query dsl body
     query_fields = {
@@ -367,9 +392,11 @@ def search_requests(query,
                  'date_due',
                  'date_received',
                  'date_created',
+                 'date_closed',
                  'status',
                  'agency_ein',
                  'agency_name',
+                 'agency_acronym',
                  'requester_name',
                  'title_private',
                  'agency_description_private',
@@ -515,8 +542,12 @@ def convert_dates(results, dt_format=None, tz_name=None):
     :tz_name: time zone name
     """
     for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due", "date_received"):
-            dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+        for field in ("date_submitted", "date_due", "date_received", "date_closed"):
+            dt_field = hit["_source"].get(field, None)
+            if dt_field is not None and dt_field:
+                dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+            else:
+                continue
             if tz_name:
                 dt = utc_to_local(dt, tz_name)
             hit["_source"][field] = dt.strftime(dt_format) if dt_format is not None else dt
