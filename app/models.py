@@ -980,7 +980,8 @@ class Responses(db.Model):
 
     @property
     def creator(self):
-        return Events.query.filter_by(response_id=self.id).one().user
+        return Events.query.filter(Events.response_id == self.id,
+                                   Events.type.in_(event_type.RESPONSE_ADDED_TYPES)).one().user
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
