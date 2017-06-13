@@ -176,7 +176,7 @@ def create_docs():
             }
 
             if r.date_closed is not None:
-                operation['date_closed'] = r.date_closed
+                operation['date_closed'] = r.date_closed.strftime(ES_DATETIME_FORMAT)
 
             operations.append(operation)
 
