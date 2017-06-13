@@ -35,19 +35,20 @@ def create_object(obj):
     else:
         # create elasticsearch doc
         if (not isinstance(obj, Requests)
-           and hasattr(obj, 'es_create')
-           and current_app.config['ELASTICSEARCH_ENABLED']):
+            and hasattr(obj, 'es_create')
+            and current_app.config['ELASTICSEARCH_ENABLED']):
             obj.es_create()
         return str(obj)
 
 
-def update_object(data, obj_type, obj_id):
+def update_object(data, obj_type, obj_id, es_update=True):
     """
     Update a database record and its elasticsearch counterpart.
 
     :param data: a dictionary of attribute-value pairs
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
+    :param es_update: update the elasticsearch index
 
     :return: was the record updated successfully?
     """
@@ -71,7 +72,7 @@ def update_object(data, obj_type, obj_id):
             current_app.logger.exception("Failed to UPDATE {}".format(obj))
         else:
             # update elasticsearch
-            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED']:
+            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED'] and es_update:
                 obj.es_update()
             return True
     return False
@@ -130,7 +131,7 @@ def get_object(obj_type, obj_id):
 
 
 def get_agency_choices():
-    choices = sorted([(agencies.ein, agencies.name)
-                     for agencies in db.session.query(Agencies).all()],
+    choices = sorted([(agencies.ein, "{name} ({acronym})".format(name=agencies.name, acronym=agencies.acronym))
+                      for agencies in db.session.query(Agencies).all()],
                      key=lambda x: x[1])
     return choices
