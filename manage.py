@@ -1,19 +1,13 @@
 # manage.py
 
 import sys
-
 import os
-from flask_script.commands import InvalidCommand
-
-COV = None
-if os.environ.get('FLASK_COVERAGE'):
-    import coverage
-
-    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
-    COV.start()
+import csv
+from tempfile import NamedTemporaryFile
 
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell
+from flask_script.commands import InvalidCommand
 
 from app import create_app, db
 from app.models import (
@@ -24,13 +18,21 @@ from app.models import (
     Events,
     Reasons,
     Roles,
-    UserRequests
+    UserRequests,
+    AgencyUsers
 )
 from app.request.utils import (
     generate_guid
 )
 from app.constants import user_type_auth
 from app.lib.user_information import create_mailing_address
+
+COV = None
+if os.environ.get('FLASK_COVERAGE'):
+    import coverage
+
+    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
+    COV.start()
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
 manager = Manager(app)
@@ -60,7 +62,8 @@ def make_shell_context():
         Events=Events,
         Reasons=Reasons,
         Roles=Roles,
-        UserRequests=UserRequests
+        UserRequests=UserRequests,
+        AgencyUsers=AgencyUsers
     )
 
 
@@ -73,7 +76,10 @@ manager.add_command("db", MigrateCommand)
 @manager.option('-f', '--fname', dest='first_name', default=None)
 @manager.option('-l', '--lname', dest='last_name', default=None)
 @manager.option('-e', '--email', dest='email', default=None)
-def create_user(first_name=None, last_name=None, email=None):
+@manager.option('-a', '--agency-ein', dest='ein', default=None)
+@manager.option('--is-admin', dest='is_admin', default=False)
+@manager.option('--is-active', dest='is_active', default=False)
+def create_user(first_name=None, last_name=None, email=None, ein=None, is_admin=False, is_active=False):
     """Create an agency user."""
     if first_name is None:
         raise InvalidCommand("First name is required")
@@ -83,6 +89,9 @@ def create_user(first_name=None, last_name=None, email=None):
 
     if email is None:
         raise InvalidCommand("Email is required")
+
+    if ein is None:
+        raise InvalidCommand("Agency EIN is required")
 
     user = Users(
         guid=generate_guid(),
@@ -99,6 +108,16 @@ def create_user(first_name=None, last_name=None, email=None):
         mailing_address=create_mailing_address(None, None, None, None)
     )
     db.session.add(user)
+
+    agency_user = AgencyUsers(
+        user_guid=user.guid,
+        auth_user_type=user.auth_user_type,
+        agency_ein=ein,
+        is_agency_active=is_active,
+        is_agency_admin=is_admin,
+        is_primary_agency=True
+    )
+    db.session.add(agency_user)
     db.session.commit()
 
     print(user)
@@ -245,6 +264,52 @@ def fix_anonymous_requesters():
             )
 
 
+@manager.option('-i', '--input', help='Full path to input csv.', default=None)
+@manager.option('-o', '--ouput', help='Full path to output csv. File will be overwritten.', default=None)
+def convert_staff_csvs(input=None, output=None):
+    """
+    Convert data from staff.csv to new format to accomodate multi-agency users.
+
+    :param input: Input file path. Must be a valid CSV.
+    :param output: Output file path
+    """
+    if input is None:
+        raise InvalidCommand("Input CSV is required.")
+
+    if output is None:
+        raise InvalidCommand("Output CSV is required.")
+
+    read_file = None
+
+    if output == input:
+        read_file = None
+        with open(input, 'r').read() as _:
+            read_file = csv.DictReader(_)
+
+            temp_write_file = NamedTemporaryFile()
+
+            with open(temp_write_file.name, 'w') as temp:
+                for row in read_file:
+                    try:
+                        print(
+                            '"{ein}#{is_active}#{is_admin}#True","{is_super}","{first_name}","{middle_initial}","{last_name}","{email}","{email_validated}","{terms_of_use_accepted}","{phone_number}","{fax_number}"'.format(
+                                ein=row['agency_ein'],
+                                is_active=row['is_agency_active'],
+                                is_admin=row['is_agency_admin'],
+                                is_super=eval(row['is_super']),
+                                first_name=row['first_name'],
+                                middle_initial=row['middle_initial'],
+                                last_name=row['last_name'],
+                                email=row['email'],
+                                email_validated=eval(row['email_validated']),
+                                terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+                                phone_number=row['phone_number'],
+                                fax_number=row['fax_number']
+                            ), file=temp_write_file)
+                    except:
+                        continue
+
+
 @manager.command
 def migrate_to_agency_request_summary():
     """
@@ -275,14 +340,16 @@ def migrate_to_agency_request_summary():
 
         db.session.add(event)
 
-        request = Requests.query.filter_by(id=event.request_id).one()
-        try:
-            request.privacy['agency_request_summary'] = request.privacy['agency_description']
-            del request.privacy['agency_description']
-        except KeyError:
-            pass
+    for request in Requests.query.all():
+        old = request.privacy
+        if 'agency_description' in request.privacy.keys():
+            request.privacy = None
+            request.privacy = {
+                'agency_request_summary': old['agency_description'],
+                'title': old['title']
+            }
+            db.session.add(request)
 
-        db.session.add(request)
     db.session.commit()
 
 

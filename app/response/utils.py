@@ -210,6 +210,7 @@ def add_denial(request_id, reason_ids, email_content):
                 es_update=False
             )
         else:
+
             update_object(
                 {'status': request_status.CLOSED},
                 Requests,
@@ -224,11 +225,6 @@ def add_denial(request_id, reason_ids, email_content):
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
-        update_object(
-            {'agency_request_summary_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)},
-            Requests,
-            request_id
-        )
         request.es_update()
         _send_response_email(request_id,
                              RELEASE_AND_PUBLIC,

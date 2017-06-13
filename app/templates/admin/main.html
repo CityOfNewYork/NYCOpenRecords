@@ -10,16 +10,23 @@
 
 {% block content %}
     <div class="container-fluid">
-        <h2 class="text-center">Manage {% if current_user.is_super %}Agencies and{% else %}Agency{% endif %} Users</h2>
+        <h2 class="text-center">
+            {% if current_user.is_super or multi_agency_admin %}
+                Manage Agencies and Agency Users
+            {% else %}
+                Manage Agency User
+            {% endif %}
+        </h2>
+
         <hr>
-        {% if current_user.is_super %}
+        {% if current_user.is_super or multi_agency_admin %}
             <div class="row">
                 {{ agency_form.agencies.label }}
                 <div class="row">
                     <div class="col-sm-8">
                         {{ agency_form.agencies }}
                     </div>
-                    {% if not agency_is_active %}
+                    {% if current_user.is_super and not agency_is_active %}
                         <div class="col-sm-4">
                             <button type="button" class="btn btn-sm btn-primary" id="activate">Activate</button>
                         </div>
@@ -79,6 +86,7 @@
         {% for user in users %}
             <div class="row user-info break-word">
                 <input type="hidden" name="user-id" value="{{ user.get_id() }}">
+                <input type="hidden" name="agency-ein" value="{{ agency_ein }}">
                 <div class="col-sm-2">
                     {{ user.guid }}
                 </div>
@@ -92,7 +100,7 @@
                     <div class="radio no-margin-top no-margin-bottom">
                         <label>
                             <input type="radio" name="user-status-{{ loop.index }}"
-                                   {% if not user.is_agency_admin %}checked{% endif %}
+                                   {% if not user.is_agency_admin(agency_ein) %}checked{% endif %}
                                    value="false">
                         </label>
                     </div>
@@ -101,7 +109,7 @@
                     <div class="radio no-margin-top no-margin-bottom">
                         <label>
                             <input type="radio" name="user-status-{{ loop.index }}"
-                                   {% if user.is_agency_admin %}checked{% endif %}
+                                   {% if user.is_agency_admin(agency_ein) %}checked{% endif %}
                                    value="true">
                         </label>
                     </div>

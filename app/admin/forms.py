@@ -1,6 +1,7 @@
 from app.models import Agencies
 from flask_wtf import Form
 from wtforms import SelectField
+from flask_login import current_user
 
 
 class ActivateAgencyUserForm(Form):
@@ -16,14 +17,45 @@ class ActivateAgencyUserForm(Form):
 class SelectAgencyForm(Form):
     agencies = SelectField('Current Agency')
 
-    def __init__(self, current_agency_ein=None):
+    def __init__(self, agency_ein=None):
         super(SelectAgencyForm, self).__init__()
-        self.agencies.choices = [
-            (a.ein, '({}) {}'.format('ACTIVE', a.name) if a.is_active else a.name)
-            for a in Agencies.query.order_by(Agencies.is_active.desc(),
-                                             Agencies.name.asc())]
-        if current_agency_ein is not None:
-            self.agencies.default = current_agency_ein
-            self.process()
+
+        if current_user.is_super:
+            # Super Users will always see every agency in the dropdown.
+            self.agencies.choices = [
+                (
+                    agency.ein,
+                    '({status}) {agency_name}'.format(
+                        status='ACTIVE',
+                        agency_name=agency.name
+                    ) if agency.is_active else
+                    '{agency_name}'.format(
+                        agency_name=agency.name
+                    )
+                )
+                for agency in Agencies.query.order_by(Agencies.is_active.desc(),
+                                                      Agencies._name.asc()).all()
+            ]
+        else:
+            # Multi-Agency Admin Users will only see the agencies that they administer in the dropdown.
+            self.agencies.choices = [
+                (
+                    agency.ein,
+                    '({status}) {agency_name}'.format(
+                        status='ACTIVE',
+                        agency_name=agency.name
+                    ) if agency.is_active else
+                    '{agency_name}'.format(
+                        agency_name=agency.name
+                    )
+                )
+                for agency in current_user.agencies.order_by(Agencies.is_active.desc(),
+                                                             Agencies._name.asc()).all()
+            ]
+        if agency_ein:
+            for agency in self.agencies.choices:
+                if agency[0] == agency_ein:
+                    self.agencies.choices.insert(0, self.agencies.choices.pop(self.agencies.choices.index(agency)))
+        self.process()
 
 # TODO: Add forms to modify agency_features (see models.py:183)

@@ -50,8 +50,8 @@ def eval_request_bool(val, default=False):
     assert isinstance(default, bool)
     if val is not None:
         val = val.lower()
-        if val in ['false', '0', 'n', 'no', 'off']:
+        if val in ['False', 'false', '0', 'n', 'no', 'off']:
             return False
-        if val in ['true', '1', 'y', 'yes', 'on']:
+        if val in ['True', 'true', '1', 'y', 'yes', 'on']:
             return True
     return default

@@ -28,7 +28,7 @@ from flask_login import (
 )
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
-from app.auth.forms import ManageUserAccountForm, LDAPLoginForm
+from app.auth.forms import ManageUserAccountForm, LDAPLoginForm, ManageAgencyUserAccountForm
 from app.auth.utils import (
     revoke_and_remove_access_token,
     ldap_authentication,
@@ -149,11 +149,13 @@ def logout():
 @auth.route('/manage', methods=['GET', 'POST'])
 @login_required
 def manage():
-    form = ManageUserAccountForm(user=current_user)
+    if current_user.is_agency:
+        form = ManageAgencyUserAccountForm(user=current_user)
+    else:
+        form = ManageUserAccountForm(user=current_user)
 
     if request.method == 'POST':
         if form.validate_on_submit():
-            print(form.title.data)
             update_openrecords_user(form)
             redirect(url_for('auth.manage'))
         else:
@@ -162,7 +164,7 @@ def manage():
     else:
         form.autofill()
 
-    return render_template('auth/manage_account.html', form=form)
+    return render_template('auth/manage_account.html', form=form, is_agency=current_user.is_agency)
 
 
 # LDAP -----------------------------------------------------------------------------------------------------------------

@@ -131,7 +131,7 @@ def get_object(obj_type, obj_id):
 
 
 def get_agency_choices():
-    choices = sorted([(agencies.ein, "{name} ({acronym})".format(name=agencies.name, acronym=agencies.acronym))
+    choices = sorted([(agencies.ein, agencies.name)
                       for agencies in db.session.query(Agencies).all()],
                      key=lambda x: x[1])
     return choices
