@@ -71,7 +71,7 @@
                             Title <span class="glyphicon" aria-hidden="true"></span>
                         </div>
                         <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %}">
-                            {% if current_user.is_public %}Assigned {% endif %}Agency
+                            {% if not current_user.is_agency %}Assigned {% endif %}Agency
                         </div>
                         <div class="col-sm-2 sort-field" data-sort-order="desc" id="sort_date_due">
                             Date Due <span class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>
