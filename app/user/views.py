@@ -83,7 +83,7 @@ def patch(user_id):
                                         and not current_user.is_super
                                         and current_user.is_agency_admin(agency_ein)
                                         and current_user.is_agency_active(agency_ein))
-        same_agency = agency_ein in current_user.agencies.all()
+        same_agency = agency_ein in [agency.ein for agency in current_user.agencies.all()]
         associated_anonymous_requester = (user_.is_anonymous_requester
                                           and current_user.user_requests.filter_by(
                                             request_id=user_.anonymous_request.id

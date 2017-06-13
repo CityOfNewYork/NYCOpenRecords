@@ -177,7 +177,7 @@ class Agencies(db.Model):
     ein = db.Column(db.String(4), primary_key=True)
     parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
-    name = db.Column(db.String(256), nullable=False)
+    _name = db.Column(db.String(256), nullable=False, name='name')
     acronym = db.Column(db.String(64), nullable=True)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
@@ -237,6 +237,15 @@ class Agencies(db.Model):
     @property
     def parent(self):
         return Agencies.query.filter_by(ein=self.formatted_parent_ein).one_or_none()
+
+    @property
+    def name(self):
+        return '{name} ({acronym})'.format(name=self._name, acronym=self.acronym) if self.acronym else '{name}'.format(
+            name=self._name)
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @classmethod
     def populate(cls, csv_name=None):

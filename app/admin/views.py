@@ -39,6 +39,7 @@ def main(agency_ein=None):
         elif current_user.is_agency_admin(agency_ein) and current_user.is_agency_active(agency_ein):
             form = ActivateAgencyUserForm(agency_ein)
             active_users = get_agency_active_users(agency_ein)
+            del active_users[active_users.index(current_user)]
             if len(current_user.agencies.all()) > 1:
                 agency_form = SelectAgencyForm(agency_ein)
                 return render_template("admin/main.html",

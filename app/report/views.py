@@ -65,12 +65,12 @@ def get():
             requests_opened = len(active_requests) - requests_closed
             if not (current_user.is_anonymous or current_user.is_public):
                 if (current_user.is_agency and current_user.is_agency_admin(agency_ein)) or current_user.is_super:
-                    if current_user.is_agency_admin or current_user.is_super:
+                    if current_user.is_agency_admin(agency_ein) or current_user.is_super:
                         active_users = sorted(
                             [(user.guid, user.name)
                              for user in Agencies.query.filter_by(ein=agency_ein).one().active_users],
                             key=lambda x: x[1])
-                    elif current_user.is_agency_active:
+                    elif current_user.is_agency_active(agency_ein):
                         active_users = [(current_user.guid, current_user.name)]
                     if active_users:
                         active_users.insert(0, ('', ''))

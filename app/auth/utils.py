@@ -111,7 +111,7 @@ def find_user_by_email(email):
             email=email,
             auth_user_type=user_type_auth.AGENCY_LDAP_USER
         ).first()
-        return user if user.agencies is not None else None
+        return user if user.agencies.all() else None
     elif current_app.config['USE_OAUTH']:
         return Users.query.filter(
             Users.email == email,
