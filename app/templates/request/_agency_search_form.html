@@ -83,6 +83,25 @@
         </div>
     </div>
     <br>
+    <div class="row">
+        <h4><label>Date Closed*</label>
+            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Closed"
+                   data-content="This field allows you to search for requests that were closed between two specific dates.">
+                <span class="glyphicon glyphicon-question-sign"></span>
+            </small>
+        </h4>
+        <div class="col-sm-6 no-pad-left">
+            <label for="date-closed-from">From:</label>
+            <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                   type="text" id="date-closed-from" name="date_closed_from">
+        </div>
+        <div class="col-sm-6 no-pad-right">
+            <label for="date-closed-to">To:</label>
+            <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
+                   type="text" id="date-closed-to" name="date_closed_to">
+        </div>
+    </div>
+    <br>
     <div class="row" id="date-req">
         <strong>*From</strong> must be before <strong>To</strong>.
     </div>

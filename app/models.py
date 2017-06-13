@@ -11,6 +11,7 @@ from warnings import warn
 
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
+from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -176,6 +177,7 @@ class Agencies(db.Model):
     parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
     name = db.Column(db.String(256), nullable=False)
+    acronym = db.Column(db.String(64), nullable=True)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
@@ -240,6 +242,7 @@ class Agencies(db.Model):
                     parent_ein=row['parent_ein'],
                     categories=row['categories'].split(','),
                     name=row['name'],
+                    acronym=row['acronym'],
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
                     appeals_email=row['appeals_email'],
@@ -633,6 +636,14 @@ class Requests(db.Model):
         #     return False
 
     @property
+    def date_closed(self):
+        if self.status == request_status.CLOSED:
+            return self.responses.join(Determinations).filter(
+                Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
+            ).order_by(desc(Determinations.date_modified)).limit(1).one().date_modified
+        return None
+
+    @property
     def days_until_due(self):
         return calendar.busdaycount(datetime.utcnow(), self.due_date.replace(hour=23, minute=59, second=59))
 
@@ -669,6 +680,8 @@ class Requests(db.Model):
                         'title_private': self.privacy['title'],
                         'agency_request_summary_private': not self.agency_request_summary_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                        'date_closed': self.date_closed.strftime(
+                            ES_DATETIME_FORMAT) if self.date_closed is not None else [],
                         'status': self.status,
                         'requester_name': self.requester.name,
                         'public_title': 'Private' if self.privacy['title'] else self.title
@@ -689,6 +702,7 @@ class Requests(db.Model):
                 'agency_request_summary': self.agency_request_summary,
                 'agency_ein': self.agency_ein,
                 'agency_name': self.agency.name,
+                'agency_acronym': self.agency.acronym,
                 'title_private': self.privacy['title'],
                 'agency_request_summary_private': not self.agency_request_summary_released,
                 'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
@@ -966,7 +980,8 @@ class Responses(db.Model):
 
     @property
     def creator(self):
-        return Events.query.filter_by(response_id=self.id).one().user
+        return Events.query.filter(Events.response_id == self.id,
+                                   Events.type.in_(event_type.RESPONSE_ADDED_TYPES)).one().user
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC

@@ -75,7 +75,7 @@ $(function() {
                 try {
                     var checkDate = elemToDate(checkDateElem);
                     var validComp = compDate !== null ?
-                        (isLessThan ? checkDate < compDate : checkDate > compDate) : true;
+                        (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
                         return dateInvalid(checkDateElem, "This date does not fall on a business day.");
                     }
@@ -134,8 +134,10 @@ $(function() {
     var dateRecToElem = $("#date-rec-to");
     var dateDueFromElem = $("#date-due-from");
     var dateDueToElem = $("#date-due-to");
+    var dateClosedFromElem = $("#date-closed-from");
+    var dateClosedToElem = $("#date-closed-to");
 
-    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem];
+    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem, dateClosedFromElem, dateClosedToElem];
     for (var i = 0; i < dates.length; i++) {
         dates[i].datepicker(datepickerOptions);
         dates[i].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
@@ -151,6 +153,12 @@ $(function() {
     });
     dateDueToElem.on("input change", function () {
         valiDates(dateDueFromElem, dateDueToElem);
+    });
+    dateClosedFromElem.on("input change", function () {
+        valiDates(dateClosedFromElem, dateClosedToElem);
+    });
+    dateClosedToElem.on("input change", function () {
+        valiDates(dateClosedFromElem, dateClosedToElem);
     });
 
     // keypress 'Enter' = click search button
