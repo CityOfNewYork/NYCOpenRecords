@@ -12,7 +12,7 @@ from warnings import warn
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy import desc
-from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm.exc import NoResultFound
 
 from app import db, es, calendar
@@ -95,8 +95,8 @@ class Roles(db.Model):
                 permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_TITLE |
                 permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
                 permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
@@ -124,8 +124,8 @@ class Roles(db.Model):
                 permission.DELETE_LINK |
                 permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
                 permission.ADD_USER_TO_REQUEST |
                 permission.REMOVE_USER_FROM_REQUEST |
                 permission.EDIT_USER_REQUEST_PERMISSIONS |
@@ -183,7 +183,7 @@ class Agencies(db.Model):
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
-    agency_features = db.Column(JSON)
+    agency_features = db.Column(JSONB)
     # TODO: Method to insert updates to the agency_features column
     # TODO: Use validation on agency_features column
 
@@ -324,7 +324,7 @@ class Users(UserMixin, db.Model):
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
-    mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
+    mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
 
     # Relationships
     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
@@ -436,6 +436,28 @@ class Users(UserMixin, db.Model):
             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
+    @property
+    def has_agency_admin(self):
+        """
+        Determine if a user is an admin for at least one agency.
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.is_agency_admin:
+                return True
+        return False
+
+    @property
+    def has_agency_active(self):
+        """
+        Determine if a user is active for at least one agency.
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.is_agency_active:
+                return True
+        return False
+
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
@@ -443,25 +465,25 @@ class Users(UserMixin, db.Model):
         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
 
-    def is_agency_admin(self, ein=default_agency_ein):
+    def is_agency_admin(self, ein=None):
         """
         Determine if a user is an admin for the specified agency.
         :param ein: Agency EIN (4 Character String)
         :return: Boolean
         """
         for agency in self.agency_users.all():
-            if agency.agency_ein == ein:
+            if agency.agency_ein == ein if ein else self.default_agency_ein:
                 return agency.is_agency_admin
         return False
 
-    def is_agency_active(self, ein=default_agency_ein):
+    def is_agency_active(self, ein=None):
         """
         Determine if a user is active for the specified agency.
         :param ein: Agency EIN (4 Character String)
         :return: Boolean
         """
         for agency in self.agency_users.all():
-            if agency.agency_ein == ein:
+            if agency.agency_ein == ein if ein else self.default_agency_ein:
                 return agency.is_agency_active
         return False
 
@@ -675,9 +697,9 @@ class Requests(db.Model):
                 name='status'),
         nullable=False
     )
-    privacy = db.Column(JSON)
-    agency_description = db.Column(db.String(5000))
-    agency_description_release_date = db.Column(db.DateTime)
+    privacy = db.Column(JSONB)
+    agency_request_summary = db.Column(db.String(5000))
+    agency_request_summary_release_date = db.Column(db.DateTime)
 
     user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
     agency = db.relationship('Agencies', backref='requests', uselist=False)
@@ -704,7 +726,7 @@ class Requests(db.Model):
         viewonly=True
     )
 
-    PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
+    PRIVACY_DEFAULT = {'title': False, 'agency_request_summary': True}
 
     def __init__(
             self,
@@ -791,9 +813,9 @@ class Requests(db.Model):
                        ))
 
     @property
-    def agency_description_released(self):
-        return self.status == request_status.CLOSED and not self.privacy['agency_description'] and \
-               self.agency_description_release_date < datetime.utcnow()
+    def agency_request_summary_released(self):
+        return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
+               self.agency_request_summary_release_date < datetime.utcnow()
 
     def es_update(self):
         if self.agency.is_active:
@@ -805,9 +827,9 @@ class Requests(db.Model):
                     'doc': {
                         'title': self.title,
                         'description': self.description,
-                        'agency_description': self.agency_description,
+                        'agency_request_summary': self.agency_request_summary,
                         'title_private': self.privacy['title'],
-                        'agency_description_private': not self.agency_description_released,
+                        'agency_request_summary_private': not self.agency_request_summary_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
                         'date_closed': self.date_closed.strftime(
                             ES_DATETIME_FORMAT) if self.date_closed is not None else [],
@@ -828,12 +850,12 @@ class Requests(db.Model):
             body={
                 'title': self.title,
                 'description': self.description,
-                'agency_description': self.agency_description,
+                'agency_request_summary': self.agency_request_summary,
                 'agency_ein': self.agency_ein,
                 'agency_name': self.agency.name,
                 'agency_acronym': self.agency.acronym,
                 'title_private': self.privacy['title'],
-                'agency_description_private': not self.agency_description_released,
+                'agency_request_summary_private': not self.agency_request_summary_released,
                 'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
                 'date_received': self.date_created.strftime(
@@ -886,8 +908,8 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_value = db.Column(JSON)
-    new_value = db.Column(JSON)
+    previous_value = db.Column(JSONB)
+    new_value = db.Column(JSONB)
 
     __table_args__ = (
         db.ForeignKeyConstraint(
@@ -998,11 +1020,11 @@ class Events(db.Model):
                 self.RowContent(self, "re-opened", "{} this request."),
             event_type.REQ_TITLE_EDITED:
                 self.RowContent(self, "changed", "{} the title."),
-            event_type.REQ_AGENCY_DESC_EDITED:
+            event_type.REQ_AGENCY_REQ_SUM_EDITED:
                 self.RowContent(self, "changed", "{} the agency description."),
             event_type.REQ_TITLE_PRIVACY_EDITED:
                 self.RowContent(self, "changed", "{} the title privacy."),
-            event_type.REQ_AGENCY_DESC_PRIVACY_EDITED:
+            event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED:
                 self.RowContent(self, "changed", "{} the agency description privacy."),
             event_type.FILE_ADDED:
                 self.RowContent(self, "added", "{} a file response."),

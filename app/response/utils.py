@@ -201,9 +201,9 @@ def add_denial(request_id, reason_ids, email_content):
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
-        if not request.privacy['agency_description'] and request.agency_description is not None:
+        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
             update_object(
-                {'agency_description_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
+                {'agency_request_summary_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
                  'status': request_status.CLOSED},
                 Requests,
                 request_id,
@@ -247,8 +247,8 @@ def add_closing(request_id, reason_ids, email_content):
     current_request = Requests.query.filter_by(id=request_id).one()
     if current_request.status != request_status.CLOSED and (
                 current_request.was_acknowledged or current_request.was_reopened):
-        if current_request.privacy['agency_description'] or not current_request.agency_description:
-            reason = "Agency Description must be public and not empty, "
+        if current_request.privacy['agency_request_summary'] or not current_request.agency_request_summary:
+            reason = "Agency Request Summary must be public and not empty, "
             if current_request.responses.filter(
                             Responses.type != response_type.NOTE,  # ignore Notes
                             Responses.type != response_type.EMAIL,  # ignore Emails
@@ -265,19 +265,19 @@ def add_closing(request_id, reason_ids, email_content):
                                            request_id=current_request.id,
                                            reason=reason + "or Title must be public."
                                            )
-        if current_request.agency_description and not current_request.privacy['agency_description']:
+        if current_request.agency_request_summary and not current_request.privacy['agency_request_summary']:
             date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
             release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
                                         current_app.config['APP_TIMEZONE'])
             update_object(
-                {'agency_description_release_date': release_date,
+                {'agency_request_summary_release_date': release_date,
                  'status': request_status.CLOSED},
                 Requests,
                 request_id
             )
             create_request_info_event(
                 request_id,
-                event_type.REQ_AGENCY_DESC_DATE_SET,
+                event_type.REQ_AGENCY_REQ_SUM_DATE_SET,
                 None,
                 {"release_date": release_date.isoformat()}
             )
@@ -331,7 +331,7 @@ def add_reopening(request_id, date, tz_name, email_content):
         update_object(
             {'status': request_status.IN_PROGRESS,
              'due_date': new_due_date,
-             'agency_description_release_date': None},
+             'agency_request_summary_release_date': None},
             Requests,
             request_id
         )

@@ -293,10 +293,10 @@ class RequestFactoryTests(BaseTestCase):
     def test_create_request_custom(self):
         title = "Where did all the fish go?"
         description = "I demand to know where all of my fish ran off to."
-        agency_description = "Inquiry into the disappearance local marine life."
+        agency_request_summary = "Inquiry into the disappearance local marine life."
         category = "Fishies"
         title_privacy = False
-        ag_privacy = False
+        agency_request_summary_privacy = False
         submission = submission_methods.IN_PERSON
         status = request_status.IN_PROGRESS
         date_created = datetime.utcnow()
@@ -305,13 +305,13 @@ class RequestFactoryTests(BaseTestCase):
             self.user_860,
             title,
             description,
-            agency_description,
+            agency_request_summary,
             self.user_860.agency_ein,
             date_created,
             due_date=due_date,
             category=category,
             title_privacy=title_privacy,
-            agency_desc_privacy=ag_privacy,
+            agency_request_summary_privacy=agency_request_summary_privacy,
             submission=submission,
             status=status
         )
@@ -321,13 +321,13 @@ class RequestFactoryTests(BaseTestCase):
             self.parent_ein_860,
             title=title,
             description=description,
-            agency_description=agency_description,
+            agency_request_summary=agency_request_summary,
             agency_ein=self.agency_ein_860,
             date_created=date_created,
             due_date=due_date,
             category=category,
             title_privacy=title_privacy,
-            agency_desc_privacy=ag_privacy,
+            agency_request_summary_privacy=agency_request_summary_privacy,
             submission=submission,
             status=status
         )
@@ -409,18 +409,18 @@ class RequestFactoryTests(BaseTestCase):
                                       default=False,
                                       title=None,
                                       description=None,
-                                      agency_description=None,
+                                      agency_request_summary=None,
                                       agency_ein=None,
                                       date_created=None,
                                       due_date=None,
                                       category='All',
                                       title_privacy=True,
-                                      agency_desc_privacy=True,
+                                      agency_request_summary_privacy=True,
                                       submission=None,
                                       status=request_status.OPEN):
         request = Requests.query.get(request.id)
 
-        privacy = {"title": title_privacy, "agency_description": agency_desc_privacy}
+        privacy = {"title": title_privacy, "agency_request_summary": agency_request_summary_privacy}
         agency_ein = agency_ein or user.agency_ein or request.agency_ein
         date_created_local = utc_to_local(date_created or request.date_created, self.tz_name)
         date_submitted_local = get_following_date(date_created_local)
@@ -439,14 +439,14 @@ class RequestFactoryTests(BaseTestCase):
             request_list = [
                 request.title,
                 request.description,
-                request.agency_description,
+                request.agency_request_summary,
                 request.date_created,
                 request.submission,
             ]
             check_list = [
                 title,
                 description,
-                agency_description,
+                agency_request_summary,
                 date_created,
                 submission,
             ]
@@ -527,11 +527,11 @@ class RequestWrapperTests(BaseTestCase, TestHelpers):
         request = Requests.query.get(self.request.id)
         self.assertEqual(request.title, title)
 
-    def test_set_agency_description(self):
-        agency_description = "To talk of many things."
-        self.request.set_agency_description(agency_description)
+    def test_set_agency_request_summary(self):
+        agency_request_summary = "To talk of many things."
+        self.request.set_agency_request_summary(agency_request_summary)
         request = Requests.query.get(self.request.id)
-        self.assertEqual(request.agency_description, agency_description)
+        self.assertEqual(request.agency_request_summary, agency_request_summary)
 
     def test_set_title_privacy(self):
         privacy = not self.request.privacy["title"]
@@ -539,11 +539,11 @@ class RequestWrapperTests(BaseTestCase, TestHelpers):
         request = Requests.query.get(self.request.id)
         self.assertEqual(request.privacy["title"], privacy)
 
-    def test_set_agency_description_privacy(self):
-        privacy = not self.request.privacy["agency_description"]
-        self.request.set_agency_description_privacy(privacy)
+    def test_set_agency_request_summary_privacy(self):
+        privacy = not self.request.privacy["agency_request_summary"]
+        self.request.set_agency_request_summary_privacy(privacy)
         request = Requests.query.get(self.request.id)
-        self.assertEqual(request.privacy["agency_description"], privacy)
+        self.assertEqual(request.privacy["agency_request_summary"], privacy)
 
     def test_add_file_default(self):
         response = self.request.add_file()
@@ -835,7 +835,7 @@ class RequestWrapperTests(BaseTestCase, TestHelpers):
         response = self.request.reopen(date)
         due_date = process_due_date(local_to_utc(date, self.tz_name))
         self.__test_extension(response, determination_type.REOPENING, None, due_date)
-        self.assertEqual(self.request.agency_description, None)
+        self.assertEqual(self.request.agency_request_summary, None)
 
     def __test_extension(self,
                          response,
@@ -1020,7 +1020,7 @@ class RequestWrapperTests(BaseTestCase, TestHelpers):
                     request.due_date,
                     request.date_submitted,
                     request.date_created,
-                    # TODO: request.agency_description_release_date
+                    # TODO: request.agency_request_summary_release_date
                 ],
                 [
                     status,

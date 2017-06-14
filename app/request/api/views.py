@@ -47,18 +47,18 @@ def edit_privacy():
     previous_value = {}
     new_value = {}
     title = flask_request.form.get('title')
-    agency_desc = flask_request.form.get('agency_desc')
+    agency_request_summary = flask_request.form.get('agency_request_summary')
     type_ = ''
     if title is not None:
         privacy['title'] = title == 'true'
         previous_value['privacy'] = current_request.privacy['title']
         new_value['privacy'] = privacy['title']
         type_ = event_type.REQ_TITLE_PRIVACY_EDITED
-    elif agency_desc is not None:
-        privacy['agency_description'] = agency_desc == 'true'
-        previous_value['privacy'] = current_request.privacy['agency_description']
-        new_value['privacy'] = privacy['agency_description']
-        type_ = event_type.REQ_AGENCY_DESC_PRIVACY_EDITED
+    elif agency_request_summary is not None:
+        privacy['agency_request_summary'] = agency_request_summary == 'true'
+        previous_value['privacy'] = current_request.privacy['agency_request_summary']
+        new_value['privacy'] = privacy['agency_request_summary']
+        type_ = event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)
@@ -88,10 +88,10 @@ def edit_request_info():
         previous_value['title'] = current_request.title
         new_value['title'] = val
         type_ = event_type.REQ_TITLE_EDITED
-    elif edit_request['name'] == 'agency_description':
-        previous_value['agency_description'] = current_request.agency_description
-        new_value['agency_description'] = val
-        type_ = event_type.REQ_AGENCY_DESC_EDITED
+    elif edit_request['name'] == 'agency_request_summary':
+        previous_value['agency_request_summary'] = current_request.agency_request_summary
+        new_value['agency_request_summary'] = val
+        type_ = event_type.REQ_AGENCY_REQ_SUM_EDITED
     update_object({edit_request['name']: val if val else None},
                   Requests,
                   current_request.id)
@@ -133,8 +133,8 @@ def get_request_events():
         event_type.INSTRUCTIONS_EDITED,
         event_type.LINK_EDITED,
         event_type.NOTE_EDITED,
-        event_type.REQ_AGENCY_DESC_EDITED,
-        event_type.REQ_AGENCY_DESC_PRIVACY_EDITED,
+        event_type.REQ_AGENCY_REQ_SUM_EDITED,
+        event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED,
         event_type.REQ_TITLE_EDITED,
         event_type.REQ_TITLE_PRIVACY_EDITED,
         event_type.REQUESTER_INFO_EDITED,

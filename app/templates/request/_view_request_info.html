@@ -53,13 +53,13 @@
                 </div>
             {% endif %}
             <div class="row">
-                {% if show_agency_description %}
-                    <div class="request-label lead col-sm-4">Agency Description:</div>
+                {% if show_agency_request_summary %}
+                    <div class="request-label lead col-sm-4">Agency Request Summary:</div>
                 {% endif %}
                 <!-- privacy options for agency description -->
                 <div class="btn-group col-sm-push-5" data-toggle="buttons">
-                    {% if permissions['edit_agency_description_privacy'] and request.status != status.CLOSED  %}
-                        {% if request.privacy['agency_description'] %}
+                    {% if permissions['edit_agency_request_summary_privacy'] and request.status != status.CLOSED %}
+                        {% if request.privacy['agency_request_summary'] %}
                             <label class="desc-privacy-btn btn btn-default" data-active-class="primary">
                                 <input type="radio" value="false">Public
                             </label>
@@ -78,13 +78,14 @@
                 </div>
             </div>
             <div class="row">
-                <div class="agency-desc-text lead">
-                    {% if permissions['edit_agency_description'] and request.status != status.CLOSED %}
+                <div class="agency-request-summary-text lead">
+                    {% if permissions['edit_agency_request_summary'] and request.status != status.CLOSED %}
                         <!-- editable area for agency description -->
-                        <a href="#" class="xedit" id="agency_description">{{ request.agency_description or "" }}</a>
+                        <a href="#" class="xedit"
+                           id="agency_request_summary">{{ request.agency_request_summary or "Click here to edit the agency description" }}</a>
                     {% else %}
-                        {% if show_agency_description %}
-                            {{ request.agency_description or "" }}
+                        {% if show_agency_request_summary %}
+                            {{ request.agency_request_summary or "" }}
                         {% endif %}
                     {% endif %}
                 </div>

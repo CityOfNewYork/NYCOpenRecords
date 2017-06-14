@@ -95,16 +95,16 @@ class RequestWrapper(object):
     def set_title(self, title: str):
         self.__update({"title": title})
 
-    def set_agency_description(self, agency_description: str):
-        self.__update({"agency_description": agency_description})
+    def set_agency_request_summary(self, agency_request_summary: str):
+        self.__update({"agency_request_summary": agency_request_summary})
 
     def set_title_privacy(self, privacy: bool):
         self.__update({"privacy": {"title": privacy}})
 
-    def set_agency_description_privacy(self, privacy: bool):
+    def set_agency_request_summary_privacy(self, privacy: bool):
         release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS) if not privacy else None
-        self.__update({"privacy": {"agency_description": privacy},
-                       "agency_description_release_date": release_date})
+        self.__update({"privacy": {"agency_request_summary": privacy},
+                       "agency_request_summary_release_date": release_date})
 
     def add_file(self,
                  title=None,
@@ -209,7 +209,7 @@ class RequestWrapper(object):
             user,
             {
                 "status": request_status.IN_PROGRESS,
-                "agency_description_release_date": None
+                "agency_request_summary_release_date": None
             }
         )
 
@@ -264,7 +264,7 @@ class RequestWrapper(object):
         self.__update(
             {
                 "status": request_status.CLOSED,
-                "agency_description_release_date": calendar.addbusdays(
+                "agency_request_summary_release_date": calendar.addbusdays(
                     datetime.utcnow(), RELEASE_PUBLIC_DAYS)
             }
         )
@@ -318,9 +318,9 @@ class RequestWrapper(object):
                 "due_date": new_due_date,
                 "date_submitted": self.request.date_submitted + shift,
                 "date_created": self.request.date_created + shift,
-                "agency_description_release_date": (
-                    self.request.agency_description_release_date + shift
-                    if self.request.agency_description_release_date
+                "agency_request_summary_release_date": (
+                    self.request.agency_request_summary_release_date + shift
+                    if self.request.agency_request_summary_release_date
                     else None
                 )
             })
@@ -448,6 +448,7 @@ class RequestFactory(object):
     """
     Class for generating requests.
     """
+
     def __init__(self, agency_ein=None):
         """
         If an agency ein is supplied, it will serve as a
@@ -462,14 +463,14 @@ class RequestFactory(object):
                        user,
                        title=None,
                        description=None,
-                       agency_description=None,  # TODO: agency_description_release_date
+                       agency_request_summary=None,  # TODO: agency_request_summary_release_date
                        agency_ein=None,
                        date_created=None,
                        date_submitted=None,
                        due_date=None,
                        category=None,
                        title_privacy=True,
-                       agency_desc_privacy=True,
+                       agency_request_summary_privacy=True,
                        submission=None,
                        status=request_status.OPEN,
                        tz_name=current_app.config["APP_TIMEZONE"]):
@@ -482,6 +483,7 @@ class RequestFactory(object):
         if (date_created is not None or date_submitted is not None) and due_date is not None:
             def assert_date(date, date_var_str):
                 assert (due_date - date).days >= 1, "due_date must be at least 1 day after " + date_var_str
+
             if date_created is not None:
                 assert_date(date_created, "date_created")
             if date_submitted is not None:
@@ -511,15 +513,15 @@ class RequestFactory(object):
             date_submitted=date_submitted,
             due_date=due_date,
             category=category,
-            privacy={"title": title_privacy, "agency_description": agency_desc_privacy},
+            privacy={"title": title_privacy, "agency_request_summary": agency_request_summary_privacy},
             submission=submission or random.choice(submission_methods.ALL),
             status=status,
         )
-        if agency_description is not None:
-            request.agency_description = agency_description
-        if agency_desc_privacy is not None:
-            request.agency_description_release_date = calendar.addbusdays(
-                datetime.utcnow(), RELEASE_PUBLIC_DAYS) if not agency_desc_privacy else None
+        if agency_request_summary is not None:
+            request.agency_request_summary = agency_request_summary
+        if agency_request_summary_privacy is not None:
+            request.agency_request_summary_release_date = calendar.addbusdays(
+                datetime.utcnow(), RELEASE_PUBLIC_DAYS) if not agency_request_summary_privacy else None
         create_object(request)
         request = RequestWrapper(request, self.agency_user)
 
@@ -570,6 +572,7 @@ class UserFactory(object):
     """
     Class for generating users.
     """
+
     def create_user(self,
                     auth_type,
                     guid=None,
@@ -649,8 +652,8 @@ def create_requests_search_set(requester, other_requester):
     agency_eins = [ein[0] for ein in
                    Agencies.query.with_entities(Agencies.ein).all()]
 
-    for title_private, agency_desc_private, is_requester in product(range(2), repeat=3):
-        for title, description, agency_description in product(("foo", "bar", "qux"), repeat=3):
+    for title_private, agency_request_summary_private, is_requester in product(range(2), repeat=3):
+        for title, description, agency_request_summary in product(("foo", "bar", "qux"), repeat=3):
             agency_ein = random.choice(agency_eins)
             date_created = get_random_date(datetime(2015, 1, 1), datetime(2016, 1, 1))
             date_submitted = get_following_date(date_created)
@@ -673,10 +676,10 @@ def create_requests_search_set(requester, other_requester):
                                       request_status.DUE_SOON)),
                 privacy={
                     'title': bool(title_private),
-                    'agency_description': bool(agency_desc_private)
+                    'agency_request_summary': bool(agency_request_summary_private)
                 }
             )
-            request.agency_description = agency_description
+            request.agency_request_summary = agency_request_summary
             create_object(request)
             user_request = UserRequests(
                 user_guid=(requester.guid if is_requester
@@ -718,6 +721,7 @@ class TestHelpers(object):
     """
     Mixin class for unittests.
     """
+
     def assert_flashes(self, expected_message, expected_category):
         """
         Assert flash messages are flashed properly with expected message and category.

@@ -25,7 +25,10 @@ from app.lib.utils import (
     eval_request_bool,
 )
 from app.lib.permission_utils import is_allowed
-from app.models import Responses
+from app.models import (
+    Responses,
+    Requests
+)
 from app.constants import UPDATED_FILE_DIRNAME
 from app.upload import upload
 from app.upload.constants import (
@@ -71,6 +74,7 @@ def post(request_id):
     file_ = files[next(files.keys())]
     filename = secure_filename(file_.filename)
     is_update = eval_request_bool(request.form.get('update'))
+    agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
     if is_allowed(user=current_user, request_id=request_id, permission=permission.ADD_FILE) or \
             is_allowed(user=current_user, request_id=request_id, permission=permission.EDIT_FILE):
         response_id = request.form.get('response_id') if is_update else None
@@ -102,7 +106,7 @@ def post(request_id):
                     file_type = None
                     if start == 0:
                         valid_file_type, file_type = is_valid_file_type(file_)
-                        if current_user.is_agency_active:
+                        if current_user.is_agency_active(agency_ein):
                             valid_file_type = True
                         if os.path.exists(filepath):
                             # remove existing file (upload 'restarted' for same file)
@@ -118,7 +122,7 @@ def post(request_id):
                             scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
                 else:
                     valid_file_type, file_type = is_valid_file_type(file_)
-                    if current_user.is_agency_active:
+                    if current_user.is_agency_active(agency_ein):
                         valid_file_type = True
                     if valid_file_type:
                         redis.set(key, upload_status.PROCESSING)

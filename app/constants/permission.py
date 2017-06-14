@@ -7,16 +7,16 @@ NONE = 0x000000000
 
 # Request Information Permissions
 CHANGE_PRIVACY_TITLE = 0x000000001
-CHANGE_PRIVACY_AGENCY_DESCRIPTION = 0x000000002
+CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY = 0x000000002
 EDIT_TITLE = 0x000000004
-EDIT_AGENCY_DESCRIPTION = 0x000000008
+EDIT_AGENCY_REQUEST_SUMMARY = 0x000000008
 VIEW_REQUESTER_INFO = 0x000000010
 EDIT_REQUESTER_INFO = 0x000000020
 REQUEST_INFO_PERMISSIONS = frozenset((
     CHANGE_PRIVACY_TITLE,
-    CHANGE_PRIVACY_AGENCY_DESCRIPTION,
+    CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY,
     EDIT_TITLE,
-    EDIT_AGENCY_DESCRIPTION,
+    EDIT_AGENCY_REQUEST_SUMMARY,
     EDIT_REQUESTER_INFO
 ))
 
@@ -115,9 +115,9 @@ ALL = [
     PermissionPair(CLOSE, "Close Request"),
     PermissionPair(RE_OPEN, "Re-Open Request"),
     PermissionPair(CHANGE_PRIVACY_TITLE, "Change Title Privacy"),
-    PermissionPair(CHANGE_PRIVACY_AGENCY_DESCRIPTION, "Change Agency Description Privacy"),
+    PermissionPair(CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY, "Change Agency Description Privacy"),
     PermissionPair(EDIT_TITLE, "Edit Title"),
-    PermissionPair(EDIT_AGENCY_DESCRIPTION, "Edit Agency Description"),
+    PermissionPair(EDIT_AGENCY_REQUEST_SUMMARY, "Edit Agency Description"),
     PermissionPair(ADD_FILE, "Add Files"),
     PermissionPair(ADD_LINK, "Add Links"),
     PermissionPair(ADD_OFFLINE_INSTRUCTIONS, "Add Offline Instructions"),

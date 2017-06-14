@@ -256,7 +256,7 @@ $(function() {
     // disable other filters if searching by FOIL-ID
     $("input[name='foil_id']").click(function() {
         var query = $("#query");
-        var names = ["title", "description", "agency_description", "requester_name"];
+        var names = ["title", "description", "agency_request_summary", "requester_name"];
         var i;
         if ($(this).prop("checked")) {
             query.attr("placeholder", "0000-000-00000");

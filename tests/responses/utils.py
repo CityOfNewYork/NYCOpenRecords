@@ -80,8 +80,8 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
     def test_add_closing(self, send_response_email_patch):
         with flask_login_user(self.admin_860):
             self.request.acknowledge(days=30)
-            self.request.set_agency_description('blah')
-            self.request.set_agency_description_privacy(False)
+            self.request.set_agency_request_summary('blah')
+            self.request.set_agency_request_summary_privacy(False)
             add_closing(self.request.id, self.closing_reasons, self.email_content)
             send_response_email_patch.assert_called_once_with(
                 self.request.id,
@@ -124,7 +124,7 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
             with self.assertRaises(UserRequestException):
                 add_closing(self.request.id, self.closing_reasons, self.email_content)
 
-    def test_add_closing_no_agency_description(self):
+    def test_add_closing_no_agency_request_summary(self):
         with flask_login_user(self.admin_860):
             self.request.acknowledge(days=30)
             with self.assertRaises(UserRequestException):
@@ -173,8 +173,8 @@ class ResponseUtilsTests(BaseTestCase, TestHelpers):
         not_fulfilled_reasons = ['7', '8', '9']
         with flask_login_user(self.admin_860):
             self.request.acknowledge(days=30)
-            self.request.set_agency_description('blah')
-            self.request.set_agency_description_privacy(False)
+            self.request.set_agency_request_summary('blah')
+            self.request.set_agency_request_summary_privacy(False)
             add_closing(self.request.id, not_fulfilled_reasons, self.email_content)
             send_response_email_patch.assert_called_once_with(
                 self.request.id,

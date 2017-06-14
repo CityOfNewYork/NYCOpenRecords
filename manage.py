@@ -2,6 +2,7 @@
 
 import sys
 import os
+import csv
 from tempfile import NamedTemporaryFile
 
 from flask_migrate import Migrate, MigrateCommand
@@ -25,7 +26,6 @@ from app.request.utils import (
 )
 from app.constants import user_type_auth
 from app.lib.user_information import create_mailing_address
-from app.lib.utils import eval_request_bool
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -33,7 +33,6 @@ if os.environ.get('FLASK_COVERAGE'):
 
     COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
     COV.start()
-
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
 manager = Manager(app)
@@ -223,13 +222,13 @@ def fix_anonymous_requesters():
     from app.lib.db_utils import create_object, update_object
 
     guids = db.engine.execute("""
-SELECT
-  user_requests.user_guid AS "GUID"
-FROM user_requests
-  JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
-WHERE user_requests.request_user_type = 'requester'
-GROUP BY user_requests.user_guid
-HAVING COUNT(user_requests.request_id) > 1;
+        SELECT
+          user_requests.user_guid AS "GUID"
+        FROM user_requests
+          JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
+        WHERE user_requests.request_user_type = 'requester'
+        GROUP BY user_requests.user_guid
+        HAVING COUNT(user_requests.request_id) > 1;
     """)
 
     for guid, in guids:
@@ -306,9 +305,52 @@ def convert_staff_csvs(input=None, output=None):
                                 terms_of_use_accepted=eval(row['terms_of_use_accepted']),
                                 phone_number=row['phone_number'],
                                 fax_number=row['fax_number']
-                            ), file=write_file)
+                            ), file=temp_write_file)
                     except:
                         continue
+
+
+@manager.command
+def migrate_to_agency_request_summary():
+    """
+    Updates the events table in the database to use 'agency_request_summary' wherever 'agency_description' was used.
+    
+    """
+
+    agency_description_types = ['request_agency_description_edited', 'request_agency_description_date_set',
+                                'request_agency_description_privacy_edited']
+
+    for event in Events.query.filter(Events.type.like('%agency_description%')).all():
+        if event.type in agency_description_types:
+            event.type = event.type.replace('description', 'request_summary')
+        previous_value = event.previous_value
+
+        if previous_value:
+            for key in previous_value.keys():
+                if key == 'agency_description':
+                    previous_value['agency_request_summary'] = previous_value[key]
+                    del previous_value[key]
+
+        new_value = event.new_value
+        if new_value:
+            for key in new_value.keys():
+                if key == 'agency_description':
+                    new_value['agency_request_summary'] = new_value[key]
+                    del new_value[key]
+
+        db.session.add(event)
+
+    for request in Requests.query.all():
+        old = request.privacy
+        if 'agency_description' in request.privacy.keys():
+            request.privacy = None
+            request.privacy = {
+                'agency_request_summary': old['agency_description'],
+                'title': old['title']
+            }
+            db.session.add(request)
+
+    db.session.commit()
 
 
 @manager.command

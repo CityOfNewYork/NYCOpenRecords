@@ -37,7 +37,7 @@ class RequestDataProvider(BaseProvider):
     def description(self):
         return '\n'.join(fake.paragraphs(random.randrange(3, 6)))
 
-    def agency_description(self):
+    def agency_request_summary(self):
         return fake.paragraph()
 
 
