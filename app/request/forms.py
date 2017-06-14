@@ -123,7 +123,7 @@ class AgencyUserRequestForm(Form):
     def __init__(self):
         super(AgencyUserRequestForm, self).__init__()
         if len(current_user.agencies.all()) > 1:
-            self.request_agency.choices = [(agency.ein, agency.name) for agency in current_user.agencies.all()]
+            self.request_agency.choices = current_user.agencies_for_forms()
 
 
 class AnonymousRequestForm(Form):
