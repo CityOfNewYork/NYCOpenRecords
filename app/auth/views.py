@@ -137,7 +137,7 @@ def logout():
     elif current_app.config['USE_OAUTH']:
         if 'token' in session:
             revoke_and_remove_access_token()
-        if timed_out is not None:
+        if current_user.is_authenticated and timed_out is not None:
             flash("Your session timed out. Please login again", category='info')
         logout_user()
         session.regenerate()

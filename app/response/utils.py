@@ -210,7 +210,6 @@ def add_denial(request_id, reason_ids, email_content):
                 es_update=False
             )
         else:
-
             update_object(
                 {'status': request_status.CLOSED},
                 Requests,
