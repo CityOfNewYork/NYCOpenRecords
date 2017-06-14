@@ -436,6 +436,28 @@ class Users(UserMixin, db.Model):
             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
+    @property
+    def has_agency_admin(self):
+        """
+        Determine if a user is an admin for at least one agency.
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.is_agency_admin:
+                return True
+        return False
+
+    @property
+    def has_agency_active(self):
+        """
+        Determine if a user is active for at least one agency.
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.is_agency_active:
+                return True
+        return False
+
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
@@ -443,25 +465,25 @@ class Users(UserMixin, db.Model):
         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
 
-    def is_agency_admin(self, ein=default_agency_ein):
+    def is_agency_admin(self, ein=None):
         """
         Determine if a user is an admin for the specified agency.
         :param ein: Agency EIN (4 Character String)
         :return: Boolean
         """
         for agency in self.agency_users.all():
-            if agency.agency_ein == ein:
+            if agency.agency_ein == ein if ein else self.default_agency_ein:
                 return agency.is_agency_admin
         return False
 
-    def is_agency_active(self, ein=default_agency_ein):
+    def is_agency_active(self, ein=None):
         """
         Determine if a user is active for the specified agency.
         :param ein: Agency EIN (4 Character String)
         :return: Boolean
         """
         for agency in self.agency_users.all():
-            if agency.agency_ein == ein:
+            if agency.agency_ein == ein if ein else self.default_agency_ein:
                 return agency.is_agency_active
         return False
 
