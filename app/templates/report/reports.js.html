@@ -114,13 +114,15 @@
                     agency_ein: agencyEin
                 },
                 success: function (data) {
-                    for (var i = 0; i < (data.values).length; ++i) {
-                        reportChart.data.datasets[0].data[i] = data.values[i]
+                    if (data.is_visible) {
+                        for (var i = 0; i < (data.values).length; ++i) {
+                            reportChart.data.datasets[0].data[i] = data.values[i]
+                        }
+                        var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
+                        reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
+                        reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
+                        reportChart.update();
                     }
-                    var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
-                    reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
-                    reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
-                    reportChart.update();
                 }
             })
         });
