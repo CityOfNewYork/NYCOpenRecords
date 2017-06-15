@@ -95,7 +95,9 @@
         {% endif %}
         Due Date: {{ moment(request.due_date).format('MM/DD/YYYY') }}
     </p>
-    <p align="center"><a data-target="#contact-modal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
-                         href="#contact-modal">Contact the Agency</a></p>
+    <p align="center" id="agency-contact-modal-text">
+        <a data-target="#contact-modal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
+           href="#contact-modal">Contact the Agency</a>
+    </p>
     {% include 'request/_view_request_contact_modal.html' %}
 </div>
