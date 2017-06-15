@@ -96,7 +96,7 @@ def is_safe_url(target):
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 
-def find_user_by_email(email, auth_user_type=None):
+def find_user_by_email(email):
     """
     Find a user by email address stored in the database.
     If LDAP login is being used, non-agency users and users
@@ -104,7 +104,6 @@ def find_user_by_email(email, auth_user_type=None):
     If OAUTH login is being used, anonymous users are ignored.
 
     :param email: Email address
-    :param auth_user_type: auth_type for user attempting to log in from app.constants.user_type_auth
     :return: User object or None if no user found.
     """
     if current_app.config['USE_LDAP']:
@@ -114,10 +113,7 @@ def find_user_by_email(email, auth_user_type=None):
         ).first()
         return user if user.agencies.all() else None
     elif current_app.config['USE_OAUTH']:
-        return Users.query.filter(
-            Users.email == email,
-            Users.auth_user_type == auth_user_type
-        ).first()
+        return Users.query.filter_by(email=email).first()
     return None
 
 
@@ -272,8 +268,8 @@ def _process_user_data(guid,
         first_name = mailbox
 
     user = Users.query.filter_by(guid=guid, auth_user_type=user_type).first()
-    if user is None:
-        user = find_user_by_email(email, auth_user_type=user_type)
+    if user is None and user_type in user_type_auth.AGENCY_USER_TYPES:
+        user = find_user_by_email(email)
 
     # update or create user
     if user is not None:
