@@ -113,7 +113,10 @@ def find_user_by_email(email):
         ).first()
         return user if user.agencies.all() else None
     elif current_app.config['USE_OAUTH']:
-        return Users.query.filter_by(email=email).first()
+        return Users.query.filter(
+            Users.email == email,
+            Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+        ).first()
     return None
 
 
