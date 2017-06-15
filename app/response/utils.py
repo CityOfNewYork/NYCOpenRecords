@@ -273,7 +273,8 @@ def add_closing(request_id, reason_ids, email_content):
                 {'agency_request_summary_release_date': release_date,
                  'status': request_status.CLOSED},
                 Requests,
-                request_id
+                request_id,
+                es_update=False
             )
             create_request_info_event(
                 request_id,
@@ -285,7 +286,8 @@ def add_closing(request_id, reason_ids, email_content):
             update_object(
                 {'status': request_status.CLOSED},
                 Requests,
-                request_id
+                request_id,
+                es_update=False
             )
         response = Determinations(
             request_id,
@@ -295,6 +297,7 @@ def add_closing(request_id, reason_ids, email_content):
         )
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
+        current_request.es_update()
         _send_response_email(request_id,
                              RELEASE_AND_PUBLIC,
                              email_content,
