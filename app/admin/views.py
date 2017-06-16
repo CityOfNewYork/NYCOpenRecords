@@ -50,6 +50,7 @@ def main(agency_ein=None):
                                        multi_agency_admin=True)
             return render_template("admin/main.html",
                                    users=active_users,
+                                   agency_ein=agency_ein,
                                    user_form=form)
 
     return abort(404)

@@ -471,8 +471,10 @@ class Users(UserMixin, db.Model):
         :param ein: Agency EIN (4 Character String)
         :return: Boolean
         """
+        if ein is None:
+            ein = self.default_agency_ein
         for agency in self.agency_users.all():
-            if agency.agency_ein == ein if ein else self.default_agency_ein:
+            if agency.agency_ein == ein:
                 return agency.is_agency_admin
         return False
 
@@ -482,8 +484,10 @@ class Users(UserMixin, db.Model):
         :param ein: Agency EIN (4 Character String)
         :return: Boolean
         """
+        if ein is None:
+            ein = self.default_agency_ein
         for agency in self.agency_users.all():
-            if agency.agency_ein == ein if ein else self.default_agency_ein:
+            if agency.agency_ein == ein:
                 return agency.is_agency_active
         return False
 
