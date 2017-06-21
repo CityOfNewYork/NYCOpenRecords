@@ -14,7 +14,9 @@
             <div class="first">
                 <div class="form-group">
                     {{ close_request_form.reasons.label }}<br>
-                    {{ close_request_form.reasons(id="closing-reason-ids", class="form-control", size=10) }}
+                    {{ close_request_form.reasons(id="closing-reason-ids",
+                                                  class="disable-enter-submit form-control",
+                                                  size=10) }}
                 </div>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
