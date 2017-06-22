@@ -89,3 +89,7 @@ discovery.zen.ping.unicast.hosts: ["10.0.0.8", "10.0.0.9", "10.0.0.10"]
 # Require explicit names when deleting indices:
 #
 #action.destructive_requires_name: true
+
+# Disable System Call Filter on RHEL 6
+# https://github.com/elastic/elasticsearch/issues/22899
+bootstrap.system_call_filter: false
