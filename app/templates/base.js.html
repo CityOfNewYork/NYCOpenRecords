@@ -1,4 +1,45 @@
 <script type="text/javascript">
+
+    var webServicesUrl = "{{ config.WEB_SERVICES_URL }}",
+        logoutUrl = "{{ config.LOGOUT_URL }}";
+
+    {% if current_user.has_nyc_id_profile %}
+        /* Set profile link href value with 'target' parameter being the current page
+         * (base64 encoded: https://nyc4d.nycnet/nycid/account-profile.shtml)
+         */
+        $("#profile-link").attr(
+            "href",
+            webServicesUrl + "/account?returnOnSave=true&target=" + btoa(window.location.href)
+        );
+    {% endif %}
+
+    function idpLogout(afterTimeout) {
+        /* Open NYC.ID Logout page in new tab and close it
+         * after after a 500 milliseconds (the page must have been loaded by this time).
+         * After closing, call afterTimeout if specified.
+         */
+        var logoutTab = window.open(logoutUrl);
+        setTimeout(function() {
+            logoutTab.close();
+            if (typeof afterTimeout === "function") {
+                afterTimeout();
+            }
+        }, 1000);
+    }
+
+    {% if not current_user.is_anonymous %}
+        $("#logout").click(function(e) {
+            /* Before sending user to auth.logout page, open a new tab
+             * and logout of the NYC.ID IDP (and close the tab after completion).
+             */
+            e.preventDefault();
+            var logoutPage = this.href;
+            idpLogout(function () {
+                window.location = logoutPage;
+            });
+        });
+    {% endif %}
+
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             /*
@@ -27,6 +68,12 @@
         activityEvents: 'mouseup',
         onwarning: function () {
             $("#session-warning-modal").modal("show");
+        },
+        logout: function() {
+            // Logout of IPD and go to the logout page.
+            idpLogout(function() {
+                window.location.href = self.logoutUrl;
+            });
         }
     });
     $(document).ready(function () {

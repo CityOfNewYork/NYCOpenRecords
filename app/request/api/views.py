@@ -11,7 +11,7 @@ from flask import (
     request as flask_request,
 )
 from datetime import datetime
-from flask_login import current_user
+from flask_login import current_user, login_required
 from app.lib.date_utils import calendar
 from app.request.api import request_api_blueprint
 from app.request.api.utils import create_request_info_event
@@ -21,8 +21,9 @@ from app.lib.permission_utils import (
     is_allowed,
     get_permission
 )
-from app.models import Requests, Responses
-from app.constants import RESPONSES_INCREMENT
+from app.permissions.utils import get_permissions_as_list
+from app.models import Requests, Responses, Events
+from app.constants import RESPONSES_INCREMENT, EVENTS_INCREMENT
 from app.constants import (
     determination_type,
     event_type,
@@ -46,18 +47,18 @@ def edit_privacy():
     previous_value = {}
     new_value = {}
     title = flask_request.form.get('title')
-    agency_desc = flask_request.form.get('agency_desc')
+    agency_request_summary = flask_request.form.get('agency_request_summary')
     type_ = ''
     if title is not None:
         privacy['title'] = title == 'true'
         previous_value['privacy'] = current_request.privacy['title']
-        new_value['privacy'] = title
+        new_value['privacy'] = privacy['title']
         type_ = event_type.REQ_TITLE_PRIVACY_EDITED
-    elif agency_desc is not None:
-        privacy['agency_description'] = agency_desc == 'true'
-        previous_value['privacy'] = current_request.privacy['agency_description']
-        new_value['privacy'] = agency_desc
-        type_ = event_type.REQ_AGENCY_DESC_PRIVACY_EDITED
+    elif agency_request_summary is not None:
+        privacy['agency_request_summary'] = agency_request_summary == 'true'
+        previous_value['privacy'] = current_request.privacy['agency_request_summary']
+        new_value['privacy'] = privacy['agency_request_summary']
+        type_ = event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED
     update_object({'privacy': privacy},
                   Requests,
                   current_request.id)
@@ -87,35 +88,111 @@ def edit_request_info():
         previous_value['title'] = current_request.title
         new_value['title'] = val
         type_ = event_type.REQ_TITLE_EDITED
-    elif edit_request['name'] == 'agency_description':
-        previous_value['agency_description'] = current_request.agency_description
-        new_value['agency_description'] = val
-        type_ = event_type.REQ_AGENCY_DESC_EDITED
+    elif edit_request['name'] == 'agency_request_summary':
+        previous_value['agency_request_summary'] = current_request.agency_request_summary
+        new_value['agency_request_summary'] = val
+        type_ = event_type.REQ_AGENCY_REQ_SUM_EDITED
     update_object({edit_request['name']: val if val else None},
                   Requests,
                   current_request.id)
     create_request_info_event(request_id,
-                      type_,
-                      previous_value,
-                      new_value)
+                              type_,
+                              previous_value,
+                              new_value)
     return jsonify(edit_request), 200
 
 
-@request_api_blueprint.route('/history', methods=['GET'])
-def get_request_history():  # TODO: 2.1
+@request_api_blueprint.route('/events', methods=['GET'])
+@login_required
+def get_request_events():
     """
-    Retrieves a JSON object of event objects to display the history of a request on the view request page.
+    Returns a set of events (id, type, and template),
+    ordered by date descending, and starting from a specific index.
 
-    :return: json object containing list of 50 history objects from request
+    Request parameters:
+    - start: (int) starting index
+    - request_id: FOIL request id
+    - with_template: (default: False) include html rows for each event
     """
-    request_history_index = int(flask_request.form['request_history_reload_index'])
-    request_history_index_end = (request_history_index + 1) * 50 + 1
-    request_history = []
+    start = int(flask_request.args['start'])
 
-    for i in range(1, request_history_index_end):
-        request_history.append(str(i))
+    current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    return jsonify({})
+    events = Events.query.filter(
+        Events.request_id == current_request.id,
+        Events.type.in_(event_type.FOR_REQUEST_HISTORY)
+    ).order_by(
+        desc(Events.timestamp)
+    ).all()[start: start + EVENTS_INCREMENT]
+
+    template_path = 'request/events/'
+    event_jsons = []
+
+    types_with_modal = [
+        event_type.FILE_EDITED,
+        event_type.INSTRUCTIONS_EDITED,
+        event_type.LINK_EDITED,
+        event_type.NOTE_EDITED,
+        event_type.REQ_AGENCY_REQ_SUM_EDITED,
+        event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED,
+        event_type.REQ_TITLE_EDITED,
+        event_type.REQ_TITLE_PRIVACY_EDITED,
+        event_type.REQUESTER_INFO_EDITED,
+        event_type.USER_PERM_CHANGED,
+    ]
+
+    for i, event in enumerate(events):
+        json = {
+            'id': event.id,
+            'type': event.type
+        }
+
+        if eval_request_bool(flask_request.args.get('with_template')):
+            has_modal = event.type in types_with_modal
+            row = render_template(
+                template_path + 'row.html',
+                event=event,
+                row_num=start + i + 1,
+                has_modal=has_modal
+            )
+            if has_modal:
+                if event.type == event_type.USER_PERM_CHANGED:
+                    previous_permissions = set([
+                        p.label for p in get_permissions_as_list(event.previous_value['permissions'])
+                    ])
+                    new_permissions = set([
+                        p.label for p in get_permissions_as_list(event.new_value['permissions'])
+                    ])
+                    modal = render_template(
+                        template_path + 'modal.html',
+                        event=event,
+                        modal_body=render_template(
+                            "{}modal_body/{}.html".format(
+                                template_path, event.type.lower()
+                            ),
+                            event=event,
+                            permissions_granted=list(new_permissions - previous_permissions),
+                            permissions_revoked=list(previous_permissions - new_permissions),
+                        ),
+                    )
+                else:
+                    modal = render_template(
+                        template_path + 'modal.html',
+                        modal_body=render_template(
+                            "{}modal_body/{}.html".format(
+                                template_path, event.type.lower()
+                            ),
+                            event=event
+                        ),
+                        event=event,
+                    )
+            else:
+                modal = ""
+            json['template'] = row + modal
+
+        event_jsons.append(json)
+
+    return jsonify(events=event_jsons)
 
 
 @request_api_blueprint.route('/responses', methods=['GET'])
@@ -148,10 +225,11 @@ def get_request_responses():
         # If a user is anonymous or a public user who is not the requester AND the date for Release and Public is in
         # the future, do not generate response row
 
-        if (current_user == response.request.requester or current_user in response.request.agency_users) or (
-           response.privacy != response_privacy.PRIVATE
-           and response.release_date
-           and response.release_date < datetime.utcnow()):
+        if (current_user in response.request.agency_users) or (
+                        current_user == response.request.requester and response.privacy != response_privacy.PRIVATE) or (
+                            response.privacy == response_privacy.RELEASE_AND_PUBLIC
+                    and response.release_date
+                and response.release_date < datetime.utcnow()):
             json = {
                 'id': response.id,
                 'type': response.type

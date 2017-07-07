@@ -49,7 +49,8 @@ def get():
     requests_opened = 0
     requests_closed = 0
     active_users = []
-    show_users = False
+    is_visible = False
+    results = False
     if agency_ein:
         if agency_ein == 'all':
             active_requests = Requests.query.with_entities(Requests.status).join(
@@ -64,22 +65,26 @@ def get():
             requests_closed = len([r for r in active_requests if r[0] == request_status.CLOSED])
             requests_opened = len(active_requests) - requests_closed
             if not (current_user.is_anonymous or current_user.is_public):
-                if (current_user.is_agency and current_user.agency.ein == agency_ein) or current_user.is_super:
-                    if current_user.is_agency_admin or current_user.is_super:
+                if (current_user.is_agency and current_user.is_agency_admin(agency_ein)) or current_user.is_super:
+                    is_visible = True
+                    if current_user.is_agency_admin(agency_ein) or current_user.is_super:
                         active_users = sorted(
                             [(user.guid, user.name)
                              for user in Agencies.query.filter_by(ein=agency_ein).one().active_users],
                             key=lambda x: x[1])
-                    elif current_user.is_agency_active:
+                    elif current_user.is_agency_active(agency_ein):
                         active_users = [(current_user.guid, current_user.name)]
                     if active_users:
                         active_users.insert(0, ('', ''))
-                        show_users = True
+                        results = True
 
-    elif user_guid and (current_user.is_agency_active or current_user.is_agency_admin or current_user.is_super):
+    elif user_guid and (current_user.is_agency_active(agency_ein) or
+                        current_user.is_agency_admin(agency_ein) or
+                        current_user.is_super):
+        is_visible = True
         ureqs = UserRequests.query.filter(UserRequests.user_guid == user_guid,
                                           UserRequests.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
-                                         ).all()
+                                          ).all()
 
         requests_closed = len([u for u in ureqs if u.request.status == request_status.CLOSED])
         requests_opened = len([u for u in ureqs if u.request.status != request_status.CLOSED])
@@ -87,5 +92,6 @@ def get():
     return jsonify({"labels": ["Opened", "Closed"],
                     "values": [requests_opened, requests_closed],
                     "active_users": active_users,
-                    "show_users": show_users
+                    "is_visible": is_visible,
+                    "results": results
                     }), 200

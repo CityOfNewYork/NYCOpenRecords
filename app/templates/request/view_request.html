@@ -34,13 +34,13 @@
                 {% include 'request/status.html' %}
             </div>
 
-            <!-- Action Button Column -->
-            {% if (current_user in request.agency_users) or (is_requester and (request.status != status.OPEN) or (request.status != status.CLOSED)) %}
+            <!-- Action Button Column for Agency Users -->
+            {% if current_user in request.agency_users %}
                 <div class="col-md-12"><h3>Actions</h3>
                     <div class="tabbable tabs-left" id="mobile-toggle">
                         <ul class="nav nav-tabs">
                             {% if request.status != status.CLOSED %}
-                                {% if request.status == status.OPEN or not request.was_acknowledged %}
+                                {% if request.status == status.OPEN or not (request.was_acknowledged or request.was_reopened) %}
                                     {% if permissions['acknowledge'] %}
                                         <li class="active"><a href="#acknowledge-request"
                                                               data-toggle="tab">Acknowledge</a>
@@ -49,6 +49,9 @@
                                     {% if permissions['deny'] %}
                                         <li><a href="#deny-request" data-toggle="tab">Deny</a></li>
                                         <li>
+                                    {% endif %}
+                                    {% if permissions['add_note'] %}
+                                        <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
                                     {% endif %}
                                 {% else %}
                                 {% if permissions['add_file'] %}
@@ -87,7 +90,7 @@
                         </ul>
                         <div class="tab-content content-min-height">
                             {% if request.status != status.CLOSED %}
-                                {% if request.status == status.OPEN  or not request.was_acknowledged %}
+                                {% if request.status == status.OPEN or not (request.was_acknowledged or request.was_reopened) %}
                                     {% if permissions['acknowledge'] %}
                                         <div class="tab-pane active" id="acknowledge-request">
                                             {% include "response/add_acknowledgment.html" %}
@@ -97,6 +100,12 @@
                                     {% if permissions['deny'] %}
                                         <div class="tab-pane" id="deny-request">
                                             {% include "response/add_denial.html" %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if permissions['add_note'] %}
+                                        <div class="tab-pane" id="add-note">
+                                            {% include "response/add_note.html" %}
                                         </div>
                                     {% endif %}
                                 {% else %}
@@ -158,21 +167,21 @@
                 </div>
             {% endif %}
             <!-- Response Column -->
-            <div class="col-sm-12">
-                <h3 class="wrap-text">Responses
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
-                           data-content="Use the Responses section to access all agency correspondence and documents provided in response to this request.">
-                        <span class="glyphicon glyphicon-question-sign"></span>
-                    </small>
-                </h3>
+            <div class="col-sm-{% if current_user.is_agency %}7{% else %}12{% endif %}">
                 {% include 'request/_view_request_responses.html' %}
             </div>
-
-            <!-- History Column -->
-            {#            <div class="col-sm-3">#}
-            {#                <h3 class="wrap-text">History</h3>#}
-            {#                {% include 'request/_view_request_history.html' %}#}
-            {#            </div>#}
+            <!-- Actions for Public Users -->
+            {% if is_requester and request.status != status.CLOSED %}
+                <div class="col-sm-12" id="add-note-public-user">
+                    {% include "response/add_note.html" %}
+                </div>
+            {% endif %}
+            {% if current_user.is_agency %}
+                <!-- History Column -->
+                <div class="col-sm-5">
+                    {% include 'request/_view_request_history.html' %}
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
@@ -198,7 +207,10 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/view-request-responses.js') }}"></script>
-    {#    <script type="text/javascript" src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>#}
+    {% if current_user.is_agency %}
+        <script type="text/javascript"
+                src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
+    {% endif %}
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
@@ -211,10 +223,10 @@
     {% if current_user.is_agency and request.requester.is_anonymous_requester %}
         {% include 'request/edit_requester_info.js.html' %}
     {% endif %}
-    {% if permissions['edit_title_privacy'] or permissions['edit_agency_description_privacy'] %}
+    {% if permissions['edit_title_privacy'] or permissions['edit_agency_request_summary_privacy'] %}
         {% include 'request/_view_request_edit_visibility.js.html' %}
     {% endif %}
-    {% if permissions['edit_title'] or permissions['edit_agency_description'] %}
+    {% if permissions['edit_title'] or permissions['edit_agency_request_summary'] %}
         {% include 'request/_view_request_info_x-editable.js.html' %}
     {% endif %}
     {% if permissions['extend'] %}
@@ -255,5 +267,7 @@
     {% if permissions['remove_user'] %}
         {% include 'response/remove_user_request.js.html' %}
     {% endif %}
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/view-request-contact.js') }}"></script>
 
 {% endblock %}

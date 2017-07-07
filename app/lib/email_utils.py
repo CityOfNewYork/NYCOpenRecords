@@ -31,8 +31,8 @@ def send_async_email(msg):
         current_app.logger.exception("Failed to Send Email {} : {}".format(msg, e))
 
 
-def send_contact_email(subject, body, sender):
-    msg = Message(subject, [OPENRECORDS_DL_EMAIL], body, sender=sender)
+def send_contact_email(subject, recipients, body, sender):
+    msg = Message(subject, recipients, body, sender=sender)
     send_async_email.delay(msg)
 
 
@@ -66,6 +66,7 @@ def get_agency_emails(request_id, admins_only=False):
     Gets a list of the agency emails (assigned users and default email)
 
     :param request_id: FOIL request ID to query UserRequests
+    :param admins_only: return list of agency admin emails only
     :return: list of agency emails or ['agency@email.com'] (for testing)
     """
     request = Requests.query.filter_by(id=request_id).one()

@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 from io import StringIO, BytesIO
+import re
 
 from flask import (
     request,
@@ -44,7 +45,7 @@ def requests():
     All Users can filter by:
     - Status, Open (anything not Closed if not agency user)
     - Status, Closed
-    - Date Received
+    - Date Submitted
     - Agency
 
     Only Agency Users can filter by:
@@ -70,17 +71,23 @@ def requests():
         start = 0
 
     query = request.args.get('query')
+
+    # Determine if searching for FOIL ID
+    foil_id = eval_request_bool(request.args.get('foil_id')) or re.match(r'^(FOIL-|foil-|)\d{4}-\d{3}-\d{5}$', query)
+
     results = search_requests(
         query,
-        eval_request_bool(request.args.get('foil_id')),
+        foil_id,
         eval_request_bool(request.args.get('title')),
-        eval_request_bool(request.args.get('agency_description')),
+        eval_request_bool(request.args.get('agency_request_summary')),
         eval_request_bool(request.args.get('description')) if not current_user.is_anonymous else False,
         eval_request_bool(request.args.get('requester_name')) if current_user.is_agency else False,
         request.args.get('date_rec_from'),
         request.args.get('date_rec_to'),
         request.args.get('date_due_from'),
         request.args.get('date_due_to'),
+        request.args.get('date_closed_from'),
+        request.args.get('date_closed_to'),
         agency_ein,
         eval_request_bool(request.args.get('open')),
         eval_request_bool(request.args.get('closed')),
@@ -142,9 +149,11 @@ def requests_doc(doc_type):
                          "Title",
                          "Description",
                          "Agency Description",
+                         "Current Status",
                          "Date Created",
                          "Date Received",
                          "Date Due",
+                         "Date Closed",
                          "Requester Name",
                          "Requester Email",
                          "Requester Title",
@@ -162,13 +171,15 @@ def requests_doc(doc_type):
                 request.args.get('query'),
                 eval_request_bool(request.args.get('foil_id')),
                 eval_request_bool(request.args.get('title')),
-                eval_request_bool(request.args.get('agency_description')),
+                eval_request_bool(request.args.get('agency_request_summary')),
                 eval_request_bool(request.args.get('description')),
                 eval_request_bool(request.args.get('requester_name')),
                 request.args.get('date_rec_from'),
                 request.args.get('date_rec_to'),
                 request.args.get('date_due_from'),
                 request.args.get('date_due_to'),
+                request.args.get('date_closed_from'),
+                request.args.get('date_closed_to'),
                 agency_ein,
                 eval_request_bool(request.args.get('open')),
                 eval_request_bool(request.args.get('closed')),
@@ -195,10 +206,12 @@ def requests_doc(doc_type):
                         result["_source"]["agency_name"],
                         result["_source"]["title"],
                         result["_source"]["description"],
-                        result["_source"]["agency_description"],
+                        result["_source"]["agency_request_summary"],
+                        r.status,
                         result["_source"]["date_created"],
                         result["_source"]["date_submitted"],
                         result["_source"]["date_due"],
+                        result["_source"].get('date_closed', ''),
                         result["_source"]["requester_name"],
                         r.requester.email,
                         r.requester.title,

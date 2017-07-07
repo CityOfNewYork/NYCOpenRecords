@@ -52,6 +52,7 @@ class Config:
 
     USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
     WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
+    LOGOUT_URL = os.environ.get("LOGOUT_URL")
     VERIFY_WEB_SERVICES = os.environ.get('VERIFY_WEB_SERVICES') == "True"
     NYC_ID_USERNAME = os.environ.get('NYC_ID_USERNAME')
     NYC_ID_PASSWORD = os.environ.get('NYC_ID_PASSWORD')
@@ -64,9 +65,6 @@ class Config:
     LDAP_SA_BIND_DN = os.environ.get('LDAP_SA_BIND_DN') or None
     LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
     LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
-
-    # Database Settings
-    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
     # Redis Settings
     REDIS_HOST = os.environ.get('REDIS_HOST') or 'localhost'
@@ -101,13 +99,15 @@ class Config:
     EMAIL_TEMPLATE_DIR = 'email_templates/'
 
     # Flask-SQLAlchemy
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # remove once this becomes the default
+    SQLALCHEMY_POOL_SIZE = 1
 
     # Upload Settings
     # TODO: change naming since quarantine is used as a serving directory as well
     UPLOAD_QUARANTINE_DIRECTORY = (os.environ.get('UPLOAD_QUARANTINE_DIRECTORY') or
                                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/incoming/'))
-    UPLOAD_SERVING_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
+    UPLOAD_SERVING_DIRECTORY = (os.environ.get('UPLOAD_SERVING_DIRECTORY') or
                                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'quarantine/outgoing/'))
     UPLOAD_DIRECTORY = (os.environ.get('UPLOAD_DIRECTORY') or
                         os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
@@ -157,17 +157,18 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    WTF_CSRF_ENABLED = False  # TODO: retrieve and pass the token (via header or input value) for testing
     VIRUS_SCAN_ENABLED = True
     USE_SFTP = False
-    UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data/')
+    UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data_test/')
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
     SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or
                                'postgresql://localhost:5432/openrecords_v2_0_test')
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_test"
 
 
 class ProductionConfig(Config):
-    # TODO: complete me
     VIRUS_SCAN_ENABLED = True
     ELASTICSEARCH_ENABLED = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')

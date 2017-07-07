@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Copy proxy.sh to profile.d
-cp /vagrant/build_scripts/proxy.sh /etc/profile.d/
-
 # 1. Install Python 3.5
 yum -y install rh-python35
 
@@ -28,7 +25,16 @@ mkdir /home/vagrant/.virtualenvs
 virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords_v2_0
 chown -R vagrant:vagrant /home/vagrant
 source /home/vagrant/.virtualenvs/openrecords_v2_0/bin/activate
-pip install -r /vagrant/requirements.txt --no-binary :all:
+pip install -r /vagrant/requirements/common.txt --no-binary :all:
+
+if [ "$1" -eq development ] || [ "$2" -eq development ]; then
+    pip install -r /vagrant/requirements/dev.txt --no-binary :all:
+fi
+
+if [ "$1" -eq rhel ] || [ "$2" -eq rhel ]; then
+    pip install -r /vagrant/requirements/rhel.txt --no-binary :all:
+fi
+
 
 # 7. Install telnet-server
 yum -y install telnet-server

@@ -334,8 +334,7 @@ def test_get_content_with_token(self):
     response = rf.add_file()
 
     valid_token = ResponseTokens(response.id)
-    expired_token = ResponseTokens(response.id,
-                                   expiration_date=datetime.utcnow())
+    expired_token = ResponseTokens(response)
     create_object(valid_token)
     create_object(expired_token)
 
@@ -344,13 +343,6 @@ def test_get_content_with_token(self):
     # invalid token (400)
     resp = self.client.get(path, query_string={'token': 'not_a_real_token'})
     self.assertEqual(resp.status_code, 400)
-
-    # expired token (400)
-    resp = self.client.get(path, query_string={'token': expired_token.token})
-    self.assertEqual(resp.status_code, 400)
-    self.assertTrue(ResponseTokens.query.filter_by(
-        token=expired_token.token
-    ).first() is None)  # assert response token has been deleted
 
     # valid token (success)
     resp = self.client.get(path, query_string={'token': valid_token.token})

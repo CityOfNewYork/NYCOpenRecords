@@ -1,0 +1,47 @@
+{% include "request/events/modal_body/base/heading.html" %}
+<ul>
+    {% for key, human_key in {
+        "email": "email",
+        "phone_number": "phone number",
+        "fax_number": "fax number",
+        "title": "title",
+        "organization": "organization"
+    }.items() %}
+        {% if key in event.new_value and not (event.previous_value[key] == "" and event.new_value[key] == None) %}
+            <li>
+                The requester's <strong>{{ human_key }}</strong> was
+                {% if event.previous_value[key] and event.new_value[key] %}
+                    changed from "{{ event.previous_value[key] }}" to "{{ event.new_value[key] }}"
+                {% elif event.new_value[key] and not event.previous_value[key] %}
+                    added as "{{ event.new_value[key] }}"
+                {% else %}
+                    removed
+                {% endif %}
+            </li>
+        {% endif %}
+    {% endfor %}
+
+    {% if event.new_value.get("mailing_address") %}
+        {% for key, human_key in {
+            "zip": "zipcode",
+            "city": "city",
+            "state": "state",
+            "address_one": "address line 1",
+            "address_two": "address line 2"
+        }.items() %}
+            {% if key in event.new_value["mailing_address"] and not
+            (event.previous_value["mailing_address"][key] == "" and event.new_value["mailing_address"][key] == None) %}
+                <li>
+                    The requester's <strong>{{ human_key }}</strong> was
+                    {% if event.previous_value["mailing_address"][key] and event.new_value["mailing_address"][key] %}
+                        changed from "{{ event.previous_value["mailing_address"][key] }}" to "{{ event.new_value["mailing_address"][key] }}"
+                    {% elif event.new_value["mailing_address"][key] and not event.previous_value["mailing_address"][key] %}
+                        added as "{{ event.new_value["mailing_address"][key] }}"
+                    {% else %}
+                        removed
+                    {% endif %}
+                </li>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</ul>

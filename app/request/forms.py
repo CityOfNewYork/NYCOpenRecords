@@ -6,6 +6,7 @@
 
 from datetime import datetime
 
+from flask_login import current_user
 from flask_wtf import Form
 from flask_wtf.file import FileField
 from wtforms import (
@@ -16,6 +17,11 @@ from wtforms import (
     DateTimeField,
     SelectMultipleField,
 )
+from wtforms.validators import (
+    Email,
+    Length,
+    InputRequired
+)
 from sqlalchemy import or_
 
 from app.constants import (
@@ -25,7 +31,7 @@ from app.constants import (
     determination_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons
+from app.models import Reasons, Users
 
 
 class PublicUserRequestForm(Form):
@@ -82,6 +88,7 @@ class AgencyUserRequestForm(Form):
     """
 
     # Request Information
+    request_agency = SelectField('Agency (required)', choices=None)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
     request_date = DateTimeField("Date (required)", format="%Y-%m-%d", default=datetime.today)
@@ -112,6 +119,11 @@ class AgencyUserRequestForm(Form):
 
     # Submit Button
     submit = SubmitField('Submit Request')
+
+    def __init__(self):
+        super(AgencyUserRequestForm, self).__init__()
+        if len(current_user.agencies.all()) > 1:
+            self.request_agency.choices = current_user.agencies_for_forms()
 
 
 class AnonymousRequestForm(Form):
@@ -203,7 +215,7 @@ class FinishRequestForm(Form):
         self.reasons.choices = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
-                Reasons.type == self.ultimate_determination_type,
+                Reasons.type.in_(self.ultimate_determination_type),
                 or_(
                     Reasons.agency_ein == agency_ein,
                     Reasons.agency_ein == None
@@ -223,16 +235,16 @@ class FinishRequestForm(Form):
 
 class DenyRequestForm(FinishRequestForm):
     reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
-    ultimate_determination_type = determination_type.DENIAL
+    ultimate_determination_type = [determination_type.DENIAL]
 
 
 class CloseRequestForm(FinishRequestForm):
     reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
-    ultimate_determination_type = determination_type.CLOSING
+    ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
 
 
 class SearchRequestsForm(Form):
-    agency_ein = SelectField('Agency')  # , choices=get_agency_choices())
+    agency_ein = SelectField('Agency')
 
     # category = SelectField('Category', get_categories())
 
@@ -240,4 +252,29 @@ class SearchRequestsForm(Form):
         super(SearchRequestsForm, self).__init__()
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
-        # Why choices must be set in constructor I do not know... some db issue
+        # set default value of agency select field to agency user's agency
+        if current_user.is_agency:
+            self.agency_ein.default = current_user.default_agency_ein
+            user_agencies = sorted([(agencies.ein, agencies.name)
+                                    for agencies in current_user.agencies],
+                                   key=lambda x: x[1])
+            for agency in user_agencies:
+                self.agency_ein.choices.insert(1, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
+            self.process()
+
+
+class ContactAgencyForm(Form):
+    first_name = StringField(u'First Name', validators=[InputRequired(), Length(max=32)])
+    last_name = StringField(u'Last Name', validators=[InputRequired(), Length(max=64)])
+    email = StringField(u'Email', validators=[InputRequired(), Length(max=254), Email()])
+    subject = StringField(u'Subject')
+    message = TextAreaField(u'Message', validators=[InputRequired(), Length(max=5000)])
+    submit = SubmitField(u'Send')
+
+    def __init__(self, request):
+        super(ContactAgencyForm, self).__init__()
+        if current_user == request.requester:
+            self.first_name.data = request.requester.first_name
+            self.last_name.data = request.requester.last_name
+            self.email.data = request.requester.notification_email or request.requester.email
+        self.subject.data = "Inquiry about {}".format(request.id)

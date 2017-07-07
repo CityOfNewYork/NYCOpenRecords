@@ -10,16 +10,23 @@
 
 {% block content %}
     <div class="container-fluid">
-        <h2 class="text-center">Manage {% if current_user.is_super %}Agencies and{% else %}Agency{% endif %} Users</h2>
+        <h2 class="text-center">
+            {% if current_user.is_super or multi_agency_admin %}
+                Manage Agencies and Agency Users
+            {% else %}
+                Manage Agency User
+            {% endif %}
+        </h2>
+
         <hr>
-        {% if current_user.is_super %}
+        {% if current_user.is_super or multi_agency_admin %}
             <div class="row">
                 {{ agency_form.agencies.label }}
                 <div class="row">
                     <div class="col-sm-8">
                         {{ agency_form.agencies }}
                     </div>
-                    {% if not agency_is_active %}
+                    {% if current_user.is_super and not agency_is_active %}
                         <div class="col-sm-4">
                             <button type="button" class="btn btn-sm btn-primary" id="activate">Activate</button>
                         </div>
@@ -72,28 +79,29 @@
             {% endif %}
             <div class="col-sm-{% if current_user.is_super %}1{% else %}2{% endif %} text-right">
                 <button type="button" class="btn btn-danger btn-sm" id="remove">
-                     <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
         {% for user in users %}
-            <div class="row user-info">
+            <div class="row user-info break-word">
                 <input type="hidden" name="user-id" value="{{ user.get_id() }}">
+                <input type="hidden" name="agency-ein" value="{{ agency_ein }}">
                 <div class="col-sm-2">
                     {{ user.guid }}
                 </div>
                 <div class="col-sm-3">
                     {{ user.name }}
                 </div>
-                <div class="col-sm-3 break-word">
+                <div class="col-sm-3">
                     {{ user.email }}
                 </div>
                 <div class="col-sm-1 text-center">
                     <div class="radio no-margin-top no-margin-bottom">
                         <label>
                             <input type="radio" name="user-status-{{ loop.index }}"
-                                   {% if not user.is_agency_admin %}checked{% endif %}
-                            value="false">
+                                   {% if not user.is_agency_admin(agency_ein) %}checked{% endif %}
+                                   value="false">
                         </label>
                     </div>
                 </div>
@@ -101,8 +109,8 @@
                     <div class="radio no-margin-top no-margin-bottom">
                         <label>
                             <input type="radio" name="user-status-{{ loop.index }}"
-                                   {% if user.is_agency_admin %}checked{% endif %}
-                            value="true">
+                                   {% if user.is_agency_admin(agency_ein) %}checked{% endif %}
+                                   value="true">
                         </label>
                     </div>
                 </div>
@@ -113,7 +121,7 @@
                                 <input type="checkbox" name="user-super-{{ loop.index }}"
                                        {% if user.is_super %}checked="checked"{% endif %}
                                        {% if user.guid == current_user.guid %}disabled="disabled"{% endif %}
-                                value="true">
+                                       value="true">
                             </label>
                         </div>
                     </div>

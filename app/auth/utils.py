@@ -2,17 +2,43 @@
 .. module:: auth.views.
 
    :synopsis: Authentication utilities for NYC OpenRecords
+
 """
 import ssl
+import hmac
+import requests
+
+from json import dumps
+from hashlib import sha1
+from base64 import b64encode
 from urllib.parse import urljoin, urlparse
 
-from flask import current_app, request, session
-from ldap3 import Server, Tls, Connection
-
+from flask import (
+    current_app,
+    session,
+    url_for,
+    request,
+    abort,
+    redirect,
+)
+from flask_login import login_user, current_user
 from app import login_manager
-from app.constants import USER_ID_DELIMITER
+from app.models import Users, AgencyUsers
+from app.constants import user_type_auth, USER_ID_DELIMITER
+from app.constants.web_services import (
+    USER_ENDPOINT,
+    EMAIL_VALIDATION_ENDPOINT,
+    EMAIL_VALIDATION_STATUS_ENDPOINT,
+    TOU_ENDPOINT,
+    TOU_STATUS_ENDPOINT,
+    ENROLLMENT_ENDPOINT,
+    ENROLLMENT_STATUS_ENDPOINT,
+)
+from app.auth.constants import error_msg
 from app.lib.db_utils import create_object, update_object
-from app.models import Agencies, Users
+from app.lib.user_information import create_mailing_address
+
+from ldap3 import Server, Tls, Connection
 
 
 @login_manager.user_loader
@@ -27,220 +53,483 @@ def user_loader(user_id):
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
 
 
-def get_redirect_target():
-    """ Taken from http://flask.pocoo.org/snippets/62/ """
-    current_app.logger.info("def get_redirect_target():")
-    for target in request.values.get('next'), request.referrer:
-        if not target:
-            continue
-        if is_safe_url(target):
-            return target
+def update_openrecords_user(form):
+    """
+    Update OpenRecords-specific user attributes.
+    :param form: validated ManageUserAccountForm or ManageAgencyUserAccountForm
+    :type form: app.auth.forms.ManageUserAccountForm or app.auth.forms.ManageAgencyUserAccountForm
+    """
+    update_object(
+        {
+            'title': form.title.data,
+            'organization': form.organization.data,
+            'notification_email': form.notification_email.data,
+            'phone_number': form.phone_number.data,
+            'fax_number': form.fax_number.data,
+            'mailing_address': create_mailing_address(
+                form.address_one.data or None,
+                form.city.data or None,
+                form.state.data or None,
+                form.zipcode.data or None,
+                form.address_two.data or None)
+        },
+        Users,
+        (current_user.guid, current_user.auth_user_type))
+
+    if current_user.is_agency and current_user.default_agency_ein != form.default_agency.data:
+        update_object(
+            {'is_primary_agency': False},
+            AgencyUsers,
+            (current_user.guid, current_user.auth_user_type, current_user.default_agency_ein)
+        )
+        update_object(
+            {'is_primary_agency': True},
+            AgencyUsers,
+            (current_user.guid, current_user.auth_user_type, form.default_agency.data)
+        )
 
 
 def is_safe_url(target):
-    """ Taken from http://flask.pocoo.org/snippets/62/ """
-    current_app.logger.info("def is_safe_url(target):")
+    """ Taken from http://flask.pocoo.org/snippets/62/ with the help of Liam Neeson """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 
-def prepare_flask_request(request):
-    # If server is behind proxys or balancers use the HTTP_X_FORWARDED fields
-    url_data = urlparse(request.url)
-    return {
-        'https': 'on' if request.scheme == 'https' else 'off',
-        'http_host': request.host,
-        'server_port': url_data.port,
-        'script_name': request.path,
-        'get_data': request.args.copy(),
-        # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
-        # 'lowercase_urlencoding': True,
-        'post_data': request.form.copy()
-    }
-
-
-def process_user_data(guid, title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None):
+def find_user_by_email(email):
     """
-    Processes user data for a logged in user. Will update the database with user parameters, or create a user entry
-    in the database if none exists.
+    Find a user by email address stored in the database.
+    If LDAP login is being used, non-agency users and users
+    without an LDAP auth type are ignored.
+    If OAUTH login is being used, anonymous users are ignored.
 
-    :param guid: Unique ID for the user; String
-    :param title: User's title; String
-    :param organization: Users organization; String
-    :param phone_number: User's phone_number number; String
-    :param fax_number: User's fax_number number; String
-    :param mailing_address: User's mailing address; JSON Object
-    :return: User GUID + User Type
-    """
-    user = Users.query.filter_by(guid=guid).first()
-
-    if user:
-        if user.is_agency_user:
-            organization = Agencies.query.filter_by(email_domain=user.email.split('@')[-1]).first()
-
-            user = update_user(
-                guid=guid,
-                auth_user_type=user.auth_user_type,
-                agency=(organization.ein or None),
-                title=title,
-                organization=organization.name,
-                phone_number=phone_number,
-                fax_number=fax_number,
-                mailing_address=mailing_address
-            )
-        else:
-            user = update_user(
-                guid=guid,
-                auth_user_type=user.auth_user_type,
-                title=title,
-                organization=organization,
-                phone_number=phone_number,
-                fax_number=fax_number,
-                mailing_address=mailing_address
-            )
-
-    else:
-        user = create_user(title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None)
-    return user
-
-
-def update_user(guid=None, auth_user_type=None, **kwargs):
-    """
-    Updates a user if they exist in the database.
-    :param guid:
-    :param kwargs: Fields that need to be updated in the user.
-    :return: GUID + UserType of the user (forms unique ID)
-    """
-    user = str()
-    if not guid:
-        return None
-
-    user = update_object(kwargs, Users, obj_id=(guid, auth_user_type))
-
-    if not user:
-        return None
-    return user
-
-
-def find_or_create_user(guid, auth_user_type):
-    """
-    Given a guid and auth_user_type, equivalent to a user id, find or create a user in the database.
-
-    Returns the User object and a boolean marking the user as a new user.
-
-    :param unicode guid: GUID for the user
-    :param unicode auth_user_type: User Type. See auth.constants for list of valid user types
-    :return: (User Object, Boolean for Is new User)
-    """
-    user = Users.query.filter_by(guid=str(guid[0]), auth_user_type=str(auth_user_type[0])).first()
-
-    if user:
-        return user, False
-    else:
-        user = create_user()
-        return user, True
-
-
-def create_user(title=None, organization=None, phone_number=None, fax_number=None, mailing_address=None):
-    """
-
-    :return:
-    """
-    saml_user_data = session['samlUserdata']
-
-    guid = saml_user_data['GUID'][0]
-
-    auth_user_type = saml_user_data['userType'][0]
-
-    # Determine if the user's email address has been validated
-    # nycExtEmailValidationFlag is empty if auth_user_type = Saml2In:NYC Employees
-    # Otherwise, the validation flag will be either TRUE or FALSE
-    if saml_user_data.get('nycExtEmailValidationFlag', None):
-        if len(saml_user_data.get('nycExtEmailValidationFlag')[0]) == 0:
-            email_validated = False
-        else:
-            email_validated = saml_user_data.get('nycExtEmailValidationFlag')[0]
-            if email_validated == 'TRUE':
-                email_validated = True
-            else:
-                email_validated = False
-    else:
-        email_validated = False
-
-    # Get the user's email (mail), if provided, otherwise email will be an empty string
-    if saml_user_data.get('mail', None):
-        if len(saml_user_data.get('mail')) == 0:
-            email = ''
-        else:
-            email = saml_user_data.get('mail')[0]
-    else:
-        email = ''
-
-    # Get the users first_name, if provided, otherwise first_name will be an empty string
-    if saml_user_data.get('givenName', None):
-        if len(saml_user_data.get('givenName')) == 0:
-            first_name = ''
-        else:
-            first_name = saml_user_data.get('givenName')[0]
-    else:
-        first_name = ''
-
-    # Get the user's middle_initial (middleName), if provided, otherwise middle_initial will be an empty string
-    if saml_user_data.get('middleName', None):
-        if len(saml_user_data.get('middleName')) == 0:
-            middle_initial = ''
-        else:
-            middle_initial = saml_user_data.get('middleName')[0]
-    else:
-        middle_initial = ''
-
-    # Get the user's last_name (sn), if provided, otherwise last_name will be an empty string
-    if saml_user_data.get('sn', None):
-        if len(saml_user_data.get('sn')) == 0:
-            last_name = ''
-        else:
-            last_name = saml_user_data.get('sn')[0]
-    else:
-        last_name = ''
-
-    # Get the user's last_name (sn), if provided, otherwise last_name will be an empty string
-    if saml_user_data.get('nycExtTOUVersion', None):
-        if len(saml_user_data.get('nycExtTOUVersion')) == 0:
-            terms_of_use_accepted = None
-        else:
-            terms_of_use_accepted = saml_user_data.get('nycExtTOUVersion')[0]
-    else:
-        terms_of_use_accepted = None
-
-    user = Users(guid=guid,
-                 auth_user_type=auth_user_type,
-                 email=email,
-                 first_name=first_name,
-                 middle_initial=middle_initial,
-                 last_name=last_name,
-                 email_validated=email_validated,
-                 terms_of_use_accepted=terms_of_use_accepted,
-                 title=title,
-                 organization=organization,
-                 phone_number=phone_number,
-                 fax_number=fax_number,
-                 mailing_address=mailing_address)
-
-    if create_object(user):
-        return user
-    else:  # Insert Error Message
-        return None
-
-
-def find_user(email):
-    """
-    Find a user by email address in the database. Used for LDAP Authentication ONLY.
     :param email: Email address
-    :return: User object.
+    :return: User object or None if no user found.
     """
-    return Users.query.filter_by(email=email, is_agency_active=True).first()
+    if current_app.config['USE_LDAP']:
+        user = Users.query.filter_by(
+            email=email,
+            auth_user_type=user_type_auth.AGENCY_LDAP_USER
+        ).first()
+        return user if user.agencies.all() else None
+    elif current_app.config['USE_OAUTH']:
+        return Users.query.filter(
+            Users.email == email,
+            Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+        ).first()
+    return None
 
+
+def oauth_user_web_service_request(method="GET"):
+    """
+    Invoke the OAuth User Web Service with specified method.
+    https://nyc4d.nycnet/nycid/mobile.shtml#get-oauth-user-web-service
+
+    * Assumes the access token is stored in the session. *
+
+    :returns: response for user web services request
+    """
+    return _web_services_request(
+        USER_ENDPOINT,
+        {"accessToken": session['token']['access_token']},
+        method=method
+    )
+
+
+def revoke_and_remove_access_token():
+    """
+    Invoke the Delete OAuth User Web Service
+    to revoke an access token and remove the
+    token from the session.
+
+    * Assumes the access token is stored in the session. *
+    
+    WARNING
+    -------        
+    In the NYC.ID DEV environment, access tokens are
+    automatically revoked on IDP logout, so the revocation
+    executed in here will fail and an error will be logged!
+    
+    Once the change hits NYC.ID PRD, this function should
+    be renamed to "remove_access_token" and should only
+    consist of "session.pop('token')".
+
+    """
+    # FIXME: see WARNING above
+    _check_web_services_response(
+        oauth_user_web_service_request("DELETE"),
+        error_msg.REVOKE_TOKEN_FAILURE)
+    session.pop('token')
+
+
+def fetch_user_json():
+    """
+    Invoke the Get OAuth User Web Service to fetch
+    a JSON-formatted user.
+    https://nyc4d.nycnet/nycid/search.shtml#json-formatted-users
+
+    * Assumes the access token is stored in the session. *
+
+    :return: response status code, user data json dict
+    """
+    response = oauth_user_web_service_request()
+    return response.status_code, response.json()
+
+
+def handle_user_data(guid,
+                     user_type,
+                     email,
+                     first_name=None,
+                     middle_initial=None,
+                     last_name=None,
+                     terms_of_use=None,
+                     email_validation_flag=None,
+                     next_url=None):
+    """
+    Interpret the result of processing the specified
+    user data and act accordingly:
+    - If a redirect url is returned, redirect to that url.
+    - If a user is returned, login that user and return
+      a redirect to the specified next_url, the home page url,
+      or to the 404 page if next_url is provided and is unsafe.
+    """
+    redirect_required, user_or_url = _process_user_data(
+        guid,
+        user_type,
+        email,
+        first_name,
+        middle_initial,
+        last_name,
+        terms_of_use,
+        email_validation_flag
+    )
+    if redirect_required:
+        return redirect(user_or_url)
+    else:
+        login_user(user_or_url)
+        _session_regenerate_persist_token()
+
+        if not is_safe_url(next_url):
+            return abort(400, error_msg.UNSAFE_NEXT_URL)
+
+        return redirect(next_url or url_for('main.index'))
+
+
+def _session_regenerate_persist_token():
+    token = session['token']
+    token_expires_at = session['token_expires_at']
+    session.regenerate()
+    session['token'] = token
+    session['token_expires_at'] = token_expires_at
+
+
+def _process_user_data(guid,
+                       user_type,
+                       email,
+                       first_name,
+                       middle_initial,
+                       last_name,
+                       terms_of_use,
+                       email_validation_flag):
+    """
+    Kickoff email validation (if the user did not authenticate
+    with a federated identity) or terms-of-use acceptance if the
+    user has not validated their email or has not accepted the
+    latest terms of use version.
+
+    Otherwise, create or update a user with the specified fields.
+
+    If no first_name is provided, the mailbox portion of the email
+    will be used (e.g. jdoe@records.nyc.gov -> first_name: jdoe).
+
+    If a user cannot be found using the specified guid and user_type,
+    a second attempt is made with the specified email.
+
+    NOTE: A user's agency is not determined here. After login, a user's
+    agency supervisor must email us requesting that user be added
+    to the agency.
+
+    :return: (redirect required?, user that has been found or created OR redirect url)
+    """
+    possible_redirect_actions = [{
+        "function": _validate_email,
+        "args": [email_validation_flag, guid, email, user_type]
+    }, {
+        "function": _accept_terms_of_use,
+        "args": [terms_of_use, guid, user_type]
+    }]
+    for action in possible_redirect_actions:
+        redirect_url = action["function"](*action["args"])
+        if redirect_url:
+            return True, redirect_url
+
+    _enroll(guid, user_type)
+
+    mailbox, domain = email.split('@')
+
+    if first_name is None:
+        first_name = mailbox
+
+    user = Users.query.filter_by(guid=guid, auth_user_type=user_type).first()
+    if user is None and user_type in user_type_auth.AGENCY_USER_TYPES:
+        user = find_user_by_email(email)
+
+    # update or create user
+    if user is not None:
+        _update_user_data(user,
+                          guid,
+                          user_type,
+                          email,
+                          first_name,
+                          middle_initial,
+                          last_name)
+    else:
+        user = Users(
+            guid=guid,
+            auth_user_type=user_type,
+            first_name=first_name,
+            middle_initial=middle_initial,
+            last_name=last_name,
+            email=email,
+            email_validated=True,
+            terms_of_use_accepted=True,
+        )
+        create_object(user)
+
+    return False, user
+
+
+def _update_user_data(user, guid, user_type, email, first_name, middle_initial, last_name):
+    """
+    Update specified user with the information provided, which is
+    assumed to have originated from an NYC Service Account, and set
+    `email_validated` and `terms_of_use_accepted` (this function
+    should be called AFTER email validation and terms-of-use acceptance
+    has been completed).
+
+    Update any database objects this user is associated with.
+    - user_requests
+    - events
+    In order to prevent a possbile negative performance impact
+    (due to foreign keys CASCADE), guid and user_type are compared with
+    stored user attributes and are excluded from the update if both are identical.
+    """
+    updated_data = {
+        'email': email,
+        'first_name': first_name,
+        'middle_initial': middle_initial,
+        'last_name': last_name,
+        'email_validated': True,
+        'terms_of_use_accepted': True,
+    }
+    if guid != user.guid or user_type != user.auth_user_type:
+        updated_data.update(
+            guid=guid,
+            auth_user_type=user_type
+        )
+    update_object(
+        updated_data,
+        Users,
+        (user.guid, user.auth_user_type)
+    )
+
+
+def _validate_email(email_validation_flag, guid, email_address, user_type):
+    """
+    If the user did not log in via NYC.ID
+    (i.e. user_type is not 'EDIRSSO'),
+    no email validation is necessary.
+
+    A email is considered to have been validated if the
+    email validation flag is
+    - not provided
+    - 'TRUE'
+    - 'true'
+    - 'Unavailable'
+    - True
+
+    If the email validation flag is not one of the above (i.e. FALSE),
+    the Email Validation Web Service is invoked.
+
+    If the returned validation status equals false,
+    return url to the 'Email Confirmation Required' page
+    where the user can request a validation email.
+
+    :return: redirect url or None
+    """
+    if user_type == user_type_auth.PUBLIC_USER_NYC_ID and (
+                    email_validation_flag is not None and
+                    email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
+        response = _web_services_request(
+            EMAIL_VALIDATION_STATUS_ENDPOINT,
+            {"guid": guid}
+        )
+        _check_web_services_response(response, error_msg.EMAIL_STATUS_CHECK_FAILURE)
+        if not response.json().get('validated', False):
+            # redirect to Email Confirmation Required page
+            return '{url}?emailAddress={email_address}&target={target}'.format(
+                url=urljoin(current_app.config['WEB_SERVICES_URL'],
+                            EMAIL_VALIDATION_ENDPOINT),
+                email_address=email_address,
+                target=b64encode(
+                    urljoin(request.host_url, url_for(login_manager.login_view)).encode()
+                ).decode()
+            )
+
+
+def _accept_terms_of_use(terms_of_use, guid, user_type):
+    """
+    If the user has logged in using the NYC Employees button
+    (i.e. the user_type is 'Saml2In: NYC Employees'),
+    no TOU acceptance is necessary.
+
+    Otherwise, invoke the Terms of Use Web Service to determine
+    if the user has accepted the latest TOU version.
+    If not, return url to 'NYC. TOU' page where the user can
+    accept the latest terms of use.
+
+    :return: redirect url or None
+    """
+    if user_type != user_type_auth.AGENCY_USER and terms_of_use is not True:  # must be True, nothing else!
+        response = _web_services_request(
+            TOU_STATUS_ENDPOINT,
+            {
+                "guid": guid,
+                "userType": user_type
+            }
+        )
+        _check_web_services_response(response, error_msg.TOU_STATUS_CHECK_FAILURE)
+        if not response.json().get('current', False):
+            # redirect to NYC. TOU page
+            return '{url}?target={target}'.format(
+                url=urljoin(current_app.config['WEB_SERVICES_URL'],
+                            TOU_ENDPOINT),
+                target=b64encode(
+                    urljoin(request.host_url, url_for(login_manager.login_view)).encode()
+                ).decode()
+            )
+
+
+def _enroll(guid, user_type):
+    """
+    Retrieve enrollment statues for a specified
+    user and, if the user has not yet been enrolled,
+    create an enrollment record for that user.
+    """
+    params = {
+        "guid": guid,
+        "userType": user_type
+    }
+    response = _web_services_request(
+        ENROLLMENT_STATUS_ENDPOINT,
+        params.copy()  # signature regenerated
+    )
+    _check_web_services_response(response, error_msg.ENROLLMENT_STATUS_CHECK_FAILURE)
+    if response.status_code != 200 or not response.json():  # empty json = no enrollment record
+        _check_web_services_response(
+            _web_services_request(
+                ENROLLMENT_ENDPOINT,
+                params,
+                method='PUT'
+            ),
+            error_msg.ENROLLMENT_FAILURE)
+
+
+def _unenroll(guid, user_type):
+    """
+    Delete an enrollment.
+    *Included for possible future use.*
+    """
+    _check_web_services_response(
+        _web_services_request(
+            ENROLLMENT_ENDPOINT,
+            {
+                "guid": guid,
+                "userType": user_type
+            },
+            method='DELETE'
+        ),
+        error_msg.UNENROLLMENT_FAILURE)
+
+
+def _check_web_services_response(response, msg):
+    """
+    Log an error message if the specified response's
+    status code is not 200.
+    """
+    if response.status_code != 200:
+        current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
+
+
+def _web_services_request(endpoint, params, method='GET'):
+    """
+    Perform a request on an NYC.ID Web Services endpoint.
+    'userName' and 'signature' are added to the specified params.
+
+    :param endpoint: web services endpoint (e.g. "/account/validateEmail.htm")
+    :param params: request parameters excluding 'userName' and 'signature'
+    :param method: HTTP method
+    :return: request response
+    """
+    current_app.logger.info("NYC.ID Web Services Requests: {} {}".format(method, endpoint))
+    params['userName'] = current_app.config['NYC_ID_USERNAME']
+    # don't refactor to use dict.update() - signature relies on userName param
+    params['signature'] = _generate_signature(
+        current_app.config['NYC_ID_PASSWORD'],
+        _generate_string_to_sign(method, endpoint, params)
+    )
+    return requests.request(
+        method,
+        urljoin(current_app.config['WEB_SERVICES_URL'], endpoint),
+        verify=current_app.config['VERIFY_WEB_SERVICES'],
+        params=params  # query string parameters always used
+    )
+
+
+def _generate_string_to_sign(method, path, params):
+    """
+    Generate a string that can be signed to produce an
+    authentication signature.
+
+    :param method: HTTP method
+    :param path: path part of HTTP request URI
+    :param params: querystring parameters
+    :return: string to sign
+    """
+    return '{method}{path}{parameter_values}'.format(
+        method=method,
+        # ensure path begins with a forward slash
+        path=path if path[0] == '/' else '/' + path,
+        parameter_values=''.join([
+            # must be sorted alphabetically by parameter name
+            str(val) for param, val in sorted(params.items())
+        ])
+    )
+
+
+def _generate_signature(password, string):
+    """
+    Generate an NYC.ID Web Services authentication signature using HMAC-SHA1
+
+    https://nyc4d.nycnet/nycid/web-services.shtml#signature
+
+    :param password: NYC.ID Service Account password
+    :param string: string to sign
+    :return: the authentication signature or None on failure
+    """
+    signature = None
+    try:
+        hmac_sha1 = hmac.new(key=password.encode(),
+                             msg=string.encode(),
+                             digestmod=sha1)
+        signature = hmac_sha1.hexdigest()
+    except Exception as e:
+        current_app.logger.error("Failed to generate NYC ID.Web Services "
+                                 "authentication signature: ", e)
+    return signature
+
+
+# LDAP -----------------------------------------------------------------------------------------------------------------
 
 def ldap_authentication(email, password):
     """
@@ -261,12 +550,6 @@ def ldap_authentication(email, password):
 def _ldap_server_connect():
     """
     Connect to an LDAP server
-    :param ldap_server: LDAP Server Hostname / IP Address
-    :param ldap_port: Port to use on LDAP server
-    :param ldap_use_tls: Use a secure connection to the LDAP server
-    :param ldap_cert_path: Certificate for Secure connection to LDAP
-    :param ldap_sa_bind_dn: LDAP Bind Distinguished Name for Service Account
-    :param ldap_sa_password: LDAP Service Account password
     :return: LDAP Context
     """
     ldap_server = current_app.config['LDAP_SERVER']

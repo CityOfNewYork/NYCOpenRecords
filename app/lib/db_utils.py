@@ -3,10 +3,10 @@
     ~~~~~~~~~~~~~~~~
     synopsis: Handles the functions for database control
 """
-import sys
 from flask import current_app
 from app import db
 from app.models import Agencies, Requests
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.attributes import flag_modified
 
 
@@ -28,30 +28,31 @@ def create_object(obj):
     try:
         db.session.add(obj)
         db.session.commit()
-    except Exception as e:
-        current_app.logger.exception("Failed to CREATE {} : {}".format(obj, e))
+    except SQLAlchemyError:
         db.session.rollback()
+        current_app.logger.exception("Failed to CREATE {}".format(obj))
         return None
     else:
         # create elasticsearch doc
         if (not isinstance(obj, Requests)
-           and hasattr(obj, 'es_create')
-           and current_app.config['ELASTICSEARCH_ENABLED']):
+            and hasattr(obj, 'es_create')
+            and current_app.config['ELASTICSEARCH_ENABLED']):
             obj.es_create()
         return str(obj)
 
 
-def update_object(data, obj_type, obj_id):
+def update_object(data, obj_type, obj_id, es_update=True):
     """
     Update a database record and its elasticsearch counterpart.
 
     :param data: a dictionary of attribute-value pairs
     :param obj_type: sqlalchemy model
     :param obj_id: id of record
+    :param es_update: update the elasticsearch index
 
     :return: was the record updated successfully?
     """
-    obj = get_obj(obj_type, obj_id)
+    obj = get_object(obj_type, obj_id)
 
     if obj:
         for attr, value in data.items():
@@ -66,12 +67,12 @@ def update_object(data, obj_type, obj_id):
                 setattr(obj, attr, value)
         try:
             db.session.commit()
-        except Exception as e:
-            current_app.logger.exception("Failed to UPDATE {} : {}".format(obj, e))
+        except SQLAlchemyError:
             db.session.rollback()
+            current_app.logger.exception("Failed to UPDATE {}".format(obj))
         else:
             # update elasticsearch
-            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED']:
+            if hasattr(obj, 'es_update') and current_app.config['ELASTICSEARCH_ENABLED'] and es_update:
                 obj.es_update()
             return True
     return False
@@ -88,9 +89,9 @@ def delete_object(obj):
         db.session.delete(obj)
         db.session.commit()
         return True
-    except Exception as e:
-        current_app.logger.exception("Failed to DELETE {} : {}".format(obj, e))
+    except SQLAlchemyError:
         db.session.rollback()
+        current_app.logger.exception("Failed to DELETE {}".format(obj))
         return False
 
 
@@ -107,26 +108,30 @@ def bulk_delete(query):
         num_deleted = query.delete()
         db.session.commit()
         return num_deleted
-    except Exception as e:
-        current_app.logger.exception("Failed to BULK DELETE {} : {}".format(query, e))
+    except SQLAlchemyError:
         db.session.rollback()
+        current_app.logger.exception("Failed to BULK DELETE {}".format(query))
         return 0
 
 
-def get_obj(obj_type, obj_id):
+def get_object(obj_type, obj_id):
     """
-
-    :param obj_type:
-    :param obj_id:
-    :return:
+    Safely retrieve a database record by its id
+    and its sqlalchemy object type.
     """
     if not obj_id:
         return None
-    return obj_type.query.get(obj_id)
+    try:
+        return obj_type.query.get(obj_id)
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception('Error searching "{}" table for id {}'.format(
+            obj_type.__tablename__, obj_id))
+        return None
 
 
 def get_agency_choices():
     choices = sorted([(agencies.ein, agencies.name)
-                     for agencies in db.session.query(Agencies).all()],
+                      for agencies in db.session.query(Agencies).all()],
                      key=lambda x: x[1])
     return choices

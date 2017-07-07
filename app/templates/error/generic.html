@@ -24,8 +24,7 @@
         <p class="lead">
             Try again or try refreshing this page. If the issue persists, please
             {% if error_id %}
-                <a href="{{ url_for("main.contact", error_id="OpenRecords Error: {}".format(error_id)) }}">contact
-                    us</a>.
+                <a href="{{ url_for("main.contact", error_id="OpenRecords Error: {}".format(error_id)) }}">contact us</a>.
             {% else %}
                 <a href="{{ url_for("main.contact") }}">contact us</a>
             {% endif %}

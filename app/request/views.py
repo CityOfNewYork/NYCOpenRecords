@@ -46,13 +46,15 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     SearchRequestsForm,
-    CloseRequestForm
+    CloseRequestForm,
+    ContactAgencyForm
 )
 from app.request.utils import (
     create_request,
     handle_upload_no_id,
     get_address,
-    send_confirmation_email
+    send_confirmation_email,
+    create_contact_record
 )
 from app.user_request.forms import (
     AddUserRequestForm,
@@ -112,7 +114,10 @@ def new():
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         category=None,
-                                        agency_ein=current_user.agency_ein,
+                                        agency_ein=(
+                                            form.request_agency.data
+                                            if form.request_agency.data != 'None'
+                                            else current_user.default_agency_ein),
                                         submission=form.method_received.data,
                                         agency_date_submitted=form.request_date.data,
                                         email=form.email.data,
@@ -202,7 +207,7 @@ def view(request_id):
     assigned_users = []
     if current_user.is_agency:
         for agency_user in current_request.agency.active_users:
-            if not agency_user.is_agency_admin and (agency_user != current_user):
+            if not agency_user in current_request.agency.administrators and (agency_user != current_user):
                 # populate list of assigned users that can be removed from a request
                 if agency_user in current_request.agency_users:
                     assigned_users.append(agency_user)
@@ -233,8 +238,8 @@ def view(request_id):
         'remove_user': permission.REMOVE_USER_FROM_REQUEST,
         'edit_title': permission.EDIT_TITLE,
         'edit_title_privacy': permission.CHANGE_PRIVACY_TITLE,
-        'edit_agency_description': permission.EDIT_AGENCY_DESCRIPTION,
-        'edit_agency_description_privacy': permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION,
+        'edit_agency_request_summary': permission.EDIT_AGENCY_REQUEST_SUMMARY,
+        'edit_agency_request_summary_privacy': permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY,
         'edit_requester_info': permission.EDIT_REQUESTER_INFO
     }
 
@@ -248,19 +253,22 @@ def view(request_id):
     assigned_user_permissions = {}
     for u in assigned_users:
         assigned_user_permissions[u.guid] = UserRequests.query.filter_by(
-            request_id=request_id, user_guid=u.guid).one().get_permissions()
+            request_id=request_id, user_guid=u.guid).one().get_permission_choice_indices()
 
-    show_agency_description = False
+    show_agency_request_summary = False
     if (
-        current_user in current_request.agency_users or
-        current_request.requester == current_user or
-        (
-            current_request.agency_description_release_date and
-            current_request.agency_description_release_date < datetime.utcnow() and not
-            current_request.privacy['agency_description']
-        )
+        current_user in current_request.agency_users or (current_request.agency_request_summary and ((
+            current_request.requester == current_user and
+            current_request.status == request_status.CLOSED and not
+            current_request.privacy['agency_request_summary']
+        ) or (
+            current_request.status == request_status.CLOSED and
+            current_request.agency_request_summary_release_date and
+            current_request.agency_request_summary_release_date < datetime.utcnow() and not
+            current_request.privacy['agency_request_summary']
+        )))
     ):
-        show_agency_description = True
+        show_agency_request_summary = True
     show_title = (current_user in current_request.agency_users or
                   current_request.requester == current_user or
                   not current_request.privacy['title'])
@@ -270,6 +278,7 @@ def view(request_id):
         status=request_status,
         agency_users=current_request.agency_users,
         edit_requester_form=EditRequesterForm(current_request.requester),
+        contact_agency_form=ContactAgencyForm(current_request),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
@@ -280,7 +289,7 @@ def view(request_id):
         assigned_users=assigned_users,
         active_users=active_users,
         permissions=permissions,
-        show_agency_description=show_agency_description,
+        show_agency_request_summary=show_agency_request_summary,
         show_title=show_title,
         is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL)
@@ -318,3 +327,25 @@ def get_agencies_as_choices():
              for agencies in Agencies.query.all()],
             key=lambda x: x[1])
     return jsonify(choices)
+
+
+@request.route('/contact/<request_id>', methods=['POST'])
+def contact_agency(request_id):
+    """
+    This function handles contacting the agency about a request as a requester. 
+    :return: 
+    """
+    current_request = Requests.query.filter_by(id=request_id).one()
+    form = ContactAgencyForm(current_request)
+    del form.subject
+    if form.validate_on_submit():
+        create_contact_record(current_request,
+                              flask_request.form['first_name'],
+                              flask_request.form['last_name'],
+                              flask_request.form['email'],
+                              "Inquiry about {}".format(request_id),
+                              flask_request.form['message'])
+        flash('Your message has been sent.', category='success')
+    else:
+        flash('There was a problem sending your message. Please try again.', category='danger')
+    return redirect(url_for('request.view', request_id=request_id))

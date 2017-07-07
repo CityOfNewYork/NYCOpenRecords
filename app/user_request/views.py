@@ -37,12 +37,9 @@ def create(request_id):
 
     if (
                 current_user.is_agency and (
-                        current_user.is_super or
-                        (current_user.agency_ein == current_request.agency.ein and
-                             (current_user.is_agency_admin or
-                                  current_user_request.has_permission(permission.ADD_USER_TO_REQUEST)
-                              )
-                         )
+                            current_user.is_super or
+                            current_user.is_agency_admin(current_request.agency.ein) or
+                        current_user_request.has_permission(permission.ADD_USER_TO_REQUEST)
             )
     ):
         user_data = flask_request.form
@@ -85,12 +82,9 @@ def edit(request_id):
 
     if (
                 current_user.is_agency and (
-                        current_user.is_super or
-                        (current_user.agency_ein == current_request.agency.ein and
-                             (current_user.is_agency_admin or
-                                  current_user_request.has_permission(permission.EDIT_USER_REQUEST_PERMISSIONS)
-                              )
-                         )
+                            current_user.is_super or
+                            current_user.is_agency_admin(current_request.agency.ein) or
+                        current_user_request.has_permission(permission.EDIT_USER_REQUEST_PERMISSIONS)
             )
     ):
         user_data = flask_request.form
@@ -128,8 +122,14 @@ def delete(request_id):
     :return:
     """
     agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
-    if current_user.is_agency and current_user.is_super or (
-                    current_user.is_agency_active and current_user.is_agency_admin and current_user.agency_ein == agency_ein):
+
+    if (current_user.is_agency and (
+                current_user.is_super or (
+                        current_user.is_agency_active(agency_ein) and
+                        current_user.is_agency_admin(agency_ein)
+                )
+            )
+        ):
         user_data = flask_request.form
 
         required_fields = ['user',

@@ -63,21 +63,6 @@
         }
     });
 
-    var agency_active;
-    var agency_admin;
-    var current_agency;
-    {% if current_user.is_agency %}
-        agency_active = "{{ current_user.is_agency_active }}";
-        agency_admin = "{{ current_user.is_agency_admin }}";
-        current_agency = "{{ current_user.agency.ein }}";
-    {% else %}
-        agency_active = false;
-        agency_admin = false;
-        current_agency = '';
-    {% endif %}
-
-    var super_user = "{{ current_user.is_super }}";
-
     agencyFilter.change(function () {
         $.ajax({
             url: "/report/",
@@ -94,27 +79,30 @@
                 reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                 reportChart.update();
 
-                if (agency_active || agency_admin || super_user) {
-                    if ((data.active_users.length > 0) && data.show_users) {
-                        var sel = agencyUserFilter;
-                        sel.empty();
-                        for (i = 0; i < (data.active_users).length; i++) {
-                            var opt = document.createElement("option");
-                            opt.innerHTML = data.active_users[i][1];
-                            opt.value = data.active_users[i][0];
-                            sel.append(opt);
-                        }
-                        userFilterDiv.show();
+                if (data.is_visible && data.active_users.length > 0 && data.results) {
+                    var sel = agencyUserFilter;
+                    sel.empty();
+                    for (i = 0; i < (data.active_users).length; i++) {
+                        var opt = document.createElement("option");
+                        opt.innerHTML = data.active_users[i][1];
+                        opt.value = data.active_users[i][0];
+                        sel.append(opt);
                     }
-                    else {
-                        userFilterDiv.hide();
-                    }
+                    userFilterDiv.show();
+                }
+                else {
+                    userFilterDiv.hide();
                 }
             }
         });
     });
 
-    if (agency_admin || super_user || current_agency === agencyFilter.val()) {
+    var superUser = "{{ current_user.is_super }}";
+    var agencyAdmin = "{{ current_user.has_agency_admin }}";
+
+    // check if current user is an admin for any agency or is a super user
+    // the views function will check if user is active or admin of the specific agency
+    if (agencyAdmin || superUser) {
         agencyUserFilter.change(function () {
             // set agencyEin to value of selected agency if no user is selected
             var agencyEin = agencyUserFilter.val() === '' ? agencyFilter.val() : '';
@@ -126,13 +114,15 @@
                     agency_ein: agencyEin
                 },
                 success: function (data) {
-                    for (var i = 0; i < (data.values).length; ++i) {
-                        reportChart.data.datasets[0].data[i] = data.values[i]
+                    if (data.is_visible) {
+                        for (var i = 0; i < (data.values).length; ++i) {
+                            reportChart.data.datasets[0].data[i] = data.values[i]
+                        }
+                        var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
+                        reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
+                        reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
+                        reportChart.update();
                     }
-                    var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
-                    reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
-                    reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
-                    reportChart.update();
                 }
             })
         });

@@ -49,7 +49,7 @@ def contact():
                     body=body,
                 )
             )
-            send_contact_email(subject, body, email)
+            send_contact_email(subject, [OPENRECORDS_DL_EMAIL], body, email)
             flash('Your message has been sent. We will get back to you.', category='success')
         else:
             flash('Cannot send email.', category='danger')
@@ -65,6 +65,7 @@ def faq():
 @main.route('/about', methods=['GET'])
 def about():
     return render_template('main/about.html')
+
 
 @main.route('/active', methods=['POST'])
 def active():

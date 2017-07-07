@@ -26,25 +26,35 @@
             <div class="col-sm-2">
                 {{ moment(request._source.date_received).format('MMM DD, YYYY') }}
             </div>
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
+            <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %}">
                 {% if current_user.is_agency %}
                     {{ request._source.title }}
                 {% else %}
                     {{ request._source.public_title }}
                 {% endif %}
             </div>
-            <div class="col-sm-{% if current_user.is_agency %}2{% else %}3{% endif %}">
-                {{ request._source.agency_name }}
-            </div>
+            {% if current_user.is_agency %}
+                <div class="col-sm-1">
+                    {{ request._source.agency_acronym }}
+                </div>
+            {% else %}
+                <div class="col-sm-3">
+                    {{ request._source.agency_name }}
+                </div>
+            {% endif %}
             <div class="col-sm-2">
                 {{ moment(request._source.date_due).format('MMM DD, YYYY') }}
             </div>
             {% if current_user.is_agency %}
                 <div class="col-sm-2">
+                    {{ moment(request._source.date_closed).format('MMM DD, YYYY') if request._source.date_closed else '' }}
+                </div>
+                <div class="col-sm-2">
                     {{ request._source.requester_name }}
                 </div>
             {% endif %}
         </div>
+    {% if config['TESTING'] %}
     <!-- Only for testing -->
 {#        <div class="test-info">#}
 {#            <div class="row">#}
@@ -77,16 +87,16 @@
 {#                    {{ request._source.description }}</span>#}
 {#                </div>#}
 {#                <div class="col-sm-2">#}
-{#                    {% if request._source.agency_description %}#}
-{#                        <span {% if request._source.agency_description in query %}style="background-color: lawngreen;"{% endif %}>#}
-{#                        {{ request._source.agency_description }}</span>#}
+{#                    {% if request._source.agency_request_summary %}#}
+{#                        <span {% if request._source.agency_request_summary in query %}style="background-color: lawngreen;"{% endif %}>#}
+{#                        {{ request._source.agency_request_summary }}</span>#}
 {#                    {% endif %}#}
 {#                </div>#}
 {#                <div class="col-sm-2" style="color: {% if request._source.title_private %}red{% else %}lawngreen{% endif %}">#}
 {#                    {{ request._source.title_private }}#}
 {#                </div>#}
-{#                <div class="col-sm-2" style="color: {% if request._source.agency_description_private %}red{% else %}lawngreen{% endif %}">#}
-{#                    {{ request._source.agency_description_private }}#}
+{#                <div class="col-sm-2" style="color: {% if request._source.agency_request_summary_private %}red{% else %}lawngreen{% endif %}">#}
+{#                    {{ request._source.agency_request_summary_private }}#}
 {#                </div>#}
 {#                <div class="col-sm-2" style="color: {% if current_user.is_anonymous or request._source.requester_id != current_user.get_id() %}red{% else %}lawngreen{% endif %}">#}
 {#                    {% if current_user.is_anonymous %}#}
@@ -97,5 +107,6 @@
 {#                </div>#}
 {#            </div>#}
 {#        </div>#}
+    {% endif %}
     </a>
 {% endfor %}

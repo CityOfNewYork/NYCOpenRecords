@@ -52,7 +52,7 @@ path.logs: /data/es_logs
 #
 # Set the bind address to a specific IP (IPv4 or IPv6):
 #
-network.host: 127.0.0.1
+network.host: 0.0.0.0
 #
 # Set a custom port for HTTP:
 #
@@ -66,7 +66,7 @@ network.host: 127.0.0.1
 # Pass an initial list of hosts to perform discovery when new node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-#discovery.zen.ping.unicast.hosts: ["host1", "host2"]
+discovery.zen.ping.unicast.hosts: ["10.0.0.8", "10.0.0.9", "10.0.0.10"]
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #
@@ -89,3 +89,7 @@ network.host: 127.0.0.1
 # Require explicit names when deleting indices:
 #
 #action.destructive_requires_name: true
+
+# Disable System Call Filter on RHEL 6
+# https://github.com/elastic/elasticsearch/issues/22899
+bootstrap.system_call_filter: false

@@ -12,7 +12,6 @@ $(function() {
         noResultsFound = true,
         generateDocBtn = $("#generate-document");
 
-
     // Date stuff
     function elemToDate(elem) {
         /*
@@ -76,7 +75,7 @@ $(function() {
                 try {
                     var checkDate = elemToDate(checkDateElem);
                     var validComp = compDate !== null ?
-                        (isLessThan ? checkDate < compDate : checkDate > compDate) : true;
+                        (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
                         return dateInvalid(checkDateElem, "This date does not fall on a business day.");
                     }
@@ -135,8 +134,10 @@ $(function() {
     var dateRecToElem = $("#date-rec-to");
     var dateDueFromElem = $("#date-due-from");
     var dateDueToElem = $("#date-due-to");
+    var dateClosedFromElem = $("#date-closed-from");
+    var dateClosedToElem = $("#date-closed-to");
 
-    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem];
+    var dates = [dateRecFromElem, dateRecToElem, dateDueFromElem, dateDueToElem, dateClosedFromElem, dateClosedToElem];
     for (var i = 0; i < dates.length; i++) {
         dates[i].datepicker(datepickerOptions);
         dates[i].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
@@ -152,6 +153,12 @@ $(function() {
     });
     dateDueToElem.on("input change", function () {
         valiDates(dateDueFromElem, dateDueToElem);
+    });
+    dateClosedFromElem.on("input change", function () {
+        valiDates(dateClosedFromElem, dateClosedToElem);
+    });
+    dateClosedToElem.on("input change", function () {
+        valiDates(dateClosedFromElem, dateClosedToElem);
     });
 
     // keypress 'Enter' = click search button
@@ -249,7 +256,7 @@ $(function() {
     // disable other filters if searching by FOIL-ID
     $("input[name='foil_id']").click(function() {
         var query = $("#query");
-        var names = ["title", "description", "agency_description", "requester_name"];
+        var names = ["title", "description", "agency_request_summary", "requester_name"];
         var i;
         if ($(this).prop("checked")) {
             query.attr("placeholder", "0000-000-00000");
@@ -341,5 +348,11 @@ $(function() {
             $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
             search();
         }
+    });
+
+    // Toggle advanced search options (hide/show) and glyphicons directions on click
+    $("#advanced-options-toggle").click(function() {
+        $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
+        $("#advanced-search-options").toggle();
     });
 });

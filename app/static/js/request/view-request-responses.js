@@ -2,7 +2,7 @@ $(function () {
 
     var responses = null;
     var index = 0;
-    var index_increment = 10;
+    var index_increment = 5;
     var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var request_id = $.trim($('#request-id').text());
@@ -72,6 +72,9 @@ $(function () {
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
+                if (responses.length - index_increment == index) {
+                    nextButton.attr("disabled", true);
+                }
             },
             error: function (error) {
                 console.log(error);
@@ -139,6 +142,12 @@ $(function () {
 
         switch (response_type) {
             case "files":  // TODO: constants?
+                first.find(".fileupload-form input").on("keyup keypress", function(e) {  // TODO: global function
+                    if (e.keyCode === 13) {
+                        e.preventDefault();
+                    }
+                });
+
                 next1.click(function (e) {
                     // Validate fileupload form
                     first.find(".fileupload-form").parsley().validate();

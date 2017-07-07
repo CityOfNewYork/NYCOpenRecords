@@ -11,6 +11,7 @@ from app.constants import (
     request_status
 )
 from app.search.constants import (
+    MAX_RESULT_SIZE,
     ES_DATE_RANGE_FORMAT,
     DT_DATE_RANGE_FORMAT,
     MOCK_EMPTY_ELASTICSEARCH_RESULT
@@ -20,11 +21,46 @@ from app.lib.date_utils import utc_to_local, local_to_utc
 
 
 def recreate():
-    """ For when you feel lazy. """
-    es.indices.delete(current_app.config["ELASTICSEARCH_INDEX"],
-                      ignore=[400, 404])
+    """
+    Recreate elasticsearch indices and request docs.
+    """
+    delete_index()
     create_index()
     create_docs()
+
+
+def index_exists():
+    """
+    Return whether the elasticsearch index exists or not.
+    """
+    return es.indices.exists(current_app.config["ELASTICSEARCH_INDEX"])
+
+
+def delete_index():
+    """
+    Delete all elasticsearch indices, ignoring errors.
+    """
+    es.indices.delete(
+        current_app.config["ELASTICSEARCH_INDEX"],
+        ignore=[400, 404]
+    )
+
+
+def delete_docs():
+    """
+    Delete all elasticsearch request docs.
+    """
+    es.indices.refresh(
+        index=current_app.config["ELASTICSEARCH_INDEX"],
+    )
+    es.delete_by_query(
+        index=current_app.config["ELASTICSEARCH_INDEX"],
+        doc_type="request",
+        body={"query": {"match_all": {}}},
+        conflicts="proceed",
+        wait_for_completion=True,
+        refresh=True,
+    )
 
 
 def create_index():
@@ -51,7 +87,7 @@ def create_index():
                             "type": "text",
                             "analyzer": "english"
                         },
-                        "agency_description": {
+                        "agency_request_summary": {
                             "type": "text",
                             "analyzer": "english"
                         },
@@ -61,7 +97,7 @@ def create_index():
                         "title_private": {
                             "type": "boolean",
                         },
-                        "agency_description_private": {
+                        "agency_request_summary_private": {
                             "type": "boolean",
                         },
                         "agency_ein": {
@@ -69,6 +105,9 @@ def create_index():
                         },
                         "agency_name": {
                             "type": "keyword",
+                        },
+                        "agency_acronym": {
+                            "type": "keyword"
                         },
                         "status": {
                             "type": "keyword",
@@ -88,17 +127,21 @@ def create_index():
                         "date_received": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "date_closed": {
+                            "type": "date",
+                            "format": "strict_date_hour_minute_second",
                         }
                     }
                 }
             }
-        },
+        }
     )
 
 
 def create_docs():
     """
-    Create elasticsearch request docs for every request stored in our db.
+    Create elasticsearch request docs for every request db record.
     """
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
@@ -106,29 +149,36 @@ def create_docs():
     operations = []
     for r in requests:
         if r.agency.is_active:
-            operations.append({
+            date_received = r.date_created.strftime(
+                ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else r.date_submitted.strftime(
+                ES_DATETIME_FORMAT)
+            operation = {
                 '_op_type': 'create',
                 '_id': r.id,
                 'title': r.title,
                 'description': r.description,
-                'agency_description': r.agency_description,
+                'agency_request_summary': r.agency_request_summary,
                 'requester_name': r.requester.name,
                 'title_private': r.privacy['title'],
-                'agency_description_private': r.privacy['agency_description'],
+                'agency_request_summary_private': not r.agency_request_summary_released,
                 'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
                 'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
-                'date_received': r.date_created.strftime(
-                    ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else
-                    r.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_received': date_received,
                 'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
                 'submission': r.submission,
                 'status': r.status,
                 'requester_id': r.requester.get_id(),
                 'agency_ein': r.agency_ein,
+                'agency_acronym': r.agency.acronym,
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
-                # public_agency_description
-           })
+                # public_agency_request_summary
+            }
+
+            if r.date_closed is not None:
+                operation['date_closed'] = r.date_closed.strftime(ES_DATETIME_FORMAT)
+
+            operations.append(operation)
 
     num_success, _ = bulk(
         es,
@@ -145,19 +195,21 @@ def update_docs():
     #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.all()
     for r in requests:
-        r.es_update()  # TODO: in bulk, if needed at some point
+        r.es_update()  # TODO: in bulk, if re-creating starts to get too slow
 
 
 def search_requests(query,
                     foil_id,
                     title,
-                    agency_description,
+                    agency_request_summary,
                     description,
                     requester_name,
                     date_rec_from,
                     date_rec_to,
                     date_due_from,
                     date_due_to,
+                    date_closed_from,
+                    date_closed_to,
                     agency_ein,
                     open_,
                     closed,
@@ -182,13 +234,15 @@ def search_requests(query,
     :param query: string to query for
     :param foil_id: search by request id?
     :param title: search by title?
-    :param agency_description: search by agency description?
+    :param agency_request_summary: search by agency description?
     :param description: search by description?
     :param requester_name: search by requester name?
-    :param date_rec_from: date received from
-    :param date_rec_to: date received to
+    :param date_rec_from: date created/submitted from
+    :param date_rec_to: date created/submitted to
     :param date_due_from: date due from
     :param date_due_to: date due to
+    :param date_closed_from: date closed from
+    :param date_closed_to: date closed to
     :param agency_ein: agency ein to filter by
     :param open_: filter by opened requests?
     :param closed: filter by closed requests?
@@ -197,7 +251,7 @@ def search_requests(query,
     :param overdue: filter by overdue requests?
     :param size: number of requests per page
     :param start: starting index of request result set
-    :param sort_date_received: date received sort direction
+    :param sort_date_received: date created/submitted sort direction
     :param sort_date_due: date due sort direction
     :param sort_title: title sort direction
     :param tz_name: timezone name (e.g. "America/New_York")
@@ -214,13 +268,13 @@ def search_requests(query,
         query = query.strip()
 
     # return no results if there is nothing to query by
-    if query and not any((foil_id, title, agency_description,
+    if query and not any((foil_id, title, agency_request_summary,
                           description, requester_name)):
         return MOCK_EMPTY_ELASTICSEARCH_RESULT
 
     # if searching by foil-id, strip "FOIL-"
     if foil_id:
-        query = query.lstrip("FOIL-")
+        query = query.lstrip("FOIL-").lstrip('foil-')
 
     # set sort (list of "field:direction" pairs)
     sort = [
@@ -262,12 +316,14 @@ def search_requests(query,
         ).strftime(DT_DATE_RANGE_FORMAT)
 
     date_ranges = []
-    if any((date_rec_from, date_rec_to, date_due_from, date_due_to)):
+    if any((date_rec_from, date_rec_to, date_due_from, date_due_to, date_closed_from, date_closed_to)):
         range_filters = {}
         if date_rec_from or date_rec_to:
             range_filters['date_received'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
             range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
+        if date_closed_from or date_closed_to:
+            range_filters['date_closed'] = {'format': ES_DATE_RANGE_FORMAT}
         if date_rec_from:
             range_filters['date_received']['gte'] = datestr_local_to_utc(date_rec_from)
         if date_rec_to:
@@ -276,16 +332,22 @@ def search_requests(query,
             range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
         if date_due_to:
             range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
+        if date_closed_from:
+            range_filters['date_closed']['gte'] = datestr_local_to_utc(date_closed_from)
+        if date_closed_to:
+            range_filters['date_closed']['lte'] = datestr_local_to_utc(date_closed_to)
         if date_rec_from or date_rec_to:
             date_ranges.append({'range': {'date_received': range_filters['date_received']}})
         if date_due_from or date_due_to:
             date_ranges.append({'range': {'date_due': range_filters['date_due']}})
+        if date_closed_from or date_closed_to:
+            date_ranges.append({'range': {'date_closed': range_filters['date_closed']}})
 
     # generate query dsl body
     query_fields = {
         'title': title,
         'description': description,
-        'agency_description': agency_description,
+        'agency_request_summary': agency_request_summary,
         'requester_name': requester_name
     }
     dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, match_type)
@@ -326,21 +388,23 @@ def search_requests(query,
         doc_type='request',
         body=dsl,
         _source=['requester_id',
-                 'date_created',
                  'date_submitted',
                  'date_due',
                  'date_received',
+                 'date_created',
+                 'date_closed',
                  'status',
                  'agency_ein',
                  'agency_name',
+                 'agency_acronym',
                  'requester_name',
                  'title_private',
-                 'agency_description_private',
+                 'agency_request_summary_private',
                  'public_title',
                  'title',
-                 'agency_description',
+                 'agency_request_summary',
                  'description'],
-        size=size,
+        size=min(size, MAX_RESULT_SIZE),
         from_=start,
         sort=sort,
     )
@@ -398,10 +462,10 @@ class RequestsDSLGenerator(object):
                 {'term': {'title_private': False}}
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['agency_description']:
+        if self.__query_fields['agency_request_summary']:
             self.__filters = [
-                {self.__match_type: {'agency_description': self.__query}},
-                {'term': {'agency_description_private': False}}
+                {self.__match_type: {'agency_request_summary': self.__query}},
+                {'term': {'agency_request_summary_private': False}}
             ]
             self.__conditions.append(self.__must)
         return self.__should
@@ -419,10 +483,10 @@ class RequestsDSLGenerator(object):
                 }}
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['agency_description']:
+        if self.__query_fields['agency_request_summary']:
             self.__filters = [
-                {self.__match_type: {'agency_description': self.__query}},
-                {'term': {'agency_description_private': False}}
+                {self.__match_type: {'agency_request_summary': self.__query}},
+                {'term': {'agency_request_summary_private': False}}
             ]
             self.__conditions.append(self.__must)
         if self.__query_fields['description']:
@@ -478,8 +542,12 @@ def convert_dates(results, dt_format=None, tz_name=None):
     :tz_name: time zone name
     """
     for hit in results["hits"]["hits"]:
-        for field in ("date_submitted", "date_due", "date_received"):
-            dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+        for field in ("date_submitted", "date_due", "date_received", "date_closed"):
+            dt_field = hit["_source"].get(field, None)
+            if dt_field is not None and dt_field:
+                dt = datetime.strptime(hit["_source"][field], ES_DATETIME_FORMAT)
+            else:
+                continue
             if tz_name:
                 dt = utc_to_local(dt, tz_name)
             hit["_source"][field] = dt.strftime(dt_format) if dt_format is not None else dt
@@ -487,7 +555,7 @@ def convert_dates(results, dt_format=None, tz_name=None):
 
 def _process_highlights(results, requester_id=None):
     """
-    Removes highlights for private and non-requester fields.
+    Remove highlights for private and non-requester fields.
     Used for non-agency users.
 
     Why this is necessary:
@@ -502,12 +570,12 @@ def _process_highlights(results, requester_id=None):
                             if requester_id
                             else False)
             if ('title' in hit['highlight']
-               and hit['_source']['title_private']
-               and (current_user.is_anonymous or not is_requester)):
+                and hit['_source']['title_private']
+                and (current_user.is_anonymous or not is_requester)):
                 hit['highlight'].pop('title')
-            if ('agency_description' in hit['highlight']
-               and hit['_source']['agency_description_private']):
-                hit['highlight'].pop('agency_description')
+            if ('agency_request_summary' in hit['highlight']
+                and hit['_source']['agency_request_summary_private']):
+                hit['highlight'].pop('agency_request_summary')
             if ('description' in hit['highlight']
-               and not is_requester):
+                and not is_requester):
                 hit['highlight'].pop('description')

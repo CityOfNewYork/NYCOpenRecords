@@ -13,10 +13,10 @@ REQ_EXTENDED = "request_extended"
 REQ_CLOSED = "request_closed"
 REQ_REOPENED = "request_reopened"
 REQ_TITLE_EDITED = "request_title_edited"
-REQ_AGENCY_DESC_EDITED = "request_agency_description_edited"
+REQ_AGENCY_REQ_SUM_EDITED = "request_agency_request_summary_edited"
 REQ_TITLE_PRIVACY_EDITED = "request_title_privacy_edited"
-REQ_AGENCY_DESC_PRIVACY_EDITED = "request_agency_description_privacy_edited"
-REQ_AGENCY_DESC_DATE_SET = "request_agency_description_date_set"
+REQ_AGENCY_REQ_SUM_PRIVACY_EDITED = "request_agency_request_summary_privacy_edited"
+REQ_AGENCY_REQ_SUM_DATE_SET = "request_agency_request_summary_date_set"
 EMAIL_NOTIFICATION_SENT = "email_notification_sent"
 FILE_ADDED = "file_added"
 FILE_EDITED = "file_edited"
@@ -31,3 +31,41 @@ NOTE_ADDED = "note_added"
 NOTE_EDITED = "note_edited"
 NOTE_DELETED = "note_deleted"
 AGENCY_ACTIVATED = "agency_activated"
+CONTACT_EMAIL_SENT = "contact_email_sent"
+
+FOR_REQUEST_HISTORY = [
+    USER_ADDED,
+    USER_REMOVED,
+    USER_PERM_CHANGED,
+    REQUESTER_INFO_EDITED,
+    REQ_CREATED,
+    AGENCY_REQ_CREATED,
+    REQ_STATUS_CHANGED,
+    REQ_ACKNOWLEDGED,
+    REQ_EXTENDED,
+    REQ_CLOSED,
+    REQ_REOPENED,
+    REQ_TITLE_EDITED,
+    REQ_AGENCY_REQ_SUM_EDITED,
+    REQ_TITLE_PRIVACY_EDITED,
+    REQ_AGENCY_REQ_SUM_PRIVACY_EDITED,
+    FILE_ADDED,
+    FILE_EDITED,
+    FILE_REMOVED,
+    LINK_ADDED,
+    LINK_EDITED,
+    LINK_REMOVED,
+    INSTRUCTIONS_ADDED,
+    INSTRUCTIONS_EDITED,
+    INSTRUCTIONS_REMOVED,
+    NOTE_ADDED,
+    NOTE_EDITED,
+    NOTE_DELETED,
+]
+
+RESPONSE_ADDED_TYPES = [
+    FILE_ADDED,
+    LINK_ADDED,
+    INSTRUCTIONS_ADDED,
+    NOTE_ADDED,
+]

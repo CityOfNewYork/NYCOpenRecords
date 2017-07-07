@@ -32,9 +32,32 @@
             </ul>
         </div>
         <div class="col-sm-12 request-record-button">
-            <a href="{{ url_for('request.new') }}">
-                <button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record</button>
-            </a>
+            <div class="col-sm-6">
+                <a href="{{ url_for('request.view_all') }}">
+                    <button class="btn btn-primary btn-lg btn-block request-record-button-size">Check for Similar Requests</button>
+                </a>
+            </div>
+            <div class="col-sm-6">
+                <a href="{{ url_for('request.new') }}">
+                    <button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record</button>
+                </a>
+            </div>
         </div>
     </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript">
+        /* Redirect to OAuth callback if authorization location intended
+         * (i.e. includes 'access_token=' after fragment identifier).
+         * Also include 'next' url (or any other querystring parameters)
+         * if present in the redirect uri.
+         */
+        if (window.location.hash.indexOf('access_token=') !== -1) {
+            window.location = window.location.origin
+                + '/auth/authorize?'
+                + window.location.hash.substring(1)  // remove leading '#'
+                + (window.location.search ? '&' + window.location.search.substring(1) : '');  // remove leading '?'
+        }
+    </script>
 {% endblock %}

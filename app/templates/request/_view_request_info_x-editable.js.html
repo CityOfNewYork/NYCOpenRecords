@@ -4,10 +4,10 @@
      Sets submit and cancel buttons for xeditable.
      */
     $.fn.editableform.buttons =
-        '<button type="submit" id="testbtn" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
+        '<button type="submit" id="submitBtn" class="btn btn-primary btn-sm editable-submit"><i class="glyphicon glyphicon-ok"></i></button>' +
         '<button type="button" class="btn btn-default btn-sm editable-cancel"><i class="glyphicon glyphicon-ban-circle"></i></button>';
     /*
-     Sets request title and agency description to be editable inline.
+     Sets request title and agency request summary to be editable inline.
      Sends a PUT request to to view/edit endpoint when data is submitted.
      Data being sent is updated editable content from input textarea.
      */
@@ -23,14 +23,15 @@
                 tpl: '<textarea id="request-title" class="request-editable" maxlength="90" data-parsley-required data-parsley-maxlength="90" rows="3"></textarea>'
             });
         {% endif %}
-        {% if permissions['edit_agency_description'] %}
-            $('#agency_description').editable({
+        {% if permissions['edit_agency_request_summary'] %}
+            $('#agency_request_summary').editable({
                 pk: "{{ request.id }}",
                 url: '/request/api/v1.0/view/edit',
                 ajaxOptions: {
                     type: 'put'
                 },
-                tpl: '<textarea id="agency-descr" class="request-editable" maxlength="5000" data-parsley-maxlength="5000" rows="3"></textarea>'
+                tpl: '<textarea id="agency-request-summary" class="request-editable" maxlength="5000" data-parsley-maxlength="5000" rows="3"></textarea>',
+                emptytext: 'Click here to edit the agency request summary'
             });
         {% endif %}
     });

@@ -26,22 +26,30 @@ from app.constants import (
     REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request,
 )
-from app.constants.response_privacy import RELEASE_AND_PRIVATE
+from app.constants.response_privacy import (
+    RELEASE_AND_PRIVATE,
+    PRIVATE
+)
 from app.constants.submission_methods import DIRECT_INPUT
 from app.constants.user_type_auth import ANONYMOUS_USER
 from app.lib.db_utils import create_object, update_object
+from app.lib.email_utils import (
+    get_agency_emails,
+    send_contact_email
+)
 from app.lib.user_information import create_mailing_address
 from app.lib.redis_utils import redis_set_file_metadata
 from app.lib.date_utils import (
     get_following_date,
     get_due_date,
     local_to_utc,
-    utc_to_local
+    utc_to_local,
 )
 from app.models import (
     Requests,
     Agencies,
     Events,
+    Emails,
     Users,
     UserRequests,
     Roles,
@@ -255,13 +263,15 @@ def create_request(title,
                                      auth_type_for_event=auth_type_for_event)
 
     # 13. Add all parent agency administrators to the request.
-    parent_agency_ein = _get_parent_ein(agency.parent_ein)
-    if agency.ein != parent_agency_ein:
-        parent_agency = Agencies.query.filter_by(ein=parent_agency_ein).one()
-
-        if agency_ein in parent_agency.agency_features.get('monitor_agency_requests', []) and parent_agency.administrators:
+    if agency != agency.parent:
+        if (
+            agency.parent.agency_features is not None and
+            agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
+            agency.parent.is_active and
+            agency.parent.administrators
+        ):
             _create_agency_user_requests(request_id=request_id,
-                                         agency_admins=parent_agency.administrators,
+                                         agency_admins=agency.parent.administrators,
                                          guid_for_event=guid_for_event,
                                          auth_type_for_event=auth_type_for_event)
     return request_id
@@ -370,12 +380,11 @@ def generate_request_id(agency_ein):
     if agency_ein:
         agency = Agencies.query.filter_by(
             ein=agency_ein).one()  # This is the actual agency (including sub-agencies)
-        parent_ein = _get_parent_ein(agency.parent_ein)
         next_request_number = Agencies.query.filter_by(
-            ein=parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
+            ein=agency.formatted_parent_ein).one().next_request_number  # Parent agencies handle the request counting, not sub-agencies
         update_object({'next_request_number': next_request_number + 1},
                       Agencies,
-                      parent_ein)
+                      agency.formatted_parent_ein)
         agency_ein = agency.parent_ein
         request_id = "FOIL-{0:s}-{1!s}-{2:05d}".format(
             datetime.utcnow().strftime("%Y"), agency_ein, int(next_request_number))
@@ -466,17 +475,6 @@ def send_confirmation_email(request, agency, user):
         print("Error:", e)
 
 
-def _get_parent_ein(parent_ein):
-    """
-    Return the correctly formated EIN for a parent agency.
-
-    Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
-    :param parent_ein: 3 character parent ein
-    :return: String
-    """
-    return "0{}".format(parent_ein)
-
-
 def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth_type_for_event):
     """
     Creates user_requests entries for agency administrators.
@@ -505,3 +503,71 @@ def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth
             response_id=None,
             timestamp=datetime.utcnow()
         ))
+
+
+def create_contact_record(request, first_name, last_name, email, subject, message):
+    """
+    Creates Users, Emails, and Events entries for a contact submission for a request.
+    Sends email with message to all agency users associated with
+    
+    :param request: request object
+    :param first_name: sender's first name
+    :param last_name: sender's last name
+    :param email: sender's email
+    :param subject: subject of email
+    :param message: email body
+    """
+    if current_user == request.requester:
+        user = current_user
+    else:
+        user = Users(
+            guid=generate_guid(),
+            auth_user_type=ANONYMOUS_USER,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            email_validated=False,
+            terms_of_use_accepted=False,
+        )
+        create_object(user)
+
+        create_object(Events(
+            request_id=request.id,
+            user_guid=None,
+            auth_user_type=None,
+            type_=event_type.USER_CREATED,
+            new_value=user.val_for_events
+        ))
+
+    body = "Name: {} {}\n\nEmail: {}\n\nSubject: {}\n\nMessage:\n{}".format(
+        first_name, last_name, email, subject, message)
+
+    agency_emails = get_agency_emails(request.id)
+
+    email_obj = Emails(
+        request.id,
+        PRIVATE,
+        to=','.join([email.replace('{', '').replace('}', '') for email in agency_emails]),
+        cc=None,
+        bcc=None,
+        subject=subject,
+        body=body
+    )
+
+    create_object(email_obj)
+
+    create_object(Events(
+        request_id=request.id,
+        user_guid=user.guid,
+        auth_user_type=user.auth_user_type,
+        type_=event_type.CONTACT_EMAIL_SENT,
+        response_id=email_obj.id,
+        new_value=email_obj.val_for_events
+    ))
+
+    send_contact_email(
+        subject,
+        agency_emails,
+        message,
+        email
+    )

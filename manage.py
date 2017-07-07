@@ -1,17 +1,13 @@
 # manage.py
 
+import sys
 import os
-import subprocess
-
-COV = None
-if os.environ.get('FLASK_COVERAGE'):
-    import coverage
-
-    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
-    COV.start()
+import csv
+from tempfile import NamedTemporaryFile
 
 from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager, Shell, Command
+from flask_script import Manager, Shell
+from flask_script.commands import InvalidCommand
 
 from app import create_app, db
 from app.models import (
@@ -22,14 +18,27 @@ from app.models import (
     Events,
     Reasons,
     Roles,
-    UserRequests
+    UserRequests,
+    AgencyUsers
 )
+from app.request.utils import (
+    generate_guid
+)
+from app.constants import user_type_auth
+from app.lib.user_information import create_mailing_address
 
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+COV = None
+if os.environ.get('FLASK_COVERAGE'):
+    import coverage
+
+    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
+    COV.start()
+
+app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-#
+
 # class Celery(Command):
 #     """
 #     Start Celery
@@ -42,7 +51,6 @@ migrate = Migrate(app, db)
 #     def run(self):
 #         subprocess.call(['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info'])
 
-
 def make_shell_context():
     return dict(
         app=app,
@@ -54,20 +62,83 @@ def make_shell_context():
         Events=Events,
         Reasons=Reasons,
         Roles=Roles,
-        UserRequests=UserRequests
+        UserRequests=UserRequests,
+        AgencyUsers=AgencyUsers
     )
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command("db", MigrateCommand)
+
+
 # manager.add_command("celery", Celery())
+
+@manager.option('-f', '--fname', dest='first_name', default=None)
+@manager.option('-l', '--lname', dest='last_name', default=None)
+@manager.option('-e', '--email', dest='email', default=None)
+@manager.option('-a', '--agency-ein', dest='ein', default=None)
+@manager.option('--is-admin', dest='is_admin', default=False)
+@manager.option('--is-active', dest='is_active', default=False)
+def create_user(first_name=None, last_name=None, email=None, ein=None, is_admin=False, is_active=False):
+    """Create an agency user."""
+    if first_name is None:
+        raise InvalidCommand("First name is required")
+
+    if last_name is None:
+        raise InvalidCommand("Last name is required")
+
+    if email is None:
+        raise InvalidCommand("Email is required")
+
+    if ein is None:
+        raise InvalidCommand("Agency EIN is required")
+
+    user = Users(
+        guid=generate_guid(),
+        auth_user_type=user_type_auth.AGENCY_LDAP_USER,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        title=None,
+        organization=None,
+        email_validated=True,
+        terms_of_use_accepted=True,
+        phone_number=None,
+        fax_number=None,
+        mailing_address=create_mailing_address(None, None, None, None)
+    )
+    db.session.add(user)
+
+    agency_user = AgencyUsers(
+        user_guid=user.guid,
+        auth_user_type=user.auth_user_type,
+        agency_ein=ein,
+        is_agency_active=is_active,
+        is_agency_admin=is_admin,
+        is_primary_agency=True
+    )
+    db.session.add(agency_user)
+    db.session.commit()
+
+    print(user)
+
+
+@manager.option('-u', '--users', dest='users', action='store_true', default=False, required=False)
+@manager.option('-a', '--agencies', dest='agencies', action='store_true', default=False, required=False)
+@manager.option('-f', '--filename', dest='filename', default=None, required=True)
+def import_data(users, agencies, filename):
+    """Import data from CSV file."""
+    if users:
+        Users.populate(csv_name=filename)
+    elif agencies:
+        Agencies.populate(csv_name=filename)
 
 
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
-@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='coverage')
-def test(coverage=False, test_name=None):
+@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='cov')
+def test(cov=False, test_name=None):
     """Run the unit tests."""
-    if coverage and not os.environ.get('FLASK_COVERAGE'):
+    if cov and not os.environ.get('FLASK_COVERAGE'):
         import sys
         os.environ['FLASK_COVERAGE'] = '1'
         os.execvp(sys.executable, [sys.executable] + sys.argv)
@@ -114,7 +185,6 @@ def deploy():
     )))
 
     es_recreate()
-    # create_users()
 
 
 @manager.command
@@ -125,74 +195,18 @@ def es_recreate():
 
 
 @manager.command
-def create_search_set():
-    """Create a number of requests for test purposes."""
-    from tests.lib.tools import create_requests_search_set
-    from app.constants.user_type_auth import PUBLIC_USER_TYPES
-    import random
-
-    users = random.sample(PUBLIC_USER_TYPES, 2)
-    for i in enumerate(users):
-        users[i[0]] = Users.query.filter_by(auth_user_type=users[i[0]]).first()
-
-    create_requests_search_set(users[0], users[1])
-
-
-@manager.command
-def create_users():
-    """Create a user from each of the allowed auth_user_types."""
-    from app.constants.user_type_auth import PUBLIC_USER_TYPES
-    types = [type_ for type_ in PUBLIC_USER_TYPES]
-
-    from tests.lib.tools import create_user
-    for type_ in types:
-        user = create_user(type_)
-        print("Created User: {guid} - {name} ({email})".format(guid=user.guid, name=user.name, email=user.email))
-
-
-@manager.option("-a", "--agency", help="Create agency user.", action="store_true", dest='agency')
-@manager.option("-g", "--google", help="Create google user.", action="store_true", dest='google')
-@manager.option("-y", "--yahoo", help="Create yahoo user.", action="store_true", dest='yahoo')
-@manager.option("-f", "--facebook", help="Create facebook user.", action="store_true", dest='facebook')
-@manager.option("-l", "--linkedin", help="Create linkedin user.", action="store_true", dest='linkedin')
-@manager.option("-m", "--microsoft", help="Create microsoft user.", action="store_true", dest='microsoft')
-@manager.option("-e", "--edirsso", help="Create edirssoo user.", action="store_true", dest='edirsso')
-def create_user(agency=False,
-                google=False,
-                yahoo=False,
-                facebook=False,
-                linkedin=False,
-                microsoft=False,
-                edirsso=False):
-    """Create a user of the specified type. Defaults to an anonymous user."""
-    from tests.lib.tools import create_user
-    from app.constants.user_type_auth import (
-        AGENCY_USER,
-        PUBLIC_USER_NYC_ID,
-        PUBLIC_USER_FACEBOOK,
-        PUBLIC_USER_LINKEDIN,
-        PUBLIC_USER_GOOGLE,
-        PUBLIC_USER_YAHOO,
-        PUBLIC_USER_MICROSOFT
-    )
-    if agency:
-        user = create_user(AGENCY_USER)
-    if edirsso:
-        user = create_user(PUBLIC_USER_NYC_ID)
-    if facebook:
-        user = create_user(PUBLIC_USER_FACEBOOK)
-    if linkedin:
-        user = create_user(PUBLIC_USER_LINKEDIN)
-    if google:
-        user = create_user(PUBLIC_USER_GOOGLE)
-    if yahoo:
-        user = create_user(PUBLIC_USER_YAHOO)
-    if microsoft:
-        user = create_user(PUBLIC_USER_MICROSOFT)
-    if not (facebook or google or linkedin or microsoft or yahoo or agency or edirsso):
-        user = create_user()
-
-    print(user, "created.")
+def fix_due_dates():  # for "America/New_York"
+    """
+    Forgot to set due date hour to 5:00 PM in migration script before
+    converting to utc. Besides having the incorrect time, this also means
+    certain due dates do not fall on business days.
+    """
+    from app.lib.db_utils import update_object
+    for request in Requests.query.all():
+        update_object(
+            {"due_date": request.due_date.replace(hour=22, minute=00, second=00, microsecond=00)},
+            Requests,
+            request.id)
 
 
 @manager.command
@@ -203,18 +217,18 @@ def fix_anonymous_requesters():
     a duplicate anonymous requester guid and updates the User Requests record.
     The new user will be identical to the existing one with the exception of the guid.
     """
-    from app.constants import user_type_request, user_type_auth
+    from app.constants import user_type_request
     from app.request.utils import generate_guid
     from app.lib.db_utils import create_object, update_object
 
     guids = db.engine.execute("""
-SELECT
-  user_requests.user_guid AS "GUID"
-FROM user_requests
-  JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
-WHERE user_requests.request_user_type = 'requester'
-GROUP BY user_requests.user_guid
-HAVING COUNT(user_requests.request_id) > 1;
+        SELECT
+          user_requests.user_guid AS "GUID"
+        FROM user_requests
+          JOIN users ON user_requests.user_guid = users.guid AND user_requests.auth_user_type = users.auth_user_type
+        WHERE user_requests.request_user_type = 'requester'
+        GROUP BY user_requests.user_guid
+        HAVING COUNT(user_requests.request_id) > 1;
     """)
 
     for guid, in guids:
@@ -250,19 +264,118 @@ HAVING COUNT(user_requests.request_id) > 1;
             )
 
 
+@manager.option('-i', '--input', help='Full path to input csv.', default=None)
+@manager.option('-o', '--ouput', help='Full path to output csv. File will be overwritten.', default=None)
+def convert_staff_csvs(input=None, output=None):
+    """
+    Convert data from staff.csv to new format to accomodate multi-agency users.
+
+    :param input: Input file path. Must be a valid CSV.
+    :param output: Output file path
+    """
+    if input is None:
+        raise InvalidCommand("Input CSV is required.")
+
+    if output is None:
+        raise InvalidCommand("Output CSV is required.")
+
+    read_file = None
+
+    if output == input:
+        read_file = None
+        with open(input, 'r').read() as _:
+            read_file = csv.DictReader(_)
+
+            temp_write_file = NamedTemporaryFile()
+
+            with open(temp_write_file.name, 'w') as temp:
+                for row in read_file:
+                    try:
+                        print(
+                            '"{ein}#{is_active}#{is_admin}#True","{is_super}","{first_name}","{middle_initial}","{last_name}","{email}","{email_validated}","{terms_of_use_accepted}","{phone_number}","{fax_number}"'.format(
+                                ein=row['agency_ein'],
+                                is_active=row['is_agency_active'],
+                                is_admin=row['is_agency_admin'],
+                                is_super=eval(row['is_super']),
+                                first_name=row['first_name'],
+                                middle_initial=row['middle_initial'],
+                                last_name=row['last_name'],
+                                email=row['email'],
+                                email_validated=eval(row['email_validated']),
+                                terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+                                phone_number=row['phone_number'],
+                                fax_number=row['fax_number']
+                            ), file=temp_write_file)
+                    except:
+                        continue
+
+
 @manager.command
-def fix_due_dates():  # for "America/New_York"
+def migrate_to_agency_request_summary():
     """
-    Forgot to set due date hour to 5:00 PM in migration script before
-    converting to utc. Besides having the incorrect time, this also means
-    certain due dates do not fall on business days.
+    Updates the events table in the database to use 'agency_request_summary' wherever 'agency_description' was used.
+    
     """
-    from app.lib.db_utils import update_object
+
+    agency_description_types = ['request_agency_description_edited', 'request_agency_description_date_set',
+                                'request_agency_description_privacy_edited']
+
+    for event in Events.query.filter(Events.type.like('%agency_description%')).all():
+        if event.type in agency_description_types:
+            event.type = event.type.replace('description', 'request_summary')
+        previous_value = event.previous_value
+
+        if previous_value:
+            for key in previous_value.keys():
+                if key == 'agency_description':
+                    previous_value['agency_request_summary'] = previous_value[key]
+                    del previous_value[key]
+
+        new_value = event.new_value
+        if new_value:
+            for key in new_value.keys():
+                if key == 'agency_description':
+                    new_value['agency_request_summary'] = new_value[key]
+                    del new_value[key]
+
+        db.session.add(event)
+
     for request in Requests.query.all():
-        update_object(
-            {"due_date": request.due_date.replace(hour=22, minute=00, second=00, microsecond=00)},
-            Requests,
-            request.id)
+        old = request.privacy
+        if 'agency_description' in request.privacy.keys():
+            request.privacy = None
+            request.privacy = {
+                'agency_request_summary': old['agency_description'],
+                'title': old['title']
+            }
+            db.session.add(request)
+
+    db.session.commit()
+
+
+@manager.command
+def migrate_to_agencyusers():
+    """Migrate Users and Agencies to Users + Agencies + AgencyUsers."""
+    users = Users.query.with_entities(Users.guid,
+                                      Users.auth_user_type,
+                                      Users.agency_ein,
+                                      Users.is_agency_admin,
+                                      Users.is_agency_active
+                                      ).filter(Users.auth_user_type == user_type_auth.AGENCY_LDAP_USER).all()
+
+    for user in users:
+        guid, user_type, ein, is_admin, is_active = user
+        agency_user = AgencyUsers(
+            user_guid=guid,
+            auth_user_type=user_type,
+            agency_ein=ein,
+            is_agency_active=is_active,
+            is_agency_admin=is_admin,
+            is_primary_agency=True
+        )
+        db.session.add(agency_user)
+
+    db.session.commit()
 
 
 @manager.command
@@ -293,4 +406,8 @@ def routes():
 
 
 if __name__ == "__main__":
-    manager.run()
+    try:
+        manager.run()
+    except InvalidCommand as err:
+        print(err, file=sys.stderr)
+        sys.exit(1)

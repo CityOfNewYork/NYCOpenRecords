@@ -3,83 +3,88 @@
  */
 $(document).ready(function () {
 
-    // javascript to add tooltip popovers when selecting the title and description
-    $('[data-toggle="popover"]').popover();
+    // popover when selecting the title and description
+    $("[data-toggle='popover']").popover();
+
+    var phone = $("#phone"),
+        fax = $("#fax"),
+        zip = $("#zipcode"),
+        email = $("#email"),
+        title = $("#title"),
+        organization = $("#organization"),
+        address1 = $("#address-line-1"),
+        city = $("#city"),
+        state = $("#state");
 
     // Prevent user from entering a non numeric value into phone and fax field
-    $('#phone').keypress(function(key) {
+    phone.keypress(function(key) {
         if(key.charCode < 48 || key.charCode > 57)
             key.preventDefault();
     });
-    $('#fax').keypress(function(key) {
+    fax.keypress(function(key) {
         if(key.charCode < 48 || key.charCode > 57)
             key.preventDefault();
     });
-    // Apply parsley validation styles to the input forms for a new request.
 
     // jQuery mask plugin to format fields
-    $('#phone').mask("(999) 999-9999");
-    $('#fax').mask("(999) 999-9999");
-    $('#zipcode').mask("99999");
-
-    // Custom Validation Messages
-    $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
-    $('#phone').attr('data-parsley-length-message', 'The phone number must be 10 digits.');
-    $('#zipcode').attr('data-parsley-length-message', 'The Zipcode must be 5 digits.');
+    phone.mask("(999) 999-9999");
+    fax.mask("(999) 999-9999");
+    zip.mask("99999");
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['phone','fax','address-line-1', 'city', 'zipcode'];
-    for (i = 0 ; i < required_fields.length ; i++){
-        $('#' + required_fields[i]).attr('data-parsley-required','');
+    var requiredFields = [phone, fax, address1, city, zip, email, state];
+    for (var i = 0 ; i < requiredFields.length ; i++) {
+        requiredFields[i].attr("data-parsley-required", "");
+        requiredFields[i].attr("data-parsley-required-message", "");
     }
 
     // Specify length requirement of certain fields
-    $('#phone').attr('data-parsley-length','[14,14]');
-    $('#fax').attr('data-parsley-length','[14,14]');
-    $('#zipcode').attr('data-parsley-length', '[5,5]');
+    phone.attr("data-parsley-length","[14,14]");
+    fax.attr("data-parsley-length","[14,14]");
+    zip.attr("data-parsley-length", "[5,5]");
+    email.attr("data-parsley-maxlength", 254);
+    title.attr("data-parsley-maxlength", 64);
+    organization.attr("data-parsley-maxlength", 128);
 
-    // Custom Validation Messages
-    $('#fax').attr('data-parsley-length-message', 'The fax number must be 10 digits.');
-    $('#phone').attr('data-parsley-minlength-message', 'The phone number must be 10 digits.');
+    // Custom length validation messages
+    fax.attr("data-parsley-length-message", "The fax number must be 10 digits.");
+    phone.attr("data-parsley-length-message", "The phone number must be 10 digits.");
+    zip.attr("data-parsley-length-message", "The zipcode must be 5 digits.");
 
-    // Disable default error messages for email,phone,fax,address so custom one can be used instead.
-    $('#phone').attr('data-parsley-required-message', '');
-    $('#fax').attr('data-parsley-required-message', '');
-    $('#address-line-1').attr('data-parsley-required-message', '');
-    $('#city').attr('data-parsley-required-message','');
-    $('#zipcode').attr('data-parsley-required-message','');
+    // set character counter
+    characterCounter("#title-character-count", 64, title.val().length);
+    title.keyup(function() {
+        characterCounter("#title-character-count", 64, title.val().length);
+    });
+    characterCounter("#organization-character-count", 128, organization.val().length);
+    organization.keyup(function () {
+        characterCounter("#organization-character-count", 128, organization.val().length);
+    });
 
-    // Checks that at least one form of contact was filled out in addition to the rest of the form.
-    $('#request-form').parsley().on('form:validate', function () {
-        // Re-apply validators to fields in the event that they were removed from previous validation requests.
-        for (i = 0 ; i < required_fields.length ; i++){
-           $('#' + required_fields[i]).attr('data-parsley-required','');
-        }
-        // If address is filled out then make sure the city, state, and zipcode are filled.
-        if ($('#address-line-1').parsley().isValid()){
-                $('#city').attr('data-parsley-required','');
-                $('#state').attr('data-parsley-required','');
-                $('#zipcode').attr('data-parsley-required','');
-            }
-        // Checks that at least one of the contact information fields is filled in addition to the rest of the form
-        if ($('#phone').parsley().isValid() ||
-            $('#fax').parsley().isValid() ||
-            ($('#address-line-1').parsley().isValid() && $('#state').parsley().isValid() && $('#zipcode').parsley().isValid() && $('#city').parsley().isValid())
+    $("#request-form").parsley().on("form:validate", function () {
+        // Checks that at least one of the contact information fields is filled
+        if (email.parsley().isValid() ||
+            phone.parsley().isValid() ||
+            fax.parsley().isValid() ||
+            (
+                // mailing address
+                address1.parsley().isValid() &&
+                state.parsley().isValid() &&
+                zip.parsley().isValid() &&
+                city.parsley().isValid()
+            )
         ) {
-                // If at least one of the fields are validated then remove required from the rest of the contact fields that aren't being filled out
-                $('#city').removeAttr('data-parsley-required');
-                $('#state').removeAttr('data-parsley-required');
-                $('#zipcode').removeAttr('data-parsley-required');
-                $('#phone').removeAttr('data-parsley-required');
-                $('#fax').removeAttr('data-parsley-required');
-                $('#address-line-1').removeAttr('data-parsley-required');
+            for (var i = 0; i < requiredFields.length; i++) {
+                requiredFields[i].removeAttr("data-parsley-required");
+            }
         }
         else {
-            // If none of the fields are valid then produce an error message and apply required fields.
-            $('.contact-form-error-message').html("*At least one of the following must be filled out: Email, Phone, Fax, and/or Address (with City, State, and Zipcode)");
-            $('#fax').attr('data-parsley-required', '');
-            $('#phone').attr('data-parsley-required', '');
-            $('#address-line-1').attr('data-parsley-required', '');
+            $(".contact-form-error-message").html(
+                "At least one of the following needs to be filled: " +
+                "<strong>Notification Email</strong>, <strong>Phone</strong>, " +
+                "<strong>Fax</strong>, and/or <strong>Address</strong> " +
+                "(with <strong>City</strong>, <strong>State</strong>, and <strong>Zip code</strong>.)"
+            );
         }
     });
 

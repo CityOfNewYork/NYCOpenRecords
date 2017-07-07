@@ -7,17 +7,19 @@ from operator import ior
 from functools import reduce
 from uuid import uuid4
 from urllib.parse import urljoin
+from warnings import warn
 
-from flask import current_app
+from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
-from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy import desc
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, JSON
+from sqlalchemy.orm.exc import NoResultFound
 
 from app import db, es, calendar
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
-    DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     permission,
     role_name,
     user_type_auth,
@@ -27,7 +29,9 @@ from app.constants import (
     determination_type,
     response_privacy,
     submission_methods,
+    event_type,
 )
+from app.lib.utils import eval_request_bool
 
 
 class Roles(db.Model):
@@ -45,7 +49,7 @@ class Roles(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    permissions = db.Column(db.Integer)
+    permissions = db.Column(db.BigInteger)
 
     @classmethod
     def populate(cls):
@@ -91,8 +95,8 @@ class Roles(db.Model):
                 permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.EDIT_TITLE |
                 permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
                 permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
@@ -120,8 +124,8 @@ class Roles(db.Model):
                 permission.DELETE_LINK |
                 permission.DELETE_OFFLINE_INSTRUCTIONS |
                 permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_DESCRIPTION |
-                permission.CHANGE_PRIVACY_AGENCY_DESCRIPTION |
+                permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
                 permission.ADD_USER_TO_REQUEST |
                 permission.REMOVE_USER_FROM_REQUEST |
                 permission.EDIT_USER_REQUEST_PERMISSIONS |
@@ -147,7 +151,6 @@ class Roles(db.Model):
 class Agencies(db.Model):
     """
     Define the Agencies class with the following columns and relationships:
-
     ein - the primary key of the agencies table, 3 digit integer that is unique for each agency
     parent_ein - the ein that corresponds to the agency to which the ein belongs. This is used for agencies such as the
                  Mayor's Office, who have a number of smaller agencies that handle their own FOIL offices.
@@ -161,70 +164,111 @@ class Agencies(db.Model):
                 requests. Defaults to False.
     monitors_sub_agencies - a boolean field that denotes whether administrators for this agency should be able to edit
                             requests for sub-agencies. Defaults to False.
-    
+
     administrators - an array of user id strings that identify default admins for an agencies requests
     standard_users - an array of user id strings that identify agency users (non-admins) for an agencies requests
     active_users - an array of user id strings that identify agency users (admin and non-admin) that can login to 
                    OpenRecords.
     inactive_users - an array of user id strings that identify agency users (admin and non-admin) that cannot login to 
                      OpenRecords 
-    
+
     """
     __tablename__ = 'agencies'
     ein = db.Column(db.String(4), primary_key=True)
     parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
-    name = db.Column(db.String(256), nullable=False)
+    _name = db.Column(db.String(256), nullable=False, name='name')
+    acronym = db.Column(db.String(64), nullable=True)
     next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
-    agency_features = db.Column(JSON)
+    agency_features = db.Column(JSONB)
     # TODO: Method to insert updates to the agency_features column
     # TODO: Use validation on agency_features column
 
+
     administrators = db.relationship(
         'Users',
-        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
-                    "Users.is_agency_active == True, "
-                    "Users.is_agency_admin == True)"
+        secondary="agency_users",
+        primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
+                    "AgencyUsers.is_agency_active == True, "
+                    "AgencyUsers.is_agency_admin == True)",
+        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
+                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
     )
     standard_users = db.relationship(
         'Users',
-        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
-                    "Users.is_agency_active == True, "
-                    "Users.is_agency_admin == False)"
+        secondary="agency_users",
+        primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
+                    "AgencyUsers.is_agency_active == True, "
+                    "AgencyUsers.is_agency_admin == False)",
+        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
+                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
     )
     active_users = db.relationship(
         'Users',
-        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
-                    "Users.is_agency_active == True)"
+        secondary="agency_users",
+        primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
+                    "AgencyUsers.is_agency_active == True)",
+        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
+                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
     )
     inactive_users = db.relationship(
         'Users',
-        primaryjoin="and_(Agencies.ein == Users.agency_ein, "
-                    "Users.is_agency_active == False)"
+        secondary="agency_users",
+        primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
+                    "AgencyUsers.is_agency_active == False)",
+        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
+                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
     )
 
+    @property
+    def formatted_parent_ein(self):
+        """
+        Return the correctly formated EIN for a parent agency.
+
+        Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
+        :param parent_ein: 3 character parent ein
+        :return: String
+        """
+        return "0{}".format(self.parent_ein)
+
+    @property
+    def parent(self):
+        return Agencies.query.filter_by(ein=self.formatted_parent_ein).one_or_none()
+
+    @property
+    def name(self):
+        return '{name} ({acronym})'.format(name=self._name, acronym=self.acronym) if self.acronym else '{name}'.format(
+            name=self._name)
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
     @classmethod
-    def populate(cls):
+    def populate(cls, csv_name=None):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        with open(current_app.config['AGENCY_DATA'], 'r') as data:
+        filename = csv_name or current_app.config['AGENCY_DATA']
+        with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
-
             for row in dictreader:
+                if Agencies.query.filter_by(ein=row['ein']).first() is not None:
+                    warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
+                    continue
                 agency = cls(
                     ein=row['ein'],
                     parent_ein=row['parent_ein'],
                     categories=row['categories'].split(','),
                     name=row['name'],
+                    acronym=row['acronym'],
                     next_request_number=row['next_request_number'],
                     default_email=row['default_email'],
                     appeals_email=row['appeals_email'],
-                    is_active=eval(row['is_active']),
-                    agency_features=row['agency_features']
+                    is_active=eval(row['is_active'])
                 )
                 db.session.add(agency)
             db.session.commit()
@@ -236,7 +280,6 @@ class Agencies(db.Model):
 class Users(UserMixin, db.Model):
     """
     Define the Users class with the following columns and relationships:
-
     guid - a string that contains the unique guid of users
     auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     guid and auth_user_type are combined to create a composite primary key
@@ -291,7 +334,16 @@ class Users(UserMixin, db.Model):
 
     @property
     def is_authenticated(self):
-        return True
+        """
+        Verifies the access token currently stored in the user's session
+        by invoking the OAuth User Web Service and checking the response.
+        """
+        if current_app.config['USE_LDAP']:
+            return True
+        if session.get('token') is not None:
+            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
+            return oauth_user_web_service_request().status_code == 200
+        return False
 
     @property
     def is_active(self):
@@ -301,14 +353,12 @@ class Users(UserMixin, db.Model):
     def is_public(self):
         """
         Checks to see if the current user is a public user as defined below:
-
         PUBLIC_USER_NYC_ID = 'EDIRSSO'
         PUBLIC_USER_FACEBOOK = 'FacebookSSO'
         PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
         PUBLIC_USER_GOOGLE = 'GoogleSSO'
         PUBLIC_USER_YAHOO = 'YahooSSO'
         PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
-
         :return: Boolean
         """
         return self.auth_user_type in user_type_auth.PUBLIC_USER_TYPES
@@ -317,21 +367,26 @@ class Users(UserMixin, db.Model):
     def is_agency(self):
         """
         Checks to see if the current user is an agency user
-
         AGENCY_USER = 'Saml2In:NYC Employees'
-
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES
+        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agency_ein is not None
+
+    @property
+    def has_nyc_id_profile(self):
+        """
+        Checks to see if the current user has authenticated with
+        NYC.ID, which means they have an NYC.ID Profile.
+        :return: Boolean
+        """
+        return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
 
     @property
     def is_anonymous_requester(self):
         """
         Checks to see if the user is an anonymous requester
-
         NOTE: This is not the same as an anonymous user! This returns
         true if this user has been created for a specific request.
-
         :return: Boolean
         """
         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
@@ -346,7 +401,7 @@ class Users(UserMixin, db.Model):
             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
-    def get_id(self):  # FIXME: should not be getter
+    def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
     def from_id(self, user_id):  # Might come in useful
@@ -387,8 +442,9 @@ class Users(UserMixin, db.Model):
         }
 
     @classmethod
-    def populate(cls):
-        with open(current_app.config['STAFF_DATA'], 'r') as data:
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['STAFF_DATA']
+        with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
@@ -418,6 +474,304 @@ class Users(UserMixin, db.Model):
 
     def __repr__(self):
         return '<Users {}>'.format(self.get_id())
+
+
+# class Users(UserMixin, db.Model):
+#     """
+#     Define the Users class with the following columns and relationships:
+#
+#     guid - a string that contains the unique guid of users
+#     auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
+#     guid and auth_user_type are combined to create a composite primary key
+#     agency_ein - a foreign key that links to the primary key of the agency table
+#     email - a string containing the user's email
+#     notification_email - a string containing the user's email for notifications
+#     first_name - a string containing the user's first name
+#     middle_initial - a string containing the user's middle initial
+#     last_name - a string containing the user's last name
+#     email_validated - a boolean that is set to true if the user's email has been validated
+#     terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency's terms of use
+#     title - a string containing the user's title if they are affiliated with an outside company
+#     company - a string containing the user's outside company affiliation
+#     phone_number - string containing the user's phone number
+#     fax_number - string containing the user's fax number
+#     mailing_address - a JSON object containing the user's address
+#     """
+#     __tablename__ = 'users'
+#     guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
+#     auth_user_type = db.Column(
+#         db.Enum(user_type_auth.AGENCY_USER,
+#                 user_type_auth.AGENCY_LDAP_USER,
+#                 user_type_auth.PUBLIC_USER_FACEBOOK,
+#                 user_type_auth.PUBLIC_USER_MICROSOFT,
+#                 user_type_auth.PUBLIC_USER_YAHOO,
+#                 user_type_auth.PUBLIC_USER_LINKEDIN,
+#                 user_type_auth.PUBLIC_USER_GOOGLE,
+#                 user_type_auth.PUBLIC_USER_NYC_ID,
+#                 user_type_auth.ANONYMOUS_USER,
+#                 name='auth_user_type'),
+#         primary_key=True)
+#     is_super = db.Column(db.Boolean, nullable=False, default=False)
+#     first_name = db.Column(db.String(32), nullable=False)
+#     middle_initial = db.Column(db.String(1))
+#     last_name = db.Column(db.String(64), nullable=False)
+#     email = db.Column(db.String(254))
+#     notification_email = db.Column(db.String(254), nullable=True, default=None)
+#     email_validated = db.Column(db.Boolean(), nullable=False)
+#     terms_of_use_accepted = db.Column(db.Boolean)
+#     title = db.Column(db.String(64))
+#     organization = db.Column(db.String(128))  # Outside organization
+#     phone_number = db.Column(db.String(25))
+#     fax_number = db.Column(db.String(25))
+#     mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
+#
+#     # Relationships
+#     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
+#     agencies = db.relationship(
+#         'Agencies',
+#         secondary="agency_users",
+#         primaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
+#                     "AgencyUsers.auth_user_type == Users.auth_user_type)",
+#         secondaryjoin="and_(AgencyUsers.agency_ein == Agencies.ein, "
+#                       "AgencyUsers.is_agency_active == True)",
+#         lazy='dynamic'
+#     )
+#     agency_users = db.relationship("AgencyUsers", backref="user", lazy='dynamic')
+#
+#     @property
+#     def is_authenticated(self):
+#         """
+#         Verifies the access token currently stored in the user's session
+#         by invoking the OAuth User Web Service and checking the response.
+#         """
+#         if current_app.config['USE_LDAP']:
+#             return True
+#         if session.get('token') is not None:
+#             from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
+#             return oauth_user_web_service_request().status_code == 200
+#         return False
+#
+#     @property
+#     def is_active(self):
+#         return self.email_validated and self.terms_of_use_accepted
+#
+#     @property
+#     def is_public(self):
+#         """
+#         Checks to see if the current user is a public user as defined below:
+#
+#         PUBLIC_USER_NYC_ID = 'EDIRSSO'
+#         PUBLIC_USER_FACEBOOK = 'FacebookSSO'
+#         PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
+#         PUBLIC_USER_GOOGLE = 'GoogleSSO'
+#         PUBLIC_USER_YAHOO = 'YahooSSO'
+#         PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
+#
+#         :return: Boolean
+#         """
+#         return self.auth_user_type in user_type_auth.PUBLIC_USER_TYPES
+#
+#     @property
+#     def is_agency(self):
+#         """
+#         Check to see if the current user is an agency user.
+#
+#         AGENCY_USER = 'Saml2In:NYC Employees'
+#
+#         :return: Boolean
+#         """
+#         return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agencies is not None
+#
+#     @property
+#     def default_agency_ein(self):
+#         """
+#         Return the Users default agency ein.
+#         :return: String
+#         """
+#         agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True,
+#                                                       AgencyUsers.user_guid == self.guid,
+#                                                       AgencyUsers.auth_user_type == self.auth_user_type).one_or_none()
+#         if agency is not None:
+#             return agency.agency_ein
+#         return None
+#
+#     @property
+#     def default_agency(self):
+#         """
+#         Return the Users default Agencies object.
+#         :return: Agencies
+#         """
+#         return Agencies.query.filter_by(ein=self.default_agency_ein).one()
+#
+#     @property
+#     def has_nyc_id_profile(self):
+#         """
+#         Checks to see if the current user has authenticated with
+#         NYC.ID, which means they have an NYC.ID Profile.
+#
+#         :return: Boolean
+#         """
+#         return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
+#
+#     @property
+#     def is_anonymous_requester(self):
+#         """
+#         Checks to see if the user is an anonymous requester
+#
+#         NOTE: This is not the same as an anonymous user! This returns
+#         true if this user has been created for a specific request.
+#
+#         :return: Boolean
+#         """
+#         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
+#
+#     @property
+#     def anonymous_request(self):
+#         """
+#         Returns the request this user is associated with
+#         if this user is an anonymous requester.
+#         """
+#         if self.is_anonymous_requester:
+#             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
+#         return None
+#
+#     @property
+#     def has_agency_admin(self):
+#         """
+#         Determine if a user is an admin for at least one agency.
+#         :return: Boolean
+#         """
+#         for agency in self.agency_users.all():
+#             if agency.is_agency_admin:
+#                 return True
+#         return False
+#
+#     @property
+#     def has_agency_active(self):
+#         """
+#         Determine if a user is active for at least one agency.
+#         :return: Boolean
+#         """
+#         for agency in self.agency_users.all():
+#             if agency.is_agency_active:
+#                 return True
+#         return False
+#
+#     def get_id(self):
+#         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
+#
+#     def from_id(self, user_id):  # Might come in useful
+#         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
+#         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
+#
+#     def is_agency_admin(self, ein=None):
+#         """
+#         Determine if a user is an admin for the specified agency.
+#         :param ein: Agency EIN (4 Character String)
+#         :return: Boolean
+#         """
+#         if ein is None:
+#             ein = self.default_agency_ein
+#         for agency in self.agency_users.all():
+#             if agency.agency_ein == ein:
+#                 return agency.is_agency_admin
+#         return False
+#
+#     def is_agency_active(self, ein=None):
+#         """
+#         Determine if a user is active for the specified agency.
+#         :param ein: Agency EIN (4 Character String)
+#         :return: Boolean
+#         """
+#         if ein is None:
+#             ein = self.default_agency_ein
+#         for agency in self.agency_users.all():
+#             if agency.agency_ein == ein:
+#                 return agency.is_agency_active
+#         return False
+#
+#     def agencies_for_forms(self):
+#         agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
+#         agencies.insert(0, agencies.pop(agencies.index((self.default_agency.ein, self.default_agency._name))))
+#         return agencies
+#
+#     @property
+#     def name(self):
+#         return ' '.join((self.first_name.title(), self.last_name.title()))
+#
+#     def es_update(self):
+#         """
+#         Call es_update for any request where this user is the requester
+#         since the request es doc relies on the requester's name.
+#         """
+#         for request in self.requests:
+#             request.es_update()
+#
+#     @property
+#     def val_for_events(self):
+#         """
+#         JSON to store in Events 'new_value' field.
+#         """
+#         return {
+#             "guid": self.guid,
+#             "auth_user_type": self.auth_user_type,
+#             "email": self.email,
+#             "notification_email": self.notification_email,
+#             "first_name": self.first_name,
+#             "last_name": self.last_name,
+#             "title": self.title,
+#             "organization": self.organization,
+#             "phone_number": self.phone_number,
+#             "fax_number": self.fax_number,
+#             "mailing_address": self.mailing_address,
+#             "email_validated": self.email_validated,
+#             "terms_of_use_accepted": self.terms_of_use_accepted,
+#         }
+#
+#     @classmethod
+#     def populate(cls, csv_name=None):
+#         filename = csv_name or current_app.config['STAFF_DATA']
+#         with open(filename, 'r') as data:
+#             dictreader = csv.DictReader(data)
+#             for row in dictreader:
+#                 if Users.query.filter_by(email=row['email']).first() is None:
+#                     user = cls(
+#                         guid=str(uuid4()),
+#                         auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
+#                             'USE_LDAP'] else user_type_auth.AGENCY_USER,
+#                         is_super=eval(row['is_super']),
+#                         first_name=row['first_name'],
+#                         middle_initial=row['middle_initial'],
+#                         last_name=row['last_name'],
+#                         email=row['email'],
+#                         email_validated=eval(row['email_validated']),
+#                         terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+#                         phone_number=row['phone_number'],
+#                         fax_number=row['fax_number']
+#                     )
+#                     db.session.add(user)
+#                     db.session.commit()
+#
+#                     agency_eins = row['agencies'].split('|')
+#                     for agency in agency_eins:
+#                         ein, is_active, is_admin, is_primary_agency = agency.split('#')
+#                         agency_user = AgencyUsers(
+#                             user_guid=user.guid,
+#                             auth_user_type=user.auth_user_type,
+#                             agency_ein=ein,
+#                             is_agency_active=eval_request_bool(is_active),
+#                             is_agency_admin=eval_request_bool(is_admin),
+#                             is_primary_agency=eval_request_bool(is_primary_agency)
+#                         )
+#                         db.session.add(agency_user)
+#                     db.session.add(user)
+#             db.session.commit()
+#
+#     def __init__(self, **kwargs):
+#         super(Users, self).__init__(**kwargs)
+#
+#     def __repr__(self):
+#         return '<Users {}>'.format(self.get_id())
 
 
 class Anonymous(AnonymousUserMixin):
@@ -456,6 +810,48 @@ class Anonymous(AnonymousUserMixin):
 
     def __repr__(self):
         return '<Anonymous User>'
+
+
+class AgencyUsers(db.Model):
+    """
+    Define the AgencyUsers class with the following columns and relationships:
+    
+    user_guid - a string that contains the unique guid of users
+    auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
+    agency_ein - a foreign key that links that the primary key of the agency the request was assigned to
+    user_guid, auth_user_type, and agency_ein are combined to create a composite primary key
+    is_agency_active - a boolean value that allows the user to login as a user for the agency identified by agency_ein
+    is_agency_admin - a boolean value that allows the user to administer settings for the agency identified by 
+        agency_ein
+    primary_agency - a boolean value that determines whether the agency identified by agency_ein is the users default
+        agency
+    """
+    __tablename__ = 'agency_users'
+    user_guid = db.Column(db.String(64), primary_key=True)
+    auth_user_type = db.Column(
+        db.Enum(user_type_auth.AGENCY_USER,
+                user_type_auth.AGENCY_LDAP_USER,
+                user_type_auth.PUBLIC_USER_FACEBOOK,
+                user_type_auth.PUBLIC_USER_MICROSOFT,
+                user_type_auth.PUBLIC_USER_YAHOO,
+                user_type_auth.PUBLIC_USER_LINKEDIN,
+                user_type_auth.PUBLIC_USER_GOOGLE,
+                user_type_auth.PUBLIC_USER_NYC_ID,
+                user_type_auth.ANONYMOUS_USER,
+                name='auth_user_type'),
+        primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"), primary_key=True)
+    is_agency_active = db.Column(db.Boolean, default=False, nullable=False)
+    is_agency_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_primary_agency = db.Column(db.Boolean, default=False, nullable=False)
+
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            [user_guid, auth_user_type],
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
+        ),
+    )
 
 
 class Requests(db.Model):
@@ -504,9 +900,9 @@ class Requests(db.Model):
                 name='status'),
         nullable=False
     )
-    privacy = db.Column(JSON)
-    agency_description = db.Column(db.String(5000))
-    agency_description_release_date = db.Column(db.DateTime)
+    privacy = db.Column(JSONB)
+    agency_request_summary = db.Column(db.String(5000))
+    agency_request_summary_release_date = db.Column(db.DateTime)
 
     user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
     agency = db.relationship('Agencies', backref='requests', uselist=False)
@@ -533,7 +929,7 @@ class Requests(db.Model):
         viewonly=True
     )
 
-    PRIVACY_DEFAULT = {'title': False, 'agency_description': True}
+    PRIVACY_DEFAULT = {'title': False, 'agency_request_summary': True}
 
     def __init__(
             self,
@@ -577,17 +973,29 @@ class Requests(db.Model):
 
     @property
     def was_acknowledged(self):
-        return self.responses.filter(
-            Responses.type == response_type.DETERMINATION,
-            Determinations.dtype == determination_type.ACKNOWLEDGMENT
-        ).first() is not None
+        try:
+            self.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one()
+            return True
+        except NoResultFound:
+            return False
 
     @property
-    def was_denied(self):
-        return self.responses.filter(
-            Responses.type == response_type.DETERMINATION,
-            Determinations.dtype == determination_type.DENIAL
-        ).first() is not None
+    def was_reopened(self):
+        return self.responses.join(Determinations).filter(
+            Determinations.dtype == determination_type.REOPENING).first() is not None
+        # try:
+        #     self.responses.join(Determinations).filter(Determinations.dtype == determination_type.REOPENING).first()
+        #     return True
+        # except NoResultFound:
+        #     return False
+
+    @property
+    def date_closed(self):
+        if self.status == request_status.CLOSED:
+            return self.responses.join(Determinations).filter(
+                Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
+            ).order_by(desc(Determinations.date_modified)).limit(1).one().date_modified
+        return None
 
     @property
     def days_until_due(self):
@@ -607,6 +1015,11 @@ class Requests(db.Model):
                            request_id=self.id
                        ))
 
+    @property
+    def agency_request_summary_released(self):
+        return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
+               self.agency_request_summary_release_date < datetime.utcnow()
+
     def es_update(self):
         if self.agency.is_active:
             es.update(
@@ -617,10 +1030,12 @@ class Requests(db.Model):
                     'doc': {
                         'title': self.title,
                         'description': self.description,
-                        'agency_description': self.agency_description,
+                        'agency_request_summary': self.agency_request_summary,
                         'title_private': self.privacy['title'],
-                        'agency_description_private': self.privacy['agency_description'],
+                        'agency_request_summary_private': not self.agency_request_summary_released,
                         'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                        'date_closed': self.date_closed.strftime(
+                            ES_DATETIME_FORMAT) if self.date_closed is not None else [],
                         'status': self.status,
                         'requester_name': self.requester.name,
                         'public_title': 'Private' if self.privacy['title'] else self.title
@@ -631,34 +1046,34 @@ class Requests(db.Model):
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
-        if self.agency.is_active:
-            es.create(
-                index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type='request',
-                id=self.id,
-                body={
-                    'title': self.title,
-                    'description': self.description,
-                    'agency_description': self.agency_description,
-                    'agency_ein': self.agency_ein,
-                    'agency_name': self.agency.name,
-                    'title_private': self.privacy['title'],
-                    'agency_description_private': self.privacy['agency_description'],
-                    'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
-                    'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
-                    'date_received': self.date_created.strftime(
-                        ES_DATETIME_FORMAT) if self.date_created < self.date_submitted else self.date_submitted.strftime(
-                        ES_DATETIME_FORMAT),
-                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                    'submission': self.submission,
-                    'status': self.status,
-                    'requester_id': (self.requester.get_id()
-                                     if not self.requester.is_anonymous_requester
-                                     else ''),
-                    'requester_name': self.requester.name,
-                    'public_title': 'Private' if self.privacy['title'] else self.title,
-                }
-            )
+        es.create(
+            index=current_app.config["ELASTICSEARCH_INDEX"],
+            doc_type='request',
+            id=self.id,
+            body={
+                'title': self.title,
+                'description': self.description,
+                'agency_request_summary': self.agency_request_summary,
+                'agency_ein': self.agency_ein,
+                'agency_name': self.agency.name,
+                'agency_acronym': self.agency.acronym,
+                'title_private': self.privacy['title'],
+                'agency_request_summary_private': not self.agency_request_summary_released,
+                'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
+                'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                'date_received': self.date_created.strftime(
+                    ES_DATETIME_FORMAT) if self.date_created < self.date_submitted else self.date_submitted.strftime(
+                    ES_DATETIME_FORMAT),
+                'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                'submission': self.submission,
+                'status': self.status,
+                'requester_id': (self.requester.get_id()
+                                 if not self.requester.is_anonymous_requester
+                                 else ''),
+                'requester_name': self.requester.name,
+                'public_title': 'Private' if self.privacy['title'] else self.title,
+            }
+        )
 
     def __repr__(self):
         return '<Requests %r>' % self.id
@@ -696,14 +1111,24 @@ class Events(db.Model):
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
-    previous_value = db.Column(JSON)
-    new_value = db.Column(JSON)
+    previous_value = db.Column(JSONB)
+    new_value = db.Column(JSONB)
 
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type]
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
         ),
+    )
+
+    response = db.relationship("Responses", backref="events")
+    request = db.relationship("Requests", backref="events")
+    user = db.relationship(
+        "Users",
+        primaryjoin="and_(Events.user_guid == Users.guid, "
+                    "Events.auth_user_type == Users.auth_user_type)",
+        backref="events"
     )
 
     def __init__(self,
@@ -722,10 +1147,116 @@ class Events(db.Model):
         self.type = type_
         self.previous_value = previous_value
         self.new_value = new_value
-        self.timestamp = timestamp
+        self.timestamp = timestamp or datetime.utcnow()
 
     def __repr__(self):
         return '<Events %r>' % self.id
+
+    @property
+    def affected_user(self):
+        if self.new_value is not None and "user_guid" and "auth_user_type" in self.new_value:
+            return Users.query.filter_by(
+                guid=self.new_value["user_guid"],
+                auth_user_type=self.new_value["auth_user_type"]
+            ).one()
+
+    class RowContent(object):
+
+        def __init__(self, event, verb, string, affected_user=None, no_user_string=None):
+            """
+            :param verb: action describing event
+            :param string: format()-ready string where first field is verb and
+                           last field is affected_user, if applicable.
+            :param affected_user: user affected by this event
+            :param no_user_string: format()-ready string where there is no event user
+            """
+            self.event = event
+            self.string = string
+            self.verb = self._format_verb(verb)
+            self.affected_user = affected_user
+            self.no_user_string = no_user_string
+
+        def __str__(self):
+            format_args = [self.verb]
+            if self.affected_user is not None:
+                format_args += [self.affected_user.name]
+            if self.no_user_string is not None and self.event.user is None:
+                string = self.no_user_string
+            else:
+                string = ' '.join((self.event.user.name, self.string))
+            return string.format(*format_args)
+
+        @staticmethod
+        def _format_verb(verb):
+            return "<strong>{}</strong>".format(verb)
+
+    @property
+    def history_row_content(self):
+        """
+        Returns html safe string for use in the rows of the history section,
+        or None if this event is not intended for display purposes.
+        """
+        if self.type == event_type.REQ_STATUS_CHANGED:
+            return "This request's status was <strong>changed</strong> to:<br>{}".format(
+                self.new_value['status'])
+
+        valid_types = {
+            event_type.USER_ADDED:
+                self.RowContent(self, "added", "{} user: {}.", self.affected_user, "User {}: {}."),
+            event_type.USER_REMOVED:
+                self.RowContent(self, "removed", "{} user: {}.", self.affected_user),
+            event_type.USER_PERM_CHANGED:
+                self.RowContent(self, "changed", "{} permssions for user: {}.", self.affected_user),
+            event_type.REQUESTER_INFO_EDITED:
+                self.RowContent(self, "changed", "{} the requester's information."),
+            event_type.REQ_CREATED:
+                self.RowContent(self, "created", "{} this request."),
+            event_type.AGENCY_REQ_CREATED:
+                self.RowContent(self, "created", "{} this request on behalf of {}.", self.request.requester),
+            event_type.REQ_ACKNOWLEDGED:
+                self.RowContent(self, "acknowledged", "{} this request."),
+            event_type.REQ_EXTENDED:
+                self.RowContent(self, "extended", "{} this request."),
+            event_type.REQ_CLOSED:
+                self.RowContent(self, "closed", "{} this request."),
+            event_type.REQ_REOPENED:
+                self.RowContent(self, "re-opened", "{} this request."),
+            event_type.REQ_TITLE_EDITED:
+                self.RowContent(self, "changed", "{} the title."),
+            event_type.REQ_AGENCY_REQ_SUM_EDITED:
+                self.RowContent(self, "changed", "{} the agency description."),
+            event_type.REQ_TITLE_PRIVACY_EDITED:
+                self.RowContent(self, "changed", "{} the title privacy."),
+            event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED:
+                self.RowContent(self, "changed", "{} the agency description privacy."),
+            event_type.FILE_ADDED:
+                self.RowContent(self, "added", "{} a file response."),
+            event_type.FILE_EDITED:
+                self.RowContent(self, "changed", "{} a file response."),
+            event_type.FILE_REMOVED:
+                self.RowContent(self, "deleted", "{} a file response."),
+            event_type.LINK_ADDED:
+                self.RowContent(self, "added", "{} a link response."),
+            event_type.LINK_EDITED:
+                self.RowContent(self, "changed", "{} a link response."),
+            event_type.LINK_REMOVED:
+                self.RowContent(self, "deleted", "{} a link response."),
+            event_type.INSTRUCTIONS_ADDED:
+                self.RowContent(self, "added", "{} an offline instructions response."),
+            event_type.INSTRUCTIONS_EDITED:
+                self.RowContent(self, "changed", "{} an offline instructions response."),
+            event_type.INSTRUCTIONS_REMOVED:
+                self.RowContent(self, "deleted", "{} an offline instructions response."),
+            event_type.NOTE_ADDED:
+                self.RowContent(self, "added", "{} a note response."),
+            event_type.NOTE_EDITED:
+                self.RowContent(self, "changed", "{} a note response."),
+            event_type.NOTE_DELETED:
+                self.RowContent(self, "deleted", "{} a note response."),
+        }
+
+        if self.type in valid_types:
+            return str(valid_types[self.type])
 
 
 class Responses(db.Model):
@@ -790,7 +1321,7 @@ class Responses(db.Model):
         val = {
             c.name: getattr(self, c.name)
             for c in self.__table__.columns
-            }
+        }
         val.pop('id')
         val['privacy'] = self.privacy
         return val
@@ -800,6 +1331,16 @@ class Responses(db.Model):
         return (self.privacy == response_privacy.RELEASE_AND_PUBLIC and
                 self.release_date is not None and
                 datetime.utcnow() > self.release_date)
+
+    @property
+    def creator(self):
+        return Events.query.filter(Events.response_id == self.id,
+                                   Events.type.in_(event_type.RESPONSE_ADDED_TYPES)).one().user
+
+    def make_public(self):
+        self.privacy = response_privacy.RELEASE_AND_PUBLIC
+        self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+        db.session.commit()
 
     def __repr__(self):
         return '<Responses %r>' % self.id
@@ -885,7 +1426,8 @@ class UserRequests(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint(
             [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type]
+            [Users.guid, Users.auth_user_type],
+            onupdate="CASCADE"
         ),
     )
 
@@ -933,7 +1475,7 @@ class UserRequests(db.Model):
             self.permissions = permissions
         db.session.commit()
 
-    def get_permissions(self):
+    def get_permission_choice_indices(self):
         return [i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)]
 
 
@@ -950,17 +1492,13 @@ class ResponseTokens(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String, nullable=False)
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"), nullable=False)
-    expiration_date = db.Column(db.DateTime)
 
     response = db.relationship("Responses", backref=db.backref("token", uselist=False))
 
     def __init__(self,
-                 response_id,
-                 expiration_date=None):
+                 response_id):
         self.token = self.generate_token()
         self.response_id = response_id
-        self.expiration_date = expiration_date or calendar.addbusdays(
-            datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)
 
     @staticmethod
     def generate_token():
@@ -978,8 +1516,6 @@ class Notes(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.NOTE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String(5000))
-
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1017,8 +1553,6 @@ class Files(Responses):
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
     hash = db.Column(db.String)
-
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1059,8 +1593,6 @@ class Links(Responses):
     title = db.Column(db.String)
     url = db.Column(db.String)
 
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
-
     def __init__(self,
                  request_id,
                  privacy,
@@ -1091,8 +1623,6 @@ class Instructions(Responses):
     __mapper_args__ = {'polymorphic_identity': response_type.INSTRUCTIONS}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
-
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1142,8 +1672,6 @@ class Determinations(Responses):
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
-
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,
@@ -1204,8 +1732,6 @@ class Emails(Responses):
     bcc = db.Column(db.String)
     subject = db.Column(db.String(5000))
     body = db.Column(db.String)
-
-    # is_editable = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self,
                  request_id,

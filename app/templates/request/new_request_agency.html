@@ -9,7 +9,8 @@
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
-            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
+            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data
+                  data-parsley-validate>
                 {{ form.csrf_token }}
 
                 <h1>Request a Record</h1>
@@ -20,13 +21,22 @@
                     notify
                     you about how much time is required to
                     respond to your request.</p>
+                {# Agency request belongs to #}
+                {% if current_user.agencies.all()|length > 1 %}
+                    {{ form.request_agency.label(class='request-heading agency-label') }}
+                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
+                          data-content="List of agencies you can submit a request to on behalf of a requester."
+                          class="glyphicon glyphicon-question-sign">
+                    </span>
+                    {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
+                {% endif %}
                 {# Title of the request #}
                 {{ form.request_title.label(class='request-heading title-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
-                     data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                     class="glyphicon glyphicon-question-sign">
+                      data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
+                      class="glyphicon glyphicon-question-sign">
                 </span>
-                        {{ form.request_title(id='request-title', class='input-block-level',
+                {{ form.request_title(id='request-title', class='input-block-level',
                         placeholder='Please provide a short summary of your request.', maxlength="90") }}
                 <h5 id="title-character-count">90 characters remaining</h5>
                 <div class="alert alert-info">
@@ -38,8 +48,8 @@
                 {# Description of the request #}
                 {{ form.request_description.label(class='request-heading description-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
-                     data-content="Enter a detailed description of the request."
-                     class="glyphicon glyphicon-question-sign">
+                      data-content="Enter a detailed description of the request."
+                      class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_description(id='request-description', class='input-block-level',
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
@@ -82,7 +92,8 @@
                 {{ form.request_date(id='request-date', class='input-block-level dtpick') }}
 
                 <h1>Personal Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Personal Information"
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                           title="Personal Information"
                            data-content="First and last name fields are required. The Email field is optional but recommended.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
@@ -105,14 +116,16 @@
 
                 <div class="contact-form-error-message"></div>
                 <h1>Alternate Contact Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Alternate Contact Information"
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                           title="Alternate Contact Information"
                            data-content="Fields are included in case alternate contact method is needed.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
                 </h1>
 
                 <p>No information entered in this section will be visible to the public.</p>
-                <p>Note: You must have provide at least one type of contact information (phone number, fax number, or address)</p>
+                <p>Note: You must have provide at least one type of contact information (phone number, fax number, or
+                    address)</p>
                 {# User of title #}
                 {{ form.user_title.label(class='request-heading') }}
                 {{ form.user_title(id='user-title', class='input-block-level',
@@ -168,7 +181,7 @@
 
 {% block custom_script %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js')}}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>

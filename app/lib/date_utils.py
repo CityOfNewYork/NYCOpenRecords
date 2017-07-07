@@ -12,7 +12,7 @@ def get_following_date(date_created):
     Generates the date submitted for a request.
 
     :param date_created: date (local) the request was made
-    :return: date (local) submitted which is the date_created rounded off to the next business day
+    :return: date submitted (local) which is the date_created rounded off to the next business day
     """
     return calendar.addbusdays(date_created, FOLLOWING)
 
@@ -23,6 +23,7 @@ def get_due_date(date_submitted, days_until_due, tz_name):
 
     :param date_submitted: date submitted (local) which is the date_created rounded off to the next business day
     :param days_until_due: number of business days until a request is due
+    :param tz_name: time zone name (e.g. "America/New_York")
 
     :return: due date (utc) with time set to 22:00 PM (5:00 PM EST)
     """
