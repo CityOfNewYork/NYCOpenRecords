@@ -354,6 +354,31 @@ def migrate_to_agency_request_summary():
 
 
 @manager.command
+def migrate_to_agencyusers():
+    """Migrate Users and Agencies to Users + Agencies + AgencyUsers."""
+    users = Users.query.with_entities(Users.guid,
+                                      Users.auth_user_type,
+                                      Users.agency_ein,
+                                      Users.is_agency_admin,
+                                      Users.is_agency_active
+                                      ).filter(Users.auth_user_type == user_type_auth.AGENCY_LDAP_USER).all()
+
+    for user in users:
+        guid, user_type, ein, is_admin, is_active = user
+        agency_user = AgencyUsers(
+            user_guid=guid,
+            auth_user_type=user_type,
+            agency_ein=ein,
+            is_agency_active=is_active,
+            is_agency_admin=is_admin,
+            is_primary_agency=True
+        )
+        db.session.add(agency_user)
+
+    db.session.commit()
+
+
+@manager.command
 def routes():
     from flask import url_for
     from urllib.parse import unquote
