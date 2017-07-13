@@ -179,7 +179,7 @@ class Agencies(db.Model):
     categories = db.Column(ARRAY(db.String(256)))
     _name = db.Column(db.String(256), nullable=False, name='name')
     acronym = db.Column(db.String(64), nullable=True)
-    next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
+    _next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'), name='next_request_number')
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
@@ -237,6 +237,17 @@ class Agencies(db.Model):
     @property
     def parent(self):
         return Agencies.query.filter_by(ein=self.formatted_parent_ein).one_or_none()
+
+    @property
+    def next_request_number(self):
+        from app.lib.db_utils import update_object
+        num = self._next_request_number
+        update_object(
+            {'_next_request_number': self._next_request_number + 1},
+            Agencies,
+            self.formatted_parent_ein
+        )
+        return num
 
     @property
     def name(self):

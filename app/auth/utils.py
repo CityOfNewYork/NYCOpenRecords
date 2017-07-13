@@ -23,7 +23,7 @@ from flask import (
 )
 from flask_login import login_user, current_user
 from app import login_manager
-from app.models import Users, AgencyUsers
+from app.models import Users, AgencyUsers, Events
 from app.constants import user_type_auth, USER_ID_DELIMITER
 from app.constants.web_services import (
     USER_ENDPOINT,
@@ -322,6 +322,8 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         'email_validated': True,
         'terms_of_use_accepted': True,
     }
+    old_user_guid = user.guid
+    old_auth_user_type = user.auth_user_type
     if guid != user.guid or user_type != user.auth_user_type:
         updated_data.update(
             guid=guid,
@@ -332,6 +334,16 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         Users,
         (user.guid, user.auth_user_type)
     )
+    update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == old_user_guid,
+                                               Events.new_value['auth_user_type'].astext == old_auth_user_type).all()
+
+    for event in update_events_values:
+        update_object(
+            {'new_value': {'user_guid': guid,
+                           'auth_user_type': user_type}},
+            Events,
+            event.id
+        )
 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
