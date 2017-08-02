@@ -492,6 +492,8 @@ def _web_services_request(endpoint, params, method='GET'):
         _generate_string_to_sign(method, endpoint, params)
     )
     req = None
+    # SSLError with 'bad signature' is sometimes thrown when sending the request which causes an nginx error and 502
+    # resending the request resolves the issue
     for i in range(0, 5):
         try:
             req = requests.request(
