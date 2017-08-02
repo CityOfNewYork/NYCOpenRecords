@@ -11,6 +11,7 @@ import requests
 from json import dumps
 from hashlib import sha1
 from base64 import b64encode
+from requests.exceptions import SSLError
 from urllib.parse import urljoin, urlparse
 
 from flask import (
@@ -490,12 +491,19 @@ def _web_services_request(endpoint, params, method='GET'):
         current_app.config['NYC_ID_PASSWORD'],
         _generate_string_to_sign(method, endpoint, params)
     )
-    return requests.request(
-        method,
-        urljoin(current_app.config['WEB_SERVICES_URL'], endpoint),
-        verify=current_app.config['VERIFY_WEB_SERVICES'],
-        params=params  # query string parameters always used
-    )
+    req = None
+    for i in range(0, 5):
+        try:
+            req = requests.request(
+                method,
+                urljoin(current_app.config['WEB_SERVICES_URL'], endpoint),
+                verify=current_app.config['VERIFY_WEB_SERVICES'],
+                params=params  # query string parameters always used
+            )
+        except SSLError:
+            continue
+        break
+    return req
 
 
 def _generate_string_to_sign(method, path, params):
