@@ -19,6 +19,7 @@
          * After closing, call afterTimeout if specified.
          */
         var logoutTab = window.open(logoutUrl);
+        logoutTab.opener =- null;
         setTimeout(function() {
             logoutTab.close();
             if (typeof afterTimeout === "function") {
