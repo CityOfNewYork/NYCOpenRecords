@@ -8,7 +8,7 @@ and current_request.status != request_status.CLOSED %}
         {% if edit_response_permission %}
             <div class="fileupload-error-messages alert alert-danger" hidden></div>
             <div>
-                <a target="_blank" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
+                <a target="_blank" rel="noopener noreferrer" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
                    class="uploaded-filename">{{ response.name }}</a>
             </div>
             <br>
@@ -35,7 +35,7 @@ and current_request.status != request_status.CLOSED %}
             <div class="title-error pull-right"></div>
         {% else %}
             <div>
-                <a target="_blank" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
+                <a target="_blank" rel="noopener noreferrer" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
                    class="uploaded-filename">{{ response.name }}</a>
             </div>
         {% endif %}
@@ -57,7 +57,7 @@ and current_request.status != request_status.CLOSED %}
     </form>
 {% else %}
     <div>
-        <a target="_blank" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
+        <a target="_blank" rel="noopener noreferrer" href="{{ url_for("response.get_response_content", response_id=response.id) }}"
            class="uploaded-filename">{{ response.name }}</a>
     </div>
 {% endif %}

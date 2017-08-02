@@ -19,10 +19,10 @@ and current_request.status != request_status.CLOSED %}
             </div>
             <div>
                 <strong>Verify: </strong>
-                <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
+                <a target="_blank" rel="noopener noreferrer" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
             </div>
         {% else %}
-            {{ response.title }}: <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
+            {{ response.title }}: <a target="_blank" rel="noopener noreferrer" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
         {% endif %}
         <br>
         {% if edit_response_privacy_permission %}
@@ -40,5 +40,5 @@ and current_request.status != request_status.CLOSED %}
         {% endif %}
     </form>
 {% else %}
-    {{ response.title }}: <a target="_blank" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
+    {{ response.title }}: <a target="_blank" rel="noopener noreferrer" href="{{ response.url }}" class="edit-link-href">{{ response.url }}</a>
 {% endif %}
