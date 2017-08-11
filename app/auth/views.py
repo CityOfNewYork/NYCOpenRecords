@@ -171,6 +171,8 @@ def manage():
 
 @auth.route('/ldap_login', methods=['GET', 'POST'])
 def ldap_login():
+    if not current_app.config['USE_LDAP']:
+        return redirect(url_for('auth.login'))
     login_form = LDAPLoginForm()
     if request.method == 'POST':
         email = request.form['email']
