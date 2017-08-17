@@ -191,7 +191,8 @@ def requests_doc(doc_type):
                 request.args.get('sort_date_submitted'),
                 request.args.get('sort_date_due'),
                 request.args.get('sort_title'),
-                tz_name
+                tz_name,
+                for_csv=True
             )
             total = results["hits"]["total"]
             if total != 0:
