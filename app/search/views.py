@@ -202,6 +202,8 @@ def requests_doc(doc_type):
                     mailing_address = (r.requester.mailing_address
                                        if r.requester.mailing_address is not None
                                        else {})
+                    date_closed = result["_source"].get('date_closed', '')
+                    date_closed = date_closed if str(date_closed) != str(list()) else ''
                     writer.writerow([
                         result["_id"],
                         result["_source"]["agency_name"],
@@ -212,7 +214,7 @@ def requests_doc(doc_type):
                         result["_source"]["date_created"],
                         result["_source"]["date_submitted"],
                         result["_source"]["date_due"],
-                        result["_source"].get('date_closed', ''),
+                        date_closed,
                         result["_source"]["requester_name"],
                         r.requester.email,
                         r.requester.title,
