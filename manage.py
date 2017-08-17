@@ -265,7 +265,7 @@ def fix_anonymous_requesters():
 
 
 @manager.option('-i', '--input', help='Full path to input csv.', default=None)
-@manager.option('-o', '--ouput', help='Full path to output csv. File will be overwritten.', default=None)
+@manager.option('-o', '--output', help='Full path to output csv. File will be overwritten.', default=None)
 def convert_staff_csvs(input=None, output=None):
     """
     Convert data from staff.csv to new format to accomodate multi-agency users.
@@ -279,11 +279,9 @@ def convert_staff_csvs(input=None, output=None):
     if output is None:
         raise InvalidCommand("Output CSV is required.")
 
-    read_file = None
-
     if output == input:
-        read_file = None
-        with open(input, 'r').read() as _:
+        with open(input, 'r') as _:
+            _ = _.read()
             read_file = csv.DictReader(_)
 
             temp_write_file = NamedTemporaryFile()
