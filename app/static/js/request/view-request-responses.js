@@ -602,6 +602,11 @@ $(function () {
             default:
                 break;
         }
+
+        // Character count for editing file title
+        $('#edit-file-title').keyup(function () {
+            characterCounter("#edit-file-title-character-count", 140, $(this).val().length)
+        });
     }
 
     function setDeleteResponseWorkflow(response_id) {
