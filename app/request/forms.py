@@ -271,7 +271,6 @@ class SearchRequestsForm(Form):
             self.process()
 
 
-
 class ContactAgencyForm(Form):
     first_name = StringField(u'First Name', validators=[InputRequired(), Length(max=32)])
     last_name = StringField(u'Last Name', validators=[InputRequired(), Length(max=64)])
