@@ -252,20 +252,14 @@ class SearchRequestsForm(Form):
         super(SearchRequestsForm, self).__init__()
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
+        # set default value of agency select field to agency user's agency
         if current_user.is_agency:
-            user_agencies = sorted([(agencies.ein, agencies.name) for agencies in current_user.agencies
-                                    if agencies.ein != current_user.default_agency_ein], key=lambda x: x[1])
-            default_agency = current_user.default_agency
-
-            # set default value of agency select field to agency user's primary agency
-            self.agency_ein.default = default_agency.ein
-            self.agency_ein.choices.insert(1, self.agency_ein.choices.pop(self.agency_ein.choices.index(
-                (default_agency.ein, default_agency.name))
-            ))
-
-            # set secondary agencies to be below the primary
+            self.agency_ein.default = current_user.default_agency_ein
+            user_agencies = sorted([(agencies.ein, agencies.name)
+                                    for agencies in current_user.agencies],
+                                   key=lambda x: x[1])
             for agency in user_agencies:
-                self.agency_ein.choices.insert(2, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
+                self.agency_ein.choices.insert(1, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
             self.process()
 
 
