@@ -30,7 +30,7 @@ and current_request.status != request_status.CLOSED %}
             <div class="input-group">
                 <span class="input-group-addon">Title</span>
                 <input type="text" name="title" value="{{ response.title }}"
-                       title="title" aria-describedby="title">
+                       title="title" aria-describedby="title" data-parsley-maxlength="140" maxlength="140">
             </div>
             <div class="title-error pull-right"></div>
         {% else %}
