@@ -12,7 +12,7 @@ from warnings import warn
 from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy import desc
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB, JSON
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm.exc import NoResultFound
 
 from app import db, es, calendar
@@ -167,10 +167,10 @@ class Agencies(db.Model):
 
     administrators - an array of user id strings that identify default admins for an agencies requests
     standard_users - an array of user id strings that identify agency users (non-admins) for an agencies requests
-    active_users - an array of user id strings that identify agency users (admin and non-admin) that can login to 
+    active_users - an array of user id strings that identify agency users (admin and non-admin) that can login to
                    OpenRecords.
-    inactive_users - an array of user id strings that identify agency users (admin and non-admin) that cannot login to 
-                     OpenRecords 
+    inactive_users - an array of user id strings that identify agency users (admin and non-admin) that cannot login to
+                     OpenRecords
 
     """
     __tablename__ = 'agencies'
@@ -179,7 +179,7 @@ class Agencies(db.Model):
     categories = db.Column(ARRAY(db.String(256)))
     _name = db.Column(db.String(256), nullable=False, name='name')
     acronym = db.Column(db.String(64), nullable=True)
-    next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'))
+    _next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'), name='next_request_number')
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
@@ -239,6 +239,21 @@ class Agencies(db.Model):
         return Agencies.query.filter_by(ein=self.formatted_parent_ein).one_or_none()
 
     @property
+    def next_request_number(self):
+        from app.lib.db_utils import update_object
+        num = self._next_request_number
+        update_object(
+            {'_next_request_number': self._next_request_number + 1},
+            Agencies,
+            self.formatted_parent_ein
+        )
+        return num
+
+    @next_request_number.setter
+    def next_request_number(self, value):
+        self._next_request_number = value
+
+    @property
     def name(self):
         return '{name} ({acronym})'.format(name=self._name, acronym=self.acronym) if self.acronym else '{name}'.format(
             name=self._name)
@@ -280,6 +295,7 @@ class Agencies(db.Model):
 class Users(UserMixin, db.Model):
     """
     Define the Users class with the following columns and relationships:
+
     guid - a string that contains the unique guid of users
     auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     guid and auth_user_type are combined to create a composite primary key
@@ -311,10 +327,7 @@ class Users(UserMixin, db.Model):
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'),
         primary_key=True)
-    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     is_super = db.Column(db.Boolean, nullable=False, default=False)
-    is_agency_admin = db.Column(db.Boolean, nullable=False, default=False)
-    is_agency_active = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
     middle_initial = db.Column(db.String(1))
     last_name = db.Column(db.String(64), nullable=False)
@@ -326,11 +339,20 @@ class Users(UserMixin, db.Model):
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
-    mailing_address = db.Column(JSON)  # TODO: define validation for minimum acceptable mailing address
+    mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
 
     # Relationships
     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
-    agency = db.relationship('Agencies', backref='users')
+    agencies = db.relationship(
+        'Agencies',
+        secondary="agency_users",
+        primaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
+                    "AgencyUsers.auth_user_type == Users.auth_user_type)",
+        secondaryjoin="and_(AgencyUsers.agency_ein == Agencies.ein, "
+                      "AgencyUsers.is_agency_active == True)",
+        lazy='dynamic'
+    )
+    agency_users = db.relationship("AgencyUsers", backref="user", lazy='dynamic')
 
     @property
     def is_authenticated(self):
@@ -353,12 +375,14 @@ class Users(UserMixin, db.Model):
     def is_public(self):
         """
         Checks to see if the current user is a public user as defined below:
+
         PUBLIC_USER_NYC_ID = 'EDIRSSO'
         PUBLIC_USER_FACEBOOK = 'FacebookSSO'
         PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
         PUBLIC_USER_GOOGLE = 'GoogleSSO'
         PUBLIC_USER_YAHOO = 'YahooSSO'
         PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
+
         :return: Boolean
         """
         return self.auth_user_type in user_type_auth.PUBLIC_USER_TYPES
@@ -366,17 +390,41 @@ class Users(UserMixin, db.Model):
     @property
     def is_agency(self):
         """
-        Checks to see if the current user is an agency user
+        Check to see if the current user is an agency user.
+
         AGENCY_USER = 'Saml2In:NYC Employees'
+
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agency_ein is not None
+        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agencies is not None
+
+    @property
+    def default_agency_ein(self):
+        """
+        Return the Users default agency ein.
+        :return: String
+        """
+        agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True,
+                                                      AgencyUsers.user_guid == self.guid,
+                                                      AgencyUsers.auth_user_type == self.auth_user_type).one_or_none()
+        if agency is not None:
+            return agency.agency_ein
+        return None
+
+    @property
+    def default_agency(self):
+        """
+        Return the Users default Agencies object.
+        :return: Agencies
+        """
+        return Agencies.query.filter_by(ein=self.default_agency_ein).one()
 
     @property
     def has_nyc_id_profile(self):
         """
         Checks to see if the current user has authenticated with
         NYC.ID, which means they have an NYC.ID Profile.
+
         :return: Boolean
         """
         return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
@@ -385,8 +433,10 @@ class Users(UserMixin, db.Model):
     def is_anonymous_requester(self):
         """
         Checks to see if the user is an anonymous requester
+
         NOTE: This is not the same as an anonymous user! This returns
         true if this user has been created for a specific request.
+
         :return: Boolean
         """
         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
@@ -401,12 +451,65 @@ class Users(UserMixin, db.Model):
             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
         return None
 
+    @property
+    def has_agency_admin(self):
+        """
+        Determine if a user is an admin for at least one agency.
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.is_agency_admin:
+                return True
+        return False
+
+    @property
+    def has_agency_active(self):
+        """
+        Determine if a user is active for at least one agency.
+        :return: Boolean
+        """
+        for agency in self.agency_users.all():
+            if agency.is_agency_active:
+                return True
+        return False
+
     def get_id(self):
         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
 
     def from_id(self, user_id):  # Might come in useful
         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
+
+    def is_agency_admin(self, ein=None):
+        """
+        Determine if a user is an admin for the specified agency.
+        :param ein: Agency EIN (4 Character String)
+        :return: Boolean
+        """
+        if ein is None:
+            ein = self.default_agency_ein
+        for agency in self.agency_users.all():
+            if agency.agency_ein == ein:
+                return agency.is_agency_admin
+        return False
+
+    def is_agency_active(self, ein=None):
+        """
+        Determine if a user is active for the specified agency.
+        :param ein: Agency EIN (4 Character String)
+        :return: Boolean
+        """
+        if ein is None:
+            ein = self.default_agency_ein
+        for agency in self.agency_users.all():
+            if agency.agency_ein == ein:
+                return agency.is_agency_active
+        return False
+
+    def agencies_for_forms(self):
+        agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
+        agencies.insert(0, agencies.pop(agencies.index((self.default_agency.ein, self.default_agency._name))))
+        return agencies
 
     @property
     def name(self):
@@ -446,17 +549,13 @@ class Users(UserMixin, db.Model):
         filename = csv_name or current_app.config['STAFF_DATA']
         with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
-
             for row in dictreader:
                 if Users.query.filter_by(email=row['email']).first() is None:
                     user = cls(
                         guid=str(uuid4()),
                         auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
                             'USE_LDAP'] else user_type_auth.AGENCY_USER,
-                        agency_ein=row['agency_ein'],
                         is_super=eval(row['is_super']),
-                        is_agency_admin=eval(row['is_agency_admin']),
-                        is_agency_active=eval(row['is_agency_active']),
                         first_name=row['first_name'],
                         middle_initial=row['middle_initial'],
                         last_name=row['last_name'],
@@ -467,6 +566,21 @@ class Users(UserMixin, db.Model):
                         fax_number=row['fax_number']
                     )
                     db.session.add(user)
+                    db.session.commit()
+
+                    agency_eins = row['agencies'].split('|')
+                    for agency in agency_eins:
+                        ein, is_active, is_admin, is_primary_agency = agency.split('#')
+                        agency_user = AgencyUsers(
+                            user_guid=user.guid,
+                            auth_user_type=user.auth_user_type,
+                            agency_ein=ein,
+                            is_agency_active=eval_request_bool(is_active),
+                            is_agency_admin=eval_request_bool(is_admin),
+                            is_primary_agency=eval_request_bool(is_primary_agency)
+                        )
+                        db.session.add(agency_user)
+                    db.session.add(user)
             db.session.commit()
 
     def __init__(self, **kwargs):
@@ -474,304 +588,6 @@ class Users(UserMixin, db.Model):
 
     def __repr__(self):
         return '<Users {}>'.format(self.get_id())
-
-
-# class Users(UserMixin, db.Model):
-#     """
-#     Define the Users class with the following columns and relationships:
-#
-#     guid - a string that contains the unique guid of users
-#     auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
-#     guid and auth_user_type are combined to create a composite primary key
-#     agency_ein - a foreign key that links to the primary key of the agency table
-#     email - a string containing the user's email
-#     notification_email - a string containing the user's email for notifications
-#     first_name - a string containing the user's first name
-#     middle_initial - a string containing the user's middle initial
-#     last_name - a string containing the user's last name
-#     email_validated - a boolean that is set to true if the user's email has been validated
-#     terms_of_use_accepted - a boolean that is set to true if the user has agreed to their agency's terms of use
-#     title - a string containing the user's title if they are affiliated with an outside company
-#     company - a string containing the user's outside company affiliation
-#     phone_number - string containing the user's phone number
-#     fax_number - string containing the user's fax number
-#     mailing_address - a JSON object containing the user's address
-#     """
-#     __tablename__ = 'users'
-#     guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
-#     auth_user_type = db.Column(
-#         db.Enum(user_type_auth.AGENCY_USER,
-#                 user_type_auth.AGENCY_LDAP_USER,
-#                 user_type_auth.PUBLIC_USER_FACEBOOK,
-#                 user_type_auth.PUBLIC_USER_MICROSOFT,
-#                 user_type_auth.PUBLIC_USER_YAHOO,
-#                 user_type_auth.PUBLIC_USER_LINKEDIN,
-#                 user_type_auth.PUBLIC_USER_GOOGLE,
-#                 user_type_auth.PUBLIC_USER_NYC_ID,
-#                 user_type_auth.ANONYMOUS_USER,
-#                 name='auth_user_type'),
-#         primary_key=True)
-#     is_super = db.Column(db.Boolean, nullable=False, default=False)
-#     first_name = db.Column(db.String(32), nullable=False)
-#     middle_initial = db.Column(db.String(1))
-#     last_name = db.Column(db.String(64), nullable=False)
-#     email = db.Column(db.String(254))
-#     notification_email = db.Column(db.String(254), nullable=True, default=None)
-#     email_validated = db.Column(db.Boolean(), nullable=False)
-#     terms_of_use_accepted = db.Column(db.Boolean)
-#     title = db.Column(db.String(64))
-#     organization = db.Column(db.String(128))  # Outside organization
-#     phone_number = db.Column(db.String(25))
-#     fax_number = db.Column(db.String(25))
-#     mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
-#
-#     # Relationships
-#     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
-#     agencies = db.relationship(
-#         'Agencies',
-#         secondary="agency_users",
-#         primaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
-#                     "AgencyUsers.auth_user_type == Users.auth_user_type)",
-#         secondaryjoin="and_(AgencyUsers.agency_ein == Agencies.ein, "
-#                       "AgencyUsers.is_agency_active == True)",
-#         lazy='dynamic'
-#     )
-#     agency_users = db.relationship("AgencyUsers", backref="user", lazy='dynamic')
-#
-#     @property
-#     def is_authenticated(self):
-#         """
-#         Verifies the access token currently stored in the user's session
-#         by invoking the OAuth User Web Service and checking the response.
-#         """
-#         if current_app.config['USE_LDAP']:
-#             return True
-#         if session.get('token') is not None:
-#             from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
-#             return oauth_user_web_service_request().status_code == 200
-#         return False
-#
-#     @property
-#     def is_active(self):
-#         return self.email_validated and self.terms_of_use_accepted
-#
-#     @property
-#     def is_public(self):
-#         """
-#         Checks to see if the current user is a public user as defined below:
-#
-#         PUBLIC_USER_NYC_ID = 'EDIRSSO'
-#         PUBLIC_USER_FACEBOOK = 'FacebookSSO'
-#         PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
-#         PUBLIC_USER_GOOGLE = 'GoogleSSO'
-#         PUBLIC_USER_YAHOO = 'YahooSSO'
-#         PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
-#
-#         :return: Boolean
-#         """
-#         return self.auth_user_type in user_type_auth.PUBLIC_USER_TYPES
-#
-#     @property
-#     def is_agency(self):
-#         """
-#         Check to see if the current user is an agency user.
-#
-#         AGENCY_USER = 'Saml2In:NYC Employees'
-#
-#         :return: Boolean
-#         """
-#         return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agencies is not None
-#
-#     @property
-#     def default_agency_ein(self):
-#         """
-#         Return the Users default agency ein.
-#         :return: String
-#         """
-#         agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True,
-#                                                       AgencyUsers.user_guid == self.guid,
-#                                                       AgencyUsers.auth_user_type == self.auth_user_type).one_or_none()
-#         if agency is not None:
-#             return agency.agency_ein
-#         return None
-#
-#     @property
-#     def default_agency(self):
-#         """
-#         Return the Users default Agencies object.
-#         :return: Agencies
-#         """
-#         return Agencies.query.filter_by(ein=self.default_agency_ein).one()
-#
-#     @property
-#     def has_nyc_id_profile(self):
-#         """
-#         Checks to see if the current user has authenticated with
-#         NYC.ID, which means they have an NYC.ID Profile.
-#
-#         :return: Boolean
-#         """
-#         return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
-#
-#     @property
-#     def is_anonymous_requester(self):
-#         """
-#         Checks to see if the user is an anonymous requester
-#
-#         NOTE: This is not the same as an anonymous user! This returns
-#         true if this user has been created for a specific request.
-#
-#         :return: Boolean
-#         """
-#         return self.auth_user_type == user_type_auth.ANONYMOUS_USER
-#
-#     @property
-#     def anonymous_request(self):
-#         """
-#         Returns the request this user is associated with
-#         if this user is an anonymous requester.
-#         """
-#         if self.is_anonymous_requester:
-#             return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
-#         return None
-#
-#     @property
-#     def has_agency_admin(self):
-#         """
-#         Determine if a user is an admin for at least one agency.
-#         :return: Boolean
-#         """
-#         for agency in self.agency_users.all():
-#             if agency.is_agency_admin:
-#                 return True
-#         return False
-#
-#     @property
-#     def has_agency_active(self):
-#         """
-#         Determine if a user is active for at least one agency.
-#         :return: Boolean
-#         """
-#         for agency in self.agency_users.all():
-#             if agency.is_agency_active:
-#                 return True
-#         return False
-#
-#     def get_id(self):
-#         return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
-#
-#     def from_id(self, user_id):  # Might come in useful
-#         guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
-#         return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
-#
-#     def is_agency_admin(self, ein=None):
-#         """
-#         Determine if a user is an admin for the specified agency.
-#         :param ein: Agency EIN (4 Character String)
-#         :return: Boolean
-#         """
-#         if ein is None:
-#             ein = self.default_agency_ein
-#         for agency in self.agency_users.all():
-#             if agency.agency_ein == ein:
-#                 return agency.is_agency_admin
-#         return False
-#
-#     def is_agency_active(self, ein=None):
-#         """
-#         Determine if a user is active for the specified agency.
-#         :param ein: Agency EIN (4 Character String)
-#         :return: Boolean
-#         """
-#         if ein is None:
-#             ein = self.default_agency_ein
-#         for agency in self.agency_users.all():
-#             if agency.agency_ein == ein:
-#                 return agency.is_agency_active
-#         return False
-#
-#     def agencies_for_forms(self):
-#         agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
-#         agencies.insert(0, agencies.pop(agencies.index((self.default_agency.ein, self.default_agency._name))))
-#         return agencies
-#
-#     @property
-#     def name(self):
-#         return ' '.join((self.first_name.title(), self.last_name.title()))
-#
-#     def es_update(self):
-#         """
-#         Call es_update for any request where this user is the requester
-#         since the request es doc relies on the requester's name.
-#         """
-#         for request in self.requests:
-#             request.es_update()
-#
-#     @property
-#     def val_for_events(self):
-#         """
-#         JSON to store in Events 'new_value' field.
-#         """
-#         return {
-#             "guid": self.guid,
-#             "auth_user_type": self.auth_user_type,
-#             "email": self.email,
-#             "notification_email": self.notification_email,
-#             "first_name": self.first_name,
-#             "last_name": self.last_name,
-#             "title": self.title,
-#             "organization": self.organization,
-#             "phone_number": self.phone_number,
-#             "fax_number": self.fax_number,
-#             "mailing_address": self.mailing_address,
-#             "email_validated": self.email_validated,
-#             "terms_of_use_accepted": self.terms_of_use_accepted,
-#         }
-#
-#     @classmethod
-#     def populate(cls, csv_name=None):
-#         filename = csv_name or current_app.config['STAFF_DATA']
-#         with open(filename, 'r') as data:
-#             dictreader = csv.DictReader(data)
-#             for row in dictreader:
-#                 if Users.query.filter_by(email=row['email']).first() is None:
-#                     user = cls(
-#                         guid=str(uuid4()),
-#                         auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
-#                             'USE_LDAP'] else user_type_auth.AGENCY_USER,
-#                         is_super=eval(row['is_super']),
-#                         first_name=row['first_name'],
-#                         middle_initial=row['middle_initial'],
-#                         last_name=row['last_name'],
-#                         email=row['email'],
-#                         email_validated=eval(row['email_validated']),
-#                         terms_of_use_accepted=eval(row['terms_of_use_accepted']),
-#                         phone_number=row['phone_number'],
-#                         fax_number=row['fax_number']
-#                     )
-#                     db.session.add(user)
-#                     db.session.commit()
-#
-#                     agency_eins = row['agencies'].split('|')
-#                     for agency in agency_eins:
-#                         ein, is_active, is_admin, is_primary_agency = agency.split('#')
-#                         agency_user = AgencyUsers(
-#                             user_guid=user.guid,
-#                             auth_user_type=user.auth_user_type,
-#                             agency_ein=ein,
-#                             is_agency_active=eval_request_bool(is_active),
-#                             is_agency_admin=eval_request_bool(is_admin),
-#                             is_primary_agency=eval_request_bool(is_primary_agency)
-#                         )
-#                         db.session.add(agency_user)
-#                     db.session.add(user)
-#             db.session.commit()
-#
-#     def __init__(self, **kwargs):
-#         super(Users, self).__init__(**kwargs)
-#
-#     def __repr__(self):
-#         return '<Users {}>'.format(self.get_id())
 
 
 class Anonymous(AnonymousUserMixin):
@@ -815,13 +631,13 @@ class Anonymous(AnonymousUserMixin):
 class AgencyUsers(db.Model):
     """
     Define the AgencyUsers class with the following columns and relationships:
-    
+
     user_guid - a string that contains the unique guid of users
     auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     agency_ein - a foreign key that links that the primary key of the agency the request was assigned to
     user_guid, auth_user_type, and agency_ein are combined to create a composite primary key
     is_agency_active - a boolean value that allows the user to login as a user for the agency identified by agency_ein
-    is_agency_admin - a boolean value that allows the user to administer settings for the agency identified by 
+    is_agency_admin - a boolean value that allows the user to administer settings for the agency identified by
         agency_ein
     primary_agency - a boolean value that determines whether the agency identified by agency_ein is the users default
         agency
@@ -1018,7 +834,7 @@ class Requests(db.Model):
     @property
     def agency_request_summary_released(self):
         return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
-               self.agency_request_summary_release_date < datetime.utcnow()
+               self.agency_request_summary and self.agency_request_summary_release_date < datetime.utcnow()
 
     def es_update(self):
         if self.agency.is_active:

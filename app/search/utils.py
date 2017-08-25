@@ -223,7 +223,8 @@ def search_requests(query,
                     sort_title,
                     tz_name,
                     by_phrase=False,
-                    highlight=False):
+                    highlight=False,
+                    for_csv=False):
     """
     The arguments of this function match the request parameters
     of the '/search/requests' endpoints.
@@ -260,6 +261,8 @@ def search_requests(query,
         if True, will come at a slight performance cost (in order to
         restrict highlights to public fields, iterating over elasticsearch
         query results is required)
+    :param for_csv: search for a csv export
+        if True, will not check the maximum value of size against MAX_RESULT_SIZE
     :return: elasticsearch json response with result information
 
     """
@@ -382,6 +385,9 @@ def search_requests(query,
             }
         )
 
+    # Calculate result set size
+    result_set_size = size if for_csv else min(size, MAX_RESULT_SIZE)
+
     # search / run query
     results = es.search(
         index=current_app.config["ELASTICSEARCH_INDEX"],
@@ -404,7 +410,7 @@ def search_requests(query,
                  'title',
                  'agency_request_summary',
                  'description'],
-        size=min(size, MAX_RESULT_SIZE),
+        size=result_set_size,
         from_=start,
         sort=sort,
     )
