@@ -254,8 +254,8 @@ class SearchRequestsForm(Form):
         self.agency_ein.choices.insert(0, ('', 'All'))
         if current_user.is_agency:
             self.agency_ein.default = current_user.default_agency_ein
-            user_agencies = sorted([(agencies.ein, agencies.name)
-                                    for agencies in current_user.agencies],
+            user_agencies = sorted([(agencies.ein, agencies.name) for agencies in current_user.agencies
+                                    if agencies.ein != current_user.default_agency_ein],
                                    key=lambda x: x[1])
             default_agency = current_user.default_agency
 
