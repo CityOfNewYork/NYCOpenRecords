@@ -1,7 +1,6 @@
 <p>
     {{ event.user.name }} changed the agency description privacy to
-    {# TODO: change to "if event.new_value['privacy']:" after db fix. #}
-    {% if event.new_value['privacy'] == "true" or event.new_value['privacy'] == True %}
+    {% if event.new_value['privacy'] %}
         "Private".
     {% else %}
         "Public".
