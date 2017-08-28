@@ -602,10 +602,10 @@ $(function () {
             default:
                 break;
         }
-
-        // Character count for editing file title
-        $('#edit-file-title').keyup(function () {
-            characterCounter("#edit-file-title-character-count", 140, $(this).val().length)
+        var editFileTitle = "#edit-file-title-" + response_id;
+        var editFileTitleCharacterCounter = "#edit-file-title-character-counter-" + response_id;
+        $(editFileTitle).keyup(function () {
+            characterCounter(editFileTitleCharacterCounter, 140, $(this).val().length)
         });
     }
 
