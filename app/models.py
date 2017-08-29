@@ -412,6 +412,17 @@ class Users(UserMixin, db.Model):
         return None
 
     @property
+    def find_admin_agency_ein(self):
+        """
+        Find the ein of the agency the user is an admin for.
+        If the user is admin for multiple agencies it will return the first one.
+        :return: Agency ein
+        """
+        for agency in AgencyUsers.query.filter_by(user_guid=self.guid):
+            if self.is_agency_admin(agency.agency_ein):
+                return agency.agency_ein
+
+    @property
     def default_agency(self):
         """
         Return the Users default Agencies object.
@@ -491,6 +502,12 @@ class Users(UserMixin, db.Model):
         for agency in self.agency_users.all():
             if agency.agency_ein == ein:
                 return agency.is_agency_admin
+        return False
+
+    def is_not_multi_agency_admin(self):
+        for user in AgencyUsers.query.filter_by(user_guid=self.guid).all():
+            if user.is_primary_agency and not user.is_agency_admin:
+                return True
         return False
 
     def is_agency_active(self, ein=None):

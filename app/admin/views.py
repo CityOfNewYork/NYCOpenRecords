@@ -23,7 +23,7 @@ from app.admin.utils import get_agency_active_users
 def main(agency_ein=None):
     if not current_user.is_anonymous:
         if agency_ein is None:
-            agency_ein = current_user.default_agency_ein
+            agency_ein = current_user.find_admin_agency_ein
         if current_user.is_super:
             agency_form = SelectAgencyForm(agency_ein)
             agency_ein = agency_ein or agency_form.agencies.choices[0][0]
