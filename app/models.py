@@ -504,12 +504,6 @@ class Users(UserMixin, db.Model):
                 return agency.is_agency_admin
         return False
 
-    def is_not_multi_agency_admin(self):
-        for user in AgencyUsers.query.filter_by(user_guid=self.guid).all():
-            if user.is_primary_agency and not user.is_agency_admin:
-                return True
-        return False
-
     def is_agency_active(self, ein=None):
         """
         Determine if a user is active for the specified agency.
