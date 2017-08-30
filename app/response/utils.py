@@ -644,7 +644,6 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
                for reason_id in data.getlist('reason_ids[]')]
     header = CONFIRMATION_HEADER_TO_REQUESTER
     req = Requests.query.filter_by(id=request_id).one()
-    agency = Agencies.query.filter_by(ein=req.agency_ein).one()
     if eval_request_bool(data['confirmation']):
         default_content = False
         content = data['email_content']
@@ -656,7 +655,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         default_content=default_content,
         content=content,
         request=req,
-        agency_appeals_email=agency.appeals_email,
+        agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
         reasons=reasons,
         page=page),
@@ -677,7 +676,6 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a closing
     """
     req = Requests.query.filter_by(id=request_id).one()
-    agency = Agencies.query.filter_by(ein=req.agency_ein).one()
     if eval_request_bool(data['confirmation']):
         header = CONFIRMATION_HEADER_TO_REQUESTER
         reasons = None
@@ -701,7 +699,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         default_content=default_content,
         content=content,
         request=req,
-        agency_appeals_email=agency.appeals_email,
+        agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
         reasons=reasons,
         page=page,
