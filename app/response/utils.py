@@ -58,7 +58,6 @@ from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, UserRequestException
 from app.models import (
-    Agencies,
     Events,
     Notes,
     Files,
