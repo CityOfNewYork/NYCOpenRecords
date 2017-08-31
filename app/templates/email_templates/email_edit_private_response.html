@@ -6,19 +6,27 @@
 </p>
 
 {% for key, value in response_data.data_old.items() %}
-    <div class="mceNonEditable">
-        <p>
+    <p>
+        <span class="mceNonEditable">
             The <strong>{{ key }}</strong> was changed from:
+        </span>
+    </p>
+    {% if key == 'privacy' %}
+        <p style="padding-left: 30px;">
+            <span class="mceNonEditable"> {{ response_data.data_old[key] | format_response_privacy }} </span>
         </p>
-        {% if key == 'privacy' %}
-            <p style="padding-left: 30px;"> {{ response_data.data_old[key] | format_response_privacy }} </p>
-            <p> to: </p>
-            <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
-        {% else %}
-            <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
-                <p> to: </p>
-            <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
-        {% endif %}
-    </div>
+        <p><span class="mceNonEditable"> to: </span></p>
+        <p style="padding-left: 30px;">
+            <span class="mceNonEditable"> {{ response_data.data_new[key] | format_response_privacy }} </span>
+        </p>
+    {% else %}
+        <p style="padding-left: 30px;">
+            <span class="mceNonEditable"> {{ response_data.data_old[key] }} </span>
+        </p>
+        <p><span class="mceNonEditable"> to: </span></p>
+        <p style="padding-left: 30px;">
+            <span class="mceNonEditable"> {{ response_data.data_new[key] }} </span>
+        </p>
+    {% endif %}
     <p><br /></p>
 {% endfor %}
