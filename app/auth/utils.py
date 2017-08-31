@@ -328,9 +328,8 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
             guid=guid,
             auth_user_type=user_type
         )
-        update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == old_user_guid,
-                                                   Events.new_value[
-                                                       'auth_user_type'].astext == old_auth_user_type).all()
+        update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid,
+                                                   Events.new_value['auth_user_type'].astext == user.auth_user_type).all()
         for event in update_events_values:
             update_object(
                 {'new_value': {'user_guid': guid,
