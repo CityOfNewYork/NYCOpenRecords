@@ -90,7 +90,7 @@ $(document).ready(function () {
 
     // Set character counter for instruction content
     $("#instruction-content").keyup(function() {
-        characterCounter("#instruction-content-character-count", 500, $(this).val().length)
+        characterCounter("#instruction-content-character-count", 500, $(this).val().length, 20)
     });
 });
 </script>

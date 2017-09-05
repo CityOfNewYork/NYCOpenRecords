@@ -22,9 +22,9 @@ yum -y groupinstall "Development Tools"
 source /opt/rh/rh-python35/enable
 pip install virtualenv
 mkdir /home/vagrant/.virtualenvs
-virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords_v2_0
+virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords
 chown -R vagrant:vagrant /home/vagrant
-source /home/vagrant/.virtualenvs/openrecords_v2_0/bin/activate
+source /home/vagrant/.virtualenvs/openrecords/bin/activate
 pip install -r /vagrant/requirements/common.txt --no-binary :all:
 
 if [ "$1" -eq development ] || [ "$2" -eq development ]; then
@@ -43,7 +43,7 @@ yum -y install telnet-server
 yum -y install telnet
 
 # 9. Automatically Use Virtualenv
-echo "source /home/vagrant/.virtualenvs/openrecords_v2_0/bin/activate" >> /home/vagrant/.bash_profile
+echo "source /home/vagrant/.virtualenvs/openrecords/bin/activate" >> /home/vagrant/.bash_profile
 
 # 9. Add the following lines to /etc/sudoers file
 #womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis start
