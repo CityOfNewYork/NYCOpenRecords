@@ -602,6 +602,11 @@ $(function () {
             default:
                 break;
         }
+        var editFileTitle = "#edit-file-title-" + response_id;
+        var editFileTitleCharacterCounter = "#edit-file-title-character-counter-" + response_id;
+        $(editFileTitle).keyup(function () {
+            characterCounter(editFileTitleCharacterCounter, 140, $(this).val().length)
+        });
     }
 
     function setDeleteResponseWorkflow(response_id) {

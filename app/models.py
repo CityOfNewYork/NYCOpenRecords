@@ -249,6 +249,10 @@ class Agencies(db.Model):
         )
         return num
 
+    @next_request_number.setter
+    def next_request_number(self, value):
+        self._next_request_number = value
+
     @property
     def name(self):
         return '{name} ({acronym})'.format(name=self._name, acronym=self.acronym) if self.acronym else '{name}'.format(
@@ -406,6 +410,17 @@ class Users(UserMixin, db.Model):
         if agency is not None:
             return agency.agency_ein
         return None
+
+    @property
+    def find_admin_agency_ein(self):
+        """
+        Find the ein of the agency the user is an admin for.
+        If the user is admin for multiple agencies it will return the first one.
+        :return: Agency ein
+        """
+        for agency in AgencyUsers.query.filter_by(user_guid=self.guid):
+            if self.is_agency_admin(agency.agency_ein):
+                return agency.agency_ein
 
     @property
     def default_agency(self):
@@ -1360,7 +1375,7 @@ class Files(Responses):
     __tablename__ = response_type.FILE
     __mapper_args__ = {'polymorphic_identity': response_type.FILE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    title = db.Column(db.String)
+    title = db.Column(db.String(140))
     name = db.Column(db.String)
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)

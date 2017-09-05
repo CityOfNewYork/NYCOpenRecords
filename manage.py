@@ -265,7 +265,7 @@ def fix_anonymous_requesters():
 
 
 @manager.option('-i', '--input', help='Full path to input csv.', default=None)
-@manager.option('-o', '--ouput', help='Full path to output csv. File will be overwritten.', default=None)
+@manager.option('-o', '--output', help='Full path to output csv. File will be overwritten.', default=None)
 def convert_staff_csvs(input=None, output=None):
     """
     Convert data from staff.csv to new format to accomodate multi-agency users.
@@ -279,11 +279,9 @@ def convert_staff_csvs(input=None, output=None):
     if output is None:
         raise InvalidCommand("Output CSV is required.")
 
-    read_file = None
-
     if output == input:
-        read_file = None
-        with open(input, 'r').read() as _:
+        with open(input, 'r') as _:
+            _ = _.read()
             read_file = csv.DictReader(_)
 
             temp_write_file = NamedTemporaryFile()
@@ -403,6 +401,34 @@ def routes():
 
     for line in sorted(output):
         print(line)
+
+@manager.command
+def update_new_value_to_boolean():
+    """
+    This manager command will query the Events table and convert all values in the new_value column to be boolean
+    True and False values instead of the strings 'true' and 'false'
+    """
+    from sqlalchemy import or_
+    from sqlalchemy.orm.attributes import flag_modified
+
+    for event in Events.query.filter(or_(Events.type == 'request_agency_description_privacy_edited',
+                                         Events.type == 'request_title_privacy_edited',
+                                         Events.type == 'note_edited',
+                                         Events.type == 'file_edited')).all():
+        new_value = event.new_value
+        if new_value:
+            for key in new_value.keys():
+                if key == 'privacy' and new_value[key] == 'true':
+                    new_value['privacy'] = True
+                if key == 'privacy' and new_value[key] == 'false':
+                    new_value['privacy'] = False
+                if key == 'deleted' and new_value[key] == 'true':
+                    new_value['deleted'] = True
+                if key == 'deleted' and new_value[key] == 'false':
+                    new_value['deleted'] = False
+        db.session.add(event)
+        flag_modified(event, 'new_value')  # needed when updating JSON columns
+    db.session.commit()
 
 
 if __name__ == "__main__":

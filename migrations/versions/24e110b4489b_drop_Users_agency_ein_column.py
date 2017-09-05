@@ -1,7 +1,5 @@
 """Drop the Users.agency_ein column.
 
-ONLY RUN THIS AFTER MIGRATING USERS TO AGENCYUSERS.
-
 Revision ID: 24e110b4489b
 Revises: 9908a9bf1dbd
 Create Date: 2017-07-06 22:16:44.862690
