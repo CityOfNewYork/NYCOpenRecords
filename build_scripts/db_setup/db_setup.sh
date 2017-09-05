@@ -73,7 +73,7 @@ sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e developer
 sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e openrecords_v2_0_db
 
 # 12. Create database
-sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createdb openrecords_v2_0
+sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createdb openrecords
 
 # 13. Add the following lines to /etc/sudoers file (allows running postgres commands without sudo access)
 #vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql start
