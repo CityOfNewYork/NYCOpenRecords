@@ -323,28 +323,25 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         'email_validated': True,
         'terms_of_use_accepted': True,
     }
-    old_user_guid = user.guid
-    old_auth_user_type = user.auth_user_type
     if guid != user.guid or user_type != user.auth_user_type:
         updated_data.update(
             guid=guid,
             auth_user_type=user_type
         )
+        update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid,
+                                                   Events.new_value['auth_user_type'].astext == user.auth_user_type).all()
+        for event in update_events_values:
+            update_object(
+                {'new_value': {'user_guid': guid,
+                               'auth_user_type': user_type}},
+                Events,
+                event.id
+            )
     update_object(
         updated_data,
         Users,
         (user.guid, user.auth_user_type)
     )
-    update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == old_user_guid,
-                                               Events.new_value['auth_user_type'].astext == old_auth_user_type).all()
-
-    for event in update_events_values:
-        update_object(
-            {'new_value': {'user_guid': guid,
-                           'auth_user_type': user_type}},
-            Events,
-            event.id
-        )
 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
