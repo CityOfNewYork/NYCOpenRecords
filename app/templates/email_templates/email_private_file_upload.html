@@ -2,19 +2,19 @@
     <p>
         Attention {{ agency_name }} Users,
     </p>
-    <div class="mceNonEditable">
-        <p>
+    <p>
+        <span class="mceNonEditable">
             The following file(s) were added to <a href='{{ page }}'>{{ request_id }}</a> and are private:
-        </p>
-        <div class="file-links">
-            <ul>
-                {% for file in private_links %}
-                    <li style="list-style: none">
-                        {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+        </span>
+    </p>
+    <div class="file-links">
+        <ul>
+            {% for file in private_links %}
+                <li style="list-style: none">
+                    <span class="mceNonEditable">{{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}</a></span>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
     <p><br></p>
 {% else %}
