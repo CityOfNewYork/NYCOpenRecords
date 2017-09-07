@@ -1,3 +1,5 @@
+"use strict";
+
 $(function () {
     // SWITCH AGENCY
     $("#agencies").change(function () {

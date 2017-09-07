@@ -1,3 +1,5 @@
+"use strict";
+
 // Don't cache ajax requests
 $.ajaxSetup({ cache: false });
 

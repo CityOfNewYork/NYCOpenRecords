@@ -1,6 +1,9 @@
 /**
  * Created by jyu on 10/21/16.
  */
+
+"use strict";
+
 function validateRecaptcha() {
     var captcha_response = grecaptcha.getResponse();
     if (captcha_response.length == 0) {

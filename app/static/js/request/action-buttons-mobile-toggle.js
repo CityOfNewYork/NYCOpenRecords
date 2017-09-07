@@ -1,3 +1,5 @@
+"use strict";
+
 $(window).resize(function () {
     var width = $(window).width();
     if (width >= 768) {
