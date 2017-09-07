@@ -1,3 +1,5 @@
+"use strict";
+
 $(function () {
 
     var responses = null;
@@ -80,6 +82,12 @@ $(function () {
                 console.log(error);
             }
         })
+    }
+
+    function getRandomString(length, chars) {
+        var string = '';
+        for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
+        return string;
     }
 
     // replaces currently displayed responses with previous 10 responses
@@ -261,12 +269,6 @@ $(function () {
                         }
                     });
                 });
-
-                function getRandomString(length, chars) {
-                    var string = '';
-                    for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
-                    return string;
-                }
 
                 // Apply parsley required validation for title
                 first.find("input[name=title]").attr("data-parsley-required", "");

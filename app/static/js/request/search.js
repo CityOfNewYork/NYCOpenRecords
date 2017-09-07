@@ -1,3 +1,5 @@
+"use strict";
+
 $(function() {
 
     // set time zone name

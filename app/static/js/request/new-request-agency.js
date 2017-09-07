@@ -1,6 +1,9 @@
 /**
  * Created by atan on 9/14/16.
  */
+
+"use strict";
+
 $(document).ready(function () {
 
     $("input[name='tz-name']").val(jstz.determine().name());
