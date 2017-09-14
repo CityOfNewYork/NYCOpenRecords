@@ -90,7 +90,7 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        emailContent = second.find(".email-content-hidden");
+                        var emailContent = second.find(".email-content-hidden");
                         emailContent.html(data.template);
                         flask_moment_render_all();
                         tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());

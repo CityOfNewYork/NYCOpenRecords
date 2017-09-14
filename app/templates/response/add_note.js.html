@@ -31,7 +31,7 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        emailContent = $(".email-note-content-hidden");
+                        var emailContent = $(".email-note-content-hidden");
                         emailContent.html(data.template);
                         flask_moment_render_all();
                         tinyMCE.get('email-note-content').setContent(emailContent.html());
