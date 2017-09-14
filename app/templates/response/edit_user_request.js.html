@@ -1,6 +1,4 @@
 <script type="text/javascript">
-    "use strict";
-
     $(function () {
         var form = $("#edit-user-request");
         var first = form.find(".first");
@@ -44,10 +42,12 @@
                         setPermissions(data);
                     }
                 });
+                $('#no-permissions-changed-error').css("display", "none");
             }
         });
 
         permission.find('option').mousedown(function(e) {
+            $('#no-permissions-changed-error').css("display", "none");
             e.preventDefault();
             permission.focus();
             $(this).prop('selected', !$(this).prop('selected'));
@@ -69,6 +69,7 @@
             } else {
                 options.hide();
             }
+            $('#no-permissions-changed-error').css("display", "none");
         });
 
         next.click(function () {
@@ -97,11 +98,16 @@
                     }
                 });
             }
+            else {
+                $('#no-permissions-changed-error').css({"color": "red", "display": ""});
+
+            }
         });
 
         prev.click(function () {
             second.hide();
             first.show();
+            $('#no-permissions-changed-error').css("display", "none");
         });
 
         submit.click(function(e) {

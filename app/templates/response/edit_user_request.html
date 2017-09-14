@@ -26,6 +26,7 @@
                     </div>
                     {{ edit_user_request_form.permission.label }}<br>
                     {{ edit_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
+                    <h5 id="no-permissions-changed-error" style="display: none">No changes in permissions detected</h5>
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
                 </div>
             </div>
