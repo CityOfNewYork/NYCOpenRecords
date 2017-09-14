@@ -103,7 +103,7 @@
 
         // Shows custom due date datepicker when Custom Due Date is selected
         $("#extension-select").change(function () {
-            selected = $(this).val();
+            var selected = $(this).val();
             if (selected === "-1") {
                 $("#custom-due-date").show();
             }
