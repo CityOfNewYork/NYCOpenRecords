@@ -21,7 +21,7 @@
 
         // Parsley
         var required = [date, days];
-        for (i = 0; i < required.length; i++) {
+        for (var i = 0; i < required.length; i++) {
             required[i].attr("data-parsley-required", "");
         }
         info.attr("data-parsley-maxlength", "5000");
@@ -90,7 +90,7 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        emailContent = second.find(".email-content-hidden");
+                        var emailContent = second.find(".email-content-hidden");
                         emailContent.html(data.template);
                         flask_moment_render_all();
                         tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());

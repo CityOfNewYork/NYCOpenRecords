@@ -57,7 +57,7 @@
     });
 
     // Configure and start the session timeout monitor
-    sessMon = sessionMonitor({
+    var sessMon = sessionMonitor({
         // Subtract 1 minute to ensure the backend doesn't expire the session first
         sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
         timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes

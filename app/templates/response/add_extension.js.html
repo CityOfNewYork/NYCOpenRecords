@@ -50,7 +50,7 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        emailContent = $(".email-extension-content-hidden");
+                        var emailContent = $(".email-extension-content-hidden");
                         emailContent.html(data.template);
                         flask_moment_render_all();
                         tinyMCE.get('email-extension-content').setContent(emailContent.html());
@@ -103,7 +103,7 @@
 
         // Shows custom due date datepicker when Custom Due Date is selected
         $("#extension-select").change(function () {
-            selected = $(this).val();
+            var selected = $(this).val();
             if (selected === "-1") {
                 $("#custom-due-date").show();
             }
@@ -140,7 +140,7 @@
 
         // Loop through required fields and apply a data-parsley-required attribute to them
         var required_fields = ['custom-extension', 'extension-select', 'extension-reason'];
-        for (i = 0; i < required_fields.length; i++) {
+        for (var i = 0; i < required_fields.length; i++) {
             $('#' + required_fields[i]).attr('data-parsley-required', '');
         }
 
@@ -155,7 +155,7 @@
 
         // Loop through required fields and apply a data-parsley-required attribute to them
         var required_fields = ['custom-extension','extension-select', 'extension-reason'];
-        for (i = 0 ; i < required_fields.length ; i++){
+        for (var i = 0 ; i < required_fields.length ; i++){
             $('#' + required_fields[i]).attr('data-parsley-required','');
         }
 
