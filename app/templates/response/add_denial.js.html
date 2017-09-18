@@ -44,7 +44,7 @@
                         reason_ids: reason_ids.val(),
                     },
                     success: function (data) {
-                        emailContent = second.find(".email-content-hidden");
+                        var emailContent = second.find(".email-content-hidden");
                         emailContent.html(data.template);
                         tinyMCE.get("denial-email-body").setContent(emailContent.html());
                     }
