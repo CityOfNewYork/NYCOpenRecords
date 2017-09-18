@@ -208,6 +208,7 @@ def handle_user_data(guid,
     if redirect_required:
         return redirect(user_or_url)
     else:
+        if user_or_url.has_active_session:
         login_user(user_or_url)
         _session_regenerate_persist_token()
 
