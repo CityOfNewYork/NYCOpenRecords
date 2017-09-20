@@ -13,6 +13,7 @@ from app.constants import (
     event_type,
     permission,
     role_name,
+    user_type_auth,
     user_type_request,
 )
 from app.lib.db_utils import (
@@ -71,7 +72,7 @@ def patch(user_id):
             return jsonify({}), 404
 
         agency_ein = request.form.get('agency_ein', None)
-        if agency_ein is None:
+        if agency_ein is None and not (auth_type == user_type_auth.ANONYMOUS_USER or 'is_super' in request.form):
             return jsonify({}), 404
 
         updating_self = current_user == user_
