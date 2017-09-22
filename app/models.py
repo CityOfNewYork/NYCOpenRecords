@@ -339,7 +339,7 @@ class Users(UserMixin, db.Model):
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
     mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
-    has_active_session = db.Column(db.Boolean(), default=False)
+    session_id = db.Column(db.String(254), nullable=True, default=None)
 
     # Relationships
     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
