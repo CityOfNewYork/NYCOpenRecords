@@ -140,7 +140,7 @@ def logout():
         if current_user.is_authenticated and timed_out is not None:
             flash("Your session timed out. Please login again", category='info')
         logout_user()
-        session.regenerate()
+        session.destroy()
         return redirect(url_for("main.index"))
 
     return abort(404)

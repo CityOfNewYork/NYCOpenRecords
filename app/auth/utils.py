@@ -208,8 +208,13 @@ def handle_user_data(guid,
     if redirect_required:
         return redirect(user_or_url)
     else:
+        if user_or_url.session_id is not None:
+            revoke_and_remove_access_token()
+            session.destroy()
+            return redirect(url_for('main.index', duplicate_session=True))
         login_user(user_or_url)
         _session_regenerate_persist_token()
+        user_or_url.session_id = session.sid_s
 
         if not is_safe_url(next_url):
             return abort(400, error_msg.UNSAFE_NEXT_URL)

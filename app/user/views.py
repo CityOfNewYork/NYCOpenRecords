@@ -61,7 +61,7 @@ def patch(user_id):
         - cannot change super user or agency status
 
     """
-    if not current_user.is_anonymous:
+    if not current_user.is_anonymous and current_user.is_authenticated:
         # attempt to parse user_id and find user
         try:
             guid, auth_type = user_id.split(USER_ID_DELIMITER)
