@@ -178,12 +178,7 @@ def revoke_and_remove_access_token(user_session=None):
 
 
 def force_logout():
-    redis_get_user_session(current_user.session_id).destroy()
-    if 'token' in session:
-        revoke_and_remove_access_token()
-    update_object({'session_id': None},
-                  Users,
-                  (current_user.guid, current_user.auth_user_type))
+
 
 
 def fetch_user_json():
