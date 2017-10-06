@@ -229,7 +229,7 @@ def ldap_login():
 @auth.route('/ldap_logout', methods=['GET'])
 def ldap_logout(timed_out=False, forced_logout=False):
     if forced_logout:
-
+        pass
     logout_user()
     session.destroy()
     if timed_out:
@@ -238,3 +238,4 @@ def ldap_logout(timed_out=False, forced_logout=False):
 
 @auth.route('/oauth_logout', methods=['GET'])
 def oauth_logout(timed_out=False, forced_logout=False):
+    pass
