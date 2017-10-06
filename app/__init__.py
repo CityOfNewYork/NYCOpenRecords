@@ -45,7 +45,7 @@ tracy = Tracy()
 login_manager = LoginManager()
 scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
-prefixed_store = PrefixDecorator('session_', store)
+session_redis = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
 upload_redis = redis.StrictRedis(db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
@@ -124,7 +124,7 @@ def create_app(config_name, jobs_enabled=True):
         from app.models import Anonymous
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
-        KVSessionExtension(prefixed_store, app)
+        KVSessionExtension(session_redis, app)
 
     # schedule jobs
     if jobs_enabled:

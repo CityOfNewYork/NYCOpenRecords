@@ -76,6 +76,7 @@
     {% endwith %}
     {% if not current_user.is_anonymous %}
         {% include 'auth/session_timeout_modal.html' %}
+        {% include 'auth/concurrent_sessionn_modal.html' %}
     {% endif %}
 </div>
 <div class="wrapper">

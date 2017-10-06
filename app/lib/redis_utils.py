@@ -1,12 +1,22 @@
 import os
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+from flask import current_app
 from app import upload_redis as redis
 from app.lib.file_utils import (
     os_get_hash,
     os_get_mime_type
 )
+from flask_kvsession import (
+    KVSession
+)
 
 
+# Redis File Utilities
 def redis_set_file_metadata(request_or_response_id, filepath, is_update=False):
     """
     Stores a file's size, mime type, and hash.
@@ -47,3 +57,20 @@ def _get_file_metadata_key(request_or_response_id, filepath, is_update):
     return '|'.join((str(request_or_response_id),
                      os.path.basename(filepath),
                      'update' if is_update else 'new'))
+
+
+# Redis Session Utilities
+def redis_get_user_session(session_id):
+    serialization_method = pickle
+    session_class = KVSession
+
+    s = session_class(serialization_method.loads(
+        current_app.kvsession_store.get(session_id)
+    ))
+    s.sid_s = session_id
+
+    return s
+
+
+def redis_delete_user_session(session_id):
+    redis.delete(session_id)

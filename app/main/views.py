@@ -10,6 +10,7 @@ from flask import (
     request,
     session
 )
+from flask_login import current_user
 from app.lib.email_utils import send_contact_email
 from app.lib.db_utils import create_object
 from app.models import Emails
@@ -19,6 +20,10 @@ from app.constants.response_privacy import PRIVATE
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
+    if request.args.get('fresh_login', False):
+        if current_user.session_id is not None:
+            return render_template('main/home.html', duplicate_session=True)
+        current_user.session_id = session.sid_s
     return render_template('main/home.html')
 
 
