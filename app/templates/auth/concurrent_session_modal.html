@@ -1,4 +1,4 @@
-<div id="concurrent-session-modal" class="modal">
+<div id="concurrent-session-modal" class="modal" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -10,8 +10,8 @@
                 Please log out of your existing session to continue.
             </div>
             <div class="modal-footer">
-                <a href="{{ url_for('auth.logout', forced_logout=True) }}"><button id="continue-current-session"  type="button">Continue Current Session</button></a>
-                <button id="log-off" class="btn btn-default" type="button">Log Off</button>
+                <a class="btn btn-warning" type="button" id="continue-current-session" href="{{ url_for('auth.logout', forced_logout=True) }}">Continue Current Session</a>
+                <a class="btn btn-default" type="button" id="log-off" href="{{ url_for('auth.logout') }}">Log Off</a>
             </div>
         </div>
     </div>
