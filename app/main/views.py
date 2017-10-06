@@ -12,18 +12,24 @@ from flask import (
 )
 from flask_login import current_user
 from app.lib.email_utils import send_contact_email
-from app.lib.db_utils import create_object
-from app.models import Emails
+from app.lib.db_utils import create_object, update_object
+from app.models import Emails, Users
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    if request.args.get('fresh_login', False):
-        if current_user.session_id is not None:
-            return render_template('main/home.html', duplicate_session=True)
-        current_user.session_id = session.sid_s
+    fresh_login = request.args.get('fresh_login', False):
+    if fresh_login and current_user.session_id is not None:
+        return render_template('main/home.html', duplicate_session=True)
+    update_object(
+        {
+            'session_id': session.sid_s
+        },
+        Users,
+        (current_user.guid, current_user.auth_user_type)
+    )
     return render_template('main/home.html')
 
 
