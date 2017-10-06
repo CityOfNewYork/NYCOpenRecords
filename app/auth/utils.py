@@ -162,7 +162,7 @@ def oauth_user_web_service_request(method="GET", user_session=session):
     )
 
 
-def revoke_and_remove_access_token(user_session):
+def revoke_and_remove_access_token(user_session=None):
     """
     Invoke the Delete OAuth User Web Service
     to revoke an access token and remove the
@@ -170,22 +170,8 @@ def revoke_and_remove_access_token(user_session):
 
     * Assumes the access token is stored in the session. *
 
-    WARNING
-    -------
-    In the NYC.ID DEV environment, access tokens are
-    automatically revoked on IDP logout, so the revocation
-    executed in here will fail and an error will be logged!
-
-    Once the change hits NYC.ID PRD, this function should
-    be renamed to "remove_access_token" and should only
-    consist of "session.pop('token')".
-
     """
-    # FIXME: see WARNING above
     if user_session:
-        _check_web_services_response(
-            oauth_user_web_service_request("DELETE", user_session=user_session),
-            error_msg.REVOKE_TOKEN_FAILURE)
         user_session.pop('token')
     else:
         session.pop('token')
