@@ -7,11 +7,10 @@
                 </h4>
             </div>
             <div class="modal-body">
-                Please log out of your existing session to continue.
+                For your security, we have logged you out of all of your active sessions. Please login again.
             </div>
             <div class="modal-footer">
-                <a class="btn btn-warning" type="button" id="continue-current-session" href="{{ url_for('auth.logout', forced_logout=True) }}">Continue Current Session</a>
-                <a class="btn btn-default" type="button" id="log-off" href="{{ url_for('auth.logout') }}">Log Off</a>
+                <a class="btn btn-default" type="button" id="continue-current-session" href="{{ url_for('auth.logout', forced_logout=True) }}">Continue</a>
             </div>
         </div>
     </div>

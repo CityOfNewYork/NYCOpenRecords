@@ -150,11 +150,10 @@ def logout():
     elif current_app.config['USE_OAUTH']:
         if forced_logout:
             redis_get_user_session(current_user.session_id).destroy()
-            current_user.session_id = session.sid_s
-            flash("You have been logged out of all other open sessions.", category="info")
-            return redirect(url_for("main.index"))
-        if 'token' in session:
-            revoke_and_remove_access_token()
+            if 'token' in session:
+                revoke_and_remove_access_token()
+            return redirect(url_for("auth.login"))
+
         if current_user.is_authenticated and not timed_out:
             flash("Your session timed out. Please login again", category='info')
         logout_user()
