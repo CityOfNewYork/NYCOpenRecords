@@ -36,10 +36,10 @@ from app.auth.utils import (
     handle_user_data,
     fetch_user_json,
     is_safe_url,
-    update_openrecords_user
+    update_openrecords_user,
+    force_logout
 )
 from app.constants.web_services import AUTH_ENDPOINT
-from app.lib.redis_utils import redis_get_user_session
 
 
 @auth.route('/login', methods=['GET'])
@@ -149,13 +149,11 @@ def logout():
 
     elif current_app.config['USE_OAUTH']:
         if forced_logout:
-            redis_get_user_session(current_user.session_id).destroy()
-            if 'token' in session:
-                revoke_and_remove_access_token()
+            force_logout()
             return redirect(url_for("auth.login"))
-
         if current_user.is_authenticated and not timed_out:
             flash("Your session timed out. Please login again", category='info')
+        revoke_and_remove_access_token()
         logout_user()
         session.destroy()
         return redirect(url_for("main.index"))
