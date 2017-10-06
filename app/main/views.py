@@ -20,7 +20,7 @@ from app.constants.response_privacy import PRIVATE
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    fresh_login = request.args.get('fresh_login', False):
+    fresh_login = request.args.get('fresh_login', False)
     if fresh_login and current_user.session_id is not None:
         return render_template('main/home.html', duplicate_session=True)
     update_object(
