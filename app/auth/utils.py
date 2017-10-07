@@ -177,10 +177,6 @@ def revoke_and_remove_access_token(user_session=None):
         session.pop('token')
 
 
-def force_logout():
-
-
-
 def fetch_user_json():
     """
     Invoke the Get OAuth User Web Service to fetch

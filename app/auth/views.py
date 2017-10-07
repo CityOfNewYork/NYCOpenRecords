@@ -39,7 +39,10 @@ from app.auth.utils import (
     update_openrecords_user,
 )
 from app.constants.web_services import AUTH_ENDPOINT
+from app.lib.db_utils import update_object
+from app.lib.utils import eval_request_bool
 from app.lib.redis_utils import redis_get_user_session
+from app.models import Users
 
 
 @auth.route('/login', methods=['GET'])
@@ -227,17 +230,29 @@ def ldap_logout(timed_out=False, forced_logout=False):
 
 
 @auth.route('/oauth_logout', methods=['GET'])
-def oauth_logout(timed_out=False, forced_logout=False):
+def oauth_logout():
+    timed_out = eval_request_bool(request.args.get('timeout'))
+    forced_logout = eval_request_bool(request.args.get('forced_logout'))
+    print("Timed Out: {}, Forced Logout: {}".format(timed_out, forced_logout))
     if forced_logout:
+        print("Forced Logout: \nOld Session ID: {}".format(current_user.session_id))
         redis_get_user_session(current_user.session_id).destroy()
-        if 'token' in session:
-            revoke_and_remove_access_token()
-        current_user.session_id = None
+        print("Deleted Session {}".format(current_user.session_id))
     if timed_out:
         flash("Your session timed out. Please login again", category='info')
-    revoke_and_remove_access_token()
+    if 'token' in session:
+        print("Removing Token from Current Session")
+        revoke_and_remove_access_token()
+        print("Removed Token from Current Session")
+    print("Setting User Stored Session ID to None\ncurrent_user.session_id: {}".format(current_user.session_id))
+    update_object({'session_id': None}, Users, (current_user.guid, current_user.auth_user_type))
+    print("Session ID should be None\ncurrent_user.session_id: {}".format((current_user.session_id is None)))
+    print("Logging Out User")
     logout_user()
+    print("Current User should be anonymous {}\n Destroying Session".format(current_user.is_anonymous))
     session.destroy()
+    print("Session should not exist")
     if forced_logout:
+        print("Forced Logout = True, Go To Auth Login")
         return redirect(url_for("auth.login"))
     return redirect(url_for("main.index"))
