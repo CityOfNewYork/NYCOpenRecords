@@ -221,7 +221,7 @@ def ldap_login():
 @auth.route('/ldap_logout', methods=['GET'])
 def ldap_logout(timed_out=False, forced_logout=False):
     if forced_logout:
-        redis_get_user_session(current_user.session_id).destroy()
+        pass
     logout_user()
     session.destroy()
     if timed_out:
@@ -231,27 +231,28 @@ def ldap_logout(timed_out=False, forced_logout=False):
 
 @auth.route('/oauth_logout', methods=['GET'])
 def oauth_logout():
-    """
-    Log an OAuth User out of the application.
-
-    :param timed_out: Users session has timed out to trigger logout.
-    :param forced_logout: Determines if a user has been forced to log out.
-        if forced_logout is True, the users current session will be immediately refreshed and the user will be logged
-        in again (assuming the IdP session is still active).
-    """
     timed_out = eval_request_bool(request.args.get('timeout'))
     forced_logout = eval_request_bool(request.args.get('forced_logout'))
+    print("Timed Out: {}, Forced Logout: {}".format(timed_out, forced_logout))
     if forced_logout:
-        old_session = redis_get_user_session(current_user.session_id)
-        revoke_and_remove_access_token(old_session)
-        old_session.destroy()
+        print("Forced Logout: \nOld Session ID: {}".format(current_user.session_id))
+        redis_get_user_session(current_user.session_id).destroy()
+        print("Deleted Session {}".format(current_user.session_id))
     if timed_out:
         flash("Your session timed out. Please login again", category='info')
     if 'token' in session:
+        print("Removing Token from Current Session")
         revoke_and_remove_access_token()
+        print("Removed Token from Current Session")
+    print("Setting User Stored Session ID to None\ncurrent_user.session_id: {}".format(current_user.session_id))
     update_object({'session_id': None}, Users, (current_user.guid, current_user.auth_user_type))
+    print("Session ID should be None\ncurrent_user.session_id: {}".format((current_user.session_id is None)))
+    print("Logging Out User")
     logout_user()
+    print("Current User should be anonymous {}\n Destroying Session".format(current_user.is_anonymous))
     session.destroy()
+    print("Session should not exist")
     if forced_logout:
+        print("Forced Logout = True, Go To Auth Login")
         return redirect(url_for("auth.login"))
     return redirect(url_for("main.index"))
