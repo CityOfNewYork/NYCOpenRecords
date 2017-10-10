@@ -20,7 +20,7 @@ if [ "$1" != single_server ]; then
     echo "complete complete complete COMPLETE"
     yum -y install rh-nginx18-nginx
 
-    bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-nginx18/enable'"
+    bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-nginx18/enable\n' > /etc/profile.d/nginx18.sh"
 
     mv /etc/opt/rh/rh-nginx18/nginx/nginx.conf /etc/opt/rh/rh-nginx18/nginx/nginx.conf.orig
 

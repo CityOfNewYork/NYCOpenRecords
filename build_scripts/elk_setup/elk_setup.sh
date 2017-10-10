@@ -14,9 +14,13 @@ ln -s /vagrant/build_scripts/elk_setup/elasticsearch.yml /etc/elasticsearch/elas
 mkdir -p /data/es_logs
 chown -R vagrant:vagrant /data
 chmod 777 -R /data
-# Add the following lines to /etc/security/limits.conf for max number of threads error
-# elasticsearch - nproc 2048
-# elasticsearch - nofile 65536
+
+# Fix for max number of threads error when network.host: 0.0.0.0
+bash -c "cat << 'EOF' >> /etc/security/limits.conf
+elasticsearch - nproc 2048
+elasticsearch - nofile 65536
+EOF"
+
 service elasticsearch start
 
 # Download and install Kibana
@@ -27,6 +31,8 @@ chkconfig --add kibana
 # Configure Kibana
 mv /etc/kibana/kibana.yml /etc/kibana/kibana.ynl.orig
 ln -s /vagrant/build_scripts/elk_setup/kibana.yml /etc/kibana/kibana.yml
+
+
 service kibana start
 
 
