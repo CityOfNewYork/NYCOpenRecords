@@ -10,7 +10,7 @@ chkconfig --add elasticsearch
 
 # Configure Elasticsearch
 mv /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.orig
-ln -s /vagrant/build_scripts/elk_setup/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
+ln -s /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 mkdir -p /data/es_logs
 chown -R vagrant:vagrant /data
 chmod 777 -R /data
@@ -21,12 +21,7 @@ elasticsearch - nproc 2048
 elasticsearch - nofile 65536
 EOF"
 
-yum -y install rh-nginx18-nginx
-bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-nginx18/enable\n' > /etc/profile.d/nginx18.sh"
-source /etc/profile.d/nginx18.sh
-mv /etc/opt/rh/rh-nginx18/nginx/nginx.conf /etc/opt/rh/rh-nginx18/nginx/nginx.conf.orig
-ln -s /vagrant/build_scripts/elk_setup/elasticsearch/nginx_conf/nginx.conf /etc/opt/rh/rh-nginx18/nginx/nginx.conf
-
+# Create self-signed certs
 openssl req \
            -newkey rsa:4096 -nodes -keyout /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.key \
            -x509 -days 365 -out /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=elasticsearch_elk.dev"
@@ -39,7 +34,5 @@ mv /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.crt /dat
 chmod 400 /data/ssl/elasticsearch_elk_dev.crt
 mv /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.pem /data/ssl
 chmod 400 /data/ssl/elasticsearch_elk_dev.pem
-
-service rh-nginx18-nginx restartsudo
 
 service elasticsearch start

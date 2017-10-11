@@ -31,7 +31,7 @@ if [ "$1" != single_server ]; then
            -x509 -days 365 -out /vagrant/build_scripts/es_setup/elasticsearch_dev.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=womensactivism.nyc"
     openssl x509 -in /vagrant/build_scripts/es_setup/elasticsearch_dev.crt -out /vagrant/build_scripts/es_setup/elasticsearch_dev.pem -outform PEM
 
-    sudo service rh-nginx18-nginx restartsudo
+    sudo service rh-nginx18-nginx restart
 fi
 
 mkdir -p /data/es_logs
