@@ -33,7 +33,6 @@ from app.lib import NYCHolidays, jinja_filters
 from app.constants import OPENRECORDS_DL_EMAIL
 
 from config import config, Config
-from raven.contrib.flask import Sentry
 
 recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
@@ -48,7 +47,6 @@ scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 prefixed_store = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
-sentry = Sentry()
 
 upload_redis = redis.StrictRedis(db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 email_redis = redis.StrictRedis(db=Config.EMAIL_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
@@ -84,7 +82,7 @@ def create_app(config_name, jobs_enabled=True):
     Module:             %(module)s
     Function:           %(funcName)s
     Time:               %(asctime)s
-    
+
     Message:
     %(message)s
     '''))
@@ -119,7 +117,6 @@ def create_app(config_name, jobs_enabled=True):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
-    sentry.init_app(app)
     if jobs_enabled:
         scheduler.init_app(app)
 
