@@ -59,25 +59,6 @@ def user_loader(user_id):
     user_id = user_id.split(USER_ID_DELIMITER)
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
 
-
-def destroy_session(user_id):
-    """
-    Destroy a backend user session and return boolean value (True for successful destroy).
-
-    :param session_id: Backend KVSession ID (session.sid_s)
-    :type session_id: String
-    :return: Boolean
-    """
-    user = Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
-    session_id = user.session_id
-    user_session = redis_get_user_session(session_id)
-
-    if user.auth_user_type == user_type_auth.AGENCY_USER:
-        revoke_and_remove_access_token(user_session)
-
-    redis_delete_user_session(session_id)
-
-
 def update_openrecords_user(form):
     """
     Update OpenRecords-specific user attributes.
