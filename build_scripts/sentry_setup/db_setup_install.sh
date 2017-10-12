@@ -48,9 +48,3 @@ ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib
 
 # 5. Start Postgres
 sudo service rh-postgresql95-postgresql start
-
-# 6. Create sentry user for postgres
-sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e sentry
-
-# 7. Create database
-sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createdb -E utf-8 sentry

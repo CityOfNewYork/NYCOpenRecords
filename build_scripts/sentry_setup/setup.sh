@@ -22,12 +22,34 @@ virtualenv --system-site-packages /home/vagrant/.virtualenvs/sentry
 chown -R vagrant:vagrant /home/vagrant
 source /home/vagrant/.virtualenvs/sentry/bin/activate
 pip install --upgrade pip
-pip install -U sentry
+pip install -U sentry==8.20.0
 echo "source /home/vagrant/.virtualenvs/sentry/bin/activate" >> /home/vagrant/.bash_profile
 
 # 5. Create default sentry configuration
 sentry init /etc/sentry
 
 # 6. Configure sentry
-# Configure database connection and web host IP/port in /etc/sentry/sentry.conf.py
-# Configure SMTP Mail connection in /etc/sentry/config.yml
+mv /etc/sentry/sentry.conf.py /etc/sentry/sentry.conf.py.orig
+ln -s /vagrant/build_scripts/sentry_setup/sentry.conf.py /etc/sentry/sentry.conf.py
+mv /etc/sentry/config.yml /etc/sentry/config.yml.orig
+ln -s /vagrant/build_scripts/sentry_setup/config.yml /etc/sentry/config.yml
+
+# 7. Create Initial Schema
+SENTRY_CONF=/etc/sentry sentry upgrade
+# Enter 'n' to create Sentry account at a later time on prompt
+
+
+# Sentry commands:
+#
+# Start Web Service
+# SENTRY_CONF=/etc/sentry sentry run web
+#
+# Start Background Workers
+# SENTRY_CONF=/etc/sentry sentry run worker
+#
+# Start Cron Process
+# SENTRY_CONF=/etc/sentry sentry run cron
+#
+# Create User
+# SENTRY_CONF=/etc/sentry sentry createuser
+#
