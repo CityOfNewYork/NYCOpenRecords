@@ -136,6 +136,8 @@ class Config:
 
     # https://www.elastic.co/blog/index-vs-type
 
+    SENTRY_DSN = os.environ.get('SENTRY_DSN')
+
     @staticmethod
     def init_app(app):
         pass

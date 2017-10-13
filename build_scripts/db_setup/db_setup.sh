@@ -53,7 +53,7 @@ mv /vagrant/build_scripts/db_setup/server.key /data/postgres
 chmod 600 /data/postgres/server.key
 chown postgres:postgres /data/postgres/server.key
 
-if [ "$1" = single_server ]; then
+if [ "$1" != single_server ]; then
   # 8a. Setup Client Certificates for App Server
   mkdir -p /home/vagrant/.postgresql
   openssl req -new -nodes -keyout client.key -out client.csr -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=openrecords.dev"

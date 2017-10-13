@@ -42,9 +42,22 @@ Vagrant.configure("2") do |config|
     default.vm.provision "shell", path: "build_scripts/web_setup/web_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
     default.vm.provision "shell", path: "build_scripts/es_setup/es_setup.sh", args: 'single_server'
-    default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh", args: 'single_server'
   end
 
+  # VM for Sentry
+  config.vm.define "sentry" do |sentry|
+    sentry.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+    end
+
+    sentry.vm.network "forwarded_port", guest: 9000,  host: 9090
+    sentry.vm.network "private_network", ip: "10.0.0.3"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/db_setup_install.sh"
+    sentry.vm.provision :reload  # to prevent 'database is starting up' issue
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/db_setup_config.sh"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/setup.sh"
+  end
 
   config.vm.define "web_1", autostart: false do |web|
     # Web Server 1 Configuration
