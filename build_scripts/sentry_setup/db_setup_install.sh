@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
+
 # 1. Install Postgres 9.5
 yum -y install rh-postgresql95
 yum -y install rh-postgresql95-postgresql-contrib
+
+chkconfig rh-postgresql95-postgresql on
 
 # 2. Setup Postgres
 # Create data directory for Postgres (store data from Postgres where it's not normally stored)

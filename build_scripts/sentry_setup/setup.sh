@@ -35,9 +35,7 @@ mv /etc/sentry/config.yml /etc/sentry/config.yml.orig
 ln -s /vagrant/build_scripts/sentry_setup/config.yml /etc/sentry/config.yml
 
 # 7. Create Initial Schema
-SENTRY_CONF=/etc/sentry sentry upgrade
-# Enter 'n' to create Sentry account at a later time on prompt
-
+SENTRY_CONF=/etc/sentry sentry upgrade --noinput
 
 # Sentry commands:
 #
