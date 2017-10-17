@@ -18,7 +18,11 @@
                                     Request Description: {{ current_request.description }}
                                     <br/>
                                     <br/>
-
+                                    {% if file_link %}
+                                        Attached File: {{ file_link['title'] }}: <a href="{{ file_link['link'] }}">{{ file_link['filename'] }}
+                                        <br/>
+                                        <br/>
+                                    {% endif %}
                                     <p style="text-decoration: underline">Requester's Contact Information</p>
                                     <div class="row-fluid hide" id="requester_info">
                                         <div>
