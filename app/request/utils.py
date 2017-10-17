@@ -439,7 +439,7 @@ def send_confirmation_email(request, agency, user):
     release_public, release_private, private = ([] for i in range(3))
     if file_response is not None:
         get_file_links(file_response, release_public, release_private, private)
-    file = release_private[0] if len(release_private) > 0 else None
+    file_link = release_private[0] if len(release_private) > 0 else None
 
     # generates the view request page URL for this request
     if agency.is_active:
@@ -458,7 +458,7 @@ def send_confirmation_email(request, agency, user):
                                     agency_default_email=agency_default_email,
                                     user=user,
                                     address=address,
-                                    file=file,
+                                    file_link=file_link,
                                     page=page)
 
     try:
