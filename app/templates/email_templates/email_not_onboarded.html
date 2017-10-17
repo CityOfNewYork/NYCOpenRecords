@@ -20,7 +20,11 @@
                                     Request Description: {{ current_request.description }}
                                     <br/>
                                     <br/>
-
+                                    {% if file %}
+                                        Attached File: {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}
+                                        <br/>
+                                        <br/>
+                                    {% endif %}
                                     <p style="text-decoration: underline">Requester's Contact Information</p>
                                     <div class="row-fluid hide" id="requester_info">
                                         <div>

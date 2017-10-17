@@ -25,6 +25,7 @@ from app.constants import (
     ACKNOWLEDGMENT_DAYS_DUE,
     REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
     user_type_request,
+    response_type
 )
 from app.constants.response_privacy import (
     RELEASE_AND_PRIVATE,
@@ -54,9 +55,13 @@ from app.models import (
     UserRequests,
     Roles,
     Files,
-    ResponseTokens
+    ResponseTokens,
+    Responses,
 )
-from app.response.utils import safely_send_and_add_email
+from app.response.utils import (
+    safely_send_and_add_email,
+    get_file_links
+)
 from app.upload.constants import upload_status
 from app.upload.utils import (
     is_valid_file_type,
@@ -265,10 +270,10 @@ def create_request(title,
     # 13. Add all parent agency administrators to the request.
     if agency != agency.parent:
         if (
-            agency.parent.agency_features is not None and
-            agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
-            agency.parent.is_active and
-            agency.parent.administrators
+                                agency.parent.agency_features is not None and
+                                agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
+                        agency.parent.is_active and
+                    agency.parent.administrators
         ):
             _create_agency_user_requests(request_id=request_id,
                                          agency_admins=agency.parent.administrators,
@@ -429,6 +434,13 @@ def send_confirmation_email(request, agency, user):
     requester_email = user.email
     address = user.mailing_address
 
+    # gets the file link, if a file was provided.
+    file_response = request.responses.filter(Responses.type == response_type.FILE).one_or_none()
+    release_public, release_private, private = ([] for i in range(3))
+    if file_response is not None:
+        get_file_links(file_response, release_public, release_private, private)
+    file = release_private[0] if len(release_private) > 0 else None
+
     # generates the view request page URL for this request
     if agency.is_active:
         page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
@@ -446,6 +458,7 @@ def send_confirmation_email(request, agency, user):
                                     agency_default_email=agency_default_email,
                                     user=user,
                                     address=address,
+                                    file=file,
                                     page=page)
 
     try:
