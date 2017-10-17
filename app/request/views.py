@@ -24,7 +24,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from app.constants import (
     request_status,
     permission,
-    response_type
 )
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
