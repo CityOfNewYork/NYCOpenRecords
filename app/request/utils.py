@@ -270,10 +270,10 @@ def create_request(title,
     # 13. Add all parent agency administrators to the request.
     if agency != agency.parent:
         if (
-                                agency.parent.agency_features is not None and
-                                agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
-                        agency.parent.is_active and
-                    agency.parent.administrators
+            agency.parent.agency_features is not None and
+            agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
+            agency.parent.is_active and
+            agency.parent.administrators
         ):
             _create_agency_user_requests(request_id=request_id,
                                          agency_admins=agency.parent.administrators,
