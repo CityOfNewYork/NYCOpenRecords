@@ -23,7 +23,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from app.constants import (
     request_status,
-    permission
+    permission,
 )
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
@@ -148,6 +148,7 @@ def new():
 
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester
+
         send_confirmation_email(request=current_request, agency=current_request.agency, user=requester)
 
         if current_request.agency.is_active:
