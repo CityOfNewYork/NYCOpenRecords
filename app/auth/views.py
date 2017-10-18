@@ -39,6 +39,10 @@ from app.auth.utils import (
     update_openrecords_user,
 )
 from app.constants.web_services import AUTH_ENDPOINT
+from app.lib.db_utils import update_object
+from app.lib.utils import eval_request_bool
+from app.lib.redis_utils import redis_get_user_session
+from app.models import Users
 
 
 @auth.route('/login', methods=['GET'])
@@ -129,19 +133,25 @@ def authorize():
 
 @auth.route('/logout', methods=['GET'])
 def logout():
-    timed_out = request.args.get('timeout')
+    """
+    Provides a unified interface for logging out users.
+
+    Accepts two request arguments:
+        :param timeout: Logout being called due to a session timeout.
+        :type timeout: Boolean; Default = False
+        :param forced_logout: Logout being called to close any duplicate sessions.
+        :param forced_logout: Boolean; Default = False
+
+    :return:
+    """
+    timed_out = request.args.get('timeout', False)
+    forced_logout = request.args.get('forced_logout', False)
 
     if current_app.config['USE_LDAP']:
-        return redirect(url_for('auth.ldap_logout', timed_out=timed_out))
+        return redirect(url_for('auth.ldap_logout', timed_out=timed_out, forced_logout=forced_logout))
 
     elif current_app.config['USE_OAUTH']:
-        if 'token' in session:
-            revoke_and_remove_access_token()
-        if current_user.is_authenticated and timed_out is not None:
-            flash("Your session timed out. Please login again", category='info')
-        logout_user()
-        session.regenerate()
-        return redirect(url_for("main.index"))
+        return redirect(url_for('auth.oauth_logout', timed_out=timed_out, forced_logout=forced_logout))
 
     return abort(404)
 
@@ -209,9 +219,27 @@ def ldap_login():
 
 
 @auth.route('/ldap_logout', methods=['GET'])
-def ldap_logout(timed_out=None):
+def ldap_logout(timed_out=False, forced_logout=False):
     logout_user()
-    session.regenerate()
-    if timed_out is not None:
+    session.destroy()
+    if timed_out:
         flash("Your session timed out. Please login again", category='info')
     return redirect(url_for('main.index'))
+
+
+@auth.route('/oauth_logout', methods=['GET'])
+def oauth_logout():
+    timed_out = eval_request_bool(request.args.get('timeout'))
+    forced_logout = eval_request_bool(request.args.get('forced_logout'))
+    if forced_logout:
+        redis_get_user_session(current_user.session_id).destroy()
+    if timed_out:
+        flash("Your session timed out. Please login again", category='info')
+    if 'token' in session:
+        revoke_and_remove_access_token()
+    update_object({'session_id': None}, Users, (current_user.guid, current_user.auth_user_type))
+    logout_user()
+    session.destroy()
+    if forced_logout:
+        return redirect(url_for("auth.login"))
+    return redirect(url_for("main.index"))

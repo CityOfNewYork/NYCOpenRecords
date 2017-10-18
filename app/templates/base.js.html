@@ -30,6 +30,9 @@
     }
 
     {% if not current_user.is_anonymous %}
+        {% if duplicate_session %}
+            $("#concurrent-session-modal").modal("show");
+        {% endif %}
         $("#logout").click(function(e) {
             /* Before sending user to auth.logout page, open a new tab
              * and logout of the NYC.ID IDP (and close the tab after completion).
@@ -64,7 +67,7 @@
         minPingInterval: 60 * 1000,  // 1 minute
         pingUrl: '{{ BASE_URL }}/ping',
         logoutUrl: '{{ BASE_URL }}/auth/logout',
-        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=1&next=',
+        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=True&next=',
         // The "mouseup" event was used instead of "click" because some of the
         // inner elements on some pages have click event handlers that stop propagation.
         activityEvents: 'mouseup',
