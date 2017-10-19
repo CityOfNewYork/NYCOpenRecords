@@ -38,7 +38,11 @@ mkdir -p /data/es_logs
 chown -R vagrant:vagrant /data
 chmod 777 -R /data
 
-# Default setup for searchguard plugin
+# 5. Start Elasticsearch
+sudo /etc/init.d/elasticsearch start
+
+# 6. Default setup for searchguard plugin
+sudo /etc/init.d/elasticsearch stop
 sudo cp /vagrant/build_scripts/es_setup/search-guard-5.zip /tmp/
 cd /tmp/
 sudo unzip search-guard-5.zip
@@ -51,12 +55,11 @@ sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo
 cd /usr/share/elasticsearch/plugins/search-guard-5/tools/
 sudo ./install_demo_configuration.sh -y
 sudo /etc/init.d/elasticsearch start
+sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh
 sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn searchguard_demo -ks /etc/elasticsearch/kirk.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
+# This last line may need to done manually after build scripts are run
 
-# 5. Start Elasticsearch
-sudo /etc/init.d/elasticsearch start
-
-# 6. Add the following lines to /etc/sudoers file
+# 7. Add the following lines to /etc/sudoers file
 #openrecords_v2_0   ALL=(elasticsearch:elasticsearch) NOPASSWD:ALL
 #openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch start
 #openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch stop
