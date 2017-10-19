@@ -38,6 +38,21 @@ mkdir -p /data/es_logs
 chown -R vagrant:vagrant /data
 chmod 777 -R /data
 
+# Default setup for searchguard plugin
+sudo cp /vagrant/build_scripts/es_setup/search-guard-5.zip /tmp/
+cd /tmp/
+sudo unzip search-guard-5.zip
+sudo mv search-guard-5 /usr/share/elasticsearch/plugins/
+#sudo unzip /usr/share/elasticsearch/plugins/search-guard-5.zip
+#sudo rm -rf search-guard-5.zip
+sudo cp /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo_configuration.sh /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo_configuration.sh.orig
+sudo cp /vagrant/build_scripts/es_setup/install_demo_configuration.sh /usr/share/elasticsearch/plugins/search-guard-5/tools/
+sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo_configuration.sh
+cd /usr/share/elasticsearch/plugins/search-guard-5/tools/
+sudo ./install_demo_configuration.sh -y
+sudo /etc/init.d/elasticsearch start
+sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn searchguard_demo -ks /etc/elasticsearch/kirk.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
+
 # 5. Start Elasticsearch
 sudo /etc/init.d/elasticsearch start
 
