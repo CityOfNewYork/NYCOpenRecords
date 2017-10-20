@@ -49,14 +49,14 @@ sudo unzip search-guard-5.zip
 sudo mv search-guard-5 /usr/share/elasticsearch/plugins/
 #sudo unzip /usr/share/elasticsearch/plugins/search-guard-5.zip
 #sudo rm -rf search-guard-5.zip
-sudo cp /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo_configuration.sh /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo_configuration.sh.orig
+sudo cp /usr/share/elasticsearch/plugins/search-guard-5/tools/install_configuration.sh /usr/share/elasticsearch/plugins/search-guard-5/tools/install_configuration.sh.orig
 sudo cp /vagrant/build_scripts/es_setup/install_demo_configuration.sh /usr/share/elasticsearch/plugins/search-guard-5/tools/
-sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/install_demo_configuration.sh
+sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/install_configuration.sh
 cd /usr/share/elasticsearch/plugins/search-guard-5/tools/
-sudo ./install_demo_configuration.sh -y
+sudo ./install_configuration.sh -y
 sudo /etc/init.d/elasticsearch start
 sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh
-sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn searchguard_demo -ks /etc/elasticsearch/kirk.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
+# sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn openrecords_v2_0_development -ks /etc/elasticsearch/kirk.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
 # This last line may need to done manually after build scripts are run
 
 # 7. Add the following lines to /etc/sudoers file
