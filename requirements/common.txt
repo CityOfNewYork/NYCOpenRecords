@@ -34,7 +34,7 @@ isodate==0.5.4
 itsdangerous==0.24
 Jinja2==2.8
 jsonschema==2.6.0
-kombu==3.0.35
+kombu==4.1.0
 ldap3==2.1.1
 Mako==1.0.4
 MarkupSafe==0.23
