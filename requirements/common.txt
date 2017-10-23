@@ -50,7 +50,7 @@ python-dateutil==2.5.3
 python-dotenv==0.6.0
 python-editor==1.0.1
 python-magic==0.4.12
-pytz==2016.6.1
+pytz==2017.2
 raven==6.2.1
 redis==2.10.5
 requests==2.13.0
