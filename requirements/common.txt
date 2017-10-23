@@ -36,7 +36,7 @@ Jinja2==2.8
 jsonschema==2.6.0
 kombu==3.0.35
 ldap3==2.1.1
-Mako==1.0.4
+Mako==1.0.7
 MarkupSafe==0.23
 oauthlib==2.0.1
 packaging==16.8
