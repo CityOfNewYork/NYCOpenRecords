@@ -14,7 +14,7 @@ coverage==4.2
 cryptography==1.7.2
 dominate==2.2.1
 elasticsearch==5.0.1
-Flask==0.11.1
+Flask==0.12.2
 Flask-APScheduler==1.5.0
 Flask-Bootstrap==3.3.7.0
 Flask-Elasticsearch==0.2.5
