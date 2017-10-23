@@ -13,7 +13,7 @@ click==6.6
 coverage==4.2
 cryptography==1.7.2
 dominate==2.2.1
-elasticsearch==5.0.1
+elasticsearch==5.4.0
 Flask==0.11.1
 Flask-APScheduler==1.5.0
 Flask-Bootstrap==3.3.7.0
