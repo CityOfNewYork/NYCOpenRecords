@@ -25,7 +25,7 @@ Flask-Migrate==2.0.0
 Flask-Moment==0.5.1
 Flask-ReCaptcha==0.4.2
 Flask-Script==2.0.5
-Flask-SQLAlchemy==2.1
+Flask-SQLAlchemy==2.3
 Flask-Tracy==0.1.3
 Flask-WTF==0.12
 holidays==0.5
