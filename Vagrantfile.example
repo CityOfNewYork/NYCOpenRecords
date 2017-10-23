@@ -53,10 +53,25 @@ Vagrant.configure("2") do |config|
 
     sentry.vm.network "forwarded_port", guest: 9000,  host: 9090
     sentry.vm.network "private_network", ip: "10.0.0.3"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/nginx_setup.sh"
     sentry.vm.provision "shell", path: "build_scripts/sentry_setup/db_setup_install.sh"
-    sentry.vm.provision :reload  # to prevent 'database is starting up' issue
     sentry.vm.provision "shell", path: "build_scripts/sentry_setup/db_setup_config.sh"
     sentry.vm.provision "shell", path: "build_scripts/sentry_setup/setup.sh"
+  end
+
+  # VM for ELK
+  config.vm.define "elk" do |elk|
+    elk.vm.provider "virtualbox" do |vb|
+      vb.memory = "4096"
+    end
+
+    elk.vm.network "forwarded_port", guest: 9200, host: 9201
+    elk.vm.network "forwarded_port", guest: 5601, host: 5602
+    elk.vm.network "private_network", ip: "10.0.0.4"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/elasticsearch/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/kibana/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/nginx/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/logstash/setup.sh"
   end
 
   config.vm.define "web_1", autostart: false do |web|

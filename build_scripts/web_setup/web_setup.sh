@@ -7,7 +7,7 @@ yum -y install rh-nginx18
 chkconfig rh-nginx18-nginx on
 
 # 3. Setup /etc/profile.d/nginx18.sh
-bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-nginx18/enable'"
+bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-nginx18/enable\n' > /etc/profile.d/nginx18.sh"
 
 # 4. Configure nginx
 mv /etc/opt/rh/rh-nginx18/nginx/nginx.conf /etc/opt/rh/rh-nginx18/nginx/nginx.conf.orig
