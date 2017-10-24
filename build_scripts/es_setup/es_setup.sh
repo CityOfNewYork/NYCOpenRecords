@@ -38,6 +38,12 @@ mkdir -p /data/es_logs
 chown -R vagrant:vagrant /data
 chmod 777 -R /data
 
+# Fix for max number of threads error when network.host: 0.0.0.0
+bash -c "cat << 'EOF' >> /etc/security/limits.conf
+elasticsearch - nproc 2048
+elasticsearch - nofile 65536
+EOF"
+
 # 5. Start Elasticsearch
 sudo /etc/init.d/elasticsearch start
 
