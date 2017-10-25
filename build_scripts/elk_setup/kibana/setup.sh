@@ -6,7 +6,7 @@ rpm -ivh /tmp/kibana-5.6.2-x86_64.rpm
 chkconfig --add kibana
 
 # Configure Kibana
-mv /etc/kibana/kibana.yml /etc/kibana/kibana.ynl.orig
+mv /etc/kibana/kibana.yml /etc/kibana/kibana.yml.orig
 ln -s /vagrant/build_scripts/elk_setup/kibana/kibana.yml /etc/kibana/kibana.yml
 
 # Create self-signed certs
