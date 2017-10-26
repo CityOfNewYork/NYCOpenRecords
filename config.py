@@ -129,8 +129,8 @@ class Config:
     ELASTICSEARCH_VERIFY_CERTS = os.environ.get('ELASTICSEARCH_VERIFY_CERTS') == "True"
     ELASTICSEARCH_USERNAME = os.environ.get('ELASTICSEARCH_USERNAME')
     ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD')
-    ELASTICSEARCH_HTTP_AUTH = ((ELASTICSEARCH_USERNAME,
-                                ELASTICSEARCH_PASSWORD)
+    ELASTICSEARCH_HTTP_AUTH = ('{}:{}'.format(ELASTICSEARCH_USERNAME,
+                                              ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
 
