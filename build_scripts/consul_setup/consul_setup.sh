@@ -28,5 +28,3 @@ cp ca.cert consul.key consul.cert /etc/consul.d/ssl
 
 # 4. Start Consul server with this command after build scripts are finished running
 # sudo consul agent -config-dir /etc/consul.d/bootstrap
-
-sudo consul agent -server -bootstrap -data-dir /var/consul -bind 10.0.0.5 -ui -node openrecords_consul
