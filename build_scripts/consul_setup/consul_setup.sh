@@ -9,6 +9,7 @@ mv consul /usr/local/bin/
 # 2. Create configurations for Consul
 mkdir -p /etc/consul.d/bootstrap
 mkdir /var/consul
+chown vagrant:vagrant /var/consul
 ln -s /vagrant/build_scripts/consul_setup/config.json /etc/consul.d/bootstrap/config.json
 
 # 3. Encrypt Consul
@@ -27,4 +28,4 @@ cp ca.cert consul.key consul.cert /etc/consul.d/ssl
 # ln -s /vagrant/build_scripts/consul_setup/encrypt.json /etc/consul.d/bootstrap/encrypt.json
 
 # 4. Start Consul server with this command after build scripts are finished running
-# sudo consul agent -config-dir /etc/consul.d/bootstrap
+# consul agent -config-dir /etc/consul.d/bootstrap
