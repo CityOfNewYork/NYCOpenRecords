@@ -19,7 +19,7 @@ filebeat.prospectors:
 
   # Paths that should be crawled and fetched. Glob based paths.
   paths:
-    - /var/opt/rh/rh-nginx18/log/nginx/access.log
+    - /data/nginx_logs/access.log
     #- c:\programdata\elasticsearch\logs\*
 
   # Exclude lines. A list of regular expressions to match. It drops the lines that are
@@ -36,7 +36,8 @@ filebeat.prospectors:
 
   # Optional additional fields. These field can be freely picked
   # to add additional information to the crawled log files for filtering
-  #fields:
+  fields:
+    index: nginx_access_app
   #  level: debug
   #  review: 1
 
@@ -55,6 +56,12 @@ filebeat.prospectors:
   # that was (not) matched before or after or as long as a pattern is not matched based on negate.
   # Note: After is the equivalent to previous and before is the equivalent to to next in Logstash
   #multiline.match: after
+
+- input_type: log
+  paths:
+    - /data/nginx_logs/error.log
+    fields:
+      index: nginx_error_app
 
 
 #================================ General =====================================
