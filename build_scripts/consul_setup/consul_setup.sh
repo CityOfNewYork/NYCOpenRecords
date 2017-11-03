@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 
 # 1. Install Consul binaries
-cp /vagrant/build_scripts/consul_setup/consul_1.0.0_linux_amd64.zip /tmp/
-cd /tmp/
-unzip consul_1.0.0_linux_amd64.zip
-mv consul /usr/local/bin/
+# if the path to the Consul binaries were provided as a command line argument, then copy it to /usr/local/bin
+if [ ! -z $1 ]; then
+    cp $1 /usr/local/bin
+# otherwise download the Consul binaries from HashiCorp
+else
+    cd /tmp/
+    wget https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip
+    unzip consul_1.0.0_linux_amd64.zip
+    mv consul /usr/local/bin
+fi
 
 # 2. Create configurations for Consul
 mkdir -p /etc/consul.d/bootstrap
