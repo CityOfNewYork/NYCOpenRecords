@@ -13,7 +13,7 @@ from flask import current_app, session
 from flask_login import UserMixin, AnonymousUserMixin
 from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from app import db, es, calendar
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
@@ -31,7 +31,7 @@ from app.constants import (
     submission_methods,
     event_type,
 )
-from app.lib.utils import eval_request_bool
+from app.lib.utils import eval_request_bool, DuplicateFileException
 
 
 class Roles(db.Model):
@@ -1391,6 +1391,19 @@ class Files(Responses):
                  hash_,
                  date_modified=None,
                  is_editable=False):
+        try:
+            file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).one_or_none()
+            if file_exists is not None:
+                raise DuplicateFileException(
+                    file_name=name,
+                    request_id=request_id
+                )
+        except MultipleResultsFound:
+            raise DuplicateFileException(
+                file_name=name,
+                request_id=request_id
+            )
+
         super(Files, self).__init__(request_id,
                                     privacy,
                                     date_modified,
