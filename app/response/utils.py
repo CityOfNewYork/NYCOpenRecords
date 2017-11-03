@@ -118,8 +118,6 @@ def add_file(request_id, filename, title, privacy, is_editable):
         return str(e)
 
 
-
-
 def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester):
     """
     Create and store the note object for the specified request.
