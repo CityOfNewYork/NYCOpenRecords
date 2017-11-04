@@ -31,10 +31,7 @@ from app.constants import (
     submission_methods,
     event_type,
 )
-from app.lib.utils import (
-    eval_request_bool,
-    DuplicateFileException
-)
+from app.lib.utils import eval_request_bool, DuplicateFileException
 
 
 class Roles(db.Model):
