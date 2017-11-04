@@ -130,7 +130,6 @@ def response_file(request_id):
     release_public_links = []
     release_private_links = []
     private_links = []
-    errors = []
     for file_data in files:
         response_obj = add_file(current_request.id,
                                 file_data,
