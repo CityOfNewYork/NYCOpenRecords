@@ -1,8 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$redhat_username = <REDHAT USERNAME>
-$redhat_password = <REDHAT PASSWORD>
+$redhat_username = ENV['RH_USER'] || ""
+$redhat_password = ENV['RH_PASS'] || ""
 
 Vagrant.configure("2") do |config|
   config.vm.box = "rhel-6.8"
