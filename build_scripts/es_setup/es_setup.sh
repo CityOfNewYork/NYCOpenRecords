@@ -38,10 +38,29 @@ mkdir -p /data/es_logs
 chown -R vagrant:vagrant /data
 chmod 777 -R /data
 
+# Fix for max number of threads error when network.host: 0.0.0.0
+bash -c "cat << 'EOF' >> /etc/security/limits.conf
+elasticsearch - nproc 2048
+elasticsearch - nofile 65536
+EOF"
+
 # 5. Start Elasticsearch
 sudo /etc/init.d/elasticsearch start
 
-# 6. Add the following lines to /etc/sudoers file
+# 6. Default setup for searchguard plugin
+sudo /etc/init.d/elasticsearch stop
+sudo cp /vagrant/build_scripts/es_setup/search-guard-5.zip /tmp/
+cd /tmp/
+sudo unzip search-guard-5.zip
+sudo mv search-guard-5 /usr/share/elasticsearch/plugins/
+sudo chmod +x /usr/share/elasticsearch/plugins/search-guard-5/tools/install_configuration.sh
+cd /usr/share/elasticsearch/plugins/search-guard-5/tools/
+sudo ./install_configuration.sh -y
+sudo /etc/init.d/elasticsearch start
+# The following last line needs to run manually after the build scripts are finished. Will not work even with a vagrant reload
+# sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn openrecords_v2_0_development -ks /etc/elasticsearch/keystore.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
+
+# 7. Add the following lines to /etc/sudoers file
 #openrecords_v2_0   ALL=(elasticsearch:elasticsearch) NOPASSWD:ALL
 #openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch start
 #openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch stop
