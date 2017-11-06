@@ -5,6 +5,8 @@ wget https://artifacts.elastic.co/downloads/logstash/logstash-5.6.2.rpm -P /tmp
 rpm -ivh /tmp/logstash-5.6.2.rpm
 
 ln -s /vagrant/build_scripts/elk_setup/logstash/logstash-nginx-es.conf /etc/logstash/conf.d/logstash-nginx-es.conf
+mv /etc/logstash/logstash.yml /etc/logstash/logstash.yml.orig
+ln -s /vagrant/build_scripts/elk_setup/logstash/logstash.yml /etc/logstash/logstash.yml
 
 # 2. Use sed to add SAN to openssl configuration file
 cp /etc/pki/tls/openssl.cnf /tmp/logstash_dev.cnf
