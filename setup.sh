@@ -13,7 +13,7 @@ vagrant box list | grep rhel-6.8_vb-5.1.30 >/dev/null 2>&1 || {
     read -p "path to box file ($DEFAULT_BOXPATH): " boxpath
     boxpath=${boxpath:-$DEFAULT_BOXPATH}
     if [ -f $boxpath ]; then
-        vagrant box add rhel-6.8-5.1.18 $boxpath
+        vagrant box add rhel-6.8-5.1.30 $boxpath
     else
         echo $boxpath not found
         exit 1
