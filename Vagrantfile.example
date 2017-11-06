@@ -1,9 +1,11 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$redhat_username = ENV['RH_USER'] || ""
-$redhat_password = ENV['RH_PASSWORD'] || ""
-$rhsn_sytem_name = ENV['RHSN_SYSTEM_NAME'] || ""
+$default_system_name = "OpenRecords_" + Time.now.strftime("%m-%d-%Y_%H-%M")
+
+$redhat_username = ENV['RH_USER'] || "<INSERT_USERNAME_HERE>"
+$redhat_password = ENV['RH_PASSWORD'].to_s.empty? ? "<INSERT_PASSWORD_HERE>" : ENV['RH_PASSWORD']
+$rhsn_system_name = ENV['RHSN_SYSTEM_NAME'].to_s.empty? ? $default_system_name : ENV['RHSN_SYSTEM_NAME']
 
 Vagrant.configure("2") do |config|
   config.vm.box = "rhel-6.8"
