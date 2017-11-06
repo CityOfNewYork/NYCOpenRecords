@@ -3,7 +3,7 @@
 # setup.sh
 # --------
 #
-# Setup DSpace development environment.
+# Setup OpenRecords development environment.
 
 # add vagrant box if not added
 readonly DEFAULT_BOXPATH="./rhel-6.8.virtualbox.box"
@@ -33,7 +33,7 @@ if [ ! -f Vagrantfile ]; then
     cp Vagrantfile.example Vagrantfile
     read -n1 -p "Would you like to stop this script and make changes to ./Vagrantfile? [y/n] " stop
     case $stop in
-        y|Y) echo; echo E"xiting"; exit 0 ;;
+        y|Y) echo; echo "Exiting"; exit 0 ;;
     esac
     echo
 fi
