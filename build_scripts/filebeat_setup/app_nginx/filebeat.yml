@@ -60,8 +60,8 @@ filebeat.prospectors:
 - input_type: log
   paths:
     - /data/nginx_logs/error.log
-    fields:
-      index: nginx_error_app
+  fields:
+    index: nginx_error_app
 
 
 #================================ General =====================================
