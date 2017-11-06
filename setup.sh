@@ -57,5 +57,27 @@ else
   read -p "RHSN Name: " rhsn_system_name
 fi
 
+# Choose VMs to start up.
+default="default "
+sentry="sentry "
+elk="elk "
+
+vms=""
+echo "Choose the VMs to startup using this script (enter y to start the vm)"
+read -n1 -p "Default Machine: " vm
+case $vm in
+    y|Y) echo; vms+=${default}
+esac
+read -n1 -p "Sentry Machine: " vm
+case $vm in
+    y|Y) echo; vms+=${sentry}
+esac
+read -n1 -p "ELK Machine: " vm
+case $vm in
+    y|Y) echo; vms+=${elk}
+esac
+
+echo ${vms}
+
 # vagrant up with RedHat credentials as environment variables
-RH_USER=${username} RH_PASSWORD=${password} RHSN_SYSTEM_NAME=${rhsn_system_name} vagrant up
+RH_USER=${username} RH_PASSWORD=${password} RHSN_SYSTEM_NAME=${rhsn_system_name} vagrant up ${vms}
