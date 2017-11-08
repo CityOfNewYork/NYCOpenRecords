@@ -20,8 +20,8 @@
                                     Request Description: {{ current_request.description }}
                                     <br/>
                                     <br/>
-                                    {% if file %}
-                                        Attached File: {{ file['title'] }}: <a href="{{ file['link'] }}">{{ file['filename'] }}
+                                    {% if file_link %}
+                                        Attached File: {{ file_link['title'] }}: <a href="{{ file_link['link'] }}">{{ file_link['filename'] }}</a>
                                         <br/>
                                         <br/>
                                     {% endif %}

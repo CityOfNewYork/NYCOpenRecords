@@ -249,6 +249,10 @@ class Agencies(db.Model):
         )
         return num
 
+    @next_request_number.setter
+    def next_request_number(self, value):
+        self._next_request_number = value
+
     @property
     def name(self):
         return '{name} ({acronym})'.format(name=self._name, acronym=self.acronym) if self.acronym else '{name}'.format(
