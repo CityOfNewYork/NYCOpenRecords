@@ -2,15 +2,17 @@
 
 # 1. Install Consul binaries
 # if the path to the Consul binaries were provided as a command line argument, then copy it to /usr/local/bin
-if [ -n "$1" ]; then
-    cp "$1" /usr/local/bin
+# Check if the number of arguments is equal to 2 and that the first argument is '-f'
+if [[ $# -eq 2 && "$1" == "-f" ]]; then
+    filepath=$2
 # otherwise download the Consul binaries from HashiCorp
 else
+    wget https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip -P /tmp
     cd /tmp/
-    wget https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip
     unzip consul_1.0.0_linux_amd64.zip
-    mv consul /usr/local/bin
+    filepath=/tmp/consul
 fi
+mv ${filepath} /usr/local/bin
 
 # 2. Create configurations for Consul
 mkdir -p /etc/consul.d/bootstrap
