@@ -76,8 +76,8 @@ filebeat.prospectors:
 
 # Optional fields that you can specify to add additional information to the
 # output.
-#fields:
-#  env: staging
+fields:
+  env: development
 
 #================================ Outputs =====================================
 

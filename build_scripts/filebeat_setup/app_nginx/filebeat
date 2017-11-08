@@ -1,0 +1,1 @@
+%vagrant ALL=(root) NOPASSWD: sudoedit /etc/filebeat/filebeat.yml

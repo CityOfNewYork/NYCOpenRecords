@@ -17,7 +17,6 @@ Vagrant.configure("2") do |config|
     s.inline = 'sudo cp /vagrant/build_scripts/proxy.sh /etc/profile.d/'
   end
 
-  config.vm.provision :reload
 
   # RedHat Subscription Management
   config.vm.provision "shell" do |s|
@@ -41,6 +40,7 @@ Vagrant.configure("2") do |config|
     default.vm.network "private_network", ip: "10.0.0.2"
     default.vm.provision "shell", path: "build_scripts/web_setup/web_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/filebeat_setup/app_nginx/install.sh"
     default.vm.provision "shell", path: "build_scripts/es_setup/es_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh", args: 'single_server'
   end
@@ -75,39 +75,8 @@ Vagrant.configure("2") do |config|
     elk.vm.provision "shell", path: "build_scripts/elk_setup/nginx/setup.sh"
   end
 
-  config.vm.define "web_1", autostart: false do |web|
-    # Web Server 1 Configuration
-  end
-
-  config.vm.define "web_2", autostart: false do |web|
-    # Web Server 1 Configuration
-  end
-
-  config.vm.define "app_1", autostart: false do |app|
-    # App Server 1 Configuration
-  end
-
-  config.vm.define "app_2", autostart: false do |app|
-    # App Server 2 Configuration
-  end
-
-  config.vm.define "db_1", autostart: false do |db|
-    # Database Server 1 Configuration
-  end
-
-  config.vm.define "db_2", autostart: false do |db|
-    # Database Server 2 Configuration
-  end
-
-  config.vm.define "es_1", autostart: false do |es|
-    # Elasticsearch Server 1 Configuration
-  end
-
-  config.vm.define "es_2", autostart: false do |es|
-    # Elasticsearch Server 1 Configuration
-  end
-
-  config.vm.define "es_3", autostart: false do |es|
-    # Elasticsearch Server 1 Configuration
+  config.trigger.before :destroy, :force => true, :vm => ["default"] do  # add more VMs if necessary
+    run_remote "subscription-manager unsubscribe --all"
+    run_remote "subscription-manager unregister"
   end
 end
