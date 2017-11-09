@@ -232,11 +232,15 @@ def oauth_logout():
     timed_out = eval_request_bool(request.args.get('timeout'))
     forced_logout = eval_request_bool(request.args.get('forced_logout'))
     if forced_logout:
-        redis_get_user_session(current_user.session_id).destroy()
+        user_session = redis_get_user_session(current_user.session_id)
+        if user_session is not None:
+            user_session.destroy()
     if timed_out:
         flash("Your session timed out. Please login again", category='info')
     if 'token' in session:
         revoke_and_remove_access_token()
+    if current_user.is_anonymous:
+        return redirect(url_for("main.index"))
     update_object({'session_id': None}, Users, (current_user.guid, current_user.auth_user_type))
     logout_user()
     session.destroy()

@@ -1,27 +1,33 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$redhat_username = ENV['RH_USER'] || ""
-$redhat_password = ENV['RH_PASS'] || ""
+$default_system_name = "OpenRecords_" + Time.now.strftime("%m-%d-%Y_%H-%M")
+
+$redhat_username = ENV['RH_USER'] || "<INSERT_USERNAME_HERE>"
+$redhat_password = ENV['RH_PASSWORD'].to_s.empty? ? "<INSERT_PASSWORD_HERE>" : ENV['RH_PASSWORD']
+$rhsn_system_name = ENV['RHSN_SYSTEM_NAME'].to_s.empty? ? $default_system_name : ENV['RHSN_SYSTEM_NAME']
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "rhel-6.8"
+  config.vm.box = "rhel-6.8_vb-5.1.30"
 
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
     vb.memory = "4096"
   end
 
-  # Proxy Configuration
-  config.vm.provision "shell" do |s|
-    s.inline = 'sudo cp /vagrant/build_scripts/proxy.sh /etc/profile.d/'
-  end
+  if ENV['http_proxy']
+    # Proxy Configuration
+    config.vm.provision "shell" do |s|
+      s.inline = 'sudo cp /vagrant/build_scripts/proxy.sh /etc/profile.d/'
+    end
 
+    config.vm.provision :reload
+  end
 
   # RedHat Subscription Management
   config.vm.provision "shell" do |s|
     s.path = "build_scripts/subscription_manager.sh"
-    s.args = [$redhat_username, $redhat_password]
+    s.args = [$redhat_username, $redhat_password, $rhsn_system_name]
   end
 
   config.vm.provision :reload
@@ -79,4 +85,5 @@ Vagrant.configure("2") do |config|
     run_remote "subscription-manager unsubscribe --all"
     run_remote "subscription-manager unregister"
   end
+
 end

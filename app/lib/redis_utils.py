@@ -64,12 +64,16 @@ def redis_get_user_session(session_id):
     serialization_method = pickle
     session_class = KVSession
 
-    s = session_class(serialization_method.loads(
-        current_app.kvsession_store.get(session_id)
-    ))
-    s.sid_s = session_id
+    try:
+        s = session_class(serialization_method.loads(
+            current_app.kvsession_store.get(session_id)
+        ))
+        s.sid_s = session_id
 
-    return s
+        return s
+
+    except KeyError:
+        return None
 
 
 def redis_delete_user_session(session_id):

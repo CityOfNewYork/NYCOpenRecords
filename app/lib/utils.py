@@ -9,7 +9,9 @@ from base64 import b64decode
 class InvalidUserException(Exception):
     def __init__(self, user):
         """
-        :param user: the current_user as define in flask_login
+        Exception used when an invalid user is detected.
+
+        :param user: the current_user as defined in flask_login
         """
         super(InvalidUserException, self).__init__(
             "Invalid user: {}".format(user))
@@ -18,10 +20,27 @@ class InvalidUserException(Exception):
 class UserRequestException(Exception):
     def __init__(self, action, request_id, reason):
         """
-        :param request_id: request that was not closed
+        Exception used to handle errors performing actions on a request.
+
+        :param action: Action attempted
+        :param request_id: Unique request identifier
+        :param reason: Description of failure reason
         """
         super(UserRequestException, self).__init__(
             'Unable to {} request: {}\nReason: {}'.format(action, request_id, reason)
+        )
+
+
+class DuplicateFileException(Exception):
+    def __init__(self, file_name, request_id):
+        """
+        Exception used when a duplicate file is added to a request.
+
+        :param file_name: Name of file uploaded
+        :param request_id: Unique request identifier
+        """
+        super(DuplicateFileException, self).__init__(
+            "{} has already been uploaded to {}".format(file_name, request_id)
         )
 
 
