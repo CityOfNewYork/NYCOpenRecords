@@ -29,7 +29,7 @@ mkdir -p /data/logstash
 chown -R logstash /data/logstash
 
 # 5. Install logstash-filter-geoip plugin, offline plugin pack to be provided
-# /usr/share/logstash/bin/logstash-plugin install file:///vagrant/logstash-filter-geoip.zip
+# sudo /usr/share/logstash/bin/logstash-plugin install file:///vagrant/logstash-filter-geoip.zip
 
 # 6. Start Logstash
 sudo initctl start logstash

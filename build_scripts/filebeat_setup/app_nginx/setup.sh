@@ -27,9 +27,12 @@ fi
 username=$2
 hostname=$4
 
+# 1. Create /data/ssl directory
+mkdir -p /data/ssl
+
 # 2. Get Logstash certificate for SSL communication and place in /data/ssl/
 # For Dev, run logstash/setup.sh first to get certificate filebeat_setup directory
-scp ${username}@${hostname}:/vagrant/build_scripts/filebeat_setup/logstash_dev.crt /data/ssl/
+scp ${username}@${hostname}:/vagrant/build_scripts/filebeat_setup/logstash_dev.crt /data/ssl/logstash_dev.crt
 
 # 3. Start Filebeat
-/etc/init.d/filebeat start
+sudo /etc/init.d/filebeat start
