@@ -25,5 +25,7 @@ openssl req \
        -x509 -days 365 -out /vagrant/build_scripts/web_setup/openrecords_v2_0_dev.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=openrecords_v2_0.nyc"
 openssl x509 -in /vagrant/build_scripts/web_setup/openrecords_v2_0_dev.crt -out /vagrant/build_scripts/web_setup/openrecords_v2_0_dev.pem -outform PEM
 
+mkdir -p /data/nginx_logs
+
 # 7. Restart Nginx
 sudo service rh-nginx18-nginx restart

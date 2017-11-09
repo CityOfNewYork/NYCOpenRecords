@@ -46,6 +46,7 @@ Vagrant.configure("2") do |config|
     default.vm.network "private_network", ip: "10.0.0.2"
     default.vm.provision "shell", path: "build_scripts/web_setup/web_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/filebeat_setup/app_nginx/install.sh"
     default.vm.provision "shell", path: "build_scripts/es_setup/es_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh", args: 'single_server'
   end
@@ -72,11 +73,17 @@ Vagrant.configure("2") do |config|
 
     elk.vm.network "forwarded_port", guest: 9200, host: 9201
     elk.vm.network "forwarded_port", guest: 5601, host: 5602
+    elk.vm.network "forwarded_port", guest: 5044, host: 5044
     elk.vm.network "private_network", ip: "10.0.0.4"
     elk.vm.provision "shell", path: "build_scripts/elk_setup/elasticsearch/setup.sh"
     elk.vm.provision "shell", path: "build_scripts/elk_setup/kibana/setup.sh"
-    elk.vm.provision "shell", path: "build_scripts/elk_setup/nginx/setup.sh"
     elk.vm.provision "shell", path: "build_scripts/elk_setup/logstash/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/nginx/setup.sh"
+  end
+
+  config.trigger.before :destroy, :force => true, :vm => ["default"] do  # add more VMs if necessary
+    run_remote "subscription-manager unsubscribe --all"
+    run_remote "subscription-manager unregister"
   end
 
 end
