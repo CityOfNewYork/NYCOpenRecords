@@ -24,7 +24,7 @@ filebeat.prospectors:
 
   # Exclude lines. A list of regular expressions to match. It drops the lines that are
   # matching any regular expression from the list.
-  exclude_lines: ["(POST \/ping HTTP\/1\.1)"]
+  exclude_lines: ["(POST \\/ping HTTP\\/1\\.1)"]
 
   # Include lines. A list of regular expressions to match. It exports the lines that are
   # matching any regular expression from the list.
