@@ -7,7 +7,6 @@
     "data_dir": "/var/consul",
     "log_level": "INFO",
     "enable_syslog": true,
-    "encrypt": "CHANGE_BEFORE_DEPLOYING_TO_PRODUCTION",
     "ca_file": "/etc/consul.d/ssl/ca.cert",
     "cert_file": "/etc/consul.d/ssl/consul.cert",
     "key_file": "/etc/consul.d/ssl/consul.key",
