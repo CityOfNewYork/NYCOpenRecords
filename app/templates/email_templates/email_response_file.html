@@ -69,5 +69,5 @@
     <p><br></p>
 {% else %}
     {{ content | safe }}
-
+    {% include "email_templates/email_footer.html" %}
 {% endif %}
