@@ -1,13 +1,14 @@
 {% if default_content %}
     <p>
-        The {{ agency_name }} has <strong>denied</strong> your FOIL request <a href='{{ page }}'>{{ request.id }}</a>
+        The {{ agency_name }} has <strong>denied</strong> your FOIL request <a
+            href='{{ page }}'>{{ request.id }}</a>
         for the following reason{% if reasons|length > 1 %}s{% endif %}:
     </p>
-        <ul>
-            {% for reason in reasons %}
-                <li><span class="mceNonEditable">{{ reason }}</span></li>
-            {% endfor %}
-        </ul>
+    <ul>
+        {% for reason in reasons %}
+            <li><span class="mceNonEditable">{{ reason }}</span></li>
+        {% endfor %}
+    </ul>
     <p>
         Please visit <a href='{{ page }}'>{{ request.id }}</a> to view additional information and take any necessary
         action.
@@ -27,4 +28,5 @@
     <p>
         Request Description: {{ request.description }}
     </p>
+    {% include "email_templates/email_footer.html" %}
 {% endif %}
