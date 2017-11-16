@@ -24,7 +24,7 @@ sudo setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
 # export VAULT_ADDR='http://127.0.0.1:8200'
 
 # 4. Initialize Vault server using:
-# vault init > vault_unseal_keys.txt
+# vault init > /vagrant/build_scripts/consul_setup/vault_unseal_keys.txt
 # NOTE: This command saves the unseal keys and initial root token to a text file
 
 # 5. Unseal Vault by running using:
