@@ -16,8 +16,7 @@
             {% endfor %}
         </ul>
     </div>
-    <p><br></p>
+    {% include "email_templates/email_footer.html" %}
 {% else %}
     {{ content | safe }}
-    {% include "email_templates/email_footer.html" %}
 {% endif %}
