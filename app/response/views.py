@@ -136,14 +136,17 @@ def response_file(request_id):
                                 files[file_data]['title'],
                                 files[file_data]['privacy'],
                                 is_editable=True)
-        get_file_links(response_obj, release_public_links, release_private_links, private_links)
-    send_file_email(request_id,
-                    release_public_links,
-                    release_private_links,
-                    private_links,
-                    flask_request.form['email-file-summary'],
-                    flask_request.form['replace-string'],
-                    flask_request.form['tz_name'])
+        if not isinstance(response_obj, Files):
+            flash(message=response_obj, category='danger')
+        else:
+            get_file_links(response_obj, release_public_links, release_private_links, private_links)
+            send_file_email(request_id,
+                            release_public_links,
+                            release_private_links,
+                            private_links,
+                            flask_request.form['email-file-summary'],
+                            flask_request.form['replace-string'],
+                            flask_request.form['tz_name'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

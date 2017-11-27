@@ -27,7 +27,7 @@ openssl req \
            -x509 -days 365 -out /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=elasticsearch_elk.dev"
     openssl x509 -in /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.crt -out /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.pem -outform PEM
 
-mkdir /data/ssl
+mkdir -p /data/ssl
 mv /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.key /data/ssl
 chmod 400 /data/ssl/elasticsearch_elk_dev.key
 mv /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.crt /data/ssl

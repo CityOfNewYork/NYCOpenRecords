@@ -56,7 +56,7 @@ from app.lib.date_utils import (
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
-from app.lib.utils import eval_request_bool, UserRequestException
+from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.models import (
     Events,
     Notes,
@@ -98,21 +98,24 @@ def add_file(request_id, filename, title, privacy, is_editable):
         mime_type = fu.get_mime_type(path)
         hash_ = fu.get_hash(path)
 
-    response = Files(
-        request_id,
-        privacy,
-        title,
-        filename,
-        mime_type,
-        size,
-        hash_,
-        is_editable=is_editable
-    )
-    create_object(response)
+    try:
+        response = Files(
+            request_id,
+            privacy,
+            title,
+            filename,
+            mime_type,
+            size,
+            hash_,
+            is_editable=is_editable
+        )
+        create_object(response)
 
-    create_response_event(event_type.FILE_ADDED, response)
+        create_response_event(event_type.FILE_ADDED, response)
 
-    return response
+        return response
+    except DuplicateFileException as e:
+        return str(e)
 
 
 def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester):
