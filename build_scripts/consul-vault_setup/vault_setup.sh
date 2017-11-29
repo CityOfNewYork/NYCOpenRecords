@@ -16,15 +16,15 @@ mv ${filepath} /usr/local/bin
 
 # 2. Create configurations for Vault
 mkdir -p /etc/vault.d
-ln -s /vagrant/build_scripts/consul_setup/config.hcl /etc/vault.d/config.hcl
-sudo setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
+ln -s /vagrant/build_scripts/consul-vault_setup/vault/config.hcl /etc/vault.d/config.hcl
+sudo -E setcap cap_ipc_lock=+ep $(readlink -f /usr/local/bin/vault)
 
 # 3. Start Vault server with this command after Consul server is started
 # vault server -config=/etc/vault.d/config.hcl
 # export VAULT_ADDR='http://127.0.0.1:8200'
 
 # 4. Initialize Vault server using:
-# vault init > /vagrant/build_scripts/consul_setup/vault_unseal_keys.txt
+# vault init > /vagrant/build_scripts/consul-vault_setup/vault_unseal_keys.txt
 # NOTE: This command saves the unseal keys and initial root token to a text file
 
 # 5. Unseal Vault by running using:
