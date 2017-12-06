@@ -5,7 +5,7 @@
 # chkconfig:   2345 95 95
 # description: Consul is a tool for service discovery and configuration
 # processname: consul
-# config: /etc/consul.conf
+# config: /etc/init/consul.conf
 # pidfile: /var/run/consul.pid
 
 ### BEGIN INIT INFO
@@ -29,7 +29,7 @@ exec="/usr/local/bin/$prog"
 pidfile="/var/run/$prog.pid"
 lockfile="/var/lock/subsys/$prog"
 logfile="/var/log/$prog"
-conffile="/etc/consul.d/config.json"
+conffile="/etc/consul.d/bootstrap/config.json"
 confdir="/etc/consul.d"
 
 # pull in sysconfig settings

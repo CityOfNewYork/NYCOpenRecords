@@ -14,26 +14,40 @@ else
 fi
 mv ${filepath} /usr/local/bin
 
-# 2. Create configurations for Vault
-mkdir -p /etc/vault.d
+# 2. Create Consul user and Group
+mkdir -p /export/local/
+sudo useradd vault -d /export/local/vault
+
+
+# 3. Create configurations for Vault
+mkdir -p /etc/vault.d/ssl
 ln -s /vagrant/build_scripts/consul-vault_setup/vault/config.hcl /etc/vault.d/config.hcl
 sudo -E setcap cap_ipc_lock=+ep $(readlink -f /usr/local/bin/vault)
 
-# 3. Start Vault server with this command after Consul server is started
-# vault server -config=/etc/vault.d/config.hcl
-# export VAULT_ADDR='http://127.0.0.1:8200'
+# 4. Setup Vault init.d
+cp /vagrant/build_scripts/consul-vault_setup/vault/vault /etc/init.d/vault
+chmod 755 /etc/init.d/vault
 
-# 4. Initialize Vault server using:
-# vault init > /vagrant/build_scripts/consul-vault_setup/vault_unseal_keys.txt
-# NOTE: This command saves the unseal keys and initial root token to a text file
+# 6. Setup permissions for vault configuration
+chown -R vault:vault /etc/vault.d
 
-# 5. Unseal Vault by running using:
-# vault unseal
-# NOTE: this needs to be run 3 times in total, using a different unseal key each time
+# 5. Encrypt Vault
+mkdir -p /etc/vault.d/ssl/CA
+chmod 0700 /etc/vault.d/ssl/CA
+cd /etc/vault.d/ssl/CA
+echo "000a" > serial
+ln -s /vagrant/build_scripts/consul-vault_setup/vault/vault-ca.conf /etc/vault.d/ssl/CA/vault-ca.conf
+touch certindex
 
-# 6. Authorize Vault using:
-# vault auth <Initial Root Token>
+# 5.1. Create certificates
+openssl req -x509 -newkey rsa:2048 -days 365 -nodes -out ca.cert -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=127.0.0.1"
+openssl req -newkey rsa:2048 -nodes -out vault.csr -keyout vault.key -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=127.0.0.1"
+openssl ca -batch -config /etc/vault.d/ssl/CA/vault-ca.conf -notext -in vault.csr -out vault.cert
+cp ca.cert vault.key vault.cert /etc/vault.d/ssl
+sudo chown -R vault:vault /etc/vault.d
+chmod 0700 /etc/vault.d/ssl/CA
 
-# 7. Test Vault installation by writing a test secret (Optional)
-# vault write secret/hello value=world
-
+# 5.2 - Setup CA Trust
+sudo update-ca-trust enable
+cp /etc/vault.d/ssl/ca.cert /etc/pki/ca-trust/source/anchors/ca.crt
+sudo update-ca-trust extract

@@ -1,0 +1,4 @@
+{
+  "secret_shares": 10,
+  "secret_threshold": 2
+}

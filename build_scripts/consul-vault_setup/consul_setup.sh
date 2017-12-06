@@ -25,10 +25,11 @@ mkdir /var/consul
 chown consul:consul /var/consul
 ln -s /vagrant/build_scripts/consul-vault_setup/consul/config.json /etc/consul.d/bootstrap/config.json
 
-# 4. Setup upstart
-ln -s /vagrant/build_scripts/consul-vault_setup/consul/consul.conf /etc/init/consul.conf
+# 4. Setup Consul init.d
+cp /vagrant/build_scripts/consul-vault_setup/consul/consul /etc/init.d/consul
+chmod 755 /etc/init.d/consul
 
-# 4. Encrypt Consul
+# 5. Encrypt Consul
 mkdir -p /etc/consul.d/ssl/CA
 chmod 0700 /etc/consul.d/ssl/CA
 cd /etc/consul.d/ssl/CA
@@ -36,7 +37,7 @@ echo "000a" > serial
 ln -s /vagrant/build_scripts/consul-vault_setup/consul/myca.conf /etc/consul.d/ssl/CA/myca.conf
 touch certindex
 
-# 5. Create certificates
+# 6. Create certificates
 openssl req -x509 -newkey rsa:2048 -days 365 -nodes -out ca.cert -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=consul"
 openssl req -newkey rsa:2048 -nodes -out consul.csr -keyout consul.key -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=consul"
 openssl ca -batch -config myca.conf -notext -in consul.csr -out consul.cert
