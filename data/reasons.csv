@@ -6,6 +6,7 @@
 "closing","Fulfilled via Mail","Your request under the Freedom of Information Law (FOIL) has been been fulfilled and the documents you requested have been mailed to you. Please allow 7 - 10 days for receipt."
 "closing","Fulfilled via Pickup","Your request under the Freedom of Information Law has been fulfilled and the documents you requested are available to you for pickup."
 "denial","Denied - Reasons Attached","Your request under the Freedom of Information Law (FOIL) is denied. Please see the attached determination letter."
+"denial","Denied - Reason Below",""
 "denial","Denied - Records Non-Responsive","Your request under the Freedom of Information Law (FOIL) is denied because no responsive records were found."
 "denial","Denied - No Records","Your request under the Freedom of Information Law (FOIL) is denied because it is a request for information that is not contained in an existing agency record."
 "denial","Denied - All Exempt","Your request under the Freedom of Information Law (FOIL) is denied because the records you requested are exempt from disclosure under FOIL."

@@ -23,7 +23,8 @@ from flask import (
     request as flask_request,
     render_template,
     url_for,
-    jsonify
+    jsonify,
+    Markup
 )
 from app import email_redis, calendar
 from app.constants import (
@@ -640,17 +641,27 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
-    _reasons = Reasons.query.all()
+    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
+                for reason_id in data.getlist('reason_ids[]')]
 
-    reasons = [(reason.title, reason.content)
-               for reason in _reasons if reason.id in data.getlist('reason_ids[]')]
-    custom_reasons = bool(filter(lambda x: x[0] == 'Denial - Reasons Below', reasons))
+    # Determine if a custom reason is used
+    # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
+    custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
+
+    # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
+    # "custom_reasons" to the template so that the code is generated correctly.
+    if custom_reasons:
+        for reason in _reasons:
+            if reason[0] == 'Denied - Reason Below':
+                _reasons.remove(reason)
+                break
 
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
-                     reasons=reasons,
-                     custom_reasons=custom_reasons
-                     )
+        reasons=_reasons,
+        custom_reasons=custom_reasons
+    )
+
     header = CONFIRMATION_HEADER_TO_REQUESTER
     req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
@@ -666,7 +677,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         request=req,
         agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
-        reasons=reasons,
+        reasons=Markup(reasons),
         page=page),
         "header": header
     }), 200
