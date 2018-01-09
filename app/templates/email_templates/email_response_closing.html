@@ -3,9 +3,7 @@
         The {{ agency_name }} has <strong>closed</strong> your FOIL request <a href='{{ page }}'>{{ request.id }}</a>
         for the following reason{% if reasons|length > 1 %}s{% endif %}:
     </span>
-        {% for reason in reasons %}
-            <p><span class="mceNonEditable">&nbsp;&nbsp;&nbsp;{{ reason }}</span></p>
-        {% endfor %}
+    {{ reasons | safe }}
     <span class="mceNonEditable">
         You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
         by contacting the agency's FOIL Appeals Officer: <a
