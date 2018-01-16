@@ -1368,7 +1368,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                       email_content_agency,
                                       'File(s) Added to {}'.format(request_id),
                                       bcc=bcc)
-    else:
+    elif private_links:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
                                                                      request_id=request_id,
