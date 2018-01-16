@@ -23,7 +23,8 @@ from flask import (
     request as flask_request,
     render_template,
     url_for,
-    jsonify
+    jsonify,
+    Markup
 )
 from app import email_redis, calendar
 from app.constants import (
@@ -249,15 +250,15 @@ def add_closing(request_id, reason_ids, email_content):
     """
     current_request = Requests.query.filter_by(id=request_id).one()
     if current_request.status != request_status.CLOSED and (
-                current_request.was_acknowledged or current_request.was_reopened):
+            current_request.was_acknowledged or current_request.was_reopened):
         if current_request.privacy['agency_request_summary'] or not current_request.agency_request_summary:
             reason = "Agency Request Summary must be public and not empty, "
             if current_request.responses.filter(
-                            Responses.type != response_type.NOTE,  # ignore Notes
-                            Responses.type != response_type.EMAIL,  # ignore Emails
-                            Responses.deleted == False,  # ignore deleted responses
-                            Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
-                            Responses.is_editable == True  # ignore non-editable responses
+                    Responses.type != response_type.NOTE,  # ignore Notes
+                    Responses.type != response_type.EMAIL,  # ignore Emails
+                    Responses.deleted == False,  # ignore deleted responses
+                    Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
+                    Responses.is_editable == True  # ignore non-editable responses
             ).first() is not None:
                 raise UserRequestException(action="close",
                                            request_id=current_request.id,
@@ -642,8 +643,27 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
-    reasons = [Reasons.query.filter_by(id=reason_id).one().content
+    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                for reason_id in data.getlist('reason_ids[]')]
+
+    # Determine if a custom reason is used
+    # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
+    custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
+
+    # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
+    # "custom_reasons" to the template so that the code is generated correctly.
+    if custom_reasons:
+        for reason in _reasons:
+            if reason[0] == 'Denied - Reason Below':
+                _reasons.remove(reason)
+                break
+
+    reasons = render_template(
+        os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
+        reasons=_reasons,
+        custom_reasons=custom_reasons
+    )
+
     header = CONFIRMATION_HEADER_TO_REQUESTER
     req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
@@ -659,7 +679,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         request=req,
         agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
-        reasons=reasons,
+        reasons=Markup(reasons),
         page=page),
         "header": header
     }), 200
@@ -690,8 +710,26 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         if content.endswith(TINYMCE_EDITABLE_P_TAG):
             content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
     else:
-        reasons = [Reasons.query.filter_by(id=reason_id).one().content
-                   for reason_id in data.getlist('reason_ids[]')]
+        _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
+                    for reason_id in data.getlist('reason_ids[]')]
+
+        # Determine if a custom reason is used
+        # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
+        custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
+
+        # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
+        # "custom_reasons" to the template so that the code is generated correctly.
+        if custom_reasons:
+            for reason in _reasons:
+                if reason[0] == 'Denied - Reason Below':
+                    _reasons.remove(reason)
+                    break
+
+        reasons = render_template(
+            os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
+            reasons=_reasons,
+            custom_reasons=custom_reasons
+        )
         default_content = True
         content = None
         header = None
@@ -703,7 +741,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         request=req,
         agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
-        reasons=reasons,
+        reasons=Markup(reasons),
         page=page,
         denied=denied),
         "header": header
