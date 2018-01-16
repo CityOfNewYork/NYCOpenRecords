@@ -1,16 +1,12 @@
 {% if default_content %}
     <span class="mceNonEditable">
-        The {{ agency_name }} has <strong>denied</strong> your FOIL request <a
-            href='{{ page }}'>{{ request.id }}</a>
+        The {{ agency_name }} has <strong>denied</strong> your FOIL request <a href='{{ page }}'>{{ request.id }}</a>
         for the following reason{% if reasons|length > 1 %}s{% endif %}:
     </span>
     {{ reasons | safe }}
     <span class="mceNonEditable">
         Please visit <a href='{{ page }}'>{{ request.id }}</a> to view additional information and take any necessary
-        action.
-    </span>
-    <span class="mceNonEditable">
-        You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
+        action. You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
         by contacting the agency's FOIL Appeals Officer: <a
             href="mailto:{{ agency_appeals_email }}">{{ agency_appeals_email }}</a>
         within 30 days.
