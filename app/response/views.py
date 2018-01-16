@@ -140,13 +140,13 @@ def response_file(request_id):
             flash(message=response_obj, category='danger')
         else:
             get_file_links(response_obj, release_public_links, release_private_links, private_links)
-            send_file_email(request_id,
-                            release_public_links,
-                            release_private_links,
-                            private_links,
-                            flask_request.form['email-file-summary'],
-                            flask_request.form['replace-string'],
-                            flask_request.form['tz_name'])
+    send_file_email(request_id,
+                    release_public_links,
+                    release_private_links,
+                    private_links,
+                    flask_request.form['email-file-summary'],
+                    flask_request.form['replace-string'],
+                    flask_request.form['tz_name'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -605,11 +605,11 @@ def get_response_content(response_id):
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
                          or current_user.is_agency)
-                        # user is associated with request
-                        and UserRequests.query.filter_by(
-                            request_id=response_.request_id,
-                            user_guid=current_user.guid,
-                            auth_user_type=current_user.auth_user_type
+                            # user is associated with request
+                            and UserRequests.query.filter_by(
+                                request_id=response_.request_id,
+                                user_guid=current_user.guid,
+                                auth_user_type=current_user.auth_user_type
                             ).first() is not None):
                         @after_this_request
                         def remove(resp):
