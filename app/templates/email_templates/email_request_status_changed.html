@@ -8,7 +8,9 @@
                 <a href="{{ request.url }}">{{ request.id }}</a>
                 <ul>
                     <li>Request Title: {{ request.title }}</li>
+                    <li>Request Description: {{ request.description }}</li>
                     <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                    <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
             </li>
         {% endfor %}
@@ -24,7 +26,9 @@
                     <a href="{{ request.url }}">{{ request.id }}</a>
                     <ul>
                         <li>Request Title: {{ request.title }}</li>
+                        <li>Request Description: {{ request.description }}</li>
                         <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                        <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
                 </li>
             {% endfor %}
@@ -47,7 +51,9 @@
                 </strong>
                 <ul>
                     <li>Request Title: {{ request.title }}</li>
+                    <li>Request Description: {{ request.description }}</li>
                     <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                    <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
             </li>
         {% endfor %}
@@ -70,7 +76,9 @@
                     </strong>
                     <ul>
                         <li>Request Title: {{ request.title }}</li>
+                        <li>Request Description: {{ request.description }}</li>
                         <li>Requester Last Name: {{ request.requester.last_name }}</li>
+                        <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
                 </li>
             {% endfor %}
