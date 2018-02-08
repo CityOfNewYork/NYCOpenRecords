@@ -1394,10 +1394,12 @@ class Files(Responses):
         try:
             file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).one_or_none()
             if file_exists is not None:
-                raise DuplicateFileException(
-                    file_name=name,
-                    request_id=request_id
-                )
+                response = Responses.query.filter_by(id=file_exists.id).first()
+                if not response.deleted:  # A user is trying to upload a file that has previously been deleted
+                    raise DuplicateFileException(
+                        file_name=name,
+                        request_id=request_id
+                    )
         except MultipleResultsFound:
             raise DuplicateFileException(
                 file_name=name,
