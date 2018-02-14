@@ -1,0 +1,7 @@
+# Manage Redis
+openrecords  ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis start
+openrecords  ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis stop
+openrecords  ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis status
+openrecords  ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis restart
+openrecords  ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis condrestart
+openrecords  ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis try-restart

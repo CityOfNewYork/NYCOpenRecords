@@ -1,0 +1,10 @@
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql start
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql stop
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql status
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql restart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql condrestart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql try-restart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql reload
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql force-reload
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql initdb
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql upgrade
