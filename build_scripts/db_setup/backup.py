@@ -1,6 +1,6 @@
 #!python
 
-from time import localtime, strftime
+import time
 import subprocess
 import os
 import glob
@@ -76,5 +76,6 @@ try:
     smtpObj.sendmail(sender, receivers, email)
     print("Successfully sent email")
 except:
+    # TODO: Specify different types of exceptions. Should make it easier to troubleshoot / triage failures.
     e = sys.exc_info()[0]
     print(str(e))
