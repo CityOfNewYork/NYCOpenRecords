@@ -65,8 +65,8 @@ fi
 ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib64/libpq.so.rh-postgresql95-5
 ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib/libpq.so.rh-postgresql95-5
 
-# 10. Create backup directory for Postgres
-mkdir /backup
+# 10. Create backup directory for Postgres, if it doesn't already exist.
+mkdir -p /backup
 chown postgres:postgres /backup
 
 # 11. Start Postgresql
