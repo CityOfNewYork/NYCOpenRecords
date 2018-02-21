@@ -1,0 +1,8 @@
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch start
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch stop
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch status
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch restart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch condrestart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch try-restart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch reload
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch force-reload

@@ -1,0 +1,9 @@
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx start
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx stop
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx reload
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx configtest
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx status
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx force-reload
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx upgrade
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx restart
+openrecords ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx reopen_logs

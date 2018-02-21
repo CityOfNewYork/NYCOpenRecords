@@ -51,3 +51,6 @@ ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib
 
 # 5. Start Postgres
 sudo service rh-postgresql95-postgresql start
+
+# 6. Setup sudo Access
+cp /vagrant/build_scripts/sentry_setup/postgresql /etc/sudoers.d/postgresql

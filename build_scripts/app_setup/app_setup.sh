@@ -45,4 +45,5 @@ yum -y install telnet
 echo "source /home/vagrant/.virtualenvs/openrecords/bin/activate" >> /home/vagrant/.bash_profile
 
 # 9. Setup sudo Access
-cp /vagrant/build_scripts/app_setup/openrecords /etc/suoders.d/openrecords
+cp /vagrant/build_scripts/app_setup/openrecords /etc/sudoers.d/openrecords
+cp /vagrant/build_scripts/app_setup/redis /etc/sudoers.d/redis

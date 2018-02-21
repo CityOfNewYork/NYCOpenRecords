@@ -60,13 +60,6 @@ sudo /etc/init.d/elasticsearch start
 # The following last line needs to run manually after the build scripts are finished. Will not work even with a vagrant reload
 # sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn openrecords_v2_0_development -ks /etc/elasticsearch/keystore.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
 
-# 7. Add the following lines to /etc/sudoers file
-#openrecords_v2_0   ALL=(elasticsearch:elasticsearch) NOPASSWD:ALL
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch start
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch stop
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch status
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch restart
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch condrestart
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch try-restart
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch reload
-#openrecords_v2_0   ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch force-reload
+# 7. Setup sudo Access
+cp /vagrant/build_scripts/es_setup/elasticsearch /etc/sudoers.d/elasticsearch
+cp /vagrant/build_scripts/es_setup/nginx /etc/sudoers.d/nginx

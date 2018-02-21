@@ -23,3 +23,6 @@ openssl x509 -in /vagrant/build_scripts/consul-vault_setup/consul_dev.crt -out /
 
 # 7. Restart Nginx
 sudo service rh-nginx18-nginx restart
+
+# 8. Setup sudo Access
+cp /vagrant/build_scripts/consul-vault_setup/nginx/nginx /etc/sudoers.d/nginx

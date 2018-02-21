@@ -29,3 +29,6 @@ mkdir -p /data/nginx_logs
 
 # 7. Restart Nginx
 sudo service rh-nginx18-nginx restart
+
+# 8. Setup sudo Access
+cp /vagrant/build_scripts/web_setup/nginx /etc/sudoers.d/nginx

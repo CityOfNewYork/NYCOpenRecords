@@ -28,4 +28,8 @@ mv /vagrant/build_scripts/elk_setup/kibana/kibana_elk_dev.pem /data/ssl
 chmod 400 /data/ssl/kibana_elk_dev.pem
 chown -R kibana:kibana /data/ssl/kibana_elk_dev.*
 
+# Startup Kibana
 service kibana start
+
+# Setup sudo Access
+cp /vagrant/build_scripts/elk_setup/kibana/kibana /etc/sudoers.d/kibana
