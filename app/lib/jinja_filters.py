@@ -63,5 +63,5 @@ def format_event_type(type_):
         event_type.INSTRUCTIONS_REMOVED: "Offile Instructions Response Deleted",
         event_type.NOTE_ADDED: "Note Response Added",
         event_type.NOTE_EDITED: "Note Response Changed",
-        event_type.NOTE_DELETED: "Note Response Deleted",
+        event_type.NOTE_REMOVED: "Note Response Deleted",
     }[type_]

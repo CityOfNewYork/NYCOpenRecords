@@ -1078,7 +1078,7 @@ class Events(db.Model):
                 self.RowContent(self, "added", "{} a note response."),
             event_type.NOTE_EDITED:
                 self.RowContent(self, "changed", "{} a note response."),
-            event_type.NOTE_DELETED:
+            event_type.NOTE_REMOVED:
                 self.RowContent(self, "deleted", "{} a note response."),
         }
 

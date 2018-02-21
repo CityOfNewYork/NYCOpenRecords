@@ -8,6 +8,7 @@ REQUESTER_INFO_EDITED = "requester_information_edited"
 REQ_CREATED = "request_created"
 AGENCY_REQ_CREATED = "agency_submitted_request"
 REQ_ACKNOWLEDGED = "request_acknowledged"
+REQ_DENIED = "request_denied"
 REQ_STATUS_CHANGED = "request_status_changed"
 REQ_EXTENDED = "request_extended"
 REQ_CLOSED = "request_closed"
@@ -20,18 +21,25 @@ REQ_AGENCY_REQ_SUM_DATE_SET = "request_agency_request_summary_date_set"
 EMAIL_NOTIFICATION_SENT = "email_notification_sent"
 FILE_ADDED = "file_added"
 FILE_EDITED = "file_edited"
+FILE_PRIVACY_EDITED = "file_privacy_edited"
+FILE_REPLACED = "file_replaced"
 FILE_REMOVED = "file_removed"
 LINK_ADDED = "link_added"
 LINK_EDITED = "link_edited"
+LINK_PRIVACY_EDITED = "link_privacy_edited"
 LINK_REMOVED = "link_removed"
 INSTRUCTIONS_ADDED = "instructions_added"
 INSTRUCTIONS_EDITED = "instructions_edited"
+INSTRUCTIONS_PRIVACY_EDITED = "instructions_privacy_edited"
 INSTRUCTIONS_REMOVED = "instructions_removed"
 NOTE_ADDED = "note_added"
 NOTE_EDITED = "note_edited"
-NOTE_REMOVED = "note_deleted"
+NOTE_PRIVACY_EDITED = "note_privacy_edited"
+NOTE_REMOVED = "note_removed"
 AGENCY_ACTIVATED = "agency_activated"
 AGENCY_DEACTIVATED = "agency_deactivated"
+AGENCY_USER_ACTIVATED = "agency_user_activated"
+AGENCY_USER_DEACTIVATED = "agency_user_deactivated"
 CONTACT_EMAIL_SENT = "contact_email_sent"
 USER_LOGIN = "user_logged_in"
 USER_AUTHORIZED = "user_authorized"
@@ -79,9 +87,14 @@ RESPONSE_ADDED_TYPES = [
 
 RESPONSE_EDITED_TYPES = [
     FILE_EDITED,
+    FILE_REPLACED,
+    FILE_PRIVACY_EDITED,
     LINK_EDITED,
+    LINK_PRIVACY_EDITED,
     INSTRUCTIONS_EDITED,
-    NOTE_ADDED
+    INSTRUCTIONS_PRIVACY_EDITED,
+    NOTE_ADDED,
+    NOTE_PRIVACY_EDITED
 ]
 
 RESPONSE_REMOVED_TYPES = [
@@ -94,6 +107,8 @@ RESPONSE_REMOVED_TYPES = [
 SYSTEM_TYPES = [
     AGENCY_ACTIVATED,
     AGENCY_DEACTIVATED,
+    AGENCY_USER_ACTIVATED,
+    AGENCY_USER_DEACTIVATED,
     CONTACT_EMAIL_SENT,
     USER_LOGIN,
     USER_AUTHORIZED,
