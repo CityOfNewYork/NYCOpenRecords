@@ -4,7 +4,6 @@ import time
 import subprocess
 import os
 import glob
-import time
 import smtplib
 import sys
 from datetime import datetime, timedelta
