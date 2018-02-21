@@ -38,6 +38,7 @@ USER_AUTHORIZED = "user_authorized"
 USER_LOGGED_OUT = "user_logged_out"
 USER_MADE_AGENCY_ADMIN = "user_made_agency_admin"
 USER_MADE_AGENCY_USER = "user_made_agency_user"
+USER_PROFILE_UPDATED = "user_profile_updated"
 
 FOR_REQUEST_HISTORY = [
     USER_ADDED,
@@ -98,5 +99,6 @@ SYSTEM_TYPES = [
     USER_AUTHORIZED,
     USER_LOGGED_OUT,
     USER_MADE_AGENCY_ADMIN,
-    USER_MADE_REGULAR_USER,
+    USER_MADE_AGENCY_USER,
+    USER_PROFILE_UPDATED
 ]
