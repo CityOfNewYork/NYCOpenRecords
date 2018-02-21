@@ -1,0 +1,2 @@
+# Backup openrecords database ever hour
+0 * * * * sudo -u postgres -E sh /vagrant/build_scripts/db_setup/backup.sh
