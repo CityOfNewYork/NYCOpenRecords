@@ -1,4 +1,4 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2b97fe8319344d699a4bbba48827637b)](https://www.codacy.com/app/NYCRecords/NYCOpenRecords?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=CityOfNewYork/NYCOpenRecords&amp;utm_campaign=Badge_Grade)[![Requirements Status](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements.svg?branch=develop)](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements/?branch=develop) 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2b97fe8319344d699a4bbba48827637b)](https://www.codacy.com/app/NYCRecords/NYCOpenRecords?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=CityOfNewYork/NYCOpenRecords&amp;utm_campaign=Badge_Grade) [![Requirements Status](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements.svg?branch=develop)](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements/?branch=develop) 
 
 
 # NYC OpenRecords
