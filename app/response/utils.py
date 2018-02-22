@@ -1534,7 +1534,7 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.data_new.get('deleted'):
             response_type_to_event_type = {
                 Files: event_type.FILE_REMOVED,
-                Notes: event_type.NOTE_DELETED,
+                Notes: event_type.NOTE_REMOVED,
                 Links: event_type.LINK_REMOVED,
                 Instructions: event_type.INSTRUCTIONS_REMOVED
             }
