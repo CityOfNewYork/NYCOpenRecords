@@ -11,8 +11,7 @@
         Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
         </span>
     </p>
-    <p><br /></p>
+    {% include "email_templates/email_footer.html" %}
 {% else %}
     {{ content | safe }}
-    {% include "email_templates/email_footer.html" %}
 {% endif %}

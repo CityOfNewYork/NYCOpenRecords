@@ -28,6 +28,5 @@
             <span class="mceNonEditable"> {{ response_data.data_new[key] }} </span>
         </p>
     {% endif %}
-    <p><br /></p>
+    {% include "email_templates/email_footer.html" %}
 {% endfor %}
-{% include "email_templates/email_footer.html" %}
