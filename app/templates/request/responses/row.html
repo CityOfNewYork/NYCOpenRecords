@@ -1,14 +1,14 @@
 <div class="row response-row" data-toggle="modal" data-target="#response-modal-{{ response.id }}"
      data-backdrop="static" data-keyboard="false">
     <div class="col-md-1 response-row-num">{{ row_num }}</div>
-    <div class="col-md-{% if current_user.is_agency %}5{% else %}2{% endif %}
+    <div class="col-md-{% if current_user.is_agency %}6{% else %}2{% endif %}
     {% if response.type == response_type.INSTRUCTIONS %}offline-instructions-row{% endif %}
     {% if response.dtype == determination_type.REOPENING %}re-opened-row{% endif %}">
         <strong>{{ response | format_response_type }}</strong>
     </div>
 
     {% if current_user.is_agency %}
-        <div class="col-md-6 text-right">
+        <div class="col-md-5 text-right">
             {{ moment(response.date_modified).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
         <div class="row">
