@@ -24,7 +24,7 @@
                 {{ request._id }}
             </div>
             <div class="col-sm-2">
-                {{ moment(request._source.date_received).format('MMM DD, YYYY') }}
+                {{ moment(request._source.date_received).format('MM/DD/YYYY') }}
             </div>
             <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %}">
                 {% if current_user.is_agency %}
@@ -43,11 +43,11 @@
                 </div>
             {% endif %}
             <div class="col-sm-2">
-                {{ moment(request._source.date_due).format('MMM DD, YYYY') }}
+                {{ moment(request._source.date_due).format('MM/DD/YYYY') }}
             </div>
             {% if current_user.is_agency %}
                 <div class="col-sm-2">
-                    {{ moment(request._source.date_closed).format('MMM DD, YYYY') if request._source.date_closed else '' }}
+                    {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else '' }}
                 </div>
                 <div class="col-sm-2">
                     {{ request._source.requester_name }}

@@ -56,7 +56,7 @@ $(document).ready(function () {
 
     // Datepicker for date request was received when creating a new request
     $(".dtpick").datepicker({
-        dateFormat: "yy-mm-dd",
+        dateFormat: "mm/dd/yy",
         maxDate: 0
     }).keydown(function (e) {
         // prevent keyboard input except for tab
