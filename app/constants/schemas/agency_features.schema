@@ -1,17 +1,38 @@
- {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+{
+  "$id": "openrecords_agency_features",
+  "type": "object",
   "definitions": {},
-  "id": "openrecords_agency_features",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
-    "monitor_agency_requests": {
-      "id": "/properties/monitor_agency_requests",
-      "items": {
-        "id": "/properties/monitor_agency_requests/items",
-        "type": "string"
-      },
+    "monitor_agency_request": {
+      "$id": "/properties/monitor_agency_request",
       "type": "array",
-      "uniqueItems": true
+      "items": {
+        "$id": "/properties/monitor_agency_request/items",
+        "type": "string"
+      }
+    },
+    "pdf_request_form": {
+      "$id": "/properties/pdf_request_form",
+      "type": "object",
+      "anyOf": [
+        {
+          "required": ["url"]
+        },
+        {
+          "required": ["filepath"]
+        },
+      ],
+      "properties": {
+        "url": {
+          "$id": "/properties/pdf_request_form/properties/url",
+          "type": "string"
+        },
+        "filepath": {
+          "$id": "/properties/pdf_request_form/properties/filepath",
+          "type": "string"
+        }
+      }
     }
-  },
-  "type": "object"
+  }
 }
