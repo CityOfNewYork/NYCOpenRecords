@@ -39,3 +39,13 @@ def patch(agency_ein):
             return '', 200
         return '', 400
     return '', 403
+
+@agency.route('/<agency_ein>/features', methods=['GET'])
+def get_agency_features(agency_ein):
+    """
+    Retrieve the agency features that are enabled for the specified agency.
+
+    :param agency_ein: Agency EIN (String)
+
+    :return: JSON Object
+    """
