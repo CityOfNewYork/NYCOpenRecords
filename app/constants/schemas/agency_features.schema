@@ -5,7 +5,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "monitor_agency_request": {
-      "$id": "/properties/monitor_agency_request",
+      "$id": "/properties/monitor_agency_requests",
       "type": "array",
       "items": {
         "$id": "/properties/monitor_agency_request/items",

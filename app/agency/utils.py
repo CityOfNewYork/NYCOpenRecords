@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from flask_login import current_user
+
 from app.lib.utils import eval_request_bool
 from app.lib.db_utils import update_object, create_object
 from app.models import Agencies, Events
@@ -11,4 +15,24 @@ def update_agency_active_status(agency_ein, is_active):
     :param is_active: Boolean value for agency active status (True = Active)
     :return: Boolean value (True if successfully changed active status)
     """
-    pass
+    is_valid_agency = Agencies.query.filter_by(ein=agency_ein).first() is not None
+
+    if is_active is not None and is_valid_agency:
+        update_object(
+            {is_active: eval_request_bool(is_active)},
+            Agencies,
+            agency_ein
+        )
+        create_object(
+            Events(
+                request_id=None,
+                user_guid=current_user.guid,
+                auth_user_type=current_user.auth_user_type,
+                type_=AGENCY_ACTIVATED,
+                new_value={"ein": agency_ein},
+                timestamp=datetime.utcnow()
+            )
+        )
+
+        return True
+    return False
