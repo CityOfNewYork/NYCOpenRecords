@@ -1,7 +1,7 @@
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana start
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-start
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana stop
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-start
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-stop
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana status
-openrecords ALL=(ALL) NOPASSWD: /etc/init.d/kibana restart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana status
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana restart

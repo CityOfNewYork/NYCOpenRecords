@@ -1,5 +1,6 @@
-openrecords ALL=(ALL) NOPASSWD: initctl start logstash
-openrecords ALL=(ALL) NOPASSWD: initctl stop logstash
-openrecords ALL=(ALL) NOPASSWD: initctl restart logstash
-openrecords ALL=(ALL) NOPASSWD: initctl reload logstash
-openrecords ALL=(ALL) NOPASSWD: initctl status logstash
+vagrant ALL=(ALL) NOPASSWD: initctl start logstash
+vagrant ALL=(ALL) NOPASSWD: initctl stop logstash
+vagrant ALL=(ALL) NOPASSWD: initctl restart logstash
+vagrant ALL=(ALL) NOPASSWD: initctl reload logstash
+vagrant ALL=(ALL) NOPASSWD: initctl status logstash
+
