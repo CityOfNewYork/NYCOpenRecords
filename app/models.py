@@ -1392,12 +1392,13 @@ class Files(Responses):
                  date_modified=None,
                  is_editable=False):
         try:
-            file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).one_or_none()
-            if file_exists is not None and not file_exists.deleted:
-                raise DuplicateFileException(
-                    file_name=name,
-                    request_id=request_id
-                )
+            file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).all()
+            for file in file_exists:
+                if not file.deleted:
+                    raise DuplicateFileException(
+                        file_name=name,
+                        request_id=request_id
+                    )
         except MultipleResultsFound:
             raise DuplicateFileException(
                 file_name=name,
