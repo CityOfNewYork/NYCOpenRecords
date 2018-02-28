@@ -8,8 +8,8 @@
     </div>
 
     {% if current_user.is_agency %}
-        <div class="col-md-5 text-right">
-            {{ moment(response.date_modified).format('dddd, MMMM D, YYYY [at] h:mm A') }}
+        <div class="col-md-6 text-right">
+            {{ moment(response.date_modified).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
         <div class="row">
             <div class="col-md-10 metadata-preview">
@@ -25,7 +25,7 @@
             {% endif %}
         </div>
         <div class="col-md-3">
-            {{ moment(response.date_modified).format('dddd, MMMM D, YYYY [at] h:mm A') }}
+            {{ moment(response.date_modified).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
     {% endif %}
 </div>

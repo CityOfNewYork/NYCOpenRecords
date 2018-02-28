@@ -91,7 +91,7 @@ class AgencyUserRequestForm(Form):
     request_agency = SelectField('Agency (required)', choices=None)
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
-    request_date = DateTimeField("Date (required)", format="%Y-%m-%d", default=datetime.today)
+    request_date = DateTimeField("Date (required)", format="%m/%d/%Y", default=datetime.today)
 
     # Personal Information
     # TODO: when refactoring these classes, include length and other validators

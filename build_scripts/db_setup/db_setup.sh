@@ -65,14 +65,18 @@ fi
 ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib64/libpq.so.rh-postgresql95-5
 ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib/libpq.so.rh-postgresql95-5
 
-# 10. Start Postgresql
+# 10. Create backup directory for Postgres, if it doesn't already exist.
+mkdir -p /backup
+chown postgres:postgres /backup
+
+# 11. Start Postgresql
 sudo service rh-postgresql95-postgresql start
 
-# 11. Create postgres users
+# 12. Create postgres users
 sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e developer
 sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e openrecords_v2_0_db
 
-# 12. Create database
+# 13. Create database
 sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createdb openrecords
 
 # 9. Setup sudo Access
