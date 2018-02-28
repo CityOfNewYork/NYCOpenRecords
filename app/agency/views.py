@@ -1,9 +1,15 @@
 from datetime import datetime
 
 from . import agency
-from flask import request
+from flask import (
+    request,
+    jsonify
+)
 from flask_login import current_user
-from .utils import update_agency_active_status
+from .utils import (
+    update_agency_active_status,
+    get_agency_features
+)
 
 
 # TODO: Manage agency features within this file.
@@ -25,8 +31,8 @@ def patch(agency_ein):
     return '', 403
 
 
-@agency.route('/<agency_ein>/features', methods=['GET'])
-def get_agency_features(agency_ein):
+@agency.route('/features/<agency_ein>', methods=['GET'])
+def agency_features(agency_ein):
     """
     Retrieve the agency features that are enabled for the specified agency.
 
@@ -34,4 +40,8 @@ def get_agency_features(agency_ein):
 
     :return: JSON Object
     """
-    pass
+    agency_features_json = get_agency_features(agency_ein)
+
+    if agency_features_json is not None:
+        return jsonify(agency_features_json), 200
+    return '', 400

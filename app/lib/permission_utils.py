@@ -39,6 +39,26 @@ def has_permission(permission: int):
     return decorator
 
 
+def has_super():
+    """
+    Checks to see if the current_user is a super user.
+
+    :param f: Function that is being wrapped.
+    :return:
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_super:
+                return abort(403)
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 def is_allowed(user: Users, request_id: str, permission: int):
     """
 

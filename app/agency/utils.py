@@ -3,8 +3,14 @@ from datetime import datetime
 from flask_login import current_user
 
 from app.lib.utils import eval_request_bool
-from app.lib.db_utils import update_object, create_object
-from app.models import Agencies, Events
+from app.lib.db_utils import (
+    update_object,
+    create_object
+)
+from app.models import (
+    Agencies,
+    Events
+)
 from app.constants.event_type import AGENCY_ACTIVATED
 
 
@@ -36,3 +42,20 @@ def update_agency_active_status(agency_ein, is_active):
 
         return True
     return False
+
+
+def get_agency_features(agency_ein):
+    """
+    Retrieve the agency features JSON object for the specified agency.
+
+    :param agency_ein: String identifier for agency (4 characters)
+    :return: JSON Object
+    """
+    is_valid_agency = Agencies.query.filter_by(ein=agency_ein).first() is not None
+
+    if is_valid_agency:
+        agency_features = Agencies.query.filter_by(ein=agency_ein).first().agency_features
+
+        return agency_features
+
+    return None
