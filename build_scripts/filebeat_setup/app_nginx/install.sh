@@ -16,4 +16,4 @@ mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.orig
 cp /vagrant/build_scripts/filebeat_setup/app_nginx/filebeat.yml /etc/filebeat/
 
 # 2. Add line to sudoers to allow vagrant user to edit filebeat.yml
-#cp /vagrant/build_scripts/filebeat_setup/app_nginx/filebeat /etc/sudoers.d/
+cp /vagrant/build_scripts/filebeat_setup/app_nginx/filebeat /etc/sudoers.d/filebeat

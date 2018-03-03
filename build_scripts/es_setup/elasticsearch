@@ -1,0 +1,8 @@
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch status
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch restart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch condrestart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch try-restart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch reload
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/elasticsearch force-reload

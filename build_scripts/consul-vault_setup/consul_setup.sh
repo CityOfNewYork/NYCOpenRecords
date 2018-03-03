@@ -43,5 +43,5 @@ openssl req -newkey rsa:2048 -nodes -out consul.csr -keyout consul.key -subj "/C
 openssl ca -batch -config myca.conf -notext -in consul.csr -out consul.cert
 cp ca.cert consul.key consul.cert /etc/consul.d/ssl
 
-# 4. Start Consul server with this command after build scripts are finished running
+# 7. Start Consul server with this command after build scripts are finished running
 # consul agent -config-dir /etc/consul.d/bootstrap

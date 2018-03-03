@@ -35,7 +35,6 @@ if [ "$1" -eq rhel ] || [ "$2" -eq rhel ]; then
     pip install -r /vagrant/requirements/rhel.txt --no-binary :all:
 fi
 
-
 # 7. Install telnet-server
 yum -y install telnet-server
 
@@ -45,10 +44,5 @@ yum -y install telnet
 # 9. Automatically Use Virtualenv
 echo "source /home/vagrant/.virtualenvs/openrecords/bin/activate" >> /home/vagrant/.bash_profile
 
-# 9. Add the following lines to /etc/sudoers file
-#womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis start
-#womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis stop
-#womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis status
-#womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis restart
-#womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis condrestart
-#womens_activism   ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis try-restart
+# 9. Setup sudo Access
+cp /vagrant/build_scripts/app_setup/redis /etc/sudoers.d/redis

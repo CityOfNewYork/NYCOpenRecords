@@ -25,3 +25,6 @@ mv /vagrant/build_scripts/sentry_setup/sentry_dev.pem /data/ssl
 chmod 400 /data/ssl/sentry_dev.pem
 
 service rh-nginx18-nginx start
+
+# Setup sudo Access
+cp /vagrant/build_scripts/sentry_setup/nginx /etc/sudoers.d/nginx

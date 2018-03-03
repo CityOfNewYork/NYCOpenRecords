@@ -1,0 +1,5 @@
+vagrant ALL=(ALL) NOPASSWD: /sbin/initctl start logstash
+vagrant ALL=(ALL) NOPASSWD: /sbin/initctl stop logstash
+vagrant ALL=(ALL) NOPASSWD: /sbin/initctl restart logstash
+vagrant ALL=(ALL) NOPASSWD: /sbin/initctl reload logstash
+vagrant ALL=(ALL) NOPASSWD: /sbin/initctl status logstash

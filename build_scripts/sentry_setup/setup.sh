@@ -37,6 +37,8 @@ ln -s /vagrant/build_scripts/sentry_setup/config.yml /etc/sentry/config.yml
 # 7. Create Initial Schema
 SENTRY_CONF=/etc/sentry sentry upgrade --noinput
 
+# 8. Setup sudo Access
+cp /vagrant/build_scripts/sentry_setup/redis /etc/sudoers.d/redis
 # Sentry commands:
 #
 # Start Web Service

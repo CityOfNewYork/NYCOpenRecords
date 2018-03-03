@@ -34,5 +34,9 @@ chown -R logstash /data/logstash
 # 6. Start Logstash
 sudo initctl start logstash
 
+# 7. Setup sudo Access
+cp /vagrant/build_scripts/elk_setup/logstash/logstash /etc/sudoers.d/logstash
+
 # Command to test Logstash
 # sudo /usr/share/logstash/bin/logstash --path.settings=/etc/logstash -e 'input { stdin { } } output { stdout {} }'
+

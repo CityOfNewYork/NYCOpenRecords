@@ -35,4 +35,8 @@ chmod 400 /data/ssl/elasticsearch_elk_dev.crt
 mv /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch_elk_dev.pem /data/ssl
 chmod 400 /data/ssl/elasticsearch_elk_dev.pem
 
+# Startup ElasticSearch
 service elasticsearch start
+
+# Setup sudo Access
+cp /vagrant/build_scripts/elk_setup/elasticsearch/elasticsearch /etc/sudoers.d/elasticsearch
