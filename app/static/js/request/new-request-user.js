@@ -9,17 +9,17 @@ $(document).ready(function () {
     $("input[name='tz-name']").val(jstz.determine().name());
 
     // ajax call to get and populate list of agencies choices based on selected category
-    $("#request-category").change(function() {
+    $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
             type: "GET",
             data: {
                 category: $("#request-category").val()
             },
-            success: function(data) {
+            success: function (data) {
                 var sel = $("#request-agency");
                 sel.empty();
-                for(var i =0; i < data.length; i++){
+                for (var i = 0; i < data.length; i++) {
                     var opt = document.createElement("option");
                     opt.innerHTML = data[i][1];
                     opt.value = data[i][0];
@@ -29,27 +29,47 @@ $(document).ready(function () {
         });
     });
 
+    $("#request-agency").change(function () {
+        var selected_agency = $("#request-agency").val();
+        var request_instructions_div = $("#request-agency-request-instructions");
+        $.ajax({
+            url: "/agency/feature/" + selected_agency + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                request_instructions_div.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                if (data["specific_request_instructions"]["url"]) {
+                    request_instructions_div.append("<a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>")
+                }
+                request_instructions_div.show();
+            },
+            error: function () {
+                request_instructions_div.hide();
+            }
+
+        })
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $('#request-title').attr({
-            'data-placement': "top",
-            'data-trigger': "hover focus",
-            'data-toggle': "popover",
-            'data-content': "Public Advocate Emails from 2015",
-            title: "Example Title"
+        'data-placement': "top",
+        'data-trigger': "hover focus",
+        'data-toggle': "popover",
+        'data-content': "Public Advocate Emails from 2015",
+        title: "Example Title"
     });
     $('#request-title').popover();
     // $('#request-title').click(function(){
     //     $('#request-title').popover('show');
     // });
-    
+
     $('#request-description').attr({
-            'data-placement': "top",
-            'data-trigger': "hover focus",
-            'data-toggle': "popover",
-            'data-content': "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
-            title: "Example Request"
+        'data-placement': "top",
+        'data-trigger': "hover focus",
+        'data-toggle': "popover",
+        'data-content': "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
+        title: "Example Request"
     });
-    $('#request-description').click(function(){
+    $('#request-description').click(function () {
         $('#request-description').popover('show');
     });
     $('#request-description').popover();
@@ -65,7 +85,7 @@ $(document).ready(function () {
     $('#request-description').attr('data-parsley-maxlength', 5000);
 
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
-    $('#request-file').attr('data-parsley-max-file-size',"20");
+    $('#request-file').attr('data-parsley-max-file-size', "20");
 
     // Specify container for file input parsley error message
     $('#request-file').attr("data-parsley-errors-container", ".file-error");
@@ -75,13 +95,13 @@ $(document).ready(function () {
         var file = this.files[0];
         var isChrome = window.chrome;
 
-        if(file) {
+        if (file) {
             $("#filename").text((this.files[0].name));
         }
         // Cancel is clicked on upload window
         else {
             // If browser is chrome, reset filename text
-            if(isChrome) {
+            if (isChrome) {
                 $("#filename").text("");
             }
         }
@@ -108,16 +128,16 @@ $(document).ready(function () {
     });
 
     // Clear error messages for form.request_file on submit ...
-    $('#submit').click(function() {
+    $('#submit').click(function () {
         $('.upload-error').remove();
     });
     // ... or on input change for request_file
-    $('#request-file').change(function() {
+    $('#request-file').change(function () {
         $('.upload-error').remove();
     });
 
     // Disable submit button on form submission
-    $('#request-form').submit(function() {
+    $('#request-form').submit(function () {
         $('#submit').hide();
         $('#processing-submission').show()
     });

@@ -9,7 +9,8 @@
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
-            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data data-parsley-validate>
+            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data
+                  data-parsley-validate>
                 {{ form.csrf_token }}
 
                 <h1>Request a Record</h1>
@@ -34,12 +35,15 @@
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
+                <div class="alert alert-info" id="request-agency-request-instructions" style="display: none;"></div>
+
                 {# Title of request #}
                 {{ form.request_title.label(class='request-heading title-label') }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
                       data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
                       class="glyphicon glyphicon-question-sign">
                 </span>
+
                 <div class="alert alert-warning">
                     <p><b>Note: The agency, category, and title of your request will be visible to the public. Do not
                         enter personal information here.</b></p>
@@ -83,7 +87,8 @@
                 </div>
 
                 <h1>Personal Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Personal Information"
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                           title="Personal Information"
                            data-content="First and last name fields are required. The Email field is optional but recommended.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
@@ -106,7 +111,8 @@
 
                 <div class="contact-form-error-message"></div>
                 <h1>Alternate Contact Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Alternate Contact Information"
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                           title="Alternate Contact Information"
                            data-content="Fields are included in case alternate contact method is needed.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
@@ -155,12 +161,12 @@
                         placeholder='12345') }}<br>
                     </div>
                 </div>
-{#                <div class="col-sm-12 captcha">#}
-{#                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>#}
-{#                </div>#}
-{#                <div class="recaptcha-error" id="recaptcha-error" style="display: none">#}
-{#                    <p>*Please Complete reCAPTCHA</p>#}
-{#                </div>#}
+                {#                <div class="col-sm-12 captcha">#}
+                {#                    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>#}
+                {#                </div>#}
+                {#                <div class="recaptcha-error" id="recaptcha-error" style="display: none">#}
+                {#                    <p>*Please Complete reCAPTCHA</p>#}
+                {#                </div>#}
                 <input type="hidden" name="tz-name">
                 {{ form.submit(id='submit', class='btn-primary') }}
                 <span id="processing-submission" hidden>
@@ -183,6 +189,6 @@
             src="{{ url_for('static', filename='js/validation/custom_validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-anon.js') }}"></script>
     <script src='https://www.google.com/recaptcha/api.js'></script>
-{#    <script type="text/javascript"#}
-{#            src="{{ url_for('static', filename='js/request/validate-recaptcha.js') }}"></script>#}
+    {#    <script type="text/javascript"#}
+    {#            src="{{ url_for('static', filename='js/request/validate-recaptcha.js') }}"></script>#}
 {% endblock %}

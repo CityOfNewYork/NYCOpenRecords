@@ -1,38 +1,58 @@
 {
-  "$id": "openrecords_agency_features",
-  "type": "object",
-  "definitions": {},
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "properties": {
-    "monitor_agency_request": {
-      "$id": "/properties/monitor_agency_requests",
-      "type": "array",
-      "items": {
-        "$id": "/properties/monitor_agency_request/items",
-        "type": "string"
+   "$id":"openrecords_agency_features",
+   "type":"object",
+   "definitions":{
+
+   },
+   "$schema":"http://json-schema.org/draft-07/schema#",
+   "properties":{
+      "monitor_agency_request":{
+         "$id":"/properties/monitor_agency_requests",
+         "type":"array",
+         "items":{
+            "$id":"/properties/monitor_agency_request/items",
+            "type":"string"
+         }
+      },
+      "specific_request_instructions":{
+         "$id":"/properties/pdf_request_form",
+         "type":"object",
+         "anyOf":[
+            {
+               "required":[
+                  "url"
+               ]
+            },
+            {
+               "required":[
+                  "filepath"
+               ]
+            }
+         ],
+         "properties":{
+            "url":{
+               "$id":"/properties/pdf_request_form/properties/url",
+               "type":"object",
+               "properties":{
+                  "location":{
+                     "$id":"/properties/pdf_request_form/properties/url/location",
+                     "type":"string"
+                  },
+                  "title":{
+                     "$id":"/properties/pdf_request_form/properties/url/title",
+                     "type":"string"
+                  }
+               }
+            },
+            "filepath":{
+               "$id":"/properties/pdf_request_form/properties/filepath",
+               "type":"string"
+            },
+            "text":{
+               "$id":"/properties/pdf_request_form/properties/text",
+               "type":"string"
+            }
+         }
       }
-    },
-    "specific_request_instructions": {
-      "$id": "/properties/pdf_request_form",
-      "type": "object",
-      "anyOf": [
-        {
-          "required": ["url"]
-        },
-        {
-          "required": ["filepath"]
-        },
-      ],
-      "properties": {
-        "url": {
-          "$id": "/properties/pdf_request_form/properties/url",
-          "type": "string"
-        },
-        "filepath": {
-          "$id": "/properties/pdf_request_form/properties/filepath",
-          "type": "string"
-        }
-      }
-    }
-  }
+   }
 }

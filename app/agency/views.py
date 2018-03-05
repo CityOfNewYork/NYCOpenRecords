@@ -73,4 +73,4 @@ def agency_feature(agency_ein, feature):
     if agency_feature_json is not None:
         return jsonify(agency_feature_json), 200
 
-    return '', 400
+    return '', 404

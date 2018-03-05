@@ -57,7 +57,7 @@ def get_agency_feature(agency_ein, feature):
 
     agency_features = get_agency_features(agency_ein)
 
-    if feature in agency_features:
+    if agency_features is not None and feature in agency_features:
         return {feature: agency_features[feature]}
 
     return None
