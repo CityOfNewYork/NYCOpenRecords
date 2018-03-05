@@ -21,7 +21,7 @@ from flask import (
 )
 from flask_login import current_user, login_url
 
-from app import login_manager
+from app import login_manager, sentry
 from app.constants import permission
 from app.constants.response_type import FILE
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
@@ -215,6 +215,7 @@ def response_closing(request_id):
                     flask_request.form.getlist('reasons'),
                     flask_request.form['email-summary'])
     except UserRequestException as e:
+        sentry.captureException()
         flash(str(e), category='danger')
     return redirect(url_for('request.view', request_id=request_id))
 

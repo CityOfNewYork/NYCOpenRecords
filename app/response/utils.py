@@ -26,7 +26,7 @@ from flask import (
     jsonify,
     Markup
 )
-from app import email_redis, calendar
+from app import email_redis, calendar, sentry
 from app.constants import (
     event_type,
     response_type,
@@ -98,6 +98,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
         size = fu.getsize(path)
         mime_type = fu.get_mime_type(path)
         hash_ = fu.get_hash(path)
+        sentry.captureException()
 
     try:
         response = Files(
@@ -116,6 +117,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
 
         return response
     except DuplicateFileException as e:
+        sentry.captureException()
         return str(e)
 
 

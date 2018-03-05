@@ -9,7 +9,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell
 from flask_script.commands import InvalidCommand
 
-from app import create_app, db
+from app import create_app, db, sentry
 from app.models import (
     Users,
     Agencies,
@@ -307,6 +307,7 @@ def convert_staff_csvs(input=None, output=None):
                                 fax_number=row['fax_number']
                             ), file=temp_write_file)
                     except:
+                        sentry.captureException()
                         continue
 
 
@@ -437,5 +438,6 @@ if __name__ == "__main__":
     try:
         manager.run()
     except InvalidCommand as err:
+        sentry.captureException()
         print(err, file=sys.stderr)
         sys.exit(1)

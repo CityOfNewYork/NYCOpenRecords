@@ -15,7 +15,7 @@ from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from app import db, es, calendar
+from app import db, es, calendar, sentry
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
@@ -800,11 +800,9 @@ class Requests(db.Model):
 
     @property
     def was_acknowledged(self):
-        try:
-            self.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one()
+        if self.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none() is not None:
             return True
-        except NoResultFound:
-            return False
+        return False
 
     @property
     def was_reopened(self):
@@ -1400,6 +1398,13 @@ class Files(Responses):
                         request_id=request_id
                     )
         except MultipleResultsFound:
+            sentry.catchException()
+            raise DuplicateFileException(
+                file_name=name,
+                request_id=request_id
+            )
+        except Exception as e:
+            sentry.captureException()
             raise DuplicateFileException(
                 file_name=name,
                 request_id=request_id

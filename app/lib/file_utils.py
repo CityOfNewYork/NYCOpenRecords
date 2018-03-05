@@ -15,6 +15,7 @@ from tempfile import TemporaryFile
 from functools import wraps
 from contextlib import contextmanager
 from flask import current_app, send_from_directory
+from app import sentry
 
 TRANSFER_SIZE_LIMIT = 512000  # 512 kb
 
@@ -48,6 +49,7 @@ def sftp_ctx():
     try:
         yield sftp
     except Exception as e:
+        sentry.captureException()
         raise paramiko.SFTPError("Exception occurred with SFTP: {}".format(e))
     finally:
         sftp.close()
