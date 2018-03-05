@@ -41,7 +41,7 @@ $(document).ready(function () {
                     opt.value = data[i][0];
                     sel.append(opt);
                 }
-            }gs
+            }
         });
     });
 
@@ -55,7 +55,7 @@ $(document).ready(function () {
             success: function (data) {
                 request_instructions_div.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
                 if (data["specific_request_instructions"]["url"]) {
-                    request_instructions_div.append("<a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>")
+                    request_instructions_div.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>")
                 }
                 request_instructions_div.show();
             },
