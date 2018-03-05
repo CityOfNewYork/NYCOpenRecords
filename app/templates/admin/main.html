@@ -36,6 +36,7 @@
             <hr>
         {% endif %}
         {% if user_form.users.choices %}
+            <input type="hidden" name="agency-ein" value="{{ agency_ein }}">
             <div class="row">
                 {{ user_form.users.label }}
                 <div class="row">
