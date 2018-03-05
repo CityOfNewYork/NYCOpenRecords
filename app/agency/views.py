@@ -1,15 +1,17 @@
 from datetime import datetime
 
-from . import agency
 from flask import (
     request,
     jsonify
 )
 from flask_login import current_user
-from .utils import (
+from app.agency import agency
+from app.agency.utils import (
     update_agency_active_status,
-    get_agency_features
+    get_agency_features,
+    get_agency_feature
 )
+from app.constants.agency_features import AGENCY_FEATURES
 
 
 # TODO: Manage agency features within this file.
@@ -34,7 +36,7 @@ def patch(agency_ein):
 @agency.route('/features/<agency_ein>', methods=['GET'])
 def agency_features(agency_ein):
     """
-    Retrieve the agency features that are enabled for the specified agency.
+    Retrieve the agency features JSON for the specified agency.
 
     :param agency_ein: Agency EIN (String)
 
@@ -44,4 +46,31 @@ def agency_features(agency_ein):
 
     if agency_features_json is not None:
         return jsonify(agency_features_json), 200
+    return '', 400
+
+
+@agency.route('/feature/<agency_ein>/<feature>', methods=['GET'])
+def agency_feature(agency_ein, feature):
+    """
+    Retrieve the information for the specified agency_feature in the specified agency, if exists.
+    :param agency_ein: Agency EIN (String)
+    :param feature: Feature specified. See app/lib/constants/agency_features for possible values (String)
+
+    :return: JSON Object
+    """
+
+    if agency_ein is None:
+        return jsonify({'error': 'missing agency ein'}), 400
+
+    if feature is None:
+        return jsonify({'error': 'missing agency feature'}), 400
+
+    if feature not in AGENCY_FEATURES:
+        return jsonify({'error': 'invalid agency feature'}), 400
+
+    agency_feature_json = get_agency_feature(agency_ein, feature)
+
+    if agency_feature_json is not None:
+        return jsonify(agency_feature_json), 200
+
     return '', 400

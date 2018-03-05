@@ -12,6 +12,7 @@ from app.models import (
     Events
 )
 from app.constants.event_type import AGENCY_ACTIVATED
+from app.constants.agency_features import AGENCY_FEATURES
 
 
 def update_agency_active_status(agency_ein, is_active):
@@ -42,6 +43,24 @@ def update_agency_active_status(agency_ein, is_active):
 
         return True
     return False
+
+
+def get_agency_feature(agency_ein, feature):
+    """
+    Retrieve the specified agency feature for the specified agency.
+
+    :param agency_ein:  String identifier for agency (4 characters)
+    :param feature: Feature specified. See app/lib/constants/agency_features for possible values (String)
+
+    :return: JSON Object
+    """
+
+    agency_features = get_agency_features(agency_ein)
+
+    if feature in agency_features:
+        return {feature: agency_features[feature]}
+
+    return None
 
 
 def get_agency_features(agency_ein):

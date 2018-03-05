@@ -12,7 +12,7 @@
         "type": "string"
       }
     },
-    "pdf_request_form": {
+    "specific_request_instructions": {
       "$id": "/properties/pdf_request_form",
       "type": "object",
       "anyOf": [
