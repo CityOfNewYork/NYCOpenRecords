@@ -1403,7 +1403,7 @@ class Files(Responses):
                 file_name=name,
                 request_id=request_id
             )
-        except Exception as e:
+        except Exception:
             sentry.captureException()
             raise DuplicateFileException(
                 file_name=name,

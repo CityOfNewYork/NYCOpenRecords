@@ -4,7 +4,7 @@ from flask import (
     render_template,
     current_app,
 )
-from app import calendar, scheduler
+from app import calendar, scheduler, sentry
 from app.models import Requests, Events, Emails, Agencies
 from app.constants import request_status, OPENRECORDS_DL_EMAIL
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
@@ -36,6 +36,7 @@ def update_request_statuses():
         try:
             _update_request_statuses()
         except Exception:
+            sentry.captureException()
             send_email(
                 subject="Update Request Statuses Failure",
                 to=[OPENRECORDS_DL_EMAIL],
