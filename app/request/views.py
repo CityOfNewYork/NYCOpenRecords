@@ -61,6 +61,7 @@ from app.user_request.forms import (
     EditUserRequestForm,
     RemoveUserRequestForm,
 )
+from app import sentry
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -193,9 +194,11 @@ def view(request_id):
         assert current_request.agency.is_active
     except NoResultFound:
         print("Request with id '{}' does not exist.".format(request_id))
+        sentry.captureException()
         return abort(404)
     except AssertionError:
         print("Request belongs to inactive agency.")
+        sentry.captureException()
         return abort(404)
 
     holidays = sorted(get_holidays_date_list(
