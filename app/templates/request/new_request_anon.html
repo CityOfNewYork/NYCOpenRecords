@@ -35,7 +35,14 @@
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_agency(id='request-agency', class='input-block-level') }}<br>
-                <div class="alert alert-info" id="request-agency-request-instructions" style="display: none;"></div>
+                <div class="alert alert-info" id="request-agency-instructions" style="display: none;">
+                    <div id="request-agency-instructions-content"></div>
+                    <span id="request-agency-instructions-toggle">
+                        <button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span
+                            class="glyphicon glyphicon-chevron-up"></span>&nbsp;&nbsp;Hide&nbsp;&nbsp;<span
+                            class="glyphicon glyphicon-chevron-up"></span></button></span>
+
+                </div>
 
                 {# Title of request #}
                 {{ form.request_title.label(class='request-heading title-label') }}

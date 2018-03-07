@@ -48,14 +48,15 @@ $(document).ready(function () {
     // ajax call to get additional information for the specified agency
     $("#request-agency").change(function () {
         var selected_agency = $("#request-agency").val();
-        var request_instructions_div = $("#request-agency-request-instructions");
+        var request_instructions_div = $("#request-agency-instructions");
+        var request_instructions_content_div = $("#request-agency-instructions-content");
         $.ajax({
             url: "/agency/feature/" + selected_agency + "/" + "specific_request_instructions",
             type: "GET",
             success: function (data) {
-                request_instructions_div.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                request_instructions_content_div.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
                 if (data["specific_request_instructions"]["url"]) {
-                    request_instructions_div.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>")
+                    request_instructions_content_div.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>")
                 }
                 request_instructions_div.show();
             },
@@ -64,6 +65,25 @@ $(document).ready(function () {
             }
 
         })
+    });
+
+    $("#request-agency-instructions-toggle").click(function () {
+        var el = $("#request-agency-instructions-toggle");
+        var request_instructions_content_div = $("#request-agency-instructions-content");
+        var hide_html = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span\n" +
+            "                            class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span\n" +
+            "                            class=\"glyphicon glyphicon-chevron-up\"></span></button>";
+
+        var show_html = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span\n" +
+            "                            class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span\n" +
+            "                            class=\"glyphicon glyphicon-chevron-down\"></span></button>";
+        if (el.html() === show_html) {
+            el.html(hide_html);
+            request_instructions_content_div.show()
+        } else {
+            el.html(show_html);
+            request_instructions_content_div.hide()
+        }
     });
 
     // javascript to add tooltip popovers when selecting the title and description
