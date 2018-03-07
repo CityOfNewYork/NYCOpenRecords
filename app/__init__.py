@@ -119,7 +119,8 @@ def create_app(config_name, jobs_enabled=True):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
-    sentry.init_app(app)
+    sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
+
     if jobs_enabled:
         scheduler.init_app(app)
 
