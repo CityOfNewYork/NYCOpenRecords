@@ -70,13 +70,8 @@ $(document).ready(function () {
     $("#request-agency-instructions-toggle").click(function () {
         var el = $("#request-agency-instructions-toggle");
         var request_instructions_content_div = $("#request-agency-instructions-content");
-        var hide_html = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span\n" +
-            "                            class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span\n" +
-            "                            class=\"glyphicon glyphicon-chevron-up\"></span></button>";
-
-        var show_html = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span\n" +
-            "                            class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span\n" +
-            "                            class=\"glyphicon glyphicon-chevron-down\"></span></button>";
+        var hide_html = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span></button>";
+        var show_html = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span></button>";
         if (el.html() === show_html) {
             el.html(hide_html);
             request_instructions_content_div.show()
