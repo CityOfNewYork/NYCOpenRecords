@@ -1397,13 +1397,13 @@ class Files(Responses):
                         file_name=name,
                         request_id=request_id
                     )
-        except MultipleResultsFound:
-            sentry.catchException()
+        except DuplicateFileException:
+            sentry.captureException()
             raise DuplicateFileException(
                 file_name=name,
                 request_id=request_id
             )
-        except Exception:
+        except MultipleResultsFound:
             sentry.captureException()
             raise DuplicateFileException(
                 file_name=name,
