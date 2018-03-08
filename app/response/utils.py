@@ -26,7 +26,7 @@ from flask import (
     jsonify,
     Markup
 )
-from app import email_redis, calendar
+from app import email_redis, calendar, sentry
 from app.constants import (
     event_type,
     response_type,
@@ -98,6 +98,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
         size = fu.getsize(path)
         mime_type = fu.get_mime_type(path)
         hash_ = fu.get_hash(path)
+        sentry.captureException()
 
     try:
         response = Files(
@@ -116,6 +117,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
 
         return response
     except DuplicateFileException as e:
+        sentry.captureException()
         return str(e)
 
 
@@ -1473,8 +1475,10 @@ def safely_send_and_add_email(request_id,
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
         _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
+        sentry.captureException()
         current_app.logger.exception('Must include: To, CC, or BCC')
     except Exception as e:
+        sentry.captureException()
         current_app.logger.exception("Error: {}".format(e))
 
 
@@ -1694,6 +1698,7 @@ class RespFileEditor(ResponseEditor):
                         size = fu.getsize(filepath)
                         mime_type = fu.get_mime_type(filepath)
                         hash_ = fu.get_hash(filepath)
+                        sentry.captureException()
                     self.set_data_values('size',
                                          self.response.size,
                                          size)

@@ -17,6 +17,7 @@ from app.models import Requests
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.search.utils import search_requests, convert_dates
+from app import sentry
 
 
 @search.route("/requests", methods=['GET'])
@@ -58,16 +59,19 @@ def requests():
     try:
         agency_ein = request.args.get('agency_ein', '')
     except ValueError:
+        sentry.captureException()
         agency_ein = None
 
     try:
         size = int(request.args.get('size', DEFAULT_HITS_SIZE))
     except ValueError:
+        sentry.captureException()
         size = DEFAULT_HITS_SIZE
 
     try:
         start = int(request.args.get('start'), 0)
     except ValueError:
+        sentry.captureException()
         start = 0
 
     query = request.args.get('query')
@@ -137,6 +141,7 @@ def requests_doc(doc_type):
         try:
             agency_ein = request.args.get('agency_ein', '')
         except ValueError:
+            sentry.captureException()
             agency_ein = None
 
         tz_name = request.args.get('tz_name')

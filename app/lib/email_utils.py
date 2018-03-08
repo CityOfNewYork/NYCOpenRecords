@@ -18,7 +18,7 @@
 from flask import current_app, render_template
 from flask_mail import Message
 
-from app import mail, celery
+from app import mail, celery, sentry
 from app.models import Requests
 from app.constants import OPENRECORDS_DL_EMAIL
 
@@ -28,6 +28,7 @@ def send_async_email(msg):
     try:
         mail.send(msg)
     except Exception as e:
+        sentry.captureException()
         current_app.logger.exception("Failed to Send Email {} : {}".format(msg, e))
 
 

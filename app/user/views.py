@@ -22,6 +22,7 @@ from app.lib.db_utils import (
     delete_object,
 )
 from app.lib.utils import eval_request_bool
+from app import sentry
 
 
 @user.route('/<user_id>', methods=['PATCH'])
@@ -69,6 +70,7 @@ def patch(user_id):
             user_ = Users.query.filter_by(guid=guid,
                                           auth_user_type=auth_type).one()
         except (ValueError, NoResultFound, MultipleResultsFound):
+            sentry.captureException()
             return jsonify({}), 404
 
         agency_ein = request.form.get('agency_ein', None)
@@ -103,6 +105,7 @@ def patch(user_id):
             rform_copy.pop('agency_ein')
             changing_more_than_agency_status = len(rform_copy) != 0
         except KeyError:
+            sentry.captureException()
             changing_more_than_agency_status = False
 
         # VALIDATE

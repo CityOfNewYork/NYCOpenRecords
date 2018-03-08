@@ -1,4 +1,5 @@
 import os
+from app import sentry
 
 try:
     import cPickle as pickle
@@ -73,6 +74,7 @@ def redis_get_user_session(session_id):
         return s
 
     except KeyError:
+        sentry.captureException()
         return None
 
 

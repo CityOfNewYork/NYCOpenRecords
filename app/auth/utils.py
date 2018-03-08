@@ -24,7 +24,8 @@ from flask import (
 )
 from flask_login import login_user, current_user
 from app import (
-    login_manager
+    login_manager,
+    sentry
 )
 from app.models import Users, AgencyUsers, Events
 from app.constants import user_type_auth, USER_ID_DELIMITER
@@ -497,6 +498,7 @@ def _web_services_request(endpoint, params, method='GET'):
                 params=params  # query string parameters always used
             )
         except SSLError:
+            sentry.captureException()
             continue
         break
     return req
@@ -540,6 +542,7 @@ def _generate_signature(password, string):
                              digestmod=sha1)
         signature = hmac_sha1.hexdigest()
     except Exception as e:
+        sentry.captureException()
         current_app.logger.error("Failed to generate NYC ID.Web Services "
                                  "authentication signature: ", e)
     return signature

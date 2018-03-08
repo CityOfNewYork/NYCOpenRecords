@@ -16,6 +16,7 @@ from flask import (
 from app.lib.utils import UserRequestException
 from app.constants import permission
 from flask_login import current_user
+from app import sentry
 
 
 @user_request.route('/<request_id>', methods=['POST'])
@@ -57,6 +58,7 @@ def create(request_id):
             add_user_request(request_id=request_id, user_guid=user_data.get('user'),
                              permissions=permissions)
         except UserRequestException as e:
+            sentry.captureException()
             flash(str(e), category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return redirect(url_for('request.view', request_id=request_id))
@@ -102,6 +104,7 @@ def edit(request_id):
             edit_user_request(request_id=request_id, user_guid=user_data.get('user'),
                               permissions=permissions)
         except UserRequestException as e:
+            sentry.captureException()
             flash(e, category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return 'OK', 200
