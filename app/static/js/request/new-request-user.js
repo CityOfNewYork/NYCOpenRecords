@@ -40,7 +40,7 @@ $(document).ready(function () {
             success: function (data) {
                 requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
                 if (data["specific_request_instructions"]["url"]) {
-                    requestInstructionsContentDiv.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>")
+                    requestInstructionsContentDiv.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>");
                 }
                 requestInstructionsDiv.show();
             },
