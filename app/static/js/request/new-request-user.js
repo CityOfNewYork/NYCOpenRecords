@@ -35,7 +35,7 @@ $(document).ready(function () {
         var requestInstructionsDiv = $("#request-agency-instructions");
         var requestInstructionsContentDiv = $("#request-agency-instructions-content");
         $.ajax({
-            url: "/agency/feature/" + selected_agency + "/" + "specific_request_instructions",
+            url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
             type: "GET",
             success: function (data) {
                 requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
@@ -58,10 +58,10 @@ $(document).ready(function () {
         var showHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span></button>";
         if (el.html() === showHtml) {
             el.html(hideHtml);
-            requestInstructionsContentDiv.show()
+            requestInstructionsContentDiv.show();
         } else {
             el.html(showHtml);
-            requestInstructionsContentDiv.hide()
+            requestInstructionsContentDiv.hide();
         }
     });
     // javascript to add tooltip popovers when selecting the title and description
