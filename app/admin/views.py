@@ -11,11 +11,10 @@ from app.admin.forms import (
 )
 from flask import render_template, abort
 from flask_login import current_user
-from app.constants import user_type_auth
 from app.admin.utils import get_agency_active_users
 
 
-# TODO: View function to handle updates to agency wide settings (see models.py:183
+# TODO: View function to handle updates to agency wide settings (see models.py:183)
 
 
 @admin.route('/')
