@@ -25,7 +25,7 @@ def update_agency_active_status(agency_ein, is_active):
 
     if is_active is not None and is_valid_agency:
         update_object(
-            {is_active: eval_request_bool(is_active)},
+            {'is_active': eval_request_bool(is_active)},
             Agencies,
             agency_ein
         )
