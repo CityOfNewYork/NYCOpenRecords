@@ -18,7 +18,7 @@
                     {{ deny_request_form.reasons.label }}<br>
                     {{ deny_request_form.reasons(id="denial-reason-ids",
                                                  class="disable-enter-submit form-control",
-                                                 size=10) }}
+                                                 size=10) | safe }}
                 </div>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
