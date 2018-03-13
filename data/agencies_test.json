@@ -1,42 +1,17 @@
 {
   "agencies":[
     {
-      "ein":"ein",
-      "parent_ein":"parent_ein",
-      "categories":"categories",
-      "name":"name",
-      "acronym":"acronym",
-      "next_request_number":"next_request_number",
-      "default_email":"default_email",
-      "appeals_email":"appeals_email",
-      "is_active":"True",
-      "agency_features":{
-        "monitor_agency_requests":[
-
-        ],
-        "specific_request_instructions":{
-          "url":{
-            "location":"",
-            "title":""
-          },
-          "file":{
-            "path":"",
-            "title":""
-          },
-          "text":""
-        }
-      }
-    },
-    {
       "ein":"002B",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Advisory Committee on the Judiciary",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_012@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_012@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -57,13 +32,15 @@
     {
       "ein":"002C",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Committee on City Marshals",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_013@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_013@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -84,13 +61,15 @@
     {
       "ein":"002D",
       "parent_ein":"002",
-      "categories":"Business,Civic Services",
+      "categories":[
+        "Business,Civic Services"
+      ],
       "name":"Mayor's Fund to Advance NYC",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_014@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_014@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -111,13 +90,15 @@
     {
       "ein":"002G",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Office of Appointments",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_019@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_019@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -138,13 +119,15 @@
     {
       "ein":"002L",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Office of Intergovernmental Affairs",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -165,13 +148,15 @@
     {
       "ein":"002R",
       "parent_ein":"002",
-      "categories":"Business,Social Services",
+      "categories":[
+        "Business,Social Services"
+      ],
       "name":"Mayor's Office of Workforce Development",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -192,13 +177,15 @@
     {
       "ein":"002S",
       "parent_ein":"002",
-      "categories":"Health",
+      "categories":[
+        "Health"
+      ],
       "name":"Mayor's Office to Combat Domestic Violence",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -219,13 +206,15 @@
     {
       "ein":"002T",
       "parent_ein":"002",
-      "categories":"Business,Civic Services,Environment",
+      "categories":[
+        "Business,Civic Services,Environment"
+      ],
       "name":"Office of Long-Term Planning & Sustainability",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -246,13 +235,15 @@
     {
       "ein":"0102",
       "parent_ein":"102",
-      "categories":"Business,Civic Services,Culture & Recreation,Education,Environment,Health,Housing & Development,Public Safety,Social Services,Transportation",
+      "categories":[
+        "Business,Civic Services,Culture & Recreation,Education,Environment,Health,Housing & Development,Public Safety,Social Services,Transportation"
+      ],
       "name":"New York City Council",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_044@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_044@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -273,13 +264,15 @@
     {
       "ein":"0134",
       "parent_ein":"134",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Civil Service Commission",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_069@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_069@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -300,13 +293,15 @@
     {
       "ein":"0906",
       "parent_ein":"906",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"NYC Office of the Special Narcotics Prosecutor",
       "acronym":"",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_781@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_781@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -327,13 +322,15 @@
     {
       "ein":"0067",
       "parent_ein":"067",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Administration for Children's Services",
       "acronym":"ACS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -354,13 +351,15 @@
     {
       "ein":"0831",
       "parent_ein":"831",
-      "categories":"Business",
+      "categories":[
+        "Business"
+      ],
       "name":"Business Integrity Commission",
       "acronym":"BIC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_214@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_214@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -381,13 +380,15 @@
     {
       "ein":"0073",
       "parent_ein":"073",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Board of Correction",
       "acronym":"BOC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_041@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_041@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -408,13 +409,15 @@
     {
       "ein":"0003",
       "parent_ein":"003",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Board of Elections",
       "acronym":"BOE",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_003@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_003@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -435,13 +438,15 @@
     {
       "ein":"0059",
       "parent_ein":"059",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"Board of Standards and Appeals",
       "acronym":"BSA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -462,13 +467,15 @@
     {
       "ein":"0226",
       "parent_ein":"226",
-      "categories":"Civic Services,Social Services",
+      "categories":[
+        "Civic Services,Social Services"
+      ],
       "name":"NYC Commission on Human Rights",
       "acronym":"CCHR",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_101@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_101@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -489,13 +496,15 @@
     {
       "ein":"032A",
       "parent_ein":"032",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Commission to Combat Police Corruption",
       "acronym":"CCPC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_113@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_113@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -516,13 +525,15 @@
     {
       "ein":"0054",
       "parent_ein":"054",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Civilian Complaint Review Board",
       "acronym":"CCRB",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -543,13 +554,15 @@
     {
       "ein":"0312",
       "parent_ein":"312",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Conflicts of Interest Board",
       "acronym":"COIB",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_103@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_103@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -570,13 +583,15 @@
     {
       "ein":"0866",
       "parent_ein":"866",
-      "categories":"Business",
+      "categories":[
+        "Business"
+      ],
       "name":"Department of Consumer Affairs",
       "acronym":"DCA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_441@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_441@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -597,13 +612,15 @@
     {
       "ein":"0868",
       "parent_ein":"868",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Department of Citywide Administrative Services",
       "acronym":"DCAS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_740@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_740@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -624,13 +641,15 @@
     {
       "ein":"0126",
       "parent_ein":"126",
-      "categories":"Culture & Recreation",
+      "categories":[
+        "Culture & Recreation"
+      ],
       "name":"Department of Cultural Affairs",
       "acronym":"DCLA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_057@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_057@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -651,13 +670,15 @@
     {
       "ein":"0030",
       "parent_ein":"030",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Department of City Planning",
       "acronym":"DCP",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -678,13 +699,15 @@
     {
       "ein":"0850",
       "parent_ein":"850",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"Department of Design and Construction",
       "acronym":"DDC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_260@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_260@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -705,13 +728,15 @@
     {
       "ein":"0826",
       "parent_ein":"826",
-      "categories":"Environment",
+      "categories":[
+        "Environment"
+      ],
       "name":"Department of Environmental Protection",
       "acronym":"DEP",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_136@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_136@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -732,13 +757,15 @@
     {
       "ein":"0125",
       "parent_ein":"125",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Department for the Aging",
       "acronym":"DFTA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_056@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_056@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -759,13 +786,15 @@
     {
       "ein":"0071",
       "parent_ein":"071",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Department of Homeless Services",
       "acronym":"DHS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_071@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_071@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -786,13 +815,15 @@
     {
       "ein":"0810",
       "parent_ein":"810",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"Department of Buildings",
       "acronym":"DOB",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_131@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_131@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -813,13 +844,15 @@
     {
       "ein":"0072",
       "parent_ein":"072",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Department of Correction",
       "acronym":"DOC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_040@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_040@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -840,13 +873,15 @@
     {
       "ein":"0040",
       "parent_ein":"040",
-      "categories":"Education",
+      "categories":[
+        "Education"
+      ],
       "name":"Department of Education",
       "acronym":"DOE",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -867,13 +902,15 @@
     {
       "ein":"0836",
       "parent_ein":"836",
-      "categories":"Business",
+      "categories":[
+        "Business"
+      ],
       "name":"Department of Finance",
       "acronym":"DOF",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_220@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_220@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -894,13 +931,15 @@
     {
       "ein":"0816",
       "parent_ein":"816",
-      "categories":"Health",
+      "categories":[
+        "Health"
+      ],
       "name":"Department of Health and Mental Hygiene",
       "acronym":"DOHMH",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_132@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_132@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -921,13 +960,15 @@
     {
       "ein":"0032",
       "parent_ein":"032",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Department of Investigation",
       "acronym":"DOI",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -948,13 +989,15 @@
     {
       "ein":"0858",
       "parent_ein":"858",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Department of Information Technology and Telecommunications",
       "acronym":"DOITT",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_312@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_312@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -975,13 +1018,15 @@
     {
       "ein":"0781",
       "parent_ein":"781",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Department of Probation",
       "acronym":"DOP",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_125@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_125@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1002,13 +1047,15 @@
     {
       "ein":"0860",
       "parent_ein":"860",
-      "categories":"Culture & Recreation",
+      "categories":[
+        "Culture & Recreation"
+      ],
       "name":"Department of Records and Information Services",
       "acronym":"DORIS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_032@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_032@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1029,13 +1076,15 @@
     {
       "ein":"0841",
       "parent_ein":"841",
-      "categories":"Transportation",
+      "categories":[
+        "Transportation"
+      ],
       "name":"Department of Transportation",
       "acronym":"DOT",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_226@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_226@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1056,13 +1105,15 @@
     {
       "ein":"0846",
       "parent_ein":"846",
-      "categories":"Culture & Recreation",
+      "categories":[
+        "Culture & Recreation"
+      ],
       "name":"Department of Parks and Recreation",
       "acronym":"DPR",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_256@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_256@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1083,13 +1134,15 @@
     {
       "ein":"0827",
       "parent_ein":"827",
-      "categories":"Environment",
+      "categories":[
+        "Environment"
+      ],
       "name":"Department of Sanitation",
       "acronym":"DSNY",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_156@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_156@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1110,13 +1163,15 @@
     {
       "ein":"0260",
       "parent_ein":"260",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Department of Youth and Community Development",
       "acronym":"DYCD",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_102@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_102@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1137,13 +1192,15 @@
     {
       "ein":"0113",
       "parent_ein":"113",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Equal Employment Practices Commission",
       "acronym":"EEPC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_054@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_054@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1164,13 +1221,15 @@
     {
       "ein":"0057",
       "parent_ein":"057",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"New York City Fire Department",
       "acronym":"FDNY",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1191,13 +1250,15 @@
     {
       "ein":"0127",
       "parent_ein":"127",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Financial Information Services Agency",
       "acronym":"FISA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_059@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_059@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1218,13 +1279,15 @@
     {
       "ein":"0806",
       "parent_ein":"806",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"Department of Housing Preservation and Development",
       "acronym":"HPD",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_127@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_127@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1245,13 +1308,15 @@
     {
       "ein":"0069",
       "parent_ein":"069",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Human Resources Administration",
       "acronym":"HRA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_030@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_030@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1272,13 +1337,15 @@
     {
       "ein":"826A",
       "parent_ein":"826",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"Housing Recovery Operations",
       "acronym":"HRO",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_810@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_810@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1299,13 +1366,15 @@
     {
       "ein":"0025",
       "parent_ein":"025",
-      "categories":"Civic Services,Public Safety",
+      "categories":[
+        "Civic Services,Public Safety"
+      ],
       "name":"Law Department",
       "acronym":"LAW",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_010@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_010@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1326,13 +1395,15 @@
     {
       "ein":"0136",
       "parent_ein":"136",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"Landmarks Preservation Commission",
       "acronym":"LPC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_071@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_071@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1353,13 +1424,15 @@
     {
       "ein":"002I",
       "parent_ein":"002",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Mayor's Office of Criminal Justice",
       "acronym":"MOCJ",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_025@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_025@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1380,13 +1453,15 @@
     {
       "ein":"002H",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Office of Contract Services",
       "acronym":"MOCS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_021@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_021@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1407,13 +1482,15 @@
     {
       "ein":"002J",
       "parent_ein":"002",
-      "categories":"Business,Civic Services,Culture & Recreation,Environment,Health,Housing & Development,Public Safety,Transportation",
+      "categories":[
+        "Business,Civic Services,Culture & Recreation,Environment,Health,Housing & Development,Public Safety,Transportation"
+      ],
       "name":"Mayor's Office of Data Analytics",
       "acronym":"MODA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1434,13 +1511,15 @@
     {
       "ein":"002E",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Office for International Affairs",
       "acronym":"MOIA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_015@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_015@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1461,13 +1540,15 @@
     {
       "ein":"0019",
       "parent_ein":"019",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Office of Management and Budget",
       "acronym":"MOMB",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_009@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_009@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1488,13 +1569,15 @@
     {
       "ein":"002M",
       "parent_ein":"002",
-      "categories":"Culture & Recreation",
+      "categories":[
+        "Culture & Recreation"
+      ],
       "name":"Mayor's Office of Media and Entertainment",
       "acronym":"MOME",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1515,13 +1598,15 @@
     {
       "ein":"002F",
       "parent_ein":"002",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"Mayor's Office for People with Disabilities",
       "acronym":"MOPD",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_017@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_017@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1542,13 +1627,15 @@
     {
       "ein":"002N",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Office of Operations",
       "acronym":"MOPS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1569,13 +1656,15 @@
     {
       "ein":"002P",
       "parent_ein":"002",
-      "categories":"Environment",
+      "categories":[
+        "Environment"
+      ],
       "name":"Mayor's Office of Sustainability",
       "acronym":"MOS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1596,13 +1685,15 @@
     {
       "ein":"002O",
       "parent_ein":"002",
-      "categories":"Civic Services,Culture & Recreation",
+      "categories":[
+        "Civic Services,Culture & Recreation"
+      ],
       "name":"Mayor's Office of Special Projects & Community Events",
       "acronym":"MOSPCE",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1623,13 +1714,15 @@
     {
       "ein":"002Q",
       "parent_ein":"002",
-      "categories":"Business",
+      "categories":[
+        "Business"
+      ],
       "name":"Mayor's Office of Technology and Innovation",
       "acronym":"MOTI",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1650,13 +1743,15 @@
     {
       "ein":"0996",
       "parent_ein":"996",
-      "categories":"Housing & Development",
+      "categories":[
+        "Housing & Development"
+      ],
       "name":"New York City Housing Authority",
       "acronym":"NYCHA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_801@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_801@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1677,13 +1772,15 @@
     {
       "ein":"0008",
       "parent_ein":"008",
-      "categories":"Business,Civic Services",
+      "categories":[
+        "Business,Civic Services"
+      ],
       "name":"NYC Office of the Actuary",
       "acronym":"NYCOA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_004@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_004@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1704,13 +1801,15 @@
     {
       "ein":"0056",
       "parent_ein":"056",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"New York City Police Department",
       "acronym":"NYPD",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1731,13 +1830,15 @@
     {
       "ein":"0820",
       "parent_ein":"820",
-      "categories":"Public Safety",
+      "categories":[
+        "Public Safety"
+      ],
       "name":"Office of Administrative Trials and Hearings",
       "acronym":"OATH",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_134@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_134@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1758,13 +1859,15 @@
     {
       "ein":"816A",
       "parent_ein":"816",
-      "categories":"Civic Services,Public Safety",
+      "categories":[
+        "Civic Services,Public Safety"
+      ],
       "name":"NYC Office of the Chief Medical Examiner",
       "acronym":"OCME",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_806@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_806@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1785,13 +1888,15 @@
     {
       "ein":"0017",
       "parent_ein":"017",
-      "categories":"Social Services",
+      "categories":[
+        "Social Services"
+      ],
       "name":"NYC Office of Emergency Management",
       "acronym":"OEM",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_008@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_008@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1812,13 +1917,15 @@
     {
       "ein":"002K",
       "parent_ein":"002",
-      "categories":"Environment",
+      "categories":[
+        "Environment"
+      ],
       "name":"Mayor's Office of Environmental Remediation",
       "acronym":"OER",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1839,13 +1946,15 @@
     {
       "ein":"0214",
       "parent_ein":"214",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"NYC Office of Labor Relations",
       "acronym":"OLR",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_073@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_073@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1866,13 +1975,15 @@
     {
       "ein":"0002",
       "parent_ein":"002",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Mayor's Office",
       "acronym":"OOM",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1893,13 +2004,15 @@
     {
       "ein":"0131",
       "parent_ein":"131",
-      "categories":"Civic Services",
+      "categories":[
+        "Civic Services"
+      ],
       "name":"Office of Payroll Administration",
       "acronym":"OPA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_067@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_067@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1920,13 +2033,15 @@
     {
       "ein":"002A",
       "parent_ein":"002",
-      "categories":"Culture & Recreation",
+      "categories":[
+        "Culture & Recreation"
+      ],
       "name":"Design Commission",
       "acronym":"PDC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_011@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_011@mailinator.com",
-      "is_active":"True",
+      "is_active":true,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1947,13 +2062,15 @@
     {
       "ein":"0801",
       "parent_ein":"801",
-      "categories":"Business",
+      "categories":[
+        "Business"
+      ],
       "name":"Department of Small Business Services",
       "acronym":"SBS",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_126@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_126@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -1974,13 +2091,15 @@
     {
       "ein":"0044",
       "parent_ein":"044",
-      "categories":"Education,Housing & Development",
+      "categories":[
+        "Education,Housing & Development"
+      ],
       "name":"School Construction Authority",
       "acronym":"SCA",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
@@ -2001,13 +2120,15 @@
     {
       "ein":"0156",
       "parent_ein":"156",
-      "categories":"Transportation",
+      "categories":[
+        "Transportation"
+      ],
       "name":"Taxi and Limousine Commission",
       "acronym":"TLC",
       "next_request_number":"00001",
       "default_email":"openrecords_agency_default_dev_072@mailinator.com",
       "appeals_email":"openrecords_agency_appeals_dev_072@mailinator.com",
-      "is_active":"False",
+      "is_active":false,
       "agency_features":{
         "monitor_agency_requests":[
 
