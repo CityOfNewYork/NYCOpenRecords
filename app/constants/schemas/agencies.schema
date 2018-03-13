@@ -128,7 +128,8 @@
           "ein": {
             "$id": "/properties/agencies/items/properties/ein",
             "type": "string",
-            "title": "The Ein Schema ",
+            "title": "Agency EIN",
+            "description": "Unique (4 Character) identifier for an agency",
             "default": "",
             "examples": [
               "0002",
@@ -140,7 +141,8 @@
           "parent_ein": {
             "$id": "/properties/agencies/items/properties/parent_ein",
             "type": "string",
-            "title": "The Parent_ein Schema ",
+            "title": "Parent EIN",
+            "description": "Identify the parent agency for a sub-agency",
             "default": "",
             "examples": [
               "002",
@@ -150,65 +152,80 @@
           },
           "categories": {
             "$id": "/properties/agencies/items/properties/categories",
-            "type": "string",
-            "title": "The Categories Schema ",
+            "type": "array",
+            "title": "Categories",
+            "description": "Array of categories from the app.constants.CATEGORIES. If empty, agency will only appear if no categories selected on the new request form.",
             "default": "",
             "examples": [
-              "categories"
+              ["Public Safety"],
+              ["Business", "Civic Services"]
             ]
           },
           "name": {
             "$id": "/properties/agencies/items/properties/name",
             "type": "string",
-            "title": "The Name Schema ",
+            "title": "Name",
+            "description": "The name of the agency.",
             "default": "",
             "examples": [
-              "name"
+              "Department of Information Technology and Information Service",
+              "Department of Records & Information Services",
+              "Mayor's Office"
             ]
           },
           "acronym": {
             "$id": "/properties/agencies/items/properties/acronym",
             "type": "string",
-            "title": "The Acronym Schema ",
+            "title": "Acronym",
+            "description": "Acronym for the agency.",
             "default": "",
             "examples": [
-              "acronym"
+              "DOITT",
+              "DORIS",
+              "OOM",
+              "NYCEM"
             ]
           },
           "next_request_number": {
             "$id": "/properties/agencies/items/properties/next_request_number",
             "type": "string",
-            "title": "The Next_request_number Schema ",
+            "title": "Next Request Number",
+            "description": "The next request number available for the agency. 5 digit number represented as a String",
             "default": "",
             "examples": [
-              "next_request_number"
+              "00001",
+              "90000"
             ]
           },
           "default_email": {
             "$id": "/properties/agencies/items/properties/default_email",
             "type": "string",
-            "title": "The Default_email Schema ",
+            "title": "Default FOIL Email",
+            "description": "The email where initial notifications will be sent.",
             "default": "",
             "examples": [
-              "default_email"
+              "foil@records.nyc.gov"
             ]
           },
           "appeals_email": {
             "$id": "/properties/agencies/items/properties/appeals_email",
             "type": "string",
-            "title": "The Appeals_email Schema ",
+            "title": "FOIL Appeals Email",
+            "description": "FOIL appeals email address. Displayed in the footer of all closing / denial emails.",
             "default": "",
             "examples": [
-              "appeals_email"
+              "appeals@records.nyc.gov"
             ]
           },
           "is_active": {
             "$id": "/properties/agencies/items/properties/is_active",
-            "type": "string",
-            "title": "The Is_active Schema ",
-            "default": "",
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Is the agency actively working on requests within OpenRecords. If False, requests won't be searchable."
+            "default": false,
             "examples": [
-              "True"
+              true,
+              false
             ]
           }
         }
