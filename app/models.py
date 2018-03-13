@@ -1207,7 +1207,7 @@ class Reasons(db.Model):
                     type=row['type'],
                     title=row['title'],
                     content=row['content'],
-                    agency_ein=row['agency_ein']
+                    agency_ein=row['agency_ein'] if row['agency_ein'] else None
                 )
                 if not Reasons.query.filter_by(title=row['title'], agency_ein=row['agency_ein']).first():
                     db.session.add(reason)
