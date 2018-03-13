@@ -329,6 +329,9 @@ $(function() {
     $("#agency_ein").change(function () {
         resetAndSearch();
     });
+    $("#agency_user").change(function () {
+        resetAndSearch();
+    });
     next.click(function () {
         if (canSearch && end < total) {
             setStart(start + parseInt($("#size").val()));

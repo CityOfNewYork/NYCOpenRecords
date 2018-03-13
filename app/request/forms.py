@@ -245,6 +245,7 @@ class CloseRequestForm(FinishRequestForm):
 
 class SearchRequestsForm(Form):
     agency_ein = SelectField('Agency')
+    agency_user = SelectField('User')
 
     # category = SelectField('Category', get_categories())
 
@@ -268,6 +269,23 @@ class SearchRequestsForm(Form):
             # set secondary agencies to be below the primary
             for agency in user_agencies:
                 self.agency_ein.choices.insert(2, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
+
+            # get choices for agency user select field
+            if current_user.is_agency_admin():
+                self.agency_user.choices = [
+                    (user.guid, user.name)
+                    for user in current_user.default_agency.standard_users
+                ]
+
+            if current_user.is_agency_active() and not current_user.is_agency_admin():
+                self.agency_user.choices = [
+                    (current_user.guid, 'My Requests')
+                ]
+                self.agency_user.default = current_user.guid
+
+            self.agency_user.choices.insert(0, ('', 'All'))
+
+            # process form for default values
             self.process()
 
 
