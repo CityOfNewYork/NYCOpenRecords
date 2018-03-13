@@ -1203,13 +1203,14 @@ class Reasons(db.Model):
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
+                agency_ein = row['agency_ein'] if row['agency_ein'] else None
                 reason = cls(
                     type=row['type'],
                     title=row['title'],
                     content=row['content'],
-                    agency_ein=row['agency_ein'] if row['agency_ein'] else None
+                    agency_ein=agency_ein
                 )
-                if not Reasons.query.filter_by(title=row['title'], agency_ein=row['agency_ein']).first():
+                if not Reasons.query.filter_by(title=row['title'], content=row['content'], agency_ein=agency_ein).first():
                     db.session.add(reason)
             db.session.commit()
 
