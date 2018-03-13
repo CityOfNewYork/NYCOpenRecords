@@ -10,7 +10,7 @@ received-emails/
 ldap/
 Vagrantfile
 Vagrantfile.aws
-.vagrant/
+.vagrant*
 *.pem
 *.crt
 *.key
