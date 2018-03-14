@@ -35,8 +35,7 @@ from app.constants.web_services import (
     EMAIL_VALIDATION_STATUS_ENDPOINT,
     TOU_ENDPOINT,
     TOU_STATUS_ENDPOINT,
-    ENROLLMENT_ENDPOINT,
-    ENROLLMENT_STATUS_ENDPOINT,
+    ENROLLMENT_ENDPOINT
 )
 from app.auth.constants import error_msg
 from app.lib.db_utils import create_object, update_object
@@ -420,9 +419,8 @@ def _accept_terms_of_use(terms_of_use, guid, user_type):
 
 def _enroll(guid, user_type):
     """
-    Retrieve enrollment statues for a specified
-    user and, if the user has not yet been enrolled,
-    create an enrollment record for that user.
+    Create an enrollment record for a specified user
+    if the user has not yet been enrolled.
     """
     params = {
         "guid": guid,
