@@ -86,6 +86,9 @@ def add_user_request(request_id, user_guid, permissions):
     if added_permissions:
         user_request.add_permissions([capability.value for capability in added_permissions])
 
+    request = Requests.query.filter_by(id=request_id).one()
+    request.es_update()
+
     create_user_request_event(event_type.USER_ADDED, user_request)
 
 
@@ -195,6 +198,9 @@ def remove_user_request(request_id, user_guid):
 
     create_user_request_event(event_type.USER_REMOVED, user_request)
     delete_object(user_request)
+
+    request = Requests.query.filter_by(id=request_id).one()
+    request.es_update()
 
 
 def create_user_request_event(events_type, user_request, old_permissions=None, user=current_user):
