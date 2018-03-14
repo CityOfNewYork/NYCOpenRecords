@@ -12,7 +12,10 @@ $(function() {
         searchBtn = $("#search"),
         dateReq = $("#date-req"),
         noResultsFound = true,
-        generateDocBtn = $("#generate-document");
+        generateDocBtn = $("#generate-document"),
+        agencySelect = $("#agency_ein"),
+        agencyUserDiv = $("#agency-user-div"),
+        agencyUserSelect = $("#agency_user");
 
     // Date stuff
     function elemToDate(elem) {
@@ -326,10 +329,41 @@ $(function() {
     $("#size").change(function () {
         resetAndSearch();
     });
-    $("#agency_ein").change(function () {
+    agencySelect.change(function () {
+        agencyUserSelect.empty();
+
         resetAndSearch();
+        if (agencySelect.val()) {
+            agencySelect.val() && $.ajax({
+                url: "/agency/api/v1.0/active_users/" + agencySelect.val(),
+                statusCode: {
+                    404: function () {
+                        agencyUserDiv.hide();
+                    }
+                },
+                success: function (data) {
+                    // Populate users
+                    for (var i = 0; i < (data.active_users).length; ++i) {
+                        var opt = document.createElement("option");
+                        opt.innerHTML = data.active_users[i][1];
+                        opt.value = data.active_users[i][0];
+                        agencyUserSelect.append(opt);
+                    }
+
+                    // Set selected value for standard agency users
+                    if (!data.is_admin) {
+                        agencyUserSelect.val(data.active_users[1][0]);
+                    }
+
+                    agencyUserDiv.show();
+                }
+            })
+        }
+        else {
+            agencyUserDiv.is(":visible") && agencyUserDiv.hide();
+        }
     });
-    $("#agency_user").change(function () {
+    agencyUserSelect.change(function () {
         resetAndSearch();
     });
     next.click(function () {

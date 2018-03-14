@@ -274,7 +274,7 @@ class SearchRequestsForm(Form):
             if current_user.is_agency_admin():
                 self.agency_user.choices = [
                     (user.guid, user.name)
-                    for user in current_user.default_agency.standard_users
+                    for user in current_user.default_agency.active_users
                 ]
 
             if current_user.is_agency_active() and not current_user.is_agency_admin():
