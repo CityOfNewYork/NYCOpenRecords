@@ -12,4 +12,3 @@ TOU_ENDPOINT = "/account/user/termsOfUse.htm"
 TOU_STATUS_ENDPOINT = "/account/api/isTermsOfUseCurrent.htm"
 
 ENROLLMENT_ENDPOINT = "/account/api/enrollment.htm"
-ENROLLMENT_STATUS_ENDPOINT = "/account/api/getEnrollment.htm"
