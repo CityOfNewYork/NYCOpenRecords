@@ -60,6 +60,7 @@ def user_loader(user_id):
     user_id = user_id.split(USER_ID_DELIMITER)
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
 
+
 def update_openrecords_user(form):
     """
     Update OpenRecords-specific user attributes.
@@ -366,8 +367,8 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
     :return: redirect url or None
     """
     if user_type == user_type_auth.PUBLIC_USER_NYC_ID and (
-                    email_validation_flag is not None and
-                    email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
+            email_validation_flag is not None and
+            email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
             EMAIL_VALIDATION_STATUS_ENDPOINT,
             {"guid": guid}

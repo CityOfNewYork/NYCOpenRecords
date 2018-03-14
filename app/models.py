@@ -10,12 +10,23 @@ from urllib.parse import urljoin
 from warnings import warn
 
 from flask import current_app, session
-from flask_login import UserMixin, AnonymousUserMixin
+from flask_login import (
+    UserMixin,
+    AnonymousUserMixin
+)
 from sqlalchemy import desc
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.dialects.postgresql import (
+    ARRAY,
+    JSONB
+)
+from sqlalchemy.orm.exc import MultipleResultsFound
 
-from app import db, es, calendar, sentry
+from app import (
+    db,
+    es,
+    calendar,
+    sentry
+)
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
@@ -64,75 +75,75 @@ class Roles(db.Model):
                 permission.ADD_NOTE
             ),
             role_name.AGENCY_HELPER: (
-                permission.ADD_NOTE |
-                permission.ADD_FILE |
-                permission.ADD_LINK |
-                permission.ADD_OFFLINE_INSTRUCTIONS
+                    permission.ADD_NOTE |
+                    permission.ADD_FILE |
+                    permission.ADD_LINK |
+                    permission.ADD_OFFLINE_INSTRUCTIONS
             ),
             role_name.AGENCY_OFFICER: (
-                permission.ACKNOWLEDGE |
-                permission.DENY |
-                permission.EXTEND |
-                permission.CLOSE |
-                permission.RE_OPEN |
-                permission.ADD_NOTE |
-                permission.ADD_FILE |
-                permission.ADD_LINK |
-                permission.ADD_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_NOTE |
-                permission.EDIT_NOTE_PRIVACY |
-                permission.EDIT_FILE |
-                permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_LINK |
-                permission.EDIT_LINK_PRIVACY |
-                permission.EDIT_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
-                permission.EDIT_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_FILE_PRIVACY |
-                permission.DELETE_NOTE |
-                permission.DELETE_FILE |
-                permission.DELETE_LINK |
-                permission.DELETE_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_TITLE |
-                permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_REQUEST_SUMMARY |
-                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
-                permission.EDIT_REQUESTER_INFO
+                    permission.ACKNOWLEDGE |
+                    permission.DENY |
+                    permission.EXTEND |
+                    permission.CLOSE |
+                    permission.RE_OPEN |
+                    permission.ADD_NOTE |
+                    permission.ADD_FILE |
+                    permission.ADD_LINK |
+                    permission.ADD_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_NOTE |
+                    permission.EDIT_NOTE_PRIVACY |
+                    permission.EDIT_FILE |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.EDIT_LINK |
+                    permission.EDIT_LINK_PRIVACY |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.DELETE_NOTE |
+                    permission.DELETE_FILE |
+                    permission.DELETE_LINK |
+                    permission.DELETE_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_TITLE |
+                    permission.CHANGE_PRIVACY_TITLE |
+                    permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                    permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
+                    permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
-                permission.ACKNOWLEDGE |
-                permission.DENY |
-                permission.EXTEND |
-                permission.CLOSE |
-                permission.RE_OPEN |
-                permission.ADD_NOTE |
-                permission.ADD_FILE |
-                permission.ADD_LINK |
-                permission.ADD_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_NOTE |
-                permission.EDIT_NOTE_PRIVACY |
-                permission.EDIT_FILE |
-                permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_LINK |
-                permission.EDIT_LINK_PRIVACY |
-                permission.EDIT_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
-                permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_TITLE |
-                permission.DELETE_NOTE |
-                permission.DELETE_FILE |
-                permission.DELETE_LINK |
-                permission.DELETE_OFFLINE_INSTRUCTIONS |
-                permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_REQUEST_SUMMARY |
-                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
-                permission.ADD_USER_TO_REQUEST |
-                permission.REMOVE_USER_FROM_REQUEST |
-                permission.EDIT_USER_REQUEST_PERMISSIONS |
-                permission.ADD_USER_TO_AGENCY |
-                permission.REMOVE_USER_FROM_AGENCY |
-                permission.CHANGE_USER_ADMIN_PRIVILEGE |
-                permission.EDIT_REQUESTER_INFO
+                    permission.ACKNOWLEDGE |
+                    permission.DENY |
+                    permission.EXTEND |
+                    permission.CLOSE |
+                    permission.RE_OPEN |
+                    permission.ADD_NOTE |
+                    permission.ADD_FILE |
+                    permission.ADD_LINK |
+                    permission.ADD_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_NOTE |
+                    permission.EDIT_NOTE_PRIVACY |
+                    permission.EDIT_FILE |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.EDIT_LINK |
+                    permission.EDIT_LINK_PRIVACY |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.EDIT_TITLE |
+                    permission.DELETE_NOTE |
+                    permission.DELETE_FILE |
+                    permission.DELETE_LINK |
+                    permission.DELETE_OFFLINE_INSTRUCTIONS |
+                    permission.CHANGE_PRIVACY_TITLE |
+                    permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                    permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
+                    permission.ADD_USER_TO_REQUEST |
+                    permission.REMOVE_USER_FROM_REQUEST |
+                    permission.EDIT_USER_REQUEST_PERMISSIONS |
+                    permission.ADD_USER_TO_AGENCY |
+                    permission.REMOVE_USER_FROM_AGENCY |
+                    permission.CHANGE_USER_ADMIN_PRIVILEGE |
+                    permission.EDIT_REQUESTER_INFO
             )
         }
 
@@ -800,7 +811,8 @@ class Requests(db.Model):
 
     @property
     def was_acknowledged(self):
-        if self.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none() is not None:
+        if self.responses.join(Determinations).filter(
+                Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none() is not None:
             return True
         return False
 
@@ -1609,3 +1621,27 @@ class Emails(Responses):
             'privacy': self.privacy,
             'body': self.body,
         }
+
+
+class Letters(Responses):
+    """
+    Define a Letters class with the followinig columns and relationships:
+
+    id - an integer that is the primary key of Letters
+    content - A string containing the content of a letter (HTML Formatted)
+    """
+    __tablename__ = response_type.LETTER
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    content = db.Column(db.String)
+
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 content,
+                 date_modified=None,
+                 is_editable=False):
+        super(Letters, self).__init__(request_id,
+                                      privacy,
+                                      date_modified,
+                                      is_editable)
+        self.content = content
