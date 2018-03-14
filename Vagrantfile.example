@@ -13,6 +13,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
     vb.memory = "4096"
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end
 
   if ENV['http_proxy']
