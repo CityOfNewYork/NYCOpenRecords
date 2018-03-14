@@ -8,20 +8,20 @@
     </div>
 
     {% if current_user.is_agency %}
-        <div class="col-md-6 text-right">
+        <div class="col-md-5 text-right">
             {{ moment(response.date_modified).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
         <div class="row">
             <div class="col-md-10 metadata-preview">
                 {% if show_preview and response.preview is not none %}
-                    {{ response.preview }}
+                    {{ response.preview | safe}}
                 {% endif %}
             </div>
         </div>
     {% else %}
         <div class="col-md-6 metadata-preview">
             {% if show_preview and response.preview is not none %}
-                {{ response.preview }}
+                {{ response.preview | safe}}
             {% endif %}
         </div>
         <div class="col-md-3">
