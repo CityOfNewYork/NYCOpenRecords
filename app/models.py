@@ -274,7 +274,7 @@ class Agencies(db.Model):
             data = json.load(data)
 
             if not validate_schema(data, AGENCIES_SCHEMA):
-                warn("Invalid JSON Data", category=UserWarning)
+                warn("Invalid JSON Data. Not importing any agencies.", category=UserWarning)
                 return False
 
             for agency in data['agencies']:
