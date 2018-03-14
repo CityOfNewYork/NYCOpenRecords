@@ -281,8 +281,6 @@ class Agencies(db.Model):
                 if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
                     warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
                     continue
-                import ipdb
-                ipdb.set_trace()
                 a = cls(
                     ein=agency['ein'],
                     parent_ein=agency['parent_ein'],
