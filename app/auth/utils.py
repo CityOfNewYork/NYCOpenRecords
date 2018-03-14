@@ -428,19 +428,13 @@ def _enroll(guid, user_type):
         "guid": guid,
         "userType": user_type
     }
-    response = _web_services_request(
-        ENROLLMENT_STATUS_ENDPOINT,
-        params.copy()  # signature regenerated
-    )
-    _check_web_services_response(response, error_msg.ENROLLMENT_STATUS_CHECK_FAILURE)
-    if response.status_code != 200 or not response.json():  # empty json = no enrollment record
-        _check_web_services_response(
-            _web_services_request(
-                ENROLLMENT_ENDPOINT,
-                params,
-                method='PUT'
-            ),
-            error_msg.ENROLLMENT_FAILURE)
+    _check_web_services_response(
+        _web_services_request(
+            ENROLLMENT_ENDPOINT,
+            params,
+            method='PUT'
+        ),
+        error_msg.ENROLLMENT_FAILURE)
 
 
 def _unenroll(guid, user_type):
