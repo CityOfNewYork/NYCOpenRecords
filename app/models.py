@@ -5,6 +5,7 @@ import csv
 from datetime import datetime
 from operator import ior
 from functools import reduce
+import json
 from uuid import uuid4
 from urllib.parse import urljoin
 from warnings import warn
@@ -16,6 +17,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from app import db, es, calendar, sentry
+from app.constants.schemas import AGENCIES_SCHEMA
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
@@ -32,6 +34,7 @@ from app.constants import (
     event_type,
 )
 from app.lib.utils import eval_request_bool, DuplicateFileException
+from app.lib.json_schema import validate_schema
 
 
 class Roles(db.Model):
@@ -64,75 +67,75 @@ class Roles(db.Model):
                 permission.ADD_NOTE
             ),
             role_name.AGENCY_HELPER: (
-                permission.ADD_NOTE |
-                permission.ADD_FILE |
-                permission.ADD_LINK |
-                permission.ADD_OFFLINE_INSTRUCTIONS
+                    permission.ADD_NOTE |
+                    permission.ADD_FILE |
+                    permission.ADD_LINK |
+                    permission.ADD_OFFLINE_INSTRUCTIONS
             ),
             role_name.AGENCY_OFFICER: (
-                permission.ACKNOWLEDGE |
-                permission.DENY |
-                permission.EXTEND |
-                permission.CLOSE |
-                permission.RE_OPEN |
-                permission.ADD_NOTE |
-                permission.ADD_FILE |
-                permission.ADD_LINK |
-                permission.ADD_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_NOTE |
-                permission.EDIT_NOTE_PRIVACY |
-                permission.EDIT_FILE |
-                permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_LINK |
-                permission.EDIT_LINK_PRIVACY |
-                permission.EDIT_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
-                permission.EDIT_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_FILE_PRIVACY |
-                permission.DELETE_NOTE |
-                permission.DELETE_FILE |
-                permission.DELETE_LINK |
-                permission.DELETE_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_TITLE |
-                permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_REQUEST_SUMMARY |
-                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
-                permission.EDIT_REQUESTER_INFO
+                    permission.ACKNOWLEDGE |
+                    permission.DENY |
+                    permission.EXTEND |
+                    permission.CLOSE |
+                    permission.RE_OPEN |
+                    permission.ADD_NOTE |
+                    permission.ADD_FILE |
+                    permission.ADD_LINK |
+                    permission.ADD_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_NOTE |
+                    permission.EDIT_NOTE_PRIVACY |
+                    permission.EDIT_FILE |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.EDIT_LINK |
+                    permission.EDIT_LINK_PRIVACY |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.DELETE_NOTE |
+                    permission.DELETE_FILE |
+                    permission.DELETE_LINK |
+                    permission.DELETE_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_TITLE |
+                    permission.CHANGE_PRIVACY_TITLE |
+                    permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                    permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
+                    permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
-                permission.ACKNOWLEDGE |
-                permission.DENY |
-                permission.EXTEND |
-                permission.CLOSE |
-                permission.RE_OPEN |
-                permission.ADD_NOTE |
-                permission.ADD_FILE |
-                permission.ADD_LINK |
-                permission.ADD_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_NOTE |
-                permission.EDIT_NOTE_PRIVACY |
-                permission.EDIT_FILE |
-                permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_LINK |
-                permission.EDIT_LINK_PRIVACY |
-                permission.EDIT_OFFLINE_INSTRUCTIONS |
-                permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
-                permission.EDIT_FILE_PRIVACY |
-                permission.EDIT_TITLE |
-                permission.DELETE_NOTE |
-                permission.DELETE_FILE |
-                permission.DELETE_LINK |
-                permission.DELETE_OFFLINE_INSTRUCTIONS |
-                permission.CHANGE_PRIVACY_TITLE |
-                permission.EDIT_AGENCY_REQUEST_SUMMARY |
-                permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
-                permission.ADD_USER_TO_REQUEST |
-                permission.REMOVE_USER_FROM_REQUEST |
-                permission.EDIT_USER_REQUEST_PERMISSIONS |
-                permission.ADD_USER_TO_AGENCY |
-                permission.REMOVE_USER_FROM_AGENCY |
-                permission.CHANGE_USER_ADMIN_PRIVILEGE |
-                permission.EDIT_REQUESTER_INFO
+                    permission.ACKNOWLEDGE |
+                    permission.DENY |
+                    permission.EXTEND |
+                    permission.CLOSE |
+                    permission.RE_OPEN |
+                    permission.ADD_NOTE |
+                    permission.ADD_FILE |
+                    permission.ADD_LINK |
+                    permission.ADD_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_NOTE |
+                    permission.EDIT_NOTE_PRIVACY |
+                    permission.EDIT_FILE |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.EDIT_LINK |
+                    permission.EDIT_LINK_PRIVACY |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS |
+                    permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
+                    permission.EDIT_FILE_PRIVACY |
+                    permission.EDIT_TITLE |
+                    permission.DELETE_NOTE |
+                    permission.DELETE_FILE |
+                    permission.DELETE_LINK |
+                    permission.DELETE_OFFLINE_INSTRUCTIONS |
+                    permission.CHANGE_PRIVACY_TITLE |
+                    permission.EDIT_AGENCY_REQUEST_SUMMARY |
+                    permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
+                    permission.ADD_USER_TO_REQUEST |
+                    permission.REMOVE_USER_FROM_REQUEST |
+                    permission.EDIT_USER_REQUEST_PERMISSIONS |
+                    permission.ADD_USER_TO_AGENCY |
+                    permission.REMOVE_USER_FROM_AGENCY |
+                    permission.CHANGE_USER_ADMIN_PRIVILEGE |
+                    permission.EDIT_REQUESTER_INFO
             )
         }
 
@@ -262,29 +265,35 @@ class Agencies(db.Model):
         self._name = value
 
     @classmethod
-    def populate(cls, csv_name=None):
+    def populate(cls, json_name=None):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        filename = csv_name or current_app.config['AGENCY_DATA']
+        filename = json_name or current_app.config['AGENCY_DATA']
         with open(filename, 'r') as data:
-            dictreader = csv.DictReader(data)
-            for row in dictreader:
-                if Agencies.query.filter_by(ein=row['ein']).first() is not None:
+            data = json.load(data)
+
+            if not validate_schema(data, AGENCIES_SCHEMA):
+                warn("Invalid JSON Data. Not importing any agencies.", category=UserWarning)
+                return False
+
+            for agency in data['agencies']:
+                if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
                     warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
                     continue
-                agency = cls(
-                    ein=row['ein'],
-                    parent_ein=row['parent_ein'],
-                    categories=row['categories'].split(','),
-                    name=row['name'],
-                    acronym=row['acronym'],
-                    next_request_number=row['next_request_number'],
-                    default_email=row['default_email'],
-                    appeals_email=row['appeals_email'],
-                    is_active=eval(row['is_active'])
+                a = cls(
+                    ein=agency['ein'],
+                    parent_ein=agency['parent_ein'],
+                    categories=agency['categories'],
+                    name=agency['name'],
+                    acronym=agency['acronym'],
+                    next_request_number=agency['next_request_number'],
+                    default_email=agency['default_email'],
+                    appeals_email=agency['appeals_email'],
+                    is_active=agency['is_active'],
+                    agency_features=agency['agency_features']
                 )
-                db.session.add(agency)
+                db.session.add(a)
             db.session.commit()
 
     def __repr__(self):
@@ -800,7 +809,8 @@ class Requests(db.Model):
 
     @property
     def was_acknowledged(self):
-        if self.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none() is not None:
+        if self.responses.join(Determinations).filter(
+                Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none() is not None:
             return True
         return False
 

@@ -1,0 +1,1 @@
+AGENCIES_SCHEMA = 'agencies'
