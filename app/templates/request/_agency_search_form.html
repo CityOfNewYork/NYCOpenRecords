@@ -116,11 +116,13 @@
     {{ form.agency_ein(class="input-block-level") }}
     <br>
 
-    <div id="agency-user-div">
-        <h4>{{ form.agency_user.label }}</h4>
-        {{ form.agency_user(class="input-block-level") }}
-        <br>
-    </div>
+    {% if current_user.is_agency_active() %}
+        <div id="agency-user-div">
+            <h4>{{ form.agency_user.label }}</h4>
+            {{ form.agency_user(class="input-block-level") }}
+            <br>
+        </div>
+    {% endif %}
 
     <h4><label>Status</label>
         <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"

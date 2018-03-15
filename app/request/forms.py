@@ -276,14 +276,14 @@ class SearchRequestsForm(Form):
                     (user.guid, user.name)
                     for user in current_user.default_agency.active_users
                 ]
+                self.agency_user.choices.insert(0, ('', 'All'))
 
             if current_user.is_agency_active() and not current_user.is_agency_admin():
                 self.agency_user.choices = [
+                    ('', 'All'),
                     (current_user.guid, 'My Requests')
                 ]
                 self.agency_user.default = current_user.guid
-
-            self.agency_user.choices.insert(0, ('', 'All'))
 
             # process form for default values
             self.process()

@@ -332,9 +332,8 @@ $(function() {
     agencySelect.change(function () {
         agencyUserSelect.empty();
 
-        resetAndSearch();
         if (agencySelect.val()) {
-            agencySelect.val() && $.ajax({
+            $.ajax({
                 url: "/agency/api/v1.0/active_users/" + agencySelect.val(),
                 statusCode: {
                     404: function () {
@@ -356,11 +355,16 @@ $(function() {
                     }
 
                     agencyUserDiv.show();
+                },
+                // search after ajax call is complete so default value for standard user is selected
+                complete: function() {
+                    resetAndSearch();
                 }
             })
         }
         else {
             agencyUserDiv.is(":visible") && agencyUserDiv.hide();
+            resetAndSearch();
         }
     });
     agencyUserSelect.change(function () {
