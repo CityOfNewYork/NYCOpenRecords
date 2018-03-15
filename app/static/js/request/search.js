@@ -336,18 +336,15 @@ $(function() {
             $.ajax({
                 url: "/agency/api/v1.0/active_users/" + agencySelect.val(),
                 statusCode: {
-                    404: function () {
+                    404() {
                         agencyUserDiv.hide();
                     }
                 },
                 success: function (data) {
                     // Populate users
-                    for (var i = 0; i < (data.active_users).length; ++i) {
-                        var opt = document.createElement("option");
-                        opt.innerHTML = data.active_users[i][1];
-                        opt.value = data.active_users[i][0];
-                        agencyUserSelect.append(opt);
-                    }
+                    $.each(data.active_users ,function() {
+                        agencyUserSelect.append($("<option />").val(this[0]).text(this[1]));
+                    });
 
                     // Set selected value for standard agency users
                     if (!data.is_admin) {
@@ -357,10 +354,10 @@ $(function() {
                     agencyUserDiv.show();
                 },
                 // search after ajax call is complete so default value for standard user is selected
-                complete: function() {
+                complete() {
                     resetAndSearch();
                 }
-            })
+            });
         }
         else {
             agencyUserDiv.is(":visible") && agencyUserDiv.hide();
