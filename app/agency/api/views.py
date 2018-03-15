@@ -9,9 +9,12 @@ from app.models import Agencies
 @login_required
 def get_active_users(agency_ein):
     """
+    Retrieve the active users for the specified agency.
 
-    :param agency_ein:
-    :return:
+    :param agency_ein: Agency EIN (String)
+
+    :return: JSON Object({"active_users": [('', 'All'), ('o8pj0k', 'John Doe')],
+                          "is_admin": True}), 200
     """
     if current_user.is_agency_admin(agency_ein):
         active_users = sorted(
