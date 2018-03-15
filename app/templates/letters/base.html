@@ -1,0 +1,48 @@
+<html>
+<head>
+    <style>
+        @page {
+            size: letter portrait;
+            @frame header_frame { /* Static Frame */
+                -pdf-frame-content: header_content;
+                left: 50pt;
+                width: 512pt;
+                top: 50pt;
+                height: 100pt;
+            }
+            @frame content_frame {
+                /* Content Frame */
+                left: 50pt;
+                width: 512pt;
+                top: 100pt;
+                height: 600pt;
+            }
+            @frame footer_frame {
+                /* Another static Frame */
+                -pdf-frame-content:footer_content;
+                left: 50pt; width: 512pt; top: 700pt; height: 20pt;
+            }
+        }
+
+        .letterhead {
+            font-size: 12pt;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .content {
+            font-size: 12pt;
+            font-family: "Times New Roman", Times, serif;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Content for Static Frame 'header_frame' -->
+<div id="header_content" class="letterhead">{% if agency_letterhead %}{{ agency_letterhead | safe }}{% else %}Hello, World!{% endif %}</div>
+
+<!-- HTML Content -->
+<div id="content-frame" class="content">
+    <p>To PDF or not to PDF</p>
+</div>
+</body>
+</html>
