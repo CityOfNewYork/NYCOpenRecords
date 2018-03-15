@@ -30,18 +30,8 @@
           "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions",
           "type": "object",
           "title": "Specific Request Instructions",
-          "description": "Agencies can provide specific instructions to requestors who select their name from the agency dropdown on the FOIL request form. Agencies can choose to use a URL (with title), a file provided to the OpenRecords team, or a text block.",
+          "description": "Agencies can provide specific instructions to requesters who select their name from the agency dropdown on the FOIL request form. Agencies can choose to use a URL (with title), a file provided to the OpenRecords team, or a text block.",
           "anyOf": [
-            {
-              "required": [
-                "url"
-              ]
-            },
-            {
-              "required": [
-                "file"
-              ]
-            },
             {
               "required": [
                 "text"
@@ -49,58 +39,6 @@
             }
           ],
           "properties": {
-            "url": {
-              "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/url",
-              "type": "object",
-              "properties": {
-                "location": {
-                  "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/url/properties/location",
-                  "type": "string",
-                  "title": "URL Location",
-                  "default": "",
-                  "examples": [
-                    ""
-                  ]
-                },
-                "title": {
-                  "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/url/properties/title",
-                  "type": "string",
-                  "title": "URL Title",
-                  "description": "Title displayed to the user for the URL.",
-                  "default": "",
-                  "examples": [
-                    "NYPD FOIL Request Form (PDF)",
-                    "Government Publications Portal"
-                  ]
-                }
-              }
-            },
-            "file": {
-              "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/file",
-              "type": "object",
-              "properties": {
-                "path": {
-                  "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/file/properties/path",
-                  "type": "string",
-                  "title": "File Path",
-                  "description": "Local file path for the specified file. File must be stored in the 'static' folder to be served by OpenRecords.",
-                  "default": "",
-                  "examples": [
-                    "/static/files/nypd/foil_request_form.pdf"
-                  ]
-                },
-                "title": {
-                  "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/file/properties/title",
-                  "type": "string",
-                  "title": "File Title",
-                  "description": "Title displayed to identify a file.",
-                  "default": "",
-                  "examples": [
-                    "NYPD FOIL Request Form (PDF)"
-                  ]
-                }
-              }
-            },
             "text": {
               "$id": "/properties/agencies/items/properties/agency_features/properties/specific_request_instructions/properties/text",
               "type": "string",
