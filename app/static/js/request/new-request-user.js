@@ -38,11 +38,16 @@ $(document).ready(function () {
             url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
             type: "GET",
             success: function (data) {
-                requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                if (data["specific_request_instructions"]["url"]) {
-                    requestInstructionsContentDiv.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>");
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    if (data["specific_request_instructions"]["url"]["location"] !== "" && data["specific_request_instructions"]["url"]["location"]!== "") {
+                        requestInstructionsContentDiv.append("<br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"" + data["specific_request_instructions"]["url"]["location"] + "\">" + data["specific_request_instructions"]["url"]["title"] + "</a>");
+                    }
+                    requestInstructionsDiv.show();
                 }
-                requestInstructionsDiv.show();
+                else {
+                    requestInstructionsDiv.hide();
+                }
             },
             error: function () {
                 requestInstructionsDiv.hide();

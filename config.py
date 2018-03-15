@@ -137,7 +137,7 @@ class Config:
     # https://www.elastic.co/blog/index-vs-type
 
     SENTRY_DSN = os.environ.get('SENTRY_DSN')
-    USE_SENTRY = os.environ.get('USE_SENTRY') or False
+    USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
 
     @staticmethod
     def init_app(app):

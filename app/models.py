@@ -290,7 +290,8 @@ class Agencies(db.Model):
                     next_request_number=agency['next_request_number'],
                     default_email=agency['default_email'],
                     appeals_email=agency['appeals_email'],
-                    is_active=agency['is_active']
+                    is_active=agency['is_active'],
+                    agency_features=agency['agency_features']
                 )
                 db.session.add(a)
             db.session.commit()
