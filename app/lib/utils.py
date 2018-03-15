@@ -44,6 +44,18 @@ class DuplicateFileException(Exception):
         )
 
 
+class PDFCreationException(Exception):
+    def __init__(self, pisa_status):
+        """
+        Exception used when xhtml2pdf fails to create a PDF.
+
+        :param pisa_status: Status / Error message from xhtml2pdf (pisa)
+        """
+        super(PDFCreationException, self).__init__(
+            "Failed to create PDF: \n{}".format(pisa_status)
+        )
+
+
 def b64decode_lenient(data):
     """
     Decodes base64 (bytes or str), padding being optional.

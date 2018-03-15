@@ -87,3 +87,16 @@ def active():
     """
     session.modified = True
     return 'OK'
+
+
+@main.route('/test', methods=['GET'])
+def test():
+    from flask import send_file
+    from xhtml2pdf import pisa
+
+    with open('/tmp/test.pdf', 'w+b') as pdf:
+        status = pisa.CreatePDF(render_template('letters/base.html'), dest=pdf)
+
+        print(status)
+
+    return send_file('/tmp/test.pdf', as_attachment=True)
