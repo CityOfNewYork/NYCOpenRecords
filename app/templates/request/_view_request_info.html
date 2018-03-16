@@ -90,8 +90,8 @@
                     {% endif %}
                 </div>
             </div>
-            <br>
-            {% if current_user.is_agency %}
+            {% if current_user in request.agency_users %}
+                <br>
                 <div class="row">
                     <div class="request-label lead">This requester can be contacted by:</div>
                     <div class="lead">
