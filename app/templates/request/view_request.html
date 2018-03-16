@@ -36,6 +36,13 @@
 
             <!-- Action Button Column for Agency Users -->
             {% if current_user in request.agency_users %}
+                {% if not request.requester.email %}
+                    <div class="alert alert-danger col-md-12 no-email-alert" role="alert">
+                        <strong>Please be advised, this requester has not provided an email address and will
+                            not receive notifications regarding this request. Please use an alternate form of contact
+                            provided by the requester.</strong>
+                    </div>
+                {% endif %}
                 <div class="col-md-12"><h3>Actions</h3>
                     <div class="tabbable tabs-left" id="mobile-toggle">
                         <ul class="nav nav-tabs">
