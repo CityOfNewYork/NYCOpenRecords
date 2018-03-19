@@ -1229,7 +1229,8 @@ class Reasons(db.Model):
                     content=row['content'],
                     agency_ein=agency_ein
                 )
-                if not Reasons.query.filter_by(title=row['title'], content=row['content'], agency_ein=agency_ein).first():
+                if not Reasons.query.filter_by(title=row['title'], content=row['content'],
+                                               agency_ein=agency_ein).first():
                     db.session.add(reason)
             db.session.commit()
 
@@ -1637,7 +1638,7 @@ class Emails(Responses):
 
 class Letters(Responses):
     """
-    Define a Letters class with the followinig columns and relationships:
+    Define a Letters class with the following columns and relationships:
 
     id - an integer that is the primary key of Letters
     content - A string containing the content of a letter (HTML Formatted)
@@ -1657,3 +1658,7 @@ class Letters(Responses):
                                       date_modified,
                                       is_editable)
         self.content = content
+
+    @property
+    def preview(self):
+        return self.content
