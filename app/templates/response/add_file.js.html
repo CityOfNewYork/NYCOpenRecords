@@ -25,7 +25,6 @@
         addFile.attr('data-parsley-errors-container', '.fileupload-buttonbar');
 
 
-
         var is_private;
 
         // Handles click events on the first next button
@@ -73,13 +72,19 @@
 
             // Proceed with next click function if validation fields are valid and no files are uploading
             if (form.parsley().isValid() && (templateUpload.length === 0)) {
-                var filenames = first.find(".secured-name").map( function(){return $(this).text(); }).get();
-                var title = first.find(".title-field").map( function(){return $(this).val(); }).get();
-                var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
+                var filenames = first.find(".secured-name").map(function () {
+                    return $(this).text();
+                }).get();
+                var title = first.find(".title-field").map(function () {
+                    return $(this).val();
+                }).get();
+                var privacy = first.find(".file-privacy:checked").map(function () {
+                    return $(this).val();
+                }).get();
 
                 // Create an array (called files) of objects with keys of filename and privacy
                 var files = [];
-                for( var i = 0; i < filenames.length; i++ ) {
+                for (var i = 0; i < filenames.length; i++) {
                     var file = {};
                     file["filename"] = filenames[i];
                     file["title"] = title[i];
@@ -158,7 +163,7 @@
         });
 
         // Disable button on submit and handle email content
-        submit.click(function() {
+        submit.click(function () {
             submit.attr("disabled", true);
             var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
             hiddenEmailDiv.find(".file-links").html(randomString);
@@ -170,9 +175,9 @@
         });
 
         function getRandomString(length, chars) {
-                var string = '';
-                for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
-                return string;
+            var string = '';
+            for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
+            return string;
         }
 
         // Initialize tinymce HTML editor
@@ -185,7 +190,18 @@
             elementpath: false,
             convert_urls: false,
             height: 180,
-            plugins: ["noneditable","preventdelete"]
+            plugins: ["noneditable", "preventdelete"],
+            {#toolbar1: 'mybutton',#}
+            toolbar1: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent add_check |',
+            setup: function (editor) {
+                editor.addButton('add_check', {
+                    text: 'Add  ✔',
+                    icon: false,
+                    onclick: function () {
+                        editor.insertContent('&nbsp;&#10004;&nbsp;');
+                    }
+                });
+            }
         });
     });
 </script>

@@ -5,6 +5,7 @@ import csv
 from datetime import datetime
 from operator import ior
 from functools import reduce
+import json
 from uuid import uuid4
 from urllib.parse import urljoin
 from warnings import warn
@@ -27,7 +28,6 @@ from app import (
     calendar,
     sentry
 )
-from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants import (
     ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
@@ -42,7 +42,10 @@ from app.constants import (
     submission_methods,
     event_type,
 )
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
+from app.constants.schemas import AGENCIES_SCHEMA
 from app.lib.utils import eval_request_bool, DuplicateFileException
+from app.lib.json_schema import validate_schema
 
 
 class Roles(db.Model):
@@ -273,29 +276,35 @@ class Agencies(db.Model):
         self._name = value
 
     @classmethod
-    def populate(cls, csv_name=None):
+    def populate(cls, json_name=None):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        filename = csv_name or current_app.config['AGENCY_DATA']
+        filename = json_name or current_app.config['AGENCY_DATA']
         with open(filename, 'r') as data:
-            dictreader = csv.DictReader(data)
-            for row in dictreader:
-                if Agencies.query.filter_by(ein=row['ein']).first() is not None:
+            data = json.load(data)
+
+            if not validate_schema(data, AGENCIES_SCHEMA):
+                warn("Invalid JSON Data. Not importing any agencies.", category=UserWarning)
+                return False
+
+            for agency in data['agencies']:
+                if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
                     warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
                     continue
-                agency = cls(
-                    ein=row['ein'],
-                    parent_ein=row['parent_ein'],
-                    categories=row['categories'].split(','),
-                    name=row['name'],
-                    acronym=row['acronym'],
-                    next_request_number=row['next_request_number'],
-                    default_email=row['default_email'],
-                    appeals_email=row['appeals_email'],
-                    is_active=eval(row['is_active'])
+                a = cls(
+                    ein=agency['ein'],
+                    parent_ein=agency['parent_ein'],
+                    categories=agency['categories'],
+                    name=agency['name'],
+                    acronym=agency['acronym'],
+                    next_request_number=agency['next_request_number'],
+                    default_email=agency['default_email'],
+                    appeals_email=agency['appeals_email'],
+                    is_active=agency['is_active'],
+                    agency_features=agency['agency_features']
                 )
-                db.session.add(agency)
+                db.session.add(a)
             db.session.commit()
 
     def __repr__(self):
@@ -1213,12 +1222,15 @@ class Reasons(db.Model):
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
+                agency_ein = row['agency_ein'] if row['agency_ein'] else None
                 reason = cls(
                     type=row['type'],
                     title=row['title'],
-                    content=row['content']
+                    content=row['content'],
+                    agency_ein=agency_ein
                 )
-                db.session.add(reason)
+                if not Reasons.query.filter_by(title=row['title'], content=row['content'], agency_ein=agency_ein).first():
+                    db.session.add(reason)
             db.session.commit()
 
 
