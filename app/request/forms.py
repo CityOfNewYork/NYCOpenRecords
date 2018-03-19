@@ -31,7 +31,7 @@ from app.constants import (
     determination_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, Users
+from app.models import Reasons, Users, Letters
 
 
 class PublicUserRequestForm(Form):
@@ -241,6 +241,17 @@ class DenyRequestForm(FinishRequestForm):
 class CloseRequestForm(FinishRequestForm):
     reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
     ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
+
+
+class GenerateLetterForm(Form):
+    def __init__(self, agency_ein):
+        super(GenerateLetterForm, self).__init__()
+        self.letter_templates.choices = [
+            (letter.id, letter.title)
+            for letter in Letters.query.all()
+        ]
+        self.letter_templates.choices.insert(0, ('',''))
+    letter_templates = SelectField('Letter Templates')
 
 
 class SearchRequestsForm(Form):
