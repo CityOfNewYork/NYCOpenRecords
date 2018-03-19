@@ -25,11 +25,13 @@ ADD_FILE = 0x000000040
 ADD_LINK = 0x000000080
 ADD_OFFLINE_INSTRUCTIONS = 0x000000100
 ADD_NOTE = 0x000000200
+GENERATE_LETTER = 0x100000000
 ADD_RESPONSE_PERMISSIONS = frozenset((
     ADD_FILE,
     ADD_LINK,
     ADD_OFFLINE_INSTRUCTIONS,
     ADD_NOTE,
+    GENERATE_LETTER
 ))
 EDIT_FILE = 0x000000400
 EDIT_FILE_PRIVACY = 0x000000800
@@ -64,6 +66,7 @@ RESPONSE_PERMISSIONS = frozenset((
     ADD_LINK,
     ADD_OFFLINE_INSTRUCTIONS,
     ADD_NOTE,
+    GENERATE_LETTER,
     EDIT_FILE,
     EDIT_FILE_PRIVACY,
     EDIT_LINK,
@@ -122,6 +125,7 @@ ALL = [
     PermissionPair(ADD_LINK, "Add Links"),
     PermissionPair(ADD_OFFLINE_INSTRUCTIONS, "Add Offline Instructions"),
     PermissionPair(ADD_NOTE, "Add Notes"),
+    PermissionPair(GENERATE_LETTER, "Generate Letters")
     PermissionPair(EDIT_FILE, "Edit Files"),
     PermissionPair(EDIT_FILE_PRIVACY, "Change File Privacy"),
     PermissionPair(EDIT_LINK, "Edit Links"),
