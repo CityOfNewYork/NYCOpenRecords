@@ -131,6 +131,9 @@ def create_index():
                         "date_closed": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "assigned_users": {
+                            "type": "keyword"
                         }
                     }
                 }
