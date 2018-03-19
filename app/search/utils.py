@@ -175,7 +175,7 @@ def create_docs():
                 'agency_acronym': r.agency.acronym,
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
-                'assigned_users': [user.guid for user in r.agency_users]
+                'assigned_users': [user.get_id() for user in r.agency_users]
                 # public_agency_request_summary
             }
 
