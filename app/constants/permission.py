@@ -125,7 +125,7 @@ ALL = [
     PermissionPair(ADD_LINK, "Add Links"),
     PermissionPair(ADD_OFFLINE_INSTRUCTIONS, "Add Offline Instructions"),
     PermissionPair(ADD_NOTE, "Add Notes"),
-    PermissionPair(GENERATE_LETTER, "Generate Letters")
+    PermissionPair(GENERATE_LETTER, "Generate Letters"),
     PermissionPair(EDIT_FILE, "Edit Files"),
     PermissionPair(EDIT_FILE_PRIVACY, "Change File Privacy"),
     PermissionPair(EDIT_LINK, "Edit Links"),
