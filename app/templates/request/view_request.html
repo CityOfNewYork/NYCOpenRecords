@@ -57,13 +57,13 @@
                                         <li><a href="#deny-request" data-toggle="tab">Deny</a></li>
                                         <li>
                                     {% endif %}
-                                    {% if permissions['add_note'] %}
-                                        <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
-                                    {% endif %}
-                                {% else %}
-                                {% if permissions['add_file'] %}
-                                    <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
+                                {% if permissions['add_note'] %}
+                                    <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
                                 {% endif %}
+                                {% else %}
+                                    {% if permissions['add_file'] %}
+                                        <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
+                                    {% endif %}
                                     {% if permissions['add_link'] %}
                                         <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
                                     {% endif %}
@@ -217,6 +217,9 @@
     {% if current_user.is_agency %}
         <script type="text/javascript"
                 src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
+    {% endif %}
+    {% if current_user.is_authenticated %}
+        {% include 'request/view_request.js.html' %}
     {% endif %}
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
