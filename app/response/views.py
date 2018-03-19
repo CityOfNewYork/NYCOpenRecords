@@ -57,6 +57,7 @@ from app.response.utils import (
     process_upload_data,
     send_file_email,
     process_email_template_request,
+    process_letter_template_request,
     RespFileEditor,
     RespNoteEditor,
     RespInstructionsEditor,
@@ -627,3 +628,33 @@ def get_response_content(response_id):
                         next_url=url_for('request.view', request_id=response_.request_id)
                     ))
     return abort(404)  # file does not exist
+
+
+@response.route('/letter', methods=['POST'])
+def response_generate_letter():
+    """
+    Return letter template for the generate letter workflow step.
+
+    Request Parameters:
+    - request_id: FOIL request ID
+    - agency_ein: Agency ID (for the specified request)
+    - letter_template_id: Letter Template unique identifier
+
+    Ex:
+    {
+        "request_id": "FOIL-XXX",
+        "letter_template_id": 10
+    }
+
+    :return: the json response and HTTP status code
+    Ex1:
+    {
+        "template": HTML rendered letter template,
+        "header": "The following letter will be generated as a PDF:"
+    }
+    """
+    data = flask_request.form
+    request_id = data['request_id']
+
+    return process_letter_template_request(request_id, data)
+

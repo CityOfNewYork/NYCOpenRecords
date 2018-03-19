@@ -111,7 +111,7 @@
 
 
                                     {% if permissions['generate_letter'] %}
-                                        <div class="tab-pane active" id="generate-letter">
+                                        <div class="tab-pane" id="generate-letter">
                                             {% include "response/generate_letter.html" %}
                                         </div>
                                     {% endif %}
@@ -294,7 +294,7 @@
     {% if permissions['remove_user'] %}
         {% include 'response/remove_user_request.js.html' %}
     {% endif %}
-    {% if agency_has_generate_letter and permissions['generate_letter'] %}
+    {% if agency_has_generate_letters and permissions['generate_letter'] %}
         {% include 'response/generate_letter.js.html' %}
     {% endif %}
     <script type="text/javascript"

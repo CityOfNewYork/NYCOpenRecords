@@ -15,14 +15,13 @@
             <div class="first">
                 <div class="form-group">
                     {{ generate_letter_form.letter_templates.label }}<br>
-                    {{ generate_letter_form.letter_templates(id="letter-templates-ids",
-                                                 class="disable-enter-submit form-control",
-                                                 size=10) | safe }}
+                    {{ generate_letter_form.letter_templates(id="letter-template-id",
+                                                 class="disable-enter-submit form-control") | safe }}
                 </div>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="second" hidden>
-                <h4>Edit Email Body</h4>
+                <h4>Edit Letter Body</h4>
                 <div class="form-group">
                     <div class="letter-content-hidden" hidden></div>
                     <textarea title="letter-body" name="letter-body"

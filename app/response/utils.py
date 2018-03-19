@@ -71,6 +71,7 @@ from app.models import (
     Emails,
     ResponseTokens,
     Users,
+    LetterTemplates
 )
 from app.request.api.utils import create_request_info_event
 
@@ -132,7 +133,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the note
     :param is_editable: editability of the note
-    :param is_requester: requester is creator of the note  
+    :param is_requester: requester is creator of the note
 
     """
     response = Notes(request_id, privacy, note_content, is_editable=is_editable)
@@ -551,6 +552,18 @@ def process_upload_data(form):
             if re_obj.match(form_key):
                 files[key][form_key.split(key + '::')[1]] = form[form_key]
     return files
+
+
+def process_letter_template_request(request_id, data):
+    """
+    Process the letter template for the request.
+
+    Generate a letter based on the template from the agency. Will include any headers and signatures (non-editable).
+    :param request_id: FOIL Request ID
+    :param data: Data from the frontend AJAX call (JSON)
+    :return: the HTML of the rendered template
+    """
+    pass
 
 
 def process_email_template_request(request_id, data):

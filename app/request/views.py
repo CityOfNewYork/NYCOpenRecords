@@ -45,6 +45,7 @@ from app.request.forms import (
     AnonymousRequestForm,
     EditRequesterForm,
     DenyRequestForm,
+    GenerateLetterForm,
     SearchRequestsForm,
     CloseRequestForm,
     ContactAgencyForm
@@ -236,6 +237,7 @@ def view(request_id):
         'add_instructions': permission.ADD_OFFLINE_INSTRUCTIONS,
         'edit_instructions_privacy': permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY,
         'delete_instructions': permission.DELETE_OFFLINE_INSTRUCTIONS,
+        'generate_letter': permission.GENERATE_LETTER,
         'add_user': permission.ADD_USER_TO_REQUEST,
         'edit_user': permission.EDIT_USER_REQUEST_PERMISSIONS,
         'remove_user': permission.REMOVE_USER_FROM_REQUEST,
@@ -246,6 +248,7 @@ def view(request_id):
         'edit_requester_info': permission.EDIT_REQUESTER_INFO
     }
 
+    # Build permissions dictionary for checking on the front-end.
     for key, val in permissions.items():
         if current_user.is_anonymous or not current_request.user_requests.filter_by(
                 user_guid=current_user.guid, auth_user_type=current_user.auth_user_type).first():
@@ -253,28 +256,38 @@ def view(request_id):
         else:
             permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
 
+    # Build dictionary of current permissions for all assigned users.
     assigned_user_permissions = {}
     for u in assigned_users:
         assigned_user_permissions[u.guid] = UserRequests.query.filter_by(
             request_id=request_id, user_guid=u.guid).one().get_permission_choice_indices()
 
+    # Determine if the Agency Request Summary should be shown.
     show_agency_request_summary = False
     if (
-        current_user in current_request.agency_users or (current_request.agency_request_summary and ((
-            current_request.requester == current_user and
-            current_request.status == request_status.CLOSED and not
-            current_request.privacy['agency_request_summary']
-        ) or (
-            current_request.status == request_status.CLOSED and
-            current_request.agency_request_summary_release_date and
-            current_request.agency_request_summary_release_date < datetime.utcnow() and not
-            current_request.privacy['agency_request_summary']
-        )))
+            current_user in current_request.agency_users or (current_request.agency_request_summary and ((
+                                                                                                                 current_request.requester == current_user and
+                                                                                                                 current_request.status == request_status.CLOSED and not
+                                                                                                                 current_request.privacy[
+                                                                                                                     'agency_request_summary']
+                                                                                                         ) or (
+                                                                                                                 current_request.status == request_status.CLOSED and
+                                                                                                                 current_request.agency_request_summary_release_date and
+                                                                                                                 current_request.agency_request_summary_release_date < datetime.utcnow() and not
+                                                                                                                 current_request.privacy[
+                                                                                                                     'agency_request_summary']
+                                                                                                         )))
     ):
         show_agency_request_summary = True
+
+    # Determine if the title should be shown.
     show_title = (current_user in current_request.agency_users or
                   current_request.requester == current_user or
                   not current_request.privacy['title'])
+
+    # Determine if "Generate Letter" functionality is enabled for the agency.
+    agency_has_generate_letters = current_request.agency.agency_features['letters']['generate_letters']
+
     return render_template(
         'request/view_request.html',
         request=current_request,
@@ -287,6 +300,7 @@ def view(request_id):
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         add_user_request_form=AddUserRequestForm(active_users),
         edit_user_request_form=EditUserRequestForm(assigned_users),
+        generate_letter_form=GenerateLetterForm(current_request.agency.ein),
         assigned_user_permissions=assigned_user_permissions,
         holidays=holidays,
         assigned_users=assigned_users,
@@ -295,7 +309,8 @@ def view(request_id):
         show_agency_request_summary=show_agency_request_summary,
         show_title=show_title,
         is_requester=(current_request.requester == current_user),
-        permissions_length=len(permission.ALL)
+        permissions_length=len(permission.ALL),
+        agency_has_generate_letters=agency_has_generate_letters
     )
 
 

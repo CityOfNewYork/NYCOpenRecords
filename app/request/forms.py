@@ -31,7 +31,7 @@ from app.constants import (
     determination_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, Users, Letters
+from app.models import Reasons, LetterTemplates
 
 
 class PublicUserRequestForm(Form):
@@ -248,7 +248,7 @@ class GenerateLetterForm(Form):
         super(GenerateLetterForm, self).__init__()
         self.letter_templates.choices = [
             (letter.id, letter.title)
-            for letter in Letters.query.all()
+            for letter in LetterTemplates.query.filter_by(agency_ein=agency_ein).all()
         ]
         self.letter_templates.choices.insert(0, ('',''))
     letter_templates = SelectField('Letter Templates')
