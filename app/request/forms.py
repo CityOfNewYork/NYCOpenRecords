@@ -24,6 +24,7 @@ from wtforms.validators import (
 )
 from sqlalchemy import or_
 
+from app.agency.api.utils import get_active_users_as_choices
 from app.constants import (
     CATEGORIES,
     STATES,
@@ -31,7 +32,7 @@ from app.constants import (
     determination_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, Users
+from app.models import Reasons
 
 
 class PublicUserRequestForm(Form):
@@ -272,11 +273,7 @@ class SearchRequestsForm(Form):
 
             # get choices for agency user select field
             if current_user.is_agency_admin():
-                self.agency_user.choices = [
-                    (user.guid, user.name)
-                    for user in current_user.default_agency.active_users
-                ]
-                self.agency_user.choices.insert(0, ('', 'All'))
+                self.agency_user.choices = get_active_users_as_choices(current_user.default_agency.ein)
 
             if current_user.is_agency_active() and not current_user.is_agency_admin():
                 self.agency_user.choices = [
