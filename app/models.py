@@ -93,6 +93,7 @@ class Roles(db.Model):
                     permission.ADD_FILE |
                     permission.ADD_LINK |
                     permission.ADD_OFFLINE_INSTRUCTIONS |
+                    permission.GENERATE_LETTER |
                     permission.EDIT_NOTE |
                     permission.EDIT_NOTE_PRIVACY |
                     permission.EDIT_FILE |
@@ -123,6 +124,7 @@ class Roles(db.Model):
                     permission.ADD_FILE |
                     permission.ADD_LINK |
                     permission.ADD_OFFLINE_INSTRUCTIONS |
+                    permission.GENERATE_LETTER |
                     permission.EDIT_NOTE |
                     permission.EDIT_NOTE_PRIVACY |
                     permission.EDIT_FILE |
