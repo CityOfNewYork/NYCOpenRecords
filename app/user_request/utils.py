@@ -86,6 +86,8 @@ def add_user_request(request_id, user_guid, permissions):
     if added_permissions:
         user_request.add_permissions([capability.value for capability in added_permissions])
 
+    user_request.request.es_update()
+
     create_user_request_event(event_type.USER_ADDED, user_request)
 
 
@@ -166,7 +168,8 @@ def remove_user_request(request_id, user_guid):
                                                 request_id=request_id).first()
     agency_admin_emails = get_agency_emails(request_id, admins_only=True)
 
-    agency_name = Requests.query.filter_by(id=request_id).one().agency.name
+    request = Requests.query.filter_by(id=request_id).one()
+    agency_name = request.agency.name
 
     # send email to agency administrators
     safely_send_and_add_email(
@@ -195,6 +198,8 @@ def remove_user_request(request_id, user_guid):
 
     create_user_request_event(event_type.USER_REMOVED, user_request)
     delete_object(user_request)
+
+    request.es_update()
 
 
 def create_user_request_event(events_type, user_request, old_permissions=None, user=current_user):

@@ -93,6 +93,7 @@ def requests():
         request.args.get('date_closed_from'),
         request.args.get('date_closed_to'),
         agency_ein,
+        request.args.get('agency_user'),
         eval_request_bool(request.args.get('open')),
         eval_request_bool(request.args.get('closed')),
         eval_request_bool(request.args.get('in_progress')) if current_user.is_agency else False,

@@ -254,10 +254,6 @@ def create_request(title,
     # 11. Create the elasticsearch request doc only if agency has been onboarded
     agency = Agencies.query.filter_by(ein=agency_ein).one()
 
-    # (Now that we can associate the request with its requester.)
-    if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
-        request.es_create()
-
     # 12. Add all agency administrators to the request.
     if agency.administrators:
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
@@ -279,6 +275,11 @@ def create_request(title,
                                          agency_admins=agency.parent.administrators,
                                          guid_for_event=guid_for_event,
                                          auth_type_for_event=auth_type_for_event)
+
+    # (Now that we can associate the request with its requester AND agency users.)
+    if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
+        request.es_create()
+
     return request_id
 
 
