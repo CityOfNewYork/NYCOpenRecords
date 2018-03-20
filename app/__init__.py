@@ -229,6 +229,9 @@ def create_app(config_name, jobs_enabled=True):
     from .agency import agency
     app.register_blueprint(agency, url_prefix="/agency")
 
+    from .agency.api import agency_api_blueprint
+    app.register_blueprint(agency_api_blueprint, url_prefix="/agency/api/v1.0")
+
     from .search import search
     app.register_blueprint(search, url_prefix="/search")
 

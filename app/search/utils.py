@@ -131,6 +131,9 @@ def create_index():
                         "date_closed": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
+                        },
+                        "assigned_users": {
+                            "type": "keyword"
                         }
                     }
                 }
@@ -172,6 +175,7 @@ def create_docs():
                 'agency_acronym': r.agency.acronym,
                 'agency_name': r.agency.name,
                 'public_title': 'Private' if r.privacy['title'] else r.title,
+                'assigned_users': [user.get_id() for user in r.agency_users]
                 # public_agency_request_summary
             }
 
@@ -211,6 +215,7 @@ def search_requests(query,
                     date_closed_from,
                     date_closed_to,
                     agency_ein,
+                    agency_user_guid,
                     open_,
                     closed,
                     in_progress,
@@ -245,6 +250,7 @@ def search_requests(query,
     :param date_closed_from: date closed from
     :param date_closed_to: date closed to
     :param agency_ein: agency ein to filter by
+    :param agency_user_guid: user (agency) guid to filter by
     :param open_: filter by opened requests?
     :param closed: filter by closed requests?
     :param in_progress: filter by in-progress requests?
@@ -353,7 +359,7 @@ def search_requests(query,
         'agency_request_summary': agency_request_summary,
         'requester_name': requester_name
     }
-    dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, match_type)
+    dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, agency_user_guid, match_type)
     if foil_id:
         dsl = dsl_gen.foil_id()
     else:
@@ -409,7 +415,8 @@ def search_requests(query,
                  'public_title',
                  'title',
                  'agency_request_summary',
-                 'description'],
+                 'description',
+                 'assigned_users'],
         size=result_set_size,
         from_=start,
         sort=sort,
@@ -425,7 +432,7 @@ def search_requests(query,
 class RequestsDSLGenerator(object):
     """ Class for generating dicts representing query dsl bodies for searching request docs. """
 
-    def __init__(self, query, query_fields, statuses, date_ranges, agency_ein, match_type):
+    def __init__(self, query, query_fields, statuses, date_ranges, agency_ein, agency_user_guid, match_type):
         self.__query = query
         self.__query_fields = query_fields
         self.__statuses = statuses
@@ -438,6 +445,10 @@ class RequestsDSLGenerator(object):
         if agency_ein:
             self.__default_filters.append({
                 'term': {'agency_ein': agency_ein}
+            })
+        if agency_user_guid:
+            self.__default_filters.append({
+                'term': {'assigned_users': agency_user_guid}
             })
 
         self.__filters = []

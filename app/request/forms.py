@@ -24,6 +24,7 @@ from wtforms.validators import (
 )
 from sqlalchemy import or_
 
+from app.agency.api.utils import get_active_users_as_choices
 from app.constants import (
     CATEGORIES,
     STATES,
@@ -31,7 +32,7 @@ from app.constants import (
     determination_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, LetterTemplates
+from app.models import Reasons
 
 
 class PublicUserRequestForm(Form):
@@ -256,6 +257,7 @@ class GenerateLetterForm(Form):
 
 class SearchRequestsForm(Form):
     agency_ein = SelectField('Agency')
+    agency_user = SelectField('User')
 
     # category = SelectField('Category', get_categories())
 
@@ -279,6 +281,19 @@ class SearchRequestsForm(Form):
             # set secondary agencies to be below the primary
             for agency in user_agencies:
                 self.agency_ein.choices.insert(2, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
+
+            # get choices for agency user select field
+            if current_user.is_agency_admin():
+                self.agency_user.choices = get_active_users_as_choices(current_user.default_agency.ein)
+
+            if current_user.is_agency_active() and not current_user.is_agency_admin():
+                self.agency_user.choices = [
+                    ('', 'All'),
+                    (current_user.guid, 'My Requests')
+                ]
+                self.agency_user.default = current_user.guid
+
+            # process form for default values
             self.process()
 
 

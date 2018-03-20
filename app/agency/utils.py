@@ -21,7 +21,8 @@ def update_agency_active_status(agency_ein, is_active):
     :param is_active: Boolean value for agency active status (True = Active)
     :return: Boolean value (True if successfully changed active status)
     """
-    is_valid_agency = Agencies.query.filter_by(ein=agency_ein).first() is not None
+    agency = Agencies.query.filter_by(ein=agency_ein).first()
+    is_valid_agency = agency is not None
 
     if is_active is not None and is_valid_agency:
         update_object(
@@ -39,6 +40,9 @@ def update_agency_active_status(agency_ein, is_active):
                 timestamp=datetime.utcnow()
             )
         )
+        # create request documents
+        for request in agency.requests:
+            request.es_create()
 
         return True
     return False
