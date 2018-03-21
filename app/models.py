@@ -1685,10 +1685,14 @@ class LetterTemplates(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.Enum(
         determination_type.ACKNOWLEDGMENT,
-        determination_type.REOPENING,
+        determination_type.EXTENSION,
         determination_type.CLOSING,
         determination_type.DENIAL,
         determination_type.REOPENING,
+        response_type.FILE,
+        response_type.INSTRUCTIONS,
+        response_type.LINK,
+        response_type.NOTE,
         name="letter_type"
     ), nullable=False)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
