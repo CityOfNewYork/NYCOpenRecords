@@ -6,7 +6,7 @@ import os
 import glob
 import smtplib
 import sys
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 # change these as appropriate for your platform/environment :
 USER = "postgres"
