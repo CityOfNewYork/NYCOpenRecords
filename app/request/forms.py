@@ -216,15 +216,19 @@ class EditRequesterForm(Form):
 class FinishRequestForm(Form):
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
-        self.reasons.choices = [
+        agency_reasons = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
                 Reasons.type.in_(self.ultimate_determination_type),
-                or_(
-                    Reasons.agency_ein == agency_ein,
-                    Reasons.agency_ein == None
-                )
+                Reasons.agency_ein == agency_ein
             )]
+        default_reasons = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type.in_(self.ultimate_determination_type),
+                Reasons.agency_ein == None
+            )]
+        self.reasons.choices = agency_reasons + default_reasons
 
     @property
     def reasons(self):
