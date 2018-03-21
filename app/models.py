@@ -1666,3 +1666,31 @@ class Letters(Responses):
     @property
     def preview(self):
         return self.content
+
+
+class LetterTemplates(db.Model):
+    """
+    Define the Reason class with the following columns and relationships:
+
+    id - an integer that is the primary key of a Reasons
+    type - an enum representing the type of determination this reason corresponds to
+    agency_ein - a foreign key that links to the a agency's primary key
+        if null, this reason applies to all agencies
+    content - a string describing the reason
+
+    Reason are based off the Law Department's responses.
+
+    """
+    __tablename__ = 'letter_templates'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.Enum(
+        determination_type.ACKNOWLEDGMENT,
+        determination_type.REOPENING,
+        determination_type.CLOSING,
+        determination_type.DENIAL,
+        determination_type.REOPENING,
+        name="letter_type"
+    ), nullable=False)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    title = db.Column(db.String, nullable=False)
+    content = db.Column(db.String, nullable=False)

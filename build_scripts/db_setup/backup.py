@@ -1,12 +1,12 @@
 #!python
 
-import time
+from time import localtime, strftime
 import subprocess
 import os
 import glob
 import smtplib
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 # change these as appropriate for your platform/environment :
 USER = "postgres"
@@ -17,17 +17,17 @@ BACKUP_DIR = "/backup/"
 dumper = """/opt/rh/rh-postgresql95/root/usr/bin/pg_dump -U %s -h 127.0.0.1 -Z 9 -f %s -F c %s  """
 
 sender = 'openrecords@records.nyc.gov'
-receivers = ['openrecords@records.nyc.gov']
+receivers = ['jocastillo@records.nyc.gov']
 
 email = """From: OpenRecords Backup Report <backup@records.nyc.go>
 To: OpenRecords Support Staff <openrecords@records.nyc.gov>
-Subject: OpenRecords Backup Report %s
+Subject: OpenRecords Backup Report %s - DEV
 
-""" % time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
+""" % strftime("%Y-%m-%d %H-%M-%S", localtime())
 
 
 def log(string):
-    return str(time.strftime("%Y-%m-%d %H-%M-%S", time.localtime()) + ": " + str(string) + "\n")
+    return str(strftime("%Y-%m-%d %H-%M-%S", localtime()) + ": " + str(string) + "\n")
 
 
 # Change the value in brackets to keep more/fewer files. time.time() returns seconds since 1970...
