@@ -264,20 +264,17 @@ def view(request_id):
 
     # Determine if the Agency Request Summary should be shown.
     show_agency_request_summary = False
-    if (
-            current_user in current_request.agency_users or (current_request.agency_request_summary and ((
-                                                                                                                 current_request.requester == current_user and
-                                                                                                                 current_request.status == request_status.CLOSED and not
-                                                                                                                 current_request.privacy[
-                                                                                                                     'agency_request_summary']
-                                                                                                         ) or (
-                                                                                                                 current_request.status == request_status.CLOSED and
-                                                                                                                 current_request.agency_request_summary_release_date and
-                                                                                                                 current_request.agency_request_summary_release_date < datetime.utcnow() and not
-                                                                                                                 current_request.privacy[
-                                                                                                                     'agency_request_summary']
-                                                                                                         )))
-    ):
+
+    if current_user in current_request.agency_users \
+            or current_request.agency_request_summary \
+            and (current_request.requester == current_user
+                 and current_request.status == request_status.CLOSED
+                 and not current_request.privacy['agency_request_summary']
+                 or current_request.status == request_status.CLOSED
+                 and current_request.agency_request_summary_release_date
+                 and current_request.agency_request_summary_release_date
+                 < datetime.utcnow()
+                 and not current_request.privacy['agency_request_summary']):
         show_agency_request_summary = True
 
     # Determine if the title should be shown.
@@ -300,7 +297,7 @@ def view(request_id):
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         add_user_request_form=AddUserRequestForm(active_users),
         edit_user_request_form=EditUserRequestForm(assigned_users),
-        generate_letter_form=GenerateAcknowledgmentLetterForm(current_request.agency.ein),
+        generate_acknowledgement_letter_form=GenerateAcknowledgmentLetterForm(current_request.agency.ein),
         assigned_user_permissions=assigned_user_permissions,
         holidays=holidays,
         assigned_users=assigned_users,
