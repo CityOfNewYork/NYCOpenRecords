@@ -25,6 +25,7 @@
         var email_info = second.find("#acknowledgment-email-info-text");
         var letter_div = second.find("#acknowledgment-letter");
         var letter_info = second.find("#letter-template-id");
+        var generate_letters_enabled = form.find("#generate-letters-enabled").val();
 
         // Parsley
         var required = [date, days, method];
@@ -63,6 +64,17 @@
                 second.find(".parsley-errors-list").children().remove();
             }
         });
+
+        // Reveal / Hide Letter Generation
+        if (generate_letters_enabled === "True") {
+            first.show();
+            second.hide();
+        } else {
+            first.hide();
+            second.show();
+            letter_div.hide();
+            prev2.hide();
+        }
 
         next1.click(function (e) {
             method.parsley().validate();

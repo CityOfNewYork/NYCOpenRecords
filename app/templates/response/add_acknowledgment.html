@@ -1,6 +1,7 @@
 <form id="add-acknowledgment" action="/response/acknowledgment/{{ request.id }}" method="POST">
 
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" id="generate-letters-enabled" name="generate_letters_enabled" value="{{ generate_letters_enabled }}" />
 
     <div class="col-sm-9">
         <fieldset>
@@ -13,7 +14,7 @@
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </legend>
-            <div class="first">
+            <div class="first" hidden>
                 <div class="form-group">
                     <label for="acknowledgment-method">Acknowledgment Method</label>
                     <select id="acknowledgment-method" name="method" class="disable-enter-submit form-control">
