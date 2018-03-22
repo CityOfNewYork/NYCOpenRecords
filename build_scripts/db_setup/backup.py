@@ -1,6 +1,7 @@
 #!python
 
 import time
+from time import localtime, strftime
 import subprocess
 import os
 import glob
