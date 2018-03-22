@@ -22,6 +22,7 @@ from flask import (
     current_app,
     request as flask_request,
     render_template,
+    render_template_string,
     url_for,
     jsonify,
     Markup
@@ -38,8 +39,9 @@ from app.constants import (
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     EMAIL_TEMPLATE_FOR_TYPE,
-    CONFIRMATION_HEADER_TO_REQUESTER,
-    CONFIRMATION_HEADER_TO_AGENCY
+    CONFIRMATION_EMAIL_HEADER_TO_REQUESTER,
+    CONFIRMATION_EMAIL_HEADER_TO_AGENCY,
+    CONFIRMATION_LETTER_HEADER_TO_REQUESTER
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
@@ -563,7 +565,21 @@ def process_letter_template_request(request_id, data):
     :param data: Data from the frontend AJAX call (JSON)
     :return: the HTML of the rendered template
     """
-    pass
+    agency = Requests.query.filter_by(id=request_id).first().agency
+    rtype = data['type']
+    handler_for_type = {
+        determination_type.ACKNOWLEDGMENT: _acknowledgment_letter_handler,
+        determination_type.EXTENSION: _extension_letter_handler,
+        determination_type.CLOSING: _closing_letter_handler,
+        determination_type.DENIAL: _denial_letter_handler,
+        determination_type.REOPENING: _reopening_letter_handler,
+        response_type.FILE: _file_letter_handler,
+        response_type.LINK: _link_letter_handler,
+        response_type.INSTRUCTIONS: _instructions_letter_handler,
+        response_type.NOTE: _note_letter_handler
+    }
+
+    return handler_for_type[rtype](request_id, data)
 
 
 def process_email_template_request(request_id, data):
@@ -615,10 +631,10 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: the HTML of the rendered template of an acknowledgement
+    :return: the HTML of the rendered template of an acknowledgement email.
     """
     acknowledgment = data.get('acknowledgment')
-    header = CONFIRMATION_HEADER_TO_REQUESTER
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
@@ -646,6 +662,137 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
                     "header": header}), 200
 
 
+def _acknowledgment_letter_handler(request_id, data):
+    """
+    Process letter template for an acknowledgment.
+
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of an acknowledgment letter.
+    """
+    acknowledgment = data.get('acknowledgment', None)
+
+    header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+
+    request = Requests.query.filter_by(id=request_id).first()
+    agency = request.agency
+    agency_letter_data = agency.agency_features['letters']
+
+    if acknowledgment is not None:
+        acknowledgment = json.loads(acknowledgment)
+        template = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
+        default_content = True
+        content = None
+        date = _get_new_due_date(request_id,
+                                 acknowledgment['days'],
+                                 acknowledgment['date'],
+                                 data['tz_name'])
+        return jsonify({"template": render_template_string(Markup(template.content),
+                                                           header=agency_letter_data['letterhead'],
+                                                           request=request,
+                                                           default_content=default_content,
+                                                           content=content,
+                                                           request_id=request_id,
+                                                           agency_name=agency.name,
+                                                           date=date),
+                        "header": header})
+    else:
+
+        default_content = False
+        content = data['letter_content']
+        date = None
+
+        return jsonify(None)
+
+
+def _extension_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _closing_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _denial_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _reopening_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _file_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _link_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _instructions_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _note_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
 def _denial_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for denying a request.
@@ -659,7 +806,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a closing
     """
     _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
-               for reason_id in data.getlist('reason_ids[]')]
+                for reason_id in data.getlist('reason_ids[]')]
 
     # Determine if a custom reason is used
     # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
@@ -679,7 +826,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         custom_reasons=custom_reasons
     )
 
-    header = CONFIRMATION_HEADER_TO_REQUESTER
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
     req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
         default_content = False
@@ -714,7 +861,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     """
     req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
-        header = CONFIRMATION_HEADER_TO_REQUESTER
+        header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         reasons = None
         default_content = False
         content = data['email_content']
@@ -888,7 +1035,7 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     :return: the HTML of the rendered template of an extension response
     """
     extension = data.get('extension')
-    header = CONFIRMATION_HEADER_TO_REQUESTER
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
@@ -946,10 +1093,10 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         files = json.loads(files)
         default_content = True
         content = None
-        header = CONFIRMATION_HEADER_TO_REQUESTER
+        header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         if eval_request_bool(data['is_private']):
             email_template = 'email_templates/email_private_file_upload.html'
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         for file_ in files:
             file_link = {'filename': file_['filename'],
                          'title': file_['title'],
@@ -1010,9 +1157,9 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
         content = None
         privacy = link.get('privacy')
         if privacy == PRIVATE:
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         else:
-            header = CONFIRMATION_HEADER_TO_REQUESTER
+            header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -1060,9 +1207,9 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         privacy = note.get('privacy')
         # use private email template for note if privacy is private
         if privacy == PRIVATE:
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         else:
-            header = CONFIRMATION_HEADER_TO_REQUESTER
+            header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -1107,9 +1254,9 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
         content = None
         privacy = instruction.get('privacy')
         if privacy == PRIVATE:
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         else:
-            header = CONFIRMATION_HEADER_TO_REQUESTER
+            header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -1773,7 +1920,8 @@ class RespFileEditor(ResponseEditor):
                 else:
                     # extend expiration date
                     update_object(
-                        {'expiration_date': calendar.addbusdays(datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
+                        {'expiration_date': calendar.addbusdays(datetime.utcnow(),
+                                                                DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
                         ResponseTokens,
                         self.response.token.id
                     )

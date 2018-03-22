@@ -103,5 +103,6 @@ OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"
 
 TINYMCE_EDITABLE_P_TAG = '<p id="editable-p">&nbsp;</p>'
 
-CONFIRMATION_HEADER_TO_REQUESTER = "The following will be emailed to the Requester:"
-CONFIRMATION_HEADER_TO_AGENCY = "The following will be emailed to all Assigned Users:"
+CONFIRMATION_EMAIL_HEADER_TO_REQUESTER = "The following will be emailed to the Requester:"
+CONFIRMATION_EMAIL_HEADER_TO_AGENCY = "The following will be emailed to all Assigned Users:"
+CONFIRMATION_LETTER_HEADER_TO_REQUESTER = "The following will be mailed to the Requester:"

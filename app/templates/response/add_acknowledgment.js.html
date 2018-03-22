@@ -19,51 +19,16 @@
         var submit = fourth.find(".submit");
 
         var method = first.find("#acknowledgment-method");
-        var days = second.find("#acknowledgment-days");
-        var date = second.find("#acknowledgment-date");
+        var email_days = second.find("#acknowledgment-email-days");
+        var email_date = second.find("#acknowledgment-email-date");
         var email_div = second.find("#acknowledgment-email");
         var email_info = second.find("#acknowledgment-email-info-text");
+
+        var letter_days = second.find("#acknowledgment-letter-days");
+        var letter_date = second.find("#acknowledgment-letter-date");
         var letter_div = second.find("#acknowledgment-letter");
         var letter_info = second.find("#letter-template-id");
         var generate_letters_enabled = form.find("#generate-letters-enabled").val();
-
-        // Parsley
-        var required = [date, days, method];
-        for (var i = 0; i < required.length; i++) {
-            required[i].attr("data-parsley-required", "");
-        }
-        email_info.attr("data-parsley-maxlength", "5000");
-
-        email_info.keyup(function () {
-            characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
-        });
-
-        // Date Picker
-        holiday_dates = {{ holidays | safe }};
-        date.datepicker({
-            dateFormat: "yy-mm-dd",
-            daysOfWeekDisabled: [0, 6],
-            beforeShowDay: notHolidayOrWeekend,
-            minDate: "{{ request.due_date }}".split(' ')[0]
-        });
-        date.keydown(false);
-
-        // Reveal/Hide Date Picker
-        days.change(function () {
-            if ($(this).val() === dateSelectVal) {
-                date.parent().show();
-                email_info.attr("data-parsley-required", "");
-                email_info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
-                email_info.attr("data-parsley-minlength", "20");
-            }
-            else {
-                date.parent().hide();
-                email_info.removeAttr("data-parsley-required", "");
-                email_info.removeAttr("data-parsley-minlength", "20");
-                email_info.removeClass("parsley-error");
-                second.find(".parsley-errors-list").children().remove();
-            }
-        });
 
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
@@ -75,6 +40,65 @@
             letter_div.hide();
             prev2.hide();
         }
+
+        // Parsley
+        var required = [email_date, email_days, method];
+        for (var i = 0; i < required.length; i++) {
+            required[i].attr("data-parsley-required", "");
+        }
+        email_info.attr("data-parsley-maxlength", "5000");
+
+        email_info.keyup(function () {
+            characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
+        });
+
+        // Date Picker - Email
+        holiday_dates = {{ holidays | safe }};
+        email_date.datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend,
+            minDate: "{{ request.due_date }}".split(' ')[0]
+        });
+        email_date.keydown(false);
+
+        // Date Picker - Letter
+        letter_date.datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend,
+            minDate: "{{ request.due_date }}".split(' ')[0]
+        });
+        letter_date.keydown(false);
+
+        // Reveal/Hide Date Picker - Email
+        email_days.change(function () {
+            if ($(this).val() === dateSelectVal) {
+                email_date.parent().show();
+                email_info.attr("data-parsley-required", "");
+                email_info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
+                email_info.attr("data-parsley-minlength", "20");
+
+            }
+            else {
+                email_date.parent().hide();
+                email_info.removeAttr("data-parsley-required", "");
+                email_info.removeAttr("data-parsley-minlength", "20");
+                email_info.removeClass("parsley-error");
+                second.find(".parsley-errors-list").children().remove();
+            }
+        });
+
+        // Reveal/Hide Date Picker - Letter
+        letter_days.change(function () {
+            if ($(this).val() === dateSelectVal) {
+                letter_date.parent().show();
+            }
+            else {
+                letter_date.parent().hide();
+                second.find(".parsley-errors-list").children().remove();
+            }
+        });
 
         next1.click(function (e) {
             method.parsley().validate();
@@ -94,20 +118,26 @@
         });
 
         next2.click(function (e) {
-            if (date.is(":visible")) {
-                date.parsley().validate();
+            if (email_date.is(":visible")) {
+                email_date.parsley().validate();
                 email_info.parsley().validate();
-                if (!(date.parsley().isValid() && date.parsley().isValid())) {
+                if (!(email_date.parsley().isValid() && email_date.parsley().isValid())) {
                     e.preventDefault();
                     return false;
                 }
             }
 
-            days.parsley().validate();
-            email_info.parsley().validate();  // for max length
+            email_days.parsley().validate();
 
-            if (!(days.parsley().isValid() && email_info.parsley().isValid())
+            if (method.val() === 'email') {
+                email_info.parsley().validate();  // for max length
+            }
+
+            if (method.val() === 'email' && !(email_days.parsley().isValid() && email_info.parsley().isValid())
             ) {
+                e.preventDefault();
+                return false;
+            } else if (method.val() === 'letter' && !letter_days.parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
@@ -120,8 +150,8 @@
                             request_id: "{{ request.id }}",
                             type: "acknowledgment",
                             acknowledgment: JSON.stringify({
-                                days: days.val(),
-                                date: date.val(),
+                                days: email_days.val(),
+                                date: email_date.val(),
                                 info: email_info.val()
                             }),
                             tz_name: jstz.determine().name()
@@ -137,6 +167,27 @@
                     second.hide();
                     third.show();
                 } else {
+                    $.ajax({
+                        url: "/response/letter",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "acknowledgment",
+                            acknowledgment: JSON.stringify({
+                                days: letter_days.val(),
+                                date: letter_date.val(),
+                                letter_template: letter_info.val()
+                            }),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var emailContent = third.find(".email-content-hidden");
+                            emailContent.html(data.template);
+                            flask_moment_render_all();
+                            tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());
+                        }
+                    });
+
                     second.hide();
                     third.show();
                 }
