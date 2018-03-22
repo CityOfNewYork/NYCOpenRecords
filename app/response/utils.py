@@ -687,8 +687,9 @@ def _acknowledgment_letter_handler(request_id, data):
                                  acknowledgment['days'],
                                  acknowledgment['date'],
                                  data['tz_name'])
-        return jsonify({"template": render_template_string(Markup(template.content),
-                                                           header=agency_letter_data['letterhead'],
+
+        header = agency_letter_data['letterhead']
+        return jsonify({"template": render_template_string(header + template.content,
                                                            request=request,
                                                            default_content=default_content,
                                                            content=content,
