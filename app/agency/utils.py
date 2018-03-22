@@ -72,7 +72,8 @@ def update_agency_active_status(agency_ein, is_active):
             active_users = get_agency_active_users(agency_ein)
             for user in active_users:
                 update_object(
-                    {"is_agency_active": "False"},
+                    {"is_agency_active": "False",
+                     "is_agency_admin": "False"},
                     AgencyUsers,
                     (user.guid, user.auth_user_type, agency_ein)
                 )
@@ -87,9 +88,9 @@ def update_agency_active_status(agency_ein, is_active):
                                         "ein": agency_ein,
                                         "is_active": "True"},
                         new_value={"user_guid": user.guid,
-                                        "auth_user_type": user.auth_user_type,
-                                        "ein": agency_ein,
-                                        "is_active": "False"},
+                                   "auth_user_type": user.auth_user_type,
+                                   "ein": agency_ein,
+                                   "is_active": "False"},
                         timestamp=datetime.utcnow()
                     )
                 )
