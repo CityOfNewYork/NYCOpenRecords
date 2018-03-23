@@ -17,7 +17,6 @@ from app.constants.event_type import (
     AGENCY_DEACTIVATED,
     AGENCY_USER_DEACTIVATED
 )
-from app.admin.utils import get_agency_active_users
 
 
 def update_agency_active_status(agency_ein, is_active):
@@ -29,14 +28,15 @@ def update_agency_active_status(agency_ein, is_active):
     """
     agency = Agencies.query.filter_by(ein=agency_ein).first()
     is_valid_agency = agency is not None
+    activate_agency = eval_request_bool(is_active)
 
     if is_active is not None and is_valid_agency:
         update_object(
-            {'is_active': eval_request_bool(is_active)},
+            {'is_active': activate_agency},
             Agencies,
             agency_ein
         )
-        if is_active == "true":
+        if activate_agency:
             create_object(
                 Events(
                     request_id=None,
@@ -53,7 +53,7 @@ def update_agency_active_status(agency_ein, is_active):
                 request.es_create()
 
             return True
-        if is_active == "false":
+        else:
             create_object(
                 Events(
                     request_id=None,
@@ -69,8 +69,7 @@ def update_agency_active_status(agency_ein, is_active):
             for request in agency.requests:
                 request.es_delete()
             # deactivate agency users
-            active_users = get_agency_active_users(agency_ein)
-            for user in active_users:
+            for user in agency.active_users:
                 update_object(
                     {"is_agency_active": "False",
                      "is_agency_admin": "False"},
