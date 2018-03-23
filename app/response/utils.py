@@ -48,7 +48,7 @@ from app.constants import (
     TINYMCE_EDITABLE_P_TAG
 )
 from app.lib.date_utils import (
-    get_following_date,
+    get_next_business_day,
     get_due_date,
     process_due_date,
     get_release_date,
@@ -226,15 +226,12 @@ def add_denial(request_id, reason_ids, email_content):
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the denial date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
-            next_business_day = get_following_date(datetime.utcnow())
-            next_business_day = next_business_day.replace(hour=9, minute=00, second=00, microsecond=00)
-            next_business_day = local_to_utc(next_business_day, current_app.config['APP_TIMEZONE'])
             response = Determinations(
                 request_id,
                 RELEASE_AND_PUBLIC,
                 determination_type.DENIAL,
                 format_determination_reasons(reason_ids),
-                date_modified=next_business_day
+                date_modified=get_next_business_day()
             )
         else:
             response = Determinations(
@@ -313,15 +310,12 @@ def add_closing(request_id, reason_ids, email_content):
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < current_request.date_submitted.date():
             # push the closing date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
-            next_business_day = get_following_date(datetime.utcnow())
-            next_business_day = next_business_day.replace(hour=9, minute=00, second=00, microsecond=00)
-            next_business_day = local_to_utc(next_business_day, current_app.config['APP_TIMEZONE'])
             response = Determinations(
                 request_id,
                 RELEASE_AND_PUBLIC,
                 determination_type.CLOSING,
                 format_determination_reasons(reason_ids),
-                date_modified=next_business_day
+                date_modified=get_next_business_day()
             )
         else:
             response = Determinations(
