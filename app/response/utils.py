@@ -326,8 +326,10 @@ def add_reopening(request_id, date, tz_name, email_content):
     :param email_content: email body associated with the reopened request
 
     """
-    if Requests.query.filter_by(id=request_id).one().status == request_status.CLOSED:
+    request = Requests.query.filter_by(id=request_id).one()
+    if request.status == request_status.CLOSED:
         date = datetime.strptime(date, '%Y-%m-%d')
+        previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
         response = Determinations(
@@ -338,7 +340,7 @@ def add_reopening(request_id, date, tz_name, email_content):
             new_due_date
         )
         create_object(response)
-        create_response_event(event_type.REQ_REOPENED, response)
+        create_response_event(event_type.REQ_REOPENED, response, previous_value=previous_due_date)
         update_object(
             {'status': request_status.IN_PROGRESS,
              'due_date': new_due_date,
