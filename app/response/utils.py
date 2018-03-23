@@ -678,6 +678,7 @@ def _acknowledgment_letter_handler(request_id, data):
     agency = request.agency
     agency_letter_data = agency.agency_features['letters']
 
+    # Acnowledgment is only provided when getting default letter template.
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         template = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
@@ -695,15 +696,13 @@ def _acknowledgment_letter_handler(request_id, data):
                                                            content=content,
                                                            request_id=request_id,
                                                            agency_name=agency.name,
+                                                           days=acknowledgment['days'],
                                                            date=date),
                         "header": header})
     else:
-
-        default_content = False
         content = data['letter_content']
-        date = None
-
-        return jsonify(None)
+        return jsonify({"template": render_template_string(content),
+                        "header": header}), 200
 
 
 def _extension_letter_handler(request_id, data):
