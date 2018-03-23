@@ -160,7 +160,7 @@
                             var emailContent = third.find(".email-content-hidden");
                             emailContent.html(data.template);
                             flask_moment_render_all();
-                            tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());
+                            tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
                         }
                     });
 
@@ -184,7 +184,7 @@
                             var emailContent = third.find(".email-content-hidden");
                             emailContent.html(data.template);
                             flask_moment_render_all();
-                            tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());
+                            tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
                         }
                     });
 
@@ -197,22 +197,39 @@
         next3.click(function () {
             tinyMCE.triggerSave();
 
-            $.ajax({
-                url: "/response/email",
-                type: "POST",
-                data: {
-                    request_id: "{{ request.id }}",
-                    type: "acknowledgment",
-                    email_content: third.find("#acknowledgment-email-body").val(),
-                },
-                success: function (data) {
-                    fourth.find(".email-summary").html(data.template);
-                    fourth.find("input[name='email-summary']").val(data.template);
-                    fourth.find("input[name='tz-name']").val(jstz.determine().name());
-                    fourth.find(".confirmation-header").text(data.header)
-                }
-            });
-
+            if (method.val() === 'email') {
+                $.ajax({
+                    url: "/response/email",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "acknowledgment",
+                        email_content: third.find("#acknowledgment-body").val()
+                    },
+                    success: function (data) {
+                        fourth.find(".summary").html(data.template);
+                        fourth.find("input[name='summary']").val(data.template);
+                        fourth.find("input[name='tz-name']").val(jstz.determine().name());
+                        fourth.find(".confirmation-header").text(data.header)
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: "/response/letter",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "acknowledgment",
+                        letter_content: third.find("#acknowledgment-body").val()
+                    },
+                    success: function (data) {
+                        fourth.find(".summary").html(data.template);
+                        fourth.find("input[name='summary']").val(data.template);
+                        fourth.find("input[name='tz-name']").val(jstz.determine().name());
+                        fourth.find(".confirmation-header").text(data.header)
+                    }
+                })
+            }
             third.hide();
             fourth.show();
         });
