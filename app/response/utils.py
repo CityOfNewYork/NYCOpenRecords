@@ -171,7 +171,9 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
     :param email_content: email body associated with the acknowledgment
 
     """
-    if not Requests.query.filter_by(id=request_id).one().was_acknowledged:
+    request = Requests.query.filter_by(id=request_id).one()
+    if not request.was_acknowledged:
+        previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
         update_object(
             {'due_date': new_due_date,
@@ -188,7 +190,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
             new_due_date,
         )
         create_object(response)
-        create_response_event(event_type.REQ_ACKNOWLEDGED, response)
+        create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
         _send_response_email(request_id,
                              privacy,
                              email_content,
@@ -365,6 +367,8 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
     :param email_content: email body content of the email to be created and stored as a email object
 
     """
+    request = Requests.query.filter_by(id=request_id).one()
+    previous_due_date = {"due_date": request.due_date.isoformat()}
     new_due_date = _get_new_due_date(request_id, length, custom_due_date, tz_name)
     days_until_due = calendar.busdaycount(datetime.utcnow(), new_due_date.replace(hour=23, minute=59, second=59))
     if new_due_date < datetime.utcnow():
@@ -389,7 +393,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
         new_due_date
     )
     create_object(response)
-    create_response_event(event_type.REQ_EXTENDED, response)
+    create_response_event(event_type.REQ_EXTENDED, response, previous_value=previous_due_date)
     _send_response_email(request_id,
                          privacy,
                          email_content,
@@ -1482,12 +1486,13 @@ def safely_send_and_add_email(request_id,
         current_app.logger.exception("Error: {}".format(e))
 
 
-def create_response_event(events_type, response, user=current_user):
+def create_response_event(events_type, response, previous_value=None, user=current_user):
     """
     Create and store event object for given response.
 
     :param response: response object
     :param events_type: one of app.constants.event_type
+    :param previous_value: JSON to be stored in previous_value of Events (for Acknowledgements and Extensions)
 
     """
     event = Events(request_id=response.request_id,
@@ -1496,6 +1501,7 @@ def create_response_event(events_type, response, user=current_user):
                    type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
+                   previous_value=previous_value,
                    new_value=response.val_for_events)
     # store event object
     create_object(event)
