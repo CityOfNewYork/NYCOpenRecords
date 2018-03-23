@@ -22,7 +22,7 @@ def get_active_users(agency_ein):
     elif current_user.is_agency_active(agency_ein):
         active_users = [
             ('', 'All'),
-            (current_user.guid, 'My Requests')
+            (current_user.get_id(), 'My Requests')
         ]
         return jsonify({"active_users": active_users, "is_admin": False}), 200
 
