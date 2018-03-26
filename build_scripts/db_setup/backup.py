@@ -1,6 +1,5 @@
 #!python
 
-import time
 from time import localtime, strftime
 import subprocess
 import os
@@ -24,11 +23,11 @@ email = """From: OpenRecords Backup Report <backup@records.nyc.go>
 To: OpenRecords Support Staff <openrecords@records.nyc.gov>
 Subject: OpenRecords Backup Report %s
 
-""" % time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
+""" % strftime("%Y-%m-%d %H-%M-%S", localtime())
 
 
 def log(string):
-    return str(time.strftime("%Y-%m-%d %H-%M-%S", time.localtime()) + ": " + str(string) + "\n")
+    return str(strftime("%Y-%m-%d %H-%M-%S", localtime()) + ": " + str(string) + "\n")
 
 
 # Change the value in brackets to keep more/fewer files. time.time() returns seconds since 1970...
