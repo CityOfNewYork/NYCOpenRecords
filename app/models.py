@@ -1578,7 +1578,7 @@ class Determinations(Responses):
         if self.dtype in (determination_type.ACKNOWLEDGMENT,
                           determination_type.EXTENSION,
                           determination_type.REOPENING):
-            val['date'] = self.date.isoformat()
+            val['due_date'] = self.date.isoformat()
         return val
 
 
