@@ -3,6 +3,7 @@ from business_calendar import FOLLOWING
 from app import calendar
 from app.lib import NYCHolidays
 from flask import current_app
+from datetime import datetime
 
 DEFAULT_YEARS_HOLIDAY_LIST = 5
 
@@ -15,6 +16,17 @@ def get_following_date(date_created):
     :return: date submitted (local) which is the date_created rounded off to the next business day
     """
     return calendar.addbusdays(date_created, FOLLOWING)
+
+
+def get_next_business_day():
+    """
+    Generates the next business day based on the current date
+    :return: datetime object with the next business day set to 13:00 PM UTC (09:00 AM EST)
+    """
+    next_business_day = get_following_date(datetime.utcnow())
+    next_business_day = next_business_day.replace(hour=13, minute=00, second=00, microsecond=00)
+
+    return next_business_day
 
 
 def get_due_date(date_submitted, days_until_due, tz_name):
