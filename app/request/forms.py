@@ -356,9 +356,9 @@ class SearchRequestsForm(Form):
             if current_user.is_agency_active() and not current_user.is_agency_admin():
                 self.agency_user.choices = [
                     ('', 'All'),
-                    (current_user.guid, 'My Requests')
+                    (current_user.get_id(), 'My Requests')
                 ]
-                self.agency_user.default = current_user.guid
+                self.agency_user.default = current_user.get_id()
 
             # process form for default values
             self.process()
