@@ -712,25 +712,25 @@ def _acknowledgment_letter_handler(request_id, data):
         acknowledgment = json.loads(acknowledgment)
         contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
         default_content = True
-        content = None
         date = _get_new_due_date(request_id,
                                  acknowledgment['days'],
                                  acknowledgment['date'],
                                  data['tz_name'])
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
+        template = render_template_string(contents.content,
+                                          days=acknowledgment['days'],
+                                          date=request.date_submitted,
+                                          user=current_user)
         signature = render_template_string(agency_letter_data['signature'], user=current_user, agency=agency)
 
         return jsonify({"template": render_template('letters/base.html',
-                                                    letterheadd=letterhead,
-                                                    signature=signature,
+                                                    letterhead=Markup(letterhead),
+                                                    signature=Markup(signature),
                                                     request=request,
-                                                    default_content=default_content,
-                                                    contents=contents,
-                                                    request_id=request_id,
-                                                    agency_name=agency.name,
-                                                    days=acknowledgment['days'],
-                                                    date=date),
+                                                    date=datetime.utcnow(),
+                                                    contents=Markup(template),
+                                                    request_id=request_id),
                         "header": header})
     else:
         content = data['letter_content']

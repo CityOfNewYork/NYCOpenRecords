@@ -75,8 +75,8 @@
             <div class="letter-header">
                 <div class="header-left">
                     {{ request.requester.name }}<br/>
-                    {{ request.requester.mailing_address['address_line_one'] or ''}}<br/>
-                    {{ request.requester.mailing_address['address_line_two'] or ''}}<br/>
+                    {{ request.requester.mailing_address['address_one'] or ''}}<br/>
+                    {{ request.requester.mailing_address['address_two'] or ''}}<br/>
                     {{ request.requester.mailing_address['city'] or ''}}, {{ request.requester.mailing_address['state'] or ''}}, {{ request.requester.mailing_address['zip'] or ''}}<br/>
                 </div>
                 <div class="header-right">
