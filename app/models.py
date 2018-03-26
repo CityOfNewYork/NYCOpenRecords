@@ -912,6 +912,14 @@ class Requests(db.Model):
             }
         )
 
+    def es_delete(self):
+        """ Delete a document from the elastic search index """
+        es.delete(
+            index=current_app.config["ELASTICSEARCH_INDEX"],
+            doc_type='request',
+            id=self.id
+        )
+
     def __repr__(self):
         return '<Requests %r>' % self.id
 

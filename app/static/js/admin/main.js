@@ -20,6 +20,20 @@ $(function () {
             }
         });
     });
+    // DEACTIVATE AGENCY
+    $("#deactivate").click(function () {
+        var agencyEin = $("#agencies").val();
+        $.ajax({
+            url: "/agency/" + agencyEin,
+            type: "PATCH",
+            data: {
+                is_active: false
+            },
+            success: function () {
+                window.location = window.location.origin + "/admin/" + agencyEin;
+            }
+        });
+    });
     // SET SUPER USER
     $("input[name^='user-super']").click(function () {
         var row = $(this).parents(".row");

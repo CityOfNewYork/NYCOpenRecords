@@ -9,9 +9,14 @@ from app.lib.db_utils import (
 )
 from app.models import (
     Agencies,
-    Events
+    Events,
+    AgencyUsers
 )
-from app.constants.event_type import AGENCY_ACTIVATED
+from app.constants.event_type import (
+    AGENCY_ACTIVATED,
+    AGENCY_DEACTIVATED,
+    AGENCY_USER_DEACTIVATED
+)
 
 
 def update_agency_active_status(agency_ein, is_active):
@@ -23,28 +28,73 @@ def update_agency_active_status(agency_ein, is_active):
     """
     agency = Agencies.query.filter_by(ein=agency_ein).first()
     is_valid_agency = agency is not None
+    activate_agency = eval_request_bool(is_active)
 
     if is_active is not None and is_valid_agency:
         update_object(
-            {'is_active': eval_request_bool(is_active)},
+            {'is_active': activate_agency},
             Agencies,
             agency_ein
         )
-        create_object(
-            Events(
-                request_id=None,
-                user_guid=current_user.guid,
-                auth_user_type=current_user.auth_user_type,
-                type_=AGENCY_ACTIVATED,
-                new_value={"ein": agency_ein},
-                timestamp=datetime.utcnow()
+        if activate_agency:
+            create_object(
+                Events(
+                    request_id=None,
+                    user_guid=current_user.guid,
+                    auth_user_type=current_user.auth_user_type,
+                    type_=AGENCY_ACTIVATED,
+                    previous_value={"ein": agency_ein, "is_active": "False"},
+                    new_value={"ein": agency_ein, "is_active": "True"},
+                    timestamp=datetime.utcnow()
+                )
             )
-        )
-        # create request documents
-        for request in agency.requests:
-            request.es_create()
+            # create request documents
+            for request in agency.requests:
+                request.es_create()
 
-        return True
+            return True
+        else:
+            create_object(
+                Events(
+                    request_id=None,
+                    user_guid=current_user.guid,
+                    auth_user_type=current_user.auth_user_type,
+                    type_=AGENCY_DEACTIVATED,
+                    previous_value={"ein": agency_ein, "is_active": "True"},
+                    new_value={"ein": agency_ein, "is_active": "False"},
+                    timestamp=datetime.utcnow()
+                )
+            )
+            # remove requests from index
+            for request in agency.requests:
+                request.es_delete()
+            # deactivate agency users
+            for user in agency.active_users:
+                update_object(
+                    {"is_agency_active": "False",
+                     "is_agency_admin": "False"},
+                    AgencyUsers,
+                    (user.guid, user.auth_user_type, agency_ein)
+                )
+                create_object(
+                    Events(
+                        request_id=None,
+                        user_guid=current_user.guid,
+                        auth_user_type=current_user.auth_user_type,
+                        type_=AGENCY_USER_DEACTIVATED,
+                        previous_value={"user_guid": user.guid,
+                                        "auth_user_type": user.auth_user_type,
+                                        "ein": agency_ein,
+                                        "is_active": "True"},
+                        new_value={"user_guid": user.guid,
+                                   "auth_user_type": user.auth_user_type,
+                                   "ein": agency_ein,
+                                   "is_active": "False"},
+                        timestamp=datetime.utcnow()
+                    )
+                )
+
+            return True
     return False
 
 
