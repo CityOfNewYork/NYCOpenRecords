@@ -843,7 +843,7 @@
       "agency_features": {
         "letters": {
           "letterhead": "<span class=\"mceNonEditable\">\r\n<div class=\"letter-head-wrapper\">\r\n<span class=\"mceNonEditable\">\r\n<div class=\"letter-head-image\">\r\n<span class=\"mceNonEditable\">\r\n<img title=\"City of New York Logo\" src=\"http:\/\/via.placeholder.com\/110x150\"\r\nalt=\"City of New York Logo\" width=\"110\" height=\"97\" style=\"vertical-align: text-top;\"\r\nclass=\"mceNonEditable\"\/>\r\n<\/span>\r\n<\/div>\r\n<\/span>\r\n<span class=\"mceNonEditable\">\r\n<div class=\"letter-head-text\">\r\n<span class=\"mceNonEditable\">\r\n<span class=\"mceNonEditable\">Department of Umbrellas<\/span>\r\n<span class=\"mceNonEditable\"><br\/><\/span>\r\n<span class=\"mceNonEditable\">LEGAL BUREAU<\/span>\r\n<span class=\"mceNonEditable\"><br\/><\/span>\r\n<span class=\"mceNonEditable\">F.O.I.L Unit<\/span>\r\n<span class=\"mceNonEditable\"><br\/><\/span>\r\n<span class=\"mceNonEditable\">1 Main Street<\/span>\r\n<span class=\"mceNonEditable\"><br\/><\/span>\r\n<span class=\"mceNonEditable\">Sunnyvale, CA 12345<\/span>\r\n<\/span>\r\n<\/div>\r\n<\/span>\r\n<\/div>\r\n<\/span>",
-          "signature_line": "Sincerely,<br\/>{{ user.signature }}<br\/>{{ user.name }}<br\/>{{ user.title }}<br\/>{{ agency.name }}<br\/>",
+          "signature": "Sincerely,<br\/>{{ user.signature }}<br\/>{{ user.name }}<br\/>{{ user.title }}<br\/>{{ agency.name }}<br\/>",
           "generate_letters": true
         },
         "monitor_agency_requests": [

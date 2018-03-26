@@ -681,7 +681,7 @@ def _acknowledgment_letter_handler(request_id, data):
     # Acnowledgment is only provided when getting default letter template.
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
-        template = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
+        contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
         default_content = True
         content = None
         date = _get_new_due_date(request_id,
@@ -689,15 +689,19 @@ def _acknowledgment_letter_handler(request_id, data):
                                  acknowledgment['date'],
                                  data['tz_name'])
 
-        header = agency_letter_data['letterhead']
-        return jsonify({"template": render_template_string(header + template.content,
-                                                           request=request,
-                                                           default_content=default_content,
-                                                           content=content,
-                                                           request_id=request_id,
-                                                           agency_name=agency.name,
-                                                           days=acknowledgment['days'],
-                                                           date=date),
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+        signature = render_template_string(agency_letter_data['signature'], user=current_user, agency=agency)
+
+        return jsonify({"template": render_template('letters/base.html',
+                                                    letterheadd=letterhead,
+                                                    signature=signature,
+                                                    request=request,
+                                                    default_content=default_content,
+                                                    contents=contents,
+                                                    request_id=request_id,
+                                                    agency_name=agency.name,
+                                                    days=acknowledgment['days'],
+                                                    date=date),
                         "header": header})
     else:
         content = data['letter_content']
