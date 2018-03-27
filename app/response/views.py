@@ -156,7 +156,8 @@ def response_file(request_id):
 def response_acknowledgment(request_id):
     required_fields = ['date',
                        'days',
-                       'email-summary']
+                       'method',
+                       'summary']
     if flask_request.form.get('days', '-1') == '-1':
         required_fields.append('info')
     for field in required_fields:
@@ -164,13 +165,25 @@ def response_acknowledgment(request_id):
             flash('Uh Oh, it looks like the acknowledgment {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
+    if flask_request.form['method'] == 'letter':
+        f = add_acknowledgment(request_id,
+                       flask_request.form['info'].strip() or None,
+                       flask_request.form['days'],
+                       flask_request.form['date'],
+                       flask_request.form['tz-name'],
+                       flask_request.form['summary'],
+                       flask_request.form['method'])
+
+        return f
+
 
     add_acknowledgment(request_id,
                        flask_request.form['info'].strip() or None,
                        flask_request.form['days'],
                        flask_request.form['date'],
                        flask_request.form['tz-name'],
-                       flask_request.form['email-summary'])
+                       flask_request.form['summary'],
+                       flask_request.form['method'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

@@ -162,7 +162,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
                          subject)
 
 
-def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
+def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
     """
     Create and store an acknowledgement-determination response for
     the specified request and update the request accordingly.
@@ -176,6 +176,12 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
 
     """
     request = Requests.query.filter_by(id=request_id).one()
+
+    if method == 'letter':
+        from flask_weasyprint import render_pdf, HTML
+        html = HTML(string=content)
+        return render_pdf(html)
+
     if not request.was_acknowledged:
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
