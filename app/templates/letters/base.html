@@ -30,14 +30,14 @@
     {{ letterhead }}
 </div>
 <div id="content-frame" class="content">
-    <div style="overflow: hidden; padding-bottom: 10px;">
-        <div style="text-align: left; float: left; padding-top: 25px;">
+    <div style="padding-bottom: 10px;">
+        <div style="text-align: left; float: left;">
             {{ request.requester.name }}<br/>
             {{ request.requester.mailing_address['address_one'] or '' }}<br/>
             {{ request.requester.mailing_address['address_two'] or '' }}<br/>
             {{ request.requester.mailing_address['city'] or '' }}, {{ request.requester.mailing_address['state'] or '' }}, {{ request.requester.mailing_address['zip'] or '' }}<br/>
         </div>
-        <div style="text-align: left; float: right; padding-top: 25px;">
+        <div style="text-align: left; float: right;">
             <span class="mceNonEditable">{{ moment(date).format('dddd, MMMM D, YYYY') }}<br/></span>
             <span class="mceNonEditable"><br/></span>
             <span class="mceNonEditable">FOIL Request #: {{ request_id }}</span>
