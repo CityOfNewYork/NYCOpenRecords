@@ -14,7 +14,7 @@ from flask import (
     abort
 )
 from app.lib.utils import UserRequestException
-from app.constants import permission
+from app.constants import permission, role_name
 from flask_login import current_user
 from app import sentry
 
@@ -44,6 +44,9 @@ def create(request_id):
             )
     ):
         user_data = flask_request.form
+        point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
+        print(point_of_contact)
+        print(user_data)
 
         required_fields = ['user']
 
@@ -56,7 +59,7 @@ def create(request_id):
         try:
             permissions = [int(i) for i in user_data.getlist('permission')]
             add_user_request(request_id=request_id, user_guid=user_data.get('user'),
-                             permissions=permissions)
+                             permissions=permissions, point_of_contact=point_of_contact)
         except UserRequestException as e:
             sentry.captureException()
             flash(str(e), category='warning')
@@ -90,6 +93,7 @@ def edit(request_id):
             )
     ):
         user_data = flask_request.form
+        point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
 
         required_fields = ['user']
 
@@ -102,7 +106,7 @@ def edit(request_id):
         try:
             permissions = [int(i) for i in user_data.getlist('permission')]
             edit_user_request(request_id=request_id, user_guid=user_data.get('user'),
-                              permissions=permissions)
+                              permissions=permissions, point_of_contact=point_of_contact)
         except UserRequestException as e:
             sentry.captureException()
             flash(e, category='warning')

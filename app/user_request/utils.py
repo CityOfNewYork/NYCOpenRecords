@@ -7,7 +7,7 @@ from flask import (
 )
 from flask_login import current_user
 from app.response.utils import safely_send_and_add_email
-from app.lib.db_utils import delete_object, create_object
+from app.lib.db_utils import delete_object, create_object, update_object
 from app.models import (
     Users,
     UserRequests,
@@ -19,7 +19,7 @@ from app.lib.email_utils import get_agency_emails
 from app.constants import event_type, permission, user_type_request
 
 
-def add_user_request(request_id, user_guid, permissions):
+def add_user_request(request_id, user_guid, permissions, point_of_contact):
     """
     Create a users permissions entry for a request and notify all agency administrators and the user that the permissions
     have changed.
@@ -27,6 +27,7 @@ def add_user_request(request_id, user_guid, permissions):
     :param request_id: FOIL request ID
     :param user_guid: string guid of the user being edited
     :param permissions: Updated permissions values {'permission': true}
+    :param point_of_contact: boolean value to set user as point of contact or not
     """
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).first()
@@ -73,12 +74,15 @@ def add_user_request(request_id, user_guid, permissions):
         'User Added to Request {}'.format(request_id),
         to=[user.notification_email or user.email])
 
+    if point_of_contact and has_point_of_contact(request_id):
+        remove_point_of_contact(request_id)
     user_request = UserRequests(
         user_guid=user.guid,
         auth_user_type=user.auth_user_type,
         request_id=request_id,
         request_user_type=user_type_request.AGENCY,
-        permissions=0
+        permissions=0,
+        point_of_contact=point_of_contact
     )
 
     create_object(user_request)
@@ -91,7 +95,7 @@ def add_user_request(request_id, user_guid, permissions):
     create_user_request_event(event_type.USER_ADDED, user_request)
 
 
-def edit_user_request(request_id, user_guid, permissions):
+def edit_user_request(request_id, user_guid, permissions, point_of_contact):
     """
     Edit a users permissions on a request and notify all agency administrators and the user that the permissions
     have changed.
@@ -99,6 +103,7 @@ def edit_user_request(request_id, user_guid, permissions):
     :param request_id: FOIL request ID
     :param user_guid: string guid of the user being edited
     :param permissions: Updated permissions values {'permission': true}
+    :param point_of_contact: boolean value to set user as point of contact or not
     """
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).one()
@@ -218,5 +223,41 @@ def create_user_request_event(events_type, user_request, old_permissions=None, u
         events_type,
         previous_value=previous_value,
         new_value=user_request.val_for_events,
+        timestamp=datetime.utcnow(),
+    ))
+
+
+def has_point_of_contact(request_id):
+    """
+    Check if a given request has a point of contact
+    :param request_id: FOIL request ID
+    :return: True if there is a current point of contact, False otherwise
+    """
+    if UserRequests.query.filter_by(request_id=request_id, point_of_contact=True).one_or_none():
+        return True
+    return False
+
+
+def remove_point_of_contact(request_id):
+    """
+    Remove the current point of contact from a given request
+    :param request_id: FOIL request ID
+    """
+    point_of_contact = UserRequests.query.filter_by(request_id=request_id, point_of_contact=True).one()
+    update_object({"point_of_contact": False},
+                  UserRequests,
+                  (point_of_contact.user_guid, point_of_contact.auth_user_type, request_id)
+                  )
+    create_object(Events(
+        request_id,
+        current_user.guid,
+        current_user.auth_user_type,
+        event_type.REQ_POINT_OF_CONTACT_REMOVED,
+        previous_value={"user_guid": point_of_contact.user_guid,
+                        "auth_user_type": point_of_contact.auth_user_type,
+                        "point_of_contact": "True"},
+        new_value={"user_guid": point_of_contact.user_guid,
+                   "auth_user_type": point_of_contact.auth_user_type,
+                   "point_of_contact": "False"},
         timestamp=datetime.utcnow(),
     ))
