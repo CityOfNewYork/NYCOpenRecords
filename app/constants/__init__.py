@@ -1,4 +1,4 @@
-from app.constants import response_type, determination_type
+from app.constants import response_type, determination_type, event_type
 
 ACKNOWLEDGMENT_DAYS_DUE = 5
 REQUESTER_ACKNOWLEDGMENT_DAYS_DUE = 4
@@ -97,6 +97,10 @@ EMAIL_TEMPLATE_FOR_TYPE = {
     determination_type.CLOSING: "email_response_closing.html",
     determination_type.EXTENSION: "email_response_extension.html",
     determination_type.REOPENING: "email_response_reopening.html"
+}
+
+EMAIL_TEMPLATE_FOR_EVENT = {
+    event_type.LETTER_CREATED: "email_event_letter_created.html"
 }
 
 OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"

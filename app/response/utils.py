@@ -41,7 +41,8 @@ from app.constants import (
     EMAIL_TEMPLATE_FOR_TYPE,
     CONFIRMATION_EMAIL_HEADER_TO_REQUESTER,
     CONFIRMATION_EMAIL_HEADER_TO_AGENCY,
-    CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+    CONFIRMATION_LETTER_HEADER_TO_REQUESTER,
+    EMAIL_TEMPLATE_FOR_EVENT
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
@@ -61,6 +62,7 @@ from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
+from app.lib.pdf import generate_pdf
 from app.models import (
     Events,
     Notes,
@@ -74,7 +76,8 @@ from app.models import (
     Emails,
     ResponseTokens,
     Users,
-    LetterTemplates
+    LetterTemplates,
+    Letters
 )
 from app.request.api.utils import create_request_info_event
 
@@ -177,11 +180,6 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
     """
     request = Requests.query.filter_by(id=request_id).one()
 
-    if method == 'letter':
-        from flask_weasyprint import render_pdf, HTML
-        html = HTML(string=content)
-        return render_pdf(html)
-
     if not request.was_acknowledged:
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
@@ -201,10 +199,36 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
         )
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
-        _send_response_email(request_id,
-                             privacy,
-                             email_content,
-                             'Request {} Acknowledged'.format(request_id))
+        if method == 'letter':
+            letter_id = _add_letter(request_id, content)
+            update_object(
+                {
+                    'communication_method_type': response_type.LETTER,
+                    'communication_method_id': letter_id
+                },
+                Determinations,
+                response.id
+            )
+            f = generate_pdf(content)
+            email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                          EMAIL_TEMPLATE_FOR_EVENT[event_type.LETTER_CREATED])
+            email_content = render_template(email_template,
+                                            request_id=request_id,
+                                            agency_name=request.agency.name,
+                                            user=current_user
+                                            )
+            safely_send_and_add_email(request_id,
+                                      email_content,
+                                      'Request {} Acknowledged - Letter'.format(request_id),
+                                      to=[u.notification_email for u in request.agency_users],
+                                      attachments=f,
+                                      filename=secure_filename('{}_acknowledgment_letter.pdf'.format(request_id)),
+                                      mimetype='application/pdf')
+        else:
+            _send_response_email(request_id,
+                                 privacy,
+                                 content,
+                                 'Request {} Acknowledged'.format(request_id))
 
 
 def add_denial(request_id, reason_ids, email_content):
@@ -515,6 +539,23 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     )
     create_object(response)
     create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response)
+
+
+def _add_letter(request_id, letter_content):
+    """
+    Insert the
+    :param request_id:
+    :param letter_content:
+    :return:
+    """
+    response = Letters(
+        request_id,
+        PRIVATE,
+        content=letter_content
+    )
+    create_object(response)
+    create_response_event(event_type.LETTER_CREATED, response)
+    return response.id
 
 
 def add_sms():
@@ -1670,6 +1711,7 @@ def safely_send_and_add_email(request_id,
     :param bcc: list of person(s) email is being bcc'ed
 
     """
+
     try:
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
         _add_email(request_id, subject, email_content, to=to, bcc=bcc)

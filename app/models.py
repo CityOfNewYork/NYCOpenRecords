@@ -44,7 +44,11 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.schemas import AGENCIES_SCHEMA
-from app.lib.utils import eval_request_bool, DuplicateFileException
+from app.lib.utils import (
+    eval_request_bool,
+    DuplicateFileException,
+    InvalidDeterminationException
+)
 from app.lib.json_schema import validate_schema
 
 
@@ -1149,6 +1153,7 @@ class Responses(db.Model):
         response_type.EMAIL,
         name='type'
     ))
+
     __mapper_args__ = {'polymorphic_on': type}
 
     # TODO: overwrite filter to automatically check if deleted=False
@@ -1524,78 +1529,6 @@ class Instructions(Responses):
         return self.content
 
 
-class Determinations(Responses):
-    """
-    Define the Determinations class with the following columns and relationships:
-
-    id - an integer that is the primary key of Determinations
-    dtype - a string (enum) containing the type of a determination
-    reason - a string containing the reason for a determination
-    date - a datetime object containing an appropriate date for a determination
-
-    ext_type       | date significance                | reason significance
-    ---------------|----------------------------------|------------------------------------------
-    denial         | NA                               | why the request was denied
-    acknowledgment | estimated date of completion     | why the date was chosen / additional info
-    extension      | new estimated date of completion | why the request extended
-    closing        | NA                               | why the request closed
-    reopening      | new estimated date of completion | NA
-
-    """
-    __tablename__ = response_type.DETERMINATION
-    __mapper_args__ = {'polymorphic_identity': response_type.DETERMINATION}
-    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    dtype = db.Column(db.Enum(
-        determination_type.DENIAL,
-        determination_type.ACKNOWLEDGMENT,
-        determination_type.EXTENSION,
-        determination_type.CLOSING,
-        determination_type.REOPENING,
-        name="determination_type"
-    ), nullable=False)
-    reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
-    date = db.Column(db.DateTime)  # nullable only for denial, closing
-
-    def __init__(self,
-                 request_id,
-                 privacy,  # TODO: always RELEASE_AND_PUBLIC?
-                 dtype,
-                 reason,
-                 date=None,
-                 date_modified=None,
-                 is_editable=False):
-        super(Determinations, self).__init__(request_id,
-                                             privacy,
-                                             date_modified,
-                                             is_editable)
-        self.dtype = dtype
-
-        if dtype not in (determination_type.ACKNOWLEDGMENT,
-                         determination_type.REOPENING):
-            assert reason is not None
-        self.reason = reason
-
-        if dtype not in (determination_type.DENIAL,
-                         determination_type.CLOSING):
-            assert date is not None
-        self.date = date
-
-    @property
-    def preview(self):
-        return self.reason
-
-    @property
-    def val_for_events(self):
-        val = {
-            'reason': self.reason
-        }
-        if self.dtype in (determination_type.ACKNOWLEDGMENT,
-                          determination_type.EXTENSION,
-                          determination_type.REOPENING):
-            val['due_date'] = self.date.isoformat()
-        return val
-
-
 class Emails(Responses):
     """
     Define the Emails class with the following columns and relationships:
@@ -1706,3 +1639,105 @@ class LetterTemplates(db.Model):
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
+
+
+class Determinations(Responses):
+    """
+    Define the Determinations class with the following columns and relationships:
+
+    id - an integer that is the primary key of Determinations
+    dtype - a string (enum) containing the type of a determination
+    reason - a string containing the reason for a determination
+    date - a datetime object containing an appropriate date for a determination
+
+    ext_type       | date significance                | reason significance
+    ---------------|----------------------------------|------------------------------------------
+    denial         | N/A                              | why the request was denied
+    acknowledgment | estimated date of completion     | why the date was chosen / additional info
+    extension      | new estimated date of completion | why the request extended
+    closing        | N/A                              | why the request closed
+    reopening      | new estimated date of completion | N/A
+
+    """
+    __tablename__ = response_type.DETERMINATION
+    __mapper_args__ = {'polymorphic_identity': response_type.DETERMINATION}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    dtype = db.Column(db.Enum(
+        determination_type.DENIAL,
+        determination_type.ACKNOWLEDGMENT,
+        determination_type.EXTENSION,
+        determination_type.CLOSING,
+        determination_type.REOPENING,
+        name="determination_type"
+    ), nullable=False)
+    reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
+    date = db.Column(db.DateTime)  # nullable only for denial, closing
+    communication_method_id = db.Column(db.Integer, nullable=True)
+    communication_method_type = db.Column(db.Enum(
+        response_type.LETTER,
+        response_type.EMAIL,
+        name='communication_method_type'
+    ), nullable=True)
+
+    def __init__(self,
+                 request_id,
+                 privacy,  # TODO: always RELEASE_AND_PUBLIC?
+                 dtype,
+                 reason,
+                 date=None,
+                 date_modified=None,
+                 is_editable=False,
+                 communication_method_id=None,
+                 communication_method_type=None):
+        super(Determinations, self).__init__(request_id,
+                                             privacy,
+                                             date_modified,
+                                             is_editable)
+        self.dtype = dtype
+
+        if dtype not in (determination_type.ACKNOWLEDGMENT,
+                         determination_type.REOPENING) and reason is None:
+                raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='reason')
+        self.reason = reason
+
+        if dtype not in (determination_type.DENIAL,
+                         determination_type.CLOSING) and date is None:
+            raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='date')
+        self.date = date
+
+        if communication_method_id is not None and \
+                communication_method_type is not None and \
+                communication_method_type in (response_type.LETTER, response_type.EMAIL):
+            if communication_method_type == response_type.LETTER:
+                if Letters.query.filter_by(id=communication_method_id).one_or_none() is None:
+                    raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
+                                                        missing_field='communication_method_id')
+            if communication_method_type == response_type.EMAIL:
+                if Emails.query.filter_by(id=communication_method_id).one_or_none() is None:
+                    raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
+                                                        missing_field='communication_method_id')
+
+            self.communication_method_type = communication_method_type
+            self.communication_method_id = communication_method_id
+
+        elif communication_method_type is None and communication_method_id is not None:
+            raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
+                                                missing_field='communication_method_type')
+        elif communication_method_type is not None and communication_method_id is None:
+            raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
+                                                missing_field='communication_method_id')
+
+    @property
+    def preview(self):
+        return self.reason
+
+    @property
+    def val_for_events(self):
+        val = {
+            'reason': self.reason
+        }
+        if self.dtype in (determination_type.ACKNOWLEDGMENT,
+                          determination_type.EXTENSION,
+                          determination_type.REOPENING):
+            val['due_date'] = self.date.isoformat()
+        return val

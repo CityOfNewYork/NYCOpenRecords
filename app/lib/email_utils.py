@@ -15,7 +15,7 @@
 
 """
 
-from flask import current_app, render_template
+from flask import current_app, render_template, app
 from flask_mail import Message
 
 from app import mail, celery, sentry
@@ -59,6 +59,12 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_c
         msg.html = email_content
     else:
         msg.html = render_template(template + '.html', **kwargs)
+
+    attachments = kwargs.get('attachments', None)
+    if attachments:
+        filename = kwargs.get('filename')
+        mimetype = kwargs.get('mimetype', 'application/pdf')
+        msg.attach(filename, mimetype, attachments)
     send_async_email.delay(msg)
 
 

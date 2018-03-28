@@ -165,18 +165,6 @@ def response_acknowledgment(request_id):
             flash('Uh Oh, it looks like the acknowledgment {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-    if flask_request.form['method'] == 'letter':
-        f = add_acknowledgment(request_id,
-                       flask_request.form['info'].strip() or None,
-                       flask_request.form['days'],
-                       flask_request.form['date'],
-                       flask_request.form['tz-name'],
-                       flask_request.form['summary'],
-                       flask_request.form['method'])
-
-        return f
-
-
     add_acknowledgment(request_id,
                        flask_request.form['info'].strip() or None,
                        flask_request.form['days'],
@@ -620,11 +608,11 @@ def get_response_content(response_id):
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
                          or current_user.is_agency)
-                        # user is associated with request
-                        and UserRequests.query.filter_by(
-                            request_id=response_.request_id,
-                            user_guid=current_user.guid,
-                            auth_user_type=current_user.auth_user_type
+                            # user is associated with request
+                            and UserRequests.query.filter_by(
+                                request_id=response_.request_id,
+                                user_guid=current_user.guid,
+                                auth_user_type=current_user.auth_user_type
                             ).first() is not None):
                         @after_this_request
                         def remove(resp):
@@ -670,4 +658,3 @@ def response_generate_letter():
     request_id = data['request_id']
 
     return process_letter_template_request(request_id, data)
-
