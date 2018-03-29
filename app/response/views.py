@@ -677,6 +677,7 @@ def response_get_letter(request_id, response_id):
             return jsonify({'error': 'unauthorized'}), 403
         response_ = Responses.query.filter_by(id=response_id).one()
         letter = Letters.query.filter_by(id=response_.communication_method_id).one()
+        print(letter.id)
 
         return generate_pdf_flask_response(letter.content)
     return jsonify({'error': 'unauthorized'}), 403

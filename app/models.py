@@ -366,6 +366,7 @@ class Users(UserMixin, db.Model):
     fax_number = db.Column(db.String(25))
     mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
     session_id = db.Column(db.String(254), nullable=True, default=None)
+    signature = db.Column(db.String(), nullable=True, default=None)
 
     # Relationships
     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')

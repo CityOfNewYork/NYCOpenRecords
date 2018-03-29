@@ -17,11 +17,6 @@
                 top: 100pt;
                 height: 600pt;
             }
-            @frame footer_frame {
-                /* Another static Frame */
-                -pdf-frame-content:footer_content;
-                left: 50pt; width: 512pt; top: 700pt; height: 20pt;
-            }
         }
     </style>
 </head>
@@ -49,9 +44,12 @@
     <div style="clear: both; padding-top: 20px;">
         {{ contents }}
     </div>
-
-    <div style="float: right; padding-top: 50px;">
+    <div style="float: right; padding-top: 50px; padding-bottom: 50px;">
         {{ signature }}
+    </div>
+    <div style="text-align: center; clear: both;">
+        <br /><br /><br /><br />
+        {{ footer }}
     </div>
 </div>
 </body>

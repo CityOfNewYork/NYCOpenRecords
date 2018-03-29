@@ -786,7 +786,8 @@ def _acknowledgment_letter_handler(request_id, data):
                                                     request=request,
                                                     date=datetime.utcnow(),
                                                     contents=Markup(template),
-                                                    request_id=request_id),
+                                                    request_id=request_id,
+                                                    footer=Markup(agency_letter_data['footer'])),
                         "header": header})
     else:
         content = data['letter_content']
