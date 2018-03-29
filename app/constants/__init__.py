@@ -100,7 +100,7 @@ EMAIL_TEMPLATE_FOR_TYPE = {
 }
 
 EMAIL_TEMPLATE_FOR_EVENT = {
-    event_type.ACKNOWLEDGMENT_LETTER_CREATED: "email_event_letter_created.html"
+    event_type.ACKNOWLEDGMENT_LETTER_CREATED: "email_event_acknowledgment_letter_created.html"
 }
 
 OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"
