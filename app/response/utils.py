@@ -225,10 +225,19 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
                                       filename=secure_filename('{}_acknowledgment_letter.pdf'.format(request_id)),
                                       mimetype='application/pdf')
         else:
-            _send_response_email(request_id,
+            email_id = _send_response_email(request_id,
                                  privacy,
                                  content,
                                  'Request {} Acknowledged'.format(request_id))
+
+            update_object(
+                {
+                    'communication_method_type': response_type.EMAIL,
+                    'communication_method_id': email_id
+                },
+                Determinations,
+                response.id
+            )
 
 
 def add_denial(request_id, reason_ids, email_content):
@@ -539,6 +548,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     )
     create_object(response)
     create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response)
+    return response.id
 
 
 def _add_letter(request_id, letter_content):
@@ -1593,7 +1603,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         is_anon=is_anon,
                                                                         release_date=release_date
                                                                         ))
-        safely_send_and_add_email(request_id,
+        tmp = safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   'Response Added to {} - File'.format(request_id),
                                   to=[requester_email],
@@ -1605,7 +1615,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    agency_name=agency_name,
                                                    private_links=private_links,
                                                    page=page)
-            safely_send_and_add_email(request_id,
+            tmp = safely_send_and_add_email(request_id,
                                       email_content_agency,
                                       'File(s) Added to {}'.format(request_id),
                                       bcc=bcc)
@@ -1616,7 +1626,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      private_links=private_links,
                                                                      page=page
                                                                      ))
-        safely_send_and_add_email(request_id,
+        tmp = safely_send_and_add_email(request_id,
                                   email_content_agency,
                                   subject,
                                   bcc=bcc)
@@ -1639,12 +1649,12 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-    safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
+    tmp = safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
-        safely_send_and_add_email(request_id,
-                                  email_content_requester,
-                                  subject,
-                                  to=[requester_email])
+        tmp = safely_send_and_add_email(request_id,
+                                        email_content_requester,
+                                        subject,
+                                        to=[requester_email])
 
 
 def _send_response_email(request_id, privacy, email_content, subject):
@@ -1668,7 +1678,7 @@ def _send_response_email(request_id, privacy, email_content, subject):
     }
     if privacy != PRIVATE:
         kwargs['to'] = [requester_email]
-    safely_send_and_add_email(request_id,
+    return safely_send_and_add_email(request_id,
                               email_content,
                               subject,
                               **kwargs)
@@ -1680,7 +1690,7 @@ def _send_delete_response_email(request_id, response):
     a deleted response.
 
     """
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_response_deleted.html',
@@ -1713,7 +1723,7 @@ def safely_send_and_add_email(request_id,
 
     try:
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
-        _add_email(request_id, subject, email_content, to=to, bcc=bcc)
+        return _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         sentry.captureException()
         current_app.logger.exception('Must include: To, CC, or BCC')

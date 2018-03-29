@@ -46,7 +46,7 @@ def add_user_request(request_id, user_guid, permissions):
             added_permissions.append(val)
 
     # send email to agency administrators
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_added.html',
@@ -60,7 +60,7 @@ def add_user_request(request_id, user_guid, permissions):
         to=agency_admin_emails)
 
     # send email to user being added
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_added.html',
@@ -116,7 +116,7 @@ def edit_user_request(request_id, user_guid, permissions):
             removed_permissions.append(val)
 
     # send email to agency administrators
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_edited.html',
@@ -131,7 +131,7 @@ def edit_user_request(request_id, user_guid, permissions):
         to=agency_admin_emails)
 
     # send email to user being edited
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_edited.html',
@@ -172,7 +172,7 @@ def remove_user_request(request_id, user_guid):
     agency_name = request.agency.name
 
     # send email to agency administrators
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_removed.html',
@@ -185,7 +185,7 @@ def remove_user_request(request_id, user_guid):
         to=agency_admin_emails)
 
     # send email to user being removed
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_removed.html',
