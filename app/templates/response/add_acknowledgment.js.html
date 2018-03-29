@@ -30,6 +30,8 @@
         var letter_info = second.find("#letter-template-id");
         var generate_letters_enabled = form.find("#generate-letters-enabled").val();
 
+        var edit_body_header = third.find('#edit-body-header');
+
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
             first.show();
@@ -133,7 +135,6 @@
                 email_days.parsley().validate();
                 email_info.parsley().validate();  // for max length
             }
-            debugger;
             if (method.val() === 'letter') {
                 letter_days.parsley().validate();
                 letter_info.parsley().validate(); // ensure exists
@@ -170,6 +171,8 @@
                         }
                     });
 
+                    edit_body_header.html("Edit Email Body");
+
                     second.hide();
                     third.show();
                 } else {
@@ -193,6 +196,8 @@
                             tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
                         }
                     });
+
+                    edit_body_header.html("Edit Letter Body");
 
                     second.hide();
                     third.show();
