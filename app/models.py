@@ -1625,7 +1625,7 @@ class LetterTemplates(db.Model):
     """
     __tablename__ = 'letter_templates'
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.Enum(
+    type_ = db.Column(db.Enum(
         determination_type.ACKNOWLEDGMENT,
         determination_type.EXTENSION,
         determination_type.CLOSING,
@@ -1636,10 +1636,30 @@ class LetterTemplates(db.Model):
         response_type.LINK,
         response_type.NOTE,
         name="letter_type"
-    ), nullable=False)
+    ), nullable=False, name='type')
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
+
+    @classmethod
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['LETTER_TEMPLATES_DATA']
+        with open(filename, 'r') as data:
+            dictreader = csv.DictReader(data)
+            for row in dictreader:
+                if LetterTemplates.query.filter_by(type_=row['type'],
+                                                   agency_ein=row['agency_ein'],
+                                                   title=row['title'],
+                                                   content=row['content']).one_or_none() is None:
+                    template = LetterTemplates(
+                        type_=row['type'],
+                        agency_ein=row['agency_ein'],
+                        title=row['title'],
+                        content=row['content']
+                    )
+                    db.session.add(template)
+
+            db.session.commit()
 
 
 class Determinations(Responses):
@@ -1698,7 +1718,7 @@ class Determinations(Responses):
 
         if dtype not in (determination_type.ACKNOWLEDGMENT,
                          determination_type.REOPENING) and reason is None:
-                raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='reason')
+            raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='reason')
         self.reason = reason
 
         if dtype not in (determination_type.DENIAL,

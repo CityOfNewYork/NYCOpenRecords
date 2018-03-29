@@ -773,6 +773,9 @@ def _acknowledgment_letter_handler(request_id, data):
                                  acknowledgment['date'],
                                  data['tz_name'])
 
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
         letterhead = render_template_string(agency_letter_data['letterhead'])
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
@@ -780,11 +783,12 @@ def _acknowledgment_letter_handler(request_id, data):
                                           user=current_user)
         signature = render_template_string(agency_letter_data['signature'], user=current_user, agency=agency)
 
+
         return jsonify({"template": render_template('letters/base.html',
                                                     letterhead=Markup(letterhead),
                                                     signature=Markup(signature),
                                                     request=request,
-                                                    date=datetime.utcnow(),
+                                                    date=date,
                                                     contents=Markup(template),
                                                     request_id=request_id,
                                                     footer=Markup(agency_letter_data['footer'])),

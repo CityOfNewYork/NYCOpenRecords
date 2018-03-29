@@ -20,7 +20,9 @@ from app.models import (
     Roles,
     UserRequests,
     AgencyUsers,
-    Emails
+    Emails,
+    Letters,
+    LetterTemplates
 )
 from app.request.utils import (
     generate_guid
@@ -65,7 +67,9 @@ def make_shell_context():
         Roles=Roles,
         UserRequests=UserRequests,
         AgencyUsers=AgencyUsers,
-        Emails=Emails
+        Emails=Emails,
+        Letters=Letters,
+        LetterTemplates=LetterTemplates
     )
 
 
@@ -183,7 +187,8 @@ def deploy():
         Roles,
         Agencies,
         Reasons,
-        Users
+        Users,
+        LetterTemplates
     )))
 
     es_recreate()
@@ -404,6 +409,7 @@ def routes():
 
     for line in sorted(output):
         print(line)
+
 
 @manager.command
 def update_new_value_to_boolean():

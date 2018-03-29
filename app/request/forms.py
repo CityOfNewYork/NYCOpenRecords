@@ -258,7 +258,7 @@ class GenerateLetterForm(Form):
         self.letter_templates.choices = [
             (letter.id, letter.title)
             for letter in LetterTemplates.query.filter(
-                LetterTemplates.type.in_(self.letter_type),
+                LetterTemplates.type_.in_(self.letter_type),
                 or_(
                     LetterTemplates.agency_ein == agency_ein,
                     LetterTemplates.agency_ein == None
