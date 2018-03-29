@@ -209,7 +209,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
                 Determinations,
                 response.id
             )
-            f = generate_pdf(content)
+            letter = generate_pdf(content)
             email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
                                           EMAIL_TEMPLATE_FOR_EVENT[event_type.ACKNOWLEDGMENT_LETTER_CREATED])
             email_content = render_template(email_template,
@@ -221,7 +221,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
                                       email_content,
                                       'Request {} Acknowledged - Letter'.format(request_id),
                                       to=[u.notification_email for u in request.agency_users],
-                                      attachments=f,
+                                      attachment=letter,
                                       filename=secure_filename('{}_acknowledgment_letter.pdf'.format(request_id)),
                                       mimetype='application/pdf')
         else:
