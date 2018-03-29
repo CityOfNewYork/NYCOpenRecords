@@ -772,6 +772,8 @@ def _acknowledgment_letter_handler(request_id, data):
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        # TODO: Once requests have a Point of Contact, need to query for that user, if exists, and pass them in to the template. @joelbcastillo
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
                                           date=request.date_submitted,
