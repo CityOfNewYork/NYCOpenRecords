@@ -32,6 +32,7 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
+from app.lib.pdf import generate_pdf_flask_response
 from app.response import response
 from app.models import (
     Requests,
@@ -41,7 +42,8 @@ from app.models import (
     Files,
     Notes,
     Instructions,
-    Links
+    Links,
+    Letters
 )
 from app.response.utils import (
     add_note,
@@ -658,3 +660,23 @@ def response_generate_letter():
     request_id = data['request_id']
 
     return process_letter_template_request(request_id, data)
+
+
+@response.route('/letter/<request_id>/<response_id>')
+def response_get_letter(request_id, response_id):
+    """
+    Return a PDF letter as an attachment.
+
+    :param request_id: FOIL Request ID for which the letter exists
+    :param response_id: Response ID for the letter.
+    :return: PDF Attachment.
+    """
+    if current_user.is_authenticated and current_user.is_agency:
+        request = Requests.query.filter_by(id=request_id).one()
+        if current_user not in request.agency_users:
+            return jsonify({'error': 'unauthorized'}), 403
+        response_ = Responses.query.filter_by(id=response_id).one()
+        letter = Letters.query.filter_by(id=response_.communication_method_id).one()
+
+        return generate_pdf_flask_response(letter.content)
+    return jsonify({'error': 'unauthorized'}), 403

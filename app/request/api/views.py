@@ -214,7 +214,7 @@ def get_request_responses():
         Responses.request_id == current_request.id,
         Responses.type != response_type.EMAIL,
         Responses.type != response_type.LETTER,
-        Responses.deleted is False
+        Responses.deleted == False
     ).order_by(
         desc(Responses.date_modified)
     ).all()[start: start + RESPONSES_INCREMENT]

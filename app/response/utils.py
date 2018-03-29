@@ -641,7 +641,6 @@ def process_letter_template_request(request_id, data):
     :param data: Data from the frontend AJAX call (JSON)
     :return: the HTML of the rendered template
     """
-    agency = Requests.query.filter_by(id=request_id).first().agency
     rtype = data['type']
     handler_for_type = {
         determination_type.ACKNOWLEDGMENT: _acknowledgment_letter_handler,
