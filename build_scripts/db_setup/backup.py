@@ -17,11 +17,11 @@ BACKUP_DIR = "/backup/"
 dumper = """/opt/rh/rh-postgresql95/root/usr/bin/pg_dump -U %s -h 127.0.0.1 -Z 9 -f %s -F c %s  """
 
 sender = 'openrecords@records.nyc.gov'
-receivers = ['jocastillo@records.nyc.gov']
+receivers = ['openrecords@records.nyc.gov']
 
 email = """From: OpenRecords Backup Report <backup@records.nyc.go>
 To: OpenRecords Support Staff <openrecords@records.nyc.gov>
-Subject: OpenRecords Backup Report %s - DEV
+Subject: OpenRecords Backup Report %s
 
 """ % strftime("%Y-%m-%d %H-%M-%S", localtime())
 
