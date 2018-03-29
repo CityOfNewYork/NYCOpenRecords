@@ -42,7 +42,7 @@
         }
 
         // Parsley
-        var required = [email_date, email_days, method];
+        var required = [email_date, email_days, letter_date, letter_days, letter_info, method];
         for (var i = 0; i < required.length; i++) {
             required[i].attr("data-parsley-required", "");
         }
@@ -119,25 +119,31 @@
 
         next2.click(function (e) {
             if (email_date.is(":visible")) {
+                // If custom due date is selected, email_info must be validated.
                 email_date.parsley().validate();
                 email_info.parsley().validate();
-                if (!(email_date.parsley().isValid() && email_date.parsley().isValid())) {
+                if (!(email_date.parsley().isValid() && email_info.parsley().isValid())) {
+                    // if either email_date or email_info are invalid, show an error.
                     e.preventDefault();
                     return false;
                 }
             }
 
-            email_days.parsley().validate();
-
             if (method.val() === 'email') {
+                email_days.parsley().validate();
                 email_info.parsley().validate();  // for max length
+            }
+            debugger;
+            if (method.val() === 'letter') {
+                letter_days.parsley().validate();
+                letter_info.parsley().validate(); // ensure exists
             }
 
             if (method.val() === 'email' && !(email_days.parsley().isValid() && email_info.parsley().isValid())
             ) {
                 e.preventDefault();
                 return false;
-            } else if (method.val() === 'letter' && !letter_days.parsley().isValid()) {
+            } else if (method.val() === 'letter' && !(letter_days.parsley().isValid() && letter_info.parsley().isValid())) {
                 e.preventDefault();
                 return false;
             }
