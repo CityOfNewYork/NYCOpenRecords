@@ -9,8 +9,6 @@ import os
 import re
 import json
 
-import app.lib.file_utils as fu
-
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 from urllib.parse import urljoin, urlencode
@@ -60,6 +58,7 @@ from app.lib.date_utils import (
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
+import app.lib.file_utils as fu
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.lib.pdf import generate_pdf
@@ -80,6 +79,7 @@ from app.models import (
     Letters
 )
 from app.request.api.utils import create_request_info_event
+from app.auth.utils import find_user_by_email
 
 
 # TODO: class ResponseProducer()
@@ -767,11 +767,6 @@ def _acknowledgment_letter_handler(request_id, data):
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
-        default_content = True
-        date = _get_new_due_date(request_id,
-                                 acknowledgment['days'],
-                                 acknowledgment['date'],
-                                 data['tz_name'])
 
         now = datetime.utcnow()
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
@@ -781,8 +776,12 @@ def _acknowledgment_letter_handler(request_id, data):
                                           days=acknowledgment['days'],
                                           date=request.date_submitted,
                                           user=current_user)
-        signature = render_template_string(agency_letter_data['signature'], user=current_user, agency=agency)
 
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
 
         return jsonify({"template": render_template('letters/base.html',
                                                     letterhead=Markup(letterhead),
