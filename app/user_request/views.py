@@ -45,8 +45,6 @@ def create(request_id):
     ):
         user_data = flask_request.form
         point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
-        print(point_of_contact)
-        print(user_data)
 
         required_fields = ['user']
 

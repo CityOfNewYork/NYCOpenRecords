@@ -61,6 +61,8 @@ from app.user_request.forms import (
     EditUserRequestForm,
     RemoveUserRequestForm,
 )
+from app.user_request.utils import get_current_point_of_contact
+
 from app import sentry
 
 
@@ -258,6 +260,12 @@ def view(request_id):
         assigned_user_permissions[u.guid] = UserRequests.query.filter_by(
             request_id=request_id, user_guid=u.guid).one().get_permission_choice_indices()
 
+    point_of_contact = get_current_point_of_contact(request_id)
+    if point_of_contact:
+        current_point_of_contact = {'user_guid': point_of_contact.user_guid}
+    else:
+        current_point_of_contact = {'user_guid': ''}
+
     show_agency_request_summary = False
     if (
         current_user in current_request.agency_users or (current_request.agency_request_summary and ((
@@ -288,6 +296,7 @@ def view(request_id):
         add_user_request_form=AddUserRequestForm(active_users),
         edit_user_request_form=EditUserRequestForm(assigned_users),
         assigned_user_permissions=assigned_user_permissions,
+        current_point_of_contact=current_point_of_contact,
         holidays=holidays,
         assigned_users=assigned_users,
         active_users=active_users,

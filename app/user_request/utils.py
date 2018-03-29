@@ -157,6 +157,7 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
     if removed_permissions:
         user_request.remove_permissions([capability.value for capability in removed_permissions])
 
+    determine_point_of_contact_change(request_id, user_request, point_of_contact)
     create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions)
 
 
@@ -227,13 +228,35 @@ def create_user_request_event(events_type, user_request, old_permissions=None, u
     ))
 
 
+def get_current_point_of_contact(request_id):
+    """
+    Get the current point of contact of a given request
+    :param request_id: FOIL request ID
+    :return: UserRequest object of the current point of contact
+    """
+    return UserRequests.query.filter_by(request_id=request_id, point_of_contact=True).one_or_none()
+
+
+def set_point_of_contact(request_id, user_request, point_of_contact):
+    """
+    Toggles point of contact of a given request
+    :param request_id: FOIL request ID
+    :param user_request: UserRequest row to be changed
+    :param point_of_contact: boolean flag for point of contact
+    """
+    update_object({"point_of_contact": point_of_contact},
+                  UserRequests,
+                  (user_request.user_guid, user_request.auth_user_type, request_id)
+                  )
+
+
 def has_point_of_contact(request_id):
     """
     Check if a given request has a point of contact
     :param request_id: FOIL request ID
     :return: True if there is a current point of contact, False otherwise
     """
-    if UserRequests.query.filter_by(request_id=request_id, point_of_contact=True).one_or_none():
+    if get_current_point_of_contact(request_id):
         return True
     return False
 
@@ -243,11 +266,8 @@ def remove_point_of_contact(request_id):
     Remove the current point of contact from a given request
     :param request_id: FOIL request ID
     """
-    point_of_contact = UserRequests.query.filter_by(request_id=request_id, point_of_contact=True).one()
-    update_object({"point_of_contact": False},
-                  UserRequests,
-                  (point_of_contact.user_guid, point_of_contact.auth_user_type, request_id)
-                  )
+    point_of_contact = get_current_point_of_contact(request_id)
+    set_point_of_contact(request_id, point_of_contact, False)
     create_object(Events(
         request_id,
         current_user.guid,
@@ -261,3 +281,23 @@ def remove_point_of_contact(request_id):
                    "point_of_contact": "False"},
         timestamp=datetime.utcnow(),
     ))
+
+
+def determine_point_of_contact_change(request_id, user_request, point_of_contact):
+    """
+    Determines what action needs to be done to the point of contact
+    :param request_id: FOIL request ID
+    :param user_request: UserRequest row to be changed
+    :param point_of_contact: boolean flag for point of contact
+    """
+    current_point_of_contact = get_current_point_of_contact(request_id)
+    if current_point_of_contact is not None and user_request.user_guid == current_point_of_contact.user_guid and point_of_contact != current_point_of_contact.point_of_contact:
+        # toggle the flag of the current point of contact
+        set_point_of_contact(request_id, current_point_of_contact, point_of_contact)
+    elif current_point_of_contact is None and point_of_contact:
+        # set a brand new point of contact
+        set_point_of_contact(request_id, user_request, True)
+    elif has_point_of_contact(request_id) and current_point_of_contact.user_guid != user_request.user_guid and point_of_contact:
+        # replace the previous point of contact
+        remove_point_of_contact(request_id)
+        set_point_of_contact(request_id, user_request, point_of_contact)

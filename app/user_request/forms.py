@@ -36,7 +36,7 @@ class EditUserRequestForm(Form):
     user = SelectField('Users', choices=None)
     permission = SelectMultipleField('Permissions', choices=None)
     roles = SelectField('Presets', choices=None)
-    point_of_contact = BooleanField(default=False)
+    point_of_contact = BooleanField()
 
     def __init__(self, assigned_users):
         super(EditUserRequestForm, self).__init__()
