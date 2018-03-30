@@ -293,7 +293,10 @@ def determine_point_of_contact_change(request_id, user_request, point_of_contact
     current_point_of_contact = get_current_point_of_contact(request_id)
     if current_point_of_contact is not None and user_request.user_guid == current_point_of_contact.user_guid and point_of_contact != current_point_of_contact.point_of_contact:
         # toggle the flag of the current point of contact
-        set_point_of_contact(request_id, current_point_of_contact, point_of_contact)
+        if not point_of_contact:
+            remove_point_of_contact(request_id)
+        else:
+            set_point_of_contact(request_id, current_point_of_contact, point_of_contact)
     elif current_point_of_contact is None and point_of_contact:
         # set a brand new point of contact
         set_point_of_contact(request_id, user_request, True)
