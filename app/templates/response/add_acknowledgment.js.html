@@ -221,7 +221,8 @@
                         fourth.find(".summary").html(data.template);
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find("input[name='tz-name']").val(jstz.determine().name());
-                        fourth.find(".confirmation-header").text(data.header)
+                        fourth.find(".confirmation-header").text(data.header);
+                        fourth.find(".method").val(method.val());
                     }
                 });
             } else {
@@ -237,7 +238,8 @@
                         fourth.find(".summary").html(data.template);
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find("input[name='tz-name']").val(jstz.determine().name());
-                        fourth.find(".confirmation-header").text(data.header)
+                        fourth.find(".confirmation-header").text(data.header);
+                        fourth.find(".method").val(method.val());
                     }
                 })
             }
