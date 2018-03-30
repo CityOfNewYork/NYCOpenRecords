@@ -220,7 +220,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
             safely_send_and_add_email(request_id,
                                       email_content,
                                       'Request {} Acknowledged - Letter'.format(request_id),
-                                      to=[u.notification_email for u in request.agency_users],
+                                      to=get_agency_emails(request_id),
                                       attachment=letter,
                                       filename=secure_filename('{}_acknowledgment_letter.pdf'.format(request_id)),
                                       mimetype='application/pdf')
