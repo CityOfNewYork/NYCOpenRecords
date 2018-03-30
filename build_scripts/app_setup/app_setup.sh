@@ -5,6 +5,7 @@ yum -y install rh-python35
 
 # 2. Install Redis 3.2
 yum -y install rh-redis32
+sudo chkconfig rh-redis32-redis on
 
 # 3. Setup /etc/profile.d/python.sh
 bash -c "printf '#\!/bin/bash\nsource /opt/rh/rh-python35/enable\n' > /etc/profile.d/python35.sh"
@@ -14,6 +15,12 @@ yum -y install rh-postgresql95-postgresql-devel
 yum -y install rh-python35-python-psycopg2
 yum -y install openssl-devel
 yum -y install libffi-devel
+yum -y install libjpeg-devel
+yum -y install zlib-devel
+yum -y install cairo
+yum -y install pango
+yum -y install gdk-pixbuf2
+
 
 # 5. Install Developer Tools
 yum -y groupinstall "Development Tools"
@@ -25,14 +32,14 @@ mkdir /home/vagrant/.virtualenvs
 virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords
 chown -R vagrant:vagrant /home/vagrant
 source /home/vagrant/.virtualenvs/openrecords/bin/activate
-pip install -r /vagrant/requirements/common.txt --no-binary :all:
+pip install -r /vagrant/requirements/common.txt
 
 if [ "$1" -eq development ] || [ "$2" -eq development ]; then
-    pip install -r /vagrant/requirements/dev.txt --no-binary :all:
+    pip install -r /vagrant/requirements/dev.txt
 fi
 
 if [ "$1" -eq rhel ] || [ "$2" -eq rhel ]; then
-    pip install -r /vagrant/requirements/rhel.txt --no-binary :all:
+    pip install -r /vagrant/requirements/rhel.txt
 fi
 
 # 7. Install telnet-server
