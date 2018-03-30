@@ -56,9 +56,10 @@
                 "$id": "/properties/agencies/items/properties/agency_features/properties/letters/properties/signature/properties/default_user_email",
                 "type": "string",
                 "title": "Default User Signature",
-                "default": "",
+                "default": null,
                 "examples": [
-                  "bladerunnerperftest01@dsny.nyc.gov"
+                  "bladerunnerperftest01@dsny.nyc.gov",
+                  null
                 ]
               }
             }
