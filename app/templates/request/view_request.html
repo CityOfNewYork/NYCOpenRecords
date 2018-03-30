@@ -63,6 +63,15 @@
                                     {% if permissions['add_note'] %}
                                         <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
                                     {% endif %}
+                                    {% if active_users and permissions['add_user'] %}
+                                        <li><a href="#add-user" data-toggle="tab">Add User</a></li>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['edit_user'] %}
+                                        <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['remove_user'] %}
+                                        <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
+                                    {% endif %}
                                 {% else %}
                                     {% if permissions['add_file'] %}
                                         <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
@@ -124,6 +133,22 @@
                                     {% if permissions['add_note'] %}
                                         <div class="tab-pane" id="add-note">
                                             {% include "response/add_note.html" %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if active_users and permissions['add_user'] %}
+                                        <div class="tab-pane" id="add-user">
+                                            {% include "response/add_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['edit_user'] %}
+                                        <div class="tab-pane" id="edit-user">
+                                            {% include "response/edit_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['remove_user'] %}
+                                        <div class="tab-pane" id="remove-user">
+                                            {% include "response/remove_user_request.html" %}
                                         </div>
                                     {% endif %}
                                 {% else %}
