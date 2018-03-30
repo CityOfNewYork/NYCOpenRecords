@@ -3,6 +3,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" id="generate-letters-enabled" name="generate_letters_enabled"
            value="{{ generate_letters_enabled }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
 
     <div class="col-sm-9">
         <fieldset>
@@ -16,7 +17,7 @@
                 </small>
             </legend>
             <div class="first" hidden>
-                 {% if generate_letters_enabled %}
+                {% if generate_letters_enabled %}
                     <div class="form-group">
                         <label for="acknowledgment-method">Acknowledgment Method</label>
                         <select id="acknowledgment-method" name="method" class="disable-enter-submit form-control">
@@ -27,7 +28,7 @@
                     </div>
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
                 {% else %}
-                     <input type="hidden" id="acknowledgment-method" name="method" value="email" />
+                    <input type="hidden" id="acknowledgment-method" name="method" value="email"/>
                 {% endif %}
             </div>
             <div class="second" hidden>

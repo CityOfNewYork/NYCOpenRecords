@@ -9,6 +9,7 @@
         var second = form.find(".second");
         var third = form.find(".third");
         var fourth = form.find(".fourth");
+        var point_of_contact = form.find("#point-of-contact");
 
         var next1 = first.find(".next");
         var next2 = second.find(".next");
@@ -185,7 +186,8 @@
                             acknowledgment: JSON.stringify({
                                 days: letter_days.val(),
                                 date: letter_date.val(),
-                                letter_template: letter_info.val()
+                                letter_template: letter_info.val(),
+                                point_of_contact: point_of_contact.val()
                             }),
                             tz_name: jstz.determine().name()
                         },

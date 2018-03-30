@@ -264,13 +264,13 @@ def view(request_id):
         assigned_user_permissions[u.guid] = UserRequests.query.filter_by(
             request_id=request_id, user_guid=u.guid).one().get_permission_choice_indices()
 
-    # Determine if the Agency Request Summary should be shown.
     point_of_contact = get_current_point_of_contact(request_id)
     if point_of_contact:
         current_point_of_contact = {'user_guid': point_of_contact.user_guid}
     else:
         current_point_of_contact = {'user_guid': ''}
 
+    # Determine if the Agency Request Summary should be shown.
     show_agency_request_summary = False
 
     if current_user in current_request.agency_users \

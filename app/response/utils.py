@@ -226,9 +226,9 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
                                       mimetype='application/pdf')
         else:
             email_id = _send_response_email(request_id,
-                                 privacy,
-                                 content,
-                                 'Request {} Acknowledged'.format(request_id))
+                                            privacy,
+                                            content,
+                                            'Request {} Acknowledged'.format(request_id))
 
             update_object(
                 {
@@ -774,10 +774,17 @@ def _acknowledgment_letter_handler(request_id, data):
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
         # TODO: Once requests have a Point of Contact, need to query for that user, if exists, and pass them in to the template. @joelbcastillo
+        point_of_contact = acknowledgment.get('point_of_contact', None)
+        if point_of_contact is not None:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).first()
+        else:
+            point_of_contact_user = current_user
+
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
                                           date=request.date_submitted,
-                                          user=current_user)
+                                          user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
@@ -1610,10 +1617,10 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         release_date=release_date
                                                                         ))
         tmp = safely_send_and_add_email(request_id,
-                                  email_content_requester,
-                                  'Response Added to {} - File'.format(request_id),
-                                  to=[requester_email],
-                                  bcc=bcc)
+                                        email_content_requester,
+                                        'Response Added to {} - File'.format(request_id),
+                                        to=[requester_email],
+                                        bcc=bcc)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
@@ -1622,9 +1629,9 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    private_links=private_links,
                                                    page=page)
             tmp = safely_send_and_add_email(request_id,
-                                      email_content_agency,
-                                      'File(s) Added to {}'.format(request_id),
-                                      bcc=bcc)
+                                            email_content_agency,
+                                            'File(s) Added to {}'.format(request_id),
+                                            bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
@@ -1633,9 +1640,9 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      page=page
                                                                      ))
         tmp = safely_send_and_add_email(request_id,
-                                  email_content_agency,
-                                  subject,
-                                  bcc=bcc)
+                                        email_content_agency,
+                                        subject,
+                                        bcc=bcc)
 
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
@@ -1685,9 +1692,9 @@ def _send_response_email(request_id, privacy, email_content, subject):
     if privacy != PRIVATE:
         kwargs['to'] = [requester_email]
     return safely_send_and_add_email(request_id,
-                              email_content,
-                              subject,
-                              **kwargs)
+                                     email_content,
+                                     subject,
+                                     **kwargs)
 
 
 def _send_delete_response_email(request_id, response):
