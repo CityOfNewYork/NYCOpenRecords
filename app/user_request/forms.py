@@ -1,5 +1,5 @@
 from flask_wtf import Form
-from wtforms import SelectField, SelectMultipleField
+from wtforms import SelectField, SelectMultipleField, BooleanField
 from app.constants import permission, role_name
 from app.models import Roles
 
@@ -8,6 +8,7 @@ class AddUserRequestForm(Form):
     user = SelectField('Users', choices=None)
     permission = SelectMultipleField('Permissions', choices=None)
     roles = SelectField('Presets', choices=None)
+    point_of_contact = BooleanField()
 
     def __init__(self, assigned_users):
         super(AddUserRequestForm, self).__init__()
@@ -35,6 +36,7 @@ class EditUserRequestForm(Form):
     user = SelectField('Users', choices=None)
     permission = SelectMultipleField('Permissions', choices=None)
     roles = SelectField('Presets', choices=None)
+    point_of_contact = BooleanField()
 
     def __init__(self, assigned_users):
         super(EditUserRequestForm, self).__init__()

@@ -16,6 +16,10 @@
 
         var current_permissions = {{ assigned_user_permissions | safe }};
 
+        var current_point_of_contact = {{ current_point_of_contact | safe }};
+        var point_of_contact = $("#edit_point_of_contact");
+        var point_of_contact_state;
+
         function setPermissions(perms) {
             permission.children().each(function () {
                 if (perms.indexOf(Number($(this).val())) !== -1) {
@@ -29,6 +33,17 @@
         function setCurrentPermissions() {
             if (current_permissions.hasOwnProperty(user.val())) {
                 setPermissions(current_permissions[user.val()]);
+            }
+        }
+
+        function setCurrentPointOfContact() {
+            if (user.val() === current_point_of_contact["user_guid"]) {
+                point_of_contact.prop("checked", true);
+                point_of_contact_state = true;
+            }
+            else {
+                point_of_contact.prop("checked", false);
+                point_of_contact_state = false;
             }
         }
 
@@ -68,7 +83,9 @@
                 }
                 options.show();
                 setCurrentPermissions();
+                setCurrentPointOfContact();
             } else {
+                point_of_contact.prop("checked", false);
                 options.hide();
             }
             $('#no-permissions-changed-error').css("display", "none");
@@ -81,7 +98,8 @@
                     .map(Number)
                     .every(function(item, index) {
                         return item === current_permissions[user.val()][index];
-                    }))
+                    })) ||
+                point_of_contact.is(":checked") !== point_of_contact_state
             ) {
                 $.ajax({
                     url: "/response/email",

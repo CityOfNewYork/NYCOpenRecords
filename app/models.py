@@ -1246,6 +1246,7 @@ class UserRequests(db.Model):
         Agency is a user from the agency to whom the request is assigned.
         Anonymous request_user_type is not needed, since anonymous users can always browse a request
             for public information.
+    point_of_contact = a boolean to determine the point of contact of a request
     """
     __tablename__ = 'user_requests'
     user_guid = db.Column(db.String(64), primary_key=True)
@@ -1267,6 +1268,7 @@ class UserRequests(db.Model):
                 user_type_request.AGENCY,
                 name='request_user_type'))
     permissions = db.Column(db.BigInteger)
+    point_of_contact = db.Column(db.Boolean, default=False)
     # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
     # same permissions as an anonymous user browsing a request since there is no method for authenticating that the
     # current anonymous user is in fact the requester.
@@ -1288,7 +1290,8 @@ class UserRequests(db.Model):
             "user_guid": self.user_guid,
             "auth_user_type": self.auth_user_type,
             "request_user_type": self.request_user_type,
-            "permissions": self.permissions
+            "permissions": self.permissions,
+            "point_of_contact": self.point_of_contact
         }
 
     def has_permission(self, perm):
