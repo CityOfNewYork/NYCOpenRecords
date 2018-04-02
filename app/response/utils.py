@@ -776,7 +776,6 @@ def _acknowledgment_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        # TODO: Once requests have a Point of Contact, need to query for that user, if exists, and pass them in to the template. @joelbcastillo
         point_of_contact = acknowledgment.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
@@ -790,7 +789,12 @@ def _acknowledgment_letter_handler(request_id, data):
                                           user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
-            u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
         else:
             u = current_user
         signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
