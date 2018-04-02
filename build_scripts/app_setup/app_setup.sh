@@ -20,7 +20,10 @@ yum -y install zlib-devel
 yum -y install cairo
 yum -y install pango
 yum -y install gdk-pixbuf2
-
+yum -y install fontpackages-filesystem
+yum -y liberation-fonts-common
+yum -y liberation-sans-fonts
+yum -y urw-fonts
 
 # 5. Install Developer Tools
 yum -y groupinstall "Development Tools"
