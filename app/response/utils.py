@@ -775,9 +775,9 @@ def _acknowledgment_letter_handler(request_id, data):
 
         # TODO: Once requests have a Point of Contact, need to query for that user, if exists, and pass them in to the template. @joelbcastillo
         point_of_contact = acknowledgment.get('point_of_contact', None)
-        if point_of_contact is not None:
+        if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).first()
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 
