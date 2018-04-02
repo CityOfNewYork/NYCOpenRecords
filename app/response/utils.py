@@ -553,10 +553,13 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
 
 def _add_letter(request_id, letter_content):
     """
-    Insert the
-    :param request_id:
-    :param letter_content:
-    :return:
+    Create and store a letter object for the specified request.
+    Stores the letter metadata in the Letters table.
+    Provides parameters for the process_response function to create and store responses and events objects.
+
+    :param request_id: FOIL Request Unique Identifier
+    :param letter_content: HTML content of the letter (used to format PDF for printing)
+    :return: Response Identifier (int)
     """
     response = Letters(
         request_id,

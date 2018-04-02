@@ -1152,6 +1152,7 @@ class Responses(db.Model):
         response_type.INSTRUCTIONS,
         response_type.DETERMINATION,
         response_type.EMAIL,
+        response_type.LETTER,
         name='type'
     ))
 
@@ -1593,6 +1594,7 @@ class Letters(Responses):
     content - A string containing the content of a letter (HTML Formatted)
     """
     __tablename__ = response_type.LETTER
+    __mapper_args__ = {'polymorphic_identity': response_type.LETTER}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
 
