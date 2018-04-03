@@ -21,9 +21,9 @@ yum -y install cairo
 yum -y install pango
 yum -y install gdk-pixbuf2
 yum -y install fontpackages-filesystem
-yum -y liberation-fonts-common
-yum -y liberation-sans-fonts
-yum -y urw-fonts
+yum -y install liberation-fonts-common
+yum -y install liberation-sans-fonts
+yum -y install urw-fonts
 
 # 5. Install Developer Tools
 yum -y groupinstall "Development Tools"
