@@ -30,9 +30,13 @@ from app.constants import (
     STATES,
     submission_methods,
     determination_type,
+    response_type
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons
+from app.models import (
+    Reasons,
+    LetterTemplates
+)
 
 
 class PublicUserRequestForm(Form):
@@ -246,6 +250,76 @@ class DenyRequestForm(FinishRequestForm):
 class CloseRequestForm(FinishRequestForm):
     reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
     ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
+
+
+class GenerateLetterForm(Form):
+    def __init__(self, agency_ein):
+        super(GenerateLetterForm, self).__init__()
+        self.letter_templates.choices = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_.in_(self.letter_type),
+                or_(
+                    LetterTemplates.agency_ein == agency_ein,
+                    LetterTemplates.agency_ein == None
+                )
+            )]
+        self.letter_templates.choices.insert(0, ('', ''))
+
+    @property
+    def letter_templates(self):
+        """ SelectField """
+        raise NotImplementedError
+
+    @property
+    def letter_type(self):
+        """ Acknowledgement, Extension, """
+        raise NotImplementedError
+
+
+class GenerateAcknowledgmentLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.ACKNOWLEDGMENT]
+
+
+class GenerateDenialLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.DENIAL]
+
+
+class GenerateClosingLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.CLOSING, determination_type.DENIAL]
+
+
+class GenerateExtensionLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.EXTENSION]
+
+
+class GenerateReopeningLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.REOPENING]
+
+
+class GenerateFilesLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [response_type.FILE]
+
+
+class GenerateInstructionsLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [response_type.INSTRUCTIONS]
+
+
+class GenerateNotesLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [response_type.NOTE]
+
+
+class GenerateLinksFilesLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [response_type.LINK]
 
 
 class SearchRequestsForm(Form):

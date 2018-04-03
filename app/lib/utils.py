@@ -17,6 +17,20 @@ class InvalidUserException(Exception):
             "Invalid user: {}".format(user))
 
 
+class InvalidDeterminationException(Exception):
+    def __init__(self, request_id, dtype, missing_field):
+        """
+        Exception used to handle missing information for a determination.
+        :param request_id: Unique request identifier
+        :param dtype: Type of determination (Acknowledgment, Extension, Closing, Denial, Re-Opening)
+        :param missing_field: The field missing from the determination.
+        """
+        super(InvalidDeterminationException, self).__init__(
+            "Missing {dtype} {missing_field} for request {request_id}".format(dtype=dtype, missing_field=missing_field,
+                                                                              request_id=request_id)
+        )
+
+
 class UserRequestException(Exception):
     def __init__(self, action, request_id, reason):
         """
@@ -41,6 +55,18 @@ class DuplicateFileException(Exception):
         """
         super(DuplicateFileException, self).__init__(
             "{} has already been uploaded to {}".format(file_name, request_id)
+        )
+
+
+class PDFCreationException(Exception):
+    def __init__(self, pisa_status):
+        """
+        Exception used when xhtml2pdf fails to create a PDF.
+
+        :param pisa_status: Status / Error message from xhtml2pdf (pisa)
+        """
+        super(PDFCreationException, self).__init__(
+            "Failed to create PDF: \n{}".format(pisa_status)
         )
 
 

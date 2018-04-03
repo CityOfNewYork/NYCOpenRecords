@@ -1,0 +1,56 @@
+<html>
+<head>
+    <style type="text/css">
+        @page {
+            size: letter portrait;
+            @frame header_frame { /* Static Frame */
+                -pdf-frame-content: header_content;
+                left: 50pt;
+                width: 512pt;
+                top: 50pt;
+                height: 100pt;
+            }
+            @frame content_frame {
+                /* Content Frame */
+                left: 50pt;
+                width: 512pt;
+                top: 100pt;
+                height: 600pt;
+            }
+        }
+    </style>
+</head>
+<body style="margin: 10px; font-size: 1.8em;">
+<div id="header_content">
+    {{ letterhead }}
+</div>
+<div id="content-frame">
+    <div style="padding-bottom: 10px;">
+        <div style="text-align: left; float: left;">
+            {{ request.requester.name }}<br/>
+            {{ request.requester.mailing_address['address_one'] or '' }}<br/>
+            {{ request.requester.mailing_address['address_two'] or '' }}<br/>
+            {{ request.requester.mailing_address['city'] or '' }}, {{ request.requester.mailing_address['state'] or '' }}, {{ request.requester.mailing_address['zip'] or '' }}<br/>
+        </div>
+        <div style="text-align: left; float: right;">
+            <span class="mceNonEditable">{{ moment(date).format('dddd, MMMM D, YYYY') }}<br/></span>
+            <span class="mceNonEditable"><br/></span>
+            <span class="mceNonEditable">FOIL Request #: {{ request_id }}</span>
+            <span class="mceNonEditable"><br/></span>
+            <span class="mceNonEditable">Your File #:</span>&nbsp;&nbsp;<span class="mceNonEditable">&nbsp;</span>
+        </div>
+    </div>
+
+    <div style="clear: both; padding-top: 20px;">
+        {{ contents }}
+    </div>
+    <div style="float: right; padding-top: 50px; padding-bottom: 50px;">
+        {{ signature }}
+    </div>
+    <div style="text-align: center; clear: both;">
+        <br /><br /><br /><br />
+        {{ footer }}
+    </div>
+</div>
+</body>
+</html>

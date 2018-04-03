@@ -64,6 +64,7 @@ $(function () {
         }
     }
 
+
     function loadMoreResponses() {
         $.ajax({
             url: '/request/api/v1.0/responses',
@@ -145,12 +146,12 @@ $(function () {
             elementpath: false,
             convert_urls: false,
             height: 180,
-            plugins: ["noneditable","preventdelete"]
+            plugins: ["noneditable", "preventdelete"]
         });
 
         switch (response_type) {
             case "files":  // TODO: constants?
-                first.find(".fileupload-form input").on("keyup keypress", function(e) {  // TODO: global function
+                first.find(".fileupload-form input").on("keyup keypress", function (e) {  // TODO: global function
                     if (e.keyCode === 13) {
                         e.preventDefault();
                     }
@@ -548,7 +549,7 @@ $(function () {
                     });
                 });
 
-                prev2.click(function() {
+                prev2.click(function () {
                     second.hide();
                     first.show()
                 });
@@ -619,12 +620,12 @@ $(function () {
         var deleteConfirmCheck = responseModal.find("input[name=delete-confirm-string]");
         var deleteConfirm = responseModal.find(".delete-confirm");
 
-        deleteConfirmCheck.on('paste', function(e) {
+        deleteConfirmCheck.on('paste', function (e) {
             e.preventDefault();
         });
 
         var deleteConfirmString = "DELETE";
-        deleteConfirmCheck.on("input", function() {
+        deleteConfirmCheck.on("input", function () {
             if ($(this).val().toUpperCase() === deleteConfirmString) {
                 deleteConfirm.attr("disabled", false);
             }
@@ -638,7 +639,7 @@ $(function () {
             deleteSection.show();
         });
 
-        responseModal.find(".delete-cancel").click(function() {
+        responseModal.find(".delete-cancel").click(function () {
             deleteSection.hide();
             defaultSection.show();
 
@@ -646,7 +647,7 @@ $(function () {
             deleteConfirm.attr("disabled", true);
         });
 
-        responseModal.find(".delete-confirm").click(function() {
+        responseModal.find(".delete-confirm").click(function () {
             deleteConfirm.attr("disabled", true);
             $.ajax({
                 url: "/response/" + response_id,
@@ -655,10 +656,10 @@ $(function () {
                     deleted: true,
                     confirmation: deleteConfirmCheck.val()
                 },
-                success: function() {
+                success: function () {
                     location.reload();
                 },
-                error: function(error) {
+                error: function (error) {
                     console.log(error)
                 }
             })

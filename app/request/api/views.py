@@ -213,6 +213,7 @@ def get_request_responses():
     responses = Responses.query.filter(
         Responses.request_id == current_request.id,
         Responses.type != response_type.EMAIL,
+        Responses.type != response_type.LETTER,
         Responses.deleted == False
     ).order_by(
         desc(Responses.date_modified)
@@ -225,11 +226,10 @@ def get_request_responses():
         # If a user is anonymous or a public user who is not the requester AND the date for Release and Public is in
         # the future, do not generate response row
 
-        if (current_user in response.request.agency_users) or (
-                        current_user == response.request.requester and response.privacy != response_privacy.PRIVATE) or (
-                            response.privacy == response_privacy.RELEASE_AND_PUBLIC
-                    and response.release_date
-                and response.release_date < datetime.utcnow()):
+        if (current_user in response.request.agency_users) or \
+                (current_user == response.request.requester and response.privacy != response_privacy.PRIVATE) or \
+                (response.privacy == response_privacy.RELEASE_AND_PUBLIC and response.release_date and
+                 response.release_date < datetime.utcnow()):
             json = {
                 'id': response.id,
                 'type': response.type

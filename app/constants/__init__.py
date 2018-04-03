@@ -1,4 +1,4 @@
-from app.constants import response_type, determination_type
+from app.constants import response_type, determination_type, event_type
 
 ACKNOWLEDGMENT_DAYS_DUE = 5
 REQUESTER_ACKNOWLEDGMENT_DAYS_DUE = 4
@@ -99,9 +99,14 @@ EMAIL_TEMPLATE_FOR_TYPE = {
     determination_type.REOPENING: "email_response_reopening.html"
 }
 
+EMAIL_TEMPLATE_FOR_EVENT = {
+    event_type.ACKNOWLEDGMENT_LETTER_CREATED: "email_event_acknowledgment_letter_created.html"
+}
+
 OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"
 
 TINYMCE_EDITABLE_P_TAG = '<p id="editable-p">&nbsp;</p>'
 
-CONFIRMATION_HEADER_TO_REQUESTER = "The following will be emailed to the Requester:"
-CONFIRMATION_HEADER_TO_AGENCY = "The following will be emailed to all Assigned Users:"
+CONFIRMATION_EMAIL_HEADER_TO_REQUESTER = "The following will be emailed to the Requester:"
+CONFIRMATION_EMAIL_HEADER_TO_AGENCY = "The following will be emailed to all Assigned Users:"
+CONFIRMATION_LETTER_HEADER_TO_REQUESTER = "The following will be mailed to the Requester:"

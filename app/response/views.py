@@ -32,6 +32,7 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
+from app.lib.pdf import generate_pdf_flask_response
 from app.response import response
 from app.models import (
     Requests,
@@ -41,7 +42,8 @@ from app.models import (
     Files,
     Notes,
     Instructions,
-    Links
+    Links,
+    Letters
 )
 from app.response.utils import (
     add_note,
@@ -57,6 +59,7 @@ from app.response.utils import (
     process_upload_data,
     send_file_email,
     process_email_template_request,
+    process_letter_template_request,
     RespFileEditor,
     RespNoteEditor,
     RespInstructionsEditor,
@@ -155,7 +158,8 @@ def response_file(request_id):
 def response_acknowledgment(request_id):
     required_fields = ['date',
                        'days',
-                       'email-summary']
+                       'method',
+                       'summary']
     if flask_request.form.get('days', '-1') == '-1':
         required_fields.append('info')
     for field in required_fields:
@@ -163,13 +167,13 @@ def response_acknowledgment(request_id):
             flash('Uh Oh, it looks like the acknowledgment {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-
     add_acknowledgment(request_id,
                        flask_request.form['info'].strip() or None,
                        flask_request.form['days'],
                        flask_request.form['date'],
                        flask_request.form['tz-name'],
-                       flask_request.form['email-summary'])
+                       flask_request.form['summary'],
+                       flask_request.form['method'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -606,11 +610,11 @@ def get_response_content(response_id):
                     # user is agency or is public and response is not private
                     if (((current_user.is_public and response_.privacy != PRIVATE)
                          or current_user.is_agency)
-                        # user is associated with request
-                        and UserRequests.query.filter_by(
-                            request_id=response_.request_id,
-                            user_guid=current_user.guid,
-                            auth_user_type=current_user.auth_user_type
+                            # user is associated with request
+                            and UserRequests.query.filter_by(
+                                request_id=response_.request_id,
+                                user_guid=current_user.guid,
+                                auth_user_type=current_user.auth_user_type
                             ).first() is not None):
                         @after_this_request
                         def remove(resp):
@@ -627,3 +631,53 @@ def get_response_content(response_id):
                         next_url=url_for('request.view', request_id=response_.request_id)
                     ))
     return abort(404)  # file does not exist
+
+
+@response.route('/letter', methods=['POST'])
+def response_generate_letter():
+    """
+    Return letter template for the generate letter workflow step.
+
+    Request Parameters:
+    - request_id: FOIL request ID
+    - agency_ein: Agency ID (for the specified request)
+    - letter_template_id: Letter Template unique identifier
+
+    Ex:
+    {
+        "request_id": "FOIL-XXX",
+        "letter_template_id": 10
+    }
+
+    :return: the json response and HTTP status code
+    Ex1:
+    {
+        "template": HTML rendered letter template,
+        "header": "The following letter will be generated as a PDF:"
+    }
+    """
+    data = flask_request.form
+    request_id = data['request_id']
+
+    return process_letter_template_request(request_id, data)
+
+
+@response.route('/letter/<request_id>/<response_id>')
+def response_get_letter(request_id, response_id):
+    """
+    Return a PDF letter as an attachment.
+
+    :param request_id: FOIL Request ID for which the letter exists
+    :param response_id: Response ID for the letter.
+    :return: PDF Attachment.
+    """
+    if current_user.is_authenticated and current_user.is_agency:
+        request = Requests.query.filter_by(id=request_id).one()
+        if current_user not in request.agency_users:
+            return jsonify({'error': 'unauthorized'}), 403
+        response_ = Responses.query.filter_by(id=response_id).one()
+        letter = Letters.query.filter_by(id=response_.communication_method_id).one()
+        print(letter.id)
+
+        return generate_pdf_flask_response(letter.content)
+    return jsonify({'error': 'unauthorized'}), 403

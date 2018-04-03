@@ -20,8 +20,6 @@ from flask_mail import Message
 
 from app import mail, celery, sentry
 from app.models import Requests
-from app.constants import OPENRECORDS_DL_EMAIL
-
 
 @celery.task
 def send_async_email(msg):
@@ -59,6 +57,12 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_c
         msg.html = email_content
     else:
         msg.html = render_template(template + '.html', **kwargs)
+
+    attachment = kwargs.get('attachment', None)
+    if attachment:
+        filename = kwargs.get('filename')
+        mimetype = kwargs.get('mimetype', 'application/pdf')
+        msg.attach(filename, mimetype, attachment)
     send_async_email.delay(msg)
 
 

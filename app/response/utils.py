@@ -9,8 +9,6 @@ import os
 import re
 import json
 
-import app.lib.file_utils as fu
-
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 from urllib.parse import urljoin, urlencode
@@ -22,6 +20,7 @@ from flask import (
     current_app,
     request as flask_request,
     render_template,
+    render_template_string,
     url_for,
     jsonify,
     Markup
@@ -38,8 +37,10 @@ from app.constants import (
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
     EMAIL_TEMPLATE_FOR_TYPE,
-    CONFIRMATION_HEADER_TO_REQUESTER,
-    CONFIRMATION_HEADER_TO_AGENCY
+    CONFIRMATION_EMAIL_HEADER_TO_REQUESTER,
+    CONFIRMATION_EMAIL_HEADER_TO_AGENCY,
+    CONFIRMATION_LETTER_HEADER_TO_REQUESTER,
+    EMAIL_TEMPLATE_FOR_EVENT
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
@@ -57,8 +58,10 @@ from app.lib.date_utils import (
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
+import app.lib.file_utils as fu
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
+from app.lib.pdf import generate_pdf
 from app.models import (
     Events,
     Notes,
@@ -72,8 +75,11 @@ from app.models import (
     Emails,
     ResponseTokens,
     Users,
+    LetterTemplates,
+    Letters
 )
 from app.request.api.utils import create_request_info_event
+from app.auth.utils import find_user_by_email
 
 
 # TODO: class ResponseProducer()
@@ -133,7 +139,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param email_content: email body content of the email to be created and stored as a email object
     :param privacy: The privacy option of the note
     :param is_editable: editability of the note
-    :param is_requester: requester is creator of the note  
+    :param is_requester: requester is creator of the note
 
     """
     response = Notes(request_id, privacy, note_content, is_editable=is_editable)
@@ -159,7 +165,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
                          subject)
 
 
-def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
+def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
     """
     Create and store an acknowledgement-determination response for
     the specified request and update the request accordingly.
@@ -173,6 +179,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
 
     """
     request = Requests.query.filter_by(id=request_id).one()
+
     if not request.was_acknowledged:
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
@@ -192,10 +199,45 @@ def add_acknowledgment(request_id, info, days, date, tz_name, email_content):
         )
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
-        _send_response_email(request_id,
-                             privacy,
-                             email_content,
-                             'Request {} Acknowledged'.format(request_id))
+        if method == 'letter':
+            letter_id = _add_letter(request_id, content)
+            update_object(
+                {
+                    'communication_method_type': response_type.LETTER,
+                    'communication_method_id': letter_id
+                },
+                Determinations,
+                response.id
+            )
+            letter = generate_pdf(content)
+            email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                          EMAIL_TEMPLATE_FOR_EVENT[event_type.ACKNOWLEDGMENT_LETTER_CREATED])
+            email_content = render_template(email_template,
+                                            request_id=request_id,
+                                            agency_name=request.agency.name,
+                                            user=current_user
+                                            )
+            safely_send_and_add_email(request_id,
+                                      email_content,
+                                      'Request {} Acknowledged - Letter'.format(request_id),
+                                      to=get_agency_emails(request_id),
+                                      attachment=letter,
+                                      filename=secure_filename('{}_acknowledgment_letter.pdf'.format(request_id)),
+                                      mimetype='application/pdf')
+        else:
+            email_id = _send_response_email(request_id,
+                                            privacy,
+                                            content,
+                                            'Request {} Acknowledged'.format(request_id))
+
+            update_object(
+                {
+                    'communication_method_type': response_type.EMAIL,
+                    'communication_method_id': email_id
+                },
+                Determinations,
+                response.id
+            )
 
 
 def add_denial(request_id, reason_ids, email_content):
@@ -506,6 +548,27 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     )
     create_object(response)
     create_response_event(event_type.EMAIL_NOTIFICATION_SENT, response)
+    return response.id
+
+
+def _add_letter(request_id, letter_content):
+    """
+    Create and store a letter object for the specified request.
+    Stores the letter metadata in the Letters table.
+    Provides parameters for the process_response function to create and store responses and events objects.
+
+    :param request_id: FOIL Request Unique Identifier
+    :param letter_content: HTML content of the letter (used to format PDF for printing)
+    :return: Response Identifier (int)
+    """
+    response = Letters(
+        request_id,
+        PRIVATE,
+        content=letter_content
+    )
+    create_object(response)
+    create_response_event(event_type.ACKNOWLEDGMENT_LETTER_CREATED, response)
+    return response.id
 
 
 def add_sms():
@@ -582,6 +645,31 @@ def process_upload_data(form):
     return files
 
 
+def process_letter_template_request(request_id, data):
+    """
+    Process the letter template for the request.
+
+    Generate a letter based on the template from the agency. Will include any headers and signatures (non-editable).
+    :param request_id: FOIL Request ID
+    :param data: Data from the frontend AJAX call (JSON)
+    :return: the HTML of the rendered template
+    """
+    rtype = data['type']
+    handler_for_type = {
+        determination_type.ACKNOWLEDGMENT: _acknowledgment_letter_handler,
+        determination_type.EXTENSION: _extension_letter_handler,
+        determination_type.CLOSING: _closing_letter_handler,
+        determination_type.DENIAL: _denial_letter_handler,
+        determination_type.REOPENING: _reopening_letter_handler,
+        response_type.FILE: _file_letter_handler,
+        response_type.LINK: _link_letter_handler,
+        response_type.INSTRUCTIONS: _instructions_letter_handler,
+        response_type.NOTE: _note_letter_handler
+    }
+
+    return handler_for_type[rtype](request_id, data)
+
+
 def process_email_template_request(request_id, data):
     """
     Process the email template for responses. Determine the type of response from passed in data and follows
@@ -631,10 +719,10 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     :param agency_name: string name of the agency of the request
     :param email_template: raw HTML email template of a response
 
-    :return: the HTML of the rendered template of an acknowledgement
+    :return: the HTML of the rendered template of an acknowledgement email.
     """
     acknowledgment = data.get('acknowledgment')
-    header = CONFIRMATION_HEADER_TO_REQUESTER
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
@@ -662,6 +750,158 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
                     "header": header}), 200
 
 
+def _acknowledgment_letter_handler(request_id, data):
+    """
+    Process letter template for an acknowledgment.
+
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of an acknowledgment letter.
+    """
+    acknowledgment = data.get('acknowledgment', None)
+
+    header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+
+    request = Requests.query.filter_by(id=request_id).first()
+    agency = request.agency
+    agency_letter_data = agency.agency_features['letters']
+
+    # Acnowledgment is only provided when getting default letter template.
+    if acknowledgment is not None:
+        acknowledgment = json.loads(acknowledgment)
+        contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
+
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        point_of_contact = acknowledgment.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
+        template = render_template_string(contents.content,
+                                          days=acknowledgment['days'],
+                                          date=request.date_submitted,
+                                          user=point_of_contact_user)
+
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
+
+        return jsonify({"template": render_template('letters/base.html',
+                                                    letterhead=Markup(letterhead),
+                                                    signature=Markup(signature),
+                                                    request=request,
+                                                    date=date,
+                                                    contents=Markup(template),
+                                                    request_id=request_id,
+                                                    footer=Markup(agency_letter_data['footer'])),
+                        "header": header})
+    else:
+        content = data['letter_content']
+        return jsonify({"template": render_template_string(content),
+                        "header": header}), 200
+
+
+def _extension_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _closing_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _denial_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _reopening_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _file_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _link_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _instructions_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
+def _note_letter_handler(request_id, data):
+    """
+
+    :param request_id:
+    :param data:
+    :param letter_template:
+    :return:
+    """
+    pass
+
+
 def _denial_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for denying a request.
@@ -675,7 +915,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a closing
     """
     _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
-               for reason_id in data.getlist('reason_ids[]')]
+                for reason_id in data.getlist('reason_ids[]')]
 
     # Determine if a custom reason is used
     # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
@@ -695,7 +935,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         custom_reasons=custom_reasons
     )
 
-    header = CONFIRMATION_HEADER_TO_REQUESTER
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
     req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
         default_content = False
@@ -730,7 +970,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     """
     req = Requests.query.filter_by(id=request_id).one()
     if eval_request_bool(data['confirmation']):
-        header = CONFIRMATION_HEADER_TO_REQUESTER
+        header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         reasons = None
         default_content = False
         content = data['email_content']
@@ -904,7 +1144,7 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     :return: the HTML of the rendered template of an extension response
     """
     extension = data.get('extension')
-    header = CONFIRMATION_HEADER_TO_REQUESTER
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
@@ -962,10 +1202,10 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         files = json.loads(files)
         default_content = True
         content = None
-        header = CONFIRMATION_HEADER_TO_REQUESTER
+        header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         if eval_request_bool(data['is_private']):
             email_template = 'email_templates/email_private_file_upload.html'
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         for file_ in files:
             file_link = {'filename': file_['filename'],
                          'title': file_['title'],
@@ -1026,9 +1266,9 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
         content = None
         privacy = link.get('privacy')
         if privacy == PRIVATE:
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         else:
-            header = CONFIRMATION_HEADER_TO_REQUESTER
+            header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -1076,9 +1316,9 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         privacy = note.get('privacy')
         # use private email template for note if privacy is private
         if privacy == PRIVATE:
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         else:
-            header = CONFIRMATION_HEADER_TO_REQUESTER
+            header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -1123,9 +1363,9 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
         content = None
         privacy = instruction.get('privacy')
         if privacy == PRIVATE:
-            header = CONFIRMATION_HEADER_TO_AGENCY
+            header = CONFIRMATION_EMAIL_HEADER_TO_AGENCY
         else:
-            header = CONFIRMATION_HEADER_TO_REQUESTER
+            header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
             if privacy == RELEASE_AND_PUBLIC:
                 release_date = get_release_date(datetime.utcnow(),
                                                 RELEASE_PUBLIC_DAYS,
@@ -1383,11 +1623,11 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         is_anon=is_anon,
                                                                         release_date=release_date
                                                                         ))
-        safely_send_and_add_email(request_id,
-                                  email_content_requester,
-                                  'Response Added to {} - File'.format(request_id),
-                                  to=[requester_email],
-                                  bcc=bcc)
+        tmp = safely_send_and_add_email(request_id,
+                                        email_content_requester,
+                                        'Response Added to {} - File'.format(request_id),
+                                        to=[requester_email],
+                                        bcc=bcc)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
@@ -1395,10 +1635,10 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    agency_name=agency_name,
                                                    private_links=private_links,
                                                    page=page)
-            safely_send_and_add_email(request_id,
-                                      email_content_agency,
-                                      'File(s) Added to {}'.format(request_id),
-                                      bcc=bcc)
+            tmp = safely_send_and_add_email(request_id,
+                                            email_content_agency,
+                                            'File(s) Added to {}'.format(request_id),
+                                            bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
@@ -1406,10 +1646,10 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      private_links=private_links,
                                                                      page=page
                                                                      ))
-        safely_send_and_add_email(request_id,
-                                  email_content_agency,
-                                  subject,
-                                  bcc=bcc)
+        tmp = safely_send_and_add_email(request_id,
+                                        email_content_agency,
+                                        subject,
+                                        bcc=bcc)
 
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
@@ -1429,12 +1669,12 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-    safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
+    tmp = safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
-        safely_send_and_add_email(request_id,
-                                  email_content_requester,
-                                  subject,
-                                  to=[requester_email])
+        tmp = safely_send_and_add_email(request_id,
+                                        email_content_requester,
+                                        subject,
+                                        to=[requester_email])
 
 
 def _send_response_email(request_id, privacy, email_content, subject):
@@ -1458,10 +1698,10 @@ def _send_response_email(request_id, privacy, email_content, subject):
     }
     if privacy != PRIVATE:
         kwargs['to'] = [requester_email]
-    safely_send_and_add_email(request_id,
-                              email_content,
-                              subject,
-                              **kwargs)
+    return safely_send_and_add_email(request_id,
+                                     email_content,
+                                     subject,
+                                     **kwargs)
 
 
 def _send_delete_response_email(request_id, response):
@@ -1470,7 +1710,7 @@ def _send_delete_response_email(request_id, response):
     a deleted response.
 
     """
-    safely_send_and_add_email(
+    tmp = safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_response_deleted.html',
@@ -1500,9 +1740,10 @@ def safely_send_and_add_email(request_id,
     :param bcc: list of person(s) email is being bcc'ed
 
     """
+
     try:
         send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
-        _add_email(request_id, subject, email_content, to=to, bcc=bcc)
+        return _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         sentry.captureException()
         current_app.logger.exception('Must include: To, CC, or BCC')
@@ -1791,7 +2032,8 @@ class RespFileEditor(ResponseEditor):
                 else:
                     # extend expiration date
                     update_object(
-                        {'expiration_date': calendar.addbusdays(datetime.utcnow(), DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
+                        {'expiration_date': calendar.addbusdays(datetime.utcnow(),
+                                                                DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS)},
                         ResponseTokens,
                         self.response.token.id
                     )
