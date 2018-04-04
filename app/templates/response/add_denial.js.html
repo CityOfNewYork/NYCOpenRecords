@@ -47,6 +47,10 @@
 
         // Parsley
         reason_ids.attr("data-parsley-required", "");
+        var required = [letter_info, method];
+        for (var i = 0; i < required.length; i++) {
+            required[i].attr("data-parsley-required", "");
+        }
 
         next1.click(function (e) {
             method.parsley().validate();
@@ -68,12 +72,20 @@
         next2.click(function (e) {
             if (method.val() === 'email') {
                 reason_ids.parsley().validate();
+            }
+            if (method.val() === 'letter') {
+                letter_info.parsley().validate();
+            }
 
-                if (!reason_ids.parsley().isValid()) {
-                    e.preventDefault();
-                    return false;
-                }
-                else {
+            if (method.val() === 'email' && !reason_ids.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            } else if (method.val() === 'letter' && !letter_info.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                if (method.val() === 'email') {
                     $.ajax({
                         url: "/response/email",
                         type: "POST",
@@ -89,32 +101,34 @@
                             tinyMCE.get("denial-body").setContent(emailContent.html());
                         }
                     });
+                    edit_body_header.html("Edit Email Body");
+
+                    second.hide();
+                    third.show();
+                } else {
+                    $.ajax({
+                        url: "/response/letter",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "denial",
+                            denial: JSON.stringify({
+                                letter_template: letter_info.val()
+                            }),
+                            reason_ids: []
+                        },
+                        success: function (data) {
+                            var emailContent = third.find(".email-content-hidden");
+                            emailContent.html(data.template);
+                            flask_moment_render_all();
+                            tinyMCE.get("denial-body").setContent(emailContent.html());
+                        }
+                    });
+                    edit_body_header.html("Edit Letter Body");
+
                     second.hide();
                     third.show();
                 }
-            } else {
-                $.ajax({
-                    url: "/response/letter",
-                    type: "POST",
-                    data: {
-                        request_id: "{{ request.id }}",
-                        type: "denial",
-                        denial: JSON.stringify({
-                            letter_template: letter_info.val()
-                        }),
-                        reason_ids: []
-                    },
-                    success: function (data) {
-                        var emailContent = third.find(".email-content-hidden");
-                        emailContent.html(data.template);
-                        flask_moment_render_all();
-                        tinyMCE.get("denial-body").setContent(emailContent.html());
-                    }
-                });
-                edit_body_header.html("Edit Letter Body");
-
-                second.hide();
-                third.show();
             }
         });
 

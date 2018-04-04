@@ -903,7 +903,8 @@ def _denial_letter_handler(request_id, data):
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
         template = render_template_string(contents.content,
-                                          date=request.date_submitted)
+                                          date=request.date_submitted,
+                                          request_id=request_id)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
