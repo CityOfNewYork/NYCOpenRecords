@@ -5,15 +5,37 @@
         var form = $("#add-denial");
         var first = form.find(".first");
         var second = form.find(".second");
-        var third = form.find(".third")
+        var third = form.find(".third");
+        var fourth = form.find(".fourth");
 
         var next1 = first.find(".next");
         var next2 = second.find(".next");
+        var next3 = third.find(".next");
         var prev2 = second.find(".prev");
         var prev3 = third.find(".prev");
-        var submit = third.find(".submit");
+        var prev4 = fourth.find(".prev");
+        var submit = fourth.find(".submit");
 
-        var reason_ids = first.find("#denial-reason-ids");
+        var method = first.find("#denial-method");
+        var email_div = second.find("#denial-email");
+        var reason_ids = second.find("#denial-reason-ids");
+
+        var letter_div = second.find("#denial-letter");
+        var letter_info = second.find("#letter-template-id");
+        var generate_letters_enabled = form.find("#generate-letters-enabled").val();
+
+        var edit_body_header = third.find('#edit-body-header');
+
+        // Reveal / Hide Letter Generation
+        if (generate_letters_enabled === "True") {
+            first.show();
+            second.hide();
+        } else {
+            first.hide();
+            second.show();
+            letter_div.hide();
+            prev2.hide();
+        }
 
         // Do not reset on click
         reason_ids.find('option').mousedown(function (e) {
@@ -27,56 +49,115 @@
         reason_ids.attr("data-parsley-required", "");
 
         next1.click(function (e) {
-            reason_ids.parsley().validate();
-
-            if (!reason_ids.parsley().isValid()) {
+            method.parsley().validate();
+            if (!(method.parsley().isValid())) {
                 e.preventDefault();
                 return false;
             }
-            else {
+            if (method.val() === 'email') {
+                letter_div.hide();
+                email_div.show();
+            } else {
+                letter_div.show();
+                email_div.hide();
+            }
+            first.hide();
+            second.show();
+        });
+
+        next2.click(function (e) {
+            if (method.val() === 'email') {
+                reason_ids.parsley().validate();
+
+                if (!reason_ids.parsley().isValid()) {
+                    e.preventDefault();
+                    return false;
+                }
+                else {
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "denial",
+                            confirmation: false,
+                            reason_ids: reason_ids.val()
+                        },
+                        success: function (data) {
+                            var emailContent = third.find(".email-content-hidden");
+                            emailContent.html(data.template);
+                            tinyMCE.get("denial-body").setContent(emailContent.html());
+                        }
+                    });
+                    second.hide();
+                    third.show();
+                }
+            } else {
+                $.ajax({
+                    url: "/response/letter",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "denial",
+                        denial: JSON.stringify({
+                            letter_template: letter_info.val()
+                        }),
+                        reason_ids: []
+                    },
+                    success: function (data) {
+                        var emailContent = third.find(".email-content-hidden");
+                        emailContent.html(data.template);
+                        flask_moment_render_all();
+                        tinyMCE.get("denial-body").setContent(emailContent.html());
+                    }
+                });
+                edit_body_header.html("Edit Letter Body");
+
+                second.hide();
+                third.show();
+            }
+        });
+
+        next3.click(function () {
+            tinyMCE.triggerSave();
+            if (method.val() === 'email') {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
                         type: "denial",
-                        confirmation: false,
-                        reason_ids: reason_ids.val(),
+                        confirmation: true,
+                        email_content: third.find("#denial-body").val()
                     },
                     success: function (data) {
-                        var emailContent = second.find(".email-content-hidden");
-                        emailContent.html(data.template);
-                        tinyMCE.get("denial-email-body").setContent(emailContent.html());
+                        fourth.find(".summary").html(data.template);
+                        fourth.find("input[name='summary']").val(data.template);
+                        fourth.find(".confirmation-header").text(data.header);
+                        fourth.find(".method").val(method.val());
                     }
                 });
-                first.hide();
-                second.show();
+            } else {
+                $.ajax({
+                    url: "/response/letter",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "denial",
+                        confirmation: true,
+                        letter_content: third.find("#denial-body").val()
+                    },
+                    success: function (data) {
+                        fourth.find(".summary").html(data.template);
+                        fourth.find("input[name='summary']").val(data.template);
+                        fourth.find(".confirmation-header").text(data.header);
+                        fourth.find(".method").val(method.val());
+                    }
+                });
             }
+            third.hide();
+            fourth.show();
         });
-
-        next2.click(function () {
-            tinyMCE.triggerSave();
-
-            $.ajax({
-                url: "/response/email",
-                type: "POST",
-                data: {
-                    request_id: "{{ request.id }}",
-                    type: "denial",
-                    confirmation: true,
-                    email_content: second.find("#denial-email-body").val(),
-                },
-                success: function (data) {
-                    third.find(".email-summary").html(data.template);
-                    third.find("input[name='email-summary']").val(data.template);
-                    third.find(".confirmation-header").text(data.header)
-                }
-            });
-
-            second.hide();
-            third.show();
-        });
-
 
         prev2.click(function () {
             second.hide();
@@ -86,6 +167,11 @@
         prev3.click(function () {
             third.hide();
             second.show();
+        });
+
+        prev4.click(function () {
+            fourth.hide();
+            third.show();
         });
 
         form.submit(function () {
