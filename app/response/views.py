@@ -212,8 +212,13 @@ def response_closing(request_id):
 
     :return: redirect to view request page
     """
-    required_fields = ['reasons', 'email-summary']
-
+    if flask_request.form.get('method') == 'email':
+        required_fields = ['reasons',
+                           'method',
+                           'summary']
+    else:
+        required_fields = ['method',
+                           'summary']
     for field in required_fields:
         if flask_request.form.get(field) is None:
             flash('Uh Oh, it looks like the closing {} is missing! '
@@ -222,7 +227,8 @@ def response_closing(request_id):
     try:
         add_closing(request_id,
                     flask_request.form.getlist('reasons'),
-                    flask_request.form['email-summary'])
+                    flask_request.form['summary'],
+                    flask_request.form['method'])
     except UserRequestException as e:
         sentry.captureException()
         flash(str(e), category='danger')

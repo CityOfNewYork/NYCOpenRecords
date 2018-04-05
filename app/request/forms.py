@@ -291,6 +291,35 @@ class GenerateClosingLetterForm(GenerateLetterForm):
     letter_templates = SelectField('Letter Templates')
     letter_type = [determination_type.CLOSING, determination_type.DENIAL]
 
+    def __init__(self, agency_ein):
+        super(GenerateLetterForm, self).__init__()
+        agency_closings = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.CLOSING,
+                LetterTemplates.agency_ein == agency_ein
+            )]
+        agency_denials = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.DENIAL,
+                LetterTemplates.agency_ein == agency_ein
+            )]
+        default_closings = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.CLOSING,
+                LetterTemplates.agency_ein == None
+            )]
+        default_denials = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.DENIAL,
+                LetterTemplates.agency_ein == None
+            )]
+        self. letter_templates.choices = agency_closings + agency_denials + default_closings + default_denials
+        self.letter_templates.choices.insert(0, ('', ''))
+
 
 class GenerateExtensionLetterForm(GenerateLetterForm):
     letter_templates = SelectField('Letter Templates')
