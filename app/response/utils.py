@@ -857,13 +857,52 @@ def _reopening_letter_handler(request_id, data):
 
 def _response_letter_handler(request_id, data):
     """
+    Process letter template for a response.
 
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of a response letter.
     """
-    pass
+    if not eval_request_bool(data.get('confirmation', None)):
+        request = Requests.query.filter_by(id=request_id).first()
+        agency = request.agency
+        agency_letter_data = agency.agency_features['letters']
+
+        contents = LetterTemplates.query.filter_by(id=data['letter_template_id']).first()
+
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        template = render_template_string(contents.content,
+                                          date=request.date_submitted,
+                                          user=current_user)
+
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
+
+        return jsonify({"template": render_template('letters/base.html',
+                                                    letterhead=Markup(letterhead),
+                                                    signature=Markup(signature),
+                                                    request=request,
+                                                    date=date,
+                                                    contents=Markup(template),
+                                                    request_id=request_id,
+                                                    footer=Markup(agency_letter_data['footer']))
+                        })
+    else:
+        header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+        return jsonify({"template": render_template_string(data['letter_content']),
+                        "header": header}), 200
 
 
 def _denial_email_handler(request_id, data, page, agency_name, email_template):

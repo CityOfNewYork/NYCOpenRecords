@@ -46,6 +46,7 @@ from app.request.forms import (
     EditRequesterForm,
     DenyRequestForm,
     GenerateAcknowledgmentLetterForm,
+    GenerateResponseLetterForm,
     SearchRequestsForm,
     CloseRequestForm,
     ContactAgencyForm
@@ -306,6 +307,7 @@ def view(request_id):
         add_user_request_form=AddUserRequestForm(active_users),
         edit_user_request_form=EditUserRequestForm(assigned_users),
         generate_acknowledgment_letter_form=GenerateAcknowledgmentLetterForm(current_request.agency.ein),
+        generate_response_letter_form=GenerateResponseLetterForm(current_request.agency.ein),
         assigned_user_permissions=assigned_user_permissions,
         current_point_of_contact=current_point_of_contact,
         holidays=holidays,

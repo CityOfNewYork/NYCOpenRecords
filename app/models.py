@@ -1636,10 +1636,7 @@ class LetterTemplates(db.Model):
         determination_type.CLOSING,
         determination_type.DENIAL,
         determination_type.REOPENING,
-        response_type.FILE,
-        response_type.INSTRUCTIONS,
-        response_type.LINK,
-        response_type.NOTE,
+        response_type.LETTER,
         name="letter_type"
     ), nullable=False, name='type')
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))

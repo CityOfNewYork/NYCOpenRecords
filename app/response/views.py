@@ -634,6 +634,7 @@ def get_response_content(response_id):
 
 
 @response.route('/letter', methods=['POST'])
+@has_permission(permission.GENERATE_LETTER)
 def response_generate_letter():
     """
     Return letter template for the generate letter workflow step.
@@ -660,6 +661,17 @@ def response_generate_letter():
     request_id = data['request_id']
 
     return process_letter_template_request(request_id, data)
+
+
+@response.route('/letter/<request_id>', methods=['POST'])
+@has_permission(permission.GENERATE_LETTER)
+def response_letter(request_id):
+    """
+
+    :param request_id:
+    :return:
+    """
+    pass
 
 
 @response.route('/letter/<request_id>/<response_id>')
