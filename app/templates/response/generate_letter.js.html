@@ -5,7 +5,7 @@
         var form = $("#generate-letter");
         var first = form.find(".first");
         var second = form.find(".second");
-        var third = form.find(".third")
+        var third = form.find(".third");
 
         var next1 = first.find(".next");
         var next2 = second.find(".next");
@@ -30,8 +30,9 @@
                     url: "/response/letter",
                     type: "POST",
                     data: {
+                        letter_template_id: letter_template_id.val(),
                         request_id: "{{ request.id }}",
-                        letter_template_id: letter_template_id.val()
+                        type: "letters"
                     },
                     success: function (data) {
                         var emailContent = second.find(".letter-content-hidden");

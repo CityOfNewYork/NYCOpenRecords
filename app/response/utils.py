@@ -661,10 +661,7 @@ def process_letter_template_request(request_id, data):
         determination_type.CLOSING: _closing_letter_handler,
         determination_type.DENIAL: _denial_letter_handler,
         determination_type.REOPENING: _reopening_letter_handler,
-        response_type.FILE: _file_letter_handler,
-        response_type.LINK: _link_letter_handler,
-        response_type.INSTRUCTIONS: _instructions_letter_handler,
-        response_type.NOTE: _note_letter_handler
+        response_type.LETTER: _response_letter_handler,
     }
 
     return handler_for_type[rtype](request_id, data)
@@ -766,7 +763,7 @@ def _acknowledgment_letter_handler(request_id, data):
     agency = request.agency
     agency_letter_data = agency.agency_features['letters']
 
-    # Acnowledgment is only provided when getting default letter template.
+    # Acknowledgment is only provided when getting default letter template.
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
@@ -858,40 +855,7 @@ def _reopening_letter_handler(request_id, data):
     pass
 
 
-def _file_letter_handler(request_id, data):
-    """
-
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
-    """
-    pass
-
-
-def _link_letter_handler(request_id, data):
-    """
-
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
-    """
-    pass
-
-
-def _instructions_letter_handler(request_id, data):
-    """
-
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
-    """
-    pass
-
-
-def _note_letter_handler(request_id, data):
+def _response_letter_handler(request_id, data):
     """
 
     :param request_id:
