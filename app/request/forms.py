@@ -149,7 +149,7 @@ class AnonymousRequestForm(Form):
     # Request Information
     request_category = SelectField('Category (optional)', choices=CATEGORIES)
     request_agency = SelectField('Agency (required)', choices=None)
-    request_title = TextAreaField('Request Title (required)')
+    request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
 
     # Personal Information
