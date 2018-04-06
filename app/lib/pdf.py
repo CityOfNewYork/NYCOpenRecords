@@ -1,4 +1,3 @@
-from flask import current_app
 from flask_weasyprint import render_pdf, HTML
 import jinja2
 import subprocess
@@ -26,15 +25,15 @@ class LatexCompiler:
         self.LATEX_COMMAND = latex_command or self.LATEX_COMMAND
 
     def _create_file(self, document):
-        tempfile = os.path.join(self._OUT_DIR, self._TEMP_OUT_NAME)
-        temp_tex = tempfile + '.tex'
+        temp_file = os.path.join(self._OUT_DIR, self._TEMP_OUT_NAME)
+        temp_tex = temp_file + '.tex'
         with open(temp_tex, 'wb') as f:
             f.write(document.encode('utf-8'))
         proc = subprocess.Popen([*self.LATEX_COMMAND.split(' '), temp_tex], cwd=self._OUT_DIR)
         return_code = proc.wait()
         if return_code != 0:
-            raise PDFCreationException()  # TODO: Make this a proper error
-        return tempfile + '.' + self.FILE_EXTENSION
+            raise PDFCreationException(return_code)  # TODO: Make this a proper error
+        return temp_file + '.' + self.FILE_EXTENSION
 
     def compile(self, document):
         """
@@ -70,18 +69,26 @@ def generate_pdf_flask_response(pdf_data):
     return render_pdf(html)
 
 
-def generate_envelope(template_name, data):
+def generate_envelope(template, data):
     """
-    Generate an envelope with the provided data pre-filled.
+    Generate the LaTeX for an envelope with the provided data pre-filled.
 
-    :param template_name: the name of the LaTeX template to be used.
+    :param template: The LaTeX template to be used.
     :param data: Data to be filled in to the LaTeX template (Dict())
+    :return: LaTeX document
+    """
+    environment = jinja2.Environment(loader=jinja2.BaseLoader(), **LATEX_TEMPLATE_CONFIG).from_string(template)
+    document = environment.render(**data)
+
+    return document
+
+
+def generate_envelope_pdf(document):
+    """
+    Generate a PDF envelope.
+    :param document: LaTeX document.
     :return: PDF File Object
     """
-    environment = jinja2.Environment(loader=jinja2.FileSystemLoader(current_app.config['LATEX_TEMPLATE_DIRECTORY']),
-                                     **LATEX_TEMPLATE_CONFIG)
-    document = environment.get_template(template_name).render(**data)
-
     compiler = LatexCompiler()
 
     return compiler.compile(document)
