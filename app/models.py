@@ -1596,11 +1596,13 @@ class Letters(Responses):
     __tablename__ = response_type.LETTER
     __mapper_args__ = {'polymorphic_identity': response_type.LETTER}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    title = db.Column(db.String, nullable=False)
     content = db.Column(db.String)
 
     def __init__(self,
                  request_id,
                  privacy,
+                 title,
                  content,
                  date_modified=None,
                  is_editable=False):
@@ -1608,6 +1610,7 @@ class Letters(Responses):
                                       privacy,
                                       date_modified,
                                       is_editable)
+        self.title = title
         self.content = content
 
     @property

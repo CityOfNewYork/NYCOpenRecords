@@ -528,8 +528,10 @@ def add_response_letter(request_id, content, letter_template_id):
     :return:
     """
     request = Requests.query.filter_by(id=request_id).one()
+    letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
+    letter_title = letter_template.title
     letter = generate_pdf(content)
-    _add_letter(request_id, content, event_type.RESPONSE_LETTER_CREATED)
+    _add_letter(request_id, letter_title, content, event_type.RESPONSE_LETTER_CREATED)
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
                                   EMAIL_TEMPLATE_FOR_EVENT[event_type.RESPONSE_LETTER_CREATED])
     email_content = render_template(email_template,
@@ -538,10 +540,10 @@ def add_response_letter(request_id, content, letter_template_id):
                                     user=current_user)
     safely_send_and_add_email(request_id,
                               email_content,
-                              "Request {} - Response Letter Created".format(request_id),
+                              "{} Letter Added to {}".format(letter_title, request_id),
                               to=get_agency_emails(request_id),
                               attachment=letter,
-                              filename=secure_filename('{}_response_letter'.format(request_id)),
+                              filename=secure_filename('{}_{}_letter'.format(letter_title, request_id)),
                               mimetype='application/pdf')
 
 
@@ -577,7 +579,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     return response.id
 
 
-def _add_letter(request_id, letter_content, letter_event_type):
+def _add_letter(request_id, letter_title, letter_content, letter_event_type):
     """
     Create and store a letter object for the specified request.
     Stores the letter metadata in the Letters table.
@@ -590,6 +592,7 @@ def _add_letter(request_id, letter_content, letter_event_type):
     response = Letters(
         request_id,
         PRIVATE,
+        letter_title,
         content=letter_content
     )
     create_object(response)
