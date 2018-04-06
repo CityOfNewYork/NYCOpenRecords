@@ -273,10 +273,18 @@ def response_extension(request_id):
     """
     extension_data = flask_request.form
 
-    required_fields = ['length',
-                       'reason',
-                       'due-date',
-                       'email-extension-summary']
+    if extension_data.get('method') == 'email':
+        required_fields = ['length',
+                           'reason',
+                           'due-date',
+                           'summary',
+                           'method']
+    else: # TODO: CHANGE THIS LATER TO THE ACTUAL REQUIRED ONES
+        required_fields = ['length',
+                           'reason',
+                           'due-date',
+                           'summary',
+                           'method']
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -291,7 +299,8 @@ def response_extension(request_id):
                   extension_data['reason'],
                   extension_data['due-date'],
                   extension_data['tz-name'],
-                  extension_data['email-extension-summary'])
+                  extension_data['summary'],
+                  extension_data['method'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

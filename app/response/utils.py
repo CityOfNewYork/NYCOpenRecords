@@ -458,7 +458,7 @@ def add_reopening(request_id, date, tz_name, email_content):
                              'Request {} Re-Opened'.format(request_id))
 
 
-def add_extension(request_id, length, reason, custom_due_date, tz_name, email_content):
+def add_extension(request_id, length, reason, custom_due_date, tz_name, content, method):
     """
     Create and store the extension object for the specified request.
     Extension's privacy is always Release and Public.
@@ -470,7 +470,8 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
     :param reason: reason for the extension of the request
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param tz_name: client's timezone name
-    :param email_content: email body content of the email to be created and stored as a email object
+    :param content: body text associated with the denial
+    :param method: the communication method of the denial ('letter' or 'email')
 
     """
     request = Requests.query.filter_by(id=request_id).one()
@@ -500,10 +501,45 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, email_co
     )
     create_object(response)
     create_response_event(event_type.REQ_EXTENDED, response, previous_value=previous_due_date)
-    _send_response_email(request_id,
-                         privacy,
-                         email_content,
-                         'Request {} Extended'.format(request_id))
+    if method == 'letter':
+        letter_id = _add_letter(request_id, content, event_type.EXTENSION_LETTER_CREATED)
+        update_object(
+            {
+                'communication_method_type': response_type.LETTER,
+                'communication_method_id': letter_id
+            },
+            Determinations,
+            response.id
+        )
+        letter = generate_pdf(content)
+        email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                      EMAIL_TEMPLATE_FOR_EVENT[event_type.EXTENSION_LETTER_CREATED])
+        email_content = render_template(email_template,
+                                        request_id=request_id,
+                                        agency_name=request.agency.name,
+                                        user=current_user
+                                        )
+        safely_send_and_add_email(request_id,
+                                  email_content,
+                                  'Request {} Extended - Letter'.format(request_id),
+                                  to=get_agency_emails(request_id),
+                                  attachment=letter,
+                                  filename=secure_filename('{}_extension_letter.pdf'.format(request_id)),
+                                  mimetype='application/pdf')
+    else:
+        email_id = _send_response_email(request_id,
+                                        privacy,
+                                        content,
+                                        'Request {} Extended'.format(request_id))
+
+        update_object(
+            {
+                'communication_method_type': response_type.EMAIL,
+                'communication_method_id': email_id
+            },
+            Determinations,
+            response.id
+        )
 
 
 def add_link(request_id, title, url_link, email_content, privacy, is_editable=True):
@@ -856,13 +892,59 @@ def _acknowledgment_letter_handler(request_id, data):
 
 def _extension_letter_handler(request_id, data):
     """
+    Process letter template for an extension.
 
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of an extension letter.
     """
-    pass
+    extension = data.get('extension', None)
+
+    header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+
+    request = Requests.query.filter_by(id=request_id).first()
+    agency = request.agency
+    agency_letter_data = agency.agency_features['letters']
+
+    # Extension is only provided when getting default letter template.
+    if extension is not None:
+        extension = json.loads(extension)
+        contents = LetterTemplates.query.filter_by(id=extension['letter_template']).first()
+
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        template = render_template_string(contents.content,
+                                          days=extension['days'],
+                                          date=request.date_submitted,
+                                          )
+
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
+
+        return jsonify({"template": render_template('letters/base.html',
+                                                    letterhead=Markup(letterhead),
+                                                    signature=Markup(signature),
+                                                    request=request,
+                                                    date=date,
+                                                    contents=Markup(template),
+                                                    request_id=request_id,
+                                                    footer=Markup(agency_letter_data['footer'])),
+                        "header": header})
+    else:
+        content = data['letter_content']
+        return jsonify({"template": render_template_string(content),
+                        "header": header}), 200
 
 
 def _closing_letter_handler(request_id, data):
