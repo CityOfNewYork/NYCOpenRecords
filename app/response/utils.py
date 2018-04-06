@@ -531,7 +531,7 @@ def add_response_letter(request_id, content, letter_template_id):
     letter = generate_pdf(content)
     _add_letter(request_id, content, event_type.RESPONSE_LETTER_CREATED)
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
-                                  EMAIL_TEMPLATE_FOR_EVENT(event_type.ACKNOWLEDGMENT_LETTER_CREATED))
+                                  EMAIL_TEMPLATE_FOR_EVENT[event_type.RESPONSE_LETTER_CREATED])
     email_content = render_template(email_template,
                                     request_id=request_id,
                                     agency_name=request.agency.name,
