@@ -23,6 +23,7 @@ from flask_login import current_user, login_url
 
 from app import login_manager, sentry
 from app.constants import permission
+from app.constants.event_type import RESPONSE_LETTER_CREATED
 from app.constants.response_type import FILE
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
 from app.lib.utils import UserRequestException
@@ -32,7 +33,7 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
-from app.lib.pdf import generate_pdf_flask_response
+from app.lib.pdf import generate_pdf, generate_pdf_flask_response
 from app.response import response
 from app.models import (
     Requests,
@@ -46,6 +47,7 @@ from app.models import (
     Letters
 )
 from app.response.utils import (
+    _add_letter,
     add_note,
     add_file,
     add_link,
@@ -54,6 +56,7 @@ from app.response.utils import (
     add_denial,
     add_closing,
     add_reopening,
+    add_response_letter,
     add_instruction,
     get_file_links,
     process_upload_data,
@@ -634,7 +637,6 @@ def get_response_content(response_id):
 
 
 @response.route('/letter', methods=['POST'])
-@has_permission(permission.GENERATE_LETTER)
 def response_generate_letter():
     """
     Return letter template for the generate letter workflow step.
@@ -671,7 +673,15 @@ def response_letter(request_id):
     :param request_id:
     :return:
     """
-    pass
+    required_fields = ['letter-summary',
+                       'letter_templates']
+    for field in required_fields:
+        if not flask_request.form.get(field, ''):
+            flash("Uh Oh, it looks like the {} is missing! "
+                  "This is probably NOT your fault.".format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+    add_response_letter(request_id, flask_request.form['letter-summary'], flask_request.form['letter_templates'])
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/letter/<request_id>/<response_id>')

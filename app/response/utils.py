@@ -200,7 +200,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
         if method == 'letter':
-            letter_id = _add_letter(request_id, content)
+            letter_id = _add_letter(request_id, content, event_type.ACKNOWLEDGMENT_LETTER_CREATED)
             update_object(
                 {
                     'communication_method_type': response_type.LETTER,
@@ -519,6 +519,32 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
                          subject)
 
 
+def add_response_letter(request_id, content, letter_template_id):
+    """
+
+    :param request_id:
+    :param content:
+    :param letter_template_id:
+    :return:
+    """
+    request = Requests.query.filter_by(id=request_id).one()
+    letter = generate_pdf(content)
+    _add_letter(request_id, content, event_type.RESPONSE_LETTER_CREATED)
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                  EMAIL_TEMPLATE_FOR_EVENT(event_type.ACKNOWLEDGMENT_LETTER_CREATED))
+    email_content = render_template(email_template,
+                                    request_id=request_id,
+                                    agency_name=request.agency.name,
+                                    user=current_user)
+    safely_send_and_add_email(request_id,
+                              email_content,
+                              "Request {} - Response Letter Created".format(request_id),
+                              to=get_agency_emails(request_id),
+                              attachment=letter,
+                              filename=secure_filename('{}_response_letter'.format(request_id)),
+                              mimetype='application/pdf')
+
+
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     """
     Create and store the email object for the specified request.
@@ -551,7 +577,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     return response.id
 
 
-def _add_letter(request_id, letter_content):
+def _add_letter(request_id, letter_content, letter_event_type):
     """
     Create and store a letter object for the specified request.
     Stores the letter metadata in the Letters table.
@@ -567,7 +593,7 @@ def _add_letter(request_id, letter_content):
         content=letter_content
     )
     create_object(response)
-    create_response_event(event_type.ACKNOWLEDGMENT_LETTER_CREATED, response)
+    create_response_event(letter_event_type, response)
     return response.id
 
 

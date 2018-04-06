@@ -50,6 +50,7 @@ USER_MADE_AGENCY_ADMIN = "user_made_agency_admin"
 USER_MADE_AGENCY_USER = "user_made_agency_user"
 USER_PROFILE_UPDATED = "user_profile_updated"
 ACKNOWLEDGMENT_LETTER_CREATED = 'acknowledgment_letter_created'
+RESPONSE_LETTER_CREATED = 'response_letter_created'
 
 FOR_REQUEST_HISTORY = [
     USER_ADDED,
