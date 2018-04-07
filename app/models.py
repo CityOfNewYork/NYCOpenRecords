@@ -1153,6 +1153,7 @@ class Responses(db.Model):
         response_type.DETERMINATION,
         response_type.EMAIL,
         response_type.LETTER,
+        response_type.ENVELOPE,
         name='type'
     ))
 
@@ -1586,11 +1587,78 @@ class Emails(Responses):
         }
 
 
+class Envelopes(Responses):
+    """
+    Define an Envelopes class with the following columns and relationships:
+
+    id - an integer tht is the primary key of Envelopes (FK to Responses)
+    latex - the latex used to generate the envelope PDF
+    """
+    __tablename__ = response_type.ENVELOPE
+    __mapper_args__ = {'polymorphic_identity': response_type.ENVELOPE}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    latex = db.Column(db.String)
+
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 latex,
+                 date_modified=None,
+                 is_editable=False):
+        super(Envelopes, self).__init__(
+            request_id,
+            privacy,
+            date_modified,
+            is_editable
+        )
+        self.latex = latex
+
+
+class EnvelopeTemplates(db.Model):
+    """
+    Define the Reason class with the following columns and relationships:
+
+    id - an integer that is the primary key of a EnvelopeTemplates
+    agency_ein - a foreign key that links to the a agency's primary key
+        if null, this envelope template applies to all agencies
+    title - a short descriptor for the envelope template
+    latex - a LaTex string for the template
+
+    Reason are based off the Law Department's responses.
+
+    """
+    __tablename__ = 'envelope_templates'
+    id = db.Column(db.Integer, primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    title = db.Column(db.String, nullable=False)
+    latex = db.Column(db.String, nullable=False)
+
+    @classmethod
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['ENVELOPE_TEMPLATES_DATA']
+        with open(filename, 'r') as data:
+            dictreader = csv.DictReader(data)
+            for row in dictreader:
+                if EnvelopeTemplates.query.filter_by(type_=row['type'],
+                                                     agency_ein=row['agency_ein'],
+                                                     title=row['title'],
+                                                     content=row['latex']).one_or_none() is None:
+                    template = LetterTemplates(
+                        type_=row['type'],
+                        agency_ein=row['agency_ein'],
+                        title=row['title'],
+                        content=row['content']
+                    )
+                    db.session.add(template)
+
+            db.session.commit()
+
+
 class Letters(Responses):
     """
     Define a Letters class with the following columns and relationships:
 
-    id - an integer that is the primary key of Letters
+    id - an integer that is the primary key of Letters (FK to Responses)
     content - A string containing the content of a letter (HTML Formatted)
     """
     __tablename__ = response_type.LETTER
@@ -1604,10 +1672,12 @@ class Letters(Responses):
                  content,
                  date_modified=None,
                  is_editable=False):
-        super(Letters, self).__init__(request_id,
-                                      privacy,
-                                      date_modified,
-                                      is_editable)
+        super(Letters, self).__init__(
+            request_id,
+            privacy,
+            date_modified,
+            is_editable
+        )
         self.content = content
 
     @property

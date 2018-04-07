@@ -61,7 +61,11 @@ from app.lib.email_utils import send_email, get_agency_emails
 import app.lib.file_utils as fu
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
-from app.lib.pdf import generate_pdf
+from app.lib.pdf import (
+    generate_pdf,
+    generate_envelope,
+    generate_envelope_pdf
+)
 from app.models import (
     Events,
     Notes,
@@ -76,7 +80,9 @@ from app.models import (
     ResponseTokens,
     Users,
     LetterTemplates,
-    Letters
+    Letters,
+    Envelopes,
+    EnvelopeTemplates
 )
 from app.request.api.utils import create_request_info_event
 from app.auth.utils import find_user_by_email
@@ -571,6 +577,28 @@ def _add_letter(request_id, letter_content):
     return response.id
 
 
+def add_envelope(request_id, template_name, envelope_data):
+    """
+    Create and store an envelope object for the specified request.
+    Stores the envelope LaTeX in the Letters table.
+
+    :param request_id: FOIL Request Unique Identifier
+    :param envelope_data: Dictionary of data to fill in the envelope.
+    :return: PDF File object
+    """
+    latex = generate_envelope(template_name, envelope_data)
+
+    response = Envelopes(
+        request_id,
+        PRIVATE,
+        latex,
+    )
+    create_object(response)
+    create_response_event(event_type.ENVELOPE_CREATED, response)
+
+    return generate_envelope_pdf(latex)
+
+
 def add_sms():
     """
     Will add an SMS to the database for the specified request.
@@ -779,7 +807,8 @@ def _acknowledgment_letter_handler(request_id, data):
         point_of_contact = acknowledgment.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 

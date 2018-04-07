@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_weasyprint import render_pdf, HTML
 import jinja2
 import subprocess
@@ -69,7 +70,7 @@ def generate_pdf_flask_response(pdf_data):
     return render_pdf(html)
 
 
-def generate_envelope(template, data):
+def generate_envelope(template_name, data):
     """
     Generate the LaTeX for an envelope with the provided data pre-filled.
 
@@ -77,8 +78,9 @@ def generate_envelope(template, data):
     :param data: Data to be filled in to the LaTeX template (Dict())
     :return: LaTeX document
     """
-    environment = jinja2.Environment(loader=jinja2.BaseLoader(), **LATEX_TEMPLATE_CONFIG).from_string(template)
-    document = environment.render(**data)
+    environment = jinja2.Environment(loader=jinja2.FileSystemLoader(current_app.config['LATEX_TEMPLATE_DIRECTORY']),
+                                     **LATEX_TEMPLATE_CONFIG)
+    document = environment.get_template(template_name).render(**data)
 
     return document
 
