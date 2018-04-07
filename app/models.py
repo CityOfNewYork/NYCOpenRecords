@@ -1640,6 +1640,7 @@ class EnvelopeTemplates(db.Model):
     @classmethod
     def populate(cls, csv_name=None):
         filename = csv_name or current_app.config['ENVELOPE_TEMPLATES_DATA']
+        print(filename)
         with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
             for row in dictreader:
@@ -1649,7 +1650,7 @@ class EnvelopeTemplates(db.Model):
                     template = EnvelopeTemplates(
                         agency_ein=row['agency_ein'],
                         title=row['title'],
-                        template_name=row['content']
+                        template_name=row['template_name']
                     )
                     db.session.add(template)
 

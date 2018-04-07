@@ -3,6 +3,7 @@
 \usepackage{graphicx}
 \usepackage{wrapfig}
 \usepackage{seqsplit}
+\usepackage{hyphenat}
 \def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
 \let\endchangemargin=\endlist
 \setlength\parskip{0pt}
@@ -14,11 +15,11 @@
     \large \VAR{request_id}\par
     \vspace*{.5in}
 
-    \begin{changemargin}{3.5in}{.25in}
+    \begin{changemargin}{3.5in}{1in}
     \large \VAR{recipient_name}\par
-    \large \seqsplit{\VAR{company_name}}\par
+    \large \nohyphens{\VAR{organization}}\par
     \large \VAR{street_address}\par
-    \large \VAR{city} \VAR{state} \ \VAR{zip}
+    \large \VAR{city} \VAR{state} \ \VAR{zipcode}
     \end{changemargin}
 
 \end{document}

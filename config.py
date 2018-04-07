@@ -33,9 +33,10 @@ class Config:
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
     STAFF_DATA = (os.environ.get('STAFF_DATA') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'staff.csv'))
+    ENVELOPE_TEMPLATES_DATA = (os.environ.get('ENVELOPE_TEMPLATES_DATA') or
+                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'envelope_templates.csv'))
     LATEX_TEMPLATE_DIRECTORY = (os.environ.get('LATEX_TEMPLATE_DIRECTORY') or
                                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'templates', 'latex'))
-
     JSON_SCHEMA_DIRECTORY = (os.environ.get('JSON_SCHEMA_DIRECTORY') or
                              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'constants', 'schemas'))
 

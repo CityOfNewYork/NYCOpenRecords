@@ -4,7 +4,7 @@ import jinja2
 import subprocess
 
 import os
-from tempfile import gettempdir
+from tempfile import gettempdir, _get_candidate_names
 
 from app.constants.pdf import LATEX_TEMPLATE_CONFIG
 from app.lib.utils import PDFCreationException
@@ -20,10 +20,10 @@ class LatexCompiler:
     FILE_EXTENSION = 'pdf'
 
     _OUT_DIR = gettempdir()
-    _TEMP_OUT_NAME = 'temp'
 
     def __init__(self, latex_command=None):
         self.LATEX_COMMAND = latex_command or self.LATEX_COMMAND
+        self._TEMP_OUT_NAME = next(_get_candidate_names())
 
     def _create_file(self, document):
         temp_file = os.path.join(self._OUT_DIR, self._TEMP_OUT_NAME)
@@ -38,6 +38,9 @@ class LatexCompiler:
         data = None
         with open('{filename}.{extension}'.format(filename=temp_file, extension=self.FILE_EXTENSION), 'rb') as f:
             data = f.read()
+
+        os.remove('{filename}.{extension}'.format(filename=temp_file, extension=self.FILE_EXTENSION))
+        os.remove(temp_tex)
 
         return data
 

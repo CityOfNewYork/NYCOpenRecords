@@ -388,6 +388,8 @@ def response_generate_envelope():
     envelope_data['request_id'] = request_id
     envelope_data['recipient_name'] = str(flask_request.form.get('recipient_name')).upper()
     envelope_data['organization'] = str(flask_request.form.get('organization')).upper()
+    envelope_data['organization'] = " ".join(
+        ['\\seqsplit{{{}}}'.format(i) for i in envelope_data['organization'].split()])
     envelope_data['street_address'] = '{} {}'.format(str(flask_request.form.get('address_one')).upper(),
                                                      str(flask_request.form.get('address_two')).upper())
     envelope_data['city'] = str(flask_request.form.get('city')).upper()
@@ -707,6 +709,7 @@ def response_get_envelope(request_id, response_id):
     :param response_id: Response ID for the letter.
     :return: PDF Attachment.
     """
+
     if current_user.is_authenticated and current_user.is_agency:
         request = Requests.query.filter_by(id=request_id).one()
 

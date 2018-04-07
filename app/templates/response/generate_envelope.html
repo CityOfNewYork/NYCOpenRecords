@@ -13,7 +13,7 @@
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </legend>
-            {% if generate_envelope_form.template.choices | length == 1 %}
+            {% if generate_envelope_form.template.choices | length <= 1 %}
                 <input type="hidden" name="template" value="{{ generate_envelope_form.template.choices[0][0] }}"/>
             {% else %}
                 {{ generate_envelope_form.template.label }}<br>
