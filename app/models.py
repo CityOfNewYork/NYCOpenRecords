@@ -1613,6 +1613,10 @@ class Envelopes(Responses):
         )
         self.latex = latex
 
+    @property
+    def preview(self):
+        return "Envelope for {request_id}".format(request_id=self.request_id)
+
 
 class EnvelopeTemplates(db.Model):
     """

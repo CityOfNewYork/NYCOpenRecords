@@ -5,6 +5,8 @@
 """
 import os
 
+import io
+
 import app.lib.file_utils as fu
 
 from datetime import datetime
@@ -712,11 +714,14 @@ def response_get_envelope(request_id, response_id):
             return jsonify({'error': 'unauthorized'}), 403
         envelope = Envelopes.query.filter_by(id=response_id).one()
 
+        f = generate_envelope_pdf(envelope.latex)
+
         return send_file(
-            '{request_id}_envelope.pdf'.format(request_id=request_id),
+            io.BytesIO(f),
             mimetype='application/pdf',
             as_attachment=True,
-            attachment_filename=envelope.filename
+            attachment_filename=
+            '{request_id}_envelope.pdf'.format(request_id=request_id)
         )
 
 
