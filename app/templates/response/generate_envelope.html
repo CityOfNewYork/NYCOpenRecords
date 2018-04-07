@@ -13,7 +13,12 @@
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </legend>
-
+            {% if generate_envelope_form.template.choices | length == 1 %}
+                <input type="hidden" name="template" value="{{ generate_envelope_form.template.choices[0][0] }}"/>
+            {% else %}
+                {{ generate_envelope_form.template.label }}<br>
+                {{ generate_envelope_form.template(id="generate-envelope-template", class="disable-enter-submit form-control") | safe }}
+            {% endif %}
             <div class="form-group">
                 {{ generate_envelope_form.recipient_name.label }}<br>
                 {{ generate_envelope_form.recipient_name(id="generate-envelope-recipient-name", class="disable-enter-submit form-control") | safe }}

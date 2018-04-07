@@ -1622,7 +1622,7 @@ class EnvelopeTemplates(db.Model):
     agency_ein - a foreign key that links to the a agency's primary key
         if null, this envelope template applies to all agencies
     title - a short descriptor for the envelope template
-    latex - a LaTex string for the template
+    template_name - the name of the template to be loaded from the filesystem
 
     Reason are based off the Law Department's responses.
 
@@ -1631,7 +1631,7 @@ class EnvelopeTemplates(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     title = db.Column(db.String, nullable=False)
-    latex = db.Column(db.String, nullable=False)
+    template_name = db.Column(db.String, nullable=False)
 
     @classmethod
     def populate(cls, csv_name=None):
@@ -1639,15 +1639,13 @@ class EnvelopeTemplates(db.Model):
         with open(filename, 'r') as data:
             dictreader = csv.DictReader(data)
             for row in dictreader:
-                if EnvelopeTemplates.query.filter_by(type_=row['type'],
-                                                     agency_ein=row['agency_ein'],
+                if EnvelopeTemplates.query.filter_by(agency_ein=row['agency_ein'],
                                                      title=row['title'],
-                                                     content=row['latex']).one_or_none() is None:
-                    template = LetterTemplates(
-                        type_=row['type'],
+                                                     template_name=row['template_name']).one_or_none() is None:
+                    template = EnvelopeTemplates(
                         agency_ein=row['agency_ein'],
                         title=row['title'],
-                        content=row['content']
+                        template_name=row['content']
                     )
                     db.session.add(template)
 

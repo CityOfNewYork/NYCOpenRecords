@@ -577,16 +577,23 @@ def _add_letter(request_id, letter_content):
     return response.id
 
 
-def add_envelope(request_id, template_name, envelope_data):
+def add_envelope(request_id, template_id, envelope_data):
     """
     Create and store an envelope object for the specified request.
     Stores the envelope LaTeX in the Letters table.
 
-    :param request_id: FOIL Request Unique Identifier
-    :param envelope_data: Dictionary of data to fill in the envelope.
+    :param request_id: FOIL Request Unique Identifier (String)
+    :param template_id: ID of the template to use to generate the envelope (String)
+    :param envelope_data: Dictionary of data to fill in the envelope. (EnvelopeDict)
     :return: PDF File object
     """
-    latex = generate_envelope(template_name, envelope_data)
+    request = Requests.query.filter_by(id=request_id).one()
+
+    template = '{agency_ein}/{template_name}'.format(agency_ein=request.agency.ein,
+                                                     template_name=EnvelopeTemplates.query.filter_by(
+                                                         id=template_id).one().template_name)
+
+    latex = generate_envelope(template, envelope_data)
 
     response = Envelopes(
         request_id,
@@ -595,8 +602,21 @@ def add_envelope(request_id, template_name, envelope_data):
     )
     create_object(response)
     create_response_event(event_type.ENVELOPE_CREATED, response)
-
-    return generate_envelope_pdf(latex)
+    envelope = generate_envelope_pdf(latex)
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                  EMAIL_TEMPLATE_FOR_EVENT[event_type.ENVELOPE_CREATED])
+    email_content = render_template(email_template,
+                                    request_id=request_id,
+                                    agency_name=request.agency.name,
+                                    user=current_user
+                                    )
+    safely_send_and_add_email(request_id,
+                              email_content,
+                              'Request {} Envelope Generated'.format(request_id),
+                              to=get_agency_emails(request_id),
+                              attachment=envelope,
+                              filename=secure_filename('{}_envelope.pdf'.format(request_id)),
+                              mimetype='application/pdf')
 
 
 def add_sms():

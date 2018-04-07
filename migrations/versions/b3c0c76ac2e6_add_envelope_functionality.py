@@ -22,7 +22,7 @@ def upgrade():
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('agency_ein', sa.String(length=4), nullable=True),
                     sa.Column('title', sa.String(), nullable=False),
-                    sa.Column('latex', sa.String(), nullable=False),
+                    sa.Column('template_name', sa.String(), nullable=False),
                     sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
@@ -32,30 +32,6 @@ def upgrade():
                     sa.ForeignKeyConstraint(['id'], ['responses.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
-    op.get_bind().execute(
-        text(
-            """
-            COMMIT
-            """
-        )
-    )
-
-    op.get_bind().execute(
-        text(
-            """
-            ALTER TYPE letter_type ADD VALUE 'letters';
-            ALTER TYPE letter_type ADD VALUE 'envelopes';
-            """
-        )
-    )
-
-    op.get_bind().execute(
-        text(
-            """
-            COMMIT
-            """
-        )
-    )
     ### end Alembic commands ###
 
 

@@ -61,6 +61,7 @@ from app.response.utils import (
     add_closing,
     add_reopening,
     add_instruction,
+    add_envelope,
     get_file_links,
     process_upload_data,
     send_file_email,
@@ -370,7 +371,7 @@ def response_instructions(request_id):
 
 
 @response.route('/envelope', methods=['POST'])
-def resposne_generate_envelope():
+def response_generate_envelope():
     """
     Create an Envelope for the Request.
 
@@ -380,8 +381,9 @@ def resposne_generate_envelope():
     :return:
     """
     envelope_data = EnvelopeDict()
-
-    envelope_data['request_id'] = str(flask_request.form.get('request_id')).upper()
+    request_id = flask_request.form.get('request_id')
+    template = flask_request.form.get('template')
+    envelope_data['request_id'] = request_id
     envelope_data['recipient_name'] = str(flask_request.form.get('recipient_name')).upper()
     envelope_data['organization'] = str(flask_request.form.get('organization')).upper()
     envelope_data['street_address'] = '{} {}'.format(str(flask_request.form.get('address_one')).upper(),
@@ -390,8 +392,9 @@ def resposne_generate_envelope():
     envelope_data['state'] = str(flask_request.form.get('state')).upper()
     envelope_data['zipcode'] = str(flask_request.form.get('zipcode')).upper()
 
-    current_request = Requests.query.filter_by()
+    add_envelope(request_id, template, envelope_data)
 
+    return redirect(url_for('request.view', request_id=request_id))
 
 
 @response.route('/email', methods=['POST'])

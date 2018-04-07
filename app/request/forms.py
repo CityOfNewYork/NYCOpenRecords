@@ -35,7 +35,8 @@ from app.constants import (
 from app.lib.db_utils import get_agency_choices
 from app.models import (
     Reasons,
-    LetterTemplates
+    LetterTemplates,
+    EnvelopeTemplates
 )
 
 
@@ -253,6 +254,7 @@ class CloseRequestForm(FinishRequestForm):
 
 
 class GenerateEnvelopeForm(Form):
+    template = SelectField("Template")
     recipient_name = StringField("Recipient Name")
     organization = StringField("Organization")
     address_one = StringField("Address Line One")
@@ -261,11 +263,17 @@ class GenerateEnvelopeForm(Form):
     state = StringField("State")
     zipcode = StringField("Zip Code")
 
-    def __init__(self, requester):
+    def __init__(self, agency_ein, requester):
         """
         :type requester: app.models.Users
         """
         super(GenerateEnvelopeForm, self).__init__()
+        self.template.choices = [
+            (envelope_template.id, envelope_template.title)
+            for envelope_template in EnvelopeTemplates.query.filter_by(
+                agency_ein=agency_ein
+            )
+        ]
         self.recipient_name.data = requester.name or ""
         self.organization.data = requester.organization or ""
         if requester.mailing_address is not None:

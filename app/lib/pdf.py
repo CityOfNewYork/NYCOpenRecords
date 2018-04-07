@@ -34,7 +34,12 @@ class LatexCompiler:
         return_code = proc.wait()
         if return_code != 0:
             raise PDFCreationException(return_code)  # TODO: Make this a proper error
-        return temp_file + '.' + self.FILE_EXTENSION
+
+        data = None
+        with open('{filename}.{extension}'.format(filename=temp_file, extension=self.FILE_EXTENSION), 'rb') as f:
+            data = f.read()
+
+        return data
 
     def compile(self, document):
         """
@@ -80,7 +85,7 @@ def generate_envelope(template_name, data):
     """
     environment = jinja2.Environment(loader=jinja2.FileSystemLoader(current_app.config['LATEX_TEMPLATE_DIRECTORY']),
                                      **LATEX_TEMPLATE_CONFIG)
-    document = environment.get_template(template_name).render(**data)
+    document = environment.get_template(template_name + '.tex').render(**data)
 
     return document
 
