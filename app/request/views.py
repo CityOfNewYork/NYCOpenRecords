@@ -291,7 +291,11 @@ def view(request_id):
                   not current_request.privacy['title'])
 
     # Determine if "Generate Letter" functionality is enabled for the agency.
-    generate_letters_enabled = current_request.agency.agency_features['letters']['generate_letters']
+
+    if 'letters' in current_request.agency.agency_features:
+        generate_letters_enabled = current_request.agency.agency_features['letters']['generate_letters']
+    else:
+        generate_letters_enabled = False
 
     return render_template(
         'request/view_request.html',
