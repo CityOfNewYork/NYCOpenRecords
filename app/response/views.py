@@ -23,8 +23,7 @@ from flask_login import current_user, login_url
 
 from app import login_manager, sentry
 from app.constants import permission
-from app.constants.event_type import RESPONSE_LETTER_CREATED
-from app.constants.response_type import FILE
+from app.constants.response_type import FILE, LETTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
 from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
@@ -36,6 +35,7 @@ from app.lib.permission_utils import (
 from app.lib.pdf import generate_pdf, generate_pdf_flask_response
 from app.response import response
 from app.models import (
+    CommunicationMethods,
     Requests,
     Responses,
     ResponseTokens,
@@ -699,8 +699,11 @@ def response_get_letter(request_id, response_id):
         if current_user not in request.agency_users:
             return jsonify({'error': 'unauthorized'}), 403
         response_ = Responses.query.filter_by(id=response_id).one()
-        letter = Letters.query.filter_by(id=response_.communication_method_id).one()
-        print(letter.id)
+        if response_.type == LETTER:
+            letter = Letters.query.filter_by(id=response_id).one()
+        else:
+            cm = CommunicationMethods.query.filter_by(response_id=response_id, method_type=LETTER).one()
+            letter = Letters.query.filter_by(id=cm.method_id).one()
 
         return generate_pdf_flask_response(letter.content)
     return jsonify({'error': 'unauthorized'}), 403

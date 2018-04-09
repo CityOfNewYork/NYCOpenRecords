@@ -108,7 +108,7 @@
                                 Delete
                             </button>
                         {% endif %}
-                        {% if response.type == response_type.DETERMINATION and response.communication_method_type == response_type.LETTER %}
+                        {% if response.type == response_type.LETTER or (response.type == response_type.DETERMINATION and response.communication_method_type == response_type.LETTER) %}
                             <a target="_blank" rel="noopener noreferrer"
                                href="/response/letter/{{ current_request.id }}/{{ response.id }}" type="button"
                                class="btn btn-success pull-left"

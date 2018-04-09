@@ -203,10 +203,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.ACKNOWLEDGMENT_LETTER_CREATED)
-            letter_communication_method = CommunicationMethods(response.id,
-                                                               letter_id,
-                                                               response_type.LETTER)
-            create_object(letter_communication_method)
+            _create_communication_method(response.id, letter_id, response_type.LETTER)
             letter = generate_pdf(content)
             email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
                                           EMAIL_TEMPLATE_FOR_EVENT[event_type.ACKNOWLEDGMENT_LETTER_CREATED])
@@ -223,20 +220,13 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
                                                  filename=secure_filename(
                                                      '{}_acknowledgment_letter.pdf'.format(request_id)),
                                                  mimetype='application/pdf')
-            email_communication_method = CommunicationMethods(response.id,
-                                                              email_id,
-                                                              response_type.EMAIL)
-            create_object(email_communication_method)
+            _create_communication_method(response.id, email_id, response_type.EMAIL)
         else:
             email_id = _send_response_email(request_id,
                                             privacy,
                                             content,
                                             'Request {} Acknowledged'.format(request_id))
-
-            email_communication_method = CommunicationMethods(response.id,
-                                                              email_id,
-                                                              response_type.EMAIL)
-            create_object(email_communication_method)
+            _create_communication_method(response.id, email_id, response_type.EMAIL)
 
 
 def add_denial(request_id, reason_ids, email_content):
@@ -530,20 +520,21 @@ def add_response_letter(request_id, content, letter_template_id):
     letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
     letter_title = letter_template.title
     letter = generate_pdf(content)
-    _add_letter(request_id, letter_title, content, event_type.RESPONSE_LETTER_CREATED)
+    letter_id = _add_letter(request_id, letter_title, content, event_type.RESPONSE_LETTER_CREATED)
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
                                   EMAIL_TEMPLATE_FOR_EVENT[event_type.RESPONSE_LETTER_CREATED])
     email_content = render_template(email_template,
                                     request_id=request_id,
                                     agency_name=request.agency.name,
                                     user=current_user)
-    safely_send_and_add_email(request_id,
-                              email_content,
-                              "{} Letter Added to {}".format(letter_title, request_id),
-                              to=get_agency_emails(request_id),
-                              attachment=letter,
-                              filename=secure_filename('{}_{}_letter'.format(letter_title, request_id)),
-                              mimetype='application/pdf')
+    email_id = safely_send_and_add_email(request_id,
+                                         email_content,
+                                         "{} Letter Added to {}".format(letter_title, request_id),
+                                         to=get_agency_emails(request_id),
+                                         attachment=letter,
+                                         filename=secure_filename('{}_{}_letter'.format(letter_title, request_id)),
+                                         mimetype='application/pdf')
+    _create_communication_method(letter_id, email_id, response_type.EMAIL)
 
 
 def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
@@ -1810,6 +1801,20 @@ def create_response_event(events_type, response, previous_value=None, user=curre
                    new_value=response.val_for_events)
     # store event object
     create_object(event)
+
+
+def _create_communication_method(response_id, method_id, method_type):
+    """
+    Create and store communication_method object for a given response.
+
+    :param response_id: response ID
+    :param method_id: response ID of the method
+    :param method_type: 'letters' or 'emails'
+    """
+    communication_method = CommunicationMethods(response_id,
+                                                method_id,
+                                                method_type)
+    create_object(communication_method)
 
 
 class ResponseEditor(metaclass=ABCMeta):

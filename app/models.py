@@ -1155,12 +1155,6 @@ class Responses(db.Model):
         response_type.LETTER,
         name='type'
     ))
-    # communication_method = db.relationship(
-    #     "CommunicationMethods",
-    #     primaryjoin="or_(Responses.id == CommunicationMethods.response_id, "
-    #                 "Responses.id == CommunicationMethods.method_id)",
-    #     backref="responses"
-    # )
 
     __mapper_args__ = {'polymorphic_on': type}
 
@@ -1210,8 +1204,9 @@ class Responses(db.Model):
 
     @property
     def communication_method_type(self):
-        cm = CommunicationMethods.query.filter_by(response_id=self.id).all()
-        return response_type.LETTER if response_type.LETTER in [c.method_type for c in cm] else response_type.EMAIL
+        communication_methods = CommunicationMethods.query.filter_by(response_id=self.id).all()
+        return response_type.LETTER if response_type.LETTER in [cm.method_type for cm in
+                                                                communication_methods] else response_type.EMAIL
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
@@ -1717,9 +1712,7 @@ class Determinations(Responses):
                  reason,
                  date=None,
                  date_modified=None,
-                 is_editable=False,
-                 communication_method_id=None,
-                 communication_method_type=None):
+                 is_editable=False):
         super(Determinations, self).__init__(request_id,
                                              privacy,
                                              date_modified,
@@ -1735,28 +1728,6 @@ class Determinations(Responses):
                          determination_type.CLOSING) and date is None:
             raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='date')
         self.date = date
-
-        if communication_method_id is not None and \
-                communication_method_type is not None and \
-                communication_method_type in (response_type.LETTER, response_type.EMAIL):
-            if communication_method_type == response_type.LETTER:
-                if Letters.query.filter_by(id=communication_method_id).one_or_none() is None:
-                    raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                        missing_field='communication_method_id')
-            if communication_method_type == response_type.EMAIL:
-                if Emails.query.filter_by(id=communication_method_id).one_or_none() is None:
-                    raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                        missing_field='communication_method_id')
-
-            self.communication_method_type = communication_method_type
-            self.communication_method_id = communication_method_id
-
-        elif communication_method_type is None and communication_method_id is not None:
-            raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                missing_field='communication_method_type')
-        elif communication_method_type is not None and communication_method_id is None:
-            raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                missing_field='communication_method_id')
 
     @property
     def preview(self):
