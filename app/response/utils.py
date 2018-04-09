@@ -902,9 +902,17 @@ def _denial_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
+        point_of_contact = denial.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
-                                          request_id=request_id)
+                                          request_id=request_id,
+                                          user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
