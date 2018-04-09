@@ -25,6 +25,7 @@ def format_response_type(response):
             response_type.LINK: 'LINK',
             response_type.PUSH: 'PUSH NOTIFICATION',
             response_type.SMS: 'SMS',
+            response_type.LETTER: 'LETTER'
         }[response.type]
     return formatted_type
 

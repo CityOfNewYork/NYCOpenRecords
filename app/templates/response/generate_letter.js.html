@@ -6,6 +6,7 @@
         var first = form.find(".first");
         var second = form.find(".second");
         var third = form.find(".third");
+        var point_of_contact = form.find("#point-of-contact");
 
         var next1 = first.find(".next");
         var next2 = second.find(".next");
@@ -31,6 +32,7 @@
                     type: "POST",
                     data: {
                         letter_template_id: letter_template_id.val(),
+                        point_of_contact: point_of_contact.val(),
                         request_id: "{{ request.id }}",
                         type: "letters"
                     },

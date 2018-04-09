@@ -10,6 +10,7 @@ from app.models import (
     Responses,
     Files,
     Notes,
+    Letters,
     Links,
     Instructions,
     Determinations
@@ -88,7 +89,7 @@ def get_permission(permission_type: str, response_type: Responses):
     :return:
     """
 
-    if response_type is not Determinations:
+    if response_type not in [Determinations, Letters]:
 
         if permission_type == 'edit':
             permission_for_edit_type = {

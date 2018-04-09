@@ -1155,6 +1155,12 @@ class Responses(db.Model):
         response_type.LETTER,
         name='type'
     ))
+    # communication_method = db.relationship(
+    #     "CommunicationMethods",
+    #     primaryjoin="or_(Responses.id == CommunicationMethods.response_id, "
+    #                 "Responses.id == CommunicationMethods.method_id)",
+    #     backref="responses"
+    # )
 
     __mapper_args__ = {'polymorphic_on': type}
 
@@ -1201,6 +1207,11 @@ class Responses(db.Model):
     def creator(self):
         return Events.query.filter(Events.response_id == self.id,
                                    Events.type.in_(event_type.RESPONSE_ADDED_TYPES)).one().user
+
+    @property
+    def communication_method_type(self):
+        cm = CommunicationMethods.query.filter_by(response_id=self.id).all()
+        return response_type.LETTER if response_type.LETTER in [c.method_type for c in cm] else response_type.EMAIL
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
@@ -1615,7 +1626,7 @@ class Letters(Responses):
 
     @property
     def preview(self):
-        return self.content
+        return self.title
 
 
 class LetterTemplates(db.Model):
@@ -1698,12 +1709,6 @@ class Determinations(Responses):
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
-    communication_method_id = db.Column(db.Integer, nullable=True)
-    communication_method_type = db.Column(db.Enum(
-        response_type.LETTER,
-        response_type.EMAIL,
-        name='communication_method_type'
-    ), nullable=True)
 
     def __init__(self,
                  request_id,
@@ -1767,3 +1772,25 @@ class Determinations(Responses):
                           determination_type.REOPENING):
             val['due_date'] = self.date.isoformat()
         return val
+
+
+class CommunicationMethods(db.Model):
+    """
+
+    """
+    __tablename__ = 'communication_methods'
+    response_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    method_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    method_type = db.Column(db.Enum(
+        response_type.LETTER,
+        response_type.EMAIL,
+        name='communication_method_type'
+    ), nullable=True)
+
+    def __init__(self,
+                 response_id,
+                 method_id,
+                 method_type):
+        self.response_id = response_id
+        self.method_id = method_id
+        self.method_type = method_type

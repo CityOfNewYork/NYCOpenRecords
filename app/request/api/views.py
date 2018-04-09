@@ -22,7 +22,7 @@ from app.lib.permission_utils import (
     get_permission
 )
 from app.permissions.utils import get_permissions_as_list
-from app.models import Requests, Responses, Events
+from app.models import CommunicationMethods, Requests, Responses, Events
 from app.constants import RESPONSES_INCREMENT, EVENTS_INCREMENT
 from app.constants import (
     determination_type,
@@ -210,12 +210,10 @@ def get_request_responses():
 
     current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    responses = Responses.query.filter(
-        Responses.request_id == current_request.id,
-        Responses.type != response_type.EMAIL,
-        Responses.type != response_type.LETTER,
-        Responses.deleted == False
-    ).order_by(
+    responses = Responses.query.filter(~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
+                                       Responses.type != 'emails',
+                                       Responses.deleted == False
+                                       ).order_by(
         desc(Responses.date_modified)
     ).all()[start: start + RESPONSES_INCREMENT]
 

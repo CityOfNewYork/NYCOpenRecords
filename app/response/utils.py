@@ -63,6 +63,7 @@ from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metad
 from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.lib.pdf import generate_pdf
 from app.models import (
+    CommunicationMethods,
     Events,
     Notes,
     Files,
@@ -165,7 +166,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
                          subject)
 
 
-def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
+def add_acknowledgment(request_id, info, days, date, tz_name, content, method, letter_template_id):
     """
     Create and store an acknowledgement-determination response for
     the specified request and update the request accordingly.
@@ -200,15 +201,12 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
         if method == 'letter':
-            letter_id = _add_letter(request_id, content, event_type.ACKNOWLEDGMENT_LETTER_CREATED)
-            update_object(
-                {
-                    'communication_method_type': response_type.LETTER,
-                    'communication_method_id': letter_id
-                },
-                Determinations,
-                response.id
-            )
+            letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
+            letter_id = _add_letter(request_id, letter_template.title, content, event_type.ACKNOWLEDGMENT_LETTER_CREATED)
+            letter_communication_method = CommunicationMethods(response.id,
+                                                               letter_id,
+                                                               response_type.LETTER)
+            create_object(letter_communication_method)
             letter = generate_pdf(content)
             email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
                                           EMAIL_TEMPLATE_FOR_EVENT[event_type.ACKNOWLEDGMENT_LETTER_CREATED])
@@ -217,27 +215,28 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
                                             agency_name=request.agency.name,
                                             user=current_user
                                             )
-            safely_send_and_add_email(request_id,
-                                      email_content,
-                                      'Request {} Acknowledged - Letter'.format(request_id),
-                                      to=get_agency_emails(request_id),
-                                      attachment=letter,
-                                      filename=secure_filename('{}_acknowledgment_letter.pdf'.format(request_id)),
-                                      mimetype='application/pdf')
+            email_id = safely_send_and_add_email(request_id,
+                                                 email_content,
+                                                 'Request {} Acknowledged - Letter'.format(request_id),
+                                                 to=get_agency_emails(request_id),
+                                                 attachment=letter,
+                                                 filename=secure_filename(
+                                                     '{}_acknowledgment_letter.pdf'.format(request_id)),
+                                                 mimetype='application/pdf')
+            email_communication_method = CommunicationMethods(response.id,
+                                                              email_id,
+                                                              response_type.EMAIL)
+            create_object(email_communication_method)
         else:
             email_id = _send_response_email(request_id,
                                             privacy,
                                             content,
                                             'Request {} Acknowledged'.format(request_id))
 
-            update_object(
-                {
-                    'communication_method_type': response_type.EMAIL,
-                    'communication_method_id': email_id
-                },
-                Determinations,
-                response.id
-            )
+            email_communication_method = CommunicationMethods(response.id,
+                                                              email_id,
+                                                              response_type.EMAIL)
+            create_object(email_communication_method)
 
 
 def add_denial(request_id, reason_ids, email_content):
@@ -904,9 +903,17 @@ def _response_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
+        point_of_contact = data.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
         template = render_template_string(contents.content,
-                                          date=request.date_submitted,
-                                          user=current_user)
+                                          date_received=request.date_created,
+                                          date_submitted=request.date_submitted,
+                                          user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:

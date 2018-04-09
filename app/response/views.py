@@ -176,7 +176,8 @@ def response_acknowledgment(request_id):
                        flask_request.form['date'],
                        flask_request.form['tz-name'],
                        flask_request.form['summary'],
-                       flask_request.form['method'])
+                       flask_request.form['method'],
+                       flask_request.form.get('letter_templates'))
     return redirect(url_for('request.view', request_id=request_id))
 
 
