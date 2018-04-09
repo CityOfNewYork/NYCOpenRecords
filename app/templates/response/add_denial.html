@@ -1,6 +1,9 @@
 <form id="add-denial" action="/response/denial/{{ request.id }}" method="POST">
 
     {{ deny_request_form.csrf_token }}
+    <input type="hidden" id="generate-letters-enabled" name="generate_letters_enabled"
+           value="{{ generate_letters_enabled }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
 
     <div class="col-sm-9">
         <fieldset>
@@ -13,29 +16,54 @@
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </legend>
-            <div class="first">
-                <div class="form-group">
-                    {{ deny_request_form.reasons.label }}<br>
-                    {{ deny_request_form.reasons(id="denial-reason-ids",
-                                                 class="disable-enter-submit form-control",
-                                                 size=10) | safe }}
-                </div>
-                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            <div class="first" hidden>
+                {% if generate_letters_enabled %}
+                    <div class="form-group">
+                        <label for="denial-method">Denial Method</label>
+                        <select id="denial-method" name="method" class="disable-enter-submit form-control">
+                            <option value="" selected="selected" disabled="disabled">None selected</option>
+                            <option value="email">Email</option>
+                            <option value="letter">Letter</option>
+                        </select>
+                    </div>
+                    <button type="button" class="next pull-right btn btn-primary">Next</button>
+                {% else %}
+                    <input type="hidden" id="denial-method" name="method" value="email"/>
+                {% endif %}
             </div>
             <div class="second" hidden>
-                <h4>Edit Email Body</h4>
-                <div class="form-group">
-                    <div class="email-content-hidden" hidden></div>
-                    <textarea title="denial-email-body" name="denial-email-body"
-                              class="tinymce-area"></textarea>
+                <div id="denial-email">
+                    <div class="form-group">
+                        {{ deny_request_form.reasons.label }}<br>
+                        {{ deny_request_form.reasons(id="denial-reason-ids",
+                                                     class="disable-enter-submit form-control",
+                                                     size=10) | safe }}
+                    </div>
+                </div>
+                <div id="denial-letter">
+                    <div class="form-group">
+                        {{ generate_denial_letter_form.letter_templates.label }}<br>
+                        {{ generate_denial_letter_form.letter_templates(id="letter-template-id",
+                                                 class="disable-enter-submit form-control") | safe }}
+                    </div>
                 </div>
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="third" hidden>
+                <h4 id="edit-body-header">Edit Email Body</h4>
+                <div class="form-group">
+                    <div class="email-content-hidden" hidden></div>
+                    <textarea title="denial-body" name="denial-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="fourth" hidden>
                 <h4 class="confirmation-header"></h4>
-                <div class="wrap-text email-summary"></div>
-                <input type="hidden" name="email-summary">
+                <div class="wrap-text summary"></div>
+                <input type="hidden" name="summary">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit pull-right btn btn-success">Submit</button>
             </div>

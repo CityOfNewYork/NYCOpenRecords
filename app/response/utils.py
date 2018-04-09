@@ -175,7 +175,8 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
     :param days: days until request completion
     :param date: date of request completion
     :param tz_name: client's timezone name
-    :param email_content: email body associated with the acknowledgment
+    :param content: body text associated with the acknowledgment
+    :param method: the communication method of the acknowledgement ('letter' or 'email')
 
     """
     request = Requests.query.filter_by(id=request_id).one()
@@ -200,7 +201,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
         if method == 'letter':
-            letter_id = _add_letter(request_id, content)
+            letter_id = _add_letter(request_id, content, event_type.ACKNOWLEDGMENT_LETTER_CREATED)
             update_object(
                 {
                     'communication_method_type': response_type.LETTER,
@@ -240,14 +241,15 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method):
             )
 
 
-def add_denial(request_id, reason_ids, email_content):
+def add_denial(request_id, reason_ids, content, method):
     """
     Create and store a denial-determination response for
     the specified request and update the request accordingly.
 
     :param request_id: FOIL request ID
     :param reason_ids: reason for denial
-    :param email_content: email body associated with the denial
+    :param content: body text associated with the denial
+    :param method: the communication method of the denial ('letter' or 'email')
 
     """
     request = Requests.query.filter_by(id=request_id).one()
@@ -284,13 +286,50 @@ def add_denial(request_id, reason_ids, email_content):
                 determination_type.DENIAL,
                 format_determination_reasons(reason_ids)
             )
+        if method == 'letter':
+            response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
         request.es_update()
-        _send_response_email(request_id,
-                             RELEASE_AND_PUBLIC,
-                             email_content,
-                             'Request {} Closed'.format(request_id))
+        if method == 'letter':
+            letter_id = _add_letter(request_id, content, event_type.DENIAL_LETTER_CREATED)
+            update_object(
+                {
+                    'communication_method_type': response_type.LETTER,
+                    'communication_method_id': letter_id
+                },
+                Determinations,
+                response.id
+            )
+            letter = generate_pdf(content)
+            email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                          EMAIL_TEMPLATE_FOR_EVENT[event_type.DENIAL_LETTER_CREATED])
+            email_content = render_template(email_template,
+                                            request_id=request_id,
+                                            agency_name=request.agency.name,
+                                            user=current_user
+                                            )
+            safely_send_and_add_email(request_id,
+                                      email_content,
+                                      'Request {} Closed'.format(request_id),
+                                      to=get_agency_emails(request_id),
+                                      attachment=letter,
+                                      filename=secure_filename('{}_denial_letter.pdf'.format(request_id)),
+                                      mimetype='application/pdf')
+        else:
+            email_id = _send_response_email(request_id,
+                                            RELEASE_AND_PUBLIC,
+                                            content,
+                                            'Request {} Closed'.format(request_id))
+
+            update_object(
+                {
+                    'communication_method_type': response_type.EMAIL,
+                    'communication_method_id': email_id
+                },
+                Determinations,
+                response.id
+            )
     else:
         raise UserRequestException(action="close",
                                    request_id=request_id,
@@ -551,7 +590,7 @@ def _add_email(request_id, subject, email_content, to=None, cc=None, bcc=None):
     return response.id
 
 
-def _add_letter(request_id, letter_content):
+def _add_letter(request_id, letter_content, letter_type):
     """
     Create and store a letter object for the specified request.
     Stores the letter metadata in the Letters table.
@@ -559,6 +598,7 @@ def _add_letter(request_id, letter_content):
 
     :param request_id: FOIL Request Unique Identifier
     :param letter_content: HTML content of the letter (used to format PDF for printing)
+    :param letter_type: letter type created
     :return: Response Identifier (int)
     """
     response = Letters(
@@ -567,7 +607,7 @@ def _add_letter(request_id, letter_content):
         content=letter_content
     )
     create_object(response)
-    create_response_event(event_type.ACKNOWLEDGMENT_LETTER_CREATED, response)
+    create_response_event(letter_type, response)
     return response.id
 
 
@@ -766,7 +806,7 @@ def _acknowledgment_letter_handler(request_id, data):
     agency = request.agency
     agency_letter_data = agency.agency_features['letters']
 
-    # Acnowledgment is only provided when getting default letter template.
+    # Acknowledgment is only provided when getting default letter template.
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
@@ -838,13 +878,66 @@ def _closing_letter_handler(request_id, data):
 
 def _denial_letter_handler(request_id, data):
     """
+    Process letter templates for a denial
 
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of a denial letter.
     """
-    pass
+    denial = data.get('denial', None)
+
+    header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+
+    request = Requests.query.filter_by(id=request_id).first()
+    agency = request.agency
+    agency_letter_data = agency.agency_features['letters']
+
+    # Denial is only provided when getting default letter template.
+    if denial is not None:
+        denial = json.loads(denial)
+        contents = LetterTemplates.query.filter_by(id=denial['letter_template']).first()
+
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        point_of_contact = denial.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
+        template = render_template_string(contents.content,
+                                          date=request.date_submitted,
+                                          request_id=request_id,
+                                          user=point_of_contact_user)
+
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
+
+        return jsonify({"template": render_template('letters/base.html',
+                                                    letterhead=Markup(letterhead),
+                                                    signature=Markup(signature),
+                                                    request=request,
+                                                    date=date,
+                                                    contents=Markup(template),
+                                                    request_id=request_id,
+                                                    footer=Markup(agency_letter_data['footer'])),
+                        "header": header})
+    else:
+        content = data['letter_content']
+        return jsonify({"template": render_template_string(content),
+                        "header": header}), 200
 
 
 def _reopening_letter_handler(request_id, data):
