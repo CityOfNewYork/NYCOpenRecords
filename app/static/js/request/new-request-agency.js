@@ -249,6 +249,10 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $('#request-form').submit(function () {
+        // Prevent multiple submissions
+        $(this).submit(function() {
+            return false;
+        });
         $('#submit').hide();
         $('#processing-submission').show()
     });
