@@ -24,7 +24,7 @@
                 letter_template_group.show();
                 letter_template.attr("data-parsley-required", "");
                 $.ajax({
-                    url: "/agency/api/v1.0/letter_templates/{{ request.agency.ein }}/acknowledgment",
+                    url: "/agency/api/v1.0/letter_templates/{{ request.agency.ein }}/re-opening",
                     success: function (data) {
                         for (var i = 0; i < data.length; i++) {
                             var opt = document.createElement("option");
@@ -56,23 +56,47 @@
             }
 
             if (method.parsley().isValid() && date.parsley().isValid()) {
-                $.ajax({
-                    url: "/response/email",
-                    type: "POST",
-                    data: {
-                        request_id: "{{ request.id }}",
-                        type: "re-opening",
-                        date: date.val(),
-                        tz_name: jstz.determine().name()
-                    },
-                    success: function (data) {
-                        var emailSummary = second.find(".email-summary");
-                        emailSummary.html(data.template);
-                        flask_moment_render_all();
-                        second.find("input[name='email-summary']").val(emailSummary.html());
-                        first.find("input[name='tz-name']").val(jstz.determine().name());
-                    }
-                });
+                if (method.val() === 'email') {
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "re-opening",
+                            date: date.val(),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var emailSummary = second.find(".summary");
+                            emailSummary.html(data.template);
+                            flask_moment_render_all();
+                            second.find("input[name='summary']").val(emailSummary.html());
+                            first.find("input[name='tz-name']").val(jstz.determine().name());
+
+                            second.find("#header").text("The following will be mailed to the requester:");
+                        }
+                    });
+                } else {
+                    $.ajax({
+                        url: "/response/letter",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "re-opening",
+                            date: date.val(),
+                            template: letter_template.val(),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var letterSummary = second.find("summary");
+                            letterSummary.html(data.template);
+                            flask_moment_render_all();
+                            second.find("input[name='summary']").val(letterSummary.html());
+                            first.find("input[name='tz-name']").val(jstz.determine().name());
+                            second.find("#header").text("The following will be mailed to the requester:");
+                        }
+                    });
+                }
                 first.hide();
                 second.show();
             }

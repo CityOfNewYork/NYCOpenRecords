@@ -11,4 +11,3 @@ letter_type = [
     determination_type.REOPENING,
     response_type.LETTER
 ]
-
