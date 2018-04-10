@@ -323,6 +323,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     :param reason_ids: reason(s) for closing
     :param content: body text associated with the closing
     :param method: the communication method of the closing ('letter' or 'email')
+    :param letter_template_id: id of the letter template
 
     """
     current_request = Requests.query.filter_by(id=request_id).one()
@@ -565,11 +566,12 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
 
 def add_response_letter(request_id, content, letter_template_id):
     """
+    Generate and email a PDF of the response letter.
+    Create and store the response_letters and communication_methods objects.
 
-    :param request_id:
-    :param content:
-    :param letter_template_id:
-    :return:
+    :param request_id: FOIL request ID
+    :param content: (string) HTML of the response letter
+    :param letter_template_id: id of the letter template
     """
     request = Requests.query.filter_by(id=request_id).one()
     letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()

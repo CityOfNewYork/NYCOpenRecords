@@ -1204,6 +1204,12 @@ class Responses(db.Model):
 
     @property
     def communication_method_type(self):
+        """
+        Determine the communication method for a response.
+
+        :return: response_type.LETTER or response_type.EMAIL
+        :rtype: str
+        """
         communication_methods = CommunicationMethods.query.filter_by(response_id=self.id).all()
         return response_type.LETTER if response_type.LETTER in [cm.method_type for cm in
                                                                 communication_methods] else response_type.EMAIL
