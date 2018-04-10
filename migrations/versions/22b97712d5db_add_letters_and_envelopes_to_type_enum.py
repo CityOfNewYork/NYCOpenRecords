@@ -22,12 +22,12 @@ tmp_type = sa.Enum(*new_options, name='_type')
 
 
 def upgrade():
-    # Create a tempoary "_status" type, convert and drop the "old" type
+    # Create a tempoary "_type" type, convert and drop the "old" type
     tmp_type.create(op.get_bind(), checkfirst=False)
     op.execute('ALTER TABLE responses ALTER COLUMN type TYPE _type'
                ' USING type::TEXT::_type')
     old_type.drop(op.get_bind(), checkfirst=False)
-    # Create and convert to the "new" status type
+    # Create and convert to the "new" type type
     new_type.create(op.get_bind(), checkfirst=False)
     op.execute('ALTER TABLE responses ALTER COLUMN type TYPE type'
                ' USING type::TEXT::type')
@@ -35,15 +35,15 @@ def upgrade():
 
 
 def downgrade():
-    # Convert 'output_limit_exceeded' status into 'timed_out'
+    # Convert 'envelopes' and 'letters' type into 'note'
 
     op.execute('UPDATE responses SET type = \'note\' WHERE type IN \(\'letters\', \'envelopes\'\)')
-    # Create a tempoary "_status" type, convert and drop the "new" type
+    # Create a tempoary "_type" type, convert and drop the "new" type
     tmp_type.create(op.get_bind(), checkfirst=False)
     op.execute('ALTER TABLE responses ALTER COLUMN type TYPE _type'
                ' USING type::TEXT::_type')
     new_type.drop(op.get_bind(), checkfirst=False)
-    # Create and convert to the "old" status type
+    # Create and convert to the "old" type type
     old_type.create(op.get_bind(), checkfirst=False)
     op.execute('ALTER TABLE responses ALTER COLUMN type TYPE type'
                ' USING type::TEXT::type')
