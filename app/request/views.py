@@ -47,6 +47,7 @@ from app.request.forms import (
     DenyRequestForm,
     GenerateAcknowledgmentLetterForm,
     GenerateDenialLetterForm,
+    GenerateClosingLetterForm,
     GenerateExtensionLetterForm,
     SearchRequestsForm,
     CloseRequestForm,
@@ -293,7 +294,11 @@ def view(request_id):
                   not current_request.privacy['title'])
 
     # Determine if "Generate Letter" functionality is enabled for the agency.
-    generate_letters_enabled = current_request.agency.agency_features['letters']['generate_letters']
+
+    if 'letters' in current_request.agency.agency_features:
+        generate_letters_enabled = current_request.agency.agency_features['letters']['generate_letters']
+    else:
+        generate_letters_enabled = False
 
     return render_template(
         'request/view_request.html',
@@ -309,6 +314,7 @@ def view(request_id):
         edit_user_request_form=EditUserRequestForm(assigned_users),
         generate_acknowledgement_letter_form=GenerateAcknowledgmentLetterForm(current_request.agency.ein),
         generate_denial_letter_form=GenerateDenialLetterForm(current_request.agency.ein),
+        generate_closing_letter_form=GenerateClosingLetterForm(current_request.agency.ein),
         generate_extension_letter_form=GenerateExtensionLetterForm(current_request.agency.ein),
         assigned_user_permissions=assigned_user_permissions,
         current_point_of_contact=current_point_of_contact,

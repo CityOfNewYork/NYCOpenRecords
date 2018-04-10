@@ -102,6 +102,7 @@ EMAIL_TEMPLATE_FOR_TYPE = {
 EMAIL_TEMPLATE_FOR_EVENT = {
     event_type.ACKNOWLEDGMENT_LETTER_CREATED: "email_event_acknowledgment_letter_created.html",
     event_type.DENIAL_LETTER_CREATED: "email_event_denial_letter_created.html",
+    event_type.CLOSING_LETTER_CREATED: "email_event_closing_letter_created.html",
     event_type.EXTENSION_LETTER_CREATED: "email_event_extension_letter_created.html",
 }
 

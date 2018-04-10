@@ -51,6 +51,7 @@ USER_MADE_AGENCY_USER = "user_made_agency_user"
 USER_PROFILE_UPDATED = "user_profile_updated"
 ACKNOWLEDGMENT_LETTER_CREATED = 'acknowledgment_letter_created'
 DENIAL_LETTER_CREATED = 'denial_letter_created'
+CLOSING_LETTER_CREATED = 'closing_letter_created'
 EXTENSION_LETTER_CREATED = 'extension_letter_created'
 
 FOR_REQUEST_HISTORY = [
