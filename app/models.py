@@ -1116,6 +1116,8 @@ class Events(db.Model):
                 self.RowContent(self, "changed", "{} a note response."),
             event_type.NOTE_REMOVED:
                 self.RowContent(self, "deleted", "{} a note response."),
+            event_type.ENVELOPE_CREATED:
+                self.RowContent(self, "created", "{} an envelope."),
             event_type.RESPONSE_LETTER_CREATED:
                 self.RowContent(self, "added", "{} a letter.")
         }
@@ -1155,6 +1157,7 @@ class Responses(db.Model):
         response_type.DETERMINATION,
         response_type.EMAIL,
         response_type.LETTER,
+        response_type.ENVELOPE,
         name='type'
     ))
 
@@ -1600,11 +1603,78 @@ class Emails(Responses):
         }
 
 
+class Envelopes(Responses):
+    """
+    Define an Envelopes class with the following columns and relationships:
+
+    id - an integer that is the primary key of Envelopes (FK to Responses)
+    latex - the latex used to generate the envelope PDF
+    """
+    __tablename__ = response_type.ENVELOPE
+    __mapper_args__ = {'polymorphic_identity': response_type.ENVELOPE}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    latex = db.Column(db.String)
+
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 latex,
+                 date_modified=None,
+                 is_editable=False):
+        super(Envelopes, self).__init__(
+            request_id,
+            privacy,
+            date_modified,
+            is_editable
+        )
+        self.latex = latex
+
+    @property
+    def preview(self):
+        return "Envelope for {request_id}".format(request_id=self.request_id)
+
+
+class EnvelopeTemplates(db.Model):
+    """
+    Define the EnvelopeTemplates class with the following columns and relationships:
+
+    id - an integer that is the primary key of a EnvelopeTemplates
+    agency_ein - a foreign key that links to the a agency's primary key
+        if null, this envelope template applies to all agencies
+    title - a short descriptor for the envelope template
+    template_name - the name of the template to be loaded from the filesystem
+    """
+    __tablename__ = 'envelope_templates'
+    id = db.Column(db.Integer, primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    title = db.Column(db.String, nullable=False)
+    template_name = db.Column(db.String, nullable=False)
+
+    @classmethod
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['ENVELOPE_TEMPLATES_DATA']
+        print(filename)
+        with open(filename, 'r') as data:
+            dictreader = csv.DictReader(data)
+            for row in dictreader:
+                if EnvelopeTemplates.query.filter_by(agency_ein=row['agency_ein'],
+                                                     title=row['title'],
+                                                     template_name=row['template_name']).one_or_none() is None:
+                    template = EnvelopeTemplates(
+                        agency_ein=row['agency_ein'],
+                        title=row['title'],
+                        template_name=row['template_name']
+                    )
+                    db.session.add(template)
+
+            db.session.commit()
+
+
 class Letters(Responses):
     """
     Define a Letters class with the following columns and relationships:
 
-    id - an integer that is the primary key of Letters
+    id - an integer that is the primary key of Letters (FK to Responses)
     content - A string containing the content of a letter (HTML Formatted)
     """
     __tablename__ = response_type.LETTER

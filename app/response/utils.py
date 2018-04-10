@@ -61,7 +61,11 @@ from app.lib.email_utils import send_email, get_agency_emails
 import app.lib.file_utils as fu
 from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
 from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
-from app.lib.pdf import generate_pdf
+from app.lib.pdf import (
+    generate_pdf,
+    generate_envelope,
+    generate_envelope_pdf
+)
 from app.models import (
     CommunicationMethods,
     Events,
@@ -77,7 +81,9 @@ from app.models import (
     ResponseTokens,
     Users,
     LetterTemplates,
-    Letters
+    Letters,
+    Envelopes,
+    EnvelopeTemplates
 )
 from app.request.api.utils import create_request_info_event
 from app.auth.utils import find_user_by_email
@@ -648,6 +654,49 @@ def _add_letter(request_id, letter_title, letter_content, letter_type):
     return response.id
 
 
+def add_envelope(request_id, template_id, envelope_data):
+    """
+    Create and store an envelope object for the specified request.
+    Stores the envelope LaTeX in the Letters table.
+
+    :param request_id: FOIL Request Unique Identifier (String)
+    :param template_id: ID of the template to use to generate the envelope (String)
+    :param envelope_data: Dictionary of data to fill in the envelope. (EnvelopeDict)
+    :return: PDF File object
+    """
+    request = Requests.query.filter_by(id=request_id).one()
+
+    template = '{agency_ein}/{template_name}'.format(agency_ein=request.agency.ein,
+                                                     template_name=EnvelopeTemplates.query.filter_by(
+                                                         id=template_id).one().template_name)
+
+    latex = generate_envelope(template, envelope_data)
+
+    response = Envelopes(
+        request_id,
+        PRIVATE,
+        latex,
+    )
+    create_object(response)
+    create_response_event(event_type.ENVELOPE_CREATED, response)
+    envelope = generate_envelope_pdf(latex)
+    email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                  EMAIL_TEMPLATE_FOR_EVENT[event_type.ENVELOPE_CREATED])
+    email_content = render_template(email_template,
+                                    request_id=request_id,
+                                    agency_name=request.agency.name,
+                                    user=current_user
+                                    )
+    email_id = safely_send_and_add_email(request_id,
+                                         email_content,
+                                         'Request {} Envelope Generated'.format(request_id),
+                                         to=get_agency_emails(request_id),
+                                         attachment=envelope,
+                                         filename=secure_filename('{}_envelope.pdf'.format(request_id)),
+                                         mimetype='application/pdf')
+    _create_communication_method(response.id, email_id, response_type.EMAIL)
+
+
 def add_sms():
     """
     Will add an SMS to the database for the specified request.
@@ -853,7 +902,8 @@ def _acknowledgment_letter_handler(request_id, data):
         point_of_contact = acknowledgment.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 

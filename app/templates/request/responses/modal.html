@@ -115,6 +115,13 @@
                                id="generate-letter-{{ response.id }}"><span
                                     class="glyphicon glyphicon-print"></span> Generate PDF
                             </a>
+                        {% elif response.type == response_type.ENVELOPE  %}
+                            <a target="_blank" rel="noopener noreferrer"
+                               href="/response/envelope/{{ current_request.id }}/{{ response.id }}" type="button"
+                               class="btn btn-success pull-left"
+                               id="generate-letter-{{ response.id }}"><span
+                                    class="glyphicon glyphicon-print"></span> Generate PDF
+                            </a>
                         {% endif %}
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     </div>
