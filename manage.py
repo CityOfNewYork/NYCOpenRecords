@@ -22,7 +22,9 @@ from app.models import (
     AgencyUsers,
     Emails,
     Letters,
-    LetterTemplates
+    LetterTemplates,
+    Envelopes,
+    EnvelopeTemplates
 )
 from app.request.utils import (
     generate_guid
@@ -69,7 +71,9 @@ def make_shell_context():
         AgencyUsers=AgencyUsers,
         Emails=Emails,
         Letters=Letters,
-        LetterTemplates=LetterTemplates
+        LetterTemplates=LetterTemplates,
+        Envelopes=Envelopes,
+        EnvelopeTemplates=EnvelopeTemplates
     )
 
 
@@ -188,7 +192,8 @@ def deploy():
         Agencies,
         Reasons,
         Users,
-        LetterTemplates
+        LetterTemplates,
+        EnvelopeTemplates
     )))
 
     es_recreate()

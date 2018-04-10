@@ -1,0 +1,24 @@
+\documentclass{letter}
+\usepackage[left=.2in,top=0.15in,papersize={4.12in,9.37in},landscape,twoside=false]{geometry}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{seqsplit}
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist
+\setlength\parskip{0pt}
+\pagestyle{empty}
+
+\begin{document}
+    \vspace*{1in}
+    \setlength\parindent{2.5in}
+    \large \VAR{request_id}\par
+    \vspace*{.5in}
+
+    \begin{changemargin}{3.5in}{.25in}
+    \large \VAR{recipient_name}\par
+    \large \seqsplit{\VAR{company_name}}\par
+    \large \VAR{street_address}\par
+    \large \VAR{city} \VAR{state} \ \VAR{zip}
+    \end{changemargin}
+
+\end{document}

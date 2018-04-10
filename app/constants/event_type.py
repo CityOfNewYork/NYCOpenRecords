@@ -52,6 +52,7 @@ USER_PROFILE_UPDATED = "user_profile_updated"
 ACKNOWLEDGMENT_LETTER_CREATED = 'acknowledgment_letter_created'
 DENIAL_LETTER_CREATED = 'denial_letter_created'
 CLOSING_LETTER_CREATED = 'closing_letter_created'
+ENVELOPE_CREATED = 'envelope_created'
 
 FOR_REQUEST_HISTORY = [
     USER_ADDED,
@@ -81,6 +82,7 @@ FOR_REQUEST_HISTORY = [
     NOTE_ADDED,
     NOTE_EDITED,
     NOTE_REMOVED,
+    ENVELOPE_CREATED
 ]
 
 RESPONSE_ADDED_TYPES = [

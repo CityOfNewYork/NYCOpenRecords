@@ -5,6 +5,8 @@
 """
 import os
 
+import io
+
 import app.lib.file_utils as fu
 
 from datetime import datetime
@@ -17,12 +19,14 @@ from flask import (
     jsonify,
     current_app,
     after_this_request,
-    abort
+    abort,
+    send_file
 )
 from flask_login import current_user, login_url
 
 from app import login_manager, sentry
 from app.constants import permission
+from app.constants.pdf import EnvelopeDict
 from app.constants.response_type import FILE
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
 from app.lib.utils import UserRequestException
@@ -32,7 +36,10 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
-from app.lib.pdf import generate_pdf_flask_response
+from app.lib.pdf import (
+    generate_pdf_flask_response,
+    generate_envelope_pdf
+)
 from app.response import response
 from app.models import (
     Requests,
@@ -43,7 +50,8 @@ from app.models import (
     Notes,
     Instructions,
     Links,
-    Letters
+    Letters,
+    Envelopes
 )
 from app.response.utils import (
     add_note,
@@ -55,6 +63,7 @@ from app.response.utils import (
     add_closing,
     add_reopening,
     add_instruction,
+    add_envelope,
     get_file_links,
     process_upload_data,
     send_file_email,
@@ -374,6 +383,32 @@ def response_instructions(request_id):
     return redirect(url_for('request.view', request_id=request_id))
 
 
+@response.route('/envelope', methods=['POST'])
+def response_generate_envelope():
+    """
+    Create an Envelope for the Request.
+
+    :return: redirect to view request page
+    """
+    envelope_data = EnvelopeDict()
+    request_id = flask_request.form.get('request_id')
+    template = flask_request.form.get('template')
+    envelope_data['request_id'] = request_id
+    envelope_data['recipient_name'] = str(flask_request.form.get('recipient_name')).upper()
+    envelope_data['organization'] = str(flask_request.form.get('organization')).upper()
+    envelope_data['organization'] = " ".join(
+        ['\\seqsplit{{{}}}'.format(i) for i in envelope_data['organization'].split()])
+    envelope_data['street_address'] = '{} {}'.format(str(flask_request.form.get('address_one')).upper(),
+                                                     str(flask_request.form.get('address_two')).upper())
+    envelope_data['city'] = str(flask_request.form.get('city')).upper()
+    envelope_data['state'] = str(flask_request.form.get('state')).upper()
+    envelope_data['zipcode'] = str(flask_request.form.get('zipcode')).upper()
+
+    add_envelope(request_id, template, envelope_data)
+
+    return redirect(url_for('request.view', request_id=request_id))
+
+
 @response.route('/email', methods=['POST'])
 def response_email():
     """
@@ -673,6 +708,34 @@ def response_generate_letter():
     return process_letter_template_request(request_id, data)
 
 
+@response.route('/envelope/<request_id>/<response_id>')
+def response_get_envelope(request_id, response_id):
+    """
+    Return a PDF envelope as an attachment.
+
+    :param request_id: FOIL Request ID for which the letter exists
+    :param response_id: Response ID for the letter.
+    :return: PDF Attachment.
+    """
+
+    if current_user.is_authenticated and current_user.is_agency:
+        request = Requests.query.filter_by(id=request_id).one()
+
+        if current_user not in request.agency_users:
+            return jsonify({'error': 'unauthorized'}), 403
+        envelope = Envelopes.query.filter_by(id=response_id).one()
+
+        f = generate_envelope_pdf(envelope.latex)
+
+        return send_file(
+            io.BytesIO(f),
+            mimetype='application/pdf',
+            as_attachment=True,
+            attachment_filename=
+            '{request_id}_envelope.pdf'.format(request_id=request_id)
+        )
+
+
 @response.route('/letter/<request_id>/<response_id>')
 def response_get_letter(request_id, response_id):
     """
@@ -688,7 +751,6 @@ def response_get_letter(request_id, response_id):
             return jsonify({'error': 'unauthorized'}), 403
         response_ = Responses.query.filter_by(id=response_id).one()
         letter = Letters.query.filter_by(id=response_.communication_method_id).one()
-        print(letter.id)
 
         return generate_pdf_flask_response(letter.content)
     return jsonify({'error': 'unauthorized'}), 403
