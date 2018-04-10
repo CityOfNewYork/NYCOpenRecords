@@ -1116,6 +1116,8 @@ class Events(db.Model):
                 self.RowContent(self, "changed", "{} a note response."),
             event_type.NOTE_REMOVED:
                 self.RowContent(self, "deleted", "{} a note response."),
+            event_type.ENVELOPE_CREATED:
+                self.RowContent(self, "created", "{} an envelope.")
         }
 
         if self.type in valid_types:
