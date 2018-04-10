@@ -1,7 +1,7 @@
 <script type="text/javascript">
     "use strict";
 
-    $(function() {
+    $(function () {
         var form = $("#add-reopening");
         var first = form.find(".first");
         var second = form.find(".second");
@@ -10,10 +10,32 @@
         var prev = second.find(".prev");
         var submit = second.find(".submit");
 
+        var method = first.find("#reopening-method");
+        var letter_template_group = first.find("#reopening-letter-template-group");
+        var letter_template = first.find("#reopening-letter-template");
         var date = first.find("#reopening-date");
 
         // Parsley
+        method.attr("data-parsley-required", "");
         date.attr("data-parsley-required", "");
+
+        method.change(function () {
+            if (method.val() === 'letter') {
+                letter_template_group.show();
+                letter_template.attr("data-parsley-required", "");
+                $.ajax({
+                    url: "/agency/api/v1.0/letter_templates/{{ request.agency.ein }}/acknowledgment",
+                    success: function (data) {
+                        for (var i = 0; i < data.length; i++) {
+                            var opt = document.createElement("option");
+                            opt.innerHTML = data[i][1];
+                            opt.value = data[i][0];
+                            letter_template.append(opt);
+                        }
+                    }
+                })
+            }
+        });
 
         // Date Picker
         holiday_dates = {{ holidays | safe }};
@@ -25,10 +47,15 @@
         });
         date.keydown(false);
 
-        next.click(function() {
+        next.click(function () {
+            method.parsley().validate();
             date.parsley().validate();
 
-            if (date.parsley().isValid()) {
+            if (letter_template_group.is(':visible')) {
+                letter_template.parsley().validate();
+            }
+
+            if (method.parsley().isValid() && date.parsley().isValid()) {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",
@@ -38,7 +65,7 @@
                         date: date.val(),
                         tz_name: jstz.determine().name()
                     },
-                    success: function(data) {
+                    success: function (data) {
                         var emailSummary = second.find(".email-summary");
                         emailSummary.html(data.template);
                         flask_moment_render_all();
@@ -51,14 +78,15 @@
             }
         });
 
-        prev.click(function() {
+        prev.click(function () {
             second.hide();
             first.show();
         });
 
-        form.submit(function() {
+        form.submit(function () {
             submit.attr("disabled", true);
         });
 
-    });
+    })
+    ;
 </script>

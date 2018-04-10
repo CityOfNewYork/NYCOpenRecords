@@ -213,7 +213,6 @@ def get_request_responses():
     responses = Responses.query.filter(
         Responses.request_id == current_request.id,
         Responses.type != response_type.EMAIL,
-        Responses.type != response_type.LETTER,
         Responses.deleted == False
     ).order_by(
         desc(Responses.date_modified)
