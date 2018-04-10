@@ -189,17 +189,22 @@ def response_acknowledgment(request_id):
 @response.route('/denial/<request_id>', methods=['POST'])
 @has_permission(permission.DENY)
 def response_denial(request_id):
-    required_fields = ['reasons', 'email-summary']
-
+    if flask_request.form.get('method') == 'email':
+        required_fields = ['reasons',
+                           'method',
+                           'summary']
+    else:
+        required_fields = ['method',
+                           'summary']
     for field in required_fields:
         if flask_request.form.get(field) is None:
             flash('Uh Oh, it looks like the denial {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-
     add_denial(request_id,
                flask_request.form.getlist('reasons'),
-               flask_request.form['email-summary'])
+               flask_request.form['summary'],
+               flask_request.form['method'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -216,8 +221,13 @@ def response_closing(request_id):
 
     :return: redirect to view request page
     """
-    required_fields = ['reasons', 'email-summary']
-
+    if flask_request.form.get('method') == 'email':
+        required_fields = ['reasons',
+                           'method',
+                           'summary']
+    else:
+        required_fields = ['method',
+                           'summary']
     for field in required_fields:
         if flask_request.form.get(field) is None:
             flash('Uh Oh, it looks like the closing {} is missing! '
@@ -226,7 +236,8 @@ def response_closing(request_id):
     try:
         add_closing(request_id,
                     flask_request.form.getlist('reasons'),
-                    flask_request.form['email-summary'])
+                    flask_request.form['summary'],
+                    flask_request.form['method'])
     except UserRequestException as e:
         sentry.captureException()
         flash(str(e), category='danger')

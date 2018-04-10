@@ -336,7 +336,7 @@ $(function() {
             $.ajax({
                 url: "/agency/api/v1.0/active_users/" + agencySelect.val(),
                 statusCode: {
-                    404() {
+                    404: function () {
                         agencyUserDiv.hide();
                     }
                 },
@@ -354,7 +354,7 @@ $(function() {
                     agencyUserDiv.show();
                 },
                 // search after ajax call is complete so default value for standard user is selected
-                complete() {
+                complete: function () {
                     resetAndSearch();
                 }
             });
