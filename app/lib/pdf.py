@@ -82,7 +82,7 @@ def generate_envelope(template_name, data):
     """
     Generate the LaTeX for an envelope with the provided data pre-filled.
 
-    :param template: The LaTeX template to be used.
+    :param template_name: The LaTeX template to be used.
     :param data: Data to be filled in to the LaTeX template (Dict())
     :return: LaTeX document
     """

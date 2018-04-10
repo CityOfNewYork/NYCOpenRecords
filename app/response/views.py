@@ -388,10 +388,7 @@ def response_generate_envelope():
     """
     Create an Envelope for the Request.
 
-    Request Parameters:
-    - request_id: FOIL Request ID
-    - agency_
-    :return:
+    :return: redirect to view request page
     """
     envelope_data = EnvelopeDict()
     request_id = flask_request.form.get('request_id')

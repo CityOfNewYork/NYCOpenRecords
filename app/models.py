@@ -1591,7 +1591,7 @@ class Envelopes(Responses):
     """
     Define an Envelopes class with the following columns and relationships:
 
-    id - an integer tht is the primary key of Envelopes (FK to Responses)
+    id - an integer that is the primary key of Envelopes (FK to Responses)
     latex - the latex used to generate the envelope PDF
     """
     __tablename__ = response_type.ENVELOPE
@@ -1620,16 +1620,13 @@ class Envelopes(Responses):
 
 class EnvelopeTemplates(db.Model):
     """
-    Define the Reason class with the following columns and relationships:
+    Define the EnvelopeTemplates class with the following columns and relationships:
 
     id - an integer that is the primary key of a EnvelopeTemplates
     agency_ein - a foreign key that links to the a agency's primary key
         if null, this envelope template applies to all agencies
     title - a short descriptor for the envelope template
     template_name - the name of the template to be loaded from the filesystem
-
-    Reason are based off the Law Department's responses.
-
     """
     __tablename__ = 'envelope_templates'
     id = db.Column(db.Integer, primary_key=True)

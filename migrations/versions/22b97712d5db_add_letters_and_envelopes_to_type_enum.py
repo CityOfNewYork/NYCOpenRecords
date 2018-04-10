@@ -13,7 +13,7 @@ down_revision = 'b3c0c76ac2e6'
 from alembic import op
 import sqlalchemy as sa
 
-old_options = ('notes', 'links', 'files', 'instructions', 'determinations')
+old_options = ('notes', 'links', 'files', 'instructions', 'determinations', 'emails')
 new_options = old_options + ('letters', 'envelopes',)
 
 old_type = sa.Enum(*old_options, name='type')
