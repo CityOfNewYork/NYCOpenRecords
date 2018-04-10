@@ -272,17 +272,15 @@ def response_extension(request_id):
     :return: redirect to view request page
     """
     extension_data = flask_request.form
-
     if extension_data.get('method') == 'email':
         required_fields = ['length',
                            'reason',
                            'due-date',
                            'summary',
                            'method']
-    else: # TODO: CHANGE THIS LATER TO THE ACTUAL REQUIRED ONES
+    else:
         required_fields = ['length',
-                           'reason',
-                           'due-date',
+                           'due-date-letter',
                            'summary',
                            'method']
 
@@ -293,11 +291,12 @@ def response_extension(request_id):
             flash('Uh Oh, it looks like the extension {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
+    due_date = extension_data['due-date'] if extension_data['method'] == 'email' else extension_data['due-date-letter']
 
     add_extension(request_id,
                   extension_data['length'],
                   extension_data['reason'],
-                  extension_data['due-date'],
+                  due_date,
                   extension_data['tz-name'],
                   extension_data['summary'],
                   extension_data['method'])
@@ -691,7 +690,6 @@ def response_get_letter(request_id, response_id):
             return jsonify({'error': 'unauthorized'}), 403
         response_ = Responses.query.filter_by(id=response_id).one()
         letter = Letters.query.filter_by(id=response_.communication_method_id).one()
-        print(letter.id)
 
         return generate_pdf_flask_response(letter.content)
     return jsonify({'error': 'unauthorized'}), 403

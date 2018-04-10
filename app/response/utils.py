@@ -499,6 +499,8 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
         reason,
         new_due_date
     )
+    if method == 'letter':
+        response.reason = 'A letter will be mailed to the requester.'
     create_object(response)
     create_response_event(event_type.REQ_EXTENDED, response, previous_value=previous_due_date)
     if method == 'letter':
@@ -916,9 +918,21 @@ def _extension_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
+        point_of_contact = extension.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
+        acknowledgement = request.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
+        due_date = _get_new_due_date(request_id, extension['length'], extension['custom_due_date'], data['tz_name'])
+
         template = render_template_string(contents.content,
-                                          days=extension['days'],
                                           date=request.date_submitted,
+                                          user=point_of_contact_user,
+                                          due_date=due_date,
+                                          acknowledgement_date=acknowledgement.date_modified
                                           )
 
         if agency_letter_data['signature']['default_user_email'] is not None:
