@@ -32,7 +32,7 @@ from app.lib.permission_utils import (
     has_permission,
     is_allowed
 )
-from app.lib.pdf import generate_pdf, generate_pdf_flask_response
+from app.lib.pdf import generate_pdf_flask_response
 from app.response import response
 from app.models import (
     CommunicationMethods,
@@ -47,7 +47,6 @@ from app.models import (
     Letters
 )
 from app.response.utils import (
-    _add_letter,
     add_note,
     add_file,
     add_link,
