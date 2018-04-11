@@ -1825,7 +1825,15 @@ class Determinations(Responses):
 
 class CommunicationMethods(db.Model):
     """
+    A response can have another correlating response (letter or email). CommunicationMethods stores the response and
+    its correlating response.
+    Ex: An acknowledgment can have a letter and a email response.
 
+    Define a CommunicationMethods class with the following columns and relationships:
+
+    response_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
+    method_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
+    method_type - enum ('letters', 'emails') method associated with the response
     """
     __tablename__ = 'communication_methods'
     response_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
