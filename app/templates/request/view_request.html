@@ -59,7 +59,7 @@
                                     {% if permissions['deny'] %}
                                         <li><a href="#deny-request" data-toggle="tab">Deny</a></li>
                                     {% endif %}
-                                    {% if permissions['generate_letter'] %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
                                         <li><a href="#generate-letter" data-toggle="tab">Generate Letter</a></li>
                                         <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>
                                     {% endif %}
@@ -88,7 +88,7 @@
                                     {% if permissions['add_note'] %}
                                         <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
                                     {% endif %}
-                                    {% if permissions['generate_letter'] %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
                                         <li><a href="#generate-letter" data-toggle="tab">Generate Letter</a></li>
                                         <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>
                                     {% endif %}
@@ -122,7 +122,7 @@
                                             {% include "response/add_acknowledgment.html" %}
                                         </div>
                                     {% endif %}
-                                    {% if permissions['generate_letter'] %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
                                         <div class="tab-pane" id="generate-letter">
                                             {% include "response/generate_letter.html" %}
                                         </div>

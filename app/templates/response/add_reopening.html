@@ -13,6 +13,7 @@
                 </small>
             </legend>
             <div class="first">
+                {% if generate_letters_enabled %}
                 <div class="form-group">
                     <label for="reopening-method">Method</label>
                     <select id="reopening-method" name="method" class="disable-enter-submit form-control">
@@ -21,6 +22,8 @@
                         <option value="letter">Letter</option>
                     </select>
                 </div>
+                {% else %}
+                <input type="hidden" name="method" value="email" />
                 <div id="reopening-letter-template-group" class="form-group" hidden>
                     <label for="reopening-letter-template">Template</label>
                     <select id="reopening-letter-template" name="template" class="disable-enter-submit form-control">
