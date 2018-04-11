@@ -1162,8 +1162,6 @@ def _reopening_letter_handler(request_id, data):
                                contents=Markup(template),
                                request_id=request_id,
                                footer=Markup(agency_letter_data['footer']))
-        print(test)
-
         return jsonify({"template": test,
                         "header": header})
     else:
