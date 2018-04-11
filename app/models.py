@@ -1116,6 +1116,10 @@ class Events(db.Model):
                 self.RowContent(self, "changed", "{} a note response."),
             event_type.NOTE_REMOVED:
                 self.RowContent(self, "deleted", "{} a note response."),
+            event_type.ENVELOPE_CREATED:
+                self.RowContent(self, "created", "{} an envelope."),
+            event_type.RESPONSE_LETTER_CREATED:
+                self.RowContent(self, "added", "{} a letter.")
         }
 
         if self.type in valid_types:
@@ -1153,6 +1157,7 @@ class Responses(db.Model):
         response_type.DETERMINATION,
         response_type.EMAIL,
         response_type.LETTER,
+        response_type.ENVELOPE,
         name='type'
     ))
 
@@ -1201,6 +1206,18 @@ class Responses(db.Model):
     def creator(self):
         return Events.query.filter(Events.response_id == self.id,
                                    Events.type.in_(event_type.RESPONSE_ADDED_TYPES)).one().user
+
+    @property
+    def communication_method_type(self):
+        """
+        Determine the communication method for a response.
+
+        :return: response_type.LETTER or response_type.EMAIL
+        :rtype: str
+        """
+        communication_methods = CommunicationMethods.query.filter_by(response_id=self.id).all()
+        return response_type.LETTER if response_type.LETTER in [cm.method_type for cm in
+                                                                communication_methods] else response_type.EMAIL
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
@@ -1586,21 +1603,90 @@ class Emails(Responses):
         }
 
 
+class Envelopes(Responses):
+    """
+    Define an Envelopes class with the following columns and relationships:
+
+    id - an integer that is the primary key of Envelopes (FK to Responses)
+    latex - the latex used to generate the envelope PDF
+    """
+    __tablename__ = response_type.ENVELOPE
+    __mapper_args__ = {'polymorphic_identity': response_type.ENVELOPE}
+    id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    latex = db.Column(db.String)
+
+    def __init__(self,
+                 request_id,
+                 privacy,
+                 latex,
+                 date_modified=None,
+                 is_editable=False):
+        super(Envelopes, self).__init__(
+            request_id,
+            privacy,
+            date_modified,
+            is_editable
+        )
+        self.latex = latex
+
+    @property
+    def preview(self):
+        return "Envelope for {request_id}".format(request_id=self.request_id)
+
+
+class EnvelopeTemplates(db.Model):
+    """
+    Define the EnvelopeTemplates class with the following columns and relationships:
+
+    id - an integer that is the primary key of a EnvelopeTemplates
+    agency_ein - a foreign key that links to the a agency's primary key
+        if null, this envelope template applies to all agencies
+    title - a short descriptor for the envelope template
+    template_name - the name of the template to be loaded from the filesystem
+    """
+    __tablename__ = 'envelope_templates'
+    id = db.Column(db.Integer, primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    title = db.Column(db.String, nullable=False)
+    template_name = db.Column(db.String, nullable=False)
+
+    @classmethod
+    def populate(cls, csv_name=None):
+        filename = csv_name or current_app.config['ENVELOPE_TEMPLATES_DATA']
+        print(filename)
+        with open(filename, 'r') as data:
+            dictreader = csv.DictReader(data)
+            for row in dictreader:
+                if EnvelopeTemplates.query.filter_by(agency_ein=row['agency_ein'],
+                                                     title=row['title'],
+                                                     template_name=row['template_name']).one_or_none() is None:
+                    template = EnvelopeTemplates(
+                        agency_ein=row['agency_ein'],
+                        title=row['title'],
+                        template_name=row['template_name']
+                    )
+                    db.session.add(template)
+
+            db.session.commit()
+
+
 class Letters(Responses):
     """
     Define a Letters class with the following columns and relationships:
 
-    id - an integer that is the primary key of Letters
+    id - an integer that is the primary key of Letters (FK to Responses)
     content - A string containing the content of a letter (HTML Formatted)
     """
     __tablename__ = response_type.LETTER
     __mapper_args__ = {'polymorphic_identity': response_type.LETTER}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    title = db.Column(db.String, nullable=False)
     content = db.Column(db.String)
 
     def __init__(self,
                  request_id,
                  privacy,
+                 title,
                  content,
                  date_modified=None,
                  is_editable=False):
@@ -1608,11 +1694,12 @@ class Letters(Responses):
                                       privacy,
                                       date_modified,
                                       is_editable)
+        self.title = title
         self.content = content
 
     @property
     def preview(self):
-        return self.content
+        return self.title
 
 
 class LetterTemplates(db.Model):
@@ -1636,10 +1723,7 @@ class LetterTemplates(db.Model):
         determination_type.CLOSING,
         determination_type.DENIAL,
         determination_type.REOPENING,
-        response_type.FILE,
-        response_type.INSTRUCTIONS,
-        response_type.LINK,
-        response_type.NOTE,
+        response_type.LETTER,
         name="letter_type"
     ), nullable=False, name='type')
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
@@ -1698,12 +1782,6 @@ class Determinations(Responses):
     ), nullable=False)
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
-    communication_method_id = db.Column(db.Integer, nullable=True)
-    communication_method_type = db.Column(db.Enum(
-        response_type.LETTER,
-        response_type.EMAIL,
-        name='communication_method_type'
-    ), nullable=True)
 
     def __init__(self,
                  request_id,
@@ -1712,9 +1790,7 @@ class Determinations(Responses):
                  reason,
                  date=None,
                  date_modified=None,
-                 is_editable=False,
-                 communication_method_id=None,
-                 communication_method_type=None):
+                 is_editable=False):
         super(Determinations, self).__init__(request_id,
                                              privacy,
                                              date_modified,
@@ -1731,28 +1807,6 @@ class Determinations(Responses):
             raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='date')
         self.date = date
 
-        if communication_method_id is not None and \
-                communication_method_type is not None and \
-                communication_method_type in (response_type.LETTER, response_type.EMAIL):
-            if communication_method_type == response_type.LETTER:
-                if Letters.query.filter_by(id=communication_method_id).one_or_none() is None:
-                    raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                        missing_field='communication_method_id')
-            if communication_method_type == response_type.EMAIL:
-                if Emails.query.filter_by(id=communication_method_id).one_or_none() is None:
-                    raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                        missing_field='communication_method_id')
-
-            self.communication_method_type = communication_method_type
-            self.communication_method_id = communication_method_id
-
-        elif communication_method_type is None and communication_method_id is not None:
-            raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                missing_field='communication_method_type')
-        elif communication_method_type is not None and communication_method_id is None:
-            raise InvalidDeterminationException(request_id=request_id, dtype=dtype,
-                                                missing_field='communication_method_id')
-
     @property
     def preview(self):
         return self.reason
@@ -1767,3 +1821,33 @@ class Determinations(Responses):
                           determination_type.REOPENING):
             val['due_date'] = self.date.isoformat()
         return val
+
+
+class CommunicationMethods(db.Model):
+    """
+    A response can have another correlating response (letter or email). CommunicationMethods stores the response and
+    its correlating response.
+    Ex: An acknowledgment can have a letter and a email response.
+
+    Define a CommunicationMethods class with the following columns and relationships:
+
+    response_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
+    method_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
+    method_type - enum ('letters', 'emails') method associated with the response
+    """
+    __tablename__ = 'communication_methods'
+    response_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    method_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
+    method_type = db.Column(db.Enum(
+        response_type.LETTER,
+        response_type.EMAIL,
+        name='communication_method_type'
+    ), nullable=True)
+
+    def __init__(self,
+                 response_id,
+                 method_id,
+                 method_type):
+        self.response_id = response_id
+        self.method_id = method_id
+        self.method_type = method_type
