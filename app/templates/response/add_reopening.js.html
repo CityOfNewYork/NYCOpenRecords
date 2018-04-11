@@ -84,11 +84,12 @@
                             request_id: "{{ request.id }}",
                             type: "re-opening",
                             date: date.val(),
-                            template: letter_template.val(),
+                            letter_template: letter_template.val(),
                             tz_name: jstz.determine().name()
                         },
                         success: function (data) {
-                            var letterSummary = second.find("summary");
+                            var letterSummary = second.find(".summary");
+                            console.log(data);
                             letterSummary.html(data.template);
                             flask_moment_render_all();
                             second.find("input[name='summary']").val(letterSummary.html());

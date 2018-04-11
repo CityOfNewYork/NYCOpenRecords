@@ -857,7 +857,8 @@ def _acknowledgment_letter_handler(request_id, data):
         point_of_contact = acknowledgment.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 
@@ -988,7 +989,8 @@ def _denial_letter_handler(request_id, data):
         point_of_contact = denial.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 
@@ -1026,12 +1028,65 @@ def _denial_letter_handler(request_id, data):
 def _reopening_letter_handler(request_id, data):
     """
 
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
+    Process letter templates for a re-opening
+
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of a re-opening letter.
     """
-    pass
+    header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+
+    request = Requests.query.filter_by(id=request_id).first()
+    agency = request.agency
+    agency_letter_data = agency.agency_features['letters']
+
+    # Reopening is only provided when getting default letter template.
+    if data is not None:
+        contents = LetterTemplates.query.filter_by(id=data['letter_template']).first()
+
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        point_of_contact = data.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
+        template = render_template_string(contents.content,
+                                          date=request.date_submitted,
+                                          request_id=request_id,
+                                          user=point_of_contact_user)
+
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
+
+        test = render_template('letters/base.html',
+                                                    letterhead=Markup(letterhead),
+                                                    signature=Markup(signature),
+                                                    request=request,
+                                                    date=date,
+                                                    contents=Markup(template),
+                                                    request_id=request_id,
+                                                    footer=Markup(agency_letter_data['footer']))
+        print(test)
+
+        return jsonify({"template": test,
+                        "header": header})
+    else:
+        return jsonify({"error": "bad request"}), 400
 
 
 def _file_letter_handler(request_id, data):
