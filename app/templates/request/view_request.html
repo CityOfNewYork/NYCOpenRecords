@@ -179,7 +179,7 @@
                                             {% include "response/add_note.html" %}
                                         </div>
                                     {% endif %}
-                                    {% if permissions['generate_letter'] %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
                                         <div class="tab-pane" id="generate-letter">
                                             {% include "response/generate_letter.html" %}
                                         </div>
@@ -328,7 +328,7 @@
     {% if permissions['remove_user'] %}
         {% include 'response/remove_user_request.js.html' %}
     {% endif %}
-    {% if agency_has_generate_letters and permissions['generate_letter'] %}
+    {% if generate_letters_enabled and permissions['generate_letter'] %}
         {% include 'response/generate_letter.js.html' %}
         {% include 'response/generate_envelope.js.html' %}
     {% endif %}

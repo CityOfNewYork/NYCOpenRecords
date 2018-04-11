@@ -27,7 +27,7 @@ from flask_login import current_user, login_url
 from app import login_manager, sentry
 from app.constants import permission
 from app.constants.pdf import EnvelopeDict
-from app.constants.response_type import FILE
+from app.constants.response_type import FILE, LETTER
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
 from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
@@ -42,6 +42,7 @@ from app.lib.pdf import (
 )
 from app.response import response
 from app.models import (
+    CommunicationMethods,
     Requests,
     Responses,
     ResponseTokens,
@@ -62,6 +63,7 @@ from app.response.utils import (
     add_denial,
     add_closing,
     add_reopening,
+    add_response_letter,
     add_instruction,
     add_envelope,
     get_file_links,
@@ -182,7 +184,8 @@ def response_acknowledgment(request_id):
                        flask_request.form['date'],
                        flask_request.form['tz-name'],
                        flask_request.form['summary'],
-                       flask_request.form['method'])
+                       flask_request.form['method'],
+                       flask_request.form.get('letter_templates'))
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -194,7 +197,8 @@ def response_denial(request_id):
                            'method',
                            'summary']
     else:
-        required_fields = ['method',
+        required_fields = ['letter_templates',
+                           'method',
                            'summary']
     for field in required_fields:
         if flask_request.form.get(field) is None:
@@ -204,7 +208,8 @@ def response_denial(request_id):
     add_denial(request_id,
                flask_request.form.getlist('reasons'),
                flask_request.form['summary'],
-               flask_request.form['method'])
+               flask_request.form['method'],
+               flask_request.form.get('letter_templates'))
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -226,7 +231,8 @@ def response_closing(request_id):
                            'method',
                            'summary']
     else:
-        required_fields = ['method',
+        required_fields = ['letter_templates',
+                           'method',
                            'summary']
     for field in required_fields:
         if flask_request.form.get(field) is None:
@@ -237,7 +243,8 @@ def response_closing(request_id):
         add_closing(request_id,
                     flask_request.form.getlist('reasons'),
                     flask_request.form['summary'],
-                    flask_request.form['method'])
+                    flask_request.form['method'],
+                    flask_request.form.get('letter_templates'))
     except UserRequestException as e:
         sentry.captureException()
         flash(str(e), category='danger')
@@ -736,6 +743,25 @@ def response_get_envelope(request_id, response_id):
         )
 
 
+@response.route('/letter/<request_id>', methods=['POST'])
+@has_permission(permission.GENERATE_LETTER)
+def response_letter(request_id):
+    """
+
+    :param request_id:
+    :return:
+    """
+    required_fields = ['letter-summary',
+                       'letter_templates']
+    for field in required_fields:
+        if not flask_request.form.get(field, ''):
+            flash("Uh Oh, it looks like the {} is missing! "
+                  "This is probably NOT your fault.".format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+    add_response_letter(request_id, flask_request.form['letter-summary'], flask_request.form['letter_templates'])
+    return redirect(url_for('request.view', request_id=request_id))
+
+
 @response.route('/letter/<request_id>/<response_id>')
 def response_get_letter(request_id, response_id):
     """
@@ -750,7 +776,11 @@ def response_get_letter(request_id, response_id):
         if current_user not in request.agency_users:
             return jsonify({'error': 'unauthorized'}), 403
         response_ = Responses.query.filter_by(id=response_id).one()
-        letter = Letters.query.filter_by(id=response_.communication_method_id).one()
+        if response_.type == LETTER:
+            letter = Letters.query.filter_by(id=response_id).one()
+        else:
+            cm = CommunicationMethods.query.filter_by(response_id=response_id, method_type=LETTER).one()
+            letter = Letters.query.filter_by(id=cm.method_id).one()
 
         return generate_pdf_flask_response(letter.content)
     return jsonify({'error': 'unauthorized'}), 403

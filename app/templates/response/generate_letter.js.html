@@ -5,7 +5,8 @@
         var form = $("#generate-letter");
         var first = form.find(".first");
         var second = form.find(".second");
-        var third = form.find(".third")
+        var third = form.find(".third");
+        var point_of_contact = form.find("#point-of-contact");
 
         var next1 = first.find(".next");
         var next2 = second.find(".next");
@@ -30,12 +31,15 @@
                     url: "/response/letter",
                     type: "POST",
                     data: {
+                        letter_template_id: letter_template_id.val(),
+                        point_of_contact: point_of_contact.val(),
                         request_id: "{{ request.id }}",
-                        letter_template_id: letter_template_id.val()
+                        type: "letters"
                     },
                     success: function (data) {
                         var emailContent = second.find(".letter-content-hidden");
                         emailContent.html(data.template);
+                        flask_moment_render_all();
                         tinyMCE.get("letter-body").setContent(emailContent.html());
                     }
                 });
@@ -51,10 +55,10 @@
                 url: "/response/letter",
                 type: "POST",
                 data: {
-                    request_id: "{{ request.id }}",
-                    type: "denial",
                     confirmation: true,
-                    email_content: second.find("#letter-body").val(),
+                    letter_content: second.find("#letter-body").val(),
+                    request_id: "{{ request.id }}",
+                    type: "letters",
                 },
                 success: function (data) {
                     third.find(".letter-summary").html(data.template);

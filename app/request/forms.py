@@ -363,24 +363,9 @@ class GenerateReopeningLetterForm(GenerateLetterForm):
     letter_type = [determination_type.REOPENING]
 
 
-class GenerateFilesLetterForm(GenerateLetterForm):
+class GenerateResponseLetterForm(GenerateLetterForm):
     letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.FILE]
-
-
-class GenerateInstructionsLetterForm(GenerateLetterForm):
-    letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.INSTRUCTIONS]
-
-
-class GenerateNotesLetterForm(GenerateLetterForm):
-    letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.NOTE]
-
-
-class GenerateLinksFilesLetterForm(GenerateLetterForm):
-    letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.LINK]
+    letter_type = [response_type.LETTER]
 
 
 class SearchRequestsForm(Form):
