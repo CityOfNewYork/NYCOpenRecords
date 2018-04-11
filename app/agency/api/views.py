@@ -42,7 +42,7 @@ def get_agency_letter_templates(agency_ein, letter_type=None):
     provided, otherwise all templates will be returned.
 
     :param agency_ein: Agency EIN (String)
-    :param letter_type: One of "acknowledgment", "denial", "closing", "letter", "extension".
+    :param letter_type: One of "acknowledgment", "denial", "closing", "letter", "extension", "re-opening".
 
     :return: JSON Object (keys are template types, values are arrays of tuples (id, name))
     """

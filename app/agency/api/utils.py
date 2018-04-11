@@ -3,16 +3,15 @@ from app.models import (
     LetterTemplates
 )
 
-from app.constants.letter_type import letter_type
 from itertools import groupby
 from operator import itemgetter
 
 
 def get_active_users_as_choices(agency_ein):
     """
-
-    :param agency_ein:
-    :return:
+    Retrieve a list of users that are active for a given agency
+    :param agency_ein: Agency EIN (String)
+    :return: A list of user tuples (id, name)
     """
     active_users = sorted(
         [(user.get_id(), user.name)
@@ -28,7 +27,7 @@ def get_letter_templates(agency_ein, template_type=None):
     templates of that type.
 
     :param agency_ein: Agency EIN (String)
-    :param template_type: One of "acknowledgment", "denial", "closing", "letter", "extension" (String)
+    :param template_type: One of "acknowledgment", "denial", "closing", "letter", "extension", "re-opening" (String)
     :return: Dictionary
 
         {
@@ -63,9 +62,9 @@ def get_letter_templates(agency_ein, template_type=None):
 
 def _group_templates(templates):
     """
-
+    Group a list of templates by their type
     :param templates: List of templates (template.id, template.title, template.type_)
-    :return:
+    :return: a generator containing each grouped template type
     """
     grouped = groupby(templates, itemgetter(2))
 
