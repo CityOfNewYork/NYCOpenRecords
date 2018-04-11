@@ -210,7 +210,8 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
-            letter_id = _add_letter(request_id, letter_template.title, content, event_type.ACKNOWLEDGMENT_LETTER_CREATED)
+            letter_id = _add_letter(request_id, letter_template.title, content,
+                                    event_type.ACKNOWLEDGMENT_LETTER_CREATED)
             _create_communication_method(response.id, letter_id, response_type.LETTER)
             letter = generate_pdf(content)
             email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
@@ -432,14 +433,16 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    reason="Request is already closed or has not been acknowledged")
 
 
-def add_reopening(request_id, date, tz_name, email_content):
+def add_reopening(request_id, date, tz_name, content, method, letter_template_id=None):
     """
     Create and store a re-opened-determination for the specified request and update the request accordingly.
 
     :param request_id: FOIL request ID
     :param date: string of new date of request completion
     :param tz_name: client's timezone name
-    :param email_content: email body associated with the reopened request
+    :param content: email body associated with the reopened request
+    :param method: Method of delivery (email or letters)
+    :param letter_template_id: id of the letter template, if generating a letter
 
     """
     request = Requests.query.filter_by(id=request_id).one()
@@ -464,10 +467,43 @@ def add_reopening(request_id, date, tz_name, email_content):
             Requests,
             request_id
         )
-        _send_response_email(request_id,
-                             privacy,
-                             email_content,
-                             'Request {} Re-Opened'.format(request_id))
+
+        if method == 'email':
+            email_id = _send_response_email(request_id,
+                                            privacy,
+                                            content,
+                                            'Request {} Re-Opened'.format(request_id))
+            _create_communication_method(response.id,
+                                         email_id,
+                                         response_type.EMAIL)
+
+        elif method == 'letter':
+            letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
+
+            letter_id = _add_letter(request_id, letter_template.title, content,
+                                    event_type.REOPENING_LETTER_CREATED)
+
+            _create_communication_method(response.id, letter_id, response_type.LETTER)
+
+            letter = generate_pdf(content)
+
+            email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'],
+                                          EMAIL_TEMPLATE_FOR_EVENT[event_type.REOPENING_LETTER_CREATED])
+
+            email_content = render_template(email_template,
+                                            request_id=request_id,
+                                            agency_name=request.agency.name,
+                                            user=current_user
+                                            )
+            email_id = safely_send_and_add_email(request_id,
+                                                 email_content,
+                                                 'Request {} Reopened - Letter'.format(request_id),
+                                                 to=get_agency_emails(request_id),
+                                                 attachment=letter,
+                                                 filename=secure_filename(
+                                                     '{}_reopening_letter.pdf'.format(request_id)),
+                                                 mimetype='application/pdf')
+            _create_communication_method(response.id, email_id, response_type.EMAIL)
 
 
 def add_extension(request_id, length, reason, custom_due_date, tz_name, content, method, letter_template_id):
@@ -1119,7 +1155,8 @@ def _denial_letter_handler(request_id, data):
         point_of_contact = denial.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 
@@ -1157,12 +1194,63 @@ def _denial_letter_handler(request_id, data):
 def _reopening_letter_handler(request_id, data):
     """
 
-    :param request_id:
-    :param data:
-    :param letter_template:
-    :return:
+    Process letter templates for a re-opening
+
+    :param request_id: FOIL Request ID
+    :param data: data from the frontend AJAX call
+    :return: the HTML of a rendered template of a re-opening letter.
     """
-    pass
+    header = CONFIRMATION_LETTER_HEADER_TO_REQUESTER
+
+    request = Requests.query.filter_by(id=request_id).first()
+    agency = request.agency
+    agency_letter_data = agency.agency_features['letters']
+
+    # Reopening is only provided when getting default letter template.
+    if data is not None:
+        contents = LetterTemplates.query.filter_by(id=data['letter_template']).first()
+
+        now = datetime.utcnow()
+        date = now if now.date() > request.date_submitted.date() else request.date_submitted
+
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+
+        point_of_contact = data.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
+        template = render_template_string(contents.content,
+                                          date=request.date_submitted,
+                                          request_id=request_id,
+                                          user=point_of_contact_user)
+
+        if agency_letter_data['signature']['default_user_email'] is not None:
+            try:
+                u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
+            except AttributeError:
+                u = current_user
+                current_app.logger.exception("default_user_email: {} has not been created".format(
+                    agency_letter_data['signature']['default_user_email']))
+        else:
+            u = current_user
+        signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
+
+        test = render_template('letters/base.html',
+                               letterhead=Markup(letterhead),
+                               signature=Markup(signature),
+                               request=request,
+                               date=date,
+                               contents=Markup(template),
+                               request_id=request_id,
+                               footer=Markup(agency_letter_data['footer']))
+        return jsonify({"template": test,
+                        "header": header})
+    else:
+        return jsonify({"error": "bad request"}), 400
 
 
 def _response_letter_handler(request_id, data):
@@ -1188,7 +1276,8 @@ def _response_letter_handler(request_id, data):
         point_of_contact = data.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 

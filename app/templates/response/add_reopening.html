@@ -1,17 +1,32 @@
 <form id="add-reopening" action="/response/reopening/{{ request.id }}" method="POST">
 
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <div class="col-sm-9">
         <fieldset>
             <legend>
                 Re-Open Request
-                <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Adding Offline Instructions"
+                <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                       title="Adding Offline Instructions"
                        data-content="Re-Opening the request allows you to add a custom due date to fulfill the previously closed request.">
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </legend>
             <div class="first">
+                <div class="form-group">
+                    <label for="reopening-method">Method</label>
+                    <select id="reopening-method" name="method" class="disable-enter-submit form-control">
+                        <option value="" selected="selected" disabled="disabled">None selected</option>
+                        <option value="email">Email</option>
+                        <option value="letter">Letter</option>
+                    </select>
+                </div>
+                <div id="reopening-letter-template-group" class="form-group" hidden>
+                    <label for="reopening-letter-template">Template</label>
+                    <select id="reopening-letter-template" name="template" class="disable-enter-submit form-control">
+                        <option value="" selected="selected" disabled="disabled">None selected</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label for="reopening-date">New Due Date</label>
                     <input type="text" id="reopening-date" name="date"
@@ -21,9 +36,11 @@
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="second" hidden>
-                <h4>The following will be emailed to the requester:</h4>
-                <div class="wrap-text email-summary"></div>
-                <input type="hidden" name="email-summary">
+                <h4 id="header">The following will be emailed to the requester:</h4>
+                <div class="wrap-text summary"></div>
+                <input type="hidden" name="method">
+                <input type="hidden" name="letter-template-id">
+                <input type="hidden" name="summary">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit pull-right btn btn-success">Submit</button>
             </div>

@@ -265,18 +265,26 @@ def response_reopening(request_id):
 
     :return: redirect to view request page
     """
-    required_fields = ['date', 'tz-name', 'email-summary']
+    required_fields = ['date', 'tz-name', 'summary', 'method']
 
     for field in required_fields:
         if not flask_request.form.get(field, ''):
-            flash('Uh Oh, it looks like the acknowledgement {} is missing! '
+            flash('Uh Oh, it looks like the re-opening {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
+    if flask_request.form.get('method') == 'letters':
+        if not flask_request.form.get('letter-template-id', ''):
+            flash('Uh Oh, it looks like the re-opening letter-template-id is missing! '
+                  'This is probably NOT your fault.', category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
     add_reopening(request_id,
                   flask_request.form['date'],
                   flask_request.form['tz-name'],
-                  flask_request.form['email-summary'])
+                  flask_request.form['summary'],
+                  flask_request.form['method'],
+                  flask_request.form.get('letter-template-id', None))
     return redirect(url_for('request.view', request_id=request_id))
 
 

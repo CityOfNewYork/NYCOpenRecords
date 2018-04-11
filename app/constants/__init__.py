@@ -105,7 +105,8 @@ EMAIL_TEMPLATE_FOR_EVENT = {
     event_type.CLOSING_LETTER_CREATED: "email_event_closing_letter_created.html",
     event_type.EXTENSION_LETTER_CREATED: "email_event_extension_letter_created.html",
     event_type.ENVELOPE_CREATED: "email_event_envelope_created.html",
-    event_type.RESPONSE_LETTER_CREATED: "email_event_response_letter_created.html"
+    event_type.RESPONSE_LETTER_CREATED: "email_event_response_letter_created.html",
+    event_type.REOPENING_LETTER_CREATED: "email_event_reopening_letter_created.html"
 }
 
 OPENRECORDS_DL_EMAIL = "openrecords@records.nyc.gov"
