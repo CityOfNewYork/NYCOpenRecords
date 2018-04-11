@@ -477,7 +477,7 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
                                          email_id,
                                          response_type.EMAIL)
 
-        elif method == 'letters':
+        elif method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
 
             letter_id = _add_letter(request_id, letter_template.title, content,
