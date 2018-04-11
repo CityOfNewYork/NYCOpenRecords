@@ -294,11 +294,18 @@ def response_extension(request_id):
     :return: redirect to view request page
     """
     extension_data = flask_request.form
-
-    required_fields = ['length',
-                       'reason',
-                       'due-date',
-                       'email-extension-summary']
+    if extension_data.get('method') == 'email':
+        required_fields = ['length',
+                           'reason',
+                           'due-date',
+                           'summary',
+                           'method']
+    else:
+        required_fields = ['letter_templates',
+                           'length',
+                           'due-date-letter',
+                           'summary',
+                           'method']
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -307,13 +314,16 @@ def response_extension(request_id):
             flash('Uh Oh, it looks like the extension {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
+    due_date = extension_data['due-date'] if extension_data['method'] == 'email' else extension_data['due-date-letter']
 
     add_extension(request_id,
                   extension_data['length'],
                   extension_data['reason'],
-                  extension_data['due-date'],
+                  due_date,
                   extension_data['tz-name'],
-                  extension_data['email-extension-summary'])
+                  extension_data['summary'],
+                  extension_data['method'],
+                  extension_data.get('letter_templates'))
     return redirect(url_for('request.view', request_id=request_id))
 
 

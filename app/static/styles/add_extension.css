@@ -14,3 +14,8 @@
 #extension-reason {
     height: 10rem;
 }
+
+.summary{
+    overflow-y: auto;
+    padding-bottom: 5px;
+}
