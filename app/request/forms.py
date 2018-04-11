@@ -35,7 +35,8 @@ from app.constants import (
 from app.lib.db_utils import get_agency_choices
 from app.models import (
     Reasons,
-    LetterTemplates
+    LetterTemplates,
+    EnvelopeTemplates
 )
 
 
@@ -252,6 +253,37 @@ class CloseRequestForm(FinishRequestForm):
     ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
 
 
+class GenerateEnvelopeForm(Form):
+    template = SelectField("Template")
+    recipient_name = StringField("Recipient Name")
+    organization = StringField("Organization")
+    address_one = StringField("Address Line One")
+    address_two = StringField("Address Line Two")
+    city = StringField("City")
+    state = StringField("State")
+    zipcode = StringField("Zip Code")
+
+    def __init__(self, agency_ein, requester):
+        """
+        :type requester: app.models.Users
+        """
+        super(GenerateEnvelopeForm, self).__init__()
+        self.template.choices = [
+            (envelope_template.id, envelope_template.title)
+            for envelope_template in EnvelopeTemplates.query.filter_by(
+                agency_ein=agency_ein
+            )
+        ]
+        self.recipient_name.data = requester.name or ""
+        self.organization.data = requester.organization or ""
+        if requester.mailing_address is not None:
+            self.address_one.data = requester.mailing_address.get("address_one") or ""
+            self.address_two.data = requester.mailing_address.get("address_two") or ""
+            self.city.data = requester.mailing_address.get("city") or ""
+            self.state.data = requester.mailing_address.get("state") or ""
+            self.zipcode.data = requester.mailing_address.get("zip") or ""
+
+
 class GenerateLetterForm(Form):
     def __init__(self, agency_ein):
         super(GenerateLetterForm, self).__init__()
@@ -331,24 +363,9 @@ class GenerateReopeningLetterForm(GenerateLetterForm):
     letter_type = [determination_type.REOPENING]
 
 
-class GenerateFilesLetterForm(GenerateLetterForm):
+class GenerateResponseLetterForm(GenerateLetterForm):
     letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.FILE]
-
-
-class GenerateInstructionsLetterForm(GenerateLetterForm):
-    letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.INSTRUCTIONS]
-
-
-class GenerateNotesLetterForm(GenerateLetterForm):
-    letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.NOTE]
-
-
-class GenerateLinksFilesLetterForm(GenerateLetterForm):
-    letter_templates = SelectField('Letter Templates')
-    letter_type = [response_type.LINK]
+    letter_type = [response_type.LETTER]
 
 
 class SearchRequestsForm(Form):

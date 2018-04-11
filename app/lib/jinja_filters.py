@@ -25,6 +25,8 @@ def format_response_type(response):
             response_type.LINK: 'LINK',
             response_type.PUSH: 'PUSH NOTIFICATION',
             response_type.SMS: 'SMS',
+            response_type.ENVELOPE: 'ENVELOPE',
+            response_type.LETTER: 'LETTER'
         }[response.type]
     return formatted_type
 
@@ -60,7 +62,7 @@ def format_event_type(type_):
         event_type.LINK_REMOVED: "Link Response Deleted",
         event_type.INSTRUCTIONS_ADDED: "Offline Instructions Response Added",
         event_type.INSTRUCTIONS_EDITED: "Offline Instructions Response Changed",
-        event_type.INSTRUCTIONS_REMOVED: "Offile Instructions Response Deleted",
+        event_type.INSTRUCTIONS_REMOVED: "Offline Instructions Response Deleted",
         event_type.NOTE_ADDED: "Note Response Added",
         event_type.NOTE_EDITED: "Note Response Changed",
         event_type.NOTE_REMOVED: "Note Response Deleted",

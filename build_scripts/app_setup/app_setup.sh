@@ -24,6 +24,7 @@ yum -y install fontpackages-filesystem
 yum -y install liberation-fonts-common
 yum -y install liberation-sans-fonts
 yum -y install urw-fonts
+yum -y install texlive-latex
 
 # 5. Install Developer Tools
 yum -y groupinstall "Development Tools"

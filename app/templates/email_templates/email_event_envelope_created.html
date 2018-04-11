@@ -1,0 +1,9 @@
+<p>Attention {{ agency_name }} Users,</p>
+<p>
+    An envelope has been created for request {{ request_id }} by {{ user.name }}
+</p>
+<p>
+    Please find the envelope attached. If you need to re-generate the envelope, please click on the
+    Envelope in the "Responses" section and select the "Generate PDF" option.
+</p>
+{% include "email_templates/email_footer.html" %}
