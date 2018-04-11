@@ -34,6 +34,10 @@
                         }
                     }
                 })
+            } else {
+                letter_template_group.hide();
+                letter_template.removeAttr();
+                letter_template.empty().append("<option value='' selected disabled>None Selected</option>");
             }
         });
 
@@ -71,9 +75,10 @@
                             emailSummary.html(data.template);
                             flask_moment_render_all();
                             second.find("input[name='summary']").val(emailSummary.html());
+                            second.find("input[name='method']").val(method.val());
                             first.find("input[name='tz-name']").val(jstz.determine().name());
 
-                            second.find("#header").text("The following will be mailed to the requester:");
+                            second.find("#header").text(data.header);
                         }
                     });
                 } else {
@@ -89,12 +94,15 @@
                         },
                         success: function (data) {
                             var letterSummary = second.find(".summary");
-                            console.log(data);
                             letterSummary.html(data.template);
                             flask_moment_render_all();
                             second.find("input[name='summary']").val(letterSummary.html());
+                            second.find("input[name='method']").val(method.val());
+                            second.find("input[name='letter-template-id").val(letter_template.val());
+
                             first.find("input[name='tz-name']").val(jstz.determine().name());
-                            second.find("#header").text("The following will be mailed to the requester:");
+
+                            second.find("#header").text(data.header);
                         }
                     });
                 }

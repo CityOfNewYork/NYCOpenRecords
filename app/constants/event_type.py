@@ -54,6 +54,7 @@ DENIAL_LETTER_CREATED = 'denial_letter_created'
 CLOSING_LETTER_CREATED = 'closing_letter_created'
 ENVELOPE_CREATED = 'envelope_created'
 RESPONSE_LETTER_CREATED = 'response_letter_created'
+REOPENING_LETTER_CREATED = 'reopening_letter_created'
 
 FOR_REQUEST_HISTORY = [
     USER_ADDED,
