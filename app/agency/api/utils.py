@@ -1,12 +1,11 @@
+
+from itertools import groupby
+from operator import itemgetter
+
 from app.models import (
     Agencies,
     LetterTemplates
 )
-
-from app.constants.letter_type import letter_type
-from itertools import groupby
-from operator import itemgetter
-
 
 def get_active_users_as_choices(agency_ein):
     """
