@@ -508,8 +508,8 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
     :param reason: reason for the extension of the request
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param tz_name: client's timezone name
-    :param content: body text associated with the denial
-    :param method: the communication method of the denial ('letter' or 'email')
+    :param content: body text associated with the extension
+    :param method: the communication method of the extension ('letter' or 'email')
 
     """
     request = Requests.query.filter_by(id=request_id).one()
