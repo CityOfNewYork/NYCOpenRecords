@@ -1041,7 +1041,7 @@ def _extension_letter_handler(request_id, data):
                                           date=request.date_submitted,
                                           user=point_of_contact_user,
                                           due_date=due_date,
-                                          acknowledgement_date=acknowledgement.date_modified
+                                          acknowledgement=acknowledgement
                                           )
 
         if agency_letter_data['signature']['default_user_email'] is not None:
