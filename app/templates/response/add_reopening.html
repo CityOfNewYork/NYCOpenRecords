@@ -1,6 +1,7 @@
 <form id="add-reopening" action="/response/reopening/{{ request.id }}" method="POST">
 
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
 
     <div class="col-sm-9">
         <fieldset>

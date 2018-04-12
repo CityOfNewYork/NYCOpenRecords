@@ -658,7 +658,7 @@ def add_response_letter(request_id, content, letter_template_id):
                                          "{} Letter Added to {}".format(letter_title, request_id),
                                          to=get_agency_emails(request_id),
                                          attachment=letter,
-                                         filename=secure_filename('{}_{}_letter'.format(letter_title, request_id)),
+                                         filename=secure_filename('{}_{}_letter.pdf'.format(letter_title, request_id)),
                                          mimetype='application/pdf')
     _create_communication_method(letter_id, email_id, response_type.EMAIL)
 
@@ -1232,8 +1232,11 @@ def _reopening_letter_handler(request_id, data):
         else:
             point_of_contact_user = current_user
 
+        due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
+
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
+                                          due_date=due_date,
                                           request_id=request_id,
                                           user=point_of_contact_user)
 

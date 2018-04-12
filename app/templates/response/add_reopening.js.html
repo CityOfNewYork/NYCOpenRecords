@@ -5,6 +5,7 @@
         var form = $("#add-reopening");
         var first = form.find(".first");
         var second = form.find(".second");
+        var point_of_contact = form.find("#point-of-contact");
 
         var next = first.find(".next");
         var prev = second.find(".prev");
@@ -90,6 +91,7 @@
                             type: "re-opening",
                             date: date.val(),
                             letter_template: letter_template.val(),
+                            point_of_contact: point_of_contact.val(),
                             tz_name: jstz.determine().name()
                         },
                         success: function (data) {
