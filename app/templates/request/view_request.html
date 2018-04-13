@@ -112,6 +112,9 @@
                                 {% if permissions['re_open'] %}
                                     <li class="active"><a href="#reopen-request" data-toggle="tab">Re-Open</a></li>
                                 {% endif %}
+                                {% if generate_letters_enabled and permissions['generate_letter'] %}
+                                    <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>
+                                {% endif %}
                             {% endif %}
                         </ul>
                         <div class="tab-content content-min-height">
@@ -218,6 +221,11 @@
                                     <div class="tab-pane active" id="reopen-request">
                                         {% include "response/add_reopening.html" %}
                                     </div>
+                                {% endif %}
+                                {% if generate_letters_enabled and permissions['generate_letter'] %}
+                                        <div class="tab-pane" id="generate-envelope">
+                                            {% include "response/generate_envelope.html" %}
+                                        </div>
                                 {% endif %}
                             {% endif %}
                         </div>
