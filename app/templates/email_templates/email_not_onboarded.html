@@ -34,7 +34,35 @@
                                                 <strong>Name:</strong>
                                             </div>
                                             <div>
-                                                <span class="label">{{ user.first_name }} {{ user.last_name }}</span>
+                                                <span class="label">{{ user.name }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="row-fluid">
+                                            <div>
+                                                <strong>Title:</strong>
+                                            </div>
+                                            <div>
+                                                {% if user.title %}
+                                                    <span class="label">
+                                                        {{ user.title }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="label">Not provided</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="row-fluid">
+                                            <div>
+                                                <strong>Organization:</strong>
+                                            </div>
+                                            <div>
+                                                {% if user.organization %}
+                                                    <span class="label">
+                                                        {{ user.organization }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="label">Not provided</span>
+                                                {% endif %}
                                             </div>
                                         </div>
                                         <div class="row-fluid">
