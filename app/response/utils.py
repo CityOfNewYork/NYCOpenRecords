@@ -658,7 +658,7 @@ def add_response_letter(request_id, content, letter_template_id):
                                          "{} Letter Added to {}".format(letter_title, request_id),
                                          to=get_agency_emails(request_id),
                                          attachment=letter,
-                                         filename=secure_filename('{}_{}_letter'.format(letter_title, request_id)),
+                                         filename=secure_filename('{}_{}_letter.pdf'.format(letter_title, request_id)),
                                          mimetype='application/pdf')
     _create_communication_method(letter_id, email_id, response_type.EMAIL)
 
@@ -1041,7 +1041,7 @@ def _extension_letter_handler(request_id, data):
                                           date=request.date_submitted,
                                           user=point_of_contact_user,
                                           due_date=due_date,
-                                          acknowledgement_date=acknowledgement.date_modified
+                                          acknowledgement=acknowledgement
                                           )
 
         if agency_letter_data['signature']['default_user_email'] is not None:
@@ -1088,17 +1088,26 @@ def _closing_letter_handler(request_id, data):
 
     # Closing is only provided when getting default letter template.
     if closing is not None:
-        denial = json.loads(closing)
-        contents = LetterTemplates.query.filter_by(id=denial['letter_template']).first()
+        closing = json.loads(closing)
+        contents = LetterTemplates.query.filter_by(id=closing['letter_template']).first()
 
         now = datetime.utcnow()
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
+        point_of_contact = closing.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
-                                          request_id=request_id)
+                                          request_id=request_id,
+                                          user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
@@ -1223,8 +1232,11 @@ def _reopening_letter_handler(request_id, data):
         else:
             point_of_contact_user = current_user
 
+        due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
+
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
+                                          due_date=due_date,
                                           request_id=request_id,
                                           user=point_of_contact_user)
 
