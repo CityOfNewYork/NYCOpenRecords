@@ -23,11 +23,11 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from app.constants import (
     request_status,
-    permission,
+    permission
 )
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
-    get_holidays_date_list,
+    get_holidays_date_list
 )
 from app.lib.permission_utils import (
     is_allowed
@@ -36,7 +36,7 @@ from app.lib.utils import InvalidUserException
 from app.models import (
     Requests,
     Agencies,
-    UserRequests,
+    UserRequests
 )
 from app.request import request
 from app.request.forms import (
@@ -65,7 +65,7 @@ from app.request.utils import (
 from app.user_request.forms import (
     AddUserRequestForm,
     EditUserRequestForm,
-    RemoveUserRequestForm,
+    RemoveUserRequestForm
 )
 from app.user_request.utils import get_current_point_of_contact
 

@@ -60,11 +60,7 @@ from app.models import (
 )
 from app.response.utils import (
     safely_send_and_add_email,
-<<<<<<< HEAD
     get_file_links
-=======
-    get_file_links,
->>>>>>> develop
 )
 from app.upload.constants import upload_status
 from app.upload.utils import (
@@ -445,10 +441,7 @@ def send_confirmation_email(request, agency, user):
     # gets the file link, if a file was provided.
     file_response = request.responses.filter(Responses.type == response_type.FILE).one_or_none()
     release_public, release_private, private = ([] for i in range(3))
-<<<<<<< HEAD
-=======
 
->>>>>>> develop
     if file_response is not None:
         get_file_links(file_response, release_public, release_private, private)
     file_link = release_private[0] if len(release_private) > 0 else None
