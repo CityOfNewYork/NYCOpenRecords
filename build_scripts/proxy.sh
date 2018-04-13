@@ -11,7 +11,7 @@ function set_proxy() {
 	git config --global http.proxy http://bcpxy.nycnet:8080
 	export http_proxy=http://bcpxy.nycnet:8080
 	export https_proxy=http://bcpxy.nycnet:8080
-	export no_proxy=localhost,127.0.0.0/8,127.0.1.1,127.0.1.1*
+	export no_proxy=localhost,127.0.0.1,127.0.1.1,127.0.1.1,10.0.0.2,10.0.0.3,10.0.0.4
 
 	sudo subscription-manager config --server.proxy_hostname=bcpxy.nycnet --server.proxy_port=8080
 }

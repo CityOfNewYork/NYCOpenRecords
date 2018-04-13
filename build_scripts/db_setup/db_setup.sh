@@ -53,7 +53,7 @@ mv /vagrant/build_scripts/db_setup/server.key /data/postgres
 chmod 600 /data/postgres/server.key
 chown postgres:postgres /data/postgres/server.key
 
-if [ "$1" = single_server ]; then
+if [ "$1" != single_server ]; then
   # 8a. Setup Client Certificates for App Server
   mkdir -p /home/vagrant/.postgresql
   openssl req -new -nodes -keyout client.key -out client.csr -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=openrecords.dev"
@@ -65,24 +65,19 @@ fi
 ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib64/libpq.so.rh-postgresql95-5
 ln -s /opt/rh/rh-postgresql95/root/usr/lib64/libpq.so.rh-postgresql95-5 /usr/lib/libpq.so.rh-postgresql95-5
 
-# 10. Start Postgresql
+# 10. Create backup directory for Postgres, if it doesn't already exist.
+mkdir -p /backup
+chown postgres:postgres /backup
+
+# 11. Start Postgresql
 sudo service rh-postgresql95-postgresql start
 
-# 11. Create postgres users
+# 12. Create postgres users
 sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e developer
 sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createuser -s -e openrecords_v2_0_db
 
-# 12. Create database
-sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createdb openrecords_v2_0
+# 13. Create database
+sudo -u postgres /opt/rh/rh-postgresql95/root/usr/bin/createdb openrecords
 
-# 13. Add the following lines to /etc/sudoers file (allows running postgres commands without sudo access)
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql start
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql stop
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql status
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql restart
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql condrestart
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql try-restart
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql reload
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql force-reload
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql initdb
-#vagrant  ALL=(ALL) NOPASSWD: /etc/init.d/rh-postgresql95-postgresql upgrade
+# 9. Setup sudo Access
+cp /vagrant/build_scripts/db_setup/postgresql /etc/sudoers.d/postgresql

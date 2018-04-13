@@ -1,0 +1,15 @@
+{
+    "bootstrap": true,
+    "server": true,
+    "ui": true,
+    "node_name": "openrecords_consul",
+    "bind_addr": "10.0.0.5",
+    "data_dir": "/var/consul",
+    "log_level": "INFO",
+    "enable_syslog": true,
+    "ca_file": "/etc/consul.d/ssl/ca.cert",
+    "cert_file": "/etc/consul.d/ssl/consul.cert",
+    "key_file": "/etc/consul.d/ssl/consul.key",
+    "verify_incoming": true,
+    "verify_outgoing": true
+}

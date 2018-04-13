@@ -1,3 +1,5 @@
+"use strict";
+
 $(function() {
 
     // set time zone name
@@ -10,7 +12,10 @@ $(function() {
         searchBtn = $("#search"),
         dateReq = $("#date-req"),
         noResultsFound = true,
-        generateDocBtn = $("#generate-document");
+        generateDocBtn = $("#generate-document"),
+        agencySelect = $("#agency_ein"),
+        agencyUserDiv = $("#agency-user-div"),
+        agencyUserSelect = $("#agency_user");
 
     // Date stuff
     function elemToDate(elem) {
@@ -324,7 +329,42 @@ $(function() {
     $("#size").change(function () {
         resetAndSearch();
     });
-    $("#agency_ein").change(function () {
+    agencySelect.change(function () {
+        agencyUserSelect.empty();
+
+        if (agencySelect.val()) {
+            $.ajax({
+                url: "/agency/api/v1.0/active_users/" + agencySelect.val(),
+                statusCode: {
+                    404: function () {
+                        agencyUserDiv.hide();
+                    }
+                },
+                success: function (data) {
+                    // Populate users
+                    $.each(data.active_users ,function() {
+                        agencyUserSelect.append($("<option />").val(this[0]).text(this[1]));
+                    });
+
+                    // Set selected value for standard agency users
+                    if (!data.is_admin) {
+                        agencyUserSelect.val(data.active_users[1][0]);
+                    }
+
+                    agencyUserDiv.show();
+                },
+                // search after ajax call is complete so default value for standard user is selected
+                complete: function () {
+                    resetAndSearch();
+                }
+            });
+        }
+        else {
+            agencyUserDiv.is(":visible") && agencyUserDiv.hide();
+            resetAndSearch();
+        }
+    });
+    agencyUserSelect.change(function () {
         resetAndSearch();
     });
     next.click(function () {

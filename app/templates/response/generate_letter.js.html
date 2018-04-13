@@ -1,0 +1,90 @@
+<script type="text/javascript">
+    "use strict";
+
+    $(function () {
+        var form = $("#generate-letter");
+        var first = form.find(".first");
+        var second = form.find(".second");
+        var third = form.find(".third");
+        var point_of_contact = form.find("#point-of-contact");
+
+        var next1 = first.find(".next");
+        var next2 = second.find(".next");
+        var prev2 = second.find(".prev");
+        var prev3 = third.find(".prev");
+        var submit = third.find(".submit");
+
+        var letter_template_id = first.find("#letter-template-id");
+
+        // Parsley
+        letter_template_id.attr("data-parsley-required", "");
+
+        next1.click(function (e) {
+            letter_template_id.parsley().validate();
+
+            if (!letter_template_id.parsley().isValid()) {
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $.ajax({
+                    url: "/response/letter",
+                    type: "POST",
+                    data: {
+                        letter_template_id: letter_template_id.val(),
+                        point_of_contact: point_of_contact.val(),
+                        request_id: "{{ request.id }}",
+                        type: "letters"
+                    },
+                    success: function (data) {
+                        var emailContent = second.find(".letter-content-hidden");
+                        emailContent.html(data.template);
+                        flask_moment_render_all();
+                        tinyMCE.get("letter-body").setContent(emailContent.html());
+                    }
+                });
+                first.hide();
+                second.show();
+            }
+        });
+
+        next2.click(function () {
+            tinyMCE.triggerSave();
+
+            $.ajax({
+                url: "/response/letter",
+                type: "POST",
+                data: {
+                    confirmation: true,
+                    letter_content: second.find("#letter-body").val(),
+                    request_id: "{{ request.id }}",
+                    type: "letters",
+                },
+                success: function (data) {
+                    third.find(".letter-summary").html(data.template);
+                    third.find("input[name='letter-summary']").val(data.template);
+                    third.find(".confirmation-header").text(data.header)
+                }
+            });
+
+            second.hide();
+            third.show();
+        });
+
+
+        prev2.click(function () {
+            second.hide();
+            first.show();
+        });
+
+        prev3.click(function () {
+            third.hide();
+            second.show();
+        });
+
+        form.submit(function () {
+            submit.attr("disabled", true);
+        });
+
+    });
+</script>

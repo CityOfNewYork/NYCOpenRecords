@@ -20,12 +20,15 @@
                 <div id="edit_options" hidden>
                     {{ edit_user_request_form.roles.label }}<br>
                     {{ edit_user_request_form.roles(id="role", class="form-control") }}<br>
+                    {{ edit_user_request_form.point_of_contact.label }}<br>
+                    {{ edit_user_request_form.point_of_contact(id="edit_point_of_contact") }}<br>
                     <div id="ie-message" class="alert alert-info" hidden><strong>NOTE:</strong> Hold
                         <strong>Ctrl</strong> and click to select multiple permissions one at a time. Hold
                         <strong>Shift</strong> and click to select a range of permissions.
                     </div>
                     {{ edit_user_request_form.permission.label }}<br>
                     {{ edit_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
+                    <h5 id="no-permissions-changed-error" style="display: none">No changes in permissions detected</h5>
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
                 </div>
             </div>

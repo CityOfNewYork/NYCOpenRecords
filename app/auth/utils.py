@@ -23,7 +23,10 @@ from flask import (
     redirect,
 )
 from flask_login import login_user, current_user
-from app import login_manager
+from app import (
+    login_manager,
+    sentry
+)
 from app.models import Users, AgencyUsers, Events
 from app.constants import user_type_auth, USER_ID_DELIMITER
 from app.constants.web_services import (
@@ -37,6 +40,10 @@ from app.constants.web_services import (
 from app.auth.constants import error_msg
 from app.lib.db_utils import create_object, update_object
 from app.lib.user_information import create_mailing_address
+from app.lib.redis_utils import (
+    redis_get_user_session,
+    redis_delete_user_session
+)
 
 from ldap3 import Server, Tls, Connection
 
@@ -121,7 +128,7 @@ def find_user_by_email(email):
     return None
 
 
-def oauth_user_web_service_request(method="GET"):
+def oauth_user_web_service_request(method="GET", user_session=session):
     """
     Invoke the OAuth User Web Service with specified method.
     https://nyc4d.nycnet/nycid/mobile.shtml#get-oauth-user-web-service
@@ -132,35 +139,24 @@ def oauth_user_web_service_request(method="GET"):
     """
     return _web_services_request(
         USER_ENDPOINT,
-        {"accessToken": session['token']['access_token']},
+        {"accessToken": user_session['token']['access_token']},
         method=method
     )
 
 
-def revoke_and_remove_access_token():
+def revoke_and_remove_access_token(user_session=None):
     """
     Invoke the Delete OAuth User Web Service
     to revoke an access token and remove the
     token from the session.
 
     * Assumes the access token is stored in the session. *
-    
-    WARNING
-    -------        
-    In the NYC.ID DEV environment, access tokens are
-    automatically revoked on IDP logout, so the revocation
-    executed in here will fail and an error will be logged!
-    
-    Once the change hits NYC.ID PRD, this function should
-    be renamed to "remove_access_token" and should only
-    consist of "session.pop('token')".
 
     """
-    # FIXME: see WARNING above
-    _check_web_services_response(
-        oauth_user_web_service_request("DELETE"),
-        error_msg.REVOKE_TOKEN_FAILURE)
-    session.pop('token')
+    if user_session:
+        user_session.pop('token')
+    else:
+        session.pop('token')
 
 
 def fetch_user_json():
@@ -185,6 +181,7 @@ def handle_user_data(guid,
                      last_name=None,
                      terms_of_use=None,
                      email_validation_flag=None,
+                     token=None,
                      next_url=None):
     """
     Interpret the result of processing the specified
@@ -213,7 +210,7 @@ def handle_user_data(guid,
         if not is_safe_url(next_url):
             return abort(400, error_msg.UNSAFE_NEXT_URL)
 
-        return redirect(next_url or url_for('main.index'))
+        return redirect(next_url or url_for('main.index', fresh_login=True))
 
 
 def _session_regenerate_persist_token():
@@ -329,7 +326,8 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
             auth_user_type=user_type
         )
         update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid,
-                                                   Events.new_value['auth_user_type'].astext == user.auth_user_type).all()
+                                                   Events.new_value[
+                                                       'auth_user_type'].astext == user.auth_user_type).all()
         for event in update_events_values:
             update_object(
                 {'new_value': {'user_guid': guid,
@@ -368,8 +366,8 @@ def _validate_email(email_validation_flag, guid, email_address, user_type):
     :return: redirect url or None
     """
     if user_type == user_type_auth.PUBLIC_USER_NYC_ID and (
-                    email_validation_flag is not None and
-                    email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
+            email_validation_flag is not None and
+            email_validation_flag not in ['true', 'TRUE', 'Unavailable', True]):
         response = _web_services_request(
             EMAIL_VALIDATION_STATUS_ENDPOINT,
             {"guid": guid}
@@ -493,6 +491,7 @@ def _web_services_request(endpoint, params, method='GET'):
                 params=params  # query string parameters always used
             )
         except SSLError:
+            sentry.captureException()
             continue
         break
     return req
@@ -536,6 +535,7 @@ def _generate_signature(password, string):
                              digestmod=sha1)
         signature = hmac_sha1.hexdigest()
     except Exception as e:
+        sentry.captureException()
         current_app.logger.error("Failed to generate NYC ID.Web Services "
                                  "authentication signature: ", e)
     return signature

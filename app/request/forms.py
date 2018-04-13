@@ -24,14 +24,20 @@ from wtforms.validators import (
 )
 from sqlalchemy import or_
 
+from app.agency.api.utils import get_active_users_as_choices
 from app.constants import (
     CATEGORIES,
     STATES,
     submission_methods,
     determination_type,
+    response_type
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, Users
+from app.models import (
+    Reasons,
+    LetterTemplates,
+    EnvelopeTemplates
+)
 
 
 class PublicUserRequestForm(Form):
@@ -212,15 +218,19 @@ class EditRequesterForm(Form):
 class FinishRequestForm(Form):
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
-        self.reasons.choices = [
+        agency_reasons = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
                 Reasons.type.in_(self.ultimate_determination_type),
-                or_(
-                    Reasons.agency_ein == agency_ein,
-                    Reasons.agency_ein == None
-                )
+                Reasons.agency_ein == agency_ein
             )]
+        default_reasons = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type.in_(self.ultimate_determination_type),
+                Reasons.agency_ein == None
+            )]
+        self.reasons.choices = agency_reasons + default_reasons
 
     @property
     def reasons(self):
@@ -243,8 +253,124 @@ class CloseRequestForm(FinishRequestForm):
     ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
 
 
+class GenerateEnvelopeForm(Form):
+    template = SelectField("Template")
+    recipient_name = StringField("Recipient Name")
+    organization = StringField("Organization")
+    address_one = StringField("Address Line One")
+    address_two = StringField("Address Line Two")
+    city = StringField("City")
+    state = StringField("State")
+    zipcode = StringField("Zip Code")
+
+    def __init__(self, agency_ein, requester):
+        """
+        :type requester: app.models.Users
+        """
+        super(GenerateEnvelopeForm, self).__init__()
+        self.template.choices = [
+            (envelope_template.id, envelope_template.title)
+            for envelope_template in EnvelopeTemplates.query.filter_by(
+                agency_ein=agency_ein
+            )
+        ]
+        self.recipient_name.data = requester.name or ""
+        self.organization.data = requester.organization or ""
+        if requester.mailing_address is not None:
+            self.address_one.data = requester.mailing_address.get("address_one") or ""
+            self.address_two.data = requester.mailing_address.get("address_two") or ""
+            self.city.data = requester.mailing_address.get("city") or ""
+            self.state.data = requester.mailing_address.get("state") or ""
+            self.zipcode.data = requester.mailing_address.get("zip") or ""
+
+
+class GenerateLetterForm(Form):
+    def __init__(self, agency_ein):
+        super(GenerateLetterForm, self).__init__()
+        self.letter_templates.choices = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_.in_(self.letter_type),
+                or_(
+                    LetterTemplates.agency_ein == agency_ein,
+                    LetterTemplates.agency_ein == None
+                )
+            )]
+        self.letter_templates.choices.insert(0, ('', ''))
+
+    @property
+    def letter_templates(self):
+        """ SelectField """
+        raise NotImplementedError
+
+    @property
+    def letter_type(self):
+        """ Acknowledgement, Extension, """
+        raise NotImplementedError
+
+
+class GenerateAcknowledgmentLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.ACKNOWLEDGMENT]
+
+
+class GenerateDenialLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.DENIAL]
+
+
+class GenerateClosingLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.CLOSING, determination_type.DENIAL]
+
+    def __init__(self, agency_ein):
+        super(GenerateLetterForm, self).__init__()
+        agency_closings = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.CLOSING,
+                LetterTemplates.agency_ein == agency_ein
+            )]
+        agency_denials = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.DENIAL,
+                LetterTemplates.agency_ein == agency_ein
+            )]
+        default_closings = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.CLOSING,
+                LetterTemplates.agency_ein == None
+            )]
+        default_denials = [
+            (letter.id, letter.title)
+            for letter in LetterTemplates.query.filter(
+                LetterTemplates.type_ == determination_type.DENIAL,
+                LetterTemplates.agency_ein == None
+            )]
+        self. letter_templates.choices = agency_closings + agency_denials + default_closings + default_denials
+        self.letter_templates.choices.insert(0, ('', ''))
+
+
+class GenerateExtensionLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.EXTENSION]
+
+
+class GenerateReopeningLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [determination_type.REOPENING]
+
+
+class GenerateResponseLetterForm(GenerateLetterForm):
+    letter_templates = SelectField('Letter Templates')
+    letter_type = [response_type.LETTER]
+
+
 class SearchRequestsForm(Form):
     agency_ein = SelectField('Agency')
+    agency_user = SelectField('User')
 
     # category = SelectField('Category', get_categories())
 
@@ -252,14 +378,35 @@ class SearchRequestsForm(Form):
         super(SearchRequestsForm, self).__init__()
         self.agency_ein.choices = get_agency_choices()
         self.agency_ein.choices.insert(0, ('', 'All'))
-        # set default value of agency select field to agency user's agency
         if current_user.is_agency:
             self.agency_ein.default = current_user.default_agency_ein
-            user_agencies = sorted([(agencies.ein, agencies.name)
-                                    for agencies in current_user.agencies],
+            user_agencies = sorted([(agencies.ein, agencies.name) for agencies in current_user.agencies
+                                    if agencies.ein != current_user.default_agency_ein],
                                    key=lambda x: x[1])
+            default_agency = current_user.default_agency
+
+            # set default value of agency select field to agency user's primary agency
+            self.agency_ein.default = default_agency.ein
+            self.agency_ein.choices.insert(1, self.agency_ein.choices.pop(self.agency_ein.choices.index(
+                (default_agency.ein, default_agency.name))
+            ))
+
+            # set secondary agencies to be below the primary
             for agency in user_agencies:
-                self.agency_ein.choices.insert(1, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
+                self.agency_ein.choices.insert(2, self.agency_ein.choices.pop(self.agency_ein.choices.index(agency)))
+
+            # get choices for agency user select field
+            if current_user.is_agency_admin():
+                self.agency_user.choices = get_active_users_as_choices(current_user.default_agency.ein)
+
+            if current_user.is_agency_active() and not current_user.is_agency_admin():
+                self.agency_user.choices = [
+                    ('', 'All'),
+                    (current_user.get_id(), 'My Requests')
+                ]
+                self.agency_user.default = current_user.get_id()
+
+            # process form for default values
             self.process()
 
 

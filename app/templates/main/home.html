@@ -48,6 +48,8 @@
 
 {% block custom_script %}
     <script type="text/javascript">
+        "use strict";
+
         /* Redirect to OAuth callback if authorization location intended
          * (i.e. includes 'access_token=' after fragment identifier).
          * Also include 'next' url (or any other querystring parameters)

@@ -1,6 +1,9 @@
 <form id="add-acknowledgment" action="/response/acknowledgment/{{ request.id }}" method="POST">
 
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" id="generate-letters-enabled" name="generate_letters_enabled"
+           value="{{ generate_letters_enabled }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
 
     <div class="col-sm-9">
         <fieldset>
@@ -13,44 +16,86 @@
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </small>
             </legend>
-            <div class="first">
-                <div class="form-group">
-                    <label for="acknowledgment-days">Days until Completion</label>
-                    <select id="acknowledgment-days" name="days" class="disable-enter-submit form-control">
-                        <option value="0" selected="selected" disabled="disabled">None selected</option>
-                        <option value="20">20 Business Days</option>
-                        <option value="30">30 Business Days</option>
-                        <option value="60">60 Business Days</option>
-                        <option value="90">90 Business Days</option>
-                        <option value="-1">Custom Due Date</option>
-                    </select>
-                    <div hidden>
-                        <input type="text" id="acknowledgment-date" name="date"
-                               class="disable-enter-submit" title="date" value={{ request.due_date }}>
+            <div class="first" hidden>
+                {% if generate_letters_enabled %}
+                    <div class="form-group">
+                        <label for="acknowledgment-method">Acknowledgment Method</label>
+                        <select id="acknowledgment-method" name="method" class="disable-enter-submit form-control">
+                            <option value="" selected="selected" disabled="disabled">None selected</option>
+                            <option value="email">Email</option>
+                            <option value="letter">Letter</option>
+                        </select>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="acknowledgment-info">Additional Information</label>
-                    <textarea id="acknowledgment-info" class="gray-solid-border" name="info"
-                              maxlength="5000" rows="5"></textarea>
-                    <p id="acknowledgment-info-character-count">5000 characters remaining</p>
-                </div>
-                <button type="button" class="next pull-right btn btn-primary">Next</button>
+                    <button type="button" class="next pull-right btn btn-primary">Next</button>
+                {% else %}
+                    <input type="hidden" id="acknowledgment-method" name="method" value="email"/>
+                {% endif %}
             </div>
             <div class="second" hidden>
-                <h4>Edit Email Body</h4>
-                <div class="form-group">
-                    <div class="email-content-hidden" hidden></div>
-                    <textarea title="acknowledgment-email-body" name="acknowledgment-email-body"
-                              class="tinymce-area"></textarea>
+                <div id="acknowledgment-email">
+                    <div class="form-group">
+                        <label for="acknowledgment-email-days">Days until Completion</label>
+                        <select id="acknowledgment-email-days" name="days" class="disable-enter-submit form-control">
+                            <option value="0" selected="selected" disabled="disabled">None selected</option>
+                            <option value="20">20 Business Days</option>
+                            <option value="30">30 Business Days</option>
+                            <option value="60">60 Business Days</option>
+                            <option value="90">90 Business Days</option>
+                            <option value="-1">Custom Due Date</option>
+                        </select>
+                        <br>
+                        <div hidden>
+                            <input type="text" id="acknowledgment-email-date" name="date"
+                                   class="disable-enter-submit" title="date" value={{ request.due_date }}>
+                        </div>
+                    </div>
+                    <div class="form-group" id="acknowledgment-email-info">
+                        <label for="acknowledgment-email-info-text">Additional Information</label>
+                        <textarea id="acknowledgment-email-info-text" class="gray-solid-border" name="info"
+                                  maxlength="5000" rows="5"></textarea>
+                        <p id="acknowledgment-info-character-count">5000 characters remaining</p>
+                    </div>
+                </div>
+                <div id="acknowledgment-letter">
+                    <div class="form-group">
+                        <label for="acknowledgment-letter-days">Days until Completion</label>
+                        <select id="acknowledgment-letter-days" name="days" class="disable-enter-submit form-control">
+                            <option value="0" selected="selected" disabled="disabled">None selected</option>
+                            <option value="20">20 Business Days</option>
+                            <option value="30">30 Business Days</option>
+                            <option value="60">60 Business Days</option>
+                            <option value="90">90 Business Days</option>
+                            <option value="-1">Custom Due Date</option>
+                        </select>
+                        <br>
+                        <div hidden>
+                            <input type="text" id="acknowledgment-letter-date" name="date"
+                                   class="disable-enter-submit" title="date" value={{ request.due_date }}>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ generate_acknowledgment_letter_form.letter_templates.label }}<br>
+                        {{ generate_acknowledgment_letter_form.letter_templates(id="letter-template-id",
+                                                 class="disable-enter-submit form-control") | safe }}
+                    </div>
                 </div>
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="third" hidden>
+                <h4 id="edit-body-header">Edit Email Body</h4>
+                <div class="form-group">
+                    <div class="email-content-hidden" hidden></div>
+                    <textarea title="acknowledgment-body" name="acknowledgment-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="fourth" hidden>
                 <h4 class="confirmation-header"></h4>
-                <div class="wrap-text email-summary"></div>
-                <input type="hidden" name="email-summary">
+                <div class="wrap-text summary"></div>
+                <input type="hidden" name="summary">
                 <input type="hidden" name="tz-name">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit pull-right btn btn-success">Submit</button>

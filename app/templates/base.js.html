@@ -1,4 +1,5 @@
 <script type="text/javascript">
+    "use strict";
 
     var webServicesUrl = "{{ config.WEB_SERVICES_URL }}",
         logoutUrl = "{{ config.LOGOUT_URL }}";
@@ -29,6 +30,9 @@
     }
 
     {% if not current_user.is_anonymous %}
+        {% if duplicate_session %}
+            $("#concurrent-session-modal").modal("show");
+        {% endif %}
         $("#logout").click(function(e) {
             /* Before sending user to auth.logout page, open a new tab
              * and logout of the NYC.ID IDP (and close the tab after completion).
@@ -56,14 +60,14 @@
     });
 
     // Configure and start the session timeout monitor
-    sessMon = sessionMonitor({
+    var sessMon = sessionMonitor({
         // Subtract 1 minute to ensure the backend doesn't expire the session first
         sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
         timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes
         minPingInterval: 60 * 1000,  // 1 minute
         pingUrl: '{{ BASE_URL }}/ping',
         logoutUrl: '{{ BASE_URL }}/auth/logout',
-        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=1&next=',
+        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=True&next=',
         // The "mouseup" event was used instead of "click" because some of the
         // inner elements on some pages have click event handlers that stop propagation.
         activityEvents: 'mouseup',

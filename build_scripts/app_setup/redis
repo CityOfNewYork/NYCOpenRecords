@@ -1,0 +1,6 @@
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis status
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis restart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis condrestart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-redis32-redis try-restart

@@ -12,6 +12,8 @@ INSTRUCTIONS = "instructions"
 EMAIL = "emails"
 SMS = "sms"
 PUSH = "pushes"
+LETTER = "letters"
+ENVELOPE = "envelopes"
 DETERMINATION = "determinations"
 USER_REQUEST_ADDED = "user_request_added"
 USER_REQUEST_EDITED = "user_request_edited"
@@ -22,7 +24,6 @@ EMAIL_WORKFLOW_TYPES = frozenset((
     FILE,
     LINK,
     INSTRUCTIONS,
-    DETERMINATION,
     USER_REQUEST_ADDED,
     USER_REQUEST_EDITED,
     USER_REQUEST_REMOVED

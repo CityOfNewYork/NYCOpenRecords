@@ -14,8 +14,9 @@ from flask import (
     abort
 )
 from app.lib.utils import UserRequestException
-from app.constants import permission
+from app.constants import permission, role_name
 from flask_login import current_user
+from app import sentry
 
 
 @user_request.route('/<request_id>', methods=['POST'])
@@ -43,6 +44,7 @@ def create(request_id):
             )
     ):
         user_data = flask_request.form
+        point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
 
         required_fields = ['user']
 
@@ -55,8 +57,9 @@ def create(request_id):
         try:
             permissions = [int(i) for i in user_data.getlist('permission')]
             add_user_request(request_id=request_id, user_guid=user_data.get('user'),
-                             permissions=permissions)
+                             permissions=permissions, point_of_contact=point_of_contact)
         except UserRequestException as e:
+            sentry.captureException()
             flash(str(e), category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return redirect(url_for('request.view', request_id=request_id))
@@ -88,6 +91,7 @@ def edit(request_id):
             )
     ):
         user_data = flask_request.form
+        point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
 
         required_fields = ['user']
 
@@ -100,8 +104,9 @@ def edit(request_id):
         try:
             permissions = [int(i) for i in user_data.getlist('permission')]
             edit_user_request(request_id=request_id, user_guid=user_data.get('user'),
-                              permissions=permissions)
+                              permissions=permissions, point_of_contact=point_of_contact)
         except UserRequestException as e:
+            sentry.captureException()
             flash(e, category='warning')
             return redirect(url_for('request.view', request_id=request_id))
         return 'OK', 200

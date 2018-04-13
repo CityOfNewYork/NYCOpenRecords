@@ -1,3 +1,5 @@
+"use strict";
+
 $(function () {
 
     var responses = null;
@@ -62,6 +64,7 @@ $(function () {
         }
     }
 
+
     function loadMoreResponses() {
         $.ajax({
             url: '/request/api/v1.0/responses',
@@ -80,6 +83,12 @@ $(function () {
                 console.log(error);
             }
         })
+    }
+
+    function getRandomString(length, chars) {
+        var string = '';
+        for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
+        return string;
     }
 
     // replaces currently displayed responses with previous 10 responses
@@ -137,12 +146,12 @@ $(function () {
             elementpath: false,
             convert_urls: false,
             height: 180,
-            plugins: ["noneditable","preventdelete"]
+            plugins: ["noneditable", "preventdelete"]
         });
 
         switch (response_type) {
             case "files":  // TODO: constants?
-                first.find(".fileupload-form input").on("keyup keypress", function(e) {  // TODO: global function
+                first.find(".fileupload-form input").on("keyup keypress", function (e) {  // TODO: global function
                     if (e.keyCode === 13) {
                         e.preventDefault();
                     }
@@ -261,12 +270,6 @@ $(function () {
                         }
                     });
                 });
-
-                function getRandomString(length, chars) {
-                    var string = '';
-                    for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
-                    return string;
-                }
 
                 // Apply parsley required validation for title
                 first.find("input[name=title]").attr("data-parsley-required", "");
@@ -546,7 +549,7 @@ $(function () {
                     });
                 });
 
-                prev2.click(function() {
+                prev2.click(function () {
                     second.hide();
                     first.show()
                 });
@@ -602,6 +605,11 @@ $(function () {
             default:
                 break;
         }
+        var editFileTitle = "#edit-file-title-" + response_id;
+        var editFileTitleCharacterCounter = "#edit-file-title-character-counter-" + response_id;
+        $(editFileTitle).keyup(function () {
+            characterCounter(editFileTitleCharacterCounter, 140, $(this).val().length)
+        });
     }
 
     function setDeleteResponseWorkflow(response_id) {
@@ -612,12 +620,12 @@ $(function () {
         var deleteConfirmCheck = responseModal.find("input[name=delete-confirm-string]");
         var deleteConfirm = responseModal.find(".delete-confirm");
 
-        deleteConfirmCheck.on('paste', function(e) {
+        deleteConfirmCheck.on('paste', function (e) {
             e.preventDefault();
         });
 
         var deleteConfirmString = "DELETE";
-        deleteConfirmCheck.on("input", function() {
+        deleteConfirmCheck.on("input", function () {
             if ($(this).val().toUpperCase() === deleteConfirmString) {
                 deleteConfirm.attr("disabled", false);
             }
@@ -631,7 +639,7 @@ $(function () {
             deleteSection.show();
         });
 
-        responseModal.find(".delete-cancel").click(function() {
+        responseModal.find(".delete-cancel").click(function () {
             deleteSection.hide();
             defaultSection.show();
 
@@ -639,7 +647,7 @@ $(function () {
             deleteConfirm.attr("disabled", true);
         });
 
-        responseModal.find(".delete-confirm").click(function() {
+        responseModal.find(".delete-confirm").click(function () {
             deleteConfirm.attr("disabled", true);
             $.ajax({
                 url: "/response/" + response_id,
@@ -648,10 +656,10 @@ $(function () {
                     deleted: true,
                     confirmation: deleteConfirmCheck.val()
                 },
-                success: function() {
+                success: function () {
                     location.reload();
                 },
-                error: function(error) {
+                error: function (error) {
                     console.log(error)
                 }
             })

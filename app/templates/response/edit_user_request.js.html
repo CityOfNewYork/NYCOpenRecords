@@ -1,4 +1,6 @@
 <script type="text/javascript">
+    "use strict";
+
     $(function () {
         var form = $("#edit-user-request");
         var first = form.find(".first");
@@ -13,6 +15,10 @@
         var permission = first.find("#permission");
 
         var current_permissions = {{ assigned_user_permissions | safe }};
+
+        var current_point_of_contact = {{ current_point_of_contact | safe }};
+        var point_of_contact = $("#edit_point_of_contact");
+        var point_of_contact_state;
 
         function setPermissions(perms) {
             permission.children().each(function () {
@@ -30,6 +36,17 @@
             }
         }
 
+        function setCurrentPointOfContact() {
+            if (user.val() === current_point_of_contact["user_guid"]) {
+                point_of_contact.prop("checked", true);
+                point_of_contact_state = true;
+            }
+            else {
+                point_of_contact.prop("checked", false);
+                point_of_contact_state = false;
+            }
+        }
+
         role.change(function () {
             if (role.val() == 0) {
                 setCurrentPermissions();
@@ -42,10 +59,12 @@
                         setPermissions(data);
                     }
                 });
+                $('#no-permissions-changed-error').css("display", "none");
             }
         });
 
         permission.find('option').mousedown(function(e) {
+            $('#no-permissions-changed-error').css("display", "none");
             e.preventDefault();
             permission.focus();
             $(this).prop('selected', !$(this).prop('selected'));
@@ -64,9 +83,12 @@
                 }
                 options.show();
                 setCurrentPermissions();
+                setCurrentPointOfContact();
             } else {
+                point_of_contact.prop("checked", false);
                 options.hide();
             }
+            $('#no-permissions-changed-error').css("display", "none");
         });
 
         next.click(function () {
@@ -76,7 +98,8 @@
                     .map(Number)
                     .every(function(item, index) {
                         return item === current_permissions[user.val()][index];
-                    }))
+                    })) ||
+                point_of_contact.is(":checked") !== point_of_contact_state
             ) {
                 $.ajax({
                     url: "/response/email",
@@ -95,11 +118,15 @@
                     }
                 });
             }
+            else {
+                $('#no-permissions-changed-error').css({"color": "red", "display": ""});
+            }
         });
 
         prev.click(function () {
             second.hide();
             first.show();
+            $('#no-permissions-changed-error').css("display", "none");
         });
 
         submit.click(function(e) {

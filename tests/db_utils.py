@@ -17,6 +17,7 @@ from app.lib.db_utils import (
     create_object,
     update_object,
 )
+from app import sentry
 
 
 class CreateObjectTests(BaseTestCase):
@@ -30,6 +31,7 @@ class CreateObjectTests(BaseTestCase):
         try:
             create_user()  # Users - model without 'es_create' method
         except AttributeError:
+            sentry.captureException()
             self.fail('es_create() called when it should not have been.')
 
     @patch('app.models.Requests.es_create')
@@ -116,4 +118,5 @@ class UpdateObjectTests(BaseTestCase):
                           Roles,
                           role.id)
         except AttributeError:
+            sentry.captureException()
             self.fail('es_update() called when it should not have been.')

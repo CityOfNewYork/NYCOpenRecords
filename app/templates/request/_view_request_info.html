@@ -90,6 +90,26 @@
                     {% endif %}
                 </div>
             </div>
+            {% if current_user in request.agency_users %}
+                <br>
+                <div class="row">
+                    <div class="request-label lead">This requester can be contacted by:</div>
+                    <div class="lead">
+                        {% if request.requester.email %}
+                            Email<br>
+                        {% endif %}
+                        {% if request.requester.phone_number %}
+                            Phone number<br>
+                        {% endif %}
+                        {% if request.requester.fax_number %}
+                            Fax number<br>
+                        {% endif %}
+                        {% if request.requester.mailing_address['address_one'] and request.requester.mailing_address['city'] %}
+                            Mail
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

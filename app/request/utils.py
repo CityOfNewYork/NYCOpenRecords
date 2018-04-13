@@ -18,7 +18,7 @@ from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 import app.lib.file_utils as fu
-from app import upload_redis
+from app import upload_redis, sentry
 from app.constants import (
     event_type,
     role_name as role,
@@ -60,7 +60,11 @@ from app.models import (
 )
 from app.response.utils import (
     safely_send_and_add_email,
+<<<<<<< HEAD
     get_file_links
+=======
+    get_file_links,
+>>>>>>> develop
 )
 from app.upload.constants import upload_status
 from app.upload.utils import (
@@ -254,10 +258,6 @@ def create_request(title,
     # 11. Create the elasticsearch request doc only if agency has been onboarded
     agency = Agencies.query.filter_by(ein=agency_ein).one()
 
-    # (Now that we can associate the request with its requester.)
-    if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
-        request.es_create()
-
     # 12. Add all agency administrators to the request.
     if agency.administrators:
         # b. Store all agency users objects in the UserRequests table as Agency users with Agency Administrator
@@ -279,6 +279,11 @@ def create_request(title,
                                          agency_admins=agency.parent.administrators,
                                          guid_for_event=guid_for_event,
                                          auth_type_for_event=auth_type_for_event)
+
+    # (Now that we can associate the request with its requester AND agency users.)
+    if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
+        request.es_create()
+
     return request_id
 
 
@@ -317,6 +322,7 @@ def handle_upload_no_id(file_field):
         try:
             path = _quarantine_upload_no_id(file_field.data)
         except Exception as e:
+            sentry.captureException()
             print("Error saving file {} : {}".format(
                 file_field.data.filename, e))
             file_field.errors.append('Error saving file.')
@@ -324,8 +330,10 @@ def handle_upload_no_id(file_field):
             try:
                 scan_file(path)
             except VirusDetectedException:
+                sentry.captureException()
                 file_field.errors.append('File is infected.')
             except Exception:
+                sentry.captureException()
                 file_field.errors.append('Error scanning file.')
     return path
 
@@ -437,6 +445,10 @@ def send_confirmation_email(request, agency, user):
     # gets the file link, if a file was provided.
     file_response = request.responses.filter(Responses.type == response_type.FILE).one_or_none()
     release_public, release_private, private = ([] for i in range(3))
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
     if file_response is not None:
         get_file_links(file_response, release_public, release_private, private)
     file_link = release_private[0] if len(release_private) > 0 else None
@@ -464,7 +476,7 @@ def send_confirmation_email(request, agency, user):
     try:
         # if the requester supplied an email, send it to the request and bcc the agency
         if requester_email:
-            safely_send_and_add_email(
+            tmp = safely_send_and_add_email(
                 request.id,
                 email_content,
                 subject,
@@ -473,15 +485,17 @@ def send_confirmation_email(request, agency, user):
             )
         # otherwise send the email directly to the agency
         else:
-            safely_send_and_add_email(
+            tmp = safely_send_and_add_email(
                 request.id,
                 email_content,
                 subject,
                 to=[agency.default_email],
             )
     except AssertionError:
+        sentry.captureException()
         print('Must include: To, CC, or BCC')
     except Exception as e:
+        sentry.captureException()
         print("Error:", e)
 
 

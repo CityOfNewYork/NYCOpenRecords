@@ -2,6 +2,7 @@ from jsonschema import validate, ValidationError
 from flask import current_app
 import json
 import os
+from app import sentry
 
 
 def validate_schema(data, schema_name):
@@ -19,5 +20,6 @@ def validate_schema(data, schema_name):
             validate(data, schema)
             return True
         except ValidationError as e:
+            sentry.captureException()
             current_app.logger.info("Failed to validate {}\n{}".format(json.dumps(data), e))
             return False

@@ -7,7 +7,7 @@ from flask_login import current_user
 
 from app.user import user
 from app.user_request.utils import create_user_request_event
-from app.models import Users, Events, Roles, UserRequests, AgencyUsers
+from app.models import Users, Events, Roles, UserRequests, AgencyUsers, Agencies
 from app.constants import (
     USER_ID_DELIMITER,
     event_type,
@@ -22,6 +22,7 @@ from app.lib.db_utils import (
     delete_object,
 )
 from app.lib.utils import eval_request_bool
+from app import sentry
 
 
 @user.route('/<user_id>', methods=['PATCH'])
@@ -62,13 +63,14 @@ def patch(user_id):
         - cannot change super user or agency status
 
     """
-    if not current_user.is_anonymous:
+    if not current_user.is_anonymous and current_user.is_authenticated:
         # attempt to parse user_id and find user
         try:
             guid, auth_type = user_id.split(USER_ID_DELIMITER)
             user_ = Users.query.filter_by(guid=guid,
                                           auth_user_type=auth_type).one()
         except (ValueError, NoResultFound, MultipleResultsFound):
+            sentry.captureException()
             return jsonify({}), 404
 
         agency_ein = request.form.get('agency_ein', None)
@@ -103,6 +105,7 @@ def patch(user_id):
             rform_copy.pop('agency_ein')
             changing_more_than_agency_status = len(rform_copy) != 0
         except KeyError:
+            sentry.captureException()
             changing_more_than_agency_status = False
 
         # VALIDATE
@@ -278,11 +281,17 @@ def patch(user_id):
                 is_agency_active = new_statuses.get('is_agency_active')
                 is_agency_admin = new_statuses.get('is_agency_admin')
 
+                # deactivate user
                 if is_agency_active is not None and not is_agency_active:
                     # remove ALL UserRequests
                     for user_request in user_.user_requests.all():
                         create_user_request_event(event_type.USER_REMOVED, user_request)
                         delete_object(user_request)
+                    # update index
+                    agency = Agencies.query.filter_by(ein=agency_ein).one()
+                    for req in agency.requests:
+                        req.es_update()
+
                 elif is_agency_admin is not None:
 
                     def set_permissions_and_create_event(user_req, perms):
@@ -319,6 +328,7 @@ def patch(user_id):
                                 create_object(user_request)
                                 create_user_request_event(event_type.USER_ADDED,
                                                           user_request)
+                                user_request.request.es_update()
                             else:
                                 set_permissions_and_create_event(user_request, permissions)
 

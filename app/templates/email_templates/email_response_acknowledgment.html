@@ -1,19 +1,20 @@
 {% if default_content %}
     <p>
-        The {{ agency_name }} has <strong>acknowledged</strong> your FOIL request <a href="{{ page }}">{{ request_id }}</a>.
+        The {{ agency_name }} has <strong>acknowledged</strong> your FOIL request <a
+            href="{{ page }}">{{ request_id }}</a>.
     </p>
     <p>
         <span class="mceNonEditable">
-            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.<br /><br />
+            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.<br/><br/>
             {% if info is not none %}
-                Additional Information:<br />
+                Additional Information:<br/>
                 {{ info }}
-                <br /><br />
+                <br/><br/>
             {% endif %}
             Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
         </span>
     </p>
-    <p><br /></p>
+    {% include "email_templates/email_footer.html" %}
 {% else %}
     {{ content | safe }}
 {% endif %}

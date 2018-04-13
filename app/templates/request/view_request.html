@@ -17,6 +17,9 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_link.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_note.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_instruction.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_acknowledgment.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_denial.css') }}"/>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_closing.css') }}"/>
 {% endblock %}
 
 {% block title %}
@@ -36,6 +39,13 @@
 
             <!-- Action Button Column for Agency Users -->
             {% if current_user in request.agency_users %}
+                {% if not request.requester.email %}
+                    <div class="alert alert-danger col-md-12 no-email-alert" role="alert">
+                        <strong>Please be advised, this requester has not provided an email address and will
+                            not receive notifications regarding this request. Please use an alternate form of contact
+                            provided by the requester.</strong>
+                    </div>
+                {% endif %}
                 <div class="col-md-12"><h3>Actions</h3>
                     <div class="tabbable tabs-left" id="mobile-toggle">
                         <ul class="nav nav-tabs">
@@ -48,15 +58,27 @@
                                     {% endif %}
                                     {% if permissions['deny'] %}
                                         <li><a href="#deny-request" data-toggle="tab">Deny</a></li>
-                                        <li>
+                                    {% endif %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
+                                        <li><a href="#generate-letter" data-toggle="tab">Generate Letter</a></li>
+                                        <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>
                                     {% endif %}
                                     {% if permissions['add_note'] %}
                                         <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
                                     {% endif %}
+                                    {% if active_users and permissions['add_user'] %}
+                                        <li><a href="#add-user" data-toggle="tab">Add User</a></li>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['edit_user'] %}
+                                        <li><a href="#edit-user" data-toggle="tab">Edit User</a></li>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['remove_user'] %}
+                                        <li><a href="#remove-user" data-toggle="tab">Remove User</a></li>
+                                    {% endif %}
                                 {% else %}
-                                {% if permissions['add_file'] %}
-                                    <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
-                                {% endif %}
+                                    {% if permissions['add_file'] %}
+                                        <li class="active"><a href="#add-file" data-toggle="tab">Add File</a></li>
+                                    {% endif %}
                                     {% if permissions['add_link'] %}
                                         <li><a href="#add-link" data-toggle="tab">Add Link</a></li>
                                     {% endif %}
@@ -65,6 +87,10 @@
                                     {% endif %}
                                     {% if permissions['add_note'] %}
                                         <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
+                                    {% endif %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
+                                        <li><a href="#generate-letter" data-toggle="tab">Generate Letter</a></li>
+                                        <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>
                                     {% endif %}
                                     {% if permissions['extend'] %}
                                         <li><a href="#extend-request" data-toggle="tab">Extend</a></li>
@@ -96,6 +122,14 @@
                                             {% include "response/add_acknowledgment.html" %}
                                         </div>
                                     {% endif %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
+                                        <div class="tab-pane" id="generate-letter">
+                                            {% include "response/generate_letter.html" %}
+                                        </div>
+                                        <div class="tab-pane" id="generate-envelope">
+                                            {% include "response/generate_envelope.html" %}
+                                        </div>
+                                    {% endif %}
 
                                     {% if permissions['deny'] %}
                                         <div class="tab-pane" id="deny-request">
@@ -106,6 +140,22 @@
                                     {% if permissions['add_note'] %}
                                         <div class="tab-pane" id="add-note">
                                             {% include "response/add_note.html" %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if active_users and permissions['add_user'] %}
+                                        <div class="tab-pane" id="add-user">
+                                            {% include "response/add_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['edit_user'] %}
+                                        <div class="tab-pane" id="edit-user">
+                                            {% include "response/edit_user_request.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if assigned_users and permissions['remove_user'] %}
+                                        <div class="tab-pane" id="remove-user">
+                                            {% include "response/remove_user_request.html" %}
                                         </div>
                                     {% endif %}
                                 {% else %}
@@ -127,6 +177,14 @@
                                     {% if permissions['add_note'] %}
                                         <div class="tab-pane" id="add-note">
                                             {% include "response/add_note.html" %}
+                                        </div>
+                                    {% endif %}
+                                    {% if generate_letters_enabled and permissions['generate_letter'] %}
+                                        <div class="tab-pane" id="generate-letter">
+                                            {% include "response/generate_letter.html" %}
+                                        </div>
+                                        <div class="tab-pane" id="generate-envelope">
+                                            {% include "response/generate_envelope.html" %}
                                         </div>
                                     {% endif %}
                                     {% if permissions['extend'] %}
@@ -211,6 +269,9 @@
         <script type="text/javascript"
                 src="{{ url_for('static', filename='js/request/view-request-history.js') }}"></script>
     {% endif %}
+    {% if current_user.is_authenticated %}
+        {% include 'request/view_request.js.html' %}
+    {% endif %}
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/plugins/bootstrap-editable.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
@@ -266,6 +327,10 @@
     {% endif %}
     {% if permissions['remove_user'] %}
         {% include 'response/remove_user_request.js.html' %}
+    {% endif %}
+    {% if generate_letters_enabled and permissions['generate_letter'] %}
+        {% include 'response/generate_letter.js.html' %}
+        {% include 'response/generate_envelope.js.html' %}
     {% endif %}
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/request/view-request-contact.js') }}"></script>

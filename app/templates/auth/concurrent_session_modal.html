@@ -1,0 +1,17 @@
+<div id="concurrent-session-modal" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id="concurrent-session-label">You are currently logged in to another session</h4>
+                </h4>
+            </div>
+            <div class="modal-body">
+                For your security, we have logged you out of your other active sessions.
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-default" type="button" id="continue-current-session" href="{{ url_for('auth.logout', forced_logout=True) }}">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,97 +1,219 @@
 <script type="text/javascript">
+    "use strict";
+
     $(document).ready(function () {
-        // Hides all other divs except for the first
-        $(".extension-control .extension-divs").each(function (e) {
-            if (e != 0)
-                $(this).hide();
-        });
+        var form = $("#add-extension-form");
+        var first = form.find("#extension-first");
+        var second = form.find("#extension-second");
+        var third = form.find("#extension-third");
+        var fourth = form.find("#extension-fourth");
+        var point_of_contact = form.find("#point-of-contact");
+
+        var next1 = first.find("#extension-next-1");
+        var next2 = second.find("#extension-next-2");
+        var next3 = third.find("#extension-next-3");
+        var prev2 = second.find("#extension-prev-2");
+        var prev3 = third.find("#extension-prev-3");
+        var prev4 = fourth.find("#extension-prev-4");
+        var submit = fourth.find(".submit");
+
+        var method = first.find("#extension-method");
+        var email_div = second.find("#extension-email");
+        var letter_div = second.find("#extension-letter");
+        var letter_info = second.find("#letter-template-id");
+
+        var edit_body_header = third.find('#edit-body-header');
+
+        var generate_letters_enabled = form.find("#generate-letters-enabled").val();
+
+        // parsley
+        var required = [letter_info, method];
+        for (var i = 0; i < required.length; i++) {
+            required[i].attr("data-parsley-required", "");
+        }
+
+        // Reveal / Hide Letter Generation
+        if (generate_letters_enabled === "True") {
+            first.show();
+            second.hide();
+        } else {
+            first.hide();
+            second.show();
+            letter_div.hide();
+            prev2.hide();
+        }
 
         // Handles click events on the first next button
-        $("#extension-next-1").click(function (e) {
-            if ($("#custom-extension").is(':visible')) {
-                $("#custom-extension").parsley().validate();
-                if (!$('#custom-extension').parsley().isValid()) {
+        $(next1).click(function (e) {
+            method.parsley().validate();
+            if (!(method.parsley().isValid())) {
+                e.preventDefault();
+                return false;
+            }
+            if (method.val() === 'email') {
+                letter_div.hide();
+                email_div.show();
+            } else {
+                letter_div.show();
+                email_div.hide();
+            }
+            first.hide();
+            second.show();
+        });
+
+        // Handles click events on the second next button
+        $(next2).click(function (e) {
+            if (method.val() === 'email') {
+                if ($("#custom-extension").is(':visible')) {
+                    $("#custom-extension").parsley().validate();
+                    if (!$('#custom-extension').parsley().isValid()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                // Validate extension select field and reason textarea
+                $("#extension-select").parsley().validate();
+                $("#extension-reason").parsley().validate();
+                if (!$('#extension-select').parsley().isValid()) {
                     e.preventDefault();
                     return false;
                 }
-            }
-            // Validate extension select field and reason textarea
-            $("#extension-select").parsley().validate();
-            $("#extension-reason").parsley().validate();
-            if (!$('#extension-select').parsley().isValid()) {
-                e.preventDefault();
-                return false;
-            }
-            if (!$('#extension-reason').parsley().isValid()) {
-                e.preventDefault();
-                return false;
-            }
+                if (!$('#extension-reason').parsley().isValid()) {
+                    e.preventDefault();
+                    return false;
+                }
 
-            // If validation fields are valid, proceed with next click function
-            if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
-                // Store the values of from input fields into variables
-                var length = $('#extension-select').val();
-                var custom_due_date = $('#custom-extension').val();
-                var reason = $('#extension-reason').val();
+                // If validation fields are valid, proceed with next click function
+                if ($('#extension-select').parsley().isValid() || $("#custom-extension").parsley().isValid()) {
+                    // Store the values of from input fields into variables
+                    var length = $('#extension-select').val();
+                    var custom_due_date = $('#custom-extension').val();
+                    var reason = $('#extension-reason').val();
 
+                    $.ajax({
+                        url: "/response/email",
+                        type: 'POST',
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "extension",
+                            extension: JSON.stringify({
+                                length: length,
+                                custom_due_date: custom_due_date,
+                                reason: reason
+                            }),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var emailContent = $(".extension-body-hidden");
+                            emailContent.html(data.template);
+                            flask_moment_render_all();
+                            tinyMCE.get('extension-body').setContent(emailContent.html());
+                        }
+                    });
+                    edit_body_header.html("Edit Email Body");
+                }
+            }
+            else{
+                if ($("#custom-extension-letter").is(':visible')) {
+                    $("#custom-extension-letter").parsley().validate();
+                    if (!$('#custom-extension-letter').parsley().isValid()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                $("#extension-select-letter").parsley().validate();
+                if (!$('#extension-select-letter').parsley().isValid()) {
+                    e.preventDefault();
+                    return false;
+                }
+                letter_info.parsley().validate();
+                if (!letter_info.parsley().isValid()) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                var length = $('#extension-select-letter').val();
+                var custom_due_date = $('#custom-extension-letter').val();
                 $.ajax({
-                    url: "/response/email",
-                    type: 'POST',
+                    url: "/response/letter",
+                    type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
                         type: "extension",
                         extension: JSON.stringify({
                             length: length,
                             custom_due_date: custom_due_date,
-                            reason: reason
+                            letter_template: letter_info.val(),
+                            point_of_contact: point_of_contact.val()
                         }),
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        emailContent = $(".email-extension-content-hidden");
-                        emailContent.html(data.template);
+                        var letterContent = $(".extension-body-hidden");
+                        letterContent.html(data.template);
                         flask_moment_render_all();
-                        tinyMCE.get('email-extension-content').setContent(emailContent.html());
+                        tinyMCE.get("extension-body").setContent(letterContent.html());
                     }
                 });
-                document.getElementById("extension-first").style.display = "none";
-                document.getElementById("extension-second").style.display = "block";
+                edit_body_header.html("Edit Letter Body");
             }
+            second.hide();
+            third.show();
         });
 
-        // Handles click events on the second next button
-        $("#extension-next-2").click(function () {
+        $(next3).click(function () {
             tinyMCE.triggerSave();
-
-            $.ajax({
-                url: "/response/email",
-                type: 'POST',
-                data: {
-                    request_id: "{{ request.id }}",
-                    type: "extension",
-                    email_content: $('#email-extension-content').val()
-                },
-                success: function (data) {
-                    $("#email-extension-summary").html(data.template);
-                    $("#email-extension-summary-hidden").val(data.template);
-                    $("#email-extension-tz-name").val(jstz.determine().name());
-                    $(".extension-confirmation-header").text(data.header);
-                }
-            });
-            document.getElementById("extension-second").style.display = "none";
-            document.getElementById("extension-third").style.display = "block";
+            if (method.val() === 'email') {
+                $.ajax({
+                    url: "/response/email",
+                    type: 'POST',
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "extension",
+                        email_content: $('#extension-body').val()
+                    },
+                    success: function (data) {
+                        $("#summary").html(data.template);
+                        $("#summary-hidden").val(data.template);
+                        $("#extension-tz-name").val(jstz.determine().name());
+                        $(".extension-confirmation-header").text(data.header);
+                    }
+                });
+            }
+            else {
+                $.ajax({
+                    url: "/response/letter",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "extension",
+                        letter_content: $('#extension-body').val()
+                    },
+                    success: function (data) {
+                        $("#summary").html(data.template);
+                        $("#summary-hidden").val(data.template);
+                        $("#extension-tz-name").val(jstz.determine().name());
+                        $(".extension-confirmation-header").text(data.header);
+                    }
+                })
+            }
+            third.hide();
+            fourth.show();
         });
 
-        // Handles click events on the first previous button
-        $("#extension-prev-1").click(function () {
-            document.getElementById("extension-first").style.display = "block";
-            document.getElementById("extension-second").style.display = "none";
+        prev2.click(function () {
+            second.hide();
+            first.show();
         });
 
-        // Handles click events on the second previous button
-        $("#extension-prev-2").click(function () {
-            document.getElementById("extension-third").style.display = "none";
-            document.getElementById("extension-second").style.display = "block";
+        prev3.click(function () {
+            third.hide();
+            second.show();
+        });
+
+        prev4.click(function () {
+            fourth.hide();
+            third.show();
         });
 
         // Disable button on submit
@@ -101,12 +223,22 @@
 
         // Shows custom due date datepicker when Custom Due Date is selected
         $("#extension-select").change(function () {
-            selected = $(this).val();
+            var selected = $(this).val();
             if (selected === "-1") {
                 $("#custom-due-date").show();
             }
             else {
                 $("#custom-due-date").hide();
+            }
+        });
+
+        $("#extension-select-letter").change(function () {
+            var selected = $(this).val();
+            if (selected === "-1") {
+                $("#custom-due-date-letter").show();
+            }
+            else {
+                $("#custom-due-date-letter").hide();
             }
         });
 
@@ -128,17 +260,26 @@
             beforeShowDay: notHolidayOrWeekend
         });
 
+        $("#custom-extension-letter").datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend
+        });
+
         // Set datepicker text field to prevent keyboard input
         $("#custom-extension").keydown(false);
+        $("#custom-extension-letter").keydown(false);
 
         // Strips time from and disables dates before the current due date
         var current_due_date = "{{ request.due_date }}";
         current_due_date = current_due_date.split(' ')[0];
         $("#custom-extension").datepicker('option', 'minDate', current_due_date);
+        $("#custom-extension-letter").datepicker('option', 'minDate', current_due_date);
 
         // Loop through required fields and apply a data-parsley-required attribute to them
-        var required_fields = ['custom-extension', 'extension-select', 'extension-reason'];
-        for (i = 0; i < required_fields.length; i++) {
+        var required_fields = ['custom-extension','custom-extension-letter', 'extension-select',
+                               'extension-select-letter', 'extension-reason', 'extension-method'];
+        for (var i = 0; i < required_fields.length; i++) {
             $('#' + required_fields[i]).attr('data-parsley-required', '');
         }
 
@@ -150,12 +291,7 @@
         var current_due_date = "{{ request.due_date }}";
         current_due_date = current_due_date.split(' ')[0];
         $("#custom-extension").datepicker('option', 'minDate', current_due_date);
-
-        // Loop through required fields and apply a data-parsley-required attribute to them
-        var required_fields = ['custom-extension','extension-select', 'extension-reason'];
-        for (i = 0 ; i < required_fields.length ; i++){
-            $('#' + required_fields[i]).attr('data-parsley-required','');
-        }
+        $("#custom-extension-letter").datepicker('option', 'minDate', current_due_date);
 
         // Apply parsley minimum length validation to extension reason
         $('#extension-reason').attr('data-parsley-minlength','20');
@@ -164,6 +300,8 @@
         // Apply custom validation messages
         $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
         $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
+        $('#custom-extension-letter').attr('data-parsley-required-message', 'Extension date must be chosen');
+        $('#extension-select-letter').attr('data-parsley-required-message', 'Extension length must be selected');
         $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters');
 
         // Set character counter for extension reason

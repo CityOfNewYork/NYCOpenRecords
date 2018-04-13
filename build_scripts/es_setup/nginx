@@ -1,0 +1,9 @@
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx reload
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx configtest
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx status
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx force-reload
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx upgrade
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx restart
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/rh-nginx18-nginx reopen_logs

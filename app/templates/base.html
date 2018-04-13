@@ -24,6 +24,8 @@
     {% endblock %}
     {% block logo %}
         <script type="text/javascript">
+            "use strict";
+
             function googleTranslateElementInit() {
                 new google.translate.TranslateElement({
                     pageLanguage: 'en',
@@ -38,7 +40,7 @@
             <div class="col-sm-4">
                 <a href="{{ url_for('main.index') }}">
                     <img class="center-block header_logo" style=""
-                         src="{{ url_for('static', filename='img/logo.png') }}"/>
+                         src="{{ url_for('static', filename='img/logo.png') }}" alt="OpenRecords Logo"/>
                 </a>
             </div>
             <div class="col-sm-2">
@@ -74,6 +76,7 @@
     {% endwith %}
     {% if not current_user.is_anonymous %}
         {% include 'auth/session_timeout_modal.html' %}
+        {% include 'auth/concurrent_session_modal.html' %}
     {% endif %}
 </div>
 <div class="wrapper">
@@ -96,3 +99,4 @@
 {% block custom_script %}
 {% endblock %}
 </body>
+</html>

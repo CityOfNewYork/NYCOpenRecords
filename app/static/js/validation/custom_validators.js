@@ -2,6 +2,8 @@
  * Created by atan on 9/27/16.
  */
 
+"use strict";
+
 window.Parsley.addValidator('maxFileSize', {
   validateString: function(_value, maxSize, parsleyInstance) {
     var files = parsleyInstance.$element[0].files;
