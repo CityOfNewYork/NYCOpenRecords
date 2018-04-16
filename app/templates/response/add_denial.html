@@ -41,6 +41,9 @@
                     </div>
                 </div>
                 <div id="denial-letter">
+                    <div class="alert alert-warning">
+                        Please remember to generate an envelope before you deny this request.
+                    </div>
                     <div class="form-group">
                         {{ generate_denial_letter_form.letter_templates.label }}<br>
                         {{ generate_denial_letter_form.letter_templates(id="letter-template-id",
