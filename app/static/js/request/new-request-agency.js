@@ -105,10 +105,10 @@ $(document).ready(function () {
     });
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['request-title', 'request-description', 'first-name', 'last-name', 'email',
+    var requiredFields = ['request-title', 'request-description', 'first-name', 'last-name', 'email',
         'phone', 'fax', 'address-line-1', 'method-received', 'request-date', 'city', 'zipcode'];
-    for (var i = 0; i < required_fields.length; i++) {
-        $('#' + required_fields[i]).attr('data-parsley-required', '');
+    for (var i = 0; i < requiredFields.length; i++) {
+        $('#' + requiredFields[i]).attr('data-parsley-required', '');
     }
 
     // Apply parsley validation styles to the input forms for a new request.

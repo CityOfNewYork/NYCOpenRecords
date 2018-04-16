@@ -563,12 +563,12 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
                                         user=current_user
                                         )
         email_id = safely_send_and_add_email(request_id,
-                                  email_content,
-                                  'Request {} Extended - Letter'.format(request_id),
-                                  to=get_agency_emails(request_id),
-                                  attachment=letter,
-                                  filename=secure_filename('{}_extension_letter.pdf'.format(request_id)),
-                                  mimetype='application/pdf')
+                                             email_content,
+                                             'Request {} Extended - Letter'.format(request_id),
+                                             to=get_agency_emails(request_id),
+                                             attachment=letter,
+                                             filename=secure_filename('{}_extension_letter.pdf'.format(request_id)),
+                                             mimetype='application/pdf')
         _create_communication_method(response.id, email_id, response_type.EMAIL)
     else:
         email_id = _send_response_email(request_id,
@@ -1028,11 +1028,13 @@ def _extension_letter_handler(request_id, data):
         point_of_contact = extension.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 
-        acknowledgement = request.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
+        acknowledgement = request.responses.join(Determinations).filter(
+            Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
         due_date = _get_new_due_date(request_id, extension['length'], extension['custom_due_date'], data['tz_name'])
 
         template = render_template_string(contents.content,
@@ -2043,11 +2045,11 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         is_anon=is_anon,
                                                                         release_date=release_date
                                                                         ))
-        tmp = safely_send_and_add_email(request_id,
-                                        email_content_requester,
-                                        'Response Added to {} - File'.format(request_id),
-                                        to=[requester_email],
-                                        bcc=bcc)
+        safely_send_and_add_email(request_id,
+                                  email_content_requester,
+                                  'Response Added to {} - File'.format(request_id),
+                                  to=[requester_email],
+                                  bcc=bcc)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
@@ -2055,10 +2057,10 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    agency_name=agency_name,
                                                    private_links=private_links,
                                                    page=page)
-            tmp = safely_send_and_add_email(request_id,
-                                            email_content_agency,
-                                            'File(s) Added to {}'.format(request_id),
-                                            bcc=bcc)
+            safely_send_and_add_email(request_id,
+                                      email_content_agency,
+                                      'File(s) Added to {}'.format(request_id),
+                                      bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
@@ -2130,7 +2132,7 @@ def _send_delete_response_email(request_id, response):
     a deleted response.
 
     """
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_response_deleted.html',

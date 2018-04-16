@@ -119,10 +119,10 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var required_fields = ['request-title', 'request-description', 'request-agency', 'first-name', 'last-name', 'email',
+    var requiredFields = ['request-title', 'request-description', 'request-agency', 'first-name', 'last-name', 'email',
         'phone', 'fax', 'address-line-1', 'city', 'zipcode'];
-    for (var i = 0; i < required_fields.length; i++) {
-        $('#' + required_fields[i]).attr('data-parsley-required', '');
+    for (var i = 0; i < requiredFields.length; i++) {
+        $('#' + requiredFields[i]).attr('data-parsley-required', '');
     }
 
     // Specify length requirement of certain fields
@@ -187,8 +187,8 @@ $(document).ready(function () {
     // Checks that at least one form of contact was filled out in addition to the rest of the form.
     $('#request-form').parsley().on('form:validate', function () {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
-        for (i = 0; i < required_fields.length; i++) {
-            $('#' + required_fields[i]).attr('data-parsley-required', '');
+        for (i = 0; i < requiredFields.length; i++) {
+            $('#' + requiredFields[i]).attr('data-parsley-required', '');
         }
         // If address is filled out then make sure the city, state, and zipcode are filled.
         if ($('#address-line-1').parsley().isValid()) {

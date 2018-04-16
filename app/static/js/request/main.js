@@ -34,7 +34,7 @@ function characterCounter (target, limit, currentLength, minLength) {
      *
      * */
     var length = limit - currentLength;
-    minLength = (typeof minLength !== 'undefined') ? minLength : 0;
+    minLength = (typeof minLength !== "undefined") ? minLength : 0;
     var s = length === 1 ? "" : "s";
     $(target).text(length + " character" + s + " remaining");
     if (length == 0) {
