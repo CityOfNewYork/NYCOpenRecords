@@ -2068,7 +2068,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      private_links=private_links,
                                                                      page=page
                                                                      ))
-        tmp = safely_send_and_add_email(request_id,
+        safely_send_and_add_email(request_id,
                                         email_content_agency,
                                         subject,
                                         bcc=bcc)
@@ -2091,9 +2091,9 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-    tmp = safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
+    safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
-        tmp = safely_send_and_add_email(request_id,
+        safely_send_and_add_email(request_id,
                                         email_content_requester,
                                         subject,
                                         to=[requester_email])
