@@ -969,6 +969,7 @@ def _acknowledgment_letter_handler(request_id, data):
                                                            user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
+        point_of_contact_user.phone_number = point_of_contact_user.formatted_point_of_contact_number
 
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
@@ -1033,6 +1034,7 @@ def _extension_letter_handler(request_id, data):
                                                        Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
+        point_of_contact_user.phone_number = point_of_contact_user.formatted_point_of_contact_number
 
         acknowledgement = request.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
         due_date = _get_new_due_date(request_id, extension['length'], extension['custom_due_date'], data['tz_name'])
@@ -1103,6 +1105,7 @@ def _closing_letter_handler(request_id, data):
                                                            user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
+        point_of_contact_user.phone_number = point_of_contact_user.formatted_point_of_contact_number
 
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
@@ -1168,6 +1171,7 @@ def _denial_letter_handler(request_id, data):
                                                            user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
+        point_of_contact_user.phone_number = point_of_contact_user.formatted_point_of_contact_number
 
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
@@ -1231,6 +1235,7 @@ def _reopening_letter_handler(request_id, data):
                                                            user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
+        point_of_contact_user.phone_number = point_of_contact_user.formatted_point_of_contact_number
 
         due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
 
@@ -1292,6 +1297,7 @@ def _response_letter_handler(request_id, data):
                                                            user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
+        point_of_contact_user.phone_number = point_of_contact_user.formatted_point_of_contact_number
 
         template = render_template_string(contents.content,
                                           date_received=request.date_created,
