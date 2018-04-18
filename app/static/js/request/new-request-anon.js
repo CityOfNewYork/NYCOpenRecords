@@ -112,9 +112,9 @@ $(document).ready(function () {
     // });
 
     // jQuery mask plugin to format fields
-    $('#phone").mask("(999) 999-9999");
-    $('#fax").mask("(999) 999-9999");
-    $('#zipcode").mask("99999");
+    $('#phone').mask("(999) 999-9999");
+    $('#fax').mask("(999) 999-9999");
+    $('#zipcode').mask("99999");
 
     // Apply parsley validation styles to the input forms for a new request.
 
@@ -254,11 +254,11 @@ $(document).ready(function () {
 
     // Clear error messages for form.request_file on submit...
     $("#submit").click(function () {
-        $('.upload-error").remove();
+        $('.upload-error').remove();
     });
     // ... or on input change for request_file
     $("#request-file").change(function () {
-        $('.upload-error").remove();
+        $('.upload-error').remove();
     });
 
     // Disable submit button on form submission
