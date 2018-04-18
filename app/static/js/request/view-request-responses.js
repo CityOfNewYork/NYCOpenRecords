@@ -364,16 +364,16 @@ $(function () {
                 first.find('.note-content').attr("data-parsley-required", "");
 
                 // Apply parsley max length validation to note content
-                first.find('.note-content').attr("data-parsley-maxlength", "500");
+                first.find('.note-content').attr("data-parsley-maxlength", "5000");
 
                 // Apply custom validation messages
                 first.find('.note-content').attr("data-parsley-required-message",
                     "Note content must be provided");
                 first.find('.note-content').attr("data-parsley-maxlength-message",
-                    "Note content must be less than 500 characters");
+                    "Note content must be less than 5000 characters");
 
                 $(first.find(".note-content")).keyup(function () {
-                    characterCounter(first.find(".note-content-character-count"), 500, $(this).val().length)
+                    characterCounter(first.find(".note-content-character-count"), 5000, $(this).val().length)
                 });
 
                 break;
