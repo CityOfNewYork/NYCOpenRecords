@@ -553,6 +553,14 @@ class Users(UserMixin, db.Model):
     def name(self):
         return ' '.join((self.first_name.title(), self.last_name.title()))
 
+    @property
+    def formatted_point_of_contact_number(self):
+        if self.phone_number:
+            formatted_phone_number = self.phone_number
+            formatted_phone_number = formatted_phone_number.strip('(')
+            formatted_phone_number = formatted_phone_number.replace(') ', '-')
+            return formatted_phone_number
+
     def es_update(self):
         """
         Call es_update for any request where this user is the requester
