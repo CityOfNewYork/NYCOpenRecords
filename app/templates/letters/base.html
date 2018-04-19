@@ -33,11 +33,11 @@
             {{ request.requester.mailing_address['city'] or '' }}, {{ request.requester.mailing_address['state'] or '' }}, {{ request.requester.mailing_address['zip'] or '' }}<br/>
         </div>
         <div style="text-align: left; float: right;">
-            <span class="mceNonEditable">{{ moment(date).format('dddd, MMMM D, YYYY') }}<br/></span>
+            <span class="mceNonEditable">{{ moment(date).format('MMMM D, YYYY') }}<br/></span>
             <span class="mceNonEditable"><br/></span>
             <span class="mceNonEditable">FOIL Request #: {{ request_id }}</span>
             <span class="mceNonEditable"><br/></span>
-            <span class="mceNonEditable">Your File #:</span>&nbsp;&nbsp;<span class="mceNonEditable">&nbsp;</span>
+            <span class="mceNonEditable">Your File #:&nbsp;<span class="mceEditable"></span></span>
         </div>
     </div>
 

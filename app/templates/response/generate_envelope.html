@@ -1,4 +1,4 @@
-<form id="generate-envelope" action="/response/envelope" method="POST">
+<form id="generate-envelope" action="/response/envelope" method="POST" data-parsley-validate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" name="request_id" value="{{ request.id }}"/>
 
@@ -29,7 +29,7 @@
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.address_one.label }}<br>
-                {{ generate_envelope_form.address_one(id="generate-envelope-first-address-one", class="disable-enter-submit form-control") | safe }}
+                {{ generate_envelope_form.address_one(id="generate-envelope-address-one", class="disable-enter-submit form-control") | safe }}
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.address_two.label }}<br>
@@ -48,7 +48,7 @@
                 {{ generate_envelope_form.zipcode(id="generate-envelope-zipcode", class="disable-enter-submit form-control") | safe }}
             </div>
 
-            <button type="submit" class="submit pull-right btn btn-success">Submit</button>
+            <button type="submit" id="generate-envelope-submit" class="submit pull-right btn btn-success">Submit</button>
         </fieldset>
     </div>
 </form>
