@@ -91,7 +91,7 @@ $(document).ready(function () {
     });
     $("#request-description").popover();
     // $("#request-description").click(function(){
-    //     $("#request-description").popover('show");
+    //     $("#request-description").popover("show");
     // });
 
     // Apply parsley validation styles to the input forms for a new request.

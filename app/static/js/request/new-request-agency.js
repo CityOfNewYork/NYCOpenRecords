@@ -82,11 +82,11 @@ $(document).ready(function () {
         title: "Example Request"
     });
     $("#request-description").click(function () {
-        $("#request-description").popover('show");
+        $("#request-description").popover("show");
     });
     $("#request-description").popover();
     // $("#request-description").click(function(){
-    //     $("#request-description").popover('show");
+    //     $("#request-description").popover("show");
     // });
 
     // jQuery mask plugin to format fields
