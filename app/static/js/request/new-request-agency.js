@@ -71,7 +71,7 @@ $(document).ready(function () {
     });
     $("#request-title").popover();
     // $("#request-title").click(function(){
-    //     $("#request-title").popover('show");
+    //     $("#request-title").popover("show");
     // });
 
     $("#request-description").attr({
