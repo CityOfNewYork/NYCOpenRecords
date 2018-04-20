@@ -267,23 +267,12 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
                 request_id,
                 es_update=False
             )
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-            # push the denial date to the next business day if it is a weekend/holiday
-            # or if it is before the date submitted
-            response = Determinations(
-                request_id,
-                RELEASE_AND_PUBLIC,
-                determination_type.DENIAL,
-                format_determination_reasons(reason_ids),
-                date_modified=get_next_business_day()
-            )
-        else:
-            response = Determinations(
-                request_id,
-                RELEASE_AND_PUBLIC,
-                determination_type.DENIAL,
-                format_determination_reasons(reason_ids)
-            )
+        response = Determinations(
+            request_id,
+            RELEASE_AND_PUBLIC,
+            determination_type.DENIAL,
+            format_determination_reasons(reason_ids)
+        )
         if method == 'letter':
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
@@ -378,23 +367,12 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                 request_id,
                 es_update=False
             )
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < current_request.date_submitted.date():
-            # push the closing date to the next business day if it is a weekend/holiday
-            # or if it is before the date submitted
-            response = Determinations(
-                request_id,
-                RELEASE_AND_PUBLIC,
-                determination_type.CLOSING,
-                format_determination_reasons(reason_ids),
-                date_modified=get_next_business_day()
-            )
-        else:
-            response = Determinations(
-                request_id,
-                RELEASE_AND_PUBLIC,
-                determination_type.CLOSING,
-                format_determination_reasons(reason_ids)
-            )
+        response = Determinations(
+            request_id,
+            RELEASE_AND_PUBLIC,
+            determination_type.CLOSING,
+            format_determination_reasons(reason_ids)
+        )
         if method == 'letter':
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
