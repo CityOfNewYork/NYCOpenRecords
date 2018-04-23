@@ -1,17 +1,46 @@
 <script type="text/javascript">
-    $(function() {
+    "use strict";
+
+    $(function () {
         var form = $("#add-reopening");
         var first = form.find(".first");
         var second = form.find(".second");
+        var point_of_contact = form.find("#point-of-contact");
 
         var next = first.find(".next");
         var prev = second.find(".prev");
         var submit = second.find(".submit");
 
+        var method = first.find("#reopening-method");
+        var letter_template_group = first.find("#reopening-letter-template-group");
+        var letter_template = first.find("#reopening-letter-template");
         var date = first.find("#reopening-date");
 
         // Parsley
+        method.attr("data-parsley-required", "");
         date.attr("data-parsley-required", "");
+
+        method.change(function () {
+            if (method.val() === 'letter') {
+                letter_template_group.show();
+                letter_template.attr("data-parsley-required", "");
+                $.ajax({
+                    url: "/agency/api/v1.0/letter_templates/{{ request.agency.ein }}/re-opening",
+                    success: function (data) {
+                        for (var i = 0; i < data.length; i++) {
+                            var opt = document.createElement("option");
+                            opt.innerHTML = data[i][1];
+                            opt.value = data[i][0];
+                            letter_template.append(opt);
+                        }
+                    }
+                })
+            } else {
+                letter_template_group.hide();
+                letter_template.removeAttr();
+                letter_template.empty().append("<option value='' selected disabled>None Selected</option>");
+            }
+        });
 
         // Date Picker
         holiday_dates = {{ holidays | safe }};
@@ -23,40 +52,76 @@
         });
         date.keydown(false);
 
-        next.click(function() {
+        next.click(function () {
+            method.parsley().validate();
             date.parsley().validate();
 
-            if (date.parsley().isValid()) {
-                $.ajax({
-                    url: "/response/email",
-                    type: "POST",
-                    data: {
-                        request_id: "{{ request.id }}",
-                        type: "re-opening",
-                        date: date.val(),
-                        tz_name: jstz.determine().name()
-                    },
-                    success: function(data) {
-                        var emailSummary = second.find(".email-summary");
-                        emailSummary.html(data.template);
-                        flask_moment_render_all();
-                        second.find("input[name='email-summary']").val(emailSummary.html());
-                        first.find("input[name='tz-name']").val(jstz.determine().name());
-                    }
-                });
+            if (letter_template_group.is(':visible')) {
+                letter_template.parsley().validate();
+            }
+
+            if (method.parsley().isValid() && date.parsley().isValid()) {
+                if (method.val() === 'email') {
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "re-opening",
+                            date: date.val(),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var emailSummary = second.find(".summary");
+                            emailSummary.html(data.template);
+                            flask_moment_render_all();
+                            second.find("input[name='summary']").val(emailSummary.html());
+                            second.find("input[name='method']").val(method.val());
+                            first.find("input[name='tz-name']").val(jstz.determine().name());
+
+                            second.find("#header").text(data.header);
+                        }
+                    });
+                } else {
+                    $.ajax({
+                        url: "/response/letter",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "re-opening",
+                            date: date.val(),
+                            letter_template: letter_template.val(),
+                            point_of_contact: point_of_contact.val(),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var letterSummary = second.find(".summary");
+                            letterSummary.html(data.template);
+                            flask_moment_render_all();
+                            second.find("input[name='summary']").val(letterSummary.html());
+                            second.find("input[name='method']").val(method.val());
+                            second.find("input[name='letter-template-id']").val(letter_template.val());
+
+                            first.find("input[name='tz-name']").val(jstz.determine().name());
+
+                            second.find("#header").text(data.header);
+                        }
+                    });
+                }
                 first.hide();
                 second.show();
             }
         });
 
-        prev.click(function() {
+        prev.click(function () {
             second.hide();
             first.show();
         });
 
-        form.submit(function() {
+        form.submit(function () {
             submit.attr("disabled", true);
         });
 
-    });
+    })
+    ;
 </script>

@@ -14,7 +14,7 @@
             {% if current_user.is_super or multi_agency_admin %}
                 Manage Agencies and Agency Users
             {% else %}
-                Manage Agency User
+                Manage Agency Users
             {% endif %}
         </h2>
 
@@ -29,6 +29,10 @@
                     {% if current_user.is_super and not agency_is_active %}
                         <div class="col-sm-4">
                             <button type="button" class="btn btn-sm btn-primary" id="activate">Activate</button>
+                        </div>
+                    {% elif current_user.is_super and agency_is_active %}
+                        <div class="col-sm-4">
+                            <button type="button" class="btn btn-sm btn-primary" id="deactivate">Deactivate</button>
                         </div>
                     {% endif %}
                 </div>

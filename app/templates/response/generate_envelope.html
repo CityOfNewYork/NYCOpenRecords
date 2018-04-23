@@ -1,0 +1,54 @@
+<form id="generate-envelope" action="/response/envelope" method="POST" data-parsley-validate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="request_id" value="{{ request.id }}"/>
+
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Generate Envelope
+                <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                       title="Generate Envelope"
+                       data-content="Generating an envelope allows the agency to generate a PDF envelope
+                        for mailing out a response.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
+            </legend>
+            {% if generate_envelope_form.template.choices | length <= 1 %}
+                <input type="hidden" name="template" value="{{ generate_envelope_form.template.choices[0][0] }}"/>
+            {% else %}
+                {{ generate_envelope_form.template.label }}<br>
+                {{ generate_envelope_form.template(id="generate-envelope-template", class="disable-enter-submit form-control") | safe }}
+            {% endif %}
+            <div class="form-group">
+                {{ generate_envelope_form.recipient_name.label }}<br>
+                {{ generate_envelope_form.recipient_name(id="generate-envelope-recipient-name", class="disable-enter-submit form-control") | safe }}
+            </div>
+            <div class="form-group">
+                {{ generate_envelope_form.organization.label }}<br>
+                {{ generate_envelope_form.organization(id="generate-envelope-organization", class="disable-enter-submit form-control") | safe }}
+            </div>
+            <div class="form-group">
+                {{ generate_envelope_form.address_one.label }}<br>
+                {{ generate_envelope_form.address_one(id="generate-envelope-address-one", class="disable-enter-submit form-control") | safe }}
+            </div>
+            <div class="form-group">
+                {{ generate_envelope_form.address_two.label }}<br>
+                {{ generate_envelope_form.address_two(id="generate-envelope-address-two", class="disable-enter-submit form-control") | safe }}
+            </div>
+            <div class="form-group">
+                {{ generate_envelope_form.city.label }}<br>
+                {{ generate_envelope_form.city(id="generate-envelope-city", class="disable-enter-submit form-control") | safe }}
+            </div>
+            <div class="form-group">
+                {{ generate_envelope_form.state.label }}<br>
+                {{ generate_envelope_form.state(id="generate-envelope-state", class="disable-enter-submit form-control") | safe }}
+            </div>
+            <div class="form-group">
+                {{ generate_envelope_form.zipcode.label }}<br>
+                {{ generate_envelope_form.zipcode(id="generate-envelope-zipcode", class="disable-enter-submit form-control") | safe }}
+            </div>
+
+            <button type="submit" id="generate-envelope-submit" class="submit pull-right btn btn-success">Submit</button>
+        </fieldset>
+    </div>
+</form>

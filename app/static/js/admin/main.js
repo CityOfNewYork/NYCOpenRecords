@@ -1,3 +1,5 @@
+"use strict";
+
 $(function () {
     // SWITCH AGENCY
     $("#agencies").change(function () {
@@ -12,6 +14,20 @@ $(function () {
             type: "PATCH",
             data: {
                 is_active: true
+            },
+            success: function () {
+                window.location = window.location.origin + "/admin/" + agencyEin;
+            }
+        });
+    });
+    // DEACTIVATE AGENCY
+    $("#deactivate").click(function () {
+        var agencyEin = $("#agencies").val();
+        $.ajax({
+            url: "/agency/" + agencyEin,
+            type: "PATCH",
+            data: {
+                is_active: false
             },
             success: function () {
                 window.location = window.location.origin + "/admin/" + agencyEin;

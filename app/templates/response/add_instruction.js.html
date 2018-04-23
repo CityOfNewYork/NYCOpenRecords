@@ -1,96 +1,98 @@
 <script type="text/javascript">
-$(document).ready(function () {
-    // Hides all other divs except for the first
-    $(".instruction-control .instruction-divs").each(function (e) {
-        if (e != 0)
-            $(this).hide();
-    });
+    "use strict";
 
-    // Handles click events on the first next button
-    $("#instruction-next-1").click(function () {
-        // Onclick, changes button text from to Next
-        $(this).text("Next");
+    $(document).ready(function () {
+        // Hides all other divs except for the first
+        $(".instruction-control .instruction-divs").each(function (e) {
+            if (e != 0)
+                $(this).hide();
+        });
 
-        // Validate instruction form
-        $("#add-instruction-form").parsley().validate();
+        // Handles click events on the first next button
+        $("#instruction-next-1").click(function () {
+            // Onclick, changes button text from to Next
+            $(this).text("Next");
 
-        // If validation fields are valid, proceed with next click function
-        if ($('#add-instruction-form').parsley().isValid()) {
+            // Validate instruction form
+            $("#add-instruction-form").parsley().validate();
+
+            // If validation fields are valid, proceed with next click function
+            if ($('#add-instruction-form').parsley().isValid()) {
+                $.ajax({
+                    url: "/response/email",
+                    type: 'POST',
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "instructions",
+                        instruction: JSON.stringify({
+                            content: $('#instruction-content').val(),
+                            privacy: $(".instruction-privacy:checked").val()
+                        }),
+                        tz_name: jstz.determine().name()
+                    },
+                    success: function (data) {
+                        var emailContent = $(".email-instruction-content-hidden");
+                        emailContent.html(data.template);
+                        flask_moment_render_all();
+                        tinyMCE.get('email-instruction-content').setContent(emailContent.html());
+                        $(".instruction-confirmation-header").text(data.header);
+                    }
+                });
+                document.getElementById("instruction-first").style.display = "none";
+                document.getElementById("instruction-second").style.display = "block";
+            }
+        });
+
+        // Handles click events on the second next button
+        $("#instruction-next-2").click(function () {
+            tinyMCE.triggerSave();
             $.ajax({
                 url: "/response/email",
                 type: 'POST',
                 data: {
                     request_id: "{{ request.id }}",
                     type: "instructions",
-                    instruction: JSON.stringify({
-                        content: $('#instruction-content').val(),
-                        privacy: $(".instruction-privacy:checked").val()
-                    }),
-                    tz_name: jstz.determine().name()
+                    email_content: $('#email-instruction-content').val()
                 },
                 success: function (data) {
-                    emailContent = $(".email-instruction-content-hidden");
-                    emailContent.html(data.template);
-                    flask_moment_render_all();
-                    tinyMCE.get('email-instruction-content').setContent(emailContent.html());
-                    $(".instruction-confirmation-header").text(data.header);
+                    $("#email-instruction-summary").html(data.template);
+                    $("#email-instruction-summary-hidden").val(data.template);
                 }
             });
-            document.getElementById("instruction-first").style.display = "none";
-            document.getElementById("instruction-second").style.display = "block";
-        }
-    });
-
-    // Handles click events on the second next button
-    $("#instruction-next-2").click(function () {
-        tinyMCE.triggerSave();
-        $.ajax({
-            url: "/response/email",
-            type: 'POST',
-            data: {
-                request_id: "{{ request.id }}",
-                type: "instructions",
-                email_content: $('#email-instruction-content').val()
-            },
-            success: function (data) {
-                $("#email-instruction-summary").html(data.template);
-                $("#email-instruction-summary-hidden").val(data.template);
-            }
+            document.getElementById("instruction-second").style.display = "none";
+            document.getElementById("instruction-third").style.display = "block";
         });
-        document.getElementById("instruction-second").style.display = "none";
-        document.getElementById("instruction-third").style.display = "block";
+
+        // Handles click events on the first previous button
+        $("#instruction-prev-1").click(function () {
+            document.getElementById("instruction-first").style.display = "block";
+            document.getElementById("instruction-second").style.display = "none";
+        });
+
+        // Handles click events on the second previous button
+        $("#instruction-prev-2").click(function () {
+            document.getElementById("instruction-third").style.display = "none";
+            document.getElementById("instruction-second").style.display = "block";
+        });
+
+        // Disable button on submit
+        $("#add-instruction-form").submit(function () {
+            $("#instruction-submit").attr("disabled", true);
+        });
+
+        // Apply parsley data required validation to instruction title and url
+        $('#instruction-content').attr('data-parsley-required', '');
+
+        // Apply parsley max length validation to instruction title and url
+        $('#instruction-content').attr('data-parsley-maxlength', '500');
+
+        // Apply custom validation messages
+        $('#instruction-content').attr('data-parsley-required-message', 'Offline Instructions must be provided');
+        $('#instruction-content').attr('data-parsley-maxlength-message', 'Offline Instructions must be less than 500 characters');
+
+        // Set character counter for instruction content
+        $("#instruction-content").keyup(function () {
+            characterCounter("#instruction-content-character-count", 500, $(this).val().length, 20)
+        });
     });
-
-    // Handles click events on the first previous button
-    $("#instruction-prev-1").click(function () {
-        document.getElementById("instruction-first").style.display = "block";
-        document.getElementById("instruction-second").style.display = "none";
-    });
-
-    // Handles click events on the second previous button
-    $("#instruction-prev-2").click(function () {
-        document.getElementById("instruction-third").style.display = "none";
-        document.getElementById("instruction-second").style.display = "block";
-    });
-
-    // Disable button on submit
-    $("#add-instruction-form").submit(function() {
-        $("#instruction-submit").attr("disabled", true);
-    });
-
-    // Apply parsley data required validation to instruction title and url
-    $('#instruction-content').attr('data-parsley-required', '');
-
-    // Apply parsley max length validation to instruction title and url
-    $('#instruction-content').attr('data-parsley-maxlength', '500');
-
-    // Apply custom validation messages
-    $('#instruction-content').attr('data-parsley-required-message', 'Offline Instructions must be provided');
-    $('#instruction-content').attr('data-parsley-maxlength-message', 'Offline Instructions must be less than 500 characters');
-
-    // Set character counter for instruction content
-    $("#instruction-content").keyup(function() {
-        characterCounter("#instruction-content-character-count", 500, $(this).val().length)
-    });
-});
 </script>

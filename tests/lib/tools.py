@@ -11,7 +11,7 @@ from string import (
 )
 from flask_login import login_user, logout_user
 from sqlalchemy.sql.expression import func
-from app import calendar, db
+from app import calendar, db, sentry
 from app.models import (
     Requests,
     Reasons,
@@ -732,6 +732,7 @@ class TestHelpers(object):
             try:
                 category, message = session['_flashes'][0]
             except KeyError:
+                sentry.captureException()
                 raise AssertionError('Nothing was flashed')
             assert expected_message in message
             assert expected_category == category

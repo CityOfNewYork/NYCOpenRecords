@@ -29,9 +29,10 @@ and current_request.status != request_status.CLOSED %}
             </div>
             <div class="input-group">
                 <span class="input-group-addon">Title</span>
-                <input type="text" name="title" value="{{ response.title }}"
-                       title="title" aria-describedby="title">
+                <input id="edit-file-title-{{ response.id }}" type="text" name="title" value="{{ response.title }}"
+                       title="title" aria-describedby="title" data-parsley-maxlength="140" maxlength="140">
             </div>
+            <h5 id="edit-file-title-character-counter-{{ response.id }}">{{ 140 - response.title|length }} characters remaining</h5>
             <div class="title-error pull-right"></div>
         {% else %}
             <div>

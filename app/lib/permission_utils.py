@@ -3,16 +3,18 @@ from functools import wraps
 from flask import abort, request, redirect
 from flask_login import current_user, login_url
 from sqlalchemy.orm.exc import NoResultFound
-from app import login_manager
+from app import login_manager, sentry
 from app.constants import permission
 from app.models import (
     Users,
     Responses,
     Files,
     Notes,
+    Letters,
     Links,
     Instructions,
-    Determinations
+    Determinations,
+    Envelopes
 )
 
 
@@ -39,6 +41,26 @@ def has_permission(permission: int):
     return decorator
 
 
+def has_super():
+    """
+    Checks to see if the current_user is a super user.
+
+    :param f: Function that is being wrapped.
+    :return:
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_super:
+                return abort(403)
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 def is_allowed(user: Users, request_id: str, permission: int):
     """
 
@@ -52,9 +74,11 @@ def is_allowed(user: Users, request_id: str, permission: int):
         return True if user_request.has_permission(permission) else False
 
     except NoResultFound:
+        sentry.captureException()
         return False
 
     except AttributeError:
+        sentry.captureException()
         return False
 
 
@@ -66,7 +90,7 @@ def get_permission(permission_type: str, response_type: Responses):
     :return:
     """
 
-    if response_type is not Determinations:
+    if response_type not in [Determinations, Envelopes, Letters]:
 
         if permission_type == 'edit':
             permission_for_edit_type = {

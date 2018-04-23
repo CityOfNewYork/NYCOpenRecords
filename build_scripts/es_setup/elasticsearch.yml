@@ -93,3 +93,14 @@ discovery.zen.ping.unicast.hosts: ["10.0.0.8", "10.0.0.9", "10.0.0.10"]
 # Disable System Call Filter on RHEL 6
 # https://github.com/elastic/elasticsearch/issues/22899
 bootstrap.system_call_filter: false
+######## Start Search Guard Demo Configuration ########
+searchguard.ssl.transport.keystore_filepath: /etc/elasticsearch/keystore.jks
+searchguard.ssl.transport.truststore_filepath: /etc/elasticsearch/truststore.jks
+searchguard.ssl.transport.enforce_hostname_verification: false
+searchguard.ssl.http.enabled: true
+searchguard.ssl.http.keystore_filepath: /etc/elasticsearch/keystore.jks
+searchguard.ssl.http.truststore_filepath: /etc/elasticsearch/truststore.jks
+searchguard.authcz.admin_dn:
+  - CN=kirk,OU=client,O=client,L=test, C=de
+
+######## End Search Guard Configuration ########

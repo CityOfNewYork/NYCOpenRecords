@@ -1,6 +1,9 @@
 /**
  * Created by atan on 9/22/16.
  */
+
+"use strict";
+
 $(document).ready(function () {
 
     // popover when selecting the title and description

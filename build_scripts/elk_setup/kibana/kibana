@@ -1,0 +1,7 @@
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-start
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana force-stop
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana status
+vagrant ALL=(ALL) NOPASSWD: /etc/init.d/kibana restart

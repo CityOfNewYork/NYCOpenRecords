@@ -1,28 +1,34 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$redhat_username = <REDHAT USERNAME>
-$redhat_password = <REDHAT PASSWORD>
+$default_system_name = "OpenRecords_" + Time.now.strftime("%m-%d-%Y_%H-%M")
+
+$redhat_username = ENV['RH_USER'] || "<INSERT_USERNAME_HERE>"
+$redhat_password = ENV['RH_PASSWORD'].to_s.empty? ? "<INSERT_PASSWORD_HERE>" : ENV['RH_PASSWORD']
+$rhsn_system_name = ENV['RHSN_SYSTEM_NAME'].to_s.empty? ? $default_system_name : ENV['RHSN_SYSTEM_NAME']
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "rhel-6.8"
+  config.vm.box = "rhel-6.8_vb-5.1.30"
 
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
     vb.memory = "4096"
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   end
 
-  # Proxy Configuration
-  config.vm.provision "shell" do |s|
-    s.inline = 'sudo cp /vagrant/build_scripts/proxy.sh /etc/profile.d/'
-  end
+  if ENV['http_proxy']
+    # Proxy Configuration
+    config.vm.provision "shell" do |s|
+      s.inline = 'sudo cp /vagrant/build_scripts/proxy.sh /etc/profile.d/'
+    end
 
-  config.vm.provision :reload
+    config.vm.provision :reload
+  end
 
   # RedHat Subscription Management
   config.vm.provision "shell" do |s|
     s.path = "build_scripts/subscription_manager.sh"
-    s.args = [$redhat_username, $redhat_password]
+    s.args = [$redhat_username, $redhat_password, $rhsn_system_name]
   end
 
   config.vm.provision :reload
@@ -41,44 +47,59 @@ Vagrant.configure("2") do |config|
     default.vm.network "private_network", ip: "10.0.0.2"
     default.vm.provision "shell", path: "build_scripts/web_setup/web_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/filebeat_setup/app_nginx/install.sh"
     default.vm.provision "shell", path: "build_scripts/es_setup/es_setup.sh", args: 'single_server'
-    default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh", args: 'single_server'
   end
 
+  # VM for Sentry
+  config.vm.define "sentry" do |sentry|
+    sentry.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+    end
 
-  config.vm.define "web_1", autostart: false do |web|
-    # Web Server 1 Configuration
+    sentry.vm.network "forwarded_port", guest: 9000,  host: 9090
+    sentry.vm.network "private_network", ip: "10.0.0.3"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/nginx_setup.sh"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/db_setup_install.sh"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/db_setup_config.sh"
+    sentry.vm.provision "shell", path: "build_scripts/sentry_setup/setup.sh"
   end
 
-  config.vm.define "web_2", autostart: false do |web|
-    # Web Server 1 Configuration
+  # VM for ELK
+  config.vm.define "elk" do |elk|
+    elk.vm.provider "virtualbox" do |vb|
+      vb.memory = "4096"
+    end
+
+    elk.vm.network "forwarded_port", guest: 9200, host: 9201
+    elk.vm.network "forwarded_port", guest: 5601, host: 5602
+    elk.vm.network "forwarded_port", guest: 5044, host: 5044
+    elk.vm.network "private_network", ip: "10.0.0.4"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/elasticsearch/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/kibana/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/logstash/setup.sh"
+    elk.vm.provision "shell", path: "build_scripts/elk_setup/nginx/setup.sh"
   end
 
-  config.vm.define "app_1", autostart: false do |app|
-    # App Server 1 Configuration
+  config.trigger.before :destroy, :force => true, :vm => ["default"] do  # add more VMs if necessary
+    run_remote "subscription-manager unsubscribe --all"
+    run_remote "subscription-manager unregister"
   end
 
-  config.vm.define "app_2", autostart: false do |app|
-    # App Server 2 Configuration
+  # VM for Consul/Vault
+  config.vm.define "consul" do |consul|
+    consul.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+    end
+
+    consul.vm.network "forwarded_port", guest: 443, host: 8443
+    consul.vm.network "forwarded_port", guest: 8500, host: 8501
+    consul.vm.network "forwarded_port", guest: 8200, host: 8201
+    consul.vm.network "private_network", ip: "10.0.0.5"
+    consul.vm.provision "shell", path: "build_scripts/consul-vault_setup/consul_setup.sh"
+    consul.vm.provision "shell", path: "build_scripts/consul-vault_setup/vault_setup.sh"
+    consul.vm.provision "shell", path: "build_scripts/consul-vault_setup/nginx/nginx_setup.sh"
   end
 
-  config.vm.define "db_1", autostart: false do |db|
-    # Database Server 1 Configuration
-  end
-
-  config.vm.define "db_2", autostart: false do |db|
-    # Database Server 2 Configuration
-  end
-
-  config.vm.define "es_1", autostart: false do |es|
-    # Elasticsearch Server 1 Configuration
-  end
-
-  config.vm.define "es_2", autostart: false do |es|
-    # Elasticsearch Server 1 Configuration
-  end
-
-  config.vm.define "es_3", autostart: false do |es|
-    # Elasticsearch Server 1 Configuration
-  end
 end

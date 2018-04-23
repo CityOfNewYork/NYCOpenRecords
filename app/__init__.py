@@ -33,6 +33,7 @@ from app.lib import NYCHolidays, jinja_filters
 from app.constants import OPENRECORDS_DL_EMAIL
 
 from config import config, Config
+from raven.contrib.flask import Sentry
 
 recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
@@ -45,8 +46,9 @@ tracy = Tracy()
 login_manager = LoginManager()
 scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
-prefixed_store = PrefixDecorator('session_', store)
+session_redis = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
+sentry = Sentry()
 
 upload_redis = redis.StrictRedis(db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 email_redis = redis.StrictRedis(db=Config.EMAIL_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
@@ -117,6 +119,8 @@ def create_app(config_name, jobs_enabled=True):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
+    sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
+
     if jobs_enabled:
         scheduler.init_app(app)
 
@@ -124,7 +128,7 @@ def create_app(config_name, jobs_enabled=True):
         from app.models import Anonymous
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
-        KVSessionExtension(prefixed_store, app)
+        KVSessionExtension(session_redis, app)
 
     # schedule jobs
     if jobs_enabled:
@@ -224,6 +228,9 @@ def create_app(config_name, jobs_enabled=True):
 
     from .agency import agency
     app.register_blueprint(agency, url_prefix="/agency")
+
+    from .agency.api import agency_api_blueprint
+    app.register_blueprint(agency_api_blueprint, url_prefix="/agency/api/v1.0")
 
     from .search import search
     app.register_blueprint(search, url_prefix="/search")

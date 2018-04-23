@@ -1,0 +1,26 @@
+<script type="text/javascript">
+    "use strict";
+
+    $(function () {
+        var form = $("#generate-envelope");
+
+        var recipient_name = form.find("#generate-envelope-recipient-name");
+        var address_one = form.find("#generate-envelope-address-one");
+        var city = form.find("#generate-envelope-city");
+        var state = form.find("#generate-envelope-state");
+        var zipcode = form.find("#generate-envelope-zipcode");
+        var submit = form.find("#generate-envelope-submit");
+
+        // Parsley
+        recipient_name.attr("data-parsley-required", "");
+        address_one.attr("data-parsley-required", "");
+        city.attr("data-parsley-required", "");
+        state.attr("data-parsley-required", "");
+        zipcode.attr("data-parsley-required", "");
+
+        form.submit(function () {
+            submit.attr("disabled", true);
+        });
+
+    });
+</script>

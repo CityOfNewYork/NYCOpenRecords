@@ -1,4 +1,6 @@
 <script type="text/javascript">
+    "use strict";
+
     $(function () {
         var form = $(".fileupload-form");
         var first = form.find(".first");
@@ -21,6 +23,7 @@
 
         // Apply parsley error message to a specific container
         addFile.attr('data-parsley-errors-container', '.fileupload-buttonbar');
+
 
         var is_private;
 
@@ -69,13 +72,19 @@
 
             // Proceed with next click function if validation fields are valid and no files are uploading
             if (form.parsley().isValid() && (templateUpload.length === 0)) {
-                var filenames = first.find(".secured-name").map( function(){return $(this).text(); }).get();
-                var title = first.find(".title-field").map( function(){return $(this).val(); }).get();
-                var privacy = first.find(".file-privacy:checked").map(function(){return $(this).val(); }).get();
+                var filenames = first.find(".secured-name").map(function () {
+                    return $(this).text();
+                }).get();
+                var title = first.find(".title-field").map(function () {
+                    return $(this).val();
+                }).get();
+                var privacy = first.find(".file-privacy:checked").map(function () {
+                    return $(this).val();
+                }).get();
 
                 // Create an array (called files) of objects with keys of filename and privacy
                 var files = [];
-                for( var i = 0; i < filenames.length; i++ ) {
+                for (var i = 0; i < filenames.length; i++) {
                     var file = {};
                     file["filename"] = filenames[i];
                     file["title"] = title[i];
@@ -102,7 +111,7 @@
                         tz_name: jstz.determine().name()
                     },
                     success: function (data) {
-                        emailContent = second.find(".email-file-content-hidden");
+                        var emailContent = second.find(".email-file-content-hidden");
                         emailContent.html(data.template);
                         flask_moment_render_all();
                         tinyMCE.get('email-file-content').setContent(emailContent.html());
@@ -154,7 +163,7 @@
         });
 
         // Disable button on submit and handle email content
-        submit.click(function() {
+        submit.click(function () {
             submit.attr("disabled", true);
             var randomString = getRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
             hiddenEmailDiv.find(".file-links").html(randomString);
@@ -166,22 +175,9 @@
         });
 
         function getRandomString(length, chars) {
-                var string = '';
-                for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
-                return string;
+            var string = '';
+            for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
+            return string;
         }
-
-        // Initialize tinymce HTML editor
-        tinymce.init({
-            menubar: false,
-            // sets tinymce to enable only on specific textareas classes
-            mode: "specific_textareas",
-            // selector for tinymce textarea classes is set to 'tinymce-area'
-            editor_selector: "tinymce-area",
-            elementpath: false,
-            convert_urls: false,
-            height: 180,
-            plugins: ["noneditable","preventdelete"]
-        });
     });
 </script>

@@ -997,7 +997,7 @@
             } else if (!(options.singleFileUploads || limitSize) && limit) {
                 fileSet = [];
                 paramNameSet = [];
-                for (i = 0; i < filesLength; i += limit) {
+                for (var i = 0; i < filesLength; i += limit) {
                     fileSet.push(files.slice(i, i + limit));
                     paramNameSlice = paramName.slice(i, i + limit);
                     if (!paramNameSlice.length) {
@@ -1008,7 +1008,7 @@
             } else if (!options.singleFileUploads && limitSize) {
                 fileSet = [];
                 paramNameSet = [];
-                for (i = 0; i < filesLength; i = i + 1) {
+                for (var i = 0; i < filesLength; i = i + 1) {
                     batchSize += files[i].size + overhead;
                     if (i + 1 === filesLength ||
                             ((batchSize + files[i + 1].size + overhead) > limitSize) ||

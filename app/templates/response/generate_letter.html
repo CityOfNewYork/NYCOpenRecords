@@ -1,0 +1,43 @@
+<form id="generate-letter" action="/response/letter/{{ request.id }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
+
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Generate Letter
+                <small data-toggle="popover" data-placement="right" data-trigger="hover"
+                       title="Generate Letter"
+                       data-content="Generating a letter allows the agency to generate a PDF letter with envelope
+                        for mailing out a response.">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
+            </legend>
+            <div class="first">
+                <div class="form-group">
+                    {{ generate_response_letter_form.letter_templates.label }}<br>
+                    {{ generate_response_letter_form.letter_templates(id="letter-template-id",
+                                                 class="disable-enter-submit form-control") | safe }}
+                </div>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="second" hidden>
+                <h4>Edit Letter Body</h4>
+                <div class="form-group">
+                    <div class="letter-content-hidden" hidden></div>
+                    <textarea title="letter-body" name="letter-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="third" hidden>
+                <h4 class="confirmation-header"></h4>
+                <div class="wrap-text letter-summary"></div>
+                <input type="hidden" name="letter-summary">
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="submit" class="submit pull-right btn btn-success">Submit</button>
+            </div>
+        </fieldset>
+    </div>
+</form>

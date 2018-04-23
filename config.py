@@ -27,11 +27,16 @@ class Config:
 
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
+    LETTER_TEMPLATES_DATA = (os.environ.get('LETTER_TEMPLATES_DATA') or
+                             os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'letter_templates.csv'))
     REASON_DATA = (os.environ.get('REASONS_DATA') or
                    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'reasons.csv'))
     STAFF_DATA = (os.environ.get('STAFF_DATA') or
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'staff.csv'))
-
+    ENVELOPE_TEMPLATES_DATA = (os.environ.get('ENVELOPE_TEMPLATES_DATA') or
+                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'envelope_templates.csv'))
+    LATEX_TEMPLATE_DIRECTORY = (os.environ.get('LATEX_TEMPLATE_DIRECTORY') or
+                                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'templates', 'latex'))
     JSON_SCHEMA_DIRECTORY = (os.environ.get('JSON_SCHEMA_DIRECTORY') or
                              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'constants', 'schemas'))
 
@@ -129,12 +134,15 @@ class Config:
     ELASTICSEARCH_VERIFY_CERTS = os.environ.get('ELASTICSEARCH_VERIFY_CERTS') == "True"
     ELASTICSEARCH_USERNAME = os.environ.get('ELASTICSEARCH_USERNAME')
     ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD')
-    ELASTICSEARCH_HTTP_AUTH = ((ELASTICSEARCH_USERNAME,
-                                ELASTICSEARCH_PASSWORD)
+    ELASTICSEARCH_HTTP_AUTH = ('{}:{}'.format(ELASTICSEARCH_USERNAME,
+                                              ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
 
     # https://www.elastic.co/blog/index-vs-type
+
+    SENTRY_DSN = os.environ.get('SENTRY_DSN')
+    USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
 
     @staticmethod
     def init_app(app):

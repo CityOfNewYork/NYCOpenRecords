@@ -1,4 +1,6 @@
 <script type="text/javascript">
+    "use strict";
+
     $(function () {
         var dateSelectVal = "-1";
 
@@ -6,120 +8,245 @@
         var first = form.find(".first");
         var second = form.find(".second");
         var third = form.find(".third");
+        var fourth = form.find(".fourth");
+        var point_of_contact = form.find("#point-of-contact");
 
         var next1 = first.find(".next");
         var next2 = second.find(".next");
+        var next3 = third.find(".next");
         var prev2 = second.find(".prev");
         var prev3 = third.find(".prev");
-        var submit = third.find(".submit");
+        var prev4 = fourth.find(".prev");
+        var submit = fourth.find(".submit");
 
-        var days = first.find("#acknowledgment-days");
-        var date = first.find("#acknowledgment-date");
-        var info = first.find("#acknowledgment-info");
+        var method = first.find("#acknowledgment-method");
+        var email_days = second.find("#acknowledgment-email-days");
+        var email_date = second.find("#acknowledgment-email-date");
+        var email_div = second.find("#acknowledgment-email");
+        var email_info = second.find("#acknowledgment-email-info-text");
+
+        var letter_days = second.find("#acknowledgment-letter-days");
+        var letter_date = second.find("#acknowledgment-letter-date");
+        var letter_div = second.find("#acknowledgment-letter");
+        var letter_info = second.find("#letter-template-id");
+        var generate_letters_enabled = form.find("#generate-letters-enabled").val();
+
+        var edit_body_header = third.find('#edit-body-header');
+
+        // Reveal / Hide Letter Generation
+        if (generate_letters_enabled === "True") {
+            first.show();
+            second.hide();
+        } else {
+            first.hide();
+            second.show();
+            letter_div.hide();
+            prev2.hide();
+        }
 
         // Parsley
-        var required = [date, days];
-        for (i = 0; i < required.length; i++) {
+        var required = [email_date, email_days, letter_date, letter_days, letter_info, method];
+        for (var i = 0; i < required.length; i++) {
             required[i].attr("data-parsley-required", "");
         }
-        info.attr("data-parsley-maxlength", "5000");
+        email_info.attr("data-parsley-maxlength", "5000");
 
-        info.keyup(function () {
+        email_info.keyup(function () {
             characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
         });
 
-        // Date Picker
+        // Date Picker - Email
         holiday_dates = {{ holidays | safe }};
-        date.datepicker({
+        email_date.datepicker({
             dateFormat: "yy-mm-dd",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
             minDate: "{{ request.due_date }}".split(' ')[0]
         });
-        date.keydown(false);
+        email_date.keydown(false);
 
-        // Reveal/Hide Date Picker
-        days.change(function () {
+        // Date Picker - Letter
+        letter_date.datepicker({
+            dateFormat: "yy-mm-dd",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend,
+            minDate: "{{ request.due_date }}".split(' ')[0]
+        });
+        letter_date.keydown(false);
+
+        // Reveal/Hide Date Picker - Email
+        email_days.change(function () {
             if ($(this).val() === dateSelectVal) {
-                date.parent().show();
-                info.attr("data-parsley-required", "");
-                info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
-                info.attr("data-parsley-minlength", "20");
+                email_date.parent().show();
+                email_info.attr("data-parsley-required", "");
+                email_info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
+                email_info.attr("data-parsley-minlength", "20");
+
             }
             else {
-                date.parent().hide();
-                info.removeAttr("data-parsley-required", "");
-                info.removeAttr("data-parsley-minlength", "20");
-                info.removeClass("parsley-error");
-                first.find(".parsley-errors-list").children().remove();
+                email_date.parent().hide();
+                email_info.removeAttr("data-parsley-required", "");
+                email_info.removeAttr("data-parsley-minlength", "20");
+                email_info.removeClass("parsley-error");
+                second.find(".parsley-errors-list").children().remove();
+            }
+        });
+
+        // Reveal/Hide Date Picker - Letter
+        letter_days.change(function () {
+            if ($(this).val() === dateSelectVal) {
+                letter_date.parent().show();
+            }
+            else {
+                letter_date.parent().hide();
+                second.find(".parsley-errors-list").children().remove();
             }
         });
 
         next1.click(function (e) {
-            if (date.is(":visible")) {
-                date.parsley().validate();
-                info.parsley().validate();
-                if (!(date.parsley().isValid() && date.parsley().isValid())) {
+            method.parsley().validate();
+            if (!(method.parsley().isValid())) {
+                e.preventDefault();
+                return false;
+            }
+            if (method.val() === 'email') {
+                letter_div.hide();
+                email_div.show();
+            } else {
+                letter_div.show();
+                email_div.hide();
+            }
+            first.hide();
+            second.show();
+        });
+
+        next2.click(function (e) {
+            if (email_date.is(":visible")) {
+                // If custom due date is selected, email_info must be validated.
+                email_date.parsley().validate();
+                email_info.parsley().validate();
+                if (!(email_date.parsley().isValid() && email_info.parsley().isValid())) {
+                    // if either email_date or email_info are invalid, show an error.
                     e.preventDefault();
                     return false;
                 }
             }
 
-            days.parsley().validate();
-            info.parsley().validate();  // for max length
+            if (method.val() === 'email') {
+                email_days.parsley().validate();
+                email_info.parsley().validate();  // for max length
+            }
+            if (method.val() === 'letter') {
+                letter_days.parsley().validate();
+                letter_info.parsley().validate(); // ensure exists
+            }
 
-            if (!(days.parsley().isValid() && info.parsley().isValid())
+            if (method.val() === 'email' && !(email_days.parsley().isValid() && email_info.parsley().isValid())
             ) {
+                e.preventDefault();
+                return false;
+            } else if (method.val() === 'letter' && !(letter_days.parsley().isValid() && letter_info.parsley().isValid())) {
                 e.preventDefault();
                 return false;
             }
             else {
+                if (method.val() === 'email') {
+                    $.ajax({
+                        url: "/response/email",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "acknowledgment",
+                            acknowledgment: JSON.stringify({
+                                days: email_days.val(),
+                                date: email_date.val(),
+                                info: email_info.val()
+                            }),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var emailContent = third.find(".email-content-hidden");
+                            emailContent.html(data.template);
+                            flask_moment_render_all();
+                            tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
+                        }
+                    });
+
+                    edit_body_header.html("Edit Email Body");
+
+                    second.hide();
+                    third.show();
+                } else {
+                    $.ajax({
+                        url: "/response/letter",
+                        type: "POST",
+                        data: {
+                            request_id: "{{ request.id }}",
+                            type: "acknowledgment",
+                            acknowledgment: JSON.stringify({
+                                days: letter_days.val(),
+                                date: letter_date.val(),
+                                letter_template: letter_info.val(),
+                                point_of_contact: point_of_contact.val()
+                            }),
+                            tz_name: jstz.determine().name()
+                        },
+                        success: function (data) {
+                            var emailContent = third.find(".email-content-hidden");
+                            emailContent.html(data.template);
+                            flask_moment_render_all();
+                            tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
+                        }
+                    });
+
+                    edit_body_header.html("Edit Letter Body");
+
+                    second.hide();
+                    third.show();
+                }
+            }
+        });
+
+        next3.click(function () {
+            tinyMCE.triggerSave();
+
+            if (method.val() === 'email') {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",
                     data: {
                         request_id: "{{ request.id }}",
                         type: "acknowledgment",
-                        acknowledgment: JSON.stringify({
-                            days: days.val(),
-                            date: date.val(),
-                            info: info.val()
-                        }),
-                        tz_name: jstz.determine().name()
+                        email_content: third.find("#acknowledgment-body").val()
                     },
                     success: function (data) {
-                        emailContent = second.find(".email-content-hidden");
-                        emailContent.html(data.template);
-                        flask_moment_render_all();
-                        tinyMCE.get("acknowledgment-email-body").setContent(emailContent.html());
+                        fourth.find(".summary").html(data.template);
+                        fourth.find("input[name='summary']").val(data.template);
+                        fourth.find("input[name='tz-name']").val(jstz.determine().name());
+                        fourth.find(".confirmation-header").text(data.header);
+                        fourth.find(".method").val(method.val());
                     }
                 });
-                first.hide();
-                second.show();
+            } else {
+                $.ajax({
+                    url: "/response/letter",
+                    type: "POST",
+                    data: {
+                        request_id: "{{ request.id }}",
+                        type: "acknowledgment",
+                        letter_content: third.find("#acknowledgment-body").val()
+                    },
+                    success: function (data) {
+                        fourth.find(".summary").html(data.template);
+                        fourth.find("input[name='summary']").val(data.template);
+                        fourth.find("input[name='tz-name']").val(jstz.determine().name());
+                        fourth.find(".confirmation-header").text(data.header);
+                        fourth.find(".method").val(method.val());
+                    }
+                })
             }
-        });
-
-        next2.click(function () {
-            tinyMCE.triggerSave();
-
-            $.ajax({
-                url: "/response/email",
-                type: "POST",
-                data: {
-                    request_id: "{{ request.id }}",
-                    type: "acknowledgment",
-                    email_content: second.find("#acknowledgment-email-body").val(),
-                },
-                success: function (data) {
-                    third.find(".email-summary").html(data.template);
-                    third.find("input[name='email-summary']").val(data.template);
-                    third.find("input[name='tz-name']").val(jstz.determine().name());
-                    third.find(".confirmation-header").text(data.header)
-                }
-            });
-
-            second.hide();
-            third.show();
+            third.hide();
+            fourth.show();
         });
 
         prev2.click(function () {
@@ -130,6 +257,11 @@
         prev3.click(function () {
             third.hide();
             second.show();
+        });
+
+        prev4.click(function () {
+            fourth.hide();
+            third.show();
         });
 
         form.submit(function () {

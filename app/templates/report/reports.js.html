@@ -1,4 +1,6 @@
 <script type="text/javascript">
+    "use strict";
+
     var agencyFilter = $("#agency-filter");
     var agencyUserFilter = $("#agency-user-filter");
     var userFilterDiv = $("#user-filter");
@@ -82,7 +84,7 @@
                 if (data.is_visible && data.active_users.length > 0 && data.results) {
                     var sel = agencyUserFilter;
                     sel.empty();
-                    for (i = 0; i < (data.active_users).length; i++) {
+                    for (var i = 0; i < (data.active_users).length; i++) {
                         var opt = document.createElement("option");
                         opt.innerHTML = data.active_users[i][1];
                         opt.value = data.active_users[i][0];
