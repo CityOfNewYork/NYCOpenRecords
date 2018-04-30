@@ -24,7 +24,8 @@ from app.models import (
     Letters,
     LetterTemplates,
     Envelopes,
-    EnvelopeTemplates
+    EnvelopeTemplates,
+    CustomRequestForms
 )
 from app.request.utils import (
     generate_guid
@@ -73,7 +74,8 @@ def make_shell_context():
         Letters=Letters,
         LetterTemplates=LetterTemplates,
         Envelopes=Envelopes,
-        EnvelopeTemplates=EnvelopeTemplates
+        EnvelopeTemplates=EnvelopeTemplates,
+        CustomRequestForms=CustomRequestForms
     )
 
 

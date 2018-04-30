@@ -765,6 +765,7 @@ class Requests(db.Model):
     privacy = db.Column(JSONB)
     agency_request_summary = db.Column(db.String(5000))
     agency_request_summary_release_date = db.Column(db.DateTime)
+    custom_metadata = db.Column(JSONB)
 
     user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
     agency = db.relationship('Agencies', backref='requests', uselist=False)
@@ -1859,3 +1860,45 @@ class CommunicationMethods(db.Model):
         self.response_id = response_id
         self.method_id = method_id
         self.method_type = method_type
+
+
+class CustomRequestForms(db.Model):
+    """
+
+    """
+    __tablename__ = 'custom_request_forms'
+    id = db.Column(db.Integer, primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'), nullable=False)
+    form_name = db.Column(db.String, nullable=False)
+    field_definition = db.Column(JSONB, nullable=False)
+    repeatable = db.Column(db.Integer, nullable=False)
+
+    @classmethod
+    def populate(cls, json_name=None):
+        """
+        Automatically populate the custom_request_forms table for the OpenRecords application.
+        """
+        filename = json_name or current_app.config['CUSTOM_REQUEST_FORMS_DATA']
+        with open(filename, 'r') as data:
+            data = json.load(data)
+
+            # if not validate_schema(data, AGENCIES_SCHEMA):
+            #     warn("Invalid JSON Data. Not importing any agencies.", category=UserWarning)
+            #     return False
+
+            for form in data['custom_request_forms']:
+                # if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
+                #     warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
+                #     continue
+                if CustomRequestForms.query.filter_by(agency_ein=form['agency_ein'],
+                                                      form_name=form['form_name']).one_or_none() is not None:
+                    warn("Duplicate custom_request_form ({ein}); Row not imported", category=UserWarning)
+                    continue
+                custom_request_form = cls(
+                    agency_ein=form['agency_ein'],
+                    form_name=form['form_name'],
+                    field_definitions=form['field_definitions'],
+                    repeatable=form['repeatable']
+                )
+                db.session.add(custom_request_form)
+            db.session.commit()
