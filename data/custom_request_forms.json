@@ -5,7 +5,7 @@
       "form_name": "Body Worn Camera",
       "field_definitions": {
         "title": "input",
-        "description": "textarea"
+        "description": "textarea",
         "date": "datetime"
       },
       "repeatable": "2"
