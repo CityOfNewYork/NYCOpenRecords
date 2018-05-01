@@ -195,7 +195,8 @@ def deploy():
         Reasons,
         Users,
         LetterTemplates,
-        EnvelopeTemplates
+        EnvelopeTemplates,
+        CustomRequestForms
     )))
 
     es_recreate()
