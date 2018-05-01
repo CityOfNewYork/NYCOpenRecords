@@ -22,8 +22,10 @@ from wtforms.validators import (
     Length,
     InputRequired
 )
-from sqlalchemy import or_
-
+from sqlalchemy import (
+    or_,
+    asc
+)
 from app.agency.api.utils import get_active_users_as_choices
 from app.constants import (
     CATEGORIES,
@@ -218,19 +220,37 @@ class EditRequesterForm(Form):
 class FinishRequestForm(Form):
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
-        agency_reasons = [
+
+        agency_closings = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
-                Reasons.type.in_(self.ultimate_determination_type),
+                Reasons.type == determination_type.CLOSING,
                 Reasons.agency_ein == agency_ein
-            )]
-        default_reasons = [
+            ).order_by(asc(Reasons.id))]
+        agency_denials = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
-                Reasons.type.in_(self.ultimate_determination_type),
+                Reasons.type == determination_type.DENIAL,
+                Reasons.agency_ein == agency_ein
+            ).order_by(asc(Reasons.id))]
+        default_closings = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type == determination_type.CLOSING,
                 Reasons.agency_ein == None
-            )]
-        self.reasons.choices = agency_reasons + default_reasons
+            ).order_by(asc(Reasons.id))]
+        default_denials = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type == determination_type.DENIAL,
+                Reasons.agency_ein == None
+            ).order_by(asc(Reasons.id))]
+
+        if determination_type.CLOSING in self.ultimate_determination_type and \
+                determination_type.DENIAL in self.ultimate_determination_type:
+            self.reasons.choices = agency_closings + agency_denials + default_closings + default_denials
+        else:
+            self.reasons.choices = agency_denials + default_denials
 
     @property
     def reasons(self):
@@ -349,7 +369,7 @@ class GenerateClosingLetterForm(GenerateLetterForm):
                 LetterTemplates.type_ == determination_type.DENIAL,
                 LetterTemplates.agency_ein == None
             )]
-        self. letter_templates.choices = agency_closings + agency_denials + default_closings + default_denials
+        self.letter_templates.choices = agency_closings + agency_denials + default_closings + default_denials
         self.letter_templates.choices.insert(0, ('', ''))
 
 
