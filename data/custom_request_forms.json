@@ -1,0 +1,32 @@
+{
+  "custom_request_forms": [
+    {
+      "agency_ein": "0056",
+      "form_name": "Body Worn Camera",
+      "field_definitions": {
+        "title": "input",
+        "description": "textarea"
+        "date": "datetime"
+      },
+      "repeatable": "2"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Arrest Report",
+      "field_definitions": {
+        "title": "input",
+        "description": "textarea"
+      },
+      "repeatable": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Prisoner Info",
+      "field_definitions": {
+        "title": "input",
+        "description": "textarea"
+      },
+      "repeatable": "1"
+    }
+  ]
+}
