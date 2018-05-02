@@ -1,0 +1,82 @@
+{
+  "custom_request_forms": [
+    {
+      "agency_ein": "0056",
+      "form_name": "Body Worn Camera",
+      "field_definitions": {
+        "title": {
+          "type": "text",
+          "validators": {
+            "required": true,
+            "min_length": "5",
+            "max_length": "500"
+          }
+        },
+        "description": {
+          "type": "textarea",
+          "validators": {
+            "required": false,
+            "max_length": "5000"
+          }
+        },
+        "date": {
+          "type": "datepicker",
+          "validators": {
+            "required": true
+          }
+        }
+      },
+      "repeatable": "2"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Arrest Report",
+      "field_definitions": {
+        "date": {
+          "type": "datetimepicker",
+          "validators": {
+            "required": true
+          }
+        },
+        "title": {
+          "type": "text",
+          "validators": {
+            "required": true,
+            "min_length": "5",
+            "max_length": "500"
+          }
+        },
+        "description": {
+          "type": "textarea",
+          "validators": {
+            "required": false,
+            "max_length": "5000"
+          }
+        }
+      },
+      "repeatable": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Prisoner Info",
+      "field_definitions": {
+        "title": {
+          "type": "text",
+          "validators": {
+            "required": true,
+            "min_length": "5",
+            "max_length": "500"
+          }
+        },
+        "description": {
+          "type": "textarea",
+          "validators": {
+            "required": false,
+            "max_length": "5000"
+          }
+        }
+      },
+      "repeatable": "1"
+    }
+  ]
+}

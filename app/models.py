@@ -734,6 +734,9 @@ class Requests(db.Model):
     status - an Enum that selects from a list of different statuses a request can have
     privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
               (True = Private, False = Public)
+    agency_request_summary - a string that contains an additional description of the request created by the agency
+    agency_request_summary_release_date - a datetime of when the agency_request_summary will be made public
+    custom_metadata - a JSON that contains the metadata from an agency's custom request forms
     """
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
@@ -765,6 +768,7 @@ class Requests(db.Model):
     privacy = db.Column(JSONB)
     agency_request_summary = db.Column(db.String(5000))
     agency_request_summary_release_date = db.Column(db.DateTime)
+    custom_metadata = db.Column(JSONB)
 
     user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
     agency = db.relationship('Agencies', backref='requests', uselist=False)
@@ -1863,3 +1867,44 @@ class CommunicationMethods(db.Model):
         self.response_id = response_id
         self.method_id = method_id
         self.method_type = method_type
+
+
+class CustomRequestForms(db.Model):
+    """
+    Define the CustomRequestForms class with the following columns and relationships:
+
+    id - an integer that is the primary key of CustomRequestForms
+    agency_ein - a string that is a foreign key to the Agencies table
+    form_name - a string that is the name of the custom form
+    field_definitions - a JSON that contains the the name of the field as the key and type of field as the value
+    repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
+    """
+    __tablename__ = 'custom_request_forms'
+    id = db.Column(db.Integer, primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'), nullable=False)
+    form_name = db.Column(db.String, nullable=False)
+    field_definitions = db.Column(JSONB, nullable=False)
+    repeatable = db.Column(db.Integer, nullable=False)
+
+    @classmethod
+    def populate(cls, json_name=None):
+        """
+        Automatically populate the custom_request_forms table for the OpenRecords application.
+        """
+        filename = json_name or current_app.config['CUSTOM_REQUEST_FORMS_DATA']
+        with open(filename, 'r') as data:
+            data = json.load(data)
+
+            for form in data['custom_request_forms']:
+                if CustomRequestForms.query.filter_by(agency_ein=form['agency_ein'],
+                                                      form_name=form['form_name']).first() is not None:
+                    warn("Duplicate custom_request_form ({}); Row not imported".format(form['agency_ein']), category=UserWarning)
+                    continue
+                custom_request_form = cls(
+                    agency_ein=form['agency_ein'],
+                    form_name=form['form_name'],
+                    field_definitions=form['field_definitions'],
+                    repeatable=form['repeatable']
+                )
+                db.session.add(custom_request_form)
+            db.session.commit()

@@ -26,7 +26,9 @@ class Config:
     VIEW_REQUEST_ENDPOINT = os.environ.get('VIEW_REQUEST_ENDPOINT')
 
     AGENCY_DATA = (os.environ.get('AGENCY_DATA') or
-                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.csv'))
+                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'agencies.json'))
+    CUSTOM_REQUEST_FORMS_DATA = (os.environ.get('CUSTOM_REQUEST_FORMS_DATA') or
+                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'custom_request_forms.json'))
     LETTER_TEMPLATES_DATA = (os.environ.get('LETTER_TEMPLATES_DATA') or
                              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'letter_templates.csv'))
     REASON_DATA = (os.environ.get('REASONS_DATA') or
