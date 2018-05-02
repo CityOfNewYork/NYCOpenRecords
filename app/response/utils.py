@@ -439,6 +439,7 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
+        previous_status = request.status
         date = datetime.strptime(date, '%Y-%m-%d')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
@@ -458,6 +459,12 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
              'agency_request_summary_release_date': None},
             Requests,
             request_id
+        )
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
         )
 
         if method == 'email':
