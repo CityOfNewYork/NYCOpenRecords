@@ -27,7 +27,7 @@ from app import (
     login_manager,
     sentry
 )
-from app.models import Users, AgencyUsers, Events
+from app.models import Users, AgencyUsers, Events, Requests
 from app.constants import user_type_auth, USER_ID_DELIMITER
 from app.constants.web_services import (
     USER_ENDPOINT,
@@ -328,6 +328,9 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid,
                                                    Events.new_value[
                                                        'auth_user_type'].astext == user.auth_user_type).all()
+
+        for request_id in user.user_requests:
+            Requests.query.filter_by(id=request_id).one().es_update()
         for event in update_events_values:
             update_object(
                 {'new_value': {'user_guid': guid,
@@ -340,6 +343,7 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         Users,
         (user.guid, user.auth_user_type)
     )
+
 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
