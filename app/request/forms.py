@@ -188,6 +188,7 @@ class AnonymousRequestForm(Form):
 
 
 class EditRequesterForm(Form):
+    # TODO: Add class docstring
     email = StringField('Email')
     phone = StringField('Phone Number')
     fax = StringField('Fax Number')
@@ -218,6 +219,7 @@ class EditRequesterForm(Form):
 
 
 class FinishRequestForm(Form):
+    # TODO: Add class docstring
     def __init__(self, agency_ein):
         super(FinishRequestForm, self).__init__()
 
@@ -264,16 +266,19 @@ class FinishRequestForm(Form):
 
 
 class DenyRequestForm(FinishRequestForm):
+    # TODO: Add class docstring
     reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
     ultimate_determination_type = [determination_type.DENIAL]
 
 
 class CloseRequestForm(FinishRequestForm):
+    # TODO: Add class docstring
     reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
     ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
 
 
 class GenerateEnvelopeForm(Form):
+    # TODO: Add class docstring
     template = SelectField("Template")
     recipient_name = StringField("Recipient Name")
     organization = StringField("Organization")
@@ -305,6 +310,7 @@ class GenerateEnvelopeForm(Form):
 
 
 class GenerateLetterForm(Form):
+    # TODO: Add class docstring
     def __init__(self, agency_ein):
         super(GenerateLetterForm, self).__init__()
         self.letter_templates.choices = [
@@ -330,16 +336,19 @@ class GenerateLetterForm(Form):
 
 
 class GenerateAcknowledgmentLetterForm(GenerateLetterForm):
+    # TODO: Add class docstring
     letter_templates = SelectField('Letter Templates')
     letter_type = [determination_type.ACKNOWLEDGMENT]
 
 
 class GenerateDenialLetterForm(GenerateLetterForm):
+    # TODO: Add class docstring
     letter_templates = SelectField('Letter Templates')
     letter_type = [determination_type.DENIAL]
 
 
 class GenerateClosingLetterForm(GenerateLetterForm):
+    # TODO: Add class docstring
     letter_templates = SelectField('Letter Templates')
     letter_type = [determination_type.CLOSING, determination_type.DENIAL]
 
@@ -374,21 +383,25 @@ class GenerateClosingLetterForm(GenerateLetterForm):
 
 
 class GenerateExtensionLetterForm(GenerateLetterForm):
+    # TODO: Add class docstring
     letter_templates = SelectField('Letter Templates')
     letter_type = [determination_type.EXTENSION]
 
 
 class GenerateReopeningLetterForm(GenerateLetterForm):
+    # TODO: Add class docstring
     letter_templates = SelectField('Letter Templates')
     letter_type = [determination_type.REOPENING]
 
 
 class GenerateResponseLetterForm(GenerateLetterForm):
+    # TODO: Add class docstring
     letter_templates = SelectField('Letter Templates')
     letter_type = [response_type.LETTER]
 
 
 class SearchRequestsForm(Form):
+    # TODO: Add class docstring
     agency_ein = SelectField('Agency')
     agency_user = SelectField('User')
 
@@ -431,6 +444,7 @@ class SearchRequestsForm(Form):
 
 
 class ContactAgencyForm(Form):
+    # TODO: Add class docstring
     first_name = StringField(u'First Name', validators=[InputRequired(), Length(max=32)])
     last_name = StringField(u'Last Name', validators=[InputRequired(), Length(max=64)])
     email = StringField(u'Email', validators=[InputRequired(), Length(max=254), Email()])
