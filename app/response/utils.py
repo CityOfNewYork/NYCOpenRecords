@@ -393,7 +393,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
             previous_value={'status': previous_status},
             new_value={'status': request.status}
         )
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < current_request.date_submitted.date():
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the closing date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
             response = Determinations(
