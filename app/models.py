@@ -1227,6 +1227,10 @@ class Responses(db.Model):
         return response_type.LETTER if response_type.LETTER in [cm.method_type for cm in
                                                                 communication_methods] else response_type.EMAIL
 
+    @property
+    def event_timestamp(self):
+        return Events.query.filter_by(response_id=self.id).one().timestamp
+
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
         self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)

@@ -210,13 +210,13 @@ def get_request_responses():
 
     current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    responses = Responses.query.filter(
+    responses = Responses.query.join(Events, Responses.id == Events.response_id).filter(
         Responses.request_id == current_request.id,
         ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
         Responses.type != response_type.EMAIL,
         Responses.deleted == False
     ).order_by(
-        desc(Responses.date_modified)
+        desc(Events.timestamp)
     ).all()[start: start + RESPONSES_INCREMENT]
 
     template_path = 'request/responses/'
