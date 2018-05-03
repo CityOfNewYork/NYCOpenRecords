@@ -105,3 +105,22 @@ def generate_envelope_pdf(document):
     compiler = LatexCompiler()
 
     return compiler.compile(document)
+
+
+def escape_latex_characters(line):
+    """
+    Replace a string with the escaped LaTeX version of reserved characters
+    :param line: a string to be used in a LaTeX template
+    :return: a string with the escaped LaTeX version of reserved characters
+    """
+    line = line.replace('\\', '\\textbackslash')
+    line = line.replace('&', '\&')
+    line = line.replace('%', '\%')
+    line = line.replace('$', '\$')
+    line = line.replace('#', '\#')
+    line = line.replace('_', '\_')
+    line = line.replace('{', '\{')
+    line = line.replace('}', '\}')
+    line = line.replace('~', '\\textasciitilde')
+    line = line.replace('^', '\\textasciicircum')
+    return line
