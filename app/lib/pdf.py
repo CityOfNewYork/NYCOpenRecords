@@ -30,10 +30,12 @@ class LatexCompiler:
         temp_tex = temp_file + '.tex'
         with open(temp_tex, 'wb') as f:
             f.write(document.encode('utf-8'))
-        proc = subprocess.Popen([*self.LATEX_COMMAND.split(' '), temp_tex], cwd=self._OUT_DIR)
+        proc = subprocess.Popen([*self.LATEX_COMMAND.split(' '), temp_tex], cwd=self._OUT_DIR, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
         return_code = proc.wait()
+        out, err = proc.communicate()
         if return_code != 0:
-            raise PDFCreationException(return_code)  # TODO: Make this a proper error
+            raise PDFCreationException(return_code, out)  # TODO: Make this a proper error
 
         data = None
         with open('{filename}.{extension}'.format(filename=temp_file, extension=self.FILE_EXTENSION), 'rb') as f:

@@ -420,14 +420,15 @@ def response_generate_envelope():
     template = flask_request.form.get('template')
     envelope_data['request_id'] = request_id
     envelope_data['recipient_name'] = str(flask_request.form.get('recipient_name')).upper()
-    envelope_data['organization'] = str(flask_request.form.get('organization')).upper()
+    envelope_data['organization'] = str(flask_request.form.get('organization')).upper().replace('&', '\&')
     envelope_data['organization'] = " ".join(
         ['\\seqsplit{{{}}}'.format(i) for i in envelope_data['organization'].split()])
-    envelope_data['street_address'] = '{} {}'.format(str(flask_request.form.get('address_one')).upper(),
-                                                     str(flask_request.form.get('address_two')).upper())
-    envelope_data['city'] = str(flask_request.form.get('city')).upper()
-    envelope_data['state'] = str(flask_request.form.get('state')).upper()
-    envelope_data['zipcode'] = str(flask_request.form.get('zipcode')).upper()
+    envelope_data['street_address'] = '{} {}'.format(
+        str(flask_request.form.get('address_one')).upper().replace('&', '\&'),
+        str(flask_request.form.get('address_two')).upper().replace('&', '\&'))
+    envelope_data['city'] = str(flask_request.form.get('city')).upper().replace('&', '\&')
+    envelope_data['state'] = str(flask_request.form.get('state')).upper().replace('&', '\&')
+    envelope_data['zipcode'] = str(flask_request.form.get('zipcode')).upper().replace('&', '\&')
 
     add_envelope(request_id, template, envelope_data)
 
