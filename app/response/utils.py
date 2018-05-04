@@ -1365,8 +1365,6 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
                                                    Users.auth_user_type.in_(
                                                        user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        print("I'M HERE")
-        print(point_of_contact_user)
     else:
         point_of_contact_user = current_user
 
