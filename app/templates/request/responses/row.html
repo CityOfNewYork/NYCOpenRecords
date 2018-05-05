@@ -9,7 +9,7 @@
 
     {% if current_user.is_agency %}
         <div class="col-md-5 text-right">
-            {{ moment(response.event_timestamp).format('dddd, MM/DD/YYYY [at] h:mm A') }}<br>
+            {{ moment(response.event_timestamp).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
         <div class="row">
             <div class="col-md-10 metadata-preview">
