@@ -94,7 +94,8 @@
                             request_id: "{{ request.id }}",
                             type: "denial",
                             confirmation: false,
-                            reason_ids: reason_ids.val()
+                            reason_ids: reason_ids.val(),
+                            point_of_contact: point_of_contact.val()
                         },
                         success: function (data) {
                             var emailContent = third.find(".email-content-hidden");

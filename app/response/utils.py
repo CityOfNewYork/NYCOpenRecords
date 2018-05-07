@@ -1336,8 +1336,23 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
+    point_of_contact = data.get('point_of_contact', None)
+    if point_of_contact:
+        point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                   Users.auth_user_type.in_(
+                                                       user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+    else:
+        point_of_contact_user = current_user
+
     _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
+
+    # Render the jinja for the reasons content
+    for index, reason in enumerate(_reasons):
+        reason_list = list(reason)
+        reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
+        reason = tuple(reason_list)
+        _reasons[index] = reason
 
     # Determine if a custom reason is used
     # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
@@ -1403,8 +1418,23 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         if content.endswith(TINYMCE_EDITABLE_P_TAG):
             content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
     else:
+        point_of_contact = data.get('point_of_contact', None)
+        if point_of_contact:
+            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        else:
+            point_of_contact_user = current_user
+
         _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                     for reason_id in data.getlist('reason_ids[]')]
+
+        # Render the jinja for the reasons content
+        for index, reason in enumerate(_reasons):
+            reason_list = list(reason)
+            reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
+            reason = tuple(reason_list)
+            _reasons[index] = reason
 
         # Determine if a custom reason is used
         # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
