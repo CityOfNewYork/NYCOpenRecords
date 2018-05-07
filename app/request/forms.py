@@ -58,7 +58,7 @@ class PublicUserRequestForm(Form):
     request_category = SelectField('Category (optional)', choices=CATEGORIES)
     request_agency = SelectField('Agency (required)', choices=None)
     request_title = StringField('Request Title (required)')
-    request_type = SelectField('Request Type (optional)', choices=[('', '')])
+    request_type = SelectField('Request Type (optional)', choices=[])
     request_description = TextAreaField('Request Description (required)')
 
     # File Upload
@@ -98,7 +98,7 @@ class AgencyUserRequestForm(Form):
 
     # Request Information
     request_agency = SelectField('Agency (required)', choices=None)
-    request_type = SelectField('Request Type (optional)', choices=[('', '')])
+    request_type = SelectField('Request Type (optional)', choices=[])
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
     request_date = DateTimeField("Date (required)", format="%m/%d/%Y", default=datetime.today)
@@ -159,7 +159,7 @@ class AnonymousRequestForm(Form):
     # Request Information
     request_category = SelectField('Category (optional)', choices=CATEGORIES)
     request_agency = SelectField('Agency (required)', choices=None)
-    request_type = SelectField('Request Type (optional)', choices=[('','')])
+    request_type = SelectField('Request Type (optional)', choices=[])
     request_title = StringField('Request Title (required)')
     request_description = TextAreaField('Request Description (required)')
 
