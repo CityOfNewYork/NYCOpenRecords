@@ -30,10 +30,13 @@ class LatexCompiler:
         temp_tex = temp_file + '.tex'
         with open(temp_tex, 'wb') as f:
             f.write(document.encode('utf-8'))
-        proc = subprocess.Popen([*self.LATEX_COMMAND.split(' '), temp_tex], cwd=self._OUT_DIR)
+        proc = subprocess.Popen([*self.LATEX_COMMAND.split(' '), temp_tex], cwd=self._OUT_DIR, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
         return_code = proc.wait()
+        out, err = proc.communicate()
         if return_code != 0:
-            raise PDFCreationException(return_code)  # TODO: Make this a proper error
+            raise PDFCreationException(status_code=return_code, stdout=out, stderr=err)  # TODO: Make this a proper error
+
 
         data = None
         with open('{filename}.{extension}'.format(filename=temp_file, extension=self.FILE_EXTENSION), 'rb') as f:
@@ -102,3 +105,22 @@ def generate_envelope_pdf(document):
     compiler = LatexCompiler()
 
     return compiler.compile(document)
+
+
+def escape_latex_characters(line):
+    """
+    Replace a string with the escaped LaTeX version of reserved characters
+    :param line: a string to be used in a LaTeX template
+    :return: a string with the escaped LaTeX version of reserved characters
+    """
+    line = line.replace('\\', '\\textbackslash')
+    line = line.replace('&', '\&')
+    line = line.replace('%', '\%')
+    line = line.replace('$', '\$')
+    line = line.replace('#', '\#')
+    line = line.replace('_', '\_')
+    line = line.replace('{', '\{')
+    line = line.replace('}', '\}')
+    line = line.replace('~', '\\textasciitilde')
+    line = line.replace('^', '\\textasciicircum')
+    return line

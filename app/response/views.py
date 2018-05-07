@@ -38,7 +38,8 @@ from app.lib.permission_utils import (
 )
 from app.lib.pdf import (
     generate_pdf_flask_response,
-    generate_envelope_pdf
+    generate_envelope_pdf,
+    escape_latex_characters
 )
 from app.response import response
 from app.models import (
@@ -412,22 +413,22 @@ def response_instructions(request_id):
 def response_generate_envelope():
     """
     Create an Envelope for the Request.
-
     :return: redirect to view request page
     """
     envelope_data = EnvelopeDict()
     request_id = flask_request.form.get('request_id')
     template = flask_request.form.get('template')
     envelope_data['request_id'] = request_id
-    envelope_data['recipient_name'] = str(flask_request.form.get('recipient_name')).upper()
-    envelope_data['organization'] = str(flask_request.form.get('organization')).upper()
+    envelope_data['recipient_name'] = escape_latex_characters(str(flask_request.form.get('recipient_name')).upper())
+    envelope_data['organization'] = escape_latex_characters(str(flask_request.form.get('organization')).upper())
     envelope_data['organization'] = " ".join(
         ['\\seqsplit{{{}}}'.format(i) for i in envelope_data['organization'].split()])
-    envelope_data['street_address'] = '{} {}'.format(str(flask_request.form.get('address_one')).upper(),
-                                                     str(flask_request.form.get('address_two')).upper())
-    envelope_data['city'] = str(flask_request.form.get('city')).upper()
-    envelope_data['state'] = str(flask_request.form.get('state')).upper()
-    envelope_data['zipcode'] = str(flask_request.form.get('zipcode')).upper()
+    envelope_data['street_address'] = '{} {}'.format(
+        escape_latex_characters(str(flask_request.form.get('address_one')).upper()),
+        escape_latex_characters(str(flask_request.form.get('address_two')).upper()))
+    envelope_data['city'] = escape_latex_characters(str(flask_request.form.get('city')).upper())
+    envelope_data['state'] = escape_latex_characters(str(flask_request.form.get('state')).upper())
+    envelope_data['zipcode'] = escape_latex_characters(str(flask_request.form.get('zipcode')).upper())
 
     add_envelope(request_id, template, envelope_data)
 

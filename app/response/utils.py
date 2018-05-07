@@ -252,6 +252,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
+        previous_status = request.status
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
             update_object(
                 {'agency_request_summary_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
@@ -267,12 +268,30 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
                 request_id,
                 es_update=False
             )
-        response = Determinations(
+        create_request_info_event(
             request_id,
-            RELEASE_AND_PUBLIC,
-            determination_type.DENIAL,
-            format_determination_reasons(reason_ids)
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
         )
+
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            # push the denial date to the next business day if it is a weekend/holiday
+            # or if it is before the date submitted
+            response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.DENIAL,
+                format_determination_reasons(reason_ids),
+                date_modified=get_next_business_day()
+            )
+        else:
+            response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.DENIAL,
+                format_determination_reasons(reason_ids)
+            )
         if method == 'letter':
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
@@ -322,12 +341,13 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     :param letter_template_id: id of the letter template
 
     """
-    current_request = Requests.query.filter_by(id=request_id).one()
-    if current_request.status != request_status.CLOSED and (
-            current_request.was_acknowledged or current_request.was_reopened):
-        if current_request.privacy['agency_request_summary'] or not current_request.agency_request_summary:
+    request = Requests.query.filter_by(id=request_id).one()
+    if request.status != request_status.CLOSED and (
+            request.was_acknowledged or request.was_reopened):
+        previous_status = request.status
+        if request.privacy['agency_request_summary'] or not request.agency_request_summary:
             reason = "Agency Request Summary must be public and not empty, "
-            if current_request.responses.filter(
+            if request.responses.filter(
                     Responses.type != response_type.NOTE,  # ignore Notes
                     Responses.type != response_type.EMAIL,  # ignore Emails
                     Responses.deleted == False,  # ignore deleted responses
@@ -335,15 +355,15 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                     Responses.is_editable == True  # ignore non-editable responses
             ).first() is not None:
                 raise UserRequestException(action="close",
-                                           request_id=current_request.id,
+                                           request_id=request.id,
                                            reason=reason + "or all Responses (excluding Notes) must be public."
                                            )
-            if current_request.privacy['title']:
+            if request.privacy['title']:
                 raise UserRequestException(action="close",
-                                           request_id=current_request.id,
+                                           request_id=request.id,
                                            reason=reason + "or Title must be public."
                                            )
-        if current_request.agency_request_summary and not current_request.privacy['agency_request_summary']:
+        if request.agency_request_summary and not request.privacy['agency_request_summary']:
             date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
             release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
                                         current_app.config['APP_TIMEZONE'])
@@ -367,17 +387,34 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                 request_id,
                 es_update=False
             )
-        response = Determinations(
+        create_request_info_event(
             request_id,
-            RELEASE_AND_PUBLIC,
-            determination_type.CLOSING,
-            format_determination_reasons(reason_ids)
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
         )
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            # push the closing date to the next business day if it is a weekend/holiday
+            # or if it is before the date submitted
+            response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                format_determination_reasons(reason_ids),
+                date_modified=get_next_business_day()
+            )
+        else:
+            response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                format_determination_reasons(reason_ids)
+            )
         if method == 'letter':
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
-        current_request.es_update()
+        request.es_update()
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.CLOSING_LETTER_CREATED)
@@ -387,7 +424,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                           EMAIL_TEMPLATE_FOR_EVENT[event_type.CLOSING_LETTER_CREATED])
             email_content = render_template(email_template,
                                             request_id=request_id,
-                                            agency_name=current_request.agency.name,
+                                            agency_name=request.agency.name,
                                             user=current_user
                                             )
             email_id = safely_send_and_add_email(request_id,
@@ -425,6 +462,7 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
+        previous_status = request.status
         date = datetime.strptime(date, '%Y-%m-%d')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
@@ -444,6 +482,12 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
              'agency_request_summary_release_date': None},
             Requests,
             request_id
+        )
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
         )
 
         if method == 'email':
@@ -543,12 +587,12 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
                                         user=current_user
                                         )
         email_id = safely_send_and_add_email(request_id,
-                                  email_content,
-                                  'Request {} Extended - Letter'.format(request_id),
-                                  to=get_agency_emails(request_id),
-                                  attachment=letter,
-                                  filename=secure_filename('{}_extension_letter.pdf'.format(request_id)),
-                                  mimetype='application/pdf')
+                                             email_content,
+                                             'Request {} Extended - Letter'.format(request_id),
+                                             to=get_agency_emails(request_id),
+                                             attachment=letter,
+                                             filename=secure_filename('{}_extension_letter.pdf'.format(request_id)),
+                                             mimetype='application/pdf')
         _create_communication_method(response.id, email_id, response_type.EMAIL)
     else:
         email_id = _send_response_email(request_id,
@@ -1008,11 +1052,13 @@ def _extension_letter_handler(request_id, data):
         point_of_contact = extension.get('point_of_contact', None)
         if point_of_contact:
             point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+                                                       Users.auth_user_type.in_(
+                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
         else:
             point_of_contact_user = current_user
 
-        acknowledgement = request.responses.join(Determinations).filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
+        acknowledgement = request.responses.join(Determinations).filter(
+            Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
         due_date = _get_new_due_date(request_id, extension['length'], extension['custom_due_date'], data['tz_name'])
 
         template = render_template_string(contents.content,
