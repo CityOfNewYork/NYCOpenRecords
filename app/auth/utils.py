@@ -329,8 +329,8 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
                                                    Events.new_value[
                                                        'auth_user_type'].astext == user.auth_user_type).all()
 
-        for request_id in user.user_requests:
-            Requests.query.filter_by(id=request_id).one().es_update()
+        for user_request in user.user_requests:
+            Requests.query.filter_by(id=user_request.request_id).one().es_update()
         for event in update_events_values:
             update_object(
                 {'new_value': {'user_guid': guid,
