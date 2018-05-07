@@ -1375,7 +1375,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     for index, reason in enumerate(_reasons):
         reason_list = list(reason)
         reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
-        _reasons[index] = reason
+        _reasons[index] = reason_list
 
     # Determine if a custom reason is used
     # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
@@ -1456,7 +1456,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         for index, reason in enumerate(_reasons):
             reason_list = list(reason)
             reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
-            _reasons[index] = reason
+            _reasons[index] = reason_list
 
         # Determine if a custom reason is used
         # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
