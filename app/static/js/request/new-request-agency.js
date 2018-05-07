@@ -240,7 +240,7 @@ $(document).ready(function () {
             return false;
         });
         $("#submit").hide();
-        $("#processing-submission").show()
+        $("#processing-submission").show();
     });
 
     // Character count for creating a new request
