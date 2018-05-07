@@ -5,6 +5,9 @@
 "use strict";
 
 $(document).ready(function () {
+    $(window).load( function () {
+        getCustomRequestForms($("#request-agency").val())
+    });
 
     $("input[name='tz-name']").val(jstz.determine().name());
 
@@ -82,7 +85,6 @@ $(document).ready(function () {
         }
     });
 
-    getCustomRequestForms(selectedAgency);
     $("#request-agency").change(function () {
         getCustomRequestForms($("#request-agency").val());
     });
