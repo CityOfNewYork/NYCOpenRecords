@@ -5,6 +5,13 @@
 "use strict";
 
 $(document).ready(function () {
+    $(window).load( function () {
+        // Determine if the agencyRequestInstructions need to be shown on page load.
+        var agencyEin = $("#request-agency").val();
+        var requestInstructionsDiv = $("#request-agency-instructions");
+        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+        get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv);
+    });
 
     $("input[name='tz-name']").val(jstz.determine().name());
 
@@ -25,26 +32,35 @@ $(document).ready(function () {
         }
     });
 
-    // ajax call to get additional information for the specified agency
-    var selectedAgency = $("#request-agency").val();
-    var requestInstructionsDiv = $("#request-agency-instructions");
-    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-    $.ajax({
-        url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
-        type: "GET",
-        success: function (data) {
-            if (data["specific_request_instructions"]["text"] !== "") {
-                requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                requestInstructionsDiv.show();
-            }
-            else {
+    function get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv) {
+        /*
+         * ajax call to get additional information for the specified agency
+         */
+        $.ajax({
+            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    requestInstructionsDiv.show();
+                }
+                else {
+                    requestInstructionsDiv.hide();
+                }
+            },
+            error: function () {
                 requestInstructionsDiv.hide();
             }
-        },
-        error: function () {
-            requestInstructionsDiv.hide();
-        }
 
+        });
+    }
+
+
+    $("#request-agency").change(function () {
+        var agencyEin = $("#request-agency").val();
+        var requestInstructionsDiv = $("#request-agency-instructions");
+        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+        get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv);
     });
 
     $("#request-agency-instructions-toggle").click(function () {
@@ -250,7 +266,7 @@ $(document).ready(function () {
     // Disable submit button on form submission
     $('#request-form').submit(function () {
         // Prevent multiple submissions
-        $(this).submit(function() {
+        $(this).submit(function () {
             return false;
         });
         $('#submit').hide();
