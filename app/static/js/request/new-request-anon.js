@@ -25,10 +25,15 @@ $(document).ready(function () {
     });
 
 
-    function get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv) {
+    function get_request_agency_instructions() {
         /*
          * ajax call to get additional information for the specified agency
          */
+
+        var agencyEin = $("#request-agency").val();
+        var requestInstructionsDiv = $("#request-agency-instructions");
+        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+
         $.ajax({
             url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
             type: "GET",
@@ -65,22 +70,15 @@ $(document).ready(function () {
                     sel.append(opt);
                 }
                 // Determine if the agencyRequestInstructions need to be shown on page load.
-
-                var agencyEin = $("#request-agency").val();
-                var requestInstructionsDiv = $("#request-agency-instructions");
-                var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-                get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv);
+                get_request_agency_instructions();
             }
         });
     });
 
     // ajax call to get additional information for the specified agency
     $("#request-agency").change(function () {
-        // Determine if the agencyRequestInstructions need to be shown on page load.
-        var agencyEin = $("#request-agency").val();
-        var requestInstructionsDiv = $("#request-agency-instructions");
-        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-        get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv);
+        // Determine if the agencyRequestInstructions need to be shown on page load.=
+        get_request_agency_instructions();
     });
 
     $("#request-agency-instructions-toggle").click(function () {
