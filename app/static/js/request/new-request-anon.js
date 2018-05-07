@@ -45,11 +45,15 @@ $(document).ready(function () {
         });
     });
 
-    // ajax call to get additional information for the specified agency
+    // ajax call to get additional information and custom request forms for the specified agency
     $("#request-agency").change(function () {
         var selectedAgency = $("#request-agency").val();
         var requestInstructionsDiv = $("#request-agency-instructions");
         var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+        var customRequestFormsDiv = $("#custom-request-forms");
+        var requestType = $("#request-type");
+
+        // ajax call to get additional information
         $.ajax({
             url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
             type: "GET",
@@ -66,7 +70,38 @@ $(document).ready(function () {
                 requestInstructionsDiv.hide();
             }
 
-        })
+        });
+
+        // ajax call to show request type drop down
+        $.ajax({
+            url: "/agency/feature/" + selectedAgency + "/" + "has_custom_forms",
+            type: "GET",
+            success: function (data) {
+                if (data["has_custom_forms"] === true) {
+                    customRequestFormsDiv.show();
+                    // ajax call to populate request type drop down with custom request form options
+                    $.ajax({
+                        url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
+                        type: "GET",
+                        success: function (data) {
+                            console.log(data);
+                            for (var i = 0; i < data.length; i++) {
+                                var opt = document.createElement("option");
+                                opt.innerHTML = data[i][1];
+                                opt.value = data[i][0];
+                                requestType.append(opt);
+                            }
+                        }
+                    });
+                }
+                else {
+                    customRequestFormsDiv.hide();
+                }
+            },
+            error: function () {
+                customRequestFormsDiv.hide();
+            }
+        });
     });
 
     $("#request-agency-instructions-toggle").click(function () {

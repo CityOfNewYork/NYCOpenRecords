@@ -44,7 +44,39 @@ $(document).ready(function () {
         error: function () {
             requestInstructionsDiv.hide();
         }
+    });
 
+    // ajax call to show request type drop down for the specified agency
+    var customRequestFormsDiv = $("#custom-request-forms");
+    var requestType = $("#request-type");
+    $.ajax({
+        url: "/agency/feature/" + selectedAgency + "/" + "has_custom_forms",
+        type: "GET",
+        success: function (data) {
+            if (data["has_custom_forms"] === true) {
+                customRequestFormsDiv.show();
+                // ajax call to populate request type drop down with custom request form options
+                $.ajax({
+                    url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
+                    type: "GET",
+                    success: function (data) {
+                        console.log(data);
+                        for (var i = 0; i < data.length; i++) {
+                            var opt = document.createElement("option");
+                            opt.innerHTML = data[i][1];
+                            opt.value = data[i][0];
+                            requestType.append(opt);
+                        }
+                    }
+                });
+            }
+            else {
+                customRequestFormsDiv.hide();
+            }
+        },
+        error: function () {
+            customRequestFormsDiv.hide();
+        }
     });
 
     $("#request-agency-instructions-toggle").click(function () {
