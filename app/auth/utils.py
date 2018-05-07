@@ -311,6 +311,8 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
     In order to prevent a possbile negative performance impact
     (due to foreign keys CASCADE), guid and user_type are compared with
     stored user attributes and are excluded from the update if both are identical.
+
+    Update search index for searching by assigned user.
     """
     updated_data = {
         'email': email,
@@ -329,8 +331,6 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
                                                    Events.new_value[
                                                        'auth_user_type'].astext == user.auth_user_type).all()
 
-        for user_request in user.user_requests:
-            Requests.query.filter_by(id=user_request.request_id).one().es_update()
         for event in update_events_values:
             update_object(
                 {'new_value': {'user_guid': guid,
@@ -338,12 +338,22 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
                 Events,
                 event.id
             )
-    update_object(
-        updated_data,
-        Users,
-        (user.guid, user.auth_user_type)
-    )
 
+        update_object(
+            updated_data,
+            Users,
+            (user.guid, user.auth_user_type)
+        )
+
+        for user_request in user.user_requests:
+            Requests.query.filter_by(id=user_request.request_id).one().es_update()
+
+    else:
+        update_object(
+            updated_data,
+            Users,
+            (user.guid, user.auth_user_type)
+        )
 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
