@@ -24,7 +24,30 @@ $(document).ready(function () {
         }
     });
 
-    // ajax call to get and populate list of agencies choices based on selected category
+
+    function get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv) {
+        /*
+         * ajax call to get additional information for the specified agency
+         */
+        $.ajax({
+            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    requestInstructionsDiv.show();
+                }
+                else {
+                    requestInstructionsDiv.hide();
+                }
+            },
+            error: function () {
+                requestInstructionsDiv.hide();
+            }
+
+        });
+    }
+
     $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
@@ -41,32 +64,23 @@ $(document).ready(function () {
                     opt.value = data[i][0];
                     sel.append(opt);
                 }
+                // Determine if the agencyRequestInstructions need to be shown on page load.
+
+                var agencyEin = $("#request-agency").val();
+                var requestInstructionsDiv = $("#request-agency-instructions");
+                var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+                get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv);
             }
         });
     });
 
     // ajax call to get additional information for the specified agency
     $("#request-agency").change(function () {
-        var selectedAgency = $("#request-agency").val();
+        // Determine if the agencyRequestInstructions need to be shown on page load.
+        var agencyEin = $("#request-agency").val();
         var requestInstructionsDiv = $("#request-agency-instructions");
         var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-        $.ajax({
-            url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
-            type: "GET",
-            success: function (data) {
-                if (data["specific_request_instructions"]["text"] !== "") {
-                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                    requestInstructionsDiv.show();
-                }
-                else {
-                    requestInstructionsDiv.hide();
-                }
-            },
-            error: function () {
-                requestInstructionsDiv.hide();
-            }
-
-        })
+        get_request_agency_instructions(agencyEin, requestInstructionsDiv, requestInstructionsContentDiv);
     });
 
     $("#request-agency-instructions-toggle").click(function () {
@@ -264,7 +278,7 @@ $(document).ready(function () {
     // Disable submit button on form submission
     $('#request-form').submit(function () {
         // Prevent multiple submissions
-        $(this).submit(function() {
+        $(this).submit(function () {
             return false;
         });
         $('#submit').hide();
