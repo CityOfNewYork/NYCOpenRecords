@@ -25,7 +25,7 @@ $(document).ready(function () {
     });
 
 
-    function get_request_agency_instructions() {
+    function getRequestAgencyInstructions() {
         /*
          * ajax call to get additional information for the specified agency
          */
@@ -70,7 +70,7 @@ $(document).ready(function () {
                     sel.append(opt);
                 }
                 // Determine if the agencyRequestInstructions need to be shown on page load.
-                get_request_agency_instructions();
+                getRequestAgencyInstructions();
             }
         });
     });
@@ -78,7 +78,7 @@ $(document).ready(function () {
     // ajax call to get additional information for the specified agency
     $("#request-agency").change(function () {
         // Determine if the agencyRequestInstructions need to be shown on page load.=
-        get_request_agency_instructions();
+        getRequestAgencyInstructions();
     });
 
     $("#request-agency-instructions-toggle").click(function () {

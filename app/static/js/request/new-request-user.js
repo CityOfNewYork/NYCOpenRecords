@@ -9,7 +9,7 @@ $(document).ready(function () {
     $("input[name='tz-name']").val(jstz.determine().name());
 
 
-    function get_request_agency_instructions() {
+    function getRequestAgencyInstructions() {
         /*
          * ajax call to get additional information for the specified agency
          */
@@ -56,13 +56,13 @@ $(document).ready(function () {
             }
         });
         // Determine if the agencyRequestInstructions need to be shown on page load.
-        get_request_agency_instructions();
+        getRequestAgencyInstructions();
     });
 
     // ajax call to get additional information for the specified agency
     $("#request-agency").change(function () {
         // Determine if the agencyRequestInstructions need to be shown on page load.
-        get_request_agency_instructions();
+        getRequestAgencyInstructions();
     });
 
 
