@@ -917,6 +917,21 @@ def process_email_template_request(request_id, data):
     return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
 
 
+def assign_point_of_contact(point_of_contact):
+    """
+    Assign a user to be the point of contact in emails/letters
+
+    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
+    :return: A User object to be designated as the point of contact for a request
+    """
+    if point_of_contact:
+        return Users.query.filter(Users.guid == point_of_contact,
+                                  Users.auth_user_type.in_(
+                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+    else:
+        return current_user
+
+
 def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an acknowledgement.
@@ -984,13 +999,7 @@ def _acknowledgment_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        point_of_contact = acknowledgment.get('point_of_contact', None)
-        if point_of_contact:
-            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(
-                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        else:
-            point_of_contact_user = current_user
+        point_of_contact_user = assign_point_of_contact(acknowledgment.get('point_of_contact', None))
 
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
@@ -1049,13 +1058,7 @@ def _extension_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        point_of_contact = extension.get('point_of_contact', None)
-        if point_of_contact:
-            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(
-                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        else:
-            point_of_contact_user = current_user
+        point_of_contact_user = assign_point_of_contact(extension.get('point_of_contact', None))
 
         acknowledgement = request.responses.join(Determinations).filter(
             Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none()
@@ -1120,13 +1123,7 @@ def _closing_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        point_of_contact = closing.get('point_of_contact', None)
-        if point_of_contact:
-            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(
-                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        else:
-            point_of_contact_user = current_user
+        point_of_contact_user = assign_point_of_contact(closing.get('point_of_contact', None))
 
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
@@ -1185,13 +1182,7 @@ def _denial_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        point_of_contact = denial.get('point_of_contact', None)
-        if point_of_contact:
-            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(
-                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        else:
-            point_of_contact_user = current_user
+        point_of_contact_user = assign_point_of_contact(denial.get('point_of_contact', None))
 
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
@@ -1248,13 +1239,7 @@ def _reopening_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        point_of_contact = data.get('point_of_contact', None)
-        if point_of_contact:
-            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(
-                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        else:
-            point_of_contact_user = current_user
+        point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
 
         due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
 
@@ -1309,13 +1294,7 @@ def _response_letter_handler(request_id, data):
 
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
-        point_of_contact = data.get('point_of_contact', None)
-        if point_of_contact:
-            point_of_contact_user = Users.query.filter(Users.guid == point_of_contact,
-                                                       Users.auth_user_type.in_(
-                                                           user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-        else:
-            point_of_contact_user = current_user
+        point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
 
         template = render_template_string(contents.content,
                                           date_received=request.date_created,
@@ -1360,11 +1339,19 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
+    point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
+
     _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
 
+    # Render the jinja for the reasons content
+    for index, reason in enumerate(_reasons):
+        reason_list = list(reason)
+        reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
+        _reasons[index] = reason_list
+
     # Determine if a custom reason is used
-    # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
+    # TODO(joelbcastillo) Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features - Should be completed by v2.4
     custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
 
     # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
@@ -1427,8 +1414,16 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         if content.endswith(TINYMCE_EDITABLE_P_TAG):
             content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
     else:
+        point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
+
         _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                     for reason_id in data.getlist('reason_ids[]')]
+
+        # Render the jinja for the reasons content
+        for index, reason in enumerate(_reasons):
+            reason_list = list(reason)
+            reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
+            _reasons[index] = reason_list
 
         # Determine if a custom reason is used
         # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
