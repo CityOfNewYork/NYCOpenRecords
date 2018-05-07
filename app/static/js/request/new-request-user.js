@@ -68,7 +68,6 @@ $(document).ready(function () {
                         url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
                         type: "GET",
                         success: function (data) {
-                            console.log(data);
                             for (var i = 0; i < data.length; i++) {
                                 var opt = document.createElement("option");
                                 opt.innerHTML = data[i][1];
