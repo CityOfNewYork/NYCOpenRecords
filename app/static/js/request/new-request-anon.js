@@ -10,34 +10,6 @@ $(document).ready(function () {
         getRequestAgencyInstructions();
     });
 
-    function getRequestAgencyInstructions() {
-        /*
-         * ajax call to get additional information for the specified agency
-         */
-
-        var agencyEin = $("#request-agency").val();
-        var requestInstructionsDiv = $("#request-agency-instructions");
-        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-
-        $.ajax({
-            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
-            type: "GET",
-            success: function (data) {
-                if (data["specific_request_instructions"]["text"] !== "") {
-                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                    requestInstructionsDiv.show();
-                }
-                else {
-                    requestInstructionsDiv.hide();
-                }
-            },
-            error: function () {
-                requestInstructionsDiv.hide();
-            }
-
-        });
-    }
-
     $("input[name='tz-name']").val(jstz.determine().name());
 
     // Prevent user from entering a non numeric value into phone and fax field
@@ -310,6 +282,35 @@ $(document).ready(function () {
     $("#user-organization").keyup(function () {
         characterCounter("#organization-character-count", 128, $(this).val().length)
     });
+
+
+    function getRequestAgencyInstructions() {
+        /*
+         * ajax call to get additional information for the specified agency
+         */
+
+        var agencyEin = $("#request-agency").val();
+        var requestInstructionsDiv = $("#request-agency-instructions");
+        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+
+        $.ajax({
+            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    requestInstructionsDiv.show();
+                }
+                else {
+                    requestInstructionsDiv.hide();
+                }
+            },
+            error: function () {
+                requestInstructionsDiv.hide();
+            }
+
+        });
+    }
 });
 
 
