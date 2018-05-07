@@ -51,7 +51,7 @@ def get_agency_letter_templates(agency_ein, letter_type=None):
 
 
 @agency_api_blueprint.route('/custom_request_forms/<string:agency_ein>', methods=['GET'])
-def get_custom_request_forms(agency_ein):
+def get_custom_request_form_options(agency_ein):
     """
     Retrieve the custom request forms for the specified agency.
 
