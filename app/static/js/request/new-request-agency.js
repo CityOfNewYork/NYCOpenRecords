@@ -5,9 +5,40 @@
 "use strict";
 
 $(document).ready(function () {
+    $(window).load(function () {
+        // Determine if the agencyRequestInstructions need to be shown on page load.
+        getRequestAgencyInstructions();
+    });
+
+    function getRequestAgencyInstructions() {
+        /*
+         * ajax call to get additional information for the specified agency
+         */
+
+        var agencyEin = $("#request-agency").val();
+        var requestInstructionsDiv = $("#request-agency-instructions");
+        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+
+        $.ajax({
+            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    requestInstructionsDiv.show();
+                }
+                else {
+                    requestInstructionsDiv.hide();
+                }
+            },
+            error: function () {
+                requestInstructionsDiv.hide();
+            }
+
+        });
+    }
 
     $("input[name='tz-name']").val(jstz.determine().name());
-
 
     // Prevent user from entering a non numeric value into phone and fax field
     $("#phone").keypress(function (key) {
@@ -25,26 +56,9 @@ $(document).ready(function () {
         }
     });
 
-    // ajax call to get additional information for the specified agency
-    var selectedAgency = $("#request-agency").val();
-    var requestInstructionsDiv = $("#request-agency-instructions");
-    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-    $.ajax({
-        url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
-        type: "GET",
-        success: function (data) {
-            if (data["specific_request_instructions"]["text"] !== "") {
-                requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                requestInstructionsDiv.show();
-            }
-            else {
-                requestInstructionsDiv.hide();
-            }
-        },
-        error: function () {
-            requestInstructionsDiv.hide();
-        }
 
+    $("#request-agency").change(function () {
+        getRequestAgencyInstructions();
     });
 
     $("#request-agency-instructions-toggle").click(function () {
@@ -250,7 +264,7 @@ $(document).ready(function () {
     // Disable submit button on form submission
     $("#request-form").submit(function () {
         // Prevent multiple submissions
-        $(this).submit(function() {
+        $(this).submit(function () {
             return false;
         });
         $("#submit").hide();
