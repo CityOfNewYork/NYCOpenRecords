@@ -1378,7 +1378,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         _reasons[index] = reason_list
 
     # Determine if a custom reason is used
-    # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
+    # TODO(joelbcastillo) Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features - Should be completed by v2.4
     custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
 
     # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
