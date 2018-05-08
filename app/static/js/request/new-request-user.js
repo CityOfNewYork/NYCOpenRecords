@@ -24,16 +24,19 @@ $(document).ready(function () {
                     opt.innerHTML = data[i][1];
                     opt.value = data[i][0];
                     sel.append(opt);
+                    getCustomRequestForms(sel.find("option:first-child").val());
                 }
             }
         });
     });
 
-    // ajax call to get additional information for the specified agency
+    // ajax call to get additional information and custom request forms for the specified agency
     $("#request-agency").change(function () {
         var selectedAgency = $("#request-agency").val();
         var requestInstructionsDiv = $("#request-agency-instructions");
         var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+
+        // ajax call to get additional information
         $.ajax({
             url: "/agency/feature/" + selectedAgency + "/" + "specific_request_instructions",
             type: "GET",
@@ -51,6 +54,8 @@ $(document).ready(function () {
             }
 
         });
+
+        getCustomRequestForms(selectedAgency);
     });
 
     $("#request-agency-instructions-toggle").click(function () {
