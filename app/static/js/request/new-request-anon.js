@@ -51,7 +51,6 @@ $(document).ready(function () {
         });
     });
 
-
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
     });
@@ -283,34 +282,6 @@ $(document).ready(function () {
         characterCounter("#organization-character-count", 128, $(this).val().length)
     });
 
-
-    function getRequestAgencyInstructions() {
-        /*
-         * ajax call to get additional information for the specified agency
-         */
-
-        var agencyEin = $("#request-agency").val();
-        var requestInstructionsDiv = $("#request-agency-instructions");
-        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-
-        $.ajax({
-            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
-            type: "GET",
-            success: function (data) {
-                if (data["specific_request_instructions"]["text"] !== "") {
-                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                    requestInstructionsDiv.show();
-                }
-                else {
-                    requestInstructionsDiv.hide();
-                }
-            },
-            error: function () {
-                requestInstructionsDiv.hide();
-            }
-
-        });
-    }
 });
 
 
