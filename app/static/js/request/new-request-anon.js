@@ -24,42 +24,6 @@ $(document).ready(function () {
         }
     });
 
-    // function to determine if custom request forms need to be shown on category or agency change
-    function getCustomRequestForms(agencyEin) {
-        var selectedAgency = agencyEin;
-        var customRequestFormsDiv = $("#custom-request-forms");
-        var requestType = $("#request-type");
-
-        // ajax call to show request type drop down
-        requestType.empty();
-        $.ajax({
-            url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
-            type: "GET",
-            success: function (data) {
-                if (data["custom_request_forms"] === true) {
-                    customRequestFormsDiv.show();
-                    // ajax call to populate request type drop down with custom request form options
-                    $.ajax({
-                        url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
-                        type: "GET",
-                        success: function (data) {
-                            requestType.append(new Option("", ""));
-                            for (var i = 0; i < data.length; i++) {
-                                requestType.append(new Option(data[i][1], data[i][0]));
-                            }
-                        }
-                    });
-                }
-                else {
-                    customRequestFormsDiv.hide();
-                }
-            },
-            error: function () {
-                customRequestFormsDiv.hide();
-            }
-        });
-    }
-
     // ajax call to get and populate list of agencies choices based on selected category
     $("#request-category").change(function () {
         $.ajax({
