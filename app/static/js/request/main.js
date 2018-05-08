@@ -184,15 +184,18 @@ function renderCustomRequestForm() {
     var formId = $("#request-type").val();
     var agencyEin = $("#request-agency").val();
 
-    $.ajax({
-        url: "/agency/api/v1.0/custom_request_form_fields",
-        type: "GET",
-        data: {
-            form_id: formId,
-            agency_ein: agencyEin
-        },
-        success: function (data) {
-            // TODO: print actual form out.
-        }
-    });
+    if (formId !== "") {
+        $.ajax({
+            url: "/agency/api/v1.0/custom_request_form_fields",
+            type: "GET",
+            data: {
+                form_id: formId,
+                agency_ein: agencyEin
+            },
+            success: function (data) {
+                // TODO: print actual form out.
+                console.log(data);
+            }
+        });
+    }
 }
