@@ -33,10 +33,10 @@ $(document).ready(function () {
         // ajax call to show request type drop down
         requestType.empty();
         $.ajax({
-            url: "/agency/feature/" + selectedAgency + "/" + "has_custom_forms",
+            url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
             type: "GET",
             success: function (data) {
-                if (data["has_custom_forms"] === true) {
+                if (data["custom_request_forms"] === true) {
                     customRequestFormsDiv.show();
                     // ajax call to populate request type drop down with custom request form options
                     $.ajax({
