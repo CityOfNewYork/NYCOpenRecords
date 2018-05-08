@@ -31,14 +31,15 @@ $(document).ready(function () {
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
                 toggleRequestAgencyInstructions("show");
+                getCustomRequestForms(sel.find("option:first-child").val());
             }
         });
     });
 
-
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
         toggleRequestAgencyInstructions("show");
+        getCustomRequestForms($("#request-agency").val());
     });
 
     $("#request-agency-instructions-toggle").click(function () {

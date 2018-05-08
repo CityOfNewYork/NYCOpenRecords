@@ -6,8 +6,9 @@
 
 $(document).ready(function () {
     $(window).load(function () {
-        // Determine if the agencyRequestInstructions need to be shown on page load.
+        // Determine if the agencyRequestInstructions and custom request forms need to be shown on page load.
         getRequestAgencyInstructions();
+        getCustomRequestForms($("#request-agency").val());
     });
 
     $("input[name='tz-name']").val(jstz.determine().name());
@@ -28,10 +29,10 @@ $(document).ready(function () {
         }
     });
 
-
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
         toggleRequestAgencyInstructions("hide");
+        getCustomRequestForms($("#request-agency").val());
     });
 
     $("#request-agency-instructions-toggle").click(function () {

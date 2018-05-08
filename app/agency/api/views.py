@@ -6,6 +6,7 @@ from app.agency.api.utils import (
     get_active_users_as_choices,
     get_letter_templates
 )
+from app.models import CustomRequestForms
 
 
 @agency_api_blueprint.route('/active_users/<string:agency_ein>', methods=['GET'])
@@ -47,3 +48,17 @@ def get_agency_letter_templates(agency_ein, letter_type=None):
     :return: JSON Object (keys are template types, values are arrays of tuples (id, name))
     """
     return jsonify(get_letter_templates(agency_ein, letter_type))
+
+
+@agency_api_blueprint.route('/custom_request_forms/<string:agency_ein>', methods=['GET'])
+def get_custom_request_form_options(agency_ein):
+    """
+    Retrieve the custom request forms for the specified agency.
+
+    :param agency_ein: Agency EIN (String)
+    :return: JSON Object (keys are the id of the custom request form, values are the names of the forms)
+    """
+    custom_request_forms = CustomRequestForms.query.with_entities(CustomRequestForms.id,
+                                                                  CustomRequestForms.form_name).filter_by(
+        agency_ein=agency_ein).all()
+    return jsonify(custom_request_forms), 200

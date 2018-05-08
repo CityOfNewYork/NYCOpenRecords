@@ -28,7 +28,6 @@ $(document).ready(function () {
         }
     });
 
-
     $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
@@ -48,13 +47,16 @@ $(document).ready(function () {
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
                 toggleRequestAgencyInstructions("show");
+                getCustomRequestForms(sel.find("option:first-child").val());
             }
         });
     });
 
+    // functions to get additional information and custom request forms for the specified agency
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
         toggleRequestAgencyInstructions("show");
+        getCustomRequestForms($("#request-agency").val());
     });
 
     $("#request-agency-instructions-toggle").click(function () {
