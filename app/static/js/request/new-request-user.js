@@ -45,6 +45,24 @@ $(document).ready(function () {
     $("#request-agency-instructions-toggle").click(function () {
         toggleRequestAgencyInstructions("default");
     });
+
+    $("#request-type").change(function () {
+        var formId = $("#request-type").val();
+        var agencyEin = $("#request-agency").val();
+
+        $.ajax({
+            url: "/agency/api/v1.0/custom_request_form_fields",
+            type: "GET",
+            data: {
+                form_id: formId,
+                agency_ein: agencyEin
+            },
+            success: function (data) {
+                // TODO: print actual form out.
+            }
+        });
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
         "data-placement": "top",

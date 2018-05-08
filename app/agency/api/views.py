@@ -1,6 +1,11 @@
-from flask import jsonify
-from flask_login import current_user, login_required
-
+from flask import (
+    jsonify,
+    request
+)
+from flask_login import (
+    current_user,
+    login_required
+)
 from app.agency.api import agency_api_blueprint
 from app.agency.api.utils import (
     get_active_users_as_choices,
@@ -62,3 +67,14 @@ def get_custom_request_form_options(agency_ein):
                                                                   CustomRequestForms.form_name).filter_by(
         agency_ein=agency_ein).all()
     return jsonify(custom_request_forms), 200
+
+
+@agency_api_blueprint.route('/custom_request_form_fields', methods=['GET'])
+def get_custom_request_form_fields():
+    """
+    Get the custom request form field definitions based on form id and agency ein
+    :return: JSON object containing the form field definitions
+    """
+    custom_request_form = CustomRequestForms.query.filter_by(id=request.args['form_id'],
+                                                             agency_ein=request.args['agency_ein']).one()
+    return jsonify(custom_request_form.field_definitions), 200
