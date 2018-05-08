@@ -1,21 +1,21 @@
 "use strict";
 
 // Don't cache ajax requests
-$.ajaxSetup({ cache: false });
+$.ajaxSetup({cache: false});
 
 $(function () {
     $("[data-toggle='popover']").popover();
 });
 
-$(function() {
-    $(".disable-enter-submit").keypress(function(e){
+$(function () {
+    $(".disable-enter-submit").keypress(function (e) {
         if (e.keyCode == '13') {
-           e.preventDefault();
+            e.preventDefault();
         }
     });
 });
 
-function characterCounter (target, limit, currentLength, minLength) {
+function characterCounter(target, limit, currentLength, minLength) {
     /* Global character counter
      *
      * Parameters:
@@ -47,7 +47,7 @@ function characterCounter (target, limit, currentLength, minLength) {
     }
 }
 
-function regexUrlChecker (value) {
+function regexUrlChecker(value) {
     /* Checks the value of a url link using regex with one of the following allowed protocols: http, https, ftp, git
      *
      * Parameters:
@@ -77,7 +77,36 @@ function notHolidayOrWeekend(date, forPicker) {
     }
     var formattedDate = $.datepicker.formatDate('yy-mm-dd', date);
     var holiday_or_weekend = $.inArray(formattedDate, holiday_dates) !== -1 ||
-            date.getDay() === 0 || date.getDay() === 6;
+        date.getDay() === 0 || date.getDay() === 6;
     // TODO: would be nice to display the name of the holiday (tooltip)
     return forPicker ? [!holiday_or_weekend] : !holiday_or_weekend;
+}
+
+
+function getRequestAgencyInstructions() {
+    /*
+     * ajax call to get additional information for the specified agency
+     */
+
+    var agencyEin = $("#request-agency").val();
+    var requestInstructionsDiv = $("#request-agency-instructions");
+    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+    if (agencyEin !== "") {
+        $.ajax({
+            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    requestInstructionsDiv.show();
+                }
+                else {
+                    requestInstructionsDiv.hide();
+                }
+            },
+            error: function () {
+                requestInstructionsDiv.hide();
+            }
+        });
+    }
 }
