@@ -139,8 +139,10 @@ function toggleRequestAgencyInstructions(action) {
     }
 }
 
-// function to determine if custom request forms need to be shown on category or agency change
 function getCustomRequestForms(agencyEin) {
+    /*
+     * function to determine if custom request forms need to be shown on category or agency change
+     */
     var selectedAgency = agencyEin;
     var customRequestFormsDiv = $("#custom-request-forms");
     var requestType = $("#request-type");
@@ -171,6 +173,26 @@ function getCustomRequestForms(agencyEin) {
         },
         error: function () {
             customRequestFormsDiv.hide();
+        }
+    });
+}
+
+function renderCustomRequestForm() {
+    /*
+     * function to render custom form fields based on their field definitions
+     */
+    var formId = $("#request-type").val();
+    var agencyEin = $("#request-agency").val();
+
+    $.ajax({
+        url: "/agency/api/v1.0/custom_request_form_fields",
+        type: "GET",
+        data: {
+            form_id: formId,
+            agency_ein: agencyEin
+        },
+        success: function (data) {
+            // TODO: print actual form out.
         }
     });
 }
