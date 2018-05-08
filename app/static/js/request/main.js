@@ -110,3 +110,31 @@ function getRequestAgencyInstructions() {
         });
     }
 }
+
+function toggleRequestAgencyInstructions(action) {
+    /*
+     * determine whether or not to show agency instruction content
+     */
+    var el = $("#request-agency-instructions-toggle");
+    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+    var hideHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span></button>";
+    var showHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span></button>";
+
+    if (action === "show") {
+        el.html(hideHtml);
+        requestInstructionsContentDiv.show();
+    }
+    else if (action === "hide") {
+        el.html(showHtml);
+        requestInstructionsContentDiv.hide();
+    }
+    else if (action === "default") {
+        if (el.html() === showHtml) {
+            el.html(hideHtml);
+            requestInstructionsContentDiv.show();
+        } else {
+            el.html(showHtml);
+            requestInstructionsContentDiv.hide();
+        }
+    }
+}

@@ -30,6 +30,7 @@ $(document).ready(function () {
                 }
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
+                toggleRequestAgencyInstructions("show");
             }
         });
     });
@@ -37,20 +38,11 @@ $(document).ready(function () {
 
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
+        toggleRequestAgencyInstructions("show");
     });
 
     $("#request-agency-instructions-toggle").click(function () {
-        var el = $("#request-agency-instructions-toggle");
-        var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-        var hideHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span></button>";
-        var showHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span></button>";
-        if (el.html() === showHtml) {
-            el.html(hideHtml);
-            requestInstructionsContentDiv.show();
-        } else {
-            el.html(showHtml);
-            requestInstructionsContentDiv.hide();
-        }
+        toggleRequestAgencyInstructions("default");
     });
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
