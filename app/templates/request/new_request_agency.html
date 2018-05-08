@@ -32,7 +32,7 @@
                 {% else %}
                     <input type="hidden" id="request-agency" value="{{ current_user.default_agency_ein }}" />
                 {% endif %}
-                <div class="alert alert-info" id="request-agency-instructions">
+                <div class="alert alert-info" id="request-agency-instructions" hidden>
                     <div id="request-agency-instructions-content" style="display: none;"></div>
                     <span id="request-agency-instructions-toggle"><button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class="glyphicon glyphicon-chevron-down"></span></button></span>
                 </div>
