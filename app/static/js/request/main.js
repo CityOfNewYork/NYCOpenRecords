@@ -1,21 +1,21 @@
 "use strict";
 
 // Don't cache ajax requests
-$.ajaxSetup({ cache: false });
+$.ajaxSetup({cache: false});
 
 $(function () {
     $("[data-toggle='popover']").popover();
 });
 
-$(function() {
-    $(".disable-enter-submit").keypress(function(e){
+$(function () {
+    $(".disable-enter-submit").keypress(function (e) {
         if (e.keyCode == '13') {
-           e.preventDefault();
+            e.preventDefault();
         }
     });
 });
 
-function characterCounter (target, limit, currentLength, minLength) {
+function characterCounter(target, limit, currentLength, minLength) {
     /* Global character counter
      *
      * Parameters:
@@ -47,7 +47,7 @@ function characterCounter (target, limit, currentLength, minLength) {
     }
 }
 
-function regexUrlChecker (value) {
+function regexUrlChecker(value) {
     /* Checks the value of a url link using regex with one of the following allowed protocols: http, https, ftp, git
      *
      * Parameters:
@@ -77,9 +77,66 @@ function notHolidayOrWeekend(date, forPicker) {
     }
     var formattedDate = $.datepicker.formatDate('yy-mm-dd', date);
     var holiday_or_weekend = $.inArray(formattedDate, holiday_dates) !== -1 ||
-            date.getDay() === 0 || date.getDay() === 6;
+        date.getDay() === 0 || date.getDay() === 6;
     // TODO: would be nice to display the name of the holiday (tooltip)
     return forPicker ? [!holiday_or_weekend] : !holiday_or_weekend;
+}
+
+function getRequestAgencyInstructions() {
+    /*
+     * ajax call to get additional information for the specified agency
+     */
+
+    var agencyEin = $("#request-agency").val();
+    var requestInstructionsDiv = $("#request-agency-instructions");
+    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+
+    if (agencyEin !== "") {
+        $.ajax({
+            url: "/agency/feature/" + agencyEin + "/" + "specific_request_instructions",
+            type: "GET",
+            success: function (data) {
+                if (data["specific_request_instructions"]["text"] !== "") {
+                    requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
+                    requestInstructionsDiv.show();
+                }
+                else {
+                    requestInstructionsDiv.hide();
+                }
+            },
+            error: function () {
+                requestInstructionsDiv.hide();
+            }
+        });
+    }
+}
+
+function toggleRequestAgencyInstructions(action) {
+    /*
+     * determine whether or not to show agency instruction content
+     */
+    var el = $("#request-agency-instructions-toggle");
+    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
+    var hideHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span></button>";
+    var showHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span></button>";
+
+    if (action === "show") {
+        el.html(hideHtml);
+        requestInstructionsContentDiv.show();
+    }
+    else if (action === "hide") {
+        el.html(showHtml);
+        requestInstructionsContentDiv.hide();
+    }
+    else if (action === "default") {
+        if (el.html() === showHtml) {
+            el.html(hideHtml);
+            requestInstructionsContentDiv.show();
+        } else {
+            el.html(showHtml);
+            requestInstructionsContentDiv.hide();
+        }
+    }
 }
 
 // function to determine if custom request forms need to be shown on category or agency change
