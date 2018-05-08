@@ -1,9 +1,9 @@
 MONITOR_AGENCY_REQUESTS = 'monitor_agency_requests'
 SPECIFIC_REQUEST_INSTRUCTIONS = 'specific_request_instructions'
-HAS_CUSTOM_FORMS = 'has_custom_forms'
+CUSTOM_REQUEST_FORMS = 'custom_request_forms'
 
 AGENCY_FEATURES = [
     MONITOR_AGENCY_REQUESTS,
     SPECIFIC_REQUEST_INSTRUCTIONS,
-    HAS_CUSTOM_FORMS
+    CUSTOM_REQUEST_FORMS
 ]
