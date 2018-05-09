@@ -1,6 +1,7 @@
 from flask import (
     jsonify,
-    request
+    request,
+    render_template
 )
 from flask_login import (
     current_user,
@@ -77,4 +78,22 @@ def get_custom_request_form_fields():
     """
     custom_request_form = CustomRequestForms.query.filter_by(id=request.args['form_id'],
                                                              agency_ein=request.args['agency_ein']).one()
-    return jsonify(custom_request_form.field_definitions), 200
+
+    form_template = ""
+    for key, value in custom_request_form.field_definitions.items():
+        field_name = key
+        field_label = value['label']
+        field_type = value['type']
+        field_values = value.get('values', None)
+        field_required = value['required']
+
+        if field_type == 'input':
+            form_template = form_template + render_template('custom_request_form_templates/input_template.html', field_label=field_label, field_name=field_name, field_required=field_required) + '\n'
+        elif field_type == 'textarea':
+            form_template = form_template + render_template('custom_request_form_templates/textarea_template.html', field_label=field_label, field_name=field_name, field_required=field_required) + '\n'
+        elif field_type == 'select':
+            form_template = form_template + render_template('custom_request_form_templates/select_template.html', field_label=field_label, field_name=field_name, options=field_values, field_required=field_required) + '\n'
+        elif field_type == 'date':
+            form_template = form_template + render_template('custom_request_form_templates/date_template.html',field_label=field_label, field_name=field_name, field_required=field_required) + '\n'
+
+    return jsonify(form_template), 200

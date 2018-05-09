@@ -1,0 +1,9 @@
+<div class="custom-request-form-select">
+    <label class="request-heading" for="{{ field_label }}">{{ field_name }}</label><br>
+    <select class="input-block-level" name="{{ field_label }}" {% if field_required %}data-parsley-required{% endif %}>
+        <option value=""></option>
+        {% for key, value in options.items() %}
+            <option value="{{ value }}">{{ key }}</option>
+        {% endfor %}
+    </select><br>
+</div>

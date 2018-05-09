@@ -195,6 +195,23 @@ function renderCustomRequestForm() {
             success: function (data) {
                 // TODO: print actual form out.
                 console.log(data);
+                var customRequestFormContent = $("#custom-request-form-content");
+                customRequestFormContent.html(data);
+
+                // render datepicker plugins
+                $(".dtpick").datepicker({
+                    dateFormat: "mm/dd/yy",
+                    maxDate: 0
+                }).keydown(function (e) {
+                    // prevent keyboard input except for tab
+                    if (e.keyCode !== 9)
+                        e.preventDefault();
+                });
+
+
+
+
+                customRequestFormContent.show();
             }
         });
     }
