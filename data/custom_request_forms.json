@@ -32,26 +32,35 @@
       "agency_ein": "0056",
       "form_name": "Arrest Report",
       "field_definitions": {
-        "date": {
-          "type": "datetimepicker",
-          "validators": {
-            "required": true
-          }
+        "Arrest Report #": {
+          "type": "input",
+          "label": "arrest-report-number",
+          "required": false
         },
-        "title": {
-          "type": "text",
-          "validators": {
-            "required": true,
-            "min_length": "5",
-            "max_length": "500"
-          }
-        },
-        "description": {
+        "Arrest Description": {
           "type": "textarea",
-          "validators": {
-            "required": false,
-            "max_length": "5000"
-          }
+          "label": "arrest-description",
+          "required": false
+        },
+        "Precint Number": {
+          "type": "input",
+          "label": "precinct-number",
+          "required": false
+        },
+        "Arrest Dropdown": {
+          "type": "select",
+          "label": "arrest-dropdown",
+          "values": {
+            "key1": "value1",
+            "key2": "value2",
+            "key3": "value3"
+          },
+          "required": false
+        },
+        "Arrest Date": {
+          "type": "date",
+          "label": "arrest-date",
+          "required": false
         }
       },
       "repeatable": "0"
