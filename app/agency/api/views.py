@@ -80,20 +80,20 @@ def get_custom_request_form_fields():
                                                              agency_ein=request.args['agency_ein']).one()
 
     form_template = ""
-    for key, value in custom_request_form.field_definitions.items():
-        field_name = key
-        field_label = value['label']
-        field_type = value['type']
-        field_values = value.get('values', None)
-        field_required = value['required']
+    for field in custom_request_form.field_definitions:
+        for key, value in field.items():
+            field_text = key
+            field_name = value['name']
+            field_type = value['type']
+            field_values = value.get('values', None)
+            field_required = value['required']
 
-        if field_type == 'input':
-            form_template = form_template + render_template('custom_request_form_templates/input_template.html', field_label=field_label, field_name=field_name, field_required=field_required) + '\n'
-        elif field_type == 'textarea':
-            form_template = form_template + render_template('custom_request_form_templates/textarea_template.html', field_label=field_label, field_name=field_name, field_required=field_required) + '\n'
-        elif field_type == 'select':
-            form_template = form_template + render_template('custom_request_form_templates/select_template.html', field_label=field_label, field_name=field_name, options=field_values, field_required=field_required) + '\n'
-        elif field_type == 'date':
-            form_template = form_template + render_template('custom_request_form_templates/date_template.html',field_label=field_label, field_name=field_name, field_required=field_required) + '\n'
-
+            if field_type == 'input':
+                form_template = form_template + render_template('custom_request_form_templates/input_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
+            elif field_type == 'textarea':
+                form_template = form_template + render_template('custom_request_form_templates/textarea_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
+            elif field_type == 'select':
+                form_template = form_template + render_template('custom_request_form_templates/select_template.html', field_text=field_text, field_name=field_name, options=field_values, field_required=field_required) + '\n'
+            elif field_type == 'date':
+                form_template = form_template + render_template('custom_request_form_templates/date_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
     return jsonify(form_template), 200

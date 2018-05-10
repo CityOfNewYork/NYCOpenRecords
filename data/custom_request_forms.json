@@ -2,90 +2,50 @@
   "custom_request_forms": [
     {
       "agency_ein": "0056",
-      "form_name": "Body Worn Camera",
-      "field_definitions": {
-        "title": {
-          "type": "text",
-          "validators": {
-            "required": true,
-            "min_length": "5",
-            "max_length": "500"
-          }
-        },
-        "description": {
-          "type": "textarea",
-          "validators": {
-            "required": false,
-            "max_length": "5000"
-          }
-        },
-        "date": {
-          "type": "datepicker",
-          "validators": {
-            "required": true
-          }
-        }
-      },
-      "repeatable": "2"
-    },
-    {
-      "agency_ein": "0056",
       "form_name": "Arrest Report",
-      "field_definitions": {
-        "Arrest Report #": {
-          "type": "input",
-          "label": "arrest-report-number",
-          "required": false
+      "field_definitions": [
+        {
+          "Arrest Report #": {
+            "type": "input",
+            "name": "arrest-report-number",
+            "required": false
+          }
         },
-        "Arrest Description": {
-          "type": "textarea",
-          "label": "arrest-description",
-          "required": false
+        {
+          "Arrest Description": {
+            "type": "textarea",
+            "name": "arrest-description",
+            "required": false
+          }
         },
-        "Precint Number": {
-          "type": "input",
-          "label": "precinct-number",
-          "required": false
+        {
+          "Precinct Number": {
+            "type": "input",
+            "name": "precinct-number",
+            "required": false
+          }
         },
-        "Arrest Dropdown": {
-          "type": "select",
-          "label": "arrest-dropdown",
-          "values": {
-            "key1": "value1",
-            "key2": "value2",
-            "key3": "value3"
-          },
-          "required": false
+        {
+          "Arrest Dropdown": {
+            "type": "select",
+            "name": "arrest-dropdown",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
         },
-        "Arrest Date": {
-          "type": "date",
-          "label": "arrest-date",
-          "required": false
+        {
+          "Arrest Date": {
+            "type": "date",
+            "name": "arrest-date",
+            "required": false
+          }
         }
-      },
+      ],
       "repeatable": "0"
-    },
-    {
-      "agency_ein": "0056",
-      "form_name": "Prisoner Info",
-      "field_definitions": {
-        "title": {
-          "type": "text",
-          "validators": {
-            "required": true,
-            "min_length": "5",
-            "max_length": "500"
-          }
-        },
-        "description": {
-          "type": "textarea",
-          "validators": {
-            "required": false,
-            "max_length": "5000"
-          }
-        }
-      },
-      "repeatable": "1"
     }
   ]
 }
