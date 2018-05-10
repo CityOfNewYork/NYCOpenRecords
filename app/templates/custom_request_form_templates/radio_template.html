@@ -1,5 +1,9 @@
 <div class="custom-request-form-radio">
-    <h5>Yes or No?</h5>
-    <input type="radio" name="{{ field_name }}" value="{{ field_text }}" style="display: inline;"/>
-    <label style="display: inline;" for="{{ field_name }}">{{ field_text }}</label><br>
+    <label class="request-heading" for="{{ field_name }}">{{ field_text }}</label><br>
+    <h5>{{ field_info }}</h5>
+    {% for option in options %}
+        <input type="radio" name="{{ field_name }}" value="{{ option }}" style="display: inline;"/>
+        <label style="display: inline;" for="{{ field_name }}">{{ option }}</label><br>
+    {% endfor %}
+    <br>
 </div>

@@ -85,24 +85,11 @@ def get_custom_request_form_fields():
             field_text = key
             field_name = value['name']
             field_type = value['type']
+            field_info = value.get('info', None)
             field_values = value.get('values', None)
             field_required = value['required']
+            min_length = value.get('min_length', None)
+            max_length = value.get('max_length', None)
 
-            # if field_type == 'input':
-            #     form_template = form_template + render_template('custom_request_form_templates/input_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
-            # elif field_type == 'textarea':
-            #     form_template = form_template + render_template('custom_request_form_templates/textarea_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
-            # elif field_type == 'select_dropdown':
-            #     form_template = form_template + render_template('custom_request_form_templates/select_dropdown_template.html', field_text=field_text, field_name=field_name, options=field_values, field_required=field_required) + '\n'
-            # elif field_type == 'select_multiple':
-            #     form_template = form_template + render_template('custom_request_form_templates/select_multiple_template.html', field_text=field_text, field_name=field_name, options=field_values, field_required=field_required) + '\n'
-            # elif field_type == 'radio':
-            #     form_template = form_template + render_template('custom_request_form_templates/radio_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
-            # elif field_type == 'date':
-            #     form_template = form_template + render_template('custom_request_form_templates/date_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
-            # elif field_type == 'time':
-            #     form_template = form_template + render_template('custom_request_form_templates/time_template.html', field_text=field_text, field_name=field_name, field_required=field_required) + '\n'
-
-            form_template = form_template + render_template('custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text, field_name=field_name, options=field_values, field_required=field_required) + '\n'
-
+            form_template = form_template + render_template('custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text, field_name=field_name, field_info=field_info, options=field_values, field_required=field_required, min_length=min_length, max_length=max_length) + '\n'
     return jsonify(form_template), 200

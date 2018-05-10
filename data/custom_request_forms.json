@@ -8,14 +8,16 @@
           "Arrest Report #": {
             "type": "input",
             "name": "arrest-report-number",
-            "required": false
+            "required": false,
+            "max_length": "25"
           }
         },
         {
           "Arrest Description": {
             "type": "textarea",
             "name": "arrest-description",
-            "required": false
+            "required": false,
+            "min_length": "25"
           }
         },
         {
@@ -48,6 +50,12 @@
           "Arrest Radio": {
             "type": "radio",
             "name": "arrest-radio",
+            "info": "Please select an option",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
             "required": false
           }
         },

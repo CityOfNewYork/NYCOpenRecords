@@ -194,8 +194,6 @@ function renderCustomRequestForm() {
                 agency_ein: agencyEin
             },
             success: function (data) {
-                // TODO: print actual form out.
-                console.log(data);
                 customRequestFormContent.html(data);
 
                 // render datepicker plugins
