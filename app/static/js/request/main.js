@@ -149,20 +149,28 @@ function getCustomRequestForms(agencyEin) {
 
     // ajax call to show request type drop down
     requestType.empty();
+    $("#custom-request-form-content").html("");
+    $("#custom-request-form-content").hide();
     $.ajax({
         url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"] === true) {
-                customRequestFormsDiv.show();
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
                     type: "GET",
                     success: function (data) {
-                        requestType.append(new Option("", ""));
-                        for (var i = 0; i < data.length; i++) {
-                            requestType.append(new Option(data[i][1], data[i][0]));
+                        if (data.length === 1) {
+                            requestType.append(new Option(data[0][1], data[0][0]));
+                            renderCustomRequestForm();
+                        }
+                        else {
+                            requestType.append(new Option("", ""));
+                            for (var i = 0; i < data.length; i++) {
+                                requestType.append(new Option(data[i][1], data[i][0]));
+                            }
+                            customRequestFormsDiv.show();
                         }
                     }
                 });
@@ -184,6 +192,7 @@ function renderCustomRequestForm() {
     var formId = $("#request-type").val();
     var agencyEin = $("#request-agency").val();
     var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     if (formId !== "") {
         $.ajax({
@@ -248,6 +257,7 @@ function renderCustomRequestForm() {
                 });
 
                 customRequestFormContent.show();
+                customRequestFormAdditionalContent.show();
             }
         });
     }

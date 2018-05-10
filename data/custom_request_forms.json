@@ -87,6 +87,29 @@
         }
       ],
       "repeatable": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Body Worn Camera",
+      "field_definitions": [
+        {
+          "Arrest Report #": {
+            "type": "input",
+            "name": "body-worn-number",
+            "required": false,
+            "max_length": "25"
+          }
+        },
+        {
+          "Arrest Description": {
+            "type": "textarea",
+            "name": "body-worn-description",
+            "required": false,
+            "min_length": "25"
+          }
+        }
+      ],
+      "repeatable": "0"
     }
   ]
 }
