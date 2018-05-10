@@ -27,7 +27,7 @@ from app import (
     login_manager,
     sentry
 )
-from app.models import Users, AgencyUsers, Events
+from app.models import Users, AgencyUsers, Events, Requests
 from app.constants import user_type_auth, USER_ID_DELIMITER
 from app.constants.web_services import (
     USER_ENDPOINT,
@@ -304,13 +304,13 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
     `email_validated` and `terms_of_use_accepted` (this function
     should be called AFTER email validation and terms-of-use acceptance
     has been completed).
-
     Update any database objects this user is associated with.
     - user_requests
     - events
     In order to prevent a possbile negative performance impact
     (due to foreign keys CASCADE), guid and user_type are compared with
     stored user attributes and are excluded from the update if both are identical.
+    Update search index for searching by assigned user.
     """
     updated_data = {
         'email': email,
@@ -328,6 +328,7 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid,
                                                    Events.new_value[
                                                        'auth_user_type'].astext == user.auth_user_type).all()
+
         for event in update_events_values:
             update_object(
                 {'new_value': {'user_guid': guid,
@@ -335,11 +336,22 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
                 Events,
                 event.id
             )
-    update_object(
-        updated_data,
-        Users,
-        (user.guid, user.auth_user_type)
-    )
+
+        update_object(
+            updated_data,
+            Users,
+            (user.guid, user.auth_user_type)
+        )
+
+        for user_request in user.user_requests:
+            Requests.query.filter_by(id=user_request.request_id).one().es_update()
+
+    else:
+        update_object(
+            updated_data,
+            Users,
+            (user.guid, user.auth_user_type)
+        )
 
 
 def _validate_email(email_validation_flag, guid, email_address, user_type):
