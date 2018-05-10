@@ -2,6 +2,12 @@
  * Created by atan on 9/14/16.
  */
 
+/* globals characterCounter: true */
+/* globals getRequestAgencyInstructions: true */
+/* globals getCustomRequestForms: true */
+/* globals toggleRequestAgencyInstructions: true */
+/* globals renderCustomRequestForm: true */
+
 "use strict";
 
 $(document).ready(function () {
@@ -45,6 +51,11 @@ $(document).ready(function () {
     $("#request-agency-instructions-toggle").click(function () {
         toggleRequestAgencyInstructions("default");
     });
+
+    $("#request-type").change(function () {
+        renderCustomRequestForm();
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
         "data-placement": "top",
@@ -144,11 +155,11 @@ $(document).ready(function () {
 
     // Character count for creating a new request
     $("#request-title").keyup(function () {
-        characterCounter("#title-character-count", 90, $(this).val().length)
+        characterCounter("#title-character-count", 90, $(this).val().length);
     });
 
     $("#request-description").keyup(function () {
-        characterCounter("#description-character-count", 5000, $(this).val().length)
+        characterCounter("#description-character-count", 5000, $(this).val().length);
     });
 
 });

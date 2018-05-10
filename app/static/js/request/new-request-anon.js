@@ -2,6 +2,13 @@
  * Created by atan on 9/14/16.
  */
 
+/* globals characterCounter: true */
+
+/* globals getRequestAgencyInstructions: true */
+/* globals getCustomRequestForms: true */
+/* globals toggleRequestAgencyInstructions: true */
+/* globals renderCustomRequestForm: true */
+
 "use strict";
 
 $(document).ready(function () {
@@ -61,6 +68,10 @@ $(document).ready(function () {
 
     $("#request-agency-instructions-toggle").click(function () {
         toggleRequestAgencyInstructions("default");
+    });
+
+    $("#request-type").change(function () {
+        renderCustomRequestForm();
     });
 
     // javascript to add tooltip popovers when selecting the title and description
@@ -253,27 +264,27 @@ $(document).ready(function () {
 
     // Character count for creating a new request
     $("#request-title").keyup(function () {
-        characterCounter("#title-character-count", 90, $(this).val().length)
+        characterCounter("#title-character-count", 90, $(this).val().length);
     });
 
     $("#request-description").keyup(function () {
-        characterCounter("#description-character-count", 5000, $(this).val().length)
+        characterCounter("#description-character-count", 5000, $(this).val().length);
     });
 
     $("#first-name").keyup(function () {
-        characterCounter("#first-name-character-count", 32, $(this).val().length)
+        characterCounter("#first-name-character-count", 32, $(this).val().length);
     });
 
     $("#last-name").keyup(function () {
-        characterCounter("#last-name-character-count", 64, $(this).val().length)
+        characterCounter("#last-name-character-count", 64, $(this).val().length);
     });
 
     $("#user-title").keyup(function () {
-        characterCounter("#user-title-character-count", 64, $(this).val().length)
+        characterCounter("#user-title-character-count", 64, $(this).val().length);
     });
 
     $("#user-organization").keyup(function () {
-        characterCounter("#organization-character-count", 128, $(this).val().length)
+        characterCounter("#organization-character-count", 128, $(this).val().length);
     });
 
 });

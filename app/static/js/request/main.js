@@ -48,7 +48,9 @@ function characterCounter(target, limit, currentLength, minLength) {
 }
 
 function regexUrlChecker(value) {
-    /* Checks the value of a url link using regex with one of the following allowed protocols: http, https, ftp, git
+    /* Global regexUrlChecker
+     *
+     * Checks the value of a url link using regex with one of the following allowed protocols: http, https, ftp, git
      *
      * Parameters:
      * value: string of link url
@@ -65,7 +67,8 @@ function regexUrlChecker(value) {
 var holiday_dates = null;
 
 function notHolidayOrWeekend(date, forPicker) {
-    /*
+    /* Global notHolidayOrWeekend
+     *
      * http://api.jqueryui.com/datepicker/#option-beforeShowDay
      *
      * WARNING:
@@ -83,7 +86,8 @@ function notHolidayOrWeekend(date, forPicker) {
 }
 
 function getRequestAgencyInstructions() {
-    /*
+    /* Global getAgencyInstructions
+     *
      * ajax call to get additional information for the specified agency
      */
 
@@ -112,7 +116,8 @@ function getRequestAgencyInstructions() {
 }
 
 function toggleRequestAgencyInstructions(action) {
-    /*
+    /* Global toggleRequestAgencyInstructions
+     *
      * determine whether or not to show agency instruction content
      */
     var el = $("#request-agency-instructions-toggle");
@@ -139,8 +144,11 @@ function toggleRequestAgencyInstructions(action) {
     }
 }
 
-// function to determine if custom request forms need to be shown on category or agency change
 function getCustomRequestForms(agencyEin) {
+    /* exported getCustomRequestForms
+     *
+     * function to determine if custom request forms need to be shown on category or agency change
+     */
     var selectedAgency = agencyEin;
     var customRequestFormsDiv = $("#custom-request-forms");
     var requestType = $("#request-type");
@@ -173,4 +181,27 @@ function getCustomRequestForms(agencyEin) {
             customRequestFormsDiv.hide();
         }
     });
+}
+
+function renderCustomRequestForm() {
+    /*
+     * function to render custom form fields based on their field definitions
+     */
+    var formId = $("#request-type").val();
+    var agencyEin = $("#request-agency").val();
+
+    if (formId !== "") {
+        $.ajax({
+            url: "/agency/api/v1.0/custom_request_form_fields",
+            type: "GET",
+            data: {
+                form_id: formId,
+                agency_ein: agencyEin
+            },
+            success: function (data) {
+                // TODO (johnyu95): Print actual form out.
+                console.log(data);
+            }
+        });
+    }
 }
