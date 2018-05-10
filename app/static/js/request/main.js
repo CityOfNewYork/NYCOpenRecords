@@ -48,7 +48,9 @@ function characterCounter(target, limit, currentLength, minLength) {
 }
 
 function regexUrlChecker(value) {
-    /* Checks the value of a url link using regex with one of the following allowed protocols: http, https, ftp, git
+    /* Global regexUrlChecker
+     *
+     * Checks the value of a url link using regex with one of the following allowed protocols: http, https, ftp, git
      *
      * Parameters:
      * value: string of link url
@@ -65,7 +67,8 @@ function regexUrlChecker(value) {
 var holiday_dates = null;
 
 function notHolidayOrWeekend(date, forPicker) {
-    /*
+    /* Global notHolidayOrWeekend
+     *
      * http://api.jqueryui.com/datepicker/#option-beforeShowDay
      *
      * WARNING:
@@ -83,7 +86,8 @@ function notHolidayOrWeekend(date, forPicker) {
 }
 
 function getRequestAgencyInstructions() {
-    /*
+    /* Global getAgencyInstructions
+     *
      * ajax call to get additional information for the specified agency
      */
 
@@ -112,7 +116,8 @@ function getRequestAgencyInstructions() {
 }
 
 function toggleRequestAgencyInstructions(action) {
-    /*
+    /* Global toggleRequestAgencyInstructions
+     *
      * determine whether or not to show agency instruction content
      */
     var el = $("#request-agency-instructions-toggle");
@@ -140,7 +145,8 @@ function toggleRequestAgencyInstructions(action) {
 }
 
 function getCustomRequestForms(agencyEin) {
-    /*
+    /* exported getCustomRequestForms
+     *
      * function to determine if custom request forms need to be shown on category or agency change
      */
     var selectedAgency = agencyEin;
