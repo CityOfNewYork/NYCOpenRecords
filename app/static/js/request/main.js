@@ -241,10 +241,13 @@ function renderCustomRequestForm() {
                         e.preventDefault();
                 });
 
-
-
-
-
+                // Do not reset on click
+                $(".select-multiple").find('option').mousedown(function (e) {
+                    e.preventDefault();
+                    $(".select-multiple").focus();
+                    $(this).prop('selected', !$(this).prop('selected'));
+                    return false;
+                });
 
                 customRequestFormContent.show();
             }

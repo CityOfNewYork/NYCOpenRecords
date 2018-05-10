@@ -64,6 +64,18 @@
             "name": "end-time",
             "required": false
           }
+        },
+        {
+          "Arrest Select Multiple": {
+            "type": "select_multiple",
+            "name": "arrest-select-multiple",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
         }
       ],
       "repeatable": "0"
