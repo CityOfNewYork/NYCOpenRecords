@@ -331,11 +331,13 @@ def patch(user_id):
                                 user_request.request.es_update()
                             else:
                                 set_permissions_and_create_event(user_request, permissions)
+                                user_request.request.es_update()
 
                     else:
                         # update ALL UserRequests (strip user of permissions)
                         for user_request in user_.user_requests.all():
                             set_permissions_and_create_event(user_request, permission.NONE)
+                            user_request.request.es_update()
 
                 # TODO: single email detailing user changes?
 
