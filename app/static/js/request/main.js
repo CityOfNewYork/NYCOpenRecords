@@ -183,6 +183,7 @@ function renderCustomRequestForm() {
      */
     var formId = $("#request-type").val();
     var agencyEin = $("#request-agency").val();
+    var customRequestFormContent = $("#custom-request-form-content");
 
     if (formId !== "") {
         $.ajax({
@@ -195,7 +196,6 @@ function renderCustomRequestForm() {
             success: function (data) {
                 // TODO: print actual form out.
                 console.log(data);
-                var customRequestFormContent = $("#custom-request-form-content");
                 customRequestFormContent.html(data);
 
                 // render datepicker plugins
@@ -208,11 +208,50 @@ function renderCustomRequestForm() {
                         e.preventDefault();
                 });
 
+                $('.timepicker').timepicker({
+                    timeFormat: 'h:mm p',
+                    interval: 1,
+                    minTime: '12:00am',
+                    maxTime: '11:59pm',
+                    startTime: '12:00am',
+                    dynamic: false,
+                    dropdown: true,
+                    scrollbar: true
+                }).keydown(function (e) {
+                    // prevent keyboard input except for allowed keys
+                    if (e.keyCode !== 8 &&
+                        e.keyCode !== 9 &&
+                        e.keyCode !== 37 &&
+                        e.keyCode !== 39 &&
+                        e.keyCode !== 48 &&
+                        e.keyCode !== 49 &&
+                        e.keyCode !== 50 &&
+                        e.keyCode !== 51 &&
+                        e.keyCode !== 52 &&
+                        e.keyCode !== 53 &&
+                        e.keyCode !== 54 &&
+                        e.keyCode !== 55 &&
+                        e.keyCode !== 56 &&
+                        e.keyCode !== 57 &&
+                        e.keyCode !== 16 &&
+                        e.keyCode !== 65 &&
+                        e.keyCode !== 77 &&
+                        e.keyCode !== 80 &&
+                        e.keyCode !== 186)
+                        e.preventDefault();
+                });
+
+
+
 
 
 
                 customRequestFormContent.show();
             }
         });
+    }
+    else {
+        customRequestFormContent.html("");
+        customRequestFormContent.hide();
     }
 }

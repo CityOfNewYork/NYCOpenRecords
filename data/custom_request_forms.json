@@ -27,7 +27,7 @@
         },
         {
           "Arrest Dropdown": {
-            "type": "select",
+            "type": "select_dropdown",
             "name": "arrest-dropdown",
             "values": [
               "option1",
@@ -41,6 +41,27 @@
           "Arrest Date": {
             "type": "date",
             "name": "arrest-date",
+            "required": false
+          }
+        },
+        {
+          "Arrest Radio": {
+            "type": "radio",
+            "name": "arrest-radio",
+            "required": false
+          }
+        },
+        {
+          "Start Time": {
+            "type": "time",
+            "name": "start-time",
+            "required": false
+          }
+        },
+        {
+          "End Time": {
+            "type": "time",
+            "name": "end-time",
             "required": false
           }
         }
