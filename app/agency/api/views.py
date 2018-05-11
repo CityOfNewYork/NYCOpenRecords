@@ -91,5 +91,8 @@ def get_custom_request_form_fields():
             min_length = value.get('min_length', None)
             max_length = value.get('max_length', None)
 
-            form_template = form_template + render_template('custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text, field_name=field_name, field_info=field_info, options=field_values, field_required=field_required, min_length=min_length, max_length=max_length) + '\n'
+            form_template = form_template + render_template(
+                'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
+                field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
+                min_length=min_length, max_length=max_length) + '\n'
     return jsonify(form_template), 200
