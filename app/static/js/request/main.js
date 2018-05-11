@@ -172,6 +172,7 @@ function getCustomRequestForms(agencyEin) {
                     success: function (data) {
                         if (data.length === 1) {
                             requestType.append(new Option(data[0][1], data[0][0]));
+                            customRequestFormsDiv.show();
                             renderCustomRequestForm();
                             // add repeatable form if only one form
                         }
