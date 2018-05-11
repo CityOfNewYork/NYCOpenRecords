@@ -1,5 +1,5 @@
 <div class="custom-request-form-textarea">
-    <label class="request-heading" for="{{ field_name }}">{{ field_text }}</label><br>
+    <label class="request-heading" id="{{ field_name }}" for="{{ field_name }}">{{ field_text }}</label><br>
     <textarea class="input-block-level" name="{{ field_name }}" style="height: 10rem;"
               {% if field_required %}data-parsley-required{% endif %}
               {% if max_length %}data-parsley-maxlength="{{ max_length }}" maxlength="{{ max_length }}"{% endif %}
