@@ -8,29 +8,146 @@
           "Arrest Report #": {
             "type": "input",
             "name": "arrest-report-number",
-            "required": false,
-            "max_length": "25"
+            "required": false
           }
         },
         {
-          "Arrest Description": {
-            "type": "textarea",
-            "name": "arrest-description",
-            "required": false,
-            "min_length": "25"
-          }
-        },
-        {
-          "Precinct Number": {
+          "Precinct #": {
             "type": "input",
             "name": "precinct-number",
             "required": false
           }
         },
         {
-          "Arrest Dropdown": {
+          "Name": {
+            "type": "input",
+            "name": "arrest-report-name",
+            "required": false
+          }
+        },
+        {
+          "Date of Charge": {
+            "type": "date",
+            "name": "arrest-report-date",
+            "required": false
+          }
+        },
+        {
+          "D.O.B.": {
+            "type": "date",
+            "name": "arrest-report-dob",
+            "required": false
+          }
+        },
+        {
+          "Victim/Complainant Name": {
+            "type": "input",
+            "name": "arrest-report-victim-complainant-name",
+            "required": false
+          }
+        },
+        {
+          "Charge": {
+            "type": "input",
+            "name": "arrest-report-charge",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Complaint Report",
+      "field_definitions": [
+        {
+          "Complaint Report #": {
+            "type": "input",
+            "name": "complaint-report-number",
+            "required": false
+          }
+        },
+        {
+          "Precinct #": {
+            "type": "input",
+            "name": "precinct-number",
+            "required": false
+          }
+        },
+        {
+          "Date": {
+            "type": "date",
+            "name": "complaint-report-date",
+            "required": false
+          }
+        },
+        {
+          "Time": {
+            "type": "time",
+            "name": "complaint-report-time",
+            "required": false
+          }
+        },
+        {
+          "Address": {
+            "type": "input",
+            "name": "complaint-report-address",
+            "required": false
+          }
+        },
+        {
+          "Victim/Complainant Name": {
+            "type": "input",
+            "name": "victim-complainant-name",
+            "required": false
+          }
+        },
+        {
+          "Offense": {
+            "type": "input",
+            "name": "complaint-report-offense",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "NYPD Test Form",
+      "field_definitions": [
+        {
+          "Input Test": {
+            "type": "input",
+            "name": "input-test",
+            "required": false
+          }
+        },
+        {
+          "Textarea Test": {
+            "type": "textarea",
+            "name": "textarea-test",
+            "required": false
+          }
+        },
+        {
+          "Date Test": {
+            "type": "date",
+            "name": "date-test",
+            "required": false
+          }
+        },
+        {
+          "Time Test": {
+            "type": "time",
+            "name": "time-test",
+            "required": false
+          }
+        },
+        {
+          "Dropdown Test": {
             "type": "select_dropdown",
-            "name": "arrest-dropdown",
+            "name": "dropdown-test",
             "values": [
               "option1",
               "option2",
@@ -40,16 +157,9 @@
           }
         },
         {
-          "Arrest Date": {
-            "type": "date",
-            "name": "arrest-date",
-            "required": false
-          }
-        },
-        {
-          "Arrest Radio": {
+          "Radio Test": {
             "type": "radio",
-            "name": "arrest-radio",
+            "name": "radio-test",
             "info": "Please select an option",
             "values": [
               "option1",
@@ -60,52 +170,15 @@
           }
         },
         {
-          "Start Time": {
-            "type": "time",
-            "name": "start-time",
-            "required": false
-          }
-        },
-        {
-          "End Time": {
-            "type": "time",
-            "name": "end-time",
-            "required": false
-          }
-        },
-        {
-          "Arrest Select Multiple": {
+          "Select Multiple Test": {
             "type": "select_multiple",
-            "name": "arrest-select-multiple",
+            "name": "select-multiple-test",
             "values": [
               "option1",
               "option2",
               "option3"
             ],
             "required": false
-          }
-        }
-      ],
-      "repeatable": "0"
-    },
-    {
-      "agency_ein": "0056",
-      "form_name": "Body Worn Camera",
-      "field_definitions": [
-        {
-          "Arrest Report #": {
-            "type": "input",
-            "name": "body-worn-number",
-            "required": false,
-            "max_length": "25"
-          }
-        },
-        {
-          "Arrest Description": {
-            "type": "textarea",
-            "name": "body-worn-description",
-            "required": false,
-            "min_length": "25"
           }
         }
       ],

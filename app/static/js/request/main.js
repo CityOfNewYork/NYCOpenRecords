@@ -150,12 +150,11 @@ function getCustomRequestForms(agencyEin) {
     var customRequestFormContent = $("#custom-request-form-content");
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
-    // ajax call to show request type drop down
     requestType.empty();
     customRequestFormContent.html("");
     customRequestFormContent.hide();
     customRequestFormAdditionalContent.hide();
-
+    // ajax call to show request type drop down
     $.ajax({
         url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
         type: "GET",
@@ -180,7 +179,6 @@ function getCustomRequestForms(agencyEin) {
                         }
                     }
                 });
-                console.log(data);
                 // check is custom forms are repeatable
                 if (data["custom_request_forms"]["multiple_request_types"] === true) {
                     showMultipleRequestTypes = true;
@@ -229,6 +227,7 @@ function renderCustomRequestForm() {
                         e.preventDefault();
                 });
 
+                // render timepicker plugins
                 $('.timepicker').timepicker({
                     timeFormat: 'h:mm p',
                     interval: 1,
