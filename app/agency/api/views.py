@@ -1,6 +1,7 @@
 from flask import (
     jsonify,
-    request
+    request,
+    render_template
 )
 from flask_login import (
     current_user,
@@ -77,4 +78,21 @@ def get_custom_request_form_fields():
     """
     custom_request_form = CustomRequestForms.query.filter_by(id=request.args['form_id'],
                                                              agency_ein=request.args['agency_ein']).one()
-    return jsonify(custom_request_form.field_definitions), 200
+
+    form_template = ""
+    for field in custom_request_form.field_definitions:
+        for key, value in field.items():
+            field_text = key
+            field_name = value['name']
+            field_type = value['type']
+            field_info = value.get('info', None)
+            field_values = value.get('values', None)
+            field_required = value['required']
+            min_length = value.get('min_length', None)
+            max_length = value.get('max_length', None)
+
+            form_template = form_template + render_template(
+                'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
+                field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
+                min_length=min_length, max_length=max_length) + '\n'
+    return jsonify(form_template), 200

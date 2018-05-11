@@ -1,0 +1,8 @@
+<div class="custom-request-form-select-multiple">
+    <label class="request-heading" id="{{ field_name }}" for="{{ field_name }}">{{ field_text }}</label><br>
+    <select class="form-control select-multiple" multiple size="5" name="{{ field_name }}" {% if field_required %}data-parsley-required{% endif %}>
+        {% for option in options %}
+            <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+    </select><br>
+</div>

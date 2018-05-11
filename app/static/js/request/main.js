@@ -9,7 +9,7 @@ $(function () {
 
 $(function () {
     $(".disable-enter-submit").keypress(function (e) {
-        if (e.keyCode == '13') {
+        if (e.keyCode === "13") {
             e.preventDefault();
         }
     });
@@ -34,7 +34,7 @@ function characterCounter(target, limit, currentLength, minLength) {
      *
      * */
     var length = limit - currentLength;
-    minLength = (typeof minLength !== 'undefined') ? minLength : 0;
+    minLength = (typeof minLength !== "undefined") ? minLength : 0;
     var s = length === 1 ? "" : "s";
     $(target).text(length + " character" + s + " remaining");
     if (length == 0) {
@@ -78,7 +78,7 @@ function notHolidayOrWeekend(date, forPicker) {
     if (typeof(forPicker) === "undefined") {
         forPicker = true;
     }
-    var formattedDate = $.datepicker.formatDate('yy-mm-dd', date);
+    var formattedDate = $.datepicker.formatDate("yy-mm-dd", date);
     var holiday_or_weekend = $.inArray(formattedDate, holiday_dates) !== -1 ||
         date.getDay() === 0 || date.getDay() === 6;
     // TODO: would be nice to display the name of the holiday (tooltip)
@@ -90,7 +90,6 @@ function getRequestAgencyInstructions() {
      *
      * ajax call to get additional information for the specified agency
      */
-
     var agencyEin = $("#request-agency").val();
     var requestInstructionsDiv = $("#request-agency-instructions");
     var requestInstructionsContentDiv = $("#request-agency-instructions-content");
@@ -144,6 +143,7 @@ function toggleRequestAgencyInstructions(action) {
     }
 }
 
+var showMultipleRequestTypes = false;
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
      *
@@ -152,26 +152,46 @@ function getCustomRequestForms(agencyEin) {
     var selectedAgency = agencyEin;
     var customRequestFormsDiv = $("#custom-request-forms");
     var requestType = $("#request-type");
+    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
-    // ajax call to show request type drop down
     requestType.empty();
+    customRequestFormContent.html("");
+    customRequestFormContent.hide();
+    customRequestFormAdditionalContent.hide();
+    // ajax call to show request type drop down
     $.ajax({
         url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
         type: "GET",
         success: function (data) {
-            if (data["custom_request_forms"] === true) {
-                customRequestFormsDiv.show();
+            if (data["custom_request_forms"]["enabled"] === true) {
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
                     type: "GET",
                     success: function (data) {
-                        requestType.append(new Option("", ""));
-                        for (var i = 0; i < data.length; i++) {
-                            requestType.append(new Option(data[i][1], data[i][0]));
+                        if (data.length === 1) {
+                            requestType.append(new Option(data[0][1], data[0][0]));
+                            customRequestFormsDiv.show();
+                            renderCustomRequestForm();
+                            // add repeatable form if only one form
+                        }
+                        else {
+                            requestType.append(new Option("", ""));
+                            for (var i = 0; i < data.length; i++) {
+                                requestType.append(new Option(data[i][1], data[i][0]));
+                            }
+                            customRequestFormsDiv.show();
                         }
                     }
                 });
+                // check is custom forms are repeatable
+                if (data["custom_request_forms"]["multiple_request_types"] === true) {
+                    showMultipleRequestTypes = true;
+                }
+                else {
+                    showMultipleRequestTypes = false;
+                }
             }
             else {
                 customRequestFormsDiv.hide();
@@ -189,6 +209,8 @@ function renderCustomRequestForm() {
      */
     var formId = $("#request-type").val();
     var agencyEin = $("#request-agency").val();
+    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     if (formId !== "") {
         $.ajax({
@@ -199,9 +221,88 @@ function renderCustomRequestForm() {
                 agency_ein: agencyEin
             },
             success: function (data) {
-                // TODO (johnyu95): Print actual form out.
-                console.log(data);
+                customRequestFormContent.html(data);
+
+                // render datepicker plugins
+                $(".custom-request-form-datepicker").datepicker({
+                    dateFormat: "mm/dd/yy",
+                    maxDate: 0
+                }).keydown(function (e) {
+                    // prevent keyboard input except for tab
+                    if (e.keyCode !== 8 &&
+                        e.keyCode !== 9 &&
+                        e.keyCode !== 37 &&
+                        e.keyCode !== 39 &&
+                        e.keyCode !== 48 &&
+                        e.keyCode !== 49 &&
+                        e.keyCode !== 50 &&
+                        e.keyCode !== 51 &&
+                        e.keyCode !== 52 &&
+                        e.keyCode !== 53 &&
+                        e.keyCode !== 54 &&
+                        e.keyCode !== 55 &&
+                        e.keyCode !== 56 &&
+                        e.keyCode !== 57 &&
+                        e.keyCode !== 191)
+                        e.preventDefault();
+                });
+
+                // render timepicker plugins
+                $(".timepicker").timepicker({
+                    timeFormat: "h:mm p",
+                    interval: 1,
+                    minTime: "12:00am",
+                    maxTime: "11:59pm",
+                    startTime: "12:00am",
+                    dynamic: false,
+                    dropdown: true,
+                    scrollbar: true
+                }).keydown(function (e) {
+                    // prevent keyboard input except for allowed keys
+                    if (e.keyCode !== 8 &&
+                        e.keyCode !== 9 &&
+                        e.keyCode !== 37 &&
+                        e.keyCode !== 39 &&
+                        e.keyCode !== 48 &&
+                        e.keyCode !== 49 &&
+                        e.keyCode !== 50 &&
+                        e.keyCode !== 51 &&
+                        e.keyCode !== 52 &&
+                        e.keyCode !== 53 &&
+                        e.keyCode !== 54 &&
+                        e.keyCode !== 55 &&
+                        e.keyCode !== 56 &&
+                        e.keyCode !== 57 &&
+                        e.keyCode !== 16 &&
+                        e.keyCode !== 65 &&
+                        e.keyCode !== 77 &&
+                        e.keyCode !== 80 &&
+                        e.keyCode !== 186)
+                        e.preventDefault();
+                });
+
+                // Do not reset on click
+                $(".select-multiple").find("option").mousedown(function (e) {
+                    e.preventDefault();
+                    $(".select-multiple").focus();
+                    $(this).prop("selected", !$(this).prop("selected"));
+                    return false;
+                });
+
+                customRequestFormContent.show();
+                // check to show add new request information button
+                if (showMultipleRequestTypes === true) {
+                    customRequestFormAdditionalContent.show();
+                }
+                else {
+                    customRequestFormAdditionalContent.hide();
+                }
             }
         });
+    }
+    else {
+        customRequestFormContent.html("");
+        customRequestFormContent.hide();
+        customRequestFormAdditionalContent.hide();
     }
 }
