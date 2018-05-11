@@ -139,6 +139,7 @@ function toggleRequestAgencyInstructions(action) {
     }
 }
 
+var showMultipleRequestTypes = false;
 function getCustomRequestForms(agencyEin) {
     /*
      * function to determine if custom request forms need to be shown on category or agency change
@@ -146,16 +147,20 @@ function getCustomRequestForms(agencyEin) {
     var selectedAgency = agencyEin;
     var customRequestFormsDiv = $("#custom-request-forms");
     var requestType = $("#request-type");
+    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     // ajax call to show request type drop down
     requestType.empty();
-    $("#custom-request-form-content").html("");
-    $("#custom-request-form-content").hide();
+    customRequestFormContent.html("");
+    customRequestFormContent.hide();
+    customRequestFormAdditionalContent.hide();
+
     $.ajax({
         url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
         type: "GET",
         success: function (data) {
-            if (data["custom_request_forms"] === true) {
+            if (data["custom_request_forms"]["enabled"] === true) {
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
@@ -164,6 +169,7 @@ function getCustomRequestForms(agencyEin) {
                         if (data.length === 1) {
                             requestType.append(new Option(data[0][1], data[0][0]));
                             renderCustomRequestForm();
+                            // add repeatable form if only one form
                         }
                         else {
                             requestType.append(new Option("", ""));
@@ -174,6 +180,14 @@ function getCustomRequestForms(agencyEin) {
                         }
                     }
                 });
+                console.log(data);
+                // check is custom forms are repeatable
+                if (data["custom_request_forms"]["multiple_request_types"] === true) {
+                    showMultipleRequestTypes = true;
+                }
+                else {
+                    showMultipleRequestTypes = false;
+                }
             }
             else {
                 customRequestFormsDiv.hide();
@@ -257,12 +271,19 @@ function renderCustomRequestForm() {
                 });
 
                 customRequestFormContent.show();
-                customRequestFormAdditionalContent.show();
+                // check to show add new request information button
+                if (showMultipleRequestTypes === true) {
+                    customRequestFormAdditionalContent.show();
+                }
+                else {
+                    customRequestFormAdditionalContent.hide();
+                }
             }
         });
     }
     else {
         customRequestFormContent.html("");
         customRequestFormContent.hide();
+        customRequestFormAdditionalContent.hide();
     }
 }
