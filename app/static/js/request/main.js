@@ -9,7 +9,7 @@ $(function () {
 
 $(function () {
     $(".disable-enter-submit").keypress(function (e) {
-        if (e.keyCode == '13') {
+        if (e.keyCode === "13") {
             e.preventDefault();
         }
     });
@@ -34,7 +34,7 @@ function characterCounter(target, limit, currentLength, minLength) {
      *
      * */
     var length = limit - currentLength;
-    minLength = (typeof minLength !== 'undefined') ? minLength : 0;
+    minLength = (typeof minLength !== "undefined") ? minLength : 0;
     var s = length === 1 ? "" : "s";
     $(target).text(length + " character" + s + " remaining");
     if (length == 0) {
@@ -78,7 +78,7 @@ function notHolidayOrWeekend(date, forPicker) {
     if (typeof(forPicker) === "undefined") {
         forPicker = true;
     }
-    var formattedDate = $.datepicker.formatDate('yy-mm-dd', date);
+    var formattedDate = $.datepicker.formatDate("yy-mm-dd", date);
     var holiday_or_weekend = $.inArray(formattedDate, holiday_dates) !== -1 ||
         date.getDay() === 0 || date.getDay() === 6;
     // TODO: would be nice to display the name of the holiday (tooltip)
@@ -234,12 +234,12 @@ function renderCustomRequestForm() {
                 });
 
                 // render timepicker plugins
-                $('.timepicker').timepicker({
-                    timeFormat: 'h:mm p',
+                $(".timepicker").timepicker({
+                    timeFormat: "h:mm p",
                     interval: 1,
-                    minTime: '12:00am',
-                    maxTime: '11:59pm',
-                    startTime: '12:00am',
+                    minTime: "12:00am",
+                    maxTime: "11:59pm",
+                    startTime: "12:00am",
                     dynamic: false,
                     dropdown: true,
                     scrollbar: true
@@ -268,10 +268,10 @@ function renderCustomRequestForm() {
                 });
 
                 // Do not reset on click
-                $(".select-multiple").find('option').mousedown(function (e) {
+                $(".select-multiple").find("option").mousedown(function (e) {
                     e.preventDefault();
                     $(".select-multiple").focus();
-                    $(this).prop('selected', !$(this).prop('selected'));
+                    $(this).prop("selected", !$(this).prop("selected"));
                     return false;
                 });
 
