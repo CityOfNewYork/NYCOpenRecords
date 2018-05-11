@@ -144,6 +144,7 @@ function toggleRequestAgencyInstructions(action) {
 }
 
 var showMultipleRequestTypes = false;
+var repeatableDict = {};
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
      *
@@ -179,7 +180,13 @@ function getCustomRequestForms(agencyEin) {
                         else {
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
-                                requestType.append(new Option(data[i][1], data[i][0]));
+                                repeatableDict[data[i][0]] = data[i][2];
+                                var option = new Option(data[i][1], data[i][0]);
+                                if (repeatableDict[data[i][0]] === 0){
+                                    // disable it
+                                    option.disabled = true;
+                                }
+                                requestType.append(option);
                             }
                             customRequestFormsDiv.show();
                         }
@@ -221,6 +228,7 @@ function renderCustomRequestForm() {
                 agency_ein: agencyEin
             },
             success: function (data) {
+                repeatableDict[formId] = repeatableDict[formId] - 1;
                 customRequestFormContent.html(data);
 
                 // render datepicker plugins
