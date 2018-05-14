@@ -1,6 +1,6 @@
-<div class="custom-request-form-select-dropdown-{{ if bklak }}{{ reoeatnumber }}">
-    <label class="request-heading" id="{{ field_name }}" for="{{ field_name }}">{{ field_text }}</label><br>
-    <select class="input-block-level" name="{{ field_name }}" {% if field_required %}data-parsley-required{% endif %}>
+<div class="custom-request-form-select-dropdown">
+    <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label><br>
+    <select class="input-block-level" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" {% if field_required %}data-parsley-required{% endif %}>
         <option value=""></option>
         {% for option in options %}
             <option value="{{ option }}">{{ option }}</option>

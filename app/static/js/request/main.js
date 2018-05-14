@@ -144,16 +144,20 @@ function toggleRequestAgencyInstructions(action) {
 }
 
 var showMultipleRequestTypes = false;
-var repeatableDict = {};
+var repeatableCounter = {};
+var customRequestFormCounter = 1;
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
     var selectedAgency = agencyEin;
-    var customRequestFormsDiv = $("#custom-request-forms");
-    var requestType = $("#request-type");
-    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
+    var requestTypeId = "#request-type-" + customRequestFormCounter.toString();
+    var customRequestFormId = "#custom-request-form-content-" + customRequestFormCounter.toString();
+    var customRequestFormsDiv = $(customRequestFormsDivId);
+    var requestType = $(requestTypeId);
+    var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     requestType.empty();
@@ -180,9 +184,9 @@ function getCustomRequestForms(agencyEin) {
                         else {
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
-                                repeatableDict[data[i][0]] = data[i][2];
+                                repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
                                 var option = new Option(data[i][1], data[i][0]);
-                                if (repeatableDict[data[i][0]] === 0){
+                                if (repeatableCounter[data[i][0]] === 0){
                                     // disable it
                                     option.disabled = true;
                                 }
@@ -210,13 +214,44 @@ function getCustomRequestForms(agencyEin) {
     });
 }
 
-function renderCustomRequestForm() {
+function populateDropdown(agencyEin) {
+    var selectedAgency = agencyEin;
+    $(".request-type").each(function(){
+        if (this.length === 0) { // if this is an unpopulated dropdown
+            var requestType = this;
+            $.ajax({
+                url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
+                type: "GET",
+                success: function (data) {
+                    // Still need to account for only 1 custom form
+
+                    requestType.append(new Option("", ""));
+                    for (var i = 0; i < data.length; i++) {
+                        var option = new Option(data[i][1], data[i][0]);
+                        if (repeatableCounter[data[i][0]] === 0) {
+                            // disable it
+                            option.disabled = true;
+                        }
+                        requestType.append(option);
+                    }
+                }
+            });
+        }
+    });
+}
+
+// var previousFormId = "";
+var formCurrentlyDisplayed = false;
+function renderCustomRequestForm(target) {
     /*
      * function to render custom form fields based on their field definitions
      */
-    var formId = $("#request-type").val();
+    var requestTypeId = "#request-type-" + target;
+    var requestType = $(requestTypeId);
+    var formId = $(requestType).val();
     var agencyEin = $("#request-agency").val();
-    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormId = "#custom-request-form-content-" + target;
+    var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     if (formId !== "") {
@@ -225,11 +260,19 @@ function renderCustomRequestForm() {
             type: "GET",
             data: {
                 form_id: formId,
-                agency_ein: agencyEin
+                agency_ein: agencyEin,
+                repeatable_counter: JSON.stringify(repeatableCounter)
             },
             success: function (data) {
-                repeatableDict[formId] = repeatableDict[formId] - 1;
+                // if (formCurrentlyDisplayed) {
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                // }
+                // formCurrentlyDisplayed = true;
+                // previousFormId = formId;
+                // repeatableCounter[formId] = repeatableCounter[formId] - 1;
                 customRequestFormContent.html(data);
+                // console.log(previousFormId);
+                // console.log(repeatableCounter);
 
                 // render datepicker plugins
                 $(".custom-request-form-datepicker").datepicker({
@@ -312,5 +355,8 @@ function renderCustomRequestForm() {
         customRequestFormContent.html("");
         customRequestFormContent.hide();
         customRequestFormAdditionalContent.hide();
+        // reset the repeatable counter for that formId
+        // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+        // console.log(repeatableCounter);
     }
 }

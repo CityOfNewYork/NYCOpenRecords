@@ -45,8 +45,23 @@ $(document).ready(function () {
         toggleRequestAgencyInstructions("default");
     });
 
-    $("#request-type").change(function () {
-        renderCustomRequestForm();
+    // for the first dropdown
+    $(".request-type").on("change", function () {
+        renderCustomRequestForm("1");
+    });
+
+    $("#custom-request-form-additional-content").click(function () {
+        customRequestFormCounter = customRequestFormCounter + 1;
+        var dropdownTemplate = "<div id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
+        var contentTemplate = "<div id='custom-request-form-content-" + customRequestFormCounter + "'></div>";
+        var additionalTemplate = "<div id='custom-request-form-additional-content' style='text-align: center;'><button type='button' class='btn btn-info'>Add New Request Information</button><br><br></div>";
+        $("#custom-request-form-additional-content").replaceWith(dropdownTemplate + contentTemplate + additionalTemplate);
+
+        populateDropdown($("#request-agency").val());
+
+        $(".request-type").on("change", function () {
+            renderCustomRequestForm(customRequestFormCounter.toString());
+        });
     });
 
     // javascript to add tooltip popovers when selecting the title and description

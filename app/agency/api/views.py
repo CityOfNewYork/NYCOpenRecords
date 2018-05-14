@@ -13,6 +13,7 @@ from app.agency.api.utils import (
     get_letter_templates
 )
 from app.models import CustomRequestForms
+import json
 
 
 @agency_api_blueprint.route('/active_users/<string:agency_ein>', methods=['GET'])
@@ -65,7 +66,8 @@ def get_custom_request_form_options(agency_ein):
     :return: JSON Object (keys are the id of the custom request form, values are the names of the forms)
     """
     custom_request_forms = CustomRequestForms.query.with_entities(CustomRequestForms.id,
-                                                                  CustomRequestForms.form_name,CustomRequestForms.repeatable).filter_by(
+                                                                  CustomRequestForms.form_name,
+                                                                  CustomRequestForms.repeatable).filter_by(
         agency_ein=agency_ein).all()
     return jsonify(custom_request_forms), 200
 
@@ -78,6 +80,8 @@ def get_custom_request_form_fields():
     """
     custom_request_form = CustomRequestForms.query.filter_by(id=request.args['form_id'],
                                                              agency_ein=request.args['agency_ein']).one()
+    repeatable_counter = json.loads(request.args['repeatable_counter'])
+    instance_id = custom_request_form.repeatable - repeatable_counter[str(custom_request_form.id)] + 1
 
     form_template = ""
     for field in custom_request_form.field_definitions:
@@ -90,12 +94,9 @@ def get_custom_request_form_fields():
             field_required = value['required']
             min_length = value.get('min_length', None)
             max_length = value.get('max_length', None)
-            repeat_id = 2
-
 
             form_template = form_template + render_template(
                 'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
                 field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
-                min_length=min_length, max_length=max_length,
-            repeat_id=repeat_id) + '\n'
+                min_length=min_length, max_length=max_length, instance_id=instance_id) + '\n'
     return jsonify(form_template), 200
