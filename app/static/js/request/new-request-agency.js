@@ -45,12 +45,11 @@ $(document).ready(function () {
         toggleRequestAgencyInstructions("default");
     });
 
-    // for the first dropdown
-    $(".request-type").focus(function () {
+    $(document).on("focus", ".request-type", function () {
         var target = document.activeElement.id;
         target = target.replace("request-type-", "");
         var targetID = "#"+document.activeElement.id;
-        $(targetID).change(function () {
+        $(targetID).off().change(function () {
             renderCustomRequestForm(target);
         });
     });
@@ -62,16 +61,6 @@ $(document).ready(function () {
         $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
 
         populateDropdown($("#request-agency").val());
-
-        $(".request-type").focus(function () {
-            var target = document.activeElement.id;
-            target = target.replace("request-type-", "");
-            var targetID = "#" + document.activeElement.id;
-            $(targetID).change(function () {
-                renderCustomRequestForm(target);
-            });
-        });
-
     });
 
     // javascript to add tooltip popovers when selecting the title and description
