@@ -240,7 +240,7 @@ function populateDropdown(agencyEin) {
     });
 }
 
-// var previousFormId = "";
+var previousFormId = "";
 var formCurrentlyDisplayed = false;
 function renderCustomRequestForm(target) {
     /*
@@ -265,7 +265,7 @@ function renderCustomRequestForm(target) {
             },
             success: function (data) {
                 // if (formCurrentlyDisplayed) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                //     // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
                 // }
                 // formCurrentlyDisplayed = true;
                 // previousFormId = formId;
@@ -298,39 +298,47 @@ function renderCustomRequestForm(target) {
                         e.preventDefault();
                 });
 
-                // render timepicker plugins
-                $(".timepicker").timepicker({
-                    timeFormat: "h:mm p",
-                    interval: 1,
-                    minTime: "12:00am",
-                    maxTime: "11:59pm",
-                    startTime: "12:00am",
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true
-                }).keydown(function (e) {
-                    // prevent keyboard input except for allowed keys
-                    if (e.keyCode !== 8 &&
-                        e.keyCode !== 9 &&
-                        e.keyCode !== 37 &&
-                        e.keyCode !== 39 &&
-                        e.keyCode !== 48 &&
-                        e.keyCode !== 49 &&
-                        e.keyCode !== 50 &&
-                        e.keyCode !== 51 &&
-                        e.keyCode !== 52 &&
-                        e.keyCode !== 53 &&
-                        e.keyCode !== 54 &&
-                        e.keyCode !== 55 &&
-                        e.keyCode !== 56 &&
-                        e.keyCode !== 57 &&
-                        e.keyCode !== 16 &&
-                        e.keyCode !== 65 &&
-                        e.keyCode !== 77 &&
-                        e.keyCode !== 80 &&
-                        e.keyCode !== 186)
-                        e.preventDefault();
-                });
+
+                try {
+                    // render timepicker plugins
+                    $(".timepicker").timepicker({
+                        timeFormat: "h:mm p",
+                        interval: 1,
+                        minTime: "12:00am",
+                        maxTime: "11:59pm",
+                        startTime: "12:00am",
+                        dynamic: false,
+                        dropdown: true,
+                        scrollbar: true
+                    }).keydown(function (e) {
+                        // prevent keyboard input except for allowed keys
+                        if (e.keyCode !== 8 &&
+                            e.keyCode !== 9 &&
+                            e.keyCode !== 37 &&
+                            e.keyCode !== 39 &&
+                            e.keyCode !== 48 &&
+                            e.keyCode !== 49 &&
+                            e.keyCode !== 50 &&
+                            e.keyCode !== 51 &&
+                            e.keyCode !== 52 &&
+                            e.keyCode !== 53 &&
+                            e.keyCode !== 54 &&
+                            e.keyCode !== 55 &&
+                            e.keyCode !== 56 &&
+                            e.keyCode !== 57 &&
+                            e.keyCode !== 16 &&
+                            e.keyCode !== 65 &&
+                            e.keyCode !== 77 &&
+                            e.keyCode !== 80 &&
+                            e.keyCode !== 186)
+                            e.preventDefault();
+                    });
+
+                }
+                catch (err) {
+                    // One of the forms doesn't have a time field with will throw an error when you try to render it
+                    // TODO: find a better way to handle this error
+                }
 
                 // Do not reset on click
                 $(".select-multiple").find("option").mousedown(function (e) {
