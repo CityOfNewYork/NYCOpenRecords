@@ -48,9 +48,10 @@ $(document).ready(function () {
     $(document).on("focus", ".request-type", function () {
         var target = document.activeElement.id;
         target = target.replace("request-type-", "");
-        var targetID = "#"+document.activeElement.id;
+        var targetID = "#" + document.activeElement.id;
         $(targetID).off().change(function () {
             renderCustomRequestForm(target);
+            updateCustomRequestFormDropdowns(targetID);
         });
     });
 
@@ -59,6 +60,7 @@ $(document).ready(function () {
         var dropdownTemplate = "<div id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
         var contentTemplate = "<div id='custom-request-form-content-" + customRequestFormCounter + "'></div>";
         $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
+        $("#custom-request-form-additional-content").hide();
 
         populateDropdown($("#request-agency").val());
     });

@@ -265,14 +265,19 @@ function renderCustomRequestForm(target) {
             },
             success: function (data) {
                 // if (formCurrentlyDisplayed) {
-                //     // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
                 // }
                 // formCurrentlyDisplayed = true;
                 // previousFormId = formId;
                 // repeatableCounter[formId] = repeatableCounter[formId] - 1;
-                customRequestFormContent.html(data);
+                // customRequestFormContent.html(data);
                 // console.log(previousFormId);
-                // console.log(repeatableCounter);
+
+
+                // repeatableCounter[formId] = repeatableCounter[formId] + 1;
+                customRequestFormContent.html(data);
+
+                console.log(repeatableCounter);
 
                 // render datepicker plugins
                 $(".custom-request-form-datepicker").datepicker({
@@ -351,7 +356,9 @@ function renderCustomRequestForm(target) {
                 customRequestFormContent.show();
                 // check to show add new request information button
                 if (showMultipleRequestTypes === true) {
-                    customRequestFormAdditionalContent.show();
+                    // check if repeatable counter still has options
+                    if (moreOptions()) customRequestFormAdditionalContent.show();
+                    else customRequestFormAdditionalContent.hide();
                 }
                 else {
                     customRequestFormAdditionalContent.hide();
@@ -364,7 +371,24 @@ function renderCustomRequestForm(target) {
         customRequestFormContent.hide();
         customRequestFormAdditionalContent.hide();
         // reset the repeatable counter for that formId
+        // if the form id is is none and it is NOT the first dropdown...delete it
         // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
         // console.log(repeatableCounter);
     }
+}
+
+function moreOptions() {
+    /*
+     * Determine if there are still forms that can be repeated in the request.
+     * Return true if there is at least one form that can be rendered.
+     * Return false if all options have been rendered already.
+     */
+    for (var key in repeatableCounter) {
+        if (repeatableCounter[key] !== 0) return true;
+    }
+    return false;
+}
+
+function updateCustomRequestFormDropdowns(targetID) {
+
 }
