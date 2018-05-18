@@ -51,6 +51,9 @@ $(document).ready(function () {
         target = target.replace("request-type-", "");
         var targetId = "#" + document.activeElement.id;
         $(targetId).off().change(function () {
+            previousValues[target-1] = previousFormId;
+            console.log("previous");
+            console.log(previousValues);
             renderCustomRequestForm(target);
         });
     });

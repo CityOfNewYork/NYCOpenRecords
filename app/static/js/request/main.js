@@ -200,6 +200,9 @@ function getCustomRequestForms(agencyEin) {
                                 }
                                 requestType.append(option);
                             }
+                            previousValues[0] = "";
+                            currentValues[0] = "";
+
                             customRequestFormsDiv.show();
                         }
                     }
@@ -261,6 +264,8 @@ function populateDropdown(agencyEin) {
 
 var previousFormId = "";
 var previousFormTarget = "";
+var previousValues = [];
+var currentValues = [];
 function renderCustomRequestForm(target) {
     /*
      * function to render custom form fields based on their field definitions
@@ -283,11 +288,49 @@ function renderCustomRequestForm(target) {
                 repeatable_counter: JSON.stringify(repeatableCounter)
             },
             success: function (data) {
-                if (previousFormId !== "" && previousFormId !== formId) {
-                    repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
-                }
+                // if (previousFormId !== "" && previousFormId !== formId) { // and you change it
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                //     console.log("+1 on form: " + previousFormId);
+                // }
+                // // if you are changing another target but the same id then you should
+                // if (previousFormTarget !== "" && previousFormTarget !== target && previousFormId !== formId) {
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] - 1;
+                //     console.log("-1 on form: " + previousFormId);
+                // }
 
-                repeatableCounter[formId] = repeatableCounter[formId] - 1;
+                // if the target is the same but the form is different
+                // if (previousFormTarget === target && previousFormId !== formId) {
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                //     console.log("+1 on form: " + previousFormId);
+                // }
+
+
+                // if the target is diff and the form is different
+                // if (previousFormTarget !== target && previousFormId !== formId) {
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                //     console.log("+1 on form: " + previousFormId);
+                // }
+
+                // as long as its a different target change it
+                // if (previousFormTarget !== target) {
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                //     console.log("+1 on form: " + previousFormId);
+                // }
+
+
+                currentValues[target-1] = formId;
+                console.log("current");
+                console.log(currentValues);
+
+                detectChange();
+
+                // // this will always happen
+                // repeatableCounter[formId] = repeatableCounter[formId] - 1;
+                // console.log("-1 on form: " + formId);
+
+
+
+
 
                 console.log(repeatableCounter);
                 customRequestFormContent.html(data);
@@ -396,7 +439,12 @@ function renderCustomRequestForm(target) {
         // reset the repeatable counter for that formId
         // if the form id is is none and it is NOT the first dropdown...delete it
 
-        repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+        currentValues[target-1] = "";
+        console.log(currentValues);
+        detectChange();
+        // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+
+        console.log("+1 on form: " + previousFormId);
         console.log(repeatableCounter);
 
         previousFormId = "";
@@ -434,4 +482,13 @@ function updateCustomRequestFormDropdowns(targetID) {
             });
         }
     });
+}
+
+function detectChange() {
+    for (var i = 0; i < currentValues.length; i++) {
+        if (currentValues[i] !== previousValues[i]) {
+            repeatableCounter[previousValues[i]] = repeatableCounter[previousValues[i]] + 1;
+            repeatableCounter[currentValues[i]] = repeatableCounter[currentValues[i]] - 1;
+        }
+    }
 }
