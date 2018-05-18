@@ -14,7 +14,7 @@ from app.agency.api.utils import (
 )
 from app.models import CustomRequestForms
 import json
-
+from sqlalchemy import asc
 
 @agency_api_blueprint.route('/active_users/<string:agency_ein>', methods=['GET'])
 @login_required
@@ -68,7 +68,7 @@ def get_custom_request_form_options(agency_ein):
     custom_request_forms = CustomRequestForms.query.with_entities(CustomRequestForms.id,
                                                                   CustomRequestForms.form_name,
                                                                   CustomRequestForms.repeatable).filter_by(
-        agency_ein=agency_ein).all()
+        agency_ein=agency_ein).order_by(asc(CustomRequestForms.id)).all()
     return jsonify(custom_request_forms), 200
 
 
@@ -99,4 +99,5 @@ def get_custom_request_form_fields():
                 'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
                 field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
                 min_length=min_length, max_length=max_length, instance_id=instance_id) + '\n'
+    form_template = form_template + "<strong>__________________________________________________________________________________________________________\n__________________________________________________________________________________________________________\n</strong>"
     return jsonify(form_template), 200
