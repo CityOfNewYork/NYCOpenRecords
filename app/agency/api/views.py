@@ -83,7 +83,7 @@ def get_custom_request_form_fields():
     repeatable_counter = json.loads(request.args['repeatable_counter'])
     instance_id = custom_request_form.repeatable - repeatable_counter[str(custom_request_form.id)] + 1
 
-    form_template = ""
+    form_template = ''
     for field in custom_request_form.field_definitions:
         for key, value in field.items():
             field_text = key
@@ -99,5 +99,4 @@ def get_custom_request_form_fields():
                 'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
                 field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
                 min_length=min_length, max_length=max_length, instance_id=instance_id) + '\n'
-    form_template = form_template + "<strong>__________________________________________________________________________________________________________\n__________________________________________________________________________________________________________\n</strong>"
     return jsonify(form_template), 200

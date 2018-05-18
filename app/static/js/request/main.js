@@ -159,6 +159,7 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
+    repeatableCounter = {};
 
     requestType.empty();
     customRequestFormContent.html("");
@@ -176,9 +177,10 @@ function getCustomRequestForms(agencyEin) {
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
+                            // repeatableCounter[[data[0][0]]] = data[0][2];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             customRequestFormsDiv.show();
-                            renderCustomRequestForm();
+                            renderCustomRequestForm("1");
                             // add repeatable form if only one form
                         }
                         else {
@@ -241,7 +243,7 @@ function populateDropdown(agencyEin) {
 }
 
 var previousFormId = "";
-var formCurrentlyDisplayed = false;
+var previousFormTarget = "";
 function renderCustomRequestForm(target) {
     /*
      * function to render custom form fields based on their field definitions
@@ -264,44 +266,58 @@ function renderCustomRequestForm(target) {
                 repeatable_counter: JSON.stringify(repeatableCounter)
             },
             success: function (data) {
-                // if (formCurrentlyDisplayed) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                if (previousFormId !== "" && previousFormId !== formId) {
+                    repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+                }
+                // if targets are different AND FORMS ARE DIFFERENT THEN -1 FOR PREVIOUS FORM ID
+                // if (previousFormTarget !== target && previousFormId !== formId) {
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] - 1;
                 // }
-                // formCurrentlyDisplayed = true;
-                // previousFormId = formId;
-                // repeatableCounter[formId] = repeatableCounter[formId] - 1;
-                // customRequestFormContent.html(data);
-                // console.log(previousFormId);
 
+                // if (previousFormTarget === target){
+                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] - 1;
+                // }
 
-                // repeatableCounter[formId] = repeatableCounter[formId] + 1;
-                customRequestFormContent.html(data);
+                repeatableCounter[formId] = repeatableCounter[formId] - 1;
 
                 console.log(repeatableCounter);
+                // console.log("Previous form id: " + previousFormId);
+                // console.log("Previous target id: " + previousFormTarget);
+                customRequestFormContent.html(data);
+                previousFormId = formId;
+                previousFormTarget = target;
+                updateCustomRequestFormDropdowns(customRequestFormId);
 
-                // render datepicker plugins
-                $(".custom-request-form-datepicker").datepicker({
-                    dateFormat: "mm/dd/yy",
-                    maxDate: 0
-                }).keydown(function (e) {
-                    // prevent keyboard input except for tab
-                    if (e.keyCode !== 8 &&
-                        e.keyCode !== 9 &&
-                        e.keyCode !== 37 &&
-                        e.keyCode !== 39 &&
-                        e.keyCode !== 48 &&
-                        e.keyCode !== 49 &&
-                        e.keyCode !== 50 &&
-                        e.keyCode !== 51 &&
-                        e.keyCode !== 52 &&
-                        e.keyCode !== 53 &&
-                        e.keyCode !== 54 &&
-                        e.keyCode !== 55 &&
-                        e.keyCode !== 56 &&
-                        e.keyCode !== 57 &&
-                        e.keyCode !== 191)
-                        e.preventDefault();
-                });
+
+                try {
+                    // render datepicker plugins
+                    $(".custom-request-form-datepicker").datepicker({
+                        dateFormat: "mm/dd/yy",
+                        maxDate: 0
+                    }).keydown(function (e) {
+                        // prevent keyboard input except for tab
+                        if (e.keyCode !== 8 &&
+                            e.keyCode !== 9 &&
+                            e.keyCode !== 37 &&
+                            e.keyCode !== 39 &&
+                            e.keyCode !== 48 &&
+                            e.keyCode !== 49 &&
+                            e.keyCode !== 50 &&
+                            e.keyCode !== 51 &&
+                            e.keyCode !== 52 &&
+                            e.keyCode !== 53 &&
+                            e.keyCode !== 54 &&
+                            e.keyCode !== 55 &&
+                            e.keyCode !== 56 &&
+                            e.keyCode !== 57 &&
+                            e.keyCode !== 191)
+                            e.preventDefault();
+                    });
+                }
+                catch (err) {
+                    // if one of the forms doesn't have a date field it will throw an error when you try to render it
+                    // TODO: find a better way to handle this error
+                }
 
 
                 try {
@@ -341,7 +357,7 @@ function renderCustomRequestForm(target) {
 
                 }
                 catch (err) {
-                    // One of the forms doesn't have a time field with will throw an error when you try to render it
+                    // if one of the forms doesn't have a time field it will throw an error when you try to render it
                     // TODO: find a better way to handle this error
                 }
 
@@ -372,8 +388,14 @@ function renderCustomRequestForm(target) {
         customRequestFormAdditionalContent.hide();
         // reset the repeatable counter for that formId
         // if the form id is is none and it is NOT the first dropdown...delete it
-        // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
-        // console.log(repeatableCounter);
+
+        repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
+        console.log(repeatableCounter);
+        // console.log("Previous form id: " + previousFormId);
+        // console.log("Previous target id: " + previousFormTarget);
+        previousFormId = "";
+        previousFormTarget = target;
+        updateCustomRequestFormDropdowns(customRequestFormId);
     }
 }
 
@@ -390,5 +412,20 @@ function moreOptions() {
 }
 
 function updateCustomRequestFormDropdowns(targetID) {
-
+    /*
+     * Update the dropdowns to disable options where they are no longer repeatable.
+     */
+    $(".request-type").each(function(){
+        if (this.id !== targetID) {
+            var requestTypeOptions = "#" + this.id + " > option";
+            $(requestTypeOptions).each(function () {
+                if (repeatableCounter[this.value] === 0) {
+                    $(this).attr("disabled", "disabled");
+                }
+                else {
+                    $(this).removeAttr("disabled");
+                }
+            });
+        }
+    });
 }
