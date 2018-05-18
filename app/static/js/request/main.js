@@ -151,6 +151,11 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    repeatableCounter = {};
+    customRequestFormCounter = 1;
+    previousFormId = "";
+    previousFormTarget = "";
+
     var selectedAgency = agencyEin;
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var requestTypeId = "#request-type-" + customRequestFormCounter.toString();
@@ -159,7 +164,6 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
-    repeatableCounter = {};
 
     requestType.empty();
     customRequestFormContent.html("");
@@ -177,11 +181,13 @@ function getCustomRequestForms(agencyEin) {
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
-                            // repeatableCounter[[data[0][0]]] = data[0][2];
+                            repeatableCounter[[data[0][0]]] = data[0][2];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             customRequestFormsDiv.show();
                             renderCustomRequestForm("1");
-                            // add repeatable form if only one form
+                            if (moreOptions()) {
+                                customRequestFormAdditionalContent.show();
+                            }
                         }
                         else {
                             requestType.append(new Option("", ""));
@@ -198,7 +204,7 @@ function getCustomRequestForms(agencyEin) {
                         }
                     }
                 });
-                // check is custom forms are repeatable
+                // check if custom forms are repeatable
                 if (data["custom_request_forms"]["multiple_request_types"] === true) {
                     showMultipleRequestTypes = true;
                 }
@@ -218,6 +224,10 @@ function getCustomRequestForms(agencyEin) {
 
 function populateDropdown(agencyEin) {
     var selectedAgency = agencyEin;
+    var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
+    var customRequestFormsDiv = $(customRequestFormsDivId);
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");;
+
     $(".request-type").each(function(){
         if (this.length === 0) { // if this is an unpopulated dropdown
             var requestType = this;
@@ -225,16 +235,23 @@ function populateDropdown(agencyEin) {
                 url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
                 type: "GET",
                 success: function (data) {
-                    // Still need to account for only 1 custom form
-
-                    requestType.append(new Option("", ""));
-                    for (var i = 0; i < data.length; i++) {
-                        var option = new Option(data[i][1], data[i][0]);
-                        if (repeatableCounter[data[i][0]] === 0) {
-                            // disable it
-                            option.disabled = true;
+                    if (data.length === 1) {
+                        requestType.append(new Option(data[0][1], data[0][0]));
+                        customRequestFormsDiv.show();
+                        renderCustomRequestForm(customRequestFormCounter);
+                        if (moreOptions()) {
+                            customRequestFormAdditionalContent.show();
                         }
-                        requestType.append(option);
+                    }
+                    else {
+                        requestType.append(new Option("", ""));
+                        for (var i = 0; i < data.length; i++) {
+                            var option = new Option(data[i][1], data[i][0]);
+                            if (repeatableCounter[data[i][0]] === 0) {
+                                option.disabled = true;
+                            }
+                            requestType.append(option);
+                        }
                     }
                 }
             });
@@ -269,20 +286,10 @@ function renderCustomRequestForm(target) {
                 if (previousFormId !== "" && previousFormId !== formId) {
                     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
                 }
-                // if targets are different AND FORMS ARE DIFFERENT THEN -1 FOR PREVIOUS FORM ID
-                // if (previousFormTarget !== target && previousFormId !== formId) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] - 1;
-                // }
-
-                // if (previousFormTarget === target){
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] - 1;
-                // }
 
                 repeatableCounter[formId] = repeatableCounter[formId] - 1;
 
                 console.log(repeatableCounter);
-                // console.log("Previous form id: " + previousFormId);
-                // console.log("Previous target id: " + previousFormTarget);
                 customRequestFormContent.html(data);
                 previousFormId = formId;
                 previousFormTarget = target;
@@ -391,8 +398,7 @@ function renderCustomRequestForm(target) {
 
         repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
         console.log(repeatableCounter);
-        // console.log("Previous form id: " + previousFormId);
-        // console.log("Previous target id: " + previousFormTarget);
+
         previousFormId = "";
         previousFormTarget = target;
         updateCustomRequestFormDropdowns(customRequestFormId);
