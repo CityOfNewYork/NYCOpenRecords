@@ -49,8 +49,8 @@ $(document).ready(function () {
     $(document).on("focus", ".request-type", function () {
         var target = document.activeElement.id;
         target = target.replace("request-type-", "");
-        var targetID = "#" + document.activeElement.id;
-        $(targetID).off().change(function () {
+        var targetId = "#" + document.activeElement.id;
+        $(targetId).off().change(function () {
             renderCustomRequestForm(target);
         });
     });
