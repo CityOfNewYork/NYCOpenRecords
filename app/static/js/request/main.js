@@ -143,12 +143,13 @@ function toggleRequestAgencyInstructions(action) {
     }
 }
 
-var showMultipleRequestTypes = false;
-var repeatableCounter = {};
-var previousValues = [];
-var currentValues = [];
-var customRequestFormCounter = 1;
-var dismissTarget = "";
+// variables used to handle custom forms
+var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
+var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
+var previousValues = []; // tracks the previous values of each request type dropdown
+var currentValues = []; // tracks the current values of each request type dropdown
+var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
+var dismissTarget = ""; // tracks which dismiss button is being clicked
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -183,12 +184,13 @@ function getCustomRequestForms(agencyEin) {
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
+                            // if only one option, render that form by default
                             repeatableCounter[[data[0][0]]] = data[0][2];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
                             customRequestFormsDiv.show();
-                            renderCustomRequestForm("1");
+                            renderCustomRequestForm("1"); // render the form to the first custom request form content div
                             if (moreOptions()) {
                                 customRequestFormAdditionalContent.show();
                             }
@@ -198,10 +200,6 @@ function getCustomRequestForms(agencyEin) {
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
                                 var option = new Option(data[i][1], data[i][0]);
-                                if (repeatableCounter[data[i][0]] === 0){
-                                    // disable it
-                                    option.disabled = true;
-                                }
                                 requestType.append(option);
                             }
                             previousValues[0] = "";
@@ -230,6 +228,9 @@ function getCustomRequestForms(agencyEin) {
 }
 
 function populateDropdown(agencyEin) {
+    /*
+     * function to populate any empty request type dropdowns
+     */
     var selectedAgency = agencyEin;
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var customRequestFormsDiv = $(customRequestFormsDivId);
@@ -255,6 +256,7 @@ function populateDropdown(agencyEin) {
                         for (var i = 0; i < data.length; i++) {
                             var option = new Option(data[i][1], data[i][0]);
                             if (repeatableCounter[data[i][0]] === 0) {
+                                // if all possible instances of the form have been rendered then disable the option
                                 option.disabled = true;
                             }
                             requestType.append(option);
@@ -268,7 +270,8 @@ function populateDropdown(agencyEin) {
 
 function renderCustomRequestForm(target) {
     /*
-     * function to render custom form fields based on their field definitions
+     * function to render custom form fields based on their field definitions.
+     * target is the instance number of divs that the form will be rendered to
      */
     var requestTypeId = "#request-type-" + target;
     var requestType = $(requestTypeId);
@@ -288,13 +291,14 @@ function renderCustomRequestForm(target) {
                 repeatable_counter: JSON.stringify(repeatableCounter)
             },
             success: function (data) {
+                // update the values in the tracking variables
                 currentValues[target-1] = formId;
 
-                detectChange();
+                detectChange(); // determine which request type dropdown was changed
 
                 customRequestFormContent.html(data);
                 previousValues[target-1] = formId;
-                updateCustomRequestFormDropdowns(requestTypeId);
+                updateCustomRequestFormDropdowns();
 
                 try {
                     // render datepicker plugins
@@ -325,7 +329,6 @@ function renderCustomRequestForm(target) {
                     // if one of the forms doesn't have a date field it will throw an error when you try to render it
                     // TODO: find a better way to handle this error
                 }
-
 
                 try {
                     // render timepicker plugins
@@ -394,6 +397,7 @@ function renderCustomRequestForm(target) {
         customRequestFormContent.hide();
         customRequestFormAdditionalContent.hide();
 
+        // update the values in the tracking variables
         currentValues[target-1] = "";
 
         detectChange();

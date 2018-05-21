@@ -48,6 +48,7 @@ $(document).ready(function () {
         toggleRequestAgencyInstructions("default");
     });
 
+    // render a new form every time a request type dropdown is changed
     $(document).on("focus", ".request-type", function () {
         var target = document.activeElement.id;
         target = target.replace("request-type-", "");
@@ -57,10 +58,12 @@ $(document).ready(function () {
         });
     });
 
+    // determine which dismiss button is being clicked
     $(document).on("click", ".panel-dismiss", function () {
         dismissTarget = "#" + document.activeElement.id;
     });
 
+    // append a new dropdown and content div every time the additional content button is clicked
     $("#custom-request-form-additional-content").click(function () {
         customRequestFormCounter = customRequestFormCounter + 1;
         var dropdownTemplate = "<div class='panel panel-default appended-div' id='custom-request-panel-" + customRequestFormCounter + "'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><button type='button' class='close panel-dismiss' id='panel-dismiss-button-" + customRequestFormCounter + "' data-target='#panel-dismiss-modal' data-toggle='modal'><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
@@ -68,6 +71,7 @@ $(document).ready(function () {
         $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
         $("#custom-request-form-additional-content").hide();
 
+        // populate any empty dropdowns with that agency's form options
         populateDropdown($("#request-agency").val());
 
         previousValues[customRequestFormCounter-1] = "";
