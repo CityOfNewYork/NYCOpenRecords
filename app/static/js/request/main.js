@@ -148,6 +148,7 @@ var repeatableCounter = {};
 var previousValues = [];
 var currentValues = [];
 var customRequestFormCounter = 1;
+var dismissTarget = "";
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -437,7 +438,6 @@ function detectChange() {
      */
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== previousValues[i]) {
-            console.log("+1 to form " + previousValues[i] + " AND -1 to form " + currentValues[i]);
             if (previousValues[i] !== "") {
                 repeatableCounter[previousValues[i]] = repeatableCounter[previousValues[i]] + 1;
             }
@@ -449,12 +449,13 @@ function detectChange() {
     }
 }
 
-function handlePanelDismiss(target) {
+function handlePanelDismiss() {
     /*
      * handle the dismissal of a custom request panel. Target is the data target of the dismiss button
      */
     // +1 to repeatable counter and reset previousValues/currentValues array
-    var targetId = target.replace("#custom-request-panel-", "");
+    var targetId = dismissTarget.replace("#panel-dismiss-button-", "");
+    var panelId = dismissTarget.replace("#panel-dismiss-button-", "#custom-request-panel-");
     if (currentValues[targetId-1] !== "") {
                 repeatableCounter[currentValues[targetId-1]] = repeatableCounter[currentValues[targetId-1]] + 1;
                 previousValues[targetId-1] = "";
@@ -467,6 +468,6 @@ function handlePanelDismiss(target) {
         if (moreOptions()) $("#custom-request-form-additional-content").show();
     }
 
-    // confirmation message to dismiss
-
+    // remove custom request panel div
+    $(panelId).remove();
 }
