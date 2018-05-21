@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}
+    Maintenance
+{% endblock %}
+
+{% block content %}
+    <div class="text-center">
+        <h2>Temporarily Down for Maintenance</h2>
+        <p>We are performing maintenance. We should be back online shortly.</p>
+        {% if description %}
+            <p><strong>What's Happening: </strong> {{ description }}</p>
+        {% else %}
+            <p><strong>What's Happening: </strong> We are performing a scheduled system upgrade</p>
+        {% endif %}
+        {% if outage_time %}
+            <p><strong>Estimated downtime: </strong>{{ outage_time }}</p>
+        {% endif %}
+    </div>
+
+{% endblock %}
