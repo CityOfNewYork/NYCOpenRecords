@@ -160,6 +160,7 @@ function getCustomRequestForms(agencyEin) {
     customRequestFormCounter = 1;
 
     var selectedAgency = agencyEin;
+    var customRequestPanelDiv = $("#custom-request-panel-" + customRequestFormCounter.toString());
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var requestTypeId = "#request-type-" + customRequestFormCounter.toString();
     var customRequestFormId = "#custom-request-form-content-" + customRequestFormCounter.toString();
@@ -189,6 +190,7 @@ function getCustomRequestForms(agencyEin) {
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
+                            customRequestPanelDiv.show();
                             customRequestFormsDiv.show();
                             renderCustomRequestForm("1"); // render the form to the first custom request form content div
                             if (moreOptions()) {
@@ -205,6 +207,7 @@ function getCustomRequestForms(agencyEin) {
                             previousValues[0] = "";
                             currentValues[0] = "";
 
+                            customRequestPanelDiv.show();
                             customRequestFormsDiv.show();
                         }
                     }
@@ -218,10 +221,12 @@ function getCustomRequestForms(agencyEin) {
                 }
             }
             else {
+                customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
             }
         },
         error: function () {
+            customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
         }
     });
