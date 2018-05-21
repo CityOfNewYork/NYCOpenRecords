@@ -39,6 +39,8 @@ $(document).ready(function () {
         getRequestAgencyInstructions();
         toggleRequestAgencyInstructions("hide");
         $(".appended-div").remove(); // remove the appended divs from previous agency
+        previousValues = [];
+        currentValues = [];
         getCustomRequestForms($("#request-agency").val());
     });
 
@@ -51,7 +53,6 @@ $(document).ready(function () {
         target = target.replace("request-type-", "");
         var targetId = "#" + document.activeElement.id;
         $(targetId).off().change(function () {
-            previousValues[target-1] = previousFormId;
             console.log("previous");
             console.log(previousValues);
             renderCustomRequestForm(target);
@@ -60,12 +61,15 @@ $(document).ready(function () {
 
     $("#custom-request-form-additional-content").click(function () {
         customRequestFormCounter = customRequestFormCounter + 1;
-        var dropdownTemplate = "<div class='panel panel-default appended-div' id='custom-request-panel-" + customRequestFormCounter + "'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><button type='button' class='close panel-dismiss' data-target='#custom-request-panel-" + customRequestFormCounter + "' data-dismiss='alert'><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
+        var dropdownTemplate = "<div class='panel panel-default appended-div' id='custom-request-panel-" + customRequestFormCounter + "'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><button onclick='handlePanelDismiss($(this).data(\"target\"))' type='button' class='close' data-target='#custom-request-panel-" + customRequestFormCounter + "' data-dismiss='alert'><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
         var contentTemplate = "<div class='panel-body' id='custom-request-form-content-" + customRequestFormCounter + "' hidden></div></div>";
         $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
         $("#custom-request-form-additional-content").hide();
 
         populateDropdown($("#request-agency").val());
+
+        previousValues[customRequestFormCounter-1] = "";
+        currentValues[customRequestFormCounter-1] = "";
     });
 
     // javascript to add tooltip popovers when selecting the title and description

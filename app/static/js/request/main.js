@@ -145,7 +145,10 @@ function toggleRequestAgencyInstructions(action) {
 
 var showMultipleRequestTypes = false;
 var repeatableCounter = {};
+var previousValues = [];
+var currentValues = [];
 var customRequestFormCounter = 1;
+
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
      *
@@ -153,8 +156,6 @@ function getCustomRequestForms(agencyEin) {
      */
     repeatableCounter = {};
     customRequestFormCounter = 1;
-    previousFormId = "";
-    previousFormTarget = "";
 
     var selectedAgency = agencyEin;
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
@@ -183,6 +184,8 @@ function getCustomRequestForms(agencyEin) {
                         if (data.length === 1) {
                             repeatableCounter[[data[0][0]]] = data[0][2];
                             requestType.append(new Option(data[0][1], data[0][0]));
+                            previousValues[0] = "";
+                            currentValues[0] = "";
                             customRequestFormsDiv.show();
                             renderCustomRequestForm("1");
                             if (moreOptions()) {
@@ -262,10 +265,6 @@ function populateDropdown(agencyEin) {
     });
 }
 
-var previousFormId = "";
-var previousFormTarget = "";
-var previousValues = [];
-var currentValues = [];
 function renderCustomRequestForm(target) {
     /*
      * function to render custom form fields based on their field definitions
@@ -288,56 +287,13 @@ function renderCustomRequestForm(target) {
                 repeatable_counter: JSON.stringify(repeatableCounter)
             },
             success: function (data) {
-                // if (previousFormId !== "" && previousFormId !== formId) { // and you change it
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
-                //     console.log("+1 on form: " + previousFormId);
-                // }
-                // // if you are changing another target but the same id then you should
-                // if (previousFormTarget !== "" && previousFormTarget !== target && previousFormId !== formId) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] - 1;
-                //     console.log("-1 on form: " + previousFormId);
-                // }
-
-                // if the target is the same but the form is different
-                // if (previousFormTarget === target && previousFormId !== formId) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
-                //     console.log("+1 on form: " + previousFormId);
-                // }
-
-
-                // if the target is diff and the form is different
-                // if (previousFormTarget !== target && previousFormId !== formId) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
-                //     console.log("+1 on form: " + previousFormId);
-                // }
-
-                // as long as its a different target change it
-                // if (previousFormTarget !== target) {
-                //     repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
-                //     console.log("+1 on form: " + previousFormId);
-                // }
-
-
                 currentValues[target-1] = formId;
-                console.log("current");
-                console.log(currentValues);
 
                 detectChange();
 
-                // // this will always happen
-                // repeatableCounter[formId] = repeatableCounter[formId] - 1;
-                // console.log("-1 on form: " + formId);
-
-
-
-
-
-                console.log(repeatableCounter);
                 customRequestFormContent.html(data);
-                previousFormId = formId;
-                previousFormTarget = target;
-                updateCustomRequestFormDropdowns(customRequestFormId);
-
+                previousValues[target-1] = formId;
+                updateCustomRequestFormDropdowns(requestTypeId);
 
                 try {
                     // render datepicker plugins
@@ -436,20 +392,13 @@ function renderCustomRequestForm(target) {
         customRequestFormContent.html("");
         customRequestFormContent.hide();
         customRequestFormAdditionalContent.hide();
-        // reset the repeatable counter for that formId
-        // if the form id is is none and it is NOT the first dropdown...delete it
 
         currentValues[target-1] = "";
-        console.log(currentValues);
+
         detectChange();
-        // repeatableCounter[previousFormId] = repeatableCounter[previousFormId] + 1;
 
-        console.log("+1 on form: " + previousFormId);
-        console.log(repeatableCounter);
-
-        previousFormId = "";
-        previousFormTarget = target;
-        updateCustomRequestFormDropdowns(customRequestFormId);
+        previousValues[target-1] = "";
+        updateCustomRequestFormDropdowns();
     }
 }
 
@@ -465,30 +414,59 @@ function moreOptions() {
     return false;
 }
 
-function updateCustomRequestFormDropdowns(targetID) {
+function updateCustomRequestFormDropdowns() {
     /*
      * Update the dropdowns to disable options where they are no longer repeatable.
      */
     $(".request-type").each(function(){
-        if (this.id !== targetID) {
-            var requestTypeOptions = "#" + this.id + " > option";
-            $(requestTypeOptions).each(function () {
-                if (repeatableCounter[this.value] === 0) {
-                    $(this).attr("disabled", "disabled");
-                }
-                else {
-                    $(this).removeAttr("disabled");
-                }
-            });
-        }
+        var requestTypeOptions = "#" + this.id + " > option";
+        $(requestTypeOptions).each(function () {
+            if (repeatableCounter[this.value] === 0) {
+                $(this).attr("disabled", "disabled");
+            }
+            else {
+                $(this).removeAttr("disabled");
+            }
+        });
     });
 }
 
 function detectChange() {
+    /*
+     * Detects which request type dropdown was changed and updates the repeatable counter accordingly
+     */
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== previousValues[i]) {
-            repeatableCounter[previousValues[i]] = repeatableCounter[previousValues[i]] + 1;
-            repeatableCounter[currentValues[i]] = repeatableCounter[currentValues[i]] - 1;
+            console.log("+1 to form " + previousValues[i] + " AND -1 to form " + currentValues[i]);
+            if (previousValues[i] !== "") {
+                repeatableCounter[previousValues[i]] = repeatableCounter[previousValues[i]] + 1;
+            }
+
+            if (currentValues[i] !== "") {
+                repeatableCounter[currentValues[i]] = repeatableCounter[currentValues[i]] - 1;
+            }
         }
     }
+}
+
+function handlePanelDismiss(target) {
+    /*
+     * handle the dismissal of a custom request panel. Target is the data target of the dismiss button
+     */
+    // +1 to repeatable counter and reset previousValues/currentValues array
+    var targetId = target.replace("#custom-request-panel-", "");
+    if (currentValues[targetId-1] !== "") {
+                repeatableCounter[currentValues[targetId-1]] = repeatableCounter[currentValues[targetId-1]] + 1;
+                previousValues[targetId-1] = "";
+                currentValues[targetId-1] = "";
+    }
+    updateCustomRequestFormDropdowns();
+
+    // show additional content button if repeatable counter has more options and it is the last one
+    if (targetId === customRequestFormCounter.toString()) {
+        if (moreOptions()) $("#custom-request-form-additional-content").show();
+    }
+
+    // confirmation message to dismiss
+
 }
