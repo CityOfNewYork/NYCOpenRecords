@@ -60,7 +60,7 @@ $(document).ready(function () {
 
     $("#custom-request-form-additional-content").click(function () {
         customRequestFormCounter = customRequestFormCounter + 1;
-        var dropdownTemplate = "<div class='panel panel-default appended-div'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
+        var dropdownTemplate = "<div class='panel panel-default appended-div' id='custom-request-panel-" + customRequestFormCounter + "'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><button type='button' class='close panel-dismiss' data-target='#custom-request-panel-" + customRequestFormCounter + "' data-dismiss='alert'><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
         var contentTemplate = "<div class='panel-body' id='custom-request-form-content-" + customRequestFormCounter + "' hidden></div></div>";
         $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
         $("#custom-request-form-additional-content").hide();
