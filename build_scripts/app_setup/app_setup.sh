@@ -57,3 +57,6 @@ echo "source /home/vagrant/.virtualenvs/openrecords/bin/activate" >> /home/vagra
 
 # 9. Setup sudo Access
 cp /vagrant/build_scripts/app_setup/redis /etc/sudoers.d/redis
+
+# 10. Setup Flask Instance Folder
+mkdir -p /vagrant/instance

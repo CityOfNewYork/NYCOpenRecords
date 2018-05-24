@@ -1,5 +1,6 @@
 import atexit
 from datetime import date
+import json
 
 import os
 import uuid
@@ -10,6 +11,7 @@ from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import (
+    abort,
     Flask,
     render_template,
     request as flask_request,
@@ -174,20 +176,34 @@ def create_app(config_name, jobs_enabled=True):
     Raw Agent: {agent}
     Error ID:  {error_id}
             """.format(
-                method=flask_request.method,
-                path=flask_request.path,
-                ip=flask_request.remote_addr,
-                agent_platform=flask_request.user_agent.platform,
-                agent_browser=flask_request.user_agent.browser,
-                agent_browser_version=flask_request.user_agent.version,
-                agent=flask_request.user_agent.string,
-                user=current_user,
-                error_id=error_id
-            ), exc_info=e
+            method=flask_request.method,
+            path=flask_request.path,
+            ip=flask_request.remote_addr,
+            agent_platform=flask_request.user_agent.platform,
+            agent_browser=flask_request.user_agent.browser,
+            agent_browser_version=flask_request.user_agent.version,
+            agent=flask_request.user_agent.string,
+            user=current_user,
+            error_id=error_id
+        ), exc_info=e
         )
         return render_template("error/generic.html",
                                status_code=500,
                                error_id=error_id)
+
+    @app.errorhandler(503)
+    def maintenance(e):
+        with open(os.path.join(app.instance_path, 'maintenance.json')) as f:
+            maintenance_info = json.load(f)
+        return render_template('error/maintenance.html',
+                               description=maintenance_info['description'],
+                               outage_time=maintenance_info['outage_time'])
+
+    @app.before_request
+    def check_maintenance_mode():
+        if os.path.exists(os.path.join(app.instance_path, 'maintenance.json')):
+            if not flask_request.cookies.get('authorized_maintainer', None):
+                return abort(503)
 
     @app.context_processor
     def add_session_config():
@@ -198,7 +214,7 @@ def create_app(config_name, jobs_enabled=True):
         """
         return {
             'PERMANENT_SESSION_LIFETIME_MS': (
-                app.permanent_session_lifetime.seconds * 1000),
+                    app.permanent_session_lifetime.seconds * 1000),
         }
 
     # Register Blueprints
