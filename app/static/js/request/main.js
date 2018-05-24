@@ -408,7 +408,9 @@ function renderCustomRequestForm(target) {
                     if (moreOptions()) {
                         customRequestFormAdditionalContent.show();
                     }
-                    else customRequestFormAdditionalContent.hide();
+                    else {
+                        customRequestFormAdditionalContent.hide();
+                    }
                 }
                 else {
                     customRequestFormAdditionalContent.hide();
