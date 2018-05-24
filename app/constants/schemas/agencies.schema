@@ -99,6 +99,43 @@
               ]
             }
           }
+        },
+        "custom_request_forms": {
+          "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_forms",
+          "type": "object",
+          "title": "Custom Request Forms",
+          "description": "JSON object with keys to determine what part of the custom request forms should be turned on or off for a specific agency",
+          "anyOf": [
+            {
+              "required": [
+                "enabled"
+              ]
+            }
+          ],
+          "properties": {
+            "enabled": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/enabled",
+              "type": "boolean",
+              "title": "Enabled",
+              "default": false,
+              "description": "Boolean to determine if the custom request forms features should be displayed",
+              "examples": [
+                true,
+                false
+              ]
+            },
+            "multiple_request_types": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/multiple_request_types",
+              "type": "boolean",
+              "title": "Multiple Request Types",
+              "default": false,
+              "description": "Boolean to determine if the custom request forms are repeatable",
+              "examples": [
+                true,
+                false
+              ]
+            }
+          }
         }
       }
     }

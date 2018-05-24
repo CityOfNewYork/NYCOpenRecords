@@ -273,6 +273,23 @@ function populateDropdown(agencyEin) {
     });
 }
 
+function updateCustomRequestFormDropdowns() {
+    /*
+     * Update the dropdowns to disable options where they are no longer repeatable.
+     */
+    $(".request-type").each(function(){
+        var requestTypeOptions = "#" + this.id + " > option";
+        $(requestTypeOptions).each(function () {
+            if (repeatableCounter[this.value] === 0) {
+                $(this).attr("disabled", "disabled");
+            }
+            else {
+                $(this).removeAttr("disabled");
+            }
+        });
+    });
+}
+
 function renderCustomRequestForm(target) {
     /*
      * function to render custom form fields based on their field definitions.
@@ -388,7 +405,9 @@ function renderCustomRequestForm(target) {
                 // check to show add new request information button
                 if (showMultipleRequestTypes === true) {
                     // check if repeatable counter still has options
-                    if (moreOptions()) customRequestFormAdditionalContent.show();
+                    if (moreOptions()) {
+                        customRequestFormAdditionalContent.show();
+                    }
                     else customRequestFormAdditionalContent.hide();
                 }
                 else {
@@ -422,23 +441,6 @@ function moreOptions() {
         if (repeatableCounter[key] !== 0) return true;
     }
     return false;
-}
-
-function updateCustomRequestFormDropdowns() {
-    /*
-     * Update the dropdowns to disable options where they are no longer repeatable.
-     */
-    $(".request-type").each(function(){
-        var requestTypeOptions = "#" + this.id + " > option";
-        $(requestTypeOptions).each(function () {
-            if (repeatableCounter[this.value] === 0) {
-                $(this).attr("disabled", "disabled");
-            }
-            else {
-                $(this).removeAttr("disabled");
-            }
-        });
-    });
 }
 
 function detectChange() {
