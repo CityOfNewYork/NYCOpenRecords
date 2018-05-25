@@ -479,7 +479,9 @@ function handlePanelDismiss() {
 
     // show additional content button if repeatable counter has more options and it is the last one
     if (targetId === customRequestFormCounter.toString()) {
-        if (moreOptions()) $("#custom-request-form-additional-content").show();
+        if (moreOptions()) {
+            $("#custom-request-form-additional-content").show();
+        }
     }
 
     // remove custom request panel div
