@@ -143,16 +143,30 @@ function toggleRequestAgencyInstructions(action) {
     }
 }
 
-var showMultipleRequestTypes = false;
+// variables used to handle custom forms
+var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
+var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
+var previousValues = []; // tracks the previous values of each request type dropdown
+var currentValues = []; // tracks the current values of each request type dropdown
+var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
+var dismissTarget = ""; // tracks which dismiss button is being clicked
+
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    repeatableCounter = {};
+    customRequestFormCounter = 1;
+
     var selectedAgency = agencyEin;
-    var customRequestFormsDiv = $("#custom-request-forms");
-    var requestType = $("#request-type");
-    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestPanelDiv = $("#custom-request-panel-" + customRequestFormCounter.toString());
+    var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
+    var requestTypeId = "#request-type-" + customRequestFormCounter.toString();
+    var customRequestFormId = "#custom-request-form-content-" + customRequestFormCounter.toString();
+    var customRequestFormsDiv = $(customRequestFormsDivId);
+    var requestType = $(requestTypeId);
+    var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     requestType.empty();
@@ -171,21 +185,34 @@ function getCustomRequestForms(agencyEin) {
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
+                            // if only one option, render that form by default
+                            repeatableCounter[[data[0][0]]] = data[0][2];
                             requestType.append(new Option(data[0][1], data[0][0]));
+                            previousValues[0] = "";
+                            currentValues[0] = "";
+                            customRequestPanelDiv.show();
                             customRequestFormsDiv.show();
-                            renderCustomRequestForm();
-                            // add repeatable form if only one form
+                            renderCustomRequestForm("1"); // render the form to the first custom request form content div
+                            if (moreOptions()) {
+                                customRequestFormAdditionalContent.show();
+                            }
                         }
                         else {
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
-                                requestType.append(new Option(data[i][1], data[i][0]));
+                                repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
+                                var option = new Option(data[i][1], data[i][0]);
+                                requestType.append(option);
                             }
+                            previousValues[0] = "";
+                            currentValues[0] = "";
+
+                            customRequestPanelDiv.show();
                             customRequestFormsDiv.show();
                         }
                     }
                 });
-                // check is custom forms are repeatable
+                // check if custom forms are repeatable
                 if (data["custom_request_forms"]["multiple_request_types"] === true) {
                     showMultipleRequestTypes = true;
                 }
@@ -194,22 +221,86 @@ function getCustomRequestForms(agencyEin) {
                 }
             }
             else {
+                customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
             }
         },
         error: function () {
+            customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
         }
     });
 }
 
-function renderCustomRequestForm() {
+function populateDropdown(agencyEin) {
     /*
-     * function to render custom form fields based on their field definitions
+     * function to populate any empty request type dropdowns
      */
-    var formId = $("#request-type").val();
+    var selectedAgency = agencyEin;
+    var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
+    var customRequestFormsDiv = $(customRequestFormsDivId);
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");;
+
+    $(".request-type").each(function(){
+        if (this.length === 0) { // if this is an unpopulated dropdown
+            var requestType = this;
+            $.ajax({
+                url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
+                type: "GET",
+                success: function (data) {
+                    if (data.length === 1) {
+                        requestType.append(new Option(data[0][1], data[0][0]));
+                        customRequestFormsDiv.show();
+                        renderCustomRequestForm(customRequestFormCounter);
+                        if (moreOptions()) {
+                            customRequestFormAdditionalContent.show();
+                        }
+                    }
+                    else {
+                        requestType.append(new Option("", ""));
+                        for (var i = 0; i < data.length; i++) {
+                            var option = new Option(data[i][1], data[i][0]);
+                            if (repeatableCounter[data[i][0]] === 0) {
+                                // if all possible instances of the form have been rendered then disable the option
+                                option.disabled = true;
+                            }
+                            requestType.append(option);
+                        }
+                    }
+                }
+            });
+        }
+    });
+}
+
+function updateCustomRequestFormDropdowns() {
+    /*
+     * Update the dropdowns to disable options where they are no longer repeatable.
+     */
+    $(".request-type").each(function(){
+        var requestTypeOptions = "#" + this.id + " > option";
+        $(requestTypeOptions).each(function () {
+            if (repeatableCounter[this.value] === 0) {
+                $(this).attr("disabled", "disabled");
+            }
+            else {
+                $(this).removeAttr("disabled");
+            }
+        });
+    });
+}
+
+function renderCustomRequestForm(target) {
+    /*
+     * function to render custom form fields based on their field definitions.
+     * target is the instance number of divs that the form will be rendered to
+     */
+    var requestTypeId = "#request-type-" + target;
+    var requestType = $(requestTypeId);
+    var formId = $(requestType).val();
     var agencyEin = $("#request-agency").val();
-    var customRequestFormContent = $("#custom-request-form-content");
+    var customRequestFormId = "#custom-request-form-content-" + target;
+    var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
     if (formId !== "") {
@@ -218,68 +309,89 @@ function renderCustomRequestForm() {
             type: "GET",
             data: {
                 form_id: formId,
-                agency_ein: agencyEin
+                agency_ein: agencyEin,
+                repeatable_counter: JSON.stringify(repeatableCounter)
             },
             success: function (data) {
+                // update the values in the tracking variables
+                currentValues[target-1] = formId;
+
+                detectChange(); // determine which request type dropdown was changed
+
                 customRequestFormContent.html(data);
+                previousValues[target-1] = formId;
+                updateCustomRequestFormDropdowns();
 
-                // render datepicker plugins
-                $(".custom-request-form-datepicker").datepicker({
-                    dateFormat: "mm/dd/yy",
-                    maxDate: 0
-                }).keydown(function (e) {
-                    // prevent keyboard input except for tab
-                    if (e.keyCode !== 8 &&
-                        e.keyCode !== 9 &&
-                        e.keyCode !== 37 &&
-                        e.keyCode !== 39 &&
-                        e.keyCode !== 48 &&
-                        e.keyCode !== 49 &&
-                        e.keyCode !== 50 &&
-                        e.keyCode !== 51 &&
-                        e.keyCode !== 52 &&
-                        e.keyCode !== 53 &&
-                        e.keyCode !== 54 &&
-                        e.keyCode !== 55 &&
-                        e.keyCode !== 56 &&
-                        e.keyCode !== 57 &&
-                        e.keyCode !== 191)
-                        e.preventDefault();
-                });
+                try {
+                    // render datepicker plugins
+                    $(".custom-request-form-datepicker").datepicker({
+                        dateFormat: "mm/dd/yy",
+                        maxDate: 0
+                    }).keydown(function (e) {
+                        // prevent keyboard input except for tab
+                        if (e.keyCode !== 8 &&
+                            e.keyCode !== 9 &&
+                            e.keyCode !== 37 &&
+                            e.keyCode !== 39 &&
+                            e.keyCode !== 48 &&
+                            e.keyCode !== 49 &&
+                            e.keyCode !== 50 &&
+                            e.keyCode !== 51 &&
+                            e.keyCode !== 52 &&
+                            e.keyCode !== 53 &&
+                            e.keyCode !== 54 &&
+                            e.keyCode !== 55 &&
+                            e.keyCode !== 56 &&
+                            e.keyCode !== 57 &&
+                            e.keyCode !== 191)
+                            e.preventDefault();
+                    });
+                }
+                catch (err) {
+                    // if one of the forms doesn't have a date field it will throw an error when you try to render it
+                    // TODO: find a better way to handle this error
+                }
 
-                // render timepicker plugins
-                $(".timepicker").timepicker({
-                    timeFormat: "h:mm p",
-                    interval: 1,
-                    minTime: "12:00am",
-                    maxTime: "11:59pm",
-                    startTime: "12:00am",
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true
-                }).keydown(function (e) {
-                    // prevent keyboard input except for allowed keys
-                    if (e.keyCode !== 8 &&
-                        e.keyCode !== 9 &&
-                        e.keyCode !== 37 &&
-                        e.keyCode !== 39 &&
-                        e.keyCode !== 48 &&
-                        e.keyCode !== 49 &&
-                        e.keyCode !== 50 &&
-                        e.keyCode !== 51 &&
-                        e.keyCode !== 52 &&
-                        e.keyCode !== 53 &&
-                        e.keyCode !== 54 &&
-                        e.keyCode !== 55 &&
-                        e.keyCode !== 56 &&
-                        e.keyCode !== 57 &&
-                        e.keyCode !== 16 &&
-                        e.keyCode !== 65 &&
-                        e.keyCode !== 77 &&
-                        e.keyCode !== 80 &&
-                        e.keyCode !== 186)
-                        e.preventDefault();
-                });
+                try {
+                    // render timepicker plugins
+                    $(".timepicker").timepicker({
+                        timeFormat: "h:mm p",
+                        interval: 1,
+                        minTime: "12:00am",
+                        maxTime: "11:59pm",
+                        startTime: "12:00am",
+                        dynamic: false,
+                        dropdown: true,
+                        scrollbar: true
+                    }).keydown(function (e) {
+                        // prevent keyboard input except for allowed keys
+                        if (e.keyCode !== 8 &&
+                            e.keyCode !== 9 &&
+                            e.keyCode !== 37 &&
+                            e.keyCode !== 39 &&
+                            e.keyCode !== 48 &&
+                            e.keyCode !== 49 &&
+                            e.keyCode !== 50 &&
+                            e.keyCode !== 51 &&
+                            e.keyCode !== 52 &&
+                            e.keyCode !== 53 &&
+                            e.keyCode !== 54 &&
+                            e.keyCode !== 55 &&
+                            e.keyCode !== 56 &&
+                            e.keyCode !== 57 &&
+                            e.keyCode !== 16 &&
+                            e.keyCode !== 65 &&
+                            e.keyCode !== 77 &&
+                            e.keyCode !== 80 &&
+                            e.keyCode !== 186)
+                            e.preventDefault();
+                    });
+
+                }
+                catch (err) {
+                    // if one of the forms doesn't have a time field it will throw an error when you try to render it
+                    // TODO: find a better way to handle this error
+                }
 
                 // Do not reset on click
                 $(".select-multiple").find("option").mousedown(function (e) {
@@ -292,7 +404,13 @@ function renderCustomRequestForm() {
                 customRequestFormContent.show();
                 // check to show add new request information button
                 if (showMultipleRequestTypes === true) {
-                    customRequestFormAdditionalContent.show();
+                    // check if repeatable counter still has options
+                    if (moreOptions()) {
+                        customRequestFormAdditionalContent.show();
+                    }
+                    else {
+                        customRequestFormAdditionalContent.hide();
+                    }
                 }
                 else {
                     customRequestFormAdditionalContent.hide();
@@ -304,5 +422,65 @@ function renderCustomRequestForm() {
         customRequestFormContent.html("");
         customRequestFormContent.hide();
         customRequestFormAdditionalContent.hide();
+
+        // update the values in the tracking variables
+        currentValues[target-1] = "";
+
+        detectChange();
+
+        previousValues[target-1] = "";
+        updateCustomRequestFormDropdowns();
     }
+}
+
+function moreOptions() {
+    /*
+     * Determine if there are still forms that can be repeated in the request.
+     * Return true if there is at least one form that can be rendered.
+     * Return false if all options have been rendered already.
+     */
+    for (var key in repeatableCounter) {
+        if (repeatableCounter[key] !== 0) return true;
+    }
+    return false;
+}
+
+function detectChange() {
+    /*
+     * Detects which request type dropdown was changed and updates the repeatable counter accordingly
+     */
+    for (var i = 0; i < currentValues.length; i++) {
+        if (currentValues[i] !== previousValues[i]) {
+            if (previousValues[i] !== "") {
+                repeatableCounter[previousValues[i]] = repeatableCounter[previousValues[i]] + 1;
+            }
+
+            if (currentValues[i] !== "") {
+                repeatableCounter[currentValues[i]] = repeatableCounter[currentValues[i]] - 1;
+            }
+        }
+    }
+}
+
+function handlePanelDismiss() {
+    /*
+     * handle the dismissal of a custom request panel. Target is the data target of the dismiss button
+     */
+    // +1 to repeatable counter and reset previousValues/currentValues array
+    var targetId = dismissTarget.replace("#panel-dismiss-button-", "");
+    var panelId = dismissTarget.replace("#panel-dismiss-button-", "#custom-request-panel-");
+    if (currentValues[targetId-1] !== "") {
+                repeatableCounter[currentValues[targetId-1]] = repeatableCounter[currentValues[targetId-1]] + 1;
+                previousValues[targetId-1] = "";
+                currentValues[targetId-1] = "";
+    }
+    updateCustomRequestFormDropdowns();
+
+    // show additional content button if repeatable counter has more options and it is the last one
+    if (targetId === customRequestFormCounter.toString()) {
+        if (moreOptions()) $("#custom-request-form-additional-content").show();
+    }
+
+    // remove custom request panel div
+    $(panelId).remove();
 }

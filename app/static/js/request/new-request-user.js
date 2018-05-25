@@ -37,6 +37,9 @@ $(document).ready(function () {
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
                 toggleRequestAgencyInstructions("show");
+                $(".appended-div").remove(); // remove the appended divs from previous agency
+                previousValues = [];
+                currentValues = [];
                 getCustomRequestForms(sel.find("option:first-child").val());
             }
         });
@@ -45,6 +48,9 @@ $(document).ready(function () {
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
         toggleRequestAgencyInstructions("show");
+        $(".appended-div").remove(); // remove the appended divs from previous agency
+        previousValues = [];
+        currentValues = [];
         getCustomRequestForms($("#request-agency").val());
     });
 
@@ -52,8 +58,33 @@ $(document).ready(function () {
         toggleRequestAgencyInstructions("default");
     });
 
-    $("#request-type").change(function () {
-        renderCustomRequestForm();
+    $(document).on("focus", ".request-type", function () {
+        var target = document.activeElement.id;
+        target = target.replace("request-type-", "");
+        var targetId = "#" + document.activeElement.id;
+        $(targetId).off().change(function () {
+            renderCustomRequestForm(target);
+        });
+    });
+
+    // determine which dismiss button is being clicked
+    $(document).on("click", ".panel-dismiss", function () {
+        dismissTarget = "#" + document.activeElement.id;
+    });
+
+    // append a new dropdown and content div every time the additional content button is clicked
+    $("#custom-request-form-additional-content").click(function () {
+        customRequestFormCounter = customRequestFormCounter + 1;
+        var dropdownTemplate = "<div class='panel panel-default appended-div' id='custom-request-panel-" + customRequestFormCounter + "'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><button type='button' class='close panel-dismiss' id='panel-dismiss-button-" + customRequestFormCounter + "' data-target='#panel-dismiss-modal' data-toggle='modal'><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
+        var contentTemplate = "<div class='panel-body' id='custom-request-form-content-" + customRequestFormCounter + "' hidden></div></div>";
+        $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
+        $("#custom-request-form-additional-content").hide();
+
+        // populate any empty dropdowns with that agency's form options
+        populateDropdown($("#request-agency").val());
+
+        previousValues[customRequestFormCounter-1] = "";
+        currentValues[customRequestFormCounter-1] = "";
     });
 
     // javascript to add tooltip popovers when selecting the title and description

@@ -38,18 +38,36 @@
                     <span id="request-agency-instructions-toggle"><button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class="glyphicon glyphicon-chevron-down"></span></button></span>
                 </div>
                 {# Dropdown for request type based on custom request forms #}
-                <div id="custom-request-forms" hidden>
-                    {{ form.request_type.label(class="request-heading request-type-label") }}
-                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Request Type"
-                          data-content="List of all agency specific request types that can be made within OpenRecords."
-                          class="glyphicon glyphicon-question-sign">
-                    </span>
-                    {{ form.request_type(id="request-type", class="input-block-level") }}<br>
-                </div>
-                <div id="custom-request-form-content" hidden>
+                <div class="panel panel-default" id="custom-request-panel-1" hidden>
+                    <div class="panel-heading" id="custom-request-forms-1" hidden>
+                        {{ form.request_type.label(class="request-heading request-type-label") }}
+                        <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Request Type"
+                              data-content="List of all agency specific request types that can be made within OpenRecords."
+                              class="glyphicon glyphicon-question-sign">
+                        </span>
+                        {{ form.request_type(id="request-type-1", class="input-block-level request-type") }}<br>
+                    </div>
+                    <div class="panel-body" id="custom-request-form-content-1" hidden>
+                    </div>
                 </div>
                 <div id="custom-request-form-additional-content" style="text-align: center;" hidden>
                     <button type="button" class="btn btn-info">Add New Request Information</button><br><br>
+                </div>
+                <div class="modal fade" id="panel-dismiss-modal" tabindex="-1" role="dialog">
+                    <div class="vertical-alignment-helper">
+                        <div class="modal-dialog vertical-align-center">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Confirm Delete</h4>
+                                </div>
+                                <div class="modal-body">Are you sure you want to delete this form? All your entered information will be lost.</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button type="button" onclick="handlePanelDismiss()" data-dismiss="modal" class="btn btn-danger">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {# Title of the request #}

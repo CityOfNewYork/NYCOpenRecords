@@ -1,4 +1,4 @@
 <div class="custom-request-form-time">
-    <label class="request-heading" id="{{ field_name }}" for="{{ field_name }}">{{ field_text }}</label><br>
-    <input class="input-block-level timepicker" type="text" name="{{ field_name }}" maxlength="9" {% if field_required %}data-parsley-required{% endif %} placeholder="12:00 AM"><br>
+    <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label><br>
+    <input class="input-block-level timepicker" type="text" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" maxlength="9" {% if field_required %}data-parsley-required{% endif %} placeholder="12:00 AM"><br>
 </div>

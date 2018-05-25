@@ -1,6 +1,6 @@
 <div class="custom-request-form-input">
-    <label class="request-heading" for="{{ field_name }}">{{ field_text }}</label><br>
-    <input class="input-block-level" id="{{ field_name }}" type="text" name="{{ field_name }}"
+    <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label><br>
+    <input class="input-block-level" id="{{ field_name }}-{{ instance_id }}" type="text" name="{{ field_name }}-{{ instance_id }}"
            {% if field_required %}data-parsley-required{% endif %}
            {% if max_length %}data-parsley-maxlength="{{ max_length }}" maxlength="{{ max_length }}"{% endif %}
            {% if min_length %}data-parsley-minlength="{{ min_length }}" minlength="{{ min_length }}"{% endif %}><br>
