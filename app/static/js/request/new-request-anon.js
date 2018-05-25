@@ -286,6 +286,8 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function () {
+        processCustomRequestFormData();
+
         // Prevent multiple submissions
         $(this).submit(function () {
             return false;

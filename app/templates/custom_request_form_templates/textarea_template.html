@@ -1,6 +1,6 @@
-<div class="custom-request-form-textarea">
+<div class="custom-request-form-textarea custom-request-form-field">
     <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label><br>
-    <textarea class="input-block-level" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" style="height: 10rem;"
+    <textarea class="input-block-level custom-request-form-data" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" style="height: 10rem;"
               {% if field_required %}data-parsley-required{% endif %}
               {% if max_length %}data-parsley-maxlength="{{ max_length }}" maxlength="{{ max_length }}"{% endif %}
               {% if min_length %}data-parsley-minlength="{{ min_length }}" minlength="{{ min_length }}"{% endif %}></textarea><br>
