@@ -493,10 +493,12 @@ function processCustomRequestFormData() {
      * Process the custom request form data into a JSON to be passed back on submit
      */
     var formNumber = 1;
+    var fieldNumber = 1;
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
             var formKey = "form_" + formNumber;
+            var fieldKey = "field_" + fieldNumber;
             var formName = $("#request-type-" + target + " option:selected").text();
 
             customRequestFormData[formKey] = {};
@@ -505,20 +507,25 @@ function processCustomRequestFormData() {
 
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
                 var fieldName = $("label[for='" + this.id + "']").html();
+                customRequestFormData[formKey]["form_fields"][fieldKey] = {};
+                customRequestFormData[formKey]["form_fields"][fieldKey]["field_name"] = fieldName;
 
                 if ($("#" + this.id).prop("multiple") === true) {
                     var selectMultipleId = "#" + this.id;
-                    customRequestFormData[formKey]["form_fields"][fieldName] = $(selectMultipleId).val();
+                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
                 }
                 else if ($("#" + this.id).is(':radio') === true) {
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
-                    customRequestFormData[formKey]["form_fields"][fieldName] = radioValue;
+                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
                 }
                 else {
-                    customRequestFormData[formKey]["form_fields"][fieldName] = this.value;
+                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
                 }
+                fieldNumber++;
+                fieldKey = "field_" + fieldNumber;
             });
             formNumber++;
+            fieldNumber = 1;
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
