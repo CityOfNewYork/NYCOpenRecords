@@ -809,7 +809,8 @@ class Requests(db.Model):
             date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
             submission=None,
-            status=request_status.OPEN
+            status=request_status.OPEN,
+            custom_metadata=None
     ):
         self.id = id
         self.title = title
@@ -822,6 +823,7 @@ class Requests(db.Model):
         self.due_date = due_date
         self.submission = submission
         self.status = status
+        self.custom_metadata = custom_metadata
 
     @property
     def val_for_events(self):

@@ -150,7 +150,7 @@ var previousValues = []; // tracks the previous values of each request type drop
 var currentValues = []; // tracks the current values of each request type dropdown
 var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
 var dismissTarget = ""; // tracks which dismiss button is being clicked
-var customRequestFormData = []; // tracks the data of custom forms that will be sent on submit
+var customRequestFormData = {}; // tracks the data of custom forms that will be sent on submit
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -492,32 +492,33 @@ function processCustomRequestFormData() {
     /*
      * Process the custom request form data into a JSON to be passed back on submit
      */
+    var formNumber = 1;
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
-            var form = {};
-            var formValues = {};
+            var formKey = "form_" + formNumber;
             var formName = $("#request-type-" + target + " option:selected").text();
 
-            form["form_name"] = formName;
-            form["values"] = formValues;
+            customRequestFormData[formKey] = {};
+            customRequestFormData[formKey]["form_name"] = formName;
+            customRequestFormData[formKey]["form_fields"] = {};
 
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
                 var fieldName = $("label[for='" + this.id + "']").html();
 
                 if ($("#" + this.id).prop("multiple") === true) {
                     var selectMultipleId = "#" + this.id;
-                    form["values"][fieldName] = $(selectMultipleId).val();
+                    customRequestFormData[formKey]["form_fields"][fieldName] = $(selectMultipleId).val();
                 }
                 else if ($("#" + this.id).is(':radio') === true) {
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
-                    form["values"][fieldName] = radioValue;
+                    customRequestFormData[formKey]["form_fields"][fieldName] = radioValue;
                 }
                 else {
-                    form["values"][fieldName] = this.value;
+                    customRequestFormData[formKey]["form_fields"][fieldName] = this.value;
                 }
             });
-            customRequestFormData.push(form);
+            formNumber++;
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
