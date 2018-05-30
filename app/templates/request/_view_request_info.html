@@ -110,7 +110,7 @@
                     </div>
                 </div>
             {% endif %}
-            {% if request.custom_metadata %}
+            {% if request.custom_metadata and current_user in request.agency_users %}
                 <br>
                 {% for form_number,form_values in request.custom_metadata|dictsort %}
                     <u class="request-label lead">{{ form_values['form_name'] }}</u>

@@ -500,11 +500,13 @@ function processCustomRequestFormData() {
             var formKey = "form_" + formNumber;
             var fieldKey = "field_" + fieldNumber;
             var formName = $("#request-type-" + target + " option:selected").text();
+            var previousRadioId = "";
 
             customRequestFormData[formKey] = {};
             customRequestFormData[formKey]["form_name"] = formName;
             customRequestFormData[formKey]["form_fields"] = {};
 
+            // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
                 var fieldName = $("label[for='" + this.id + "']").html();
                 customRequestFormData[formKey]["form_fields"][fieldKey] = {};
@@ -515,8 +517,15 @@ function processCustomRequestFormData() {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
                 }
                 else if ($("#" + this.id).is(':radio') === true) {
+                    // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
-                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
+                    if (this.id !== previousRadioId) {
+                        customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
+                    }
+                    else {
+                        fieldNumber--;
+                    }
+                    previousRadioId = this.id;
                 }
                 else {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;

@@ -265,10 +265,8 @@ $(document).ready(function () {
     });
 
     // Disable submit button on form submission
-    $("#request-form").submit(function (e) {
+    $("#request-form").submit(function () {
         processCustomRequestFormData();
-
-        // e.preventDefault();
 
         // Prevent multiple submissions
         $(this).submit(function () {
