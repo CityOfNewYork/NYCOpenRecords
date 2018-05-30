@@ -516,7 +516,7 @@ function processCustomRequestFormData() {
                     var selectMultipleId = "#" + this.id;
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
                 }
-                else if ($("#" + this.id).is(':radio') === true) {
+                else if ($("#" + this.id).is(":radio") === true) {
                     // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
                     if (this.id !== previousRadioId) {
