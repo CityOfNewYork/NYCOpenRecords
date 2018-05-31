@@ -86,7 +86,8 @@ def create_request(title,
                    phone=None,
                    fax=None,
                    address=None,
-                   upload_path=None):
+                   upload_path=None,
+                   custom_metadata=None):
     """
     Creates a new FOIL Request and associated Users, UserRequests, and Events.
 
@@ -105,6 +106,7 @@ def create_request(title,
     :param fax: requester's fax number
     :param address: requester's mailing address
     :param upload_path: file path of the validated upload
+    :param custom_metadata: JSON containing all data from custom request forms
     """
     # 1. Generate the request id
     request_id = generate_request_id(agency_ein)
@@ -142,6 +144,7 @@ def create_request(title,
         date_submitted=date_submitted,
         due_date=due_date,
         submission=submission,
+        custom_metadata=custom_metadata
     )
     create_object(request)
 

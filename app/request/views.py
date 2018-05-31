@@ -68,8 +68,8 @@ from app.user_request.forms import (
     RemoveUserRequestForm,
 )
 from app.user_request.utils import get_current_point_of_contact
-
 from app import sentry
+import json
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -111,14 +111,16 @@ def new():
             if form.request_file.errors:
                 return render_template(new_request_template, form=form, site_key=site_key)
 
-        # create request
+        custom_metadata = json.loads(flask_request.form['custom-request-forms-data'])
+
         if current_user.is_public:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         form.request_category.data,
                                         agency_ein=form.request_agency.data,
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'])
+                                        tz_name=flask_request.form['tz-name'],
+                                        custom_metadata=custom_metadata)
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -138,7 +140,8 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'])
+                                        tz_name=flask_request.form['tz-name'],
+                                        custom_metadata=custom_metadata)
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -153,7 +156,8 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'])
+                                        tz_name=flask_request.form['tz-name'],
+                                        custom_metadata=custom_metadata)
 
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester

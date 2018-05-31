@@ -1,9 +1,8 @@
-<div class="custom-request-form-radio">
-    <span class="request-heading">{{ field_text }}</span><br>
-    <h5>{{ field_info }}</h5>
+<div class="custom-request-form-radio custom-request-form-field">
+    <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label><br>
+    <h5 style="margin-top: 0;">{{ field_info }}</h5>
     {% for option in options %}
-        <input type="radio" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" value="{{ option }}" style="display: inline;"/>
-        <label style="display: inline;" id="{{ field_name }}-{{ instance_id }}" for="{{ field_name }}-{{ instance_id }}">{{ option }}</label><br>
+        <input class="custom-request-form-data" type="radio" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" value="{{ option }}" style="display: inline;"/>&nbsp;{{ option }}<br>
     {% endfor %}
     <br>
 </div>

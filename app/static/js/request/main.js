@@ -150,6 +150,7 @@ var previousValues = []; // tracks the previous values of each request type drop
 var currentValues = []; // tracks the current values of each request type dropdown
 var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
 var dismissTarget = ""; // tracks which dismiss button is being clicked
+var customRequestFormData = {}; // tracks the data of custom forms that will be sent on submit
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -478,9 +479,63 @@ function handlePanelDismiss() {
 
     // show additional content button if repeatable counter has more options and it is the last one
     if (targetId === customRequestFormCounter.toString()) {
-        if (moreOptions()) $("#custom-request-form-additional-content").show();
+        if (moreOptions()) {
+            $("#custom-request-form-additional-content").show();
+        }
     }
 
     // remove custom request panel div
     $(panelId).remove();
+}
+
+function processCustomRequestFormData() {
+    /*
+     * Process the custom request form data into a JSON to be passed back on submit
+     */
+    var formNumber = 1;
+    var fieldNumber = 1;
+    for (var i = 0; i < currentValues.length; i++) {
+        if (currentValues[i] !== "") {
+            var target = (i + 1).toString();
+            var formKey = "form_" + formNumber;
+            var fieldKey = "field_" + fieldNumber;
+            var formName = $("#request-type-" + target + " option:selected").text();
+            var previousRadioId = "";
+
+            customRequestFormData[formKey] = {};
+            customRequestFormData[formKey]["form_name"] = formName;
+            customRequestFormData[formKey]["form_fields"] = {};
+
+            // loop through each form field to get the value
+            $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
+                var fieldName = $("label[for='" + this.id + "']").html();
+                customRequestFormData[formKey]["form_fields"][fieldKey] = {};
+                customRequestFormData[formKey]["form_fields"][fieldKey]["field_name"] = fieldName;
+
+                if ($("#" + this.id).prop("multiple") === true) {
+                    var selectMultipleId = "#" + this.id;
+                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
+                }
+                else if ($("#" + this.id).is(":radio") === true) {
+                    // since all radio inputs have the same id only take the value of the first one to avoid duplicates
+                    var radioValue = $("input[name='" + this.id + "']:checked").val();
+                    if (this.id !== previousRadioId) {
+                        customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
+                    }
+                    else {
+                        fieldNumber--;
+                    }
+                    previousRadioId = this.id;
+                }
+                else {
+                    customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
+                }
+                fieldNumber++;
+                fieldKey = "field_" + fieldNumber;
+            });
+            formNumber++;
+            fieldNumber = 1;
+        }
+    }
+    $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
 }

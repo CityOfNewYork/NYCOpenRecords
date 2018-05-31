@@ -1,6 +1,6 @@
-<div class="custom-request-form-select-multiple">
+<div class="custom-request-form-select-multiple custom-request-form-field">
     <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label><br>
-    <select class="form-control select-multiple" multiple size="5" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" {% if field_required %}data-parsley-required{% endif %}>
+    <select class="form-control select-multiple custom-request-form-data" multiple size="5" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" {% if field_required %}data-parsley-required{% endif %}>
         {% for option in options %}
             <option value="{{ option }}">{{ option }}</option>
         {% endfor %}
