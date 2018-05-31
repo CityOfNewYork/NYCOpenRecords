@@ -8,6 +8,7 @@
 /* globals getCustomRequestForms: true */
 /* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
+/* globals processCustomRequestForms: true */
 
 "use strict";
 
@@ -21,14 +22,14 @@ $(document).ready(function () {
 
     // Prevent user from entering a non numeric value into phone and fax field
     $("#phone").keypress(function (key) {
-        if (key.charCode != 0) {
+        if (key.charCode !== 0) {
             if (key.charCode < 48 || key.charCode > 57) {
                 key.preventDefault();
             }
         }
     });
     $("#fax").keypress(function (key) {
-        if (key.charCode != 0) {
+        if (key.charCode !== 0) {
             if (key.charCode < 48 || key.charCode > 57) {
                 key.preventDefault();
             }
@@ -102,8 +103,8 @@ $(document).ready(function () {
         // populate any empty dropdowns with that agency's form options
         populateDropdown($("#request-agency").val());
 
-        previousValues[customRequestFormCounter-1] = "";
-        currentValues[customRequestFormCounter-1] = "";
+        previousValues[customRequestFormCounter - 1] = "";
+        currentValues[customRequestFormCounter - 1] = "";
     });
 
     // javascript to add tooltip popovers when selecting the title and description
