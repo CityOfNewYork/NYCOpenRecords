@@ -167,6 +167,7 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
+    LOGFILE_DIRECTORY = "/tmp/"
     TESTING = True
     WTF_CSRF_ENABLED = False  # TODO: retrieve and pass the token (via header or input value) for testing
     VIRUS_SCAN_ENABLED = True
