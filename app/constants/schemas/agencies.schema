@@ -134,6 +134,17 @@
                 true,
                 false
               ]
+            },
+            "expand_by_default": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/expand_by_default",
+              "type": "boolean",
+              "title": "Expand By Default",
+              "default": false,
+              "description": "Boolean to determine if the custom request form data should be expanded on the request page",
+              "examples": [
+                true,
+                false
+              ]
             }
           }
         }
