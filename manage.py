@@ -3,6 +3,7 @@
 import sys
 import os
 import csv
+import subprocess
 from tempfile import NamedTemporaryFile
 
 from flask_migrate import Migrate, MigrateCommand
@@ -46,7 +47,7 @@ app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-
+#
 # class Celery(Command):
 #     """
 #     Start Celery
@@ -56,8 +57,9 @@ migrate = Migrate(app, db)
 #     # http://stackoverflow.com/questions/21666229/celery-auto-reload-on-any-changes
 #     # http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html
 #
+#     celery_command = ['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info']
 #     def run(self):
-#         subprocess.call(['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info'])
+#         subprocess.Popen(['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info'])
 
 def make_shell_context():
     return dict(
@@ -458,6 +460,17 @@ def update_new_value_to_boolean():
         db.session.add(event)
         flag_modified(event, 'new_value')  # needed when updating JSON columns
     db.session.commit()
+
+
+@manager.option('-t', '--testing', help='Full path to output csv. File will be overwritten.', default=False)
+def celery(testing):
+
+    celery_command = ['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info']
+
+    if testing:
+        os.environ['FLASK_CONFIG'] = 'testing'
+
+    subprocess.Popen(celery_command)
 
 
 if __name__ == "__main__":

@@ -155,7 +155,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     VIRUS_SCAN_ENABLED = os.environ.get('VIRUS_SCAN_ENABLED') == "True"
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
-    MAIL_PORT = os.environ.get('MAIL_PORT') or 2500
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 2525
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Development]'
     MAIL_SENDER = 'OpenRecords - Dev Admin <donotreply@records.nyc.gov>'
@@ -173,11 +173,13 @@ class TestingConfig(Config):
     VIRUS_SCAN_ENABLED = True
     USE_SFTP = False
     UPLOAD_DIRECTORY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data_test/')
+    MAIL_SERVER = 'localhost'
+    MAIL_PORT = 2525
+    MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
-    MAIL_SENDER = 'OpenRecords - Testing Admin <donotreply@records.nyc.gov>'
-    SQLALCHEMY_DATABASE_URI = (os.environ.get('TEST_DATABASE_URL') or
-                               'postgresql://localhost:5432/openrecords_v2_0_test')
-    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX') or "requests_test"
+    MAIL_SENDER = 'OpenRecords - Pytest Admin <donotreply@records.nyc.gov>'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://developer@127.0.0.1:5432/openrecords_test'
+    ELASTICSEARCH_INDEX = "requests_test"
 
 
 class ProductionConfig(Config):
