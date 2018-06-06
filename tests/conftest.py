@@ -30,7 +30,7 @@ def app():
 
 
 @pytest.fixture(scope='session')
-def testapp(app):
+def client(app):
     return app.test_client()
 
 
