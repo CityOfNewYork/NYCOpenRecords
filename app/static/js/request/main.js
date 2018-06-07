@@ -151,6 +151,9 @@ var currentValues = []; // tracks the current values of each request type dropdo
 var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
 var dismissTarget = ""; // tracks which dismiss button is being clicked
 var customRequestFormData = {}; // tracks the data of custom forms that will be sent on submit
+var formCategories = {}; // tracks what category each form belongs to
+var categorized = false; // determines if selected agency has categorized forms
+var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -158,6 +161,8 @@ function getCustomRequestForms(agencyEin) {
      * function to determine if custom request forms need to be shown on category or agency change
      */
     repeatableCounter = {};
+    formCategories = {};
+    currentCategory = "";
     customRequestFormCounter = 1;
 
     var selectedAgency = agencyEin;
@@ -188,6 +193,7 @@ function getCustomRequestForms(agencyEin) {
                         if (data.length === 1) {
                             // if only one option, render that form by default
                             repeatableCounter[[data[0][0]]] = data[0][2];
+                            formCategories[[data[0][0]]] = data[0][3];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
@@ -202,6 +208,7 @@ function getCustomRequestForms(agencyEin) {
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
+                                formCategories[data[i][0]] = data[i][3];
                                 var option = new Option(data[i][1], data[i][0]);
                                 requestType.append(option);
                             }
@@ -224,6 +231,13 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
+            }
+            // determine if form options are categorized
+            if (data["custom_request_forms"]["categorized"]) {
+                categorized = true;
+            }
+            else {
+                categorized = false;
             }
         },
         error: function () {
@@ -268,6 +282,9 @@ function populateDropdown(agencyEin) {
                             requestType.append(option);
                         }
                     }
+                    if (categorized) {
+                        disableOptions();
+                    }
                 }
             });
         }
@@ -286,6 +303,20 @@ function updateCustomRequestFormDropdowns() {
             }
             else {
                 $(this).removeAttr("disabled");
+            }
+        });
+    });
+}
+
+function disableOptions() {
+    /*
+     * Update the dropdowns to disable all options that don't belong to the current category
+     */
+    $(".request-type").each(function () {
+        var requestTypeOptions = "#" + this.id + " > option";
+        $(requestTypeOptions).each(function () {
+            if (formCategories[this.value] !== currentCategory && this.value !== "") {
+                $(this).attr("disabled", "disabled");
             }
         });
     });
@@ -322,6 +353,10 @@ function renderCustomRequestForm(target) {
                 customRequestFormContent.html(data);
                 previousValues[target-1] = formId;
                 updateCustomRequestFormDropdowns();
+                if (categorized) {
+                    currentCategory = formCategories[formId];
+                    disableOptions();
+                }
 
                 try {
                     // render datepicker plugins

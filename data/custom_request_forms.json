@@ -54,7 +54,8 @@
           }
         }
       ],
-      "repeatable": "1"
+      "repeatable": "1",
+      "category": "1"
     },
     {
       "agency_ein": "0056",
@@ -110,7 +111,8 @@
           }
         }
       ],
-      "repeatable": "2"
+      "repeatable": "2",
+      "category": "1"
     },
     {
       "agency_ein": "0056",
@@ -182,7 +184,8 @@
           }
         }
       ],
-      "repeatable": "3"
+      "repeatable": "3",
+      "category": "2"
     }
   ]
 }
