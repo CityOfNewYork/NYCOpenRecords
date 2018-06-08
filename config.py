@@ -178,7 +178,7 @@ class TestingConfig(Config):
     MAIL_USE_TLS = False
     MAIL_SUBJECT_PREFIX = '[OpenRecords Testing]'
     MAIL_SENDER = 'OpenRecords - Pytest Admin <donotreply@records.nyc.gov>'
-    SQLALCHEMY_DATABASE_URI = 'postgresql://developer@127.0.0.1:5432/openrecords_test'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://testuser@127.0.0.1:5432/openrecords_test'
     ELASTICSEARCH_INDEX = "requests_test"
 
 
