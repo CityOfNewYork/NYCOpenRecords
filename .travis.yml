@@ -13,4 +13,4 @@ services:
   - redis-server
   - elasticsearch
 
-  script: pytest -p no:warnings -v "tests/"
+  script: pytest -p no:warnings -v "tests/test_main.py"
