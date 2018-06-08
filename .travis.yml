@@ -5,7 +5,7 @@ install: pip install -r requirements/dev.txt
 before_script:
   - psql -c 'create database openrecords_test;' -U postgres
   - psql -c 'create user testuser;' -U postgres
-  - grant all privileges on all tables in schema public to testuser;' -U postgres
+  - psql -c 'grant all privileges on all tables in schema public to testuser;' -U postgres
   - sleep 10
 addons:
   postgresql: "9.5"
