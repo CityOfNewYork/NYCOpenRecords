@@ -54,7 +54,8 @@
           }
         }
       ],
-      "repeatable": "1"
+      "repeatable": "5",
+      "category": "1"
     },
     {
       "agency_ein": "0056",
@@ -110,79 +111,8 @@
           }
         }
       ],
-      "repeatable": "2"
-    },
-    {
-      "agency_ein": "0056",
-      "form_name": "NYPD Test Form",
-      "field_definitions": [
-        {
-          "Input Test": {
-            "type": "input",
-            "name": "input-test",
-            "required": false
-          }
-        },
-        {
-          "Textarea Test": {
-            "type": "textarea",
-            "name": "textarea-test",
-            "required": false
-          }
-        },
-        {
-          "Date Test": {
-            "type": "date",
-            "name": "date-test",
-            "required": false
-          }
-        },
-        {
-          "Time Test": {
-            "type": "time",
-            "name": "time-test",
-            "required": false
-          }
-        },
-        {
-          "Dropdown Test": {
-            "type": "select_dropdown",
-            "name": "dropdown-test",
-            "values": [
-              "option1",
-              "option2",
-              "option3"
-            ],
-            "required": false
-          }
-        },
-        {
-          "Radio Test": {
-            "type": "radio",
-            "name": "radio-test",
-            "info": "Please select an option",
-            "values": [
-              "option1",
-              "option2",
-              "option3"
-            ],
-            "required": false
-          }
-        },
-        {
-          "Select Multiple Test": {
-            "type": "select_multiple",
-            "name": "select-multiple-test",
-            "values": [
-              "option1",
-              "option2",
-              "option3"
-            ],
-            "required": false
-          }
-        }
-      ],
-      "repeatable": "3"
+      "repeatable": "5",
+      "category": "1"
     },
     {
       "agency_ein": "0056",
@@ -259,7 +189,81 @@
           }
         }
       ],
-      "repeatable": "1"
+      "repeatable": "5",
+      "category": "1"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "NYPD Test Form",
+      "field_definitions": [
+        {
+          "Input Test": {
+            "type": "input",
+            "name": "input-test",
+            "required": false
+          }
+        },
+        {
+          "Textarea Test": {
+            "type": "textarea",
+            "name": "textarea-test",
+            "required": false
+          }
+        },
+        {
+          "Date Test": {
+            "type": "date",
+            "name": "date-test",
+            "required": false
+          }
+        },
+        {
+          "Time Test": {
+            "type": "time",
+            "name": "time-test",
+            "required": false
+          }
+        },
+        {
+          "Dropdown Test": {
+            "type": "select_dropdown",
+            "name": "dropdown-test",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Radio Test": {
+            "type": "radio",
+            "name": "radio-test",
+            "info": "Please select an option",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Select Multiple Test": {
+            "type": "select_multiple",
+            "name": "select-multiple-test",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "5",
+      "category": "2"
     }
   ]
 }

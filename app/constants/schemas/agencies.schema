@@ -135,6 +135,17 @@
                 false
               ]
             },
+            "categorized": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/categorized",
+              "type": "boolean",
+              "title": "Categorized",
+              "default": false,
+              "description": "Boolean to determine if the custom request forms are categorized. Only forms with the same category can be submitted.",
+              "examples": [
+                true,
+                false
+              ]
+            },
             "expand_by_default": {
               "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/expand_by_default",
               "type": "boolean",
