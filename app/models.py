@@ -1878,6 +1878,7 @@ class CustomRequestForms(db.Model):
     id - an integer that is the primary key of CustomRequestForms
     agency_ein - a string that is a foreign key to the Agencies table
     form_name - a string that is the name of the custom form
+    form_description - a string that prompts the user what the form is about and how to fill it out
     field_definitions - a JSON that contains the the name of the field as the key and type of field as the value
     repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
     category - an integer to separate different types of custom forms for an agency
@@ -1886,6 +1887,7 @@ class CustomRequestForms(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'), nullable=False)
     form_name = db.Column(db.String, nullable=False)
+    form_description = db.Column(db.String, nullable=True)
     field_definitions = db.Column(JSONB, nullable=False)
     repeatable = db.Column(db.Integer, nullable=False)
     category = db.Column(db.Integer, nullable=True)
@@ -1907,6 +1909,7 @@ class CustomRequestForms(db.Model):
                 custom_request_form = cls(
                     agency_ein=form['agency_ein'],
                     form_name=form['form_name'],
+                    form_description=form['form_description'],
                     field_definitions=form['field_definitions'],
                     repeatable=form['repeatable'],
                     category=form['category']
