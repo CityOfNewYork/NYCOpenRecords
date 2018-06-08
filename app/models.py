@@ -1887,7 +1887,7 @@ class CustomRequestForms(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'), nullable=False)
     form_name = db.Column(db.String, nullable=False)
-    form_description = db.Column(db.String, nullable=True)
+    form_description = db.Column(db.String, nullable=False)
     field_definitions = db.Column(JSONB, nullable=False)
     repeatable = db.Column(db.Integer, nullable=False)
     category = db.Column(db.Integer, nullable=True)
