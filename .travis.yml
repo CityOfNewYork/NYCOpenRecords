@@ -12,5 +12,4 @@ services:
   - postgresql
   - redis-server
   - elasticsearch
-
-  script: pytest -v "tests/test_main.py"
+script: pytest -v "tests/test_main.py"
