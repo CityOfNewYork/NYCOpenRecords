@@ -49,7 +49,7 @@ class Config:
     SFTP_HOSTNAME = os.environ.get('SFTP_HOSTNAME')
     SFTP_PORT = os.environ.get('SFTP_PORT')
     SFTP_USERNAME = os.environ.get('SFTP_USERNAME')
-    SFTP_PASSWORD = os.environ.get('SFTP_PASSWORD').replace("'", "")
+    SFTP_PASSWORD = os.environ.get('SFTP_PASSWORD', '').replace("'", "")
     SFTP_RSA_KEY_FILE = os.environ.get('SFTP_RSA_KEY_FILE')
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
