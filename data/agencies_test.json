@@ -24,6 +24,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -52,6 +53,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -80,6 +82,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -108,6 +111,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -136,6 +140,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -164,6 +169,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -192,6 +198,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -220,6 +227,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -248,6 +256,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -276,6 +285,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -304,6 +314,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -332,6 +343,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -360,6 +372,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -388,6 +401,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -416,6 +430,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -444,6 +459,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -472,6 +488,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -500,6 +517,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -528,6 +546,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -556,6 +575,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -584,6 +604,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -612,6 +633,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -640,6 +662,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -668,6 +691,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -696,6 +720,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -724,6 +749,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -752,6 +778,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -780,6 +807,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -808,6 +836,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -836,6 +865,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -864,6 +894,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -892,6 +923,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -920,6 +952,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -948,6 +981,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -976,6 +1010,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1004,6 +1039,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1034,7 +1070,12 @@
         "specific_request_instructions": {
           "text": ""
         },
-        "custom_request_forms": true
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "expand_by_default": false
+        }
       }
     },
     {
@@ -1061,6 +1102,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1089,6 +1131,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1117,6 +1160,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1145,6 +1189,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1173,6 +1218,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1201,6 +1247,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1229,6 +1276,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1257,6 +1305,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1285,6 +1334,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1313,6 +1363,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1341,6 +1392,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1369,6 +1421,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1397,6 +1450,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1425,6 +1479,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1453,6 +1508,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1481,6 +1537,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1509,6 +1566,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1537,6 +1595,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1565,6 +1624,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1593,6 +1653,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1621,6 +1682,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1649,6 +1711,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1677,6 +1740,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1705,6 +1769,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1733,6 +1798,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1767,6 +1833,7 @@
         "custom_request_forms": {
           "enabled": true,
           "multiple_request_types": true,
+          "categorized": true,
           "expand_by_default": false
         }
       }
@@ -1795,6 +1862,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1823,6 +1891,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1851,6 +1920,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1879,6 +1949,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1907,6 +1978,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1935,6 +2007,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1963,6 +2036,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -1991,6 +2065,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -2019,6 +2094,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -2047,6 +2123,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
@@ -2075,6 +2152,7 @@
         "custom_request_forms": {
           "enabled": false,
           "multiple_request_types": false,
+          "categorized": false,
           "expand_by_default": false
         }
       }
