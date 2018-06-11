@@ -9,8 +9,8 @@ import flask
 import json
 import pytest
 
-
 from app import create_app
+
 
 @pytest.mark.skip(reason="Scheduler is not functioning and needs to be replaced.")
 def test_default_config():
