@@ -1882,6 +1882,7 @@ class CustomRequestForms(db.Model):
     field_definitions - a JSON that contains the the name of the field as the key and type of field as the value
     repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
     category - an integer to separate different types of custom forms for an agency
+    minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
     """
     __tablename__ = 'custom_request_forms'
     id = db.Column(db.Integer, primary_key=True)
@@ -1891,6 +1892,7 @@ class CustomRequestForms(db.Model):
     field_definitions = db.Column(JSONB, nullable=False)
     repeatable = db.Column(db.Integer, nullable=False)
     category = db.Column(db.Integer, nullable=True)
+    minimum_required = db.Column(db.Integer, nullable=True)
 
     @classmethod
     def populate(cls, json_name=None):
@@ -1912,7 +1914,8 @@ class CustomRequestForms(db.Model):
                     form_description=form['form_description'],
                     field_definitions=form['field_definitions'],
                     repeatable=form['repeatable'],
-                    category=form['category']
+                    category=form['category'],
+                    minimum_required=form['minimum_required']
                 )
                 db.session.add(custom_request_form)
             db.session.commit()

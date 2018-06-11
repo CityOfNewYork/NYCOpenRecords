@@ -154,6 +154,7 @@ var customRequestFormData = {}; // tracks the data of custom forms that will be 
 var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
+var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -194,6 +195,7 @@ function getCustomRequestForms(agencyEin) {
                             // if only one option, render that form by default
                             repeatableCounter[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
+                            minimumRequired[[data[0][0]]] = data[0][4];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
@@ -209,6 +211,7 @@ function getCustomRequestForms(agencyEin) {
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
                                 formCategories[data[i][0]] = data[i][3];
+                                minimumRequired[data[i][0]] = data[i][4];
                                 var option = new Option(data[i][1], data[i][0]);
                                 requestType.append(option);
                             }
@@ -536,6 +539,7 @@ function processCustomRequestFormData() {
             var fieldKey = "field_" + fieldNumber;
             var formName = $("#request-type-" + target + " option:selected").text();
             var previousRadioId = "";
+            var completedFields = 0;
 
             customRequestFormData[formKey] = {};
             customRequestFormData[formKey]["form_name"] = formName;
