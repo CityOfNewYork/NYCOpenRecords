@@ -6,16 +6,8 @@ This module handles the setup for running tests agains the OpenRecords applicati
 .. _Flask Tutorial:
    http://flask.pocoo.org/docs/1.0/tutorial/
 """
-import sys
-
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from alembic.command import upgrade as alembic_upgrade
-from alembic.config import Config as AlembicConfig
-
 from app import create_app, db as _db
-from config import config as base_config
 
 
 @pytest.yield_fixture(scope='session')

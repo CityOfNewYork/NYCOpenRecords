@@ -3,10 +3,7 @@
 
 This module contains the tests for the OpenRecords Application Factory
 """
-import os
-
 import flask
-import json
 import pytest
 
 from app import create_app

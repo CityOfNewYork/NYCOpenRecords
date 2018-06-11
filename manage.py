@@ -3,7 +3,7 @@
 import sys
 import os
 import csv
-import subprocess
+# import subprocess
 from tempfile import NamedTemporaryFile
 
 from flask_migrate import Migrate, MigrateCommand
@@ -462,15 +462,15 @@ def update_new_value_to_boolean():
     db.session.commit()
 
 
-@manager.option('-t', '--testing', help='Full path to output csv. File will be overwritten.', default=False)
-def celery(testing):
-
-    celery_command = ['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info']
-
-    if testing:
-        os.environ['FLASK_CONFIG'] = 'testing'
-
-    subprocess.Popen(celery_command)
+# @manager.option('-t', '--testing', help='Full path to output csv. File will be overwritten.', default=False)
+# def celery(testing):
+#
+#     celery_command = ['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info']
+#
+#     if testing:
+#         os.environ['FLASK_CONFIG'] = 'testing'
+#
+#     subprocess.Popen(celery_command)
 
 
 if __name__ == "__main__":

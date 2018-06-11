@@ -10,7 +10,6 @@ This module contains the tests for the OpenRecords `/` endpoint.
 import pytest
 
 from flask import Flask
-from app.models import Emails
 
 
 def test_index(client: Flask.test_client):
@@ -98,6 +97,7 @@ def test_post_contact(
     response = client.post("/contact", data=data)
     assert response.status_code == 200
     assert app_response in response.data
+
 
 def test_get_technical_support(
         client: Flask.test_client
