@@ -6,7 +6,7 @@ before_script:
   - psql -c 'create database openrecords_test;' -U postgres
   - psql -c 'create user testuser;' -U postgres
   - psql -c 'grant all privileges on all tables in schema public to testuser;' -U postgres
-  - mkdir -p $TRAVIS_BUILD_DIR/NYCOpenRecords/logs/
+  - mkdir -p $TRAVIS_BUILD_DIR/CityofNewYork/NYCOpenRecords/logs/
   - sleep 10
 addons:
   postgresql: "9.5"
