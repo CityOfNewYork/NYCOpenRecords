@@ -16,7 +16,7 @@
                 <li class="openrecords_nav"><a href="{{ url_for('request.view_all') }}">Search Requests</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('report.show_report') }}">Reports</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.faq') }}">FAQ</a></li>
-                <li class="openrecords_nav"><a href="{{ url_for('main.about') }}">About</a></li>
+                <li class="openrecords_nav"><a href="{{ url_for('main.about') }}" aria-label="About OpenRecords">About</a></li>
                 <li class="openrecords_nav"><a href="{{ url_for('main.contact') }}">Technical Support</a></li>
                 {% if not current_user.is_anonymous %}
                     <li class="openrecords_nav"><a href="{{ url_for('auth.manage') }}">Manage Account</a></li>

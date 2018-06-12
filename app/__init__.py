@@ -217,6 +217,11 @@ def create_app(config_name, jobs_enabled=True):
                     app.permanent_session_lifetime.seconds * 1000),
         }
 
+    @app.context_processor
+    def add_debug():
+        """Add current_app.debug to context."""
+        return dict(debug=app.debug)
+
     # Register Blueprints
     from .main import main
     app.register_blueprint(main)
