@@ -11,6 +11,7 @@
         var prev = second.find(".prev");
         var submit = second.find(".submit");
 
+        var reason = first.find("#reopening-reason");
         var method = first.find("#reopening-method");
         var letter_template_group = first.find("#reopening-letter-template-group");
         var letter_template = first.find("#reopening-letter-template");
@@ -69,6 +70,7 @@
                             request_id: "{{ request.id }}",
                             type: "re-opening",
                             date: date.val(),
+                            reason: reason.val(),
                             tz_name: jstz.determine().name()
                         },
                         success: function (data) {

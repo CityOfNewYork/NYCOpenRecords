@@ -1264,6 +1264,7 @@ class Reasons(db.Model):
     type = db.Column(db.Enum(
         determination_type.CLOSING,
         determination_type.DENIAL,
+        determination_type.REOPENING,
         name="reason_type"
     ), nullable=False)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))

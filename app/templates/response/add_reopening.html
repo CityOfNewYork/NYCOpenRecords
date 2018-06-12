@@ -1,7 +1,8 @@
 <form id="add-reopening" action="/response/reopening/{{ request.id }}" method="POST">
 
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact"
+           value="{{ current_point_of_contact['user_guid'] }}"/>
 
     <div class="col-sm-9">
         <fieldset>
@@ -14,17 +15,24 @@
                 </small>
             </legend>
             <div class="first">
-                {% if generate_letters_enabled %}
-                <div class="form-group">
-                    <label for="reopening-method">Method</label>
-                    <select id="reopening-method" name="method" class="disable-enter-submit form-control">
-                        <option value="" selected="selected" disabled="disabled">None selected</option>
-                        <option value="email">Email</option>
-                        <option value="letter">Letter</option>
-                    </select>
+                <div id="re-opening-reason">
+                    <div class="form-group">
+                        {{ reopen_request_form.reasons.label }}<br>
+                        {{ reopen_request_form.reasons(id="reopening-reason",
+                                                     class="disable-enter-submit form-control") | safe }}
+                    </div>
                 </div>
+                {% if generate_letters_enabled %}
+                    <div class="form-group">
+                        <label for="reopening-method">Method</label>
+                        <select id="reopening-method" name="method" class="disable-enter-submit form-control">
+                            <option value="" selected="selected" disabled="disabled">None selected</option>
+                            <option value="email">Email</option>
+                            <option value="letter">Letter</option>
+                        </select>
+                    </div>
                 {% else %}
-                    <input type="hidden" id="reopening-method" name="method" value="email" />
+                    <input type="hidden" id="reopening-method" name="method" value="email"/>
                 {% endif %}
                 <div id="reopening-letter-template-group" class="form-group" hidden>
                     <label for="reopening-letter-template">Template</label>

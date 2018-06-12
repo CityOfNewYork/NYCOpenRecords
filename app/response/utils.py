@@ -448,7 +448,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    reason="Request is already closed or has not been acknowledged")
 
 
-def add_reopening(request_id, date, tz_name, content, method, letter_template_id=None):
+def add_reopening(request_id, date, tz_name, content, reason, method, letter_template_id=None):
     """
     Create and store a re-opened-determination for the specified request and update the request accordingly.
 
@@ -456,6 +456,7 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
     :param date: string of new date of request completion
     :param tz_name: client's timezone name
     :param content: email body associated with the reopened request
+    :param reason: Reason for re-opening
     :param method: Method of delivery (email or letters)
     :param letter_template_id: id of the letter template, if generating a letter
 
@@ -467,11 +468,12 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
+        reason = Reasons.query.filter_by(id=reason).one().content
         response = Determinations(
             request_id,
             privacy,
             determination_type.REOPENING,
-            None,
+            reason,
             new_due_date
         )
         create_object(response)
@@ -1473,8 +1475,13 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
     :return: the HTML of the rendered email template of a reopening
     """
     date = datetime.strptime(data['date'], '%Y-%m-%d')
+    reason_id = data.get('reason')
+    reason = Reasons.query.filter_by(id=reason_id).one().content
+
+    # Render the jinja for the reasons content
     return jsonify({"template": render_template(
         email_template,
+        reason=reason,
         request_id=request_id,
         agency_name=agency_name,
         date=process_due_date(local_to_utc(date, data['tz_name'])),

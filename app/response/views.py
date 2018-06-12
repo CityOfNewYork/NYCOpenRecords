@@ -266,7 +266,7 @@ def response_reopening(request_id):
 
     :return: redirect to view request page
     """
-    required_fields = ['date', 'tz-name', 'summary', 'method']
+    required_fields = ['date', 'tz-name', 'summary', 'method', 'reasons']
 
     for field in required_fields:
         if not flask_request.form.get(field, ''):
@@ -282,8 +282,9 @@ def response_reopening(request_id):
 
     add_reopening(request_id,
                   flask_request.form['date'],
-                  flask_request.form['tz-name'],
+                  flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE'],
                   flask_request.form['summary'],
+                  flask_request.form['reasons'],
                   flask_request.form['method'],
                   flask_request.form.get('letter-template-id', None))
     return redirect(url_for('request.view', request_id=request_id))
