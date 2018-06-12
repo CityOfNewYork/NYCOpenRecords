@@ -151,8 +151,8 @@ def import_data(users, agencies, filename):
 
 
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
-@manager.option("-v", "--verbose", help="Pytest verbose mode", dest='verbose')
-@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='cov')
+@manager.option("-v", "--verbose", help="Pytest verbose mode (True/False)", dest='verbose')
+@manager.option("-c", "--coverage", help="Run coverage analysis for tests (True/False)", dest='cov')
 def test(cov=False, test_name=None, verbose=False):
     """Run the unit tests."""
     if cov and not os.environ.get('FLASK_COVERAGE'):
