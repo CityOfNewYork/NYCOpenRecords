@@ -1,5 +1,5 @@
 # manage.py
-
+import ast
 import sys
 import os
 import csv
@@ -42,10 +42,10 @@ if os.environ.get('FLASK_COVERAGE'):
                             config_file=os.path.join(os.curdir, '.coveragerc'))
     COV.start()
 
-
 app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
 manager = Manager(app)
 migrate = Migrate(app, db)
+
 
 #
 # class Celery(Command):
@@ -322,13 +322,13 @@ def convert_staff_csvs(input=None, output=None):
                                 ein=row['agency_ein'],
                                 is_active=row['is_agency_active'],
                                 is_admin=row['is_agency_admin'],
-                                is_super=eval(row['is_super']),
+                                is_super=ast.literal_eval(row['is_super']),
                                 first_name=row['first_name'],
                                 middle_initial=row['middle_initial'],
                                 last_name=row['last_name'],
                                 email=row['email'],
-                                email_validated=eval(row['email_validated']),
-                                terms_of_use_accepted=eval(
+                                email_validated=ast.literal_eval(row['email_validated']),
+                                terms_of_use_accepted=ast.literal_eval(
                                     row['terms_of_use_accepted']),
                                 phone_number=row['phone_number'],
                                 fax_number=row['fax_number']
