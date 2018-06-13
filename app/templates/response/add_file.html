@@ -4,6 +4,23 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <div class="col-sm-9">
+        <div class="modal fade" id="duplicate-file-modal" tabindex="-1" role="dialog">
+            <div class="vertical-alignment-helper">
+                <div class="modal-dialog vertical-align-center">
+                    <div class="modal-content col-sm-4 col-sm-offset-4">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Duplicate File Added</h4>
+                        </div>
+                        <div class="modal-body">Are you sure you want to delete this form? All your entered information
+                            will be lost.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="fileupload-control">
             <fieldset>
                 <legend>
@@ -80,20 +97,6 @@
         </div>
     </div>
 </form>
-<div class="modal fade" id="duplicate-file-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                Duplicate File Added
-            </div>
-            <div class="modal-body">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 {% raw %}
 <!-- The template to display files available for upload -->
@@ -126,6 +129,10 @@
             </div>
         </div>
     {% } %}
+
+
+
+
 
 
 </script>
@@ -196,6 +203,10 @@
     {% } %}
 
 
+
+
+
+
     </script>
     {% endraw %}
 {% else %}
@@ -253,6 +264,10 @@
             </div>
         </div>
     {% } %}
+
+
+
+
 
 
     </script>
