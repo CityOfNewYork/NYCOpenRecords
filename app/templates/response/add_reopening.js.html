@@ -20,6 +20,18 @@
         // Parsley
         method.attr("data-parsley-required", "");
         date.attr("data-parsley-required", "");
+        reason.attr("data-parsley-required", "");
+
+        // Datepicker for new due date
+        date.datepicker({
+            dateFormat: "mm/dd/yy",
+            minDate: 0
+        }).keydown(function (e) {
+            // prevent keyboard input except for tab
+            if (e.keyCode !== 9) {
+                e.preventDefault();
+            }
+        });
 
         method.change(function () {
             if (method.val() === 'letter') {
@@ -56,6 +68,7 @@
         next.click(function () {
             method.parsley().validate();
             date.parsley().validate();
+            reason.parsley().validate();
 
             if (letter_template_group.is(':visible')) {
                 letter_template.parsley().validate();

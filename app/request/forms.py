@@ -270,11 +270,11 @@ class DeterminationForm(Form):
         elif determination_type.DENIAL in self.ultimate_determination_type:
             self.reasons.choices = agency_denials + default_denials
         elif determination_type.REOPENING in self.ultimate_determination_type:
-            self.reasons.choices = [(None, "None Selected")] + agency_reopenings + default_reopenings
+            self.reasons.choices = agency_reopenings + default_reopenings
 
     @property
     def reasons(self):
-        """ SelectMultipleField """
+        """ SelectMultipleField or SelectField """
         raise NotImplementedError
 
     @property
