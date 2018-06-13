@@ -497,10 +497,18 @@ function processCustomRequestFormData() {
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
-            var formKey = "form_" + formNumber;
-            var fieldKey = "field_" + fieldNumber;
+            var formKey = "form_";
+            var fieldKey = "field_";
             var formName = $("#request-type-" + target + " option:selected").text();
             var previousRadioId = "";
+
+            // add leading zero to forms less than 10 so they can be properly sorted
+            if (formNumber < 10) {
+                formKey = formKey + "0" + formNumber;
+            }
+            else {
+                formKey = formKey + formNumber;
+            }
 
             customRequestFormData[formKey] = {};
             customRequestFormData[formKey]["form_name"] = formName;
@@ -509,6 +517,13 @@ function processCustomRequestFormData() {
             // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
                 var fieldName = $("label[for='" + this.id + "']").html();
+                // add leading zero to fields less than 10 so they can be properly sorted
+                if (fieldNumber < 10) {
+                    fieldKey = fieldKey + "0" + fieldNumber;
+                }
+                else {
+                    fieldKey = fieldKey + fieldNumber;
+                }
                 customRequestFormData[formKey]["form_fields"][fieldKey] = {};
                 customRequestFormData[formKey]["form_fields"][fieldKey]["field_name"] = fieldName;
 
@@ -531,7 +546,7 @@ function processCustomRequestFormData() {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
                 }
                 fieldNumber++;
-                fieldKey = "field_" + fieldNumber;
+                fieldKey = "field_";
             });
             formNumber++;
             fieldNumber = 1;
