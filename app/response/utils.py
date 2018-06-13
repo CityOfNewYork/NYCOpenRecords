@@ -1242,13 +1242,14 @@ def _reopening_letter_handler(request_id, data):
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
         point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
-
-        due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
+        tz_name = data.get('tz_name', current_app.config['APP_TIMEZONE'])
+        due_date = _get_new_due_date(request_id, '-1', data['date'], tz_name)
 
         template = render_template_string(contents.content,
                                           date=request.date_submitted,
                                           due_date=due_date,
                                           request_id=request_id,
+                                          reason=data['reason'],
                                           user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
