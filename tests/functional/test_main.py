@@ -2,9 +2,6 @@
 """Test Main Module
 
 This module contains the tests for the OpenRecords `/` endpoint.
-
-.. _Flask Tutorial:
-   http://flask.pocoo.org/docs/1.0/tutorial/
 """
 
 import pytest
