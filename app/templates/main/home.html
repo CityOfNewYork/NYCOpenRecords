@@ -1,87 +1,93 @@
-{% extends "base.html" %}
-
-{% block custom_css %}
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/home.css') }}"/>
-{% endblock %}
-
-{% block content %}
-    <div class="container col-sm-12">
-        <div class=" col-sm-8">
-            <h1 class="home-page-header">Welcome to NYC Government’s home for filing Freedom of Information Law (FOIL)
-                requests.</h1>
-            <p class="home-page-description">On this site you can request records from every New York City agency by
-                filing a Freedom of Information Law (FOIL) request. But, some government information is already
-                available online and you wouldn’t need to go through the FOIL process. Check out these links to sites
-                that host government reports and data.
-            </p>
-            <p class="home-page-description">
-                <strong>Government Reports and Data are available here</strong>
-            </p>
-            <ul class="nyc-gov-links home-page-description">
-                <li><a href="http://nyc.gov/publications">NYC Government Publications Portal</a> Get copies of
-                    reports
-                    and other publications issued by City agencies.
-                </li>
-                <li><a href="https://data.cityofnewyork.us/">NYC OpenData Portal</a> Discover open datasets for your
-                    use.
-                </li>
-                <li><a href="http://www1.nyc.gov/">NYC.gov</a> The official website of the City of New York.</li>
-                <li><a href="http://www1.nyc.gov/311/index.page">NYC 311</a> Get information about your
-                    neighborhood,
-                    and check the status of existing requests.
-                </li>
-            </ul>
-            <p class="home-page-description">Almost all City agencies also use this platform to respond to FOIL requests
-                and publish records not covered by privacy and other protections.
-            </p>
+{% extends "base.html" %} {% block custom_css %}
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/home.css') }}" /> {% endblock %} {% block content %}
+<div class="container col-sm-12">
+    <div class=" col-sm-8">
+        <h1 class="home-page-header">Welcome to NYC Government’s home for filing Freedom of Information Law (FOIL) requests.
+        </h1>
+        <p class="home-page-description">On this site you can request records from every New York City agency by filing a Freedom of Information Law (FOIL)
+            request. But, some government information is already available online and you wouldn’t need to go through the
+            FOIL process. Check out these links to sites that host government reports and data. You may find what you are
+            looking for without FOIL.
+        </p>
+        <p class="home-page-description">
+            <strong>Government Reports and Data are available here</strong>
+        </p>
+        <ul class="nyc-gov-links home-page-description">
+            <li>
+                <a href="http://nyc.gov/publications">NYC Government Publications Portal</a> Get copies of reports and other publications issued by City agencies.
+            </li>
+            <li>
+                <a href="https://data.cityofnewyork.us/">NYC OpenData Portal</a> Discover open datasets for your use.
+            </li>
+            <li>
+                <a href="http://www1.nyc.gov/">NYC.gov</a> The official website of the City of New York.</li>
+            <li>
+                <a href="http://www1.nyc.gov/311/index.page">NYC 311</a> Get information about your neighborhood, and check the status of existing requests.
+            </li>
+        </ul>
+        <p class="home-page-description">Almost all City agencies also use this platform to respond to FOIL requests and publish records not covered by privacy
+            and other protections.
+        </p>
+    </div>
+    <div class="col-sm-4 well public-authorities">
+        <h2 class="public-authorities-header">
+            Public Authorities and Agencies not using OpenRecords
+        </h2>
+        <ul class="nyc-gov-links">
+            <li>
+                <a href="http://www.nyc.gov/health">Department of Health and Mental Hygiene (DOHMH)</a>
+            </li>
+            <li>
+                <a href="http://www.nycedc.com">NYC Economic Development Corporation (NYEDC)</a>
+            </li>
+            <li>
+                <a href="http://www.nychealthandhospitals.org/">NYC Health and Hospitals Corporation (HHC)</a>
+            </li>
+            <li>
+                <a href="http://www.nypl.org">New York Public Library (NYPL)</a>
+            </li>
+            <li>
+                <a href="http://www.queenslibrary.org/">Queens Library</a>
+            </li>
+            <li>
+                <a href="http://www.bklynlibrary.org/">Brooklyn Public Library</a>
+            </li>
+            <li>
+                <a href="http://www.nyc.gov/nycha">New York City Housing Authority (NYCHA)</a>
+            </li>
+            <li>
+                <a href="http://www.snpnyc.org">Office of the Special Narcotics Prosecutor (SNP)</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-sm-12 request-record-button">
+        <div class="col-sm-6">
+            <a href="{{ url_for('request.view_all') }}">
+                <button class="btn btn-primary btn-lg btn-block request-record-button-size">Check for Similar Requests</button>
+            </a>
         </div>
-        <div class="col-sm-4 well public-authorities">
-            <h2 class="public-authorities-header">
-                Public Authorities and Agencies not using OpenRecords
-            </h2>
-            <ul class="nyc-gov-links">
-                <li><a href="http://www.nyc.gov/nycha">New York City Housing Authority (NYCHA)</a></li>
-                <li><a href="http://www.snpnyc.org">Office of the Special Narcotics Prosecutor (SNP)</a></li>
-                <li><a href="http://www.nyc.gov/csc">Civil Service Commission (CSC)</a></li>
-                <li><a href="http://www.nyc.gov/health">Department of Health and Mental Hygiene (DOHMH)</a></li>
-                <li><a href="http://www1.nyc.gov/nyc-resources/service/980/nyc311">311 Customer Service Center (NYC311)</a></li>
-                <li><a href="http://www2.cuny.edu">City University of New York (CUNY)</a></li>
-                <li><a href="http://www.nycedc.com">NYC Economic Development Corporation (NYEDC)</a></li>
-                <li><a href="http://www.nychealthandhospitals.org/">NYC Health and Hospitals</a></li>
-                <li><a href="http://www.nypl.org">New York Public Library (NYPL)</a></li>
-                <li><a href="http://www.queenslibrary.org/">Queens Library</a></li>
-                <li><a href="http://www.bklynlibrary.org/">Brooklyn Public Library</a></li>
-            </ul>
-        </div>
-        <div class="col-sm-12 request-record-button">
-            <div class="col-sm-6">
-                <a href="{{ url_for('request.view_all') }}">
-                    <button class="btn btn-primary btn-lg btn-block request-record-button-size">Check for Similar Requests</button>
-                </a>
-            </div>
-            <div class="col-sm-6">
-                <a href="{{ url_for('request.new') }}">
-                    <button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record</button>
-                </a>
-            </div>
+        <div class="col-sm-6">
+            <a href="{{ url_for('request.new') }}">
+                <button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record</button>
+            </a>
         </div>
     </div>
-{% endblock %}
+</div>
+{% endblock %} {% block custom_script %}
+<script type="text/javascript">
+    "use strict";
 
-{% block custom_script %}
-    <script type="text/javascript">
-        "use strict";
-
-        /* Redirect to OAuth callback if authorization location intended
-         * (i.e. includes 'access_token=' after fragment identifier).
-         * Also include 'next' url (or any other querystring parameters)
-         * if present in the redirect uri.
-         */
-        if (window.location.hash.indexOf('access_token=') !== -1) {
-            window.location = window.location.origin
-                + '/auth/authorize?'
-                + window.location.hash.substring(1)  // remove leading '#'
-                + (window.location.search ? '&' + window.location.search.substring(1) : '');  // remove leading '?'
-        }
-    </script>
+    /* Redirect to OAuth callback if authorization location intended
+     * (i.e. includes 'access_token=' after fragment identifier).
+     * Also include 'next' url (or any other querystring parameters)
+     * if present in the redirect uri.
+     */
+    if (window.location.hash.indexOf('access_token=') !== -1) {
+        window.location = window.location.origin +
+            '/auth/authorize?' +
+            window.location.hash.substring(1) // remove leading '#'
+            +
+            (window.location.search ? '&' + window.location.search.substring(1) : ''); // remove leading '?'
+    }
+</script>
 {% endblock %}
