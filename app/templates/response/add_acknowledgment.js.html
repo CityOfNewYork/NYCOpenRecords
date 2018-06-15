@@ -56,7 +56,11 @@
         });
 
         // Date Picker - Email
-        holiday_dates = {{ holidays | safe }};
+        holiday_dates = {
+            {
+                holidays | safe
+            }
+        };
         email_date.datepicker({
             dateFormat: "yy-mm-dd",
             daysOfWeekDisabled: [0, 6],
@@ -79,11 +83,11 @@
             if ($(this).val() === dateSelectVal) {
                 email_date.parent().show();
                 email_info.attr("data-parsley-required", "");
-                email_info.attr("data-parsley-required-message", "This field is required when selecting a custom due date.");
+                email_info.attr("data-parsley-required-message",
+                    "This field is required when selecting a custom due date.");
                 email_info.attr("data-parsley-minlength", "20");
 
-            }
-            else {
+            } else {
                 email_date.parent().hide();
                 email_info.removeAttr("data-parsley-required", "");
                 email_info.removeAttr("data-parsley-minlength", "20");
@@ -96,8 +100,7 @@
         letter_days.change(function () {
             if ($(this).val() === dateSelectVal) {
                 letter_date.parent().show();
-            }
-            else {
+            } else {
                 letter_date.parent().hide();
                 second.find(".parsley-errors-list").children().remove();
             }
@@ -134,22 +137,21 @@
 
             if (method.val() === 'email') {
                 email_days.parsley().validate();
-                email_info.parsley().validate();  // for max length
+                email_info.parsley().validate(); // for max length
             }
             if (method.val() === 'letter') {
                 letter_days.parsley().validate();
                 letter_info.parsley().validate(); // ensure exists
             }
 
-            if (method.val() === 'email' && !(email_days.parsley().isValid() && email_info.parsley().isValid())
-            ) {
+            if (method.val() === 'email' && !(email_days.parsley().isValid() && email_info.parsley().isValid())) {
                 e.preventDefault();
                 return false;
-            } else if (method.val() === 'letter' && !(letter_days.parsley().isValid() && letter_info.parsley().isValid())) {
+            } else if (method.val() === 'letter' && !(letter_days.parsley().isValid() && letter_info.parsley()
+                    .isValid())) {
                 e.preventDefault();
                 return false;
-            }
-            else {
+            } else {
                 if (method.val() === 'email') {
                     $.ajax({
                         url: "/response/email",

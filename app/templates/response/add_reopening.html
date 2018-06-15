@@ -15,13 +15,6 @@
                 </small>
             </legend>
             <div class="first">
-                <div id="re-opening-reason">
-                    <div class="form-group">
-                        {{ reopen_request_form.reasons.label }}<br>
-                        {{ reopen_request_form.reasons(id="reopening-reason",
-                                                     class="disable-enter-submit form-control") | safe }}
-                    </div>
-                </div>
                 {% if generate_letters_enabled %}
                     <div class="form-group">
                         <label for="reopening-method">Method</label>
@@ -34,6 +27,11 @@
                 {% else %}
                     <input type="hidden" id="reopening-method" name="method" value="email"/>
                 {% endif %}
+                <div id="reopening-email-reason-id-group" class="form-group" hidden>
+                    <label for="reopening-email-reason-id">Reason</label>
+                    <select id="reopening-email-reason-id" name="reason-id" class="disable-enter-submit form-control">
+                    </select>
+                </div>
                 <div id="reopening-letter-template-group" class="form-group" hidden>
                     <label for="reopening-letter-template">Template</label>
                     <select id="reopening-letter-template" name="template" class="disable-enter-submit form-control">
@@ -44,16 +42,26 @@
                     <label for="reopening-date">New Due Date</label>
                     <input type="text" id="reopening-date" name="date"
                            class="disable-enter-submit" autocomplete="off">
-                    <input type="hidden" name="tz-name">
                 </div>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="second" hidden>
+                <h4 id="edit-body-header">Edit Email Body</h4>
+                <div class="form-group">
+                    <div class="reopen-content-hidden" hidden></div>
+                    <textarea title="reopening-body" name="reopening-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="third" hidden>
                 <h4 id="header">The following will be emailed to the requester:</h4>
                 <div class="wrap-text summary"></div>
                 <input type="hidden" name="method">
                 <input type="hidden" name="letter-template-id">
                 <input type="hidden" name="summary">
+                <input type="hidden" name="tz-name">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit pull-right btn btn-success">Submit</button>
             </div>

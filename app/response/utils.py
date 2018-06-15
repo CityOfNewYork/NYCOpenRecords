@@ -464,7 +464,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
         previous_status = request.status
-        date = datetime.strptime(date, '%Y-%m-%d')
+        date = datetime.strptime(date, '%m/%d/%Y')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
@@ -1475,19 +1475,34 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
 
     :return: the HTML of the rendered email template of a reopening
     """
-    date = datetime.strptime(data['date'], '%Y-%m-%d')
-    reason_id = data.get('reason')
-    reason = Reasons.query.filter_by(id=reason_id).one().content
+    reason = data.get('reason', None)
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
 
-    # Render the jinja for the reasons content
-    return jsonify({"template": render_template(
-        email_template,
-        reason=reason,
-        request_id=request_id,
-        agency_name=agency_name,
-        date=process_due_date(local_to_utc(date, data['tz_name'])),
-        page=page
-    )}), 200
+    if reason is not None:
+        default_content = True
+        content = None
+
+        date = datetime.strptime(data['date'], '%m/%d/%Y')
+        reason_id = data.get('reason')
+        reason = Reasons.query.filter_by(id=reason_id).one().content
+        return jsonify({"template": render_template(
+            email_template,
+            default_content=default_content,
+            content=content,
+            reason=reason,
+            request_id=request_id,
+            agency_name=agency_name,
+            date=process_due_date(local_to_utc(date, data['tz_name'])),
+            page=page), "header": header}), 200
+    else:
+        default_content = False
+        content = data['email_content']
+        date = None
+        return jsonify({"template": render_template(
+            email_template,
+            default_content=default_content,
+            content=content,
+            page=page), "header": header}), 200
 
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):
