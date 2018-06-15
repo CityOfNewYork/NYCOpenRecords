@@ -21,7 +21,7 @@
                               maxlength="5000"></textarea>
                     <h5 id="note-content-character-count">5000 characters remaining</h5>
                     {% if current_user.is_agency %}
-                        {% if permissions['edit_note_privacy'] %}
+                        {% if permissions['edit_note_privacy'] and request.status != status.CLOSED %}
                             <div class="radio">
                                 <label>
                                     <input type="radio" class="note-privacy" name="privacy" value="release_public">Release

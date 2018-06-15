@@ -3,6 +3,7 @@
     {
       "agency_ein": "0056",
       "form_name": "Arrest Report",
+      "form_description": "Form for requesting an arrest report",
       "field_definitions": [
         {
           "Arrest Report #": {
@@ -60,6 +61,7 @@
     {
       "agency_ein": "0056",
       "form_name": "Complaint Report",
+      "form_description": "Form for requesting a complaint report",
       "field_definitions": [
         {
           "Complaint Report #": {
@@ -117,6 +119,7 @@
     {
       "agency_ein": "0056",
       "form_name": "Body Worn Camera Video",
+      "form_description": "Form for requesting body worn camera footage",
       "field_definitions": [
         {
           "Date of Incident": {
@@ -195,6 +198,7 @@
     {
       "agency_ein": "0056",
       "form_name": "NYPD Test Form",
+      "form_description": "",
       "field_definitions": [
         {
           "Input Test": {

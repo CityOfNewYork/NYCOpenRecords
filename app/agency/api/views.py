@@ -84,7 +84,8 @@ def get_custom_request_form_fields():
     repeatable_counter = json.loads(request.args['repeatable_counter'])
     instance_id = custom_request_form.repeatable - repeatable_counter[str(custom_request_form.id)] + 1
 
-    form_template = ''
+    form_template = render_template('custom_request_form_templates/form_description_template.html',
+                                    form_description=custom_request_form.form_description)
     for field in custom_request_form.field_definitions:
         for key, value in field.items():
             field_text = key

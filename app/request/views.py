@@ -112,14 +112,14 @@ def new():
                 return render_template(new_request_template, form=form, site_key=site_key)
 
         custom_metadata = json.loads(flask_request.form['custom-request-forms-data'])
-
+        tz_name = flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE']
         if current_user.is_public:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         form.request_category.data,
                                         agency_ein=form.request_agency.data,
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'],
+                                        tz_name=tz_name,
                                         custom_metadata=custom_metadata)
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
@@ -140,7 +140,7 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'],
+                                        tz_name=tz_name,
                                         custom_metadata=custom_metadata)
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
@@ -156,7 +156,7 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'],
+                                        tz_name=tz_name,
                                         custom_metadata=custom_metadata)
 
         current_request = Requests.query.filter_by(id=request_id).first()

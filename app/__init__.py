@@ -47,22 +47,26 @@ mail = Mail()
 tracy = Tracy()
 login_manager = LoginManager()
 scheduler = APScheduler()
-store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT))
+store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB,
+                                     host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 session_redis = PrefixDecorator('session_', store)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 sentry = Sentry()
 
-upload_redis = redis.StrictRedis(db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
-email_redis = redis.StrictRedis(db=Config.EMAIL_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
+upload_redis = redis.StrictRedis(
+    db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
+email_redis = redis.StrictRedis(
+    db=Config.EMAIL_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 
-holidays = NYCHolidays(years=[year for year in range(date.today().year, date.today().year + 5)])
+holidays = NYCHolidays(years=[year for year in range(
+    date.today().year, date.today().year + 5)])
 calendar = Calendar(
     workdays=[MO, TU, WE, TH, FR],
     holidays=[str(key) for key in holidays.keys()]
 )
 
 
-def create_app(config_name, jobs_enabled=True):
+def create_app(config_name='default', jobs_enabled=True):
     """
     Set up the Flask Application context.
 
@@ -94,7 +98,6 @@ def create_app(config_name, jobs_enabled=True):
 
     handler_error = TimedRotatingFileHandler(
         os.path.join(app.config['LOGFILE_DIRECTORY'],
-                     'error',
                      'openrecords_{}_error.log'.format(app.config['APP_VERSION_STRING'])),
         when='midnight', interval=1, backupCount=60)
     handler_error.setLevel(logging.ERROR)
@@ -214,7 +217,7 @@ def create_app(config_name, jobs_enabled=True):
         """
         return {
             'PERMANENT_SESSION_LIFETIME_MS': (
-                    app.permanent_session_lifetime.seconds * 1000),
+                app.permanent_session_lifetime.seconds * 1000),
         }
 
     @app.context_processor
@@ -233,7 +236,8 @@ def create_app(config_name, jobs_enabled=True):
     app.register_blueprint(request, url_prefix="/request")
 
     from .request.api import request_api_blueprint
-    app.register_blueprint(request_api_blueprint, url_prefix="/request/api/v1.0")
+    app.register_blueprint(request_api_blueprint,
+                           url_prefix="/request/api/v1.0")
 
     from .report import report
     app.register_blueprint(report, url_prefix="/report")
