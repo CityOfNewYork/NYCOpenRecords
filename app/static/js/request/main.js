@@ -355,7 +355,9 @@ function renderCustomRequestForm(target) {
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
                     currentCategory = formCategories[formId];
-                    disableOptions();
+                    if (currentValues.length > 1){
+                        disableOptions();
+                    }
                 }
 
                 try {
