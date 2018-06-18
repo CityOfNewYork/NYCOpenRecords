@@ -554,12 +554,19 @@ function processCustomRequestFormData() {
                 if ($("#" + this.id).prop("multiple") === true) {
                     var selectMultipleId = "#" + this.id;
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
+                    if ($(selectMultipleId).val() !== null) {
+                        completedFields++;
+                    }
+
                 }
                 else if ($("#" + this.id).is(":radio") === true) {
                     // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
                     if (this.id !== previousRadioId) {
                         customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
+                        if (radioValue != null) {
+                            completedFields++;
+                        }
                     }
                     else {
                         fieldNumber--;
@@ -568,10 +575,19 @@ function processCustomRequestFormData() {
                 }
                 else {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
+                    if (this.value !== "") {
+                        completedFields++;
+                    }
                 }
                 fieldNumber++;
                 fieldKey = "field_" + fieldNumber;
             });
+            console.log(completedFields);
+            if (completedFields < minimumRequired[currentValues[i]]) {
+                console.log("not enough fields for " + currentValues[i]);
+            }
+
+            completedFields = 0;
             formNumber++;
             fieldNumber = 1;
         }
