@@ -1,28 +1,45 @@
 <form id="fileupload" class="fileupload-form" action="/response/file/{{ request.id }}" method="POST"
       enctype="multipart/form-data">
 
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
     <div class="col-sm-9">
+        <div class="modal fade" id="duplicate-file-modal" tabindex="-1" role="dialog">
+            <div class="vertical-alignment-helper">
+                <div class="modal-dialog vertical-align-center">
+                    <div class="modal-content col-sm-4 col-sm-offset-4">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Duplicate File Added</h4>
+                        </div>
+                        <div class="modal-body">Are you sure you want to delete this form? All your entered information
+                            will be lost.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="fileupload-control">
             <fieldset>
-            <legend>
-                Add File
-                <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Adding Files"
-                       data-content="This function allows you to upload multiple files for a single request.">
-                    <span class="glyphicon glyphicon-question-sign"></span>
-                </small>
-            </legend>
-            <div class="first">
-                <div class="fileupload-error-messages alert alert-danger" hidden></div>
-                <!-- first div of the add-file form containing uploads -->
-                <div class="row fileupload-buttonbar">
-                    <div class="col-lg-7">
-                        <label class="btn btn-success fileinput-button">
-                            <i class="glyphicon glyphicon-plus"></i>
-                            <span>Add files...</span>
-                            <input type="file" name="file" id="add-files" multiple>
-                        </label>
+                <legend>
+                    Add File
+                    <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Adding Files"
+                           data-content="This function allows you to upload multiple files for a single request.">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </small>
+                </legend>
+                <div class="first">
+                    <div class="fileupload-error-messages alert alert-danger" hidden></div>
+                    <!-- first div of the add-file form containing uploads -->
+                    <div class="row fileupload-buttonbar">
+                        <div class="col-lg-7">
+                            <label class="btn btn-success fileinput-button">
+                                <i class="glyphicon glyphicon-plus"></i>
+                                <span>Add files...</span>
+                                <input type="file" name="file" id="add-files" multiple>
+                            </label>
                             <button type="submit" class="btn btn-primary start">
                                 <i class="glyphicon glyphicon-upload"></i>
                                 <span>Start All</span>
@@ -112,7 +129,6 @@
             </div>
         </div>
     {% } %}
-
 </script>
 {% endraw %}
 <!-- The template to display files after upload -->
@@ -129,7 +145,7 @@
 
                 {% if (!(file.error)) { %}
                     <div class="fileupload-input-fields hidden">
-                        Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required data-parsley-maxlength="140" maxlength="140">
+                        Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required data-parsley-maxlength="250" maxlength="250">
                         <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
                         <div class="radio">
                             <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
@@ -179,7 +195,6 @@
             </div>
         </div>
     {% } %}
-
     </script>
     {% endraw %}
 {% else %}
@@ -195,7 +210,7 @@
 
                 {% if (!(file.error)) { %}
                     <div class="fileupload-input-fields hidden">
-                        Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required data-parsley-maxlength="140" maxlength="140">
+                        Title: <input type="text" class="title-field" name="{%=file.name%}::title" data-parsley-required data-parsley-maxlength="250" maxlength="250">
                         <input type="hidden" name="filename_{%=file.name%}" value="{%=file.name%}">
                         <div class="radio">
                             <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
@@ -237,7 +252,6 @@
             </div>
         </div>
     {% } %}
-
     </script>
     {% endraw %}
 {% endif %}

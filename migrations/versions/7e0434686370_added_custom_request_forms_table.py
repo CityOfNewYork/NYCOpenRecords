@@ -20,6 +20,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('agency_ein', sa.String(length=4), nullable=False),
     sa.Column('form_name', sa.String(), nullable=False),
+    sa.Column('form_description', sa.String(), nullable=False),
     sa.Column('field_definitions', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('repeatable', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['agency_ein'], ['agencies.ein'], ),
