@@ -296,9 +296,6 @@ $(document).ready(function () {
             }
         }
 
-        e.currentTarget.submit();
-
-
         // Prevent multiple submissions
         $(this).submit(function () {
             return false;

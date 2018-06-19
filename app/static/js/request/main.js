@@ -599,11 +599,13 @@ function processCustomRequestFormData() {
                 fieldKey = "field_";
             });
             if (completedFields < minimumRequired[currentValues[i]]) {
-                var invalidForm = "#custom-request-form-content-" + target;
+                debugger;
+                var invalidFormContent = "#custom-request-form-content-" + target;
+                var invalidForm = "#custom-request-forms-" + target;
                 if (minimumRequired[currentValues[i]] > 1) {
-                    $(invalidForm).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                    $(invalidFormContent).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
                 } else {
-                    $(invalidForm).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
+                    $(invalidFormContent).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
                 }
                 return invalidForm;
 
