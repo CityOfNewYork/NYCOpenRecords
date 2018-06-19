@@ -598,11 +598,13 @@ function processCustomRequestFormData() {
                 fieldNumber++;
                 fieldKey = "field_";
             });
-            console.log(completedFields);
             if (completedFields < minimumRequired[currentValues[i]]) {
-                console.log("not enough fields for " + currentValues[i]);
                 var invalidForm = "#custom-request-form-content-" + target;
-                $(invalidForm).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                if (minimumRequired[currentValues[i]] > 1) {
+                    $(invalidForm).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                } else {
+                    $(invalidForm).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
+                }
                 return invalidForm;
 
             }
