@@ -1455,7 +1455,7 @@ class Files(Responses):
     __tablename__ = response_type.FILE
     __mapper_args__ = {'polymorphic_identity': response_type.FILE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    title = db.Column(db.String(140))
+    title = db.Column(db.String(250))
     name = db.Column(db.String)
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
