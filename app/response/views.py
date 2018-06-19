@@ -183,7 +183,8 @@ def response_acknowledgment(request_id):
                        flask_request.form['info'].strip() or None,
                        flask_request.form['days'],
                        flask_request.form['date'],
-                       flask_request.form['tz-name'],
+                       flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
+                           'APP_TIMEZONE'],
                        flask_request.form['summary'],
                        flask_request.form['method'],
                        flask_request.form.get('letter_templates'))
@@ -288,8 +289,12 @@ def response_reopening(request_id):
 
     add_reopening(request_id,
                   flask_request.form['date'],
+<<<<<<< HEAD
                   flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
                       'APP_TIMEZONE'],
+=======
+                  flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE'],
+>>>>>>> develop
                   flask_request.form['summary'],
                   flask_request.form.get('reason-id', None),
                   flask_request.form['method'],
@@ -337,7 +342,7 @@ def response_extension(request_id):
                   extension_data['length'],
                   extension_data['reason'],
                   due_date,
-                  extension_data['tz-name'],
+                  extension_data['tz-name'] if extension_data['tz-name'] else current_app.config['APP_TIMEZONE'],
                   extension_data['summary'],
                   extension_data['method'],
                   extension_data.get('letter_templates'))

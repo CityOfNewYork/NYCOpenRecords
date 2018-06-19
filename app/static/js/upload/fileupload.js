@@ -2,16 +2,19 @@
 
 function bindFileUpload(target,
                         request_id,
+                        duplicateFileModal,
                         for_update,
                         response_id,
                         uploadTemplateId,
                         downloadTemplateId,
-                        nextButton) {
+                        nextButton
+                        ) {
     /*
     Binds jquery file upload to the element identified by 'target'
 
     @param {string} target - jquery selector string (ex. "#fileupload")
     @param {string} request_id - FOIL request id
+    @param {selector} duplicateFileModal - jQuery selector for duplicate file alert modal
     @param {bool} for_update - editing a file?
     @param {int} response_id - response id of file being replaced
     @param {string} uploadTemplateId - jquery file upload uploadTemplateId
@@ -103,7 +106,9 @@ function bindFileUpload(target,
             });
             data.files = $.map(data.files, function (file, i) {
                 if ($.inArray(file.name, currentFiles) >= 0) {
-                    alert("The file '" + file.name + "' has already been added.");
+                    var modalBody = $(duplicateFileModal).find(".modal-body");
+                    modalBody.html("<p>The file '" + file.name + "' has already been added.");
+                    $(duplicateFileModal).modal('show');
                     return null;
                 }
                 return file;
