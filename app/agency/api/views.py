@@ -1,3 +1,5 @@
+import json
+
 from flask import (
     jsonify,
     request,
@@ -7,6 +9,8 @@ from flask_login import (
     current_user,
     login_required
 )
+from sqlalchemy import asc
+
 from app.agency.api import agency_api_blueprint
 from app.agency.api.utils import (
     get_active_users_as_choices,
@@ -14,8 +18,6 @@ from app.agency.api.utils import (
     get_reasons
 )
 from app.models import CustomRequestForms
-import json
-from sqlalchemy import asc
 
 
 @login_required
