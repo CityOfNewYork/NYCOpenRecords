@@ -7,10 +7,14 @@
     padding-top: 1rem;
 }
 
-.looking-for-something-else {
+.public-authorities {
     top: 2.5rem;
     padding-top: 0;
     padding-bottom: 1rem;
+}
+
+.public-authorities-header {
+    font-size: 2.25rem;
 }
 
 .nyc-gov-links {
