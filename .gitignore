@@ -96,3 +96,4 @@ pip-selfcheck.json
 data/FOIL-*
 data_test/*
 executables/*
+openrecords.code-workspace
