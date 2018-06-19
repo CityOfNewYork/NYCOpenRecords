@@ -1,12 +1,9 @@
 from itertools import groupby
 from operator import itemgetter
 from sqlalchemy import or_
+from typing import Sequence
 
-from app.models import (
-    Agencies,
-    LetterTemplates,
-    Reasons
-)
+from app.models import Agencies, LetterTemplates, Reasons
 
 
 def get_active_users_as_choices(agency_ein):
@@ -16,10 +13,13 @@ def get_active_users_as_choices(agency_ein):
     :return: A list of user tuples (id, name)
     """
     active_users = sorted(
-        [(user.get_id(), user.name)
-         for user in Agencies.query.filter_by(ein=agency_ein).one().active_users],
-        key=lambda x: x[1])
-    active_users.insert(0, ('', 'All'))
+        [
+            (user.get_id(), user.name)
+            for user in Agencies.query.filter_by(ein=agency_ein).one().active_users
+        ],
+        key=lambda x: x[1],
+    )
+    active_users.insert(0, ("", "All"))
     return active_users
 
 
@@ -36,33 +36,35 @@ def get_reasons(agency_ein, reason_type=None):
             {
                 'type_', [(reason_id, reason_title),...]
             }
-
     """
     if reason_type is not None:
-        reasons = Reasons.query.with_entities(Reasons.id, Reasons.title, Reasons.type).filter(
-            Reasons.type == reason_type,
-            or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None)
-        ).all()
+        reasons = (
+            Reasons.query.with_entities(Reasons.id, Reasons.title, Reasons.type)
+            .filter(
+                Reasons.type == reason_type,
+                or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None),
+            )
+            .all()
+        )
     else:
-        reasons = Reasons.query.with_entities(Reasons.id, Reasons.title, Reasons.type).filter(
-            or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None)
-        ).all()
-
-    reasons = list(_group_tuples(reasons))
+        reasons = (
+            Reasons.query.with_entities(Reasons.id, Reasons.title, Reasons.type)
+            .filter(or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None))
+            .all()
+        )
+    grouped_reasons = list(_group_items(reasons, 2))
 
     reasons_dict = {}
 
-    for i in reasons:
-        type_ = i[0]
-        vals = i[1]
+    for group in grouped_reasons:
+        determination_type = group[0]
+        reasons = group[1]
 
-        reasons_dict[type_] = []
+        reasons_dict[determination_type] = []
 
-        for i in vals:
-            reasons_dict[type_].append((i[0], i[1]))
+        for reason in reasons:
+            reasons_dict[determination_type].append((reason[0], reason[1]))
 
-    if reason_type is not None:
-        return reasons_dict[reason_type]
     return reasons_dict
 
 
@@ -80,38 +82,54 @@ def get_letter_templates(agency_ein, template_type=None):
         }
     """
     if template_type is not None:
-        templates = LetterTemplates.query.with_entities(LetterTemplates.id, LetterTemplates.title,
-                                                        LetterTemplates.type_).filter(
-            LetterTemplates.type_ == template_type).all()
+        templates = (
+            LetterTemplates.query.with_entities(
+                LetterTemplates.id, LetterTemplates.title, LetterTemplates.type_
+            )
+            .filter(LetterTemplates.type_ == template_type)
+            .all()
+        )
     else:
-        templates = LetterTemplates.query.with_entities(LetterTemplates.id, LetterTemplates.title,
-                                                        LetterTemplates.type_).filter_by(agency_ein=agency_ein).all()
+        templates = (
+            LetterTemplates.query.with_entities(
+                LetterTemplates.id, LetterTemplates.title, LetterTemplates.type_
+            )
+            .filter_by(agency_ein=agency_ein)
+            .all()
+        )
 
-    templates = list(_group_tuples(templates))
+    grouped_templates = list(_group_items(templates, 2))
 
     template_dict = {}
 
-    for i in templates:
-        type_ = i[0]
-        vals = i[1]
+    for group in grouped_templates:
+        template_type = group[0]
+        templates = group[1]
 
-        template_dict[type_] = []
+        template_dict[template_type] = []
 
-        for i in vals:
-            template_dict[type_].append((i[0], i[1]))
+        for template in templates:
+            template_dict[template_type].append((template[0], template[1]))
 
-    if template_type is not None:
-        return template_dict[template_type]
     return template_dict
 
 
-def _group_tuples(tuples):
+def _group_items(items: Sequence[Sequence], sort_index: int) -> tuple:
+    """Group a collection of items by a specified key
+    
+    Args:
+        collections (Sequence): A collection of items to be grouped
+        sort_index (int): Index of the item to use for grouping
+    
+    Yields:
+        tuple:
+            (
+                items[sort_index_1], (Sequence[i], Sequence[j], ...),
+                items[sort_index_2], (Sequence[i], Sequence[j], ...),
+                ...
+            )        
     """
-    Group a list of templates by their type
-    :param tuples: List of templates (template.id, template.title, template.type_)
-    :return: a generator containing each grouped template type
-    """
-    grouped = groupby(tuples, itemgetter(2))
+    grouped = groupby(items, itemgetter(sort_index))
 
-    for key, sub_iter in grouped:
-        yield key, list(sub_iter)
+    for item_index, sub_iter in grouped:
+        yield item_index, list(sub_iter)
