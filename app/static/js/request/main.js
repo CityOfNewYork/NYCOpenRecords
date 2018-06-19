@@ -366,22 +366,22 @@ function renderCustomRequestForm(target) {
                         dateFormat: "mm/dd/yy",
                         maxDate: 0
                     }).keydown(function (e) {
-                        // prevent keyboard input except for tab
-                        if (e.keyCode !== 8 &&
-                            e.keyCode !== 9 &&
-                            e.keyCode !== 37 &&
-                            e.keyCode !== 39 &&
-                            e.keyCode !== 48 &&
-                            e.keyCode !== 49 &&
-                            e.keyCode !== 50 &&
-                            e.keyCode !== 51 &&
-                            e.keyCode !== 52 &&
-                            e.keyCode !== 53 &&
-                            e.keyCode !== 54 &&
-                            e.keyCode !== 55 &&
-                            e.keyCode !== 56 &&
-                            e.keyCode !== 57 &&
-                            e.keyCode !== 191)
+                        // prevent keyboard input except for allowed keys
+                        if (e.keyCode !== 8 && // backspace
+                            e.keyCode !== 9 && // tab
+                            e.keyCode !== 37 && // left-arrow
+                            e.keyCode !== 39 && // right-arrow
+                            e.keyCode !== 48 && // 0
+                            e.keyCode !== 49 && // 1
+                            e.keyCode !== 50 && // 2
+                            e.keyCode !== 51 && // 3
+                            e.keyCode !== 52 && // 4
+                            e.keyCode !== 53 && // 5
+                            e.keyCode !== 54 && // 6
+                            e.keyCode !== 55 && // 7
+                            e.keyCode !== 56 && // 8
+                            e.keyCode !== 57 && // 9
+                            e.keyCode !== 191) // forward slash
                             e.preventDefault();
                     });
                 }
@@ -403,25 +403,25 @@ function renderCustomRequestForm(target) {
                         scrollbar: true
                     }).keydown(function (e) {
                         // prevent keyboard input except for allowed keys
-                        if (e.keyCode !== 8 &&
-                            e.keyCode !== 9 &&
-                            e.keyCode !== 37 &&
-                            e.keyCode !== 39 &&
-                            e.keyCode !== 48 &&
-                            e.keyCode !== 49 &&
-                            e.keyCode !== 50 &&
-                            e.keyCode !== 51 &&
-                            e.keyCode !== 52 &&
-                            e.keyCode !== 53 &&
-                            e.keyCode !== 54 &&
-                            e.keyCode !== 55 &&
-                            e.keyCode !== 56 &&
-                            e.keyCode !== 57 &&
-                            e.keyCode !== 16 &&
-                            e.keyCode !== 65 &&
-                            e.keyCode !== 77 &&
-                            e.keyCode !== 80 &&
-                            e.keyCode !== 186)
+                        if (e.keyCode !== 8 && // backspace
+                            e.keyCode !== 9 && // tab
+                            e.keyCode !== 37 && // left-arrow
+                            e.keyCode !== 39 && // right-arrow
+                            e.keyCode !== 48 && // 0
+                            e.keyCode !== 49 && // 1
+                            e.keyCode !== 50 && // 2
+                            e.keyCode !== 51 && // 3
+                            e.keyCode !== 52 && // 4
+                            e.keyCode !== 53 && // 5
+                            e.keyCode !== 54 && // 6
+                            e.keyCode !== 55 && // 7
+                            e.keyCode !== 56 && // 8
+                            e.keyCode !== 57 && // 9
+                            e.keyCode !== 16 && // Shift
+                            e.keyCode !== 65 && // a
+                            e.keyCode !== 77 && // m
+                            e.keyCode !== 80 && // p
+                            e.keyCode !== 186) // semi-colon
                             e.preventDefault();
                     });
 
@@ -523,6 +523,8 @@ function handlePanelDismiss() {
 
     // remove custom request panel div
     $(panelId).remove();
+    // Remove the form from the currentValues array
+    currentValues.splice(targetId - 1, 1);
 }
 
 function processCustomRequestFormData() {
