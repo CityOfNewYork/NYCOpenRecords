@@ -56,11 +56,7 @@
         });
 
         // Date Picker - Email
-        holiday_dates = {
-            {
-                holidays | safe
-            }
-        };
+        holiday_dates = {{ holidays | safe }};
         email_date.datepicker({
             dateFormat: "yy-mm-dd",
             daysOfWeekDisabled: [0, 6],

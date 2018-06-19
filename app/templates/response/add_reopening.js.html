@@ -29,7 +29,7 @@
 
         // Datepicker for new due date
         date.datepicker({
-            dateFormat: "yy-mm-dd",
+            dateFormat: "mm/dd/yy",
             minDate: 0
         }).keydown(function (e) {
             // prevent keyboard input except for tab
@@ -80,7 +80,7 @@
         // Date Picker
         holiday_dates = {{ holidays | safe }};
         date.datepicker({
-            dateFormat: "yy-mm-dd",
+            dateFormat: "mm/dd/yyyy",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
             minDate: 0
