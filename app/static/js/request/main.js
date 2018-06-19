@@ -257,9 +257,10 @@ function populateDropdown(agencyEin) {
     var selectedAgency = agencyEin;
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var customRequestFormsDiv = $(customRequestFormsDivId);
-    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");;
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
+    ;
 
-    $(".request-type").each(function(){
+    $(".request-type").each(function () {
         if (this.length === 0) { // if this is an unpopulated dropdown
             var requestType = this;
             $.ajax({
@@ -298,7 +299,7 @@ function updateCustomRequestFormDropdowns() {
     /*
      * Update the dropdowns to disable options where they are no longer repeatable.
      */
-    $(".request-type").each(function(){
+    $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
             if (repeatableCounter[this.value] === 0) {
@@ -349,12 +350,12 @@ function renderCustomRequestForm(target) {
             },
             success: function (data) {
                 // update the values in the tracking variables
-                currentValues[target-1] = formId;
+                currentValues[target - 1] = formId;
 
                 detectChange(); // determine which request type dropdown was changed
 
                 customRequestFormContent.html(data);
-                previousValues[target-1] = formId;
+                previousValues[target - 1] = formId;
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
                     currentCategory = formCategories[formId];
@@ -463,11 +464,11 @@ function renderCustomRequestForm(target) {
         customRequestFormAdditionalContent.hide();
 
         // update the values in the tracking variables
-        currentValues[target-1] = "";
+        currentValues[target - 1] = "";
 
         detectChange();
 
-        previousValues[target-1] = "";
+        previousValues[target - 1] = "";
         updateCustomRequestFormDropdowns();
     }
 }
@@ -508,10 +509,10 @@ function handlePanelDismiss() {
     // +1 to repeatable counter and reset previousValues/currentValues array
     var targetId = dismissTarget.replace("#panel-dismiss-button-", "");
     var panelId = dismissTarget.replace("#panel-dismiss-button-", "#custom-request-panel-");
-    if (currentValues[targetId-1] !== "") {
-                repeatableCounter[currentValues[targetId-1]] = repeatableCounter[currentValues[targetId-1]] + 1;
-                previousValues[targetId-1] = "";
-                currentValues[targetId-1] = "";
+    if (currentValues[targetId - 1] !== "") {
+        repeatableCounter[currentValues[targetId - 1]] = repeatableCounter[currentValues[targetId - 1]] + 1;
+        previousValues[targetId - 1] = "";
+        currentValues[targetId - 1] = "";
     }
     updateCustomRequestFormDropdowns();
 
@@ -600,6 +601,10 @@ function processCustomRequestFormData() {
             console.log(completedFields);
             if (completedFields < minimumRequired[currentValues[i]]) {
                 console.log("not enough fields for " + currentValues[i]);
+                var invalidForm = "#custom-request-form-content-" + target;
+                $(invalidForm).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                return invalidForm;
+
             }
 
             completedFields = 0;
@@ -608,4 +613,5 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
+    return null;
 }
