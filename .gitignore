@@ -14,6 +14,7 @@ Vagrantfile.aws
 *.pem
 *.crt
 *.key
+*.htpasswd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -85,3 +86,11 @@ pip-selfcheck.json
 
 # Visual Studio Code
 .vscode/
+
+# Local Configuration
+.tmux/
+
+# Test Files
+data/FOIL-*
+data_test/*
+executables/*

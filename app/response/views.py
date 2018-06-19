@@ -289,12 +289,8 @@ def response_reopening(request_id):
 
     add_reopening(request_id,
                   flask_request.form['date'],
-<<<<<<< HEAD
                   flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
                       'APP_TIMEZONE'],
-=======
-                  flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE'],
->>>>>>> develop
                   flask_request.form['summary'],
                   flask_request.form.get('reason-id', None),
                   flask_request.form['method'],
