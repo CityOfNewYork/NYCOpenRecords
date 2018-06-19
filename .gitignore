@@ -86,7 +86,8 @@ pip-selfcheck.json
 .idea_modules/
 
 # Visual Studio Code
-.vscode/
+.vscode/*
+.vscode
 
 # Local Configuration
 .tmux/
