@@ -4,6 +4,7 @@ from io import StringIO, BytesIO
 import re
 
 from flask import (
+    current_app,
     request,
     render_template,
     jsonify,
@@ -104,7 +105,7 @@ def requests():
         request.args.get('sort_date_submitted'),
         request.args.get('sort_date_due'),
         request.args.get('sort_title'),
-        request.args.get('tz_name')
+        request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
         # eval_request_bool(request.args.get('by_phrase')),
         # eval_request_bool(request.args.get('highlight')),
     )
@@ -145,7 +146,7 @@ def requests_doc(doc_type):
             sentry.captureException()
             agency_ein = None
 
-        tz_name = request.args.get('tz_name')
+        tz_name = request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
 
         start = 0
         buffer = StringIO()  # csvwriter cannot accept BytesIO
