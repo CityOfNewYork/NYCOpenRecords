@@ -31,14 +31,15 @@
                     <a href="{{ url_for('main.technical_support') }}">Technical Support</a>
                 </li>
                 {% if not current_user.is_anonymous %}
-                <li class="openrecords_nav">
-                    <a href="{{ url_for('auth.manage') }}">Manage Account</a>
-                </li>
-                {% if (current_user.has_agency_admin and current_user.has_agency_active) or current_user.is_super %}
-                <li class="openrecords_nav">
-                    <a href="{{ url_for('admin.main') }}">Agency Administration</a>
-                </li>
-                {% endif %} {% endif %}
+                    <li class="openrecords_nav">
+                        <a href="{{ url_for('auth.manage') }}">Manage Account</a>
+                    </li>
+                    {% if (current_user.has_agency_admin and current_user.has_agency_active) or current_user.is_super %}
+                        <li class="openrecords_nav">
+                            <a href="{{ url_for('admin.main') }}">Agency Administration</a>
+                        </li>
+                    {% endif %} 
+                {% endif %}
             </ul>
         </div>
         <!--/.nav-collapse -->
