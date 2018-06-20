@@ -599,7 +599,6 @@ function processCustomRequestFormData() {
                 fieldKey = "field_";
             });
             if (completedFields < minimumRequired[currentValues[i]]) {
-                debugger;
                 var invalidFormContent = "#custom-request-form-content-" + target;
                 var invalidForm = "#custom-request-forms-" + target;
                 if (minimumRequired[currentValues[i]] > 1) {
