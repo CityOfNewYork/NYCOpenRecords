@@ -267,9 +267,13 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function (e) {
-        processCustomRequestFormData();
-
-        e.preventDefault();
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForm = processCustomRequestFormData();
+            if (invalidForm !== null) {
+                e.preventDefault();
+                $(window).scrollTop($(invalidForm).offset().top);
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {

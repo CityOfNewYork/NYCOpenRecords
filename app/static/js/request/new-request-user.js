@@ -17,7 +17,7 @@ $(document).ready(function () {
     });
 
     $("input[name='tz-name']").val(jstz.determine().name());
-    
+
     $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
@@ -83,8 +83,8 @@ $(document).ready(function () {
         // populate any empty dropdowns with that agency's form options
         populateDropdown($("#request-agency").val());
 
-        previousValues[customRequestFormCounter-1] = "";
-        currentValues[customRequestFormCounter-1] = "";
+        previousValues[customRequestFormCounter - 1] = "";
+        currentValues[customRequestFormCounter - 1] = "";
     });
 
     // javascript to add tooltip popovers when selecting the title and description
@@ -176,7 +176,13 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function () {
-        processCustomRequestFormData();
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForm = processCustomRequestFormData();
+            if (invalidForm !== null) {
+                e.preventDefault();
+                $(window).scrollTop($(invalidForm).offset().top);
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {
