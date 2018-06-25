@@ -471,6 +471,9 @@ function renderCustomRequestForm(target) {
 
         previousValues[target - 1] = "";
         updateCustomRequestFormDropdowns();
+        if (categorized && currentValues.length > 1) {
+            disableOptions();
+        }
     }
 }
 
