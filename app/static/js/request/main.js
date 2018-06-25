@@ -194,8 +194,7 @@ function getCustomRequestForms(agencyEin) {
                             // if only one option, render that form by default
                             repeatableCounter[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
-                            var optionText = data[0][1] + " (1 of " + data[0][2] + ")";
-                            requestType.append(new Option(optionText, data[0][0]));
+                            requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
                             customRequestPanelDiv.show();
@@ -210,8 +209,7 @@ function getCustomRequestForms(agencyEin) {
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
                                 formCategories[data[i][0]] = data[i][3];
-                                var optionText = data[i][1] + " (1 of " + data[i][2] + ")";
-                                var option = new Option(optionText, data[i][0]);
+                                var option = new Option(data[i][1], data[i][0]);
                                 requestType.append(option);
                             }
                             previousValues[0] = "";
@@ -256,10 +254,9 @@ function populateDropdown(agencyEin) {
     var selectedAgency = agencyEin;
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var customRequestFormsDiv = $(customRequestFormsDivId);
-    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
-    ;
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");;
 
-    $(".request-type").each(function () {
+    $(".request-type").each(function(){
         if (this.length === 0) { // if this is an unpopulated dropdown
             var requestType = this;
             $.ajax({
@@ -267,10 +264,7 @@ function populateDropdown(agencyEin) {
                 type: "GET",
                 success: function (data) {
                     if (data.length === 1) {
-                        var numLeft = data[0][2] - repeatableCounter[data[0][0]] + 1;
-                        var optionText = data[0][1] + " (" +numLeft + " of " + data[0][2] + ")";
-
-                        requestType.append(new Option(optionText, data[0][0]));
+                        requestType.append(new Option(data[0][1], data[0][0]));
                         customRequestFormsDiv.show();
                         renderCustomRequestForm(customRequestFormCounter);
                         if (moreOptions()) {
@@ -280,12 +274,9 @@ function populateDropdown(agencyEin) {
                     else {
                         requestType.append(new Option("", ""));
                         for (var i = 0; i < data.length; i++) {
-                            var numLeft = data[i][2] - repeatableCounter[data[i][0]] + 1;
-                            var optionText = data[i][1] + " ("+ numLeft + " of " + data[i][2] + ")";
-                            var option = new Option(optionText, data[i][0]);
+                            var option = new Option(data[i][1], data[i][0]);
                             if (repeatableCounter[data[i][0]] === 0) {
                                 // if all possible instances of the form have been rendered then disable the option
-                                option.text = data[i][1] + " ("+ data[i][2] + " of " + data[i][2] + ")";
                                 option.disabled = true;
                             }
                             requestType.append(option);
@@ -304,7 +295,7 @@ function updateCustomRequestFormDropdowns() {
     /*
      * Update the dropdowns to disable options where they are no longer repeatable.
      */
-    $(".request-type").each(function () {
+    $(".request-type").each(function(){
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
             if (repeatableCounter[this.value] === 0) {
@@ -355,12 +346,12 @@ function renderCustomRequestForm(target) {
             },
             success: function (data) {
                 // update the values in the tracking variables
-                currentValues[target - 1] = formId;
+                currentValues[target-1] = formId;
 
                 detectChange(); // determine which request type dropdown was changed
 
                 customRequestFormContent.html(data);
-                previousValues[target - 1] = formId;
+                previousValues[target-1] = formId;
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
                     currentCategory = formCategories[formId];
@@ -469,11 +460,11 @@ function renderCustomRequestForm(target) {
         customRequestFormAdditionalContent.hide();
 
         // update the values in the tracking variables
-        currentValues[target - 1] = "";
+        currentValues[target-1] = "";
 
         detectChange();
 
-        previousValues[target - 1] = "";
+        previousValues[target-1] = "";
         updateCustomRequestFormDropdowns();
     }
 }
@@ -514,10 +505,10 @@ function handlePanelDismiss() {
     // +1 to repeatable counter and reset previousValues/currentValues array
     var targetId = dismissTarget.replace("#panel-dismiss-button-", "");
     var panelId = dismissTarget.replace("#panel-dismiss-button-", "#custom-request-panel-");
-    if (currentValues[targetId - 1] !== "") {
-        repeatableCounter[currentValues[targetId - 1]] = repeatableCounter[currentValues[targetId - 1]] + 1;
-        previousValues[targetId - 1] = "";
-        currentValues[targetId - 1] = "";
+    if (currentValues[targetId-1] !== "") {
+                repeatableCounter[currentValues[targetId-1]] = repeatableCounter[currentValues[targetId-1]] + 1;
+                previousValues[targetId-1] = "";
+                currentValues[targetId-1] = "";
     }
     updateCustomRequestFormDropdowns();
 
