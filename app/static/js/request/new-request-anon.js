@@ -13,7 +13,7 @@
 "use strict";
 
 var requiredFields = ["request-title", "request-description", "request-agency", "first-name", "last-name", "email",
-        "phone", "fax", "address-line-1", "city", "zipcode"];
+    "phone", "fax", "address-line-1", "city", "zipcode"];
 
 $(document).ready(function () {
     $(window).load(function () {
@@ -210,10 +210,10 @@ $(document).ready(function () {
 
     // Contact information validation
     $("#email").attr("data-parsley-type", "email");
+
     // Checks that at least one form of contact was filled out in addition to the rest of the form.
     $("#request-form").parsley().on("form:validate", function () {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
-        console.log(requiredFields);
         for (i = 0; i < requiredFields.length; i++) {
             $("#" + requiredFields[i]).attr("data-parsley-required", "");
         }
@@ -262,7 +262,6 @@ $(document).ready(function () {
             $(window).scrollTop($(".title-label").offset().top);
         }
         else if ($("#request-description").parsley().isValid() === false) {
-            debugger;
             $(window).scrollTop($(".description-label").offset().top);
         }
         else if ($("#request-file").parsley().isValid() === false) {

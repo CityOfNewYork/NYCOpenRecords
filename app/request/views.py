@@ -111,7 +111,7 @@ def new():
             if form.request_file.errors:
                 return render_template(new_request_template, form=form, site_key=site_key)
 
-        custom_metadata = json.loads(flask_request.form['custom-request-forms-data'])
+        custom_metadata = flask_request.form.get('custom-request-forms-data', {})
         tz_name = flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE']
         if current_user.is_public:
             request_id = create_request(form.request_title.data,

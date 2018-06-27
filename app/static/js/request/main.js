@@ -256,6 +256,8 @@ function getCustomRequestForms(agencyEin) {
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
+            requiredFields.push('request-description');
+            requestDescriptionSection.show();
         }
     });
 }
@@ -268,7 +270,6 @@ function populateDropdown(agencyEin) {
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var customRequestFormsDiv = $(customRequestFormsDivId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
-    ;
 
     $(".request-type").each(function () {
         if (this.length === 0) { // if this is an unpopulated dropdown
