@@ -158,6 +158,12 @@ footer {
 .openrecords_nav {
     font-size: 20px;
     /*font-size: 1.4em*/
+    color: #949494;
+}
+.openrecords_nav:hover {
+    font-size: 20px;
+    /*font-size: 1.4em*/
+    color: #949494;
 }
 
 .active {
