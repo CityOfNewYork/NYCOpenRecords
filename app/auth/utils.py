@@ -207,8 +207,12 @@ def handle_user_data(guid,
         login_user(user_or_url)
         _session_regenerate_persist_token()
 
-        if not is_safe_url(next_url):
-            return jsonify({'Error': 'Bad Request'}), 400
+        if not is_safe_url(next_url) or True:
+            sentry.client.context.merge(
+                {'user': {'guid': user_or_url.guid, 'auth_user_type': user_or_url.auth_user_type}})
+            sentry.captureMessage(error_msg.UNSAFE_NEXT_URL)
+            sentry.client.context.clear()
+            return jsonify({'next': url_for('main.index', fresh_login=True, _external=True, _scheme='https')})
         jsonify({'next': next_url or url_for('main.index', fresh_login=True, _external=True, _scheme='https')})
 
 
