@@ -146,6 +146,7 @@ function toggleRequestAgencyInstructions(action) {
 // variables used to handle custom forms
 var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
 var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
+var maxRepeatable = {}; // tracks the maximum number of times each form can be repeated
 var previousValues = []; // tracks the previous values of each request type dropdown
 var currentValues = []; // tracks the current values of each request type dropdown
 var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
@@ -161,6 +162,7 @@ function getCustomRequestForms(agencyEin) {
      * function to determine if custom request forms need to be shown on category or agency change
      */
     repeatableCounter = {};
+    maxRepeatable = {};
     formCategories = {};
     currentCategory = "";
     customRequestFormCounter = 1;
@@ -194,6 +196,7 @@ function getCustomRequestForms(agencyEin) {
                             // if only one option, render that form by default
                             var optionText = data[0][1] + " (1 of " + data[0][2] + ")";
                             repeatableCounter[[data[0][0]]] = data[0][2];
+                            maxRepeatable[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
                             requestType.append(new Option(optionText, data[0][0]));
                             previousValues[0] = "";
@@ -209,6 +212,7 @@ function getCustomRequestForms(agencyEin) {
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
+                                maxRepeatable[[data[i][0]]] = data[i][2];
                                 formCategories[data[i][0]] = data[i][3];
                                 var optionText = data[i][1] + " (1 of " + data[i][2] + ")";
                                 var option = new Option(optionText, data[i][0]);
@@ -305,10 +309,12 @@ function updateCustomRequestFormDropdowns() {
     $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
+            $(this).text = this.value + "(" + maxRepeatable[this.value] - (maxRepeatable[this.value] - repeatableCounter[this.value]) + " of " + maxRepeatable[this.value] + ")";
             if (repeatableCounter[this.value] === 0) {
                 $(this).attr("disabled", "disabled");
             }
             else {
+                // console.log(maxRepeatable[this.value] - repeatableCounter[this.value]);
                 $(this).removeAttr("disabled");
             }
         });
