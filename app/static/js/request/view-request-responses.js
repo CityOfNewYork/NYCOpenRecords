@@ -48,6 +48,7 @@ $(function () {
                     bindFileUpload(
                         "#fileupload-update-" + responses[i].id,
                         request_id,
+                        '',
                         true,
                         responses[i].id,
                         "template-upload-update",
