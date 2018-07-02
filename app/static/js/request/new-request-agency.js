@@ -273,7 +273,10 @@ $(document).ready(function () {
             var invalidForm = processCustomRequestFormData();
             if (invalidForm !== null) {
                 e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
                 $(window).scrollTop($(invalidForm).offset().top);
+                return;
             }
         }
 

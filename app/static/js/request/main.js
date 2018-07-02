@@ -600,10 +600,11 @@ function processCustomRequestFormData() {
             if (completedFields < minimumRequired[currentValues[i]]) {
                 var invalidFormContent = "#custom-request-form-content-" + target;
                 var invalidForm = "#custom-request-forms-" + target;
+                var invalidFormErrorDiv = invalidForm + "-error-div";
                 if (minimumRequired[currentValues[i]] > 1) {
-                    $(invalidFormContent).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                    $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
                 } else {
-                    $(invalidFormContent).prepend("<div class='alert alert-danger'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
+                    $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
                 }
                 return invalidForm;
 
