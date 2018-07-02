@@ -75,6 +75,8 @@
             </div>
         {% endfor %}
     {% endwith %}
+
+    {% include 'auth/login_processing_modal.html' %}
     {% if not current_user.is_anonymous %}
         {% include 'auth/session_timeout_modal.html' %}
         {% include 'auth/concurrent_session_modal.html' %}
