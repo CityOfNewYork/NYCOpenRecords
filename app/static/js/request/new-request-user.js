@@ -10,6 +10,9 @@
 
 "use strict";
 
+var requiredFields = ["request-agency", "request-title", "request-description", "first-name", "last-name", "email",
+    "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
+
 $(document).ready(function () {
     $(window).load(function () {
         // Determine if the agencyRequestInstructions need to be shown on page load.
@@ -87,6 +90,11 @@ $(document).ready(function () {
         currentValues[customRequestFormCounter-1] = "";
     });
 
+     // Loop through required fields and apply a data-parsley-required attribute to them
+    for (var i = 0; i < requiredFields.length; i++) {
+        $("#" + requiredFields[i]).attr("data-parsley-required", "");
+    }
+
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
         "data-placement": "top",
@@ -116,10 +124,7 @@ $(document).ready(function () {
     // });
 
     // Apply parsley validation styles to the input forms for a new request.
-    $("#request-title").attr("data-parsley-required", "");
     $("#request-title").attr("data-parsley-maxlength", 90);
-    $("#request-agency").attr("data-parsley-required", "");
-    $("#request-description").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-maxlength", 5000);
 
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
