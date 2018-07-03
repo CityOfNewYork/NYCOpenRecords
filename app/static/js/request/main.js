@@ -532,6 +532,7 @@ function processCustomRequestFormData() {
      */
     var formNumber = 1;
     var fieldNumber = 1;
+    var invalidForms = [];
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
@@ -606,8 +607,7 @@ function processCustomRequestFormData() {
                 } else {
                     $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
                 }
-                return invalidForm;
-
+                invalidForms.push(invalidForm);
             }
 
             completedFields = 0;
@@ -616,5 +616,5 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
-    return null;
+    return invalidForms;
 }

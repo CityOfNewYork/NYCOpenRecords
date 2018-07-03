@@ -179,12 +179,12 @@ $(document).ready(function () {
     // Disable submit button on form submission
     $("#request-form").submit(function () {
         if ($("#request-form").parsley().isValid()) {
-            var invalidForm = processCustomRequestFormData();
-            if (invalidForm !== null) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
                 e.preventDefault();
                 $("#processing-submission").hide();
                 $("#submit").show();
-                $(window).scrollTop($(invalidForm).offset().top);
+                $(window).scrollTop($(invalidForms[0]).offset().top);
                 return;
             }
         }

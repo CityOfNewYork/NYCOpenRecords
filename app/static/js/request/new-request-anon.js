@@ -289,12 +289,12 @@ $(document).ready(function () {
     $("#request-form").on('submit', function (e) {
 
         if ($("#request-form").parsley().isValid()) {
-            var invalidForm = processCustomRequestFormData();
-            if (invalidForm !== null) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
                 e.preventDefault();
                 $("#processing-submission").hide();
                 $("#submit").show();
-                $(window).scrollTop($(invalidForm).offset().top);
+                $(window).scrollTop($(invalidForms[0]).offset().top);
                 return;
             }
         }
