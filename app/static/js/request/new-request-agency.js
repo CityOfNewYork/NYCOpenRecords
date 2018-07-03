@@ -8,9 +8,12 @@
 /* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
 /* globals processCustomRequestForms: true */
-
+/* globals requiredFields: true */
 
 "use strict";
+
+var requiredFields = ["request-title", "request-description", "first-name", "last-name", "email",
+    "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
 
 $(document).ready(function () {
     $(window).load(function () {
@@ -125,8 +128,6 @@ $(document).ready(function () {
     });
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-    var requiredFields = ["request-title", "request-description", "first-name", "last-name", "email",
-        "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
     for (var i = 0; i < requiredFields.length; i++) {
         $("#" + requiredFields[i]).attr("data-parsley-required", "");
     }
