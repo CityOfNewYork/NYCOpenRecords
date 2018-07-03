@@ -1234,7 +1234,7 @@ def _reopening_letter_handler(request_id, data):
 
     # Reopening is only provided when getting default letter template.
     if data is not None:
-        if data['letter_content'] is not None:
+        if data.get('letter_content', None) is not None:
             letter_content = render_template_string(data['letter_content'])
             return jsonify({"template": letter_content,
                             "header": header})
