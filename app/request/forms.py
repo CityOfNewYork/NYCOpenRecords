@@ -58,7 +58,7 @@ class PublicUserRequestForm(Form):
     request_category = SelectField('Category (optional)', choices=CATEGORIES)
     request_agency = SelectField('Agency (required)', choices=None)
     request_title = StringField('Request Title (required)')
-    request_type = SelectField('Request Type (optional)', choices=[])
+    request_type = SelectField('Request Type (required)', choices=[])
     request_description = TextAreaField('Request Description (required)')
 
     # File Upload
