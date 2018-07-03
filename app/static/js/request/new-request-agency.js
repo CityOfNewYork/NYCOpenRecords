@@ -7,6 +7,7 @@
 /* globals getCustomRequestForms: true */
 /* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
+/* globals processCustomRequestForms: true */
 /* globals requiredFields: true */
 
 "use strict";
@@ -268,8 +269,17 @@ $(document).ready(function () {
     });
 
     // Disable submit button on form submission
-    $("#request-form").submit(function () {
-        processCustomRequestFormData();
+    $("#request-form").submit(function (e) {
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {
