@@ -1249,7 +1249,6 @@ def _reopening_letter_handler(request_id, data):
                                           date=request.date_submitted,
                                           due_date=due_date,
                                           request_id=request_id,
-                                          reason=data['reason'],
                                           user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
