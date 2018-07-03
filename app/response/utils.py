@@ -1234,6 +1234,10 @@ def _reopening_letter_handler(request_id, data):
 
     # Reopening is only provided when getting default letter template.
     if data is not None:
+        if data['letter_content'] is not None:
+            letter_content = render_template_string(data['letter_content'])
+            return jsonify({"template": letter_content,
+                            "header": header})
         contents = LetterTemplates.query.filter_by(id=data['letter_template']).first()
 
         now = datetime.utcnow()
@@ -1245,11 +1249,11 @@ def _reopening_letter_handler(request_id, data):
         tz_name = data.get('tz_name', current_app.config['APP_TIMEZONE'])
         due_date = _get_new_due_date(request_id, '-1', data['date'], tz_name)
 
-        template = render_template_string(contents.content,
-                                          date=request.date_submitted,
-                                          due_date=due_date,
-                                          request_id=request_id,
-                                          user=point_of_contact_user)
+        content = render_template_string(contents.content,
+                                         date=request.date_submitted,
+                                         due_date=due_date,
+                                         request_id=request_id,
+                                         user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
@@ -1262,16 +1266,17 @@ def _reopening_letter_handler(request_id, data):
             u = current_user
         signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
 
-        test = render_template('letters/base.html',
-                               letterhead=Markup(letterhead),
-                               signature=Markup(signature),
-                               request=request,
-                               date=date,
-                               contents=Markup(template),
-                               request_id=request_id,
-                               footer=Markup(agency_letter_data['footer']))
-        return jsonify({"template": test,
+        template = render_template('letters/base.html',
+                                   letterhead=Markup(letterhead),
+                                   signature=Markup(signature),
+                                   request=request,
+                                   date=date,
+                                   contents=Markup(content),
+                                   request_id=request_id,
+                                   footer=Markup(agency_letter_data['footer']))
+        return jsonify({"template": template,
                         "header": header})
+
     else:
         return jsonify({"error": "bad request"}), 400
 
