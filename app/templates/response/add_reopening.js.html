@@ -66,10 +66,11 @@
                 $.ajax({
                     url: "/agency/api/v1.0/reasons/{{ request.agency.ein }}/re-opening",
                     success: function (data) {
-                        for (var i = 0; i < data.length; i++) {
+                        var reasons = data['re-opening'];
+                        for (var i = 0; i < reasons.length; i++) {
                             var opt = document.createElement("option");
-                            opt.innerHTML = data[i][1];
-                            opt.value = data[i][0];
+                            opt.innerHTML = reasons[i][1];
+                            opt.value = reasons[i][0];
                             email_reason.append(opt);
                         }
                     }
