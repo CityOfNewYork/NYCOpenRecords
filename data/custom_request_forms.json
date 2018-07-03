@@ -56,7 +56,8 @@
         }
       ],
       "repeatable": "5",
-      "category": "1"
+      "category": "1",
+      "minimum_required": "1"
     },
     {
       "agency_ein": "0056",
@@ -114,7 +115,8 @@
         }
       ],
       "repeatable": "5",
-      "category": "1"
+      "category": "1",
+      "minimum_required": "1"
     },
     {
       "agency_ein": "0056",
@@ -193,7 +195,8 @@
         }
       ],
       "repeatable": "5",
-      "category": "1"
+      "category": "1",
+      "minimum_required": "1"
     },
     {
       "agency_ein": "0056",
@@ -267,7 +270,8 @@
         }
       ],
       "repeatable": "5",
-      "category": "2"
+      "category": "2",
+      "minimum_required": "2"
     }
   ]
 }
