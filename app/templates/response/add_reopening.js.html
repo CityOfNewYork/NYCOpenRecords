@@ -48,10 +48,11 @@
                 $.ajax({
                     url: "/agency/api/v1.0/letter_templates/{{ request.agency.ein }}/re-opening",
                     success: function (data) {
-                        for (var i = 0; i < data.length; i++) {
+                        var templates = data['re-opening'];
+                        for (var i = 0; i < templates.length; i++) {
                             var opt = document.createElement("option");
-                            opt.innerHTML = data[i][1];
-                            opt.value = data[i][0];
+                            opt.innerHTML = templates[i][1];
+                            opt.value = templates[i][0];
                             letter_template.append(opt);
                         }
                     }
