@@ -1,3 +1,5 @@
+import json
+
 from flask import (
     jsonify,
     request,
@@ -7,17 +9,19 @@ from flask_login import (
     current_user,
     login_required
 )
+from sqlalchemy import asc
+
 from app.agency.api import agency_api_blueprint
 from app.agency.api.utils import (
     get_active_users_as_choices,
-    get_letter_templates
+    get_letter_templates,
+    get_reasons
 )
 from app.models import CustomRequestForms
-import json
-from sqlalchemy import asc
 
-@agency_api_blueprint.route('/active_users/<string:agency_ein>', methods=['GET'])
+
 @login_required
+@agency_api_blueprint.route('/active_users/<string:agency_ein>', methods=['GET'])
 def get_active_users(agency_ein):
     """
     Retrieve the active users for the specified agency.
@@ -41,9 +45,27 @@ def get_active_users(agency_ein):
         return jsonify({}), 404
 
 
-@agency_api_blueprint.route('/letter_templates/<string:agency_ein>', methods=['GET'])
-@agency_api_blueprint.route('/letter_templates/<string:agency_ein>/<string:letter_type>')
 @login_required
+@agency_api_blueprint.route('/reasons/<string:agency_ein>', methods=['GET'])
+@agency_api_blueprint.route('/reasons/<string:agency_ein>/<string:reason_type>', methods=['GET'])
+def get_agency_reasons(agency_ein, reason_type=None):
+    """Retrieve an agencies determination reasons for Denials, Closings, and Re-Openings
+
+    Args:
+        agency_ein (str): Agency EIN
+        reason_type (str): One of ("denial", "closing", "re-opening")
+            All other determination types do not have reasons.
+
+    Returns:
+        JSON Object (dict): Keys are the reason type, values are an array of tuples (id, title)
+
+    """
+    return jsonify(get_reasons(agency_ein, reason_type))
+
+
+@login_required
+@agency_api_blueprint.route('/letter_templates/<string:agency_ein>', methods=['GET'])
+@agency_api_blueprint.route('/letter_templates/<string:agency_ein>/<string:letter_type>', methods=['GET'])
 def get_agency_letter_templates(agency_ein, letter_type=None):
     """
     Retrieve letter templates for the specified agency. If letter type is provided, only those templates will be

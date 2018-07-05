@@ -221,10 +221,10 @@ class EditRequesterForm(Form):
             self.zipcode.data = requester.mailing_address.get("zip") or ""
 
 
-class FinishRequestForm(Form):
+class DeterminationForm(Form):
     # TODO: Add class docstring
     def __init__(self, agency_ein):
-        super(FinishRequestForm, self).__init__()
+        super(DeterminationForm, self).__init__()
 
         agency_closings = [
             (reason.id, reason.title)
@@ -238,6 +238,13 @@ class FinishRequestForm(Form):
                 Reasons.type == determination_type.DENIAL,
                 Reasons.agency_ein == agency_ein
             ).order_by(asc(Reasons.id))]
+        agency_reopenings = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type == determination_type.REOPENING,
+                Reasons.agency_ein == agency_ein
+            ).order_by(asc(Reasons.id))
+        ]
         default_closings = [
             (reason.id, reason.title)
             for reason in Reasons.query.filter(
@@ -250,16 +257,24 @@ class FinishRequestForm(Form):
                 Reasons.type == determination_type.DENIAL,
                 Reasons.agency_ein == None
             ).order_by(asc(Reasons.id))]
+        default_reopenings = [
+            (reason.id, reason.title)
+            for reason in Reasons.query.filter(
+                Reasons.type == determination_type.REOPENING,
+                Reasons.agency_ein == None
+            ).order_by(asc(Reasons.id))]
 
         if determination_type.CLOSING in self.ultimate_determination_type and \
                 determination_type.DENIAL in self.ultimate_determination_type:
             self.reasons.choices = agency_closings + agency_denials + default_closings + default_denials
-        else:
+        elif determination_type.DENIAL in self.ultimate_determination_type:
             self.reasons.choices = agency_denials + default_denials
+        elif determination_type.REOPENING in self.ultimate_determination_type:
+            self.reasons.choices = agency_reopenings + default_reopenings
 
     @property
     def reasons(self):
-        """ SelectMultipleField """
+        """ SelectMultipleField or SelectField """
         raise NotImplementedError
 
     @property
@@ -268,16 +283,22 @@ class FinishRequestForm(Form):
         raise NotImplementedError
 
 
-class DenyRequestForm(FinishRequestForm):
+class DenyRequestForm(DeterminationForm):
     # TODO: Add class docstring
     reasons = SelectMultipleField('Reasons for Denial (Choose 1 or more)')
     ultimate_determination_type = [determination_type.DENIAL]
 
 
-class CloseRequestForm(FinishRequestForm):
+class CloseRequestForm(DeterminationForm):
     # TODO: Add class docstring
     reasons = SelectMultipleField('Reasons for Closing (Choose 1 or more)')
     ultimate_determination_type = [determination_type.CLOSING, determination_type.DENIAL]
+
+
+class ReopenRequestForm(DeterminationForm):
+    # TODO: Add class docstring
+    reasons = SelectField('Reason for Re-Opening')
+    ultimate_determination_type = [determination_type.REOPENING]
 
 
 class GenerateEnvelopeForm(Form):

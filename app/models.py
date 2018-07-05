@@ -1264,6 +1264,7 @@ class Reasons(db.Model):
     type = db.Column(db.Enum(
         determination_type.CLOSING,
         determination_type.DENIAL,
+        determination_type.REOPENING,
         name="reason_type"
     ), nullable=False)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
@@ -1849,7 +1850,7 @@ class CommunicationMethods(db.Model):
 
     Define a CommunicationMethods class with the following columns and relationships:
 
-    response_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
+    response_id - an integer that is a primary key of CommunicationMetholds (FK to Responses)
     method_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
     method_type - enum ('letters', 'emails') method associated with the response
     """
