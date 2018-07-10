@@ -236,6 +236,7 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
+            }
             // determine if form options are categorized
             if (data["custom_request_forms"]["categorized"]) {
                 categorized = true;
