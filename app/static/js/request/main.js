@@ -176,8 +176,6 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
-    var requestDescriptionField = $("#request-description");
-    var requestDescriptionSection = $("#request-description-section");
 
     requestType.empty();
     customRequestFormContent.html("");
@@ -190,13 +188,6 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
-                // Remove the request description
-                requestDescriptionField.removeAttr("data-parsley-required");
-                requestDescriptionField.removeAttr("required");
-                requestDescriptionField.removeAttr("data-parsley-maxlength");
-                requiredFields.splice(requiredFields.indexOf("request-description"), 1);
-                requestDescriptionSection.hide();
-
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
@@ -245,9 +236,6 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
-                requiredFields.push("request-description");
-                requestDescriptionSection.show();
-            }
             // determine if form options are categorized
             if (data["custom_request_forms"]["categorized"]) {
                 categorized = true;
@@ -259,8 +247,6 @@ function getCustomRequestForms(agencyEin) {
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
-            requiredFields.push("request-description");
-            requestDescriptionSection.show();
         }
     });
 }

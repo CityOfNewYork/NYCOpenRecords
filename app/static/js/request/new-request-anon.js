@@ -12,9 +12,6 @@
 /* globals requiredFields: true */
 "use strict";
 
-var requiredFields = ["request-title", "request-description", "request-agency", "first-name", "last-name", "email",
-    "phone", "fax", "address-line-1", "city", "zipcode"];
-
 $(document).ready(function () {
     $(window).load(function () {
         // Determine if the agencyRequestInstructions need to be shown on page load.
@@ -146,7 +143,9 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-
+    var requiredFields = ["request-title", "request-description", "request-agency", "first-name", "last-name", "email",
+    "phone", "fax", "address-line-1", "city", "zipcode"];
+    
     for (var i = 0; i < requiredFields.length; i++) {
         $("#" + requiredFields[i]).attr("data-parsley-required", "");
     }
