@@ -605,9 +605,9 @@ function processCustomRequestFormData() {
                 var invalidForm = "#custom-request-forms-" + target;
                 var invalidFormErrorDiv = invalidForm + "-error-div";
                 if (minimumRequired[currentValues[i]] > 1) {
-                    $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                    $(invalidFormContent).prepend("<div class='alert alert-danger remove-on-resubmit' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
                 } else {
-                    $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
+                    $(invalidFormContent).prepend("<div class='alert alert-danger remove-on-resubmit' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
                 }
                 invalidForms.push(invalidForm);
             }

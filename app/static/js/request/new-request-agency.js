@@ -269,6 +269,7 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function (e) {
+        $(".remove-on-resubmit").remove();
         if ($("#request-form").parsley().isValid()) {
             var invalidForms = processCustomRequestFormData();
             if (invalidForms.length > 0) {
