@@ -155,6 +155,7 @@ var customRequestFormData = {}; // tracks the data of custom forms that will be 
 var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
+var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -175,8 +176,6 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
-    var requestDescriptionField = $("#request-description");
-    var requestDescriptionSection = $("#request-description-section");
 
     requestType.empty();
     customRequestFormContent.html("");
@@ -189,13 +188,6 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
-                // Remove the request description
-                requestDescriptionField.removeAttr("data-parsley-required");
-                requestDescriptionField.removeAttr("required");
-                requestDescriptionField.removeAttr("data-parsley-maxlength");
-                requiredFields.splice(requiredFields.indexOf("request-description"), 1);
-                requestDescriptionSection.hide();
-
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
@@ -205,6 +197,7 @@ function getCustomRequestForms(agencyEin) {
                             // if only one option, render that form by default
                             repeatableCounter[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
+                            minimumRequired[[data[0][0]]] = data[0][4];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
@@ -220,6 +213,7 @@ function getCustomRequestForms(agencyEin) {
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
                                 formCategories[data[i][0]] = data[i][3];
+                                minimumRequired[data[i][0]] = data[i][4];
                                 var option = new Option(data[i][1], data[i][0]);
                                 requestType.append(option);
                             }
@@ -242,8 +236,6 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
-                requiredFields.push("request-description");
-                requestDescriptionSection.show();
             }
             // determine if form options are categorized
             if (data["custom_request_forms"]["categorized"]) {
@@ -256,8 +248,6 @@ function getCustomRequestForms(agencyEin) {
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
-            requiredFields.push("request-description");
-            requestDescriptionSection.show();
         }
     });
 }
@@ -544,6 +534,7 @@ function processCustomRequestFormData() {
      */
     var formNumber = 1;
     var fieldNumber = 1;
+    var invalidForms = [];
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
@@ -551,6 +542,7 @@ function processCustomRequestFormData() {
             var fieldKey = "field_";
             var formName = $("#request-type-" + target + " option:selected").text();
             var previousRadioId = "";
+            var completedFields = 0;
 
             // add leading zero to forms less than 10 so they can be properly sorted
             if (formNumber < 10) {
@@ -580,12 +572,19 @@ function processCustomRequestFormData() {
                 if ($("#" + this.id).prop("multiple") === true) {
                     var selectMultipleId = "#" + this.id;
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
+                    if ($(selectMultipleId).val() !== null) {
+                        completedFields++;
+                    }
+
                 }
                 else if ($("#" + this.id).is(":radio") === true) {
                     // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
                     if (this.id !== previousRadioId) {
                         customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
+                        if (radioValue != null) {
+                            completedFields++;
+                        }
                     }
                     else {
                         fieldNumber--;
@@ -594,13 +593,30 @@ function processCustomRequestFormData() {
                 }
                 else {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
+                    if (this.value !== "") {
+                        completedFields++;
+                    }
                 }
                 fieldNumber++;
                 fieldKey = "field_";
             });
+            if (completedFields < minimumRequired[currentValues[i]]) {
+                var invalidFormContent = "#custom-request-form-content-" + target;
+                var invalidForm = "#custom-request-forms-" + target;
+                var invalidFormErrorDiv = invalidForm + "-error-div";
+                if (minimumRequired[currentValues[i]] > 1) {
+                    $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                } else {
+                    $(invalidFormContent).prepend("<div class='alert alert-danger' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
+                }
+                invalidForms.push(invalidForm);
+            }
+
+            completedFields = 0;
             formNumber++;
             fieldNumber = 1;
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
+    return invalidForms;
 }

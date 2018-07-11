@@ -1,10 +1,20 @@
-<p>
-    The {{ agency_name }} has <strong>re-opened</strong> your FOIL request <a href='{{ page }}'>{{ request_id }}</a>
-</p>
-<p>
-    You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.
-</p>
-<p>
-    Please visit <a href='{{ page }}'>{{ request_id }}</a> to view additional information and take any necessary action.
-</p>
-{% include "email_templates/email_footer.html" %}
+{% if default_content %}
+    <p>
+        <span class="mceNonEditable">The {{ agency_name }} has <strong>re-opened</strong> your FOIL request <a
+                href='{{ page }}'>{{ request_id }}</a>
+            for the following reason:</span>
+    </p>
+    <p>
+        <span class="mceNonEditable"> {{ reason | safe }} </span>
+    </p>
+    <p>
+        <span class="mceNonEditable">You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.</span>
+    </p>
+    <p>
+        <span class="mceNonEditable">Please visit <a href='{{ page }}'>{{ request_id }}</a> to view additional information and take any necessary
+            action.</span>
+    </p>
+    {% include "email_templates/email_footer.html" %}
+{% else %}
+    {{ content | safe }}
+{% endif %}

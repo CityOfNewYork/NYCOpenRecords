@@ -7,11 +7,10 @@
 /* globals getCustomRequestForms: true */
 /* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
+/* globals processCustomRequestForms: true */
+
 
 "use strict";
-
-var requiredFields = ["request-agency", "request-title", "request-description", "first-name", "last-name", "email",
-    "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
 
 $(document).ready(function () {
     $(window).load(function () {
@@ -20,7 +19,7 @@ $(document).ready(function () {
     });
 
     $("input[name='tz-name']").val(jstz.determine().name());
-    
+
     $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
@@ -86,14 +85,9 @@ $(document).ready(function () {
         // populate any empty dropdowns with that agency's form options
         populateDropdown($("#request-agency").val());
 
-        previousValues[customRequestFormCounter-1] = "";
-        currentValues[customRequestFormCounter-1] = "";
+        previousValues[customRequestFormCounter - 1] = "";
+        currentValues[customRequestFormCounter - 1] = "";
     });
-
-     // Loop through required fields and apply a data-parsley-required attribute to them
-    for (var i = 0; i < requiredFields.length; i++) {
-        $("#" + requiredFields[i]).attr("data-parsley-required", "");
-    }
 
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
@@ -124,7 +118,10 @@ $(document).ready(function () {
     // });
 
     // Apply parsley validation styles to the input forms for a new request.
+    $("#request-title").attr("data-parsley-required", "");
     $("#request-title").attr("data-parsley-maxlength", 90);
+    $("#request-agency").attr("data-parsley-required", "");
+    $("#request-description").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-maxlength", 5000);
 
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
@@ -181,7 +178,16 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function () {
-        processCustomRequestFormData();
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {

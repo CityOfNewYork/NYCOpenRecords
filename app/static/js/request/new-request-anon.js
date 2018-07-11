@@ -12,9 +12,6 @@
 /* globals requiredFields: true */
 "use strict";
 
-var requiredFields = ["request-title", "request-description", "request-agency", "first-name", "last-name", "email",
-    "phone", "fax", "address-line-1", "city", "zipcode"];
-
 $(document).ready(function () {
     $(window).load(function () {
         // Determine if the agencyRequestInstructions need to be shown on page load.
@@ -146,7 +143,9 @@ $(document).ready(function () {
     // Apply parsley validation styles to the input forms for a new request.
 
     // Loop through required fields and apply a data-parsley-required attribute to them
-
+    var requiredFields = ["request-title", "request-description", "request-agency", "first-name", "last-name", "email",
+    "phone", "fax", "address-line-1", "city", "zipcode"];
+    
     for (var i = 0; i < requiredFields.length; i++) {
         $("#" + requiredFields[i]).attr("data-parsley-required", "");
     }
@@ -289,8 +288,18 @@ $(document).ready(function () {
     });
 
     // Disable submit button on form submission
-    $("#request-form").submit(function () {
-        processCustomRequestFormData();
+    $("#request-form").on('submit', function (e) {
+
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {
