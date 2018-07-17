@@ -154,6 +154,8 @@ var customRequestFormData = {}; // tracks the data of custom forms that will be 
 var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
+var categoryTracker = {};
+var categoryDividerText = "──────────";
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -205,11 +207,19 @@ function getCustomRequestForms(agencyEin) {
                             }
                         }
                         else {
+                            var categoryCounter = 1;
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
                                 formCategories[data[i][0]] = data[i][3];
+                                categoryTracker[data[i][3]] = [];
                                 var option = new Option(data[i][1], data[i][0]);
+                                if (data[i][3] != categoryCounter) {
+                                    var optionDivider = new Option(categoryDividerText);
+                                    optionDivider.disabled = true;
+                                    requestType.append(optionDivider);
+                                    categoryCounter++;
+                                }
                                 requestType.append(option);
                             }
                             previousValues[0] = "";
@@ -255,7 +265,6 @@ function populateDropdown(agencyEin) {
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var customRequestFormsDiv = $(customRequestFormsDivId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
-    ;
 
     $(".request-type").each(function () {
         if (this.length === 0) { // if this is an unpopulated dropdown
@@ -273,9 +282,16 @@ function populateDropdown(agencyEin) {
                         }
                     }
                     else {
+                        var categoryCounter = 1;
                         requestType.append(new Option("", ""));
                         for (var i = 0; i < data.length; i++) {
                             var option = new Option(data[i][1], data[i][0]);
+                            if (data[i][3] !== categoryCounter) {
+                                    var optionDivider = new Option(categoryDividerText);
+                                    optionDivider.disabled = true;
+                                    requestType.append(optionDivider);
+                                    categoryCounter++;
+                            }
                             if (repeatableCounter[data[i][0]] === 0) {
                                 // if all possible instances of the form have been rendered then disable the option
                                 option.disabled = true;
@@ -284,7 +300,7 @@ function populateDropdown(agencyEin) {
                         }
                     }
                     if (categorized) {
-                        disableOptions();
+                        // disableOptions();
                     }
                 }
             });
@@ -299,7 +315,7 @@ function updateCustomRequestFormDropdowns() {
     $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
-            if (repeatableCounter[this.value] === 0) {
+            if (repeatableCounter[this.value] === 0 || this.value === categoryDividerText) {
                 $(this).attr("disabled", "disabled");
             }
             else {
@@ -355,9 +371,17 @@ function renderCustomRequestForm(target) {
                 previousValues[target - 1] = formId;
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
+                    // pop from stack
+                    if (categoryTracker[formCategories[formId]].indexOf(requestTypeId) !== -1) {
+                        console.log(categoryTracker[formCategories[formId]].indexOf(requestTypeId));
+                        console.log("ALREADY HERE");
+                    }
+                    // push to stack
+                    categoryTracker[formCategories[formId]].push(requestTypeId);
+
                     currentCategory = formCategories[formId];
                     if (currentValues.length > 1) {
-                        disableOptions();
+                        // disableOptions();
                     }
                 }
 
@@ -472,7 +496,7 @@ function renderCustomRequestForm(target) {
         previousValues[target - 1] = "";
         updateCustomRequestFormDropdowns();
         if (categorized && currentValues.length > 1) {
-            disableOptions();
+            // disableOptions();
         }
     }
 }
