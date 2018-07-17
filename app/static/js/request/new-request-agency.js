@@ -54,7 +54,32 @@ $(document).ready(function () {
         target = target.replace("request-type-", "");
         var targetId = "#" + document.activeElement.id;
         $(targetId).off().change(function () {
-            renderCustomRequestForm(target);
+            if (categorySelected) {
+                var formId = $(targetId).val();
+                var selectedCategory = formCategories[formId];
+                if (selectedCategory !== currentCategory) {
+                    $("#category-warning-modal").modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    renderCustomRequestForm(target);
+                }
+                $("#change-category-button").click(function () {
+                    handleCategorySwitch(formId);
+                    $(".appended-div").remove();
+
+                    // renderCustomRequestForm(target);
+                });
+                $("#cancel-change-category-button").click(function () {
+                    $(targetId).val(previousValues[target-1]);
+                });
+            }
+            else {
+                renderCustomRequestForm(target);
+                categorySelected = true;
+            }
         });
     });
 

@@ -38,6 +38,9 @@
                     <span id="request-agency-instructions-toggle"><button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class="glyphicon glyphicon-chevron-down"></span></button></span>
                 </div>
                 {# Dropdown for request type based on custom request forms #}
+                <div class="alert alert-info">
+                    <p><b>Note: The options in the Request Type are categorized by similar blah. You may submit multiple requests of the same category but not of a different category.</b></p>
+                </div>
                 <div class="panel panel-default" id="custom-request-panel-1" hidden>
                     <div class="panel-heading" id="custom-request-forms-1" hidden>
                         {{ form.request_type.label(class="request-heading request-type-label") }}
@@ -64,6 +67,25 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                                     <button type="button" onclick="handlePanelDismiss()" data-dismiss="modal" class="btn btn-danger">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="category-warning-modal" tabindex="-1" role="dialog">
+                    <div class="vertical-alignment-helper">
+                        <div class="modal-dialog vertical-align-center">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Category Warning</h4>
+                                </div>
+                                <div class="modal-body">Selecting this option will remove any existing information you have entered
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="cancel-change-category-button" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button id="change-category-button" type="button" onclick="handleCategorySwitch()" data-dismiss="modal"
+                                            class="btn btn-danger">Change Category
+                                    </button>
                                 </div>
                             </div>
                         </div>

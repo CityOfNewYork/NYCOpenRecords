@@ -156,6 +156,7 @@ var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
 var categoryTracker = {};
 var categoryDividerText = "──────────";
+var categorySelected = false;
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -329,6 +330,14 @@ function disableOptions() {
     /*
      * Update the dropdowns to disable all options that don't belong to the current category
      */
+    // var currentCat;
+    // for (var category in categoryTracker) {
+    //     if (categoryTracker[category].length > 0) {
+    //         currentCat = category;
+    //     }
+    // }
+    // console.log(currentCat);
+
     $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
@@ -372,17 +381,19 @@ function renderCustomRequestForm(target) {
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
                     // pop from stack
-                    if (categoryTracker[formCategories[formId]].indexOf(requestTypeId) !== -1) {
-                        console.log(categoryTracker[formCategories[formId]].indexOf(requestTypeId));
-                        console.log("ALREADY HERE");
-                    }
-                    // push to stack
-                    categoryTracker[formCategories[formId]].push(requestTypeId);
+                    // if (categoryTracker[formCategories[formId]].indexOf(requestTypeId) !== -1) {
+                    //     console.log(categoryTracker[formCategories[formId]].indexOf(requestTypeId));
+                    //     console.log("ALREADY HERE");
+                    //     var indexToBePoped = categoryTracker[formCategories[formId]].indexOf(requestTypeId);
+                    //     categoryTracker[formCategories[formId]].splice(indexToBePoped, 1);
+                    // }
+                    // // push to stack
+                    // categoryTracker[formCategories[formId]].push(requestTypeId);
 
                     currentCategory = formCategories[formId];
-                    if (currentValues.length > 1) {
+                    // if (currentValues.length > 1) {
                         // disableOptions();
-                    }
+                    // }
                 }
 
                 try {
@@ -555,6 +566,13 @@ function handlePanelDismiss() {
     $(panelId).remove();
     // Remove the form from the currentValues array
     currentValues.splice(targetId - 1, 1);
+}
+
+function handleCategorySwitch(formId) {
+    $('.appended-div').remove();
+    currentCategory = formCategories[formId];
+    $("#request-type-1").val(formId);
+    renderCustomRequestForm("1");
 }
 
 function processCustomRequestFormData() {
