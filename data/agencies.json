@@ -1828,6 +1828,8 @@
           "enabled": true,
           "multiple_request_types": true,
           "categorized": true,
+          "category_info_text": "",
+          "category_warning_text": "This is warning text",
           "expand_by_default": false
         }
       }

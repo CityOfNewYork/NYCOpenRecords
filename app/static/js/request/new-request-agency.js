@@ -54,27 +54,27 @@ $(document).ready(function () {
         target = target.replace("request-type-", "");
         var targetId = "#" + document.activeElement.id;
         $(targetId).off().change(function () {
-            if (categorySelected) {
+            if (categorized && categorySelected) {
                 var formId = $(targetId).val();
                 var selectedCategory = formCategories[formId];
-                if (selectedCategory !== currentCategory) {
+                // if the selected category is not the same as the current category warn the user with a modal
+                if (selectedCategory !== currentCategory && formId !== "") {
+                    // show the modal
                     $("#category-warning-modal").modal({
                         backdrop: 'static',
                         keyboard: false
                     });
+                    // handle modal button actions
+                    $("#change-category-button").off().click(function () {
+                        handleCategorySwitch(formId);
+                    });
+                    $("#cancel-change-category-button").off().click(function () {
+                        $(targetId).val(previousValues[target - 1]);
+                    });
                 }
-                else{
+                else{ // otherwise render the form normally
                     renderCustomRequestForm(target);
                 }
-                $("#change-category-button").click(function () {
-                    handleCategorySwitch(formId);
-                    $(".appended-div").remove();
-
-                    // renderCustomRequestForm(target);
-                });
-                $("#cancel-change-category-button").click(function () {
-                    $(targetId).val(previousValues[target-1]);
-                });
             }
             else {
                 renderCustomRequestForm(target);

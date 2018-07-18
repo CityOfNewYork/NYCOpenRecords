@@ -45,6 +45,11 @@
 
                 </div>
                 {# Dropdown for request type based on custom request forms #}
+                <div class="alert alert-info" id="category-info">
+                    <p id="category-info-text"><b>Note: This agency has categorized the different types of requests a
+                        user can submit and they are separated in the dropdown below. Your request may have multiple
+                        submissions of only one category.</b></p>
+                </div>
                 <div class="panel panel-default" id="custom-request-panel-1" hidden>
                     <div class="panel-heading" id="custom-request-forms-1" hidden>
                         {{ form.request_type.label(class="request-heading request-type-label") }}
@@ -71,6 +76,27 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                                     <button type="button" onclick="handlePanelDismiss()" data-dismiss="modal" class="btn btn-danger">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="category-warning-modal" tabindex="-1" role="dialog">
+                    <div class="vertical-alignment-helper">
+                        <div class="modal-dialog vertical-align-center">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Warning</h4>
+                                </div>
+                                <div id="category-warning-text" class="modal-body">Selecting this option will remove any
+                                    existing information for other request types. Are you sure you want to change
+                                    categories?
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="cancel-change-category-button" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button id="change-category-button" type="button" data-dismiss="modal"
+                                            class="btn btn-danger">Change Category
+                                    </button>
                                 </div>
                             </div>
                         </div>
