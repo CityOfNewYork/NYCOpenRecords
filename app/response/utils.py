@@ -448,7 +448,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    reason="Request is already closed or has not been acknowledged")
 
 
-def add_reopening(request_id, date, tz_name, content, method, letter_template_id=None):
+def add_reopening(request_id, date, tz_name, content, reason, method, letter_template_id=None):
     """
     Create and store a re-opened-determination for the specified request and update the request accordingly.
 
@@ -456,6 +456,7 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
     :param date: string of new date of request completion
     :param tz_name: client's timezone name
     :param content: email body associated with the reopened request
+    :param reason: Reason for re-opening
     :param method: Method of delivery (email or letters)
     :param letter_template_id: id of the letter template, if generating a letter
 
@@ -463,15 +464,16 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
         previous_status = request.status
-        date = datetime.strptime(date, '%Y-%m-%d')
+        date = datetime.strptime(date, '%m/%d/%Y')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
+        reason = Reasons.query.filter_by(id=reason).one().content
         response = Determinations(
             request_id,
             privacy,
             determination_type.REOPENING,
-            None,
+            reason,
             new_due_date
         )
         create_object(response)
@@ -813,13 +815,13 @@ def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
 
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: number of days the due date is being extended by
-    :param custom_due_date: custom due date of the request (string in format '%Y-%m-%d')
+    :param custom_due_date: custom due date of the request (string in format '%m/%d/%Y')
     :param tz_name: client's timezone name
 
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        date = datetime.strptime(custom_due_date, '%Y-%m-%d')
+        date = datetime.strptime(custom_due_date, '%m/%d/%Y')
         new_due_date = process_due_date(local_to_utc(date, tz_name))
     else:
         new_due_date = get_due_date(
@@ -1232,6 +1234,10 @@ def _reopening_letter_handler(request_id, data):
 
     # Reopening is only provided when getting default letter template.
     if data is not None:
+        if data.get('letter_content', None) is not None:
+            letter_content = render_template_string(data['letter_content'])
+            return jsonify({"template": letter_content,
+                            "header": header})
         contents = LetterTemplates.query.filter_by(id=data['letter_template']).first()
 
         now = datetime.utcnow()
@@ -1240,14 +1246,14 @@ def _reopening_letter_handler(request_id, data):
         letterhead = render_template_string(agency_letter_data['letterhead'])
 
         point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
+        tz_name = data.get('tz_name', current_app.config['APP_TIMEZONE'])
+        due_date = _get_new_due_date(request_id, '-1', data['date'], tz_name)
 
-        due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
-
-        template = render_template_string(contents.content,
-                                          date=request.date_submitted,
-                                          due_date=due_date,
-                                          request_id=request_id,
-                                          user=point_of_contact_user)
+        content = render_template_string(contents.content,
+                                         date=request.date_submitted,
+                                         due_date=due_date,
+                                         request_id=request_id,
+                                         user=point_of_contact_user)
 
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
@@ -1260,16 +1266,17 @@ def _reopening_letter_handler(request_id, data):
             u = current_user
         signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
 
-        test = render_template('letters/base.html',
-                               letterhead=Markup(letterhead),
-                               signature=Markup(signature),
-                               request=request,
-                               date=date,
-                               contents=Markup(template),
-                               request_id=request_id,
-                               footer=Markup(agency_letter_data['footer']))
-        return jsonify({"template": test,
+        template = render_template('letters/base.html',
+                                   letterhead=Markup(letterhead),
+                                   signature=Markup(signature),
+                                   request=request,
+                                   date=date,
+                                   contents=Markup(content),
+                                   request_id=request_id,
+                                   footer=Markup(agency_letter_data['footer']))
+        return jsonify({"template": template,
                         "header": header})
+
     else:
         return jsonify({"error": "bad request"}), 400
 
@@ -1472,14 +1479,34 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
 
     :return: the HTML of the rendered email template of a reopening
     """
-    date = datetime.strptime(data['date'], '%Y-%m-%d')
-    return jsonify({"template": render_template(
-        email_template,
-        request_id=request_id,
-        agency_name=agency_name,
-        date=process_due_date(local_to_utc(date, data['tz_name'])),
-        page=page
-    )}), 200
+    reason = data.get('reason', None)
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+
+    if reason is not None:
+        default_content = True
+        content = None
+
+        date = datetime.strptime(data['date'], '%m/%d/%Y')
+        reason_id = data.get('reason')
+        reason = Reasons.query.filter_by(id=reason_id).one().content
+        return jsonify({"template": render_template(
+            email_template,
+            default_content=default_content,
+            content=content,
+            reason=reason,
+            request_id=request_id,
+            agency_name=agency_name,
+            date=process_due_date(local_to_utc(date, data['tz_name'])),
+            page=page), "header": header}), 200
+    else:
+        default_content = False
+        content = data['email_content']
+        date = None
+        return jsonify({"template": render_template(
+            email_template,
+            default_content=default_content,
+            content=content,
+            page=page), "header": header}), 200
 
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):

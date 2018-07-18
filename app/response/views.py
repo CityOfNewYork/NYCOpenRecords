@@ -281,10 +281,18 @@ def response_reopening(request_id):
                   'This is probably NOT your fault.', category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
+    if flask_request.form.get('method') == 'emails':
+        if not flask_request.form.get('reason', ''):
+            flash('Uh Oh, it looks like the re-opening reason-id is missing! '
+                  'This is probably NOT your fault.', category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+
     add_reopening(request_id,
                   flask_request.form['date'],
-                  flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE'],
+                  flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
+                      'APP_TIMEZONE'],
                   flask_request.form['summary'],
+                  flask_request.form.get('reason-id', None),
                   flask_request.form['method'],
                   flask_request.form.get('letter-template-id', None))
     return redirect(url_for('request.view', request_id=request_id))

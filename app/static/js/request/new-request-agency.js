@@ -7,6 +7,8 @@
 /* globals getCustomRequestForms: true */
 /* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
+/* globals processCustomRequestForms: true */
+/* globals requiredFields: true */
 
 "use strict";
 
@@ -149,7 +151,7 @@ $(document).ready(function () {
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var requiredFields = ["request-title", "request-description", "first-name", "last-name", "email",
-        "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
+    "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
     for (var i = 0; i < requiredFields.length; i++) {
         $("#" + requiredFields[i]).attr("data-parsley-required", "");
     }
@@ -291,8 +293,18 @@ $(document).ready(function () {
     });
 
     // Disable submit button on form submission
-    $("#request-form").submit(function () {
-        processCustomRequestFormData();
+    $("#request-form").submit(function (e) {
+        $(".remove-on-resubmit").remove();
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {
