@@ -196,6 +196,28 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
+                // determine if form options are categorized
+                if (data["custom_request_forms"]["categorized"]) {
+                    categorized = true;
+                    // set custom text is agency has provided it otherwise use the default text
+                    if (data["custom_request_forms"]["category_info_text"]) {
+                        $("#category-info-text").html(data["custom_request_forms"]["category_info_text"].bold());
+                    }
+                    else {
+                        $("#category-info-text").html(defaultCateogryInfoText.bold());
+                    }
+                    if (data["custom_request_forms"]["category_warning_text"]) {
+                        $("#category-warning-text").html(data["custom_request_forms"]["category_warning_text"]);
+                    }
+                    else {
+                        $("#category-warning-text").html(defaultCategoryWarningText);
+                    }
+                    $("#category-info").show();
+                }
+                else {
+                    categorized = false;
+                    $("#category-info").hide();
+                }
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
@@ -225,7 +247,7 @@ function getCustomRequestForms(agencyEin) {
                                 minimumRequired[data[i][0]] = data[i][4];
                                 var option = new Option(data[i][1], data[i][0]);
                                 // append a divider after the last form in a category
-                                if (data[i][3] !== categoryCounter) {
+                                if (data[i][3] !== categoryCounter && categorized) {
                                     var optionDivider = new Option(categoryDividerText);
                                     optionDivider.disabled = true;
                                     requestType.append(optionDivider); // append a disabled divider option
@@ -252,33 +274,13 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
-            }
-            // determine if form options are categorized
-            if (data["custom_request_forms"]["categorized"]) {
-                categorized = true;
-                $("#category-info").show();
-                // set custom text is agency has provided it otherwise use the default text
-                if (data["custom_request_forms"]["category_info_text"]) {
-                    $("#category-info-text").html(data["custom_request_forms"]["category_info_text"].bold());
-                }
-                else {
-                    $("#category-info-text").html(defaultCateogryInfoText.bold());
-                }
-                if (data["custom_request_forms"]["category_warning_text"]) {
-                    $("#category-warning-text").html(data["custom_request_forms"]["category_warning_text"]);
-                }
-                else {
-                    $("#category-warning-text").html(defaultCategoryWarningText);
-                }
-            }
-            else {
-                categorized = false;
                 $("#category-info").hide();
             }
         },
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
+            $("#category-info").hide();
         }
     });
 }
@@ -312,7 +314,7 @@ function populateDropdown(agencyEin) {
                         requestType.append(new Option("", ""));
                         for (var i = 0; i < data.length; i++) {
                             var option = new Option(data[i][1], data[i][0]);
-                            if (data[i][3] !== categoryCounter) {
+                            if (data[i][3] !== categoryCounter && categorized) {
                                     var optionDivider = new Option(categoryDividerText);
                                     optionDivider.disabled = true;
                                     requestType.append(optionDivider);
