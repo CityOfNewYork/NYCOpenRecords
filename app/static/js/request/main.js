@@ -194,6 +194,7 @@ function getCustomRequestForms(agencyEin) {
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
+                            originalFormNames[data[0][0]] = data[0][1];
                             repeatableCounter[[data[0][0]]] = data[0][2];
                             maxRepeatable[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
