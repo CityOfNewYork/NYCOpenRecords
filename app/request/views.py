@@ -53,7 +53,8 @@ from app.request.forms import (
     GenerateResponseLetterForm,
     SearchRequestsForm,
     CloseRequestForm,
-    ContactAgencyForm
+    ContactAgencyForm,
+    ReopenRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -111,7 +112,7 @@ def new():
             if form.request_file.errors:
                 return render_template(new_request_template, form=form, site_key=site_key)
 
-        custom_metadata = json.loads(flask_request.form['custom-request-forms-data'])
+        custom_metadata = json.loads(flask_request.form.get('custom-request-forms-data', {}))
         tz_name = flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE']
         if current_user.is_public:
             request_id = create_request(form.request_title.data,
@@ -320,6 +321,7 @@ def view(request_id):
         contact_agency_form=ContactAgencyForm(current_request),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
+        reopen_request_form=ReopenRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         add_user_request_form=AddUserRequestForm(active_users),
         edit_user_request_form=EditUserRequestForm(assigned_users),
