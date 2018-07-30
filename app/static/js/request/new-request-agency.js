@@ -270,6 +270,16 @@ $(document).ready(function () {
     // Disable submit button on form submission
     $("#request-form").submit(function (e) {
         if ($("#request-form").parsley().isValid()) {
+            // section to check if at least one request type has been selected
+            var emptyRequestDropdown = checkRequestTypeDropdowns();
+            if (customRequestFormsEnabled === true && emptyRequestDropdown === true) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($("#custom-request-forms-warning").offset().top - 50);
+                return;
+            }
+            // section to check if all custom forms pass the minimum required validator
             var invalidForms = processCustomRequestFormData();
             if (invalidForms.length > 0) {
                 e.preventDefault();

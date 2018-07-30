@@ -145,6 +145,7 @@ function toggleRequestAgencyInstructions(action) {
 }
 
 // variables used to handle custom forms
+var customRequestFormsEnabled = false; // determines if custom request forms have been enabled
 var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
 var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
 var previousValues = []; // tracks the previous values of each request type dropdown
@@ -163,6 +164,7 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    customRequestFormsEnabled = false;
     repeatableCounter = {};
     formCategories = {};
     currentCategory = "";
@@ -186,6 +188,7 @@ function getCustomRequestForms(agencyEin) {
     customRequestFormContent.html("");
     customRequestFormContent.hide();
     customRequestFormAdditionalContent.hide();
+    $("#custom-request-forms-warning").hide();
 
     // ajax call to show request type drop down
     $.ajax({
@@ -193,6 +196,7 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
+                customRequestFormsEnabled = true;
                 // hide request description and pre fill it with placeholder to bypass parsley
                 requestDescriptionSection.hide();
                 requestDescriptionAlert.hide();
@@ -551,6 +555,24 @@ function handlePanelDismiss() {
     $(panelId).remove();
 }
 
+function checkRequestTypeDropdowns() {
+    /*
+     * Function to check if at least one request type dropdown has a selected value
+     */
+    $("#custom-request-forms-warning").hide();
+    var counter = 0;
+    for (var i = 0; i < currentValues.length; i++) {
+        if (currentValues[i] !== "") {
+            counter++;
+        }
+    }
+    if (customRequestFormsEnabled === true && counter === 0) {
+        $("#custom-request-forms-warning").show();
+        return true;
+    }
+    return false;
+}
+
 function processCustomRequestFormData() {
     /*
      * Process the custom request form data into a JSON to be passed back on submit
@@ -645,11 +667,11 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
-    if (stripRequestDescription === false) {
+    if (customRequestFormsEnabled === true && stripRequestDescription === false) {
         requestDescriptionText = requestDescriptionText.slice(0, -2); // remove the last 2 characters
         $("#request-description").val(requestDescriptionText);
     }
-    else {
+    else if (customRequestFormsEnabled === true && stripRequestDescription === true){
         $("#request-description").val("");
     }
     return invalidForms;
