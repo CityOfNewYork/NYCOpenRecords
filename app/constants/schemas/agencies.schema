@@ -156,6 +156,17 @@
                 true,
                 false
               ]
+            },
+            "strip_request_description": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/strip_request_description",
+              "type": "boolean",
+              "title": "Strip Request Description",
+              "default": true,
+              "description": "Boolean to determine if the default request description should be stripped on submit",
+              "examples": [
+                true,
+                false
+              ]
             }
           }
         }

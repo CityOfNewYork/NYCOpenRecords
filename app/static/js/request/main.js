@@ -156,6 +156,7 @@ var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
 var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
+var stripRequestDescription = false; // a flag to determine if the request description should be stripped after completing custom request forms
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -166,6 +167,7 @@ function getCustomRequestForms(agencyEin) {
     formCategories = {};
     currentCategory = "";
     customRequestFormCounter = 1;
+    stripRequestDescription = false;
 
     var selectedAgency = agencyEin;
     var customRequestPanelDiv = $("#custom-request-panel-" + customRequestFormCounter.toString());
@@ -176,6 +178,9 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
+    var requestDescriptionSection = $("#request-description-section");
+    var requestDescriptionAlert = $("#request-description-alert");
+    var requestDescriptionField = $("#request-description");
 
     requestType.empty();
     customRequestFormContent.html("");
@@ -188,6 +193,10 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
+                // hide request description and pre fill it with placeholder to bypass parsley
+                requestDescriptionSection.hide();
+                requestDescriptionAlert.hide();
+                requestDescriptionField.val("custom request forms");
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
@@ -232,10 +241,21 @@ function getCustomRequestForms(agencyEin) {
                 else {
                     showMultipleRequestTypes = false;
                 }
+                // check if request description should be stripped on submit
+                if (data["custom_request_forms"]["strip_request_description"] === true) {
+                    stripRequestDescription = true;
+                }
+                else {
+                    stripRequestDescription = false;
+                }
             }
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
+                // if custom request forms are disabled then show the regular request description
+                requestDescriptionSection.show();
+                requestDescriptionAlert.show();
+                requestDescriptionField.val("");
             }
             // determine if form options are categorized
             if (data["custom_request_forms"]["categorized"]) {
@@ -248,6 +268,9 @@ function getCustomRequestForms(agencyEin) {
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
+            requestDescriptionSection.show();
+            requestDescriptionAlert.show();
+            requestDescriptionField.val("");
         }
     });
 }
@@ -535,6 +558,7 @@ function processCustomRequestFormData() {
     var formNumber = 1;
     var fieldNumber = 1;
     var invalidForms = [];
+    var requestDescriptionText = "";
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
@@ -555,6 +579,9 @@ function processCustomRequestFormData() {
             customRequestFormData[formKey] = {};
             customRequestFormData[formKey]["form_name"] = formName;
             customRequestFormData[formKey]["form_fields"] = {};
+
+            // append form name to request description text
+            requestDescriptionText = requestDescriptionText + formName + ", ";
 
             // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
@@ -618,5 +645,12 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
+    if (stripRequestDescription === false) {
+        requestDescriptionText = requestDescriptionText.slice(0, -2); // remove the last 2 characters
+        $("#request-description").val(requestDescriptionText);
+    }
+    else {
+        $("#request-description").val("");
+    }
     return invalidForms;
 }
