@@ -15,9 +15,11 @@
                                 Request Title: {{ current_request.title }}
                                 <br/>
                                 <br/>
-                                Request Description: {{ current_request.description }}
-                                <br/>
-                                <br/>
+                                {% if current_request.description %}
+                                    Request Description: {{ current_request.description }}
+                                    <br/>
+                                    <br/>
+                                {% endif %}
                                 {% if current_request.custom_metadata %}
                                     {% for form_number,form_values in current_request.custom_metadata|dictsort %}
                                         <u>{{ form_values['form_name'] }}</u>
