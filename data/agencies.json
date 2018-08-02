@@ -26,7 +26,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -56,7 +56,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -86,7 +86,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -116,7 +116,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -146,7 +146,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -176,7 +176,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -206,7 +206,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -236,7 +236,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -266,7 +266,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -296,7 +296,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -326,7 +326,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -356,7 +356,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -386,7 +386,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -416,7 +416,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -446,7 +446,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -476,7 +476,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -506,7 +506,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -536,7 +536,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -566,7 +566,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -596,7 +596,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -626,7 +626,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -656,7 +656,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -686,7 +686,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -716,7 +716,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -746,7 +746,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -776,7 +776,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -806,7 +806,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -836,7 +836,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -866,7 +866,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -896,7 +896,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -926,7 +926,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -956,7 +956,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -986,7 +986,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1016,7 +1016,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1046,7 +1046,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1076,7 +1076,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1106,7 +1106,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1136,7 +1136,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1166,7 +1166,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1196,7 +1196,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1226,7 +1226,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1256,7 +1256,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1286,7 +1286,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1316,7 +1316,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1346,7 +1346,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1376,7 +1376,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1406,7 +1406,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1436,7 +1436,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1466,7 +1466,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1496,7 +1496,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1526,7 +1526,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1556,7 +1556,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1586,7 +1586,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1616,7 +1616,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1646,7 +1646,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1676,7 +1676,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1706,7 +1706,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1736,7 +1736,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1766,7 +1766,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1796,7 +1796,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1826,7 +1826,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1856,7 +1856,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1891,7 +1891,7 @@
           "multiple_request_types": true,
           "categorized": true,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1921,7 +1921,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1951,7 +1951,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1981,7 +1981,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2011,7 +2011,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2041,7 +2041,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2072,7 +2072,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2102,7 +2102,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2132,7 +2132,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2162,7 +2162,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2192,7 +2192,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2222,7 +2222,7 @@
           "multiple_request_types": false,
           "categorized": false,
           "expand_by_default": false,
-          "strip_request_description": true
+          "description_hidden_by_default": true
         }
       }
     }

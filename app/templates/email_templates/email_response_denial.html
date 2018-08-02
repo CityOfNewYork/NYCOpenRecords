@@ -19,7 +19,7 @@
         <strong>Request Information:</strong><br/>
         Request Title: {{ request.title }}
     </p>
-    {% if request.description %}
+    {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
         <p>
             Request Description: {{ request.description }}
         </p>

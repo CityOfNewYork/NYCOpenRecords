@@ -1346,7 +1346,20 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
+    request = Requests.query.filter_by(id=request_id).one()
     point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms']['description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
@@ -1391,7 +1404,9 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
         reasons=Markup(reasons),
-        page=page),
+        page=page,
+        custom_request_forms_enabled=custom_request_forms_enabled,
+        description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
 
@@ -1409,6 +1424,19 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a closing
     """
     req = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in req.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = req.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in req.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = req.agency.agency_features['custom_request_forms']['description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     if eval_request_bool(data['confirmation']):
         header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         reasons = None
@@ -1462,7 +1490,9 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=Markup(reasons),
         page=page,
-        denied=denied),
+        denied=denied,
+        custom_request_forms_enabled=custom_request_forms_enabled,
+        description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
 

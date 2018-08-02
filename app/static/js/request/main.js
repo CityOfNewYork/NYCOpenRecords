@@ -157,7 +157,6 @@ var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
 var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
-var stripRequestDescription = false; // a flag to determine if the request description should be stripped after completing custom request forms
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -169,7 +168,6 @@ function getCustomRequestForms(agencyEin) {
     formCategories = {};
     currentCategory = "";
     customRequestFormCounter = 1;
-    stripRequestDescription = false;
 
     var selectedAgency = agencyEin;
     var customRequestPanelDiv = $("#custom-request-panel-" + customRequestFormCounter.toString());
@@ -244,13 +242,6 @@ function getCustomRequestForms(agencyEin) {
                 }
                 else {
                     showMultipleRequestTypes = false;
-                }
-                // check if request description should be stripped on submit
-                if (data["custom_request_forms"]["strip_request_description"] === true) {
-                    stripRequestDescription = true;
-                }
-                else {
-                    stripRequestDescription = false;
                 }
             }
             else {
@@ -667,12 +658,9 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
-    if (customRequestFormsEnabled === true && stripRequestDescription === false) {
+    if (customRequestFormsEnabled) {
         requestDescriptionText = requestDescriptionText.slice(0, -2); // remove the last 2 characters
         $("#request-description").val(requestDescriptionText);
-    }
-    else if (customRequestFormsEnabled === true && stripRequestDescription === true){
-        $("#request-description").val("");
     }
     return invalidForms;
 }

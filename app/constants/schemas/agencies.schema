@@ -157,12 +157,12 @@
                 false
               ]
             },
-            "strip_request_description": {
-              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/strip_request_description",
+            "description_hidden_by_default": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/description_hidden_by_default",
               "type": "boolean",
-              "title": "Strip Request Description",
+              "title": "Description Hidden By Default",
               "default": true,
-              "description": "Boolean to determine if the default request description should be stripped on submit",
+              "description": "Boolean to determine if the default request description should be hidden if custom forms are enabled",
               "examples": [
                 true,
                 false
