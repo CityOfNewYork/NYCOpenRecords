@@ -165,7 +165,7 @@
               "examples": [
                 "You would have to submit a separate request regarding a different category."
               ]
-            }
+            },
             "expand_by_default": {
               "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/expand_by_default",
               "type": "boolean",
