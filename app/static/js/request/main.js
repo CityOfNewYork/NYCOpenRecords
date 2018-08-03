@@ -1,3 +1,4 @@
+/* globals requiredFields: true */
 "use strict";
 
 // Don't cache ajax requests
@@ -146,6 +147,7 @@ function toggleRequestAgencyInstructions(action) {
 // variables used to handle custom forms
 var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
 var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
+var maxRepeatable = {}; // tracks the maximum number of times each form can be repeated
 var previousValues = []; // tracks the previous values of each request type dropdown
 var currentValues = []; // tracks the current values of each request type dropdown
 var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
@@ -154,6 +156,8 @@ var customRequestFormData = {}; // tracks the data of custom forms that will be 
 var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
+var originalFormNames = {}; // tracks the original text for a form option
+var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
 
 function getCustomRequestForms(agencyEin) {
     /* exported getCustomRequestForms
@@ -161,6 +165,7 @@ function getCustomRequestForms(agencyEin) {
      * function to determine if custom request forms need to be shown on category or agency change
      */
     repeatableCounter = {};
+    maxRepeatable = {};
     formCategories = {};
     currentCategory = "";
     customRequestFormCounter = 1;
@@ -179,6 +184,7 @@ function getCustomRequestForms(agencyEin) {
     customRequestFormContent.html("");
     customRequestFormContent.hide();
     customRequestFormAdditionalContent.hide();
+
     // ajax call to show request type drop down
     $.ajax({
         url: "/agency/feature/" + selectedAgency + "/" + "custom_request_forms",
@@ -191,9 +197,11 @@ function getCustomRequestForms(agencyEin) {
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
-                            // if only one option, render that form by default
+                            originalFormNames[data[0][0]] = data[0][1];
                             repeatableCounter[[data[0][0]]] = data[0][2];
+                            maxRepeatable[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
+                            minimumRequired[[data[0][0]]] = data[0][4];
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
@@ -207,8 +215,11 @@ function getCustomRequestForms(agencyEin) {
                         else {
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
+                                originalFormNames[data[i][0]] = data[i][1];
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
+                                maxRepeatable[[data[i][0]]] = data[i][2];
                                 formCategories[data[i][0]] = data[i][3];
+                                minimumRequired[data[i][0]] = data[i][4];
                                 var option = new Option(data[i][1], data[i][0]);
                                 requestType.append(option);
                             }
@@ -218,6 +229,7 @@ function getCustomRequestForms(agencyEin) {
                             customRequestPanelDiv.show();
                             customRequestFormsDiv.show();
                         }
+                        updateCustomRequestFormDropdowns();
                     }
                 });
                 // check if custom forms are repeatable
@@ -254,9 +266,9 @@ function populateDropdown(agencyEin) {
     var selectedAgency = agencyEin;
     var customRequestFormsDivId = "#custom-request-forms-" + customRequestFormCounter.toString();
     var customRequestFormsDiv = $(customRequestFormsDivId);
-    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");;
+    var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
 
-    $(".request-type").each(function(){
+    $(".request-type").each(function () {
         if (this.length === 0) { // if this is an unpopulated dropdown
             var requestType = this;
             $.ajax({
@@ -282,6 +294,7 @@ function populateDropdown(agencyEin) {
                             requestType.append(option);
                         }
                     }
+                    updateCustomRequestFormDropdowns();
                     if (categorized) {
                         disableOptions();
                     }
@@ -294,8 +307,10 @@ function populateDropdown(agencyEin) {
 function updateCustomRequestFormDropdowns() {
     /*
      * Update the dropdowns to disable options where they are no longer repeatable.
+     * Update the option text to show instance number of each form and how many more you can create.
      */
-    $(".request-type").each(function(){
+    // this section handles disabling options when they reach their repeatable limit
+    $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
             if (repeatableCounter[this.value] === 0) {
@@ -305,6 +320,53 @@ function updateCustomRequestFormDropdowns() {
                 $(this).removeAttr("disabled");
             }
         });
+    });
+
+    // this section dynamically updates the option text to show how many more times a form can be created
+    var backwards = {}; // we will use this to count backwards from the number of form instances used until we reach 0
+    var originalBackwards = {}; // this keeps track of original number of instances of each form before we started counting backwards
+
+    // set the counters to have 0 for each form id
+    for (var key in repeatableCounter) {
+        backwards[key] = 0;
+        originalBackwards[key] = 0;
+    }
+    // loop through currentValues and every time you see an instance of a form id, increment the counter
+    for (var i = 0; i < currentValues.length; i++) {
+        backwards[currentValues[i]]++;
+        originalBackwards[currentValues[i]]++;
+    }
+
+    // now we have counters that tell us how many times a form id appears on screen
+
+    // loop through each request type dropdown
+    $(".request-type").each(function () {
+        var requestTypeOptions = "#" + this.id + " > option";
+        if (this.value !== "") { // if the dropdown is not exmpty execute this block
+            $(requestTypeOptions).each(function () { // loop through each option in the dropdown
+                if (this.text !== "") { // only update options that actually have text
+                    var originalText = originalFormNames[this.value]; // get the actual form name
+                    if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
+                        $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    }
+                    else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
+                        $(this).text(originalText + " (" + (maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    }
+                    if (backwards[this.value] > 1) { // update the backwards counter for the next time you see the same form selected in another dropdown
+                        backwards[this.value]--;
+                    }
+                }
+            });
+        }
+        else { // if the dropdown is empty execute this block because we have to skip this when counting backwards
+            $(requestTypeOptions).each(function () {
+                if (this.text !== "") {
+                    // if we see a dropdown with no value selected then we will use the original instance counter number to prepare for when an option is actually selected
+                    var originalText = originalFormNames[this.value];
+                    $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                }
+            });
+        }
     });
 }
 
@@ -346,12 +408,12 @@ function renderCustomRequestForm(target) {
             },
             success: function (data) {
                 // update the values in the tracking variables
-                currentValues[target-1] = formId;
+                currentValues[target - 1] = formId;
 
                 detectChange(); // determine which request type dropdown was changed
 
                 customRequestFormContent.html(data);
-                previousValues[target-1] = formId;
+                previousValues[target - 1] = formId;
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
                     currentCategory = formCategories[formId];
@@ -460,11 +522,11 @@ function renderCustomRequestForm(target) {
         customRequestFormAdditionalContent.hide();
 
         // update the values in the tracking variables
-        currentValues[target-1] = "";
+        currentValues[target - 1] = "";
 
         detectChange();
 
-        previousValues[target-1] = "";
+        previousValues[target - 1] = "";
         updateCustomRequestFormDropdowns();
     }
 }
@@ -505,10 +567,10 @@ function handlePanelDismiss() {
     // +1 to repeatable counter and reset previousValues/currentValues array
     var targetId = dismissTarget.replace("#panel-dismiss-button-", "");
     var panelId = dismissTarget.replace("#panel-dismiss-button-", "#custom-request-panel-");
-    if (currentValues[targetId-1] !== "") {
-                repeatableCounter[currentValues[targetId-1]] = repeatableCounter[currentValues[targetId-1]] + 1;
-                previousValues[targetId-1] = "";
-                currentValues[targetId-1] = "";
+    if (currentValues[targetId - 1] !== "") {
+        repeatableCounter[currentValues[targetId - 1]] = repeatableCounter[currentValues[targetId - 1]] + 1;
+        previousValues[targetId - 1] = "";
+        currentValues[targetId - 1] = "";
     }
     updateCustomRequestFormDropdowns();
 
@@ -529,6 +591,7 @@ function processCustomRequestFormData() {
      */
     var formNumber = 1;
     var fieldNumber = 1;
+    var invalidForms = [];
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
@@ -536,6 +599,7 @@ function processCustomRequestFormData() {
             var fieldKey = "field_";
             var formName = $("#request-type-" + target + " option:selected").text();
             var previousRadioId = "";
+            var completedFields = 0;
 
             // add leading zero to forms less than 10 so they can be properly sorted
             if (formNumber < 10) {
@@ -565,12 +629,19 @@ function processCustomRequestFormData() {
                 if ($("#" + this.id).prop("multiple") === true) {
                     var selectMultipleId = "#" + this.id;
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = $(selectMultipleId).val();
+                    if ($(selectMultipleId).val() !== null) {
+                        completedFields++;
+                    }
+
                 }
                 else if ($("#" + this.id).is(":radio") === true) {
                     // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
                     if (this.id !== previousRadioId) {
                         customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = radioValue;
+                        if (radioValue != null) {
+                            completedFields++;
+                        }
                     }
                     else {
                         fieldNumber--;
@@ -579,13 +650,30 @@ function processCustomRequestFormData() {
                 }
                 else {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
+                    if (this.value !== "") {
+                        completedFields++;
+                    }
                 }
                 fieldNumber++;
                 fieldKey = "field_";
             });
+            if (completedFields < minimumRequired[currentValues[i]]) {
+                var invalidFormContent = "#custom-request-form-content-" + target;
+                var invalidForm = "#custom-request-forms-" + target;
+                var invalidFormErrorDiv = invalidForm + "-error-div";
+                if (minimumRequired[currentValues[i]] > 1) {
+                    $(invalidFormContent).prepend("<div class='alert alert-danger remove-on-resubmit' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " fields to submit this form.</div>");
+                } else {
+                    $(invalidFormContent).prepend("<div class='alert alert-danger remove-on-resubmit' id='" + invalidFormErrorDiv + "'>You need to fill in at least " + minimumRequired[currentValues[i]] + " field to submit this form.</div>");
+                }
+                invalidForms.push(invalidForm);
+            }
+
+            completedFields = 0;
             formNumber++;
             fieldNumber = 1;
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
+    return invalidForms;
 }

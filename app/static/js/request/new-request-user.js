@@ -7,6 +7,8 @@
 /* globals getCustomRequestForms: true */
 /* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
+/* globals processCustomRequestForms: true */
+
 
 "use strict";
 
@@ -17,7 +19,7 @@ $(document).ready(function () {
     });
 
     $("input[name='tz-name']").val(jstz.determine().name());
-    
+
     $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
@@ -83,8 +85,8 @@ $(document).ready(function () {
         // populate any empty dropdowns with that agency's form options
         populateDropdown($("#request-agency").val());
 
-        previousValues[customRequestFormCounter-1] = "";
-        currentValues[customRequestFormCounter-1] = "";
+        previousValues[customRequestFormCounter - 1] = "";
+        currentValues[customRequestFormCounter - 1] = "";
     });
 
     // javascript to add tooltip popovers when selecting the title and description
@@ -176,7 +178,17 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function () {
-        processCustomRequestFormData();
+        $(".remove-on-resubmit").remove();
+        if ($("#request-form").parsley().isValid()) {
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+        }
 
         // Prevent multiple submissions
         $(this).submit(function () {
