@@ -19,8 +19,12 @@ def test_index(client: Flask.test_client):
         client (Flask.test_client): The test client used to access the endpoint
     """
     response = client.get("/")
-    assert b"""<button class="btn btn-primary btn-lg btn-block request-record-button-size">Check for Similar Requests</button>""" in response.data
-    assert b"""<button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record</button>""" in response.data
+    print(response.data)
+    assert b"""                    <button class="btn btn-primary btn-lg btn-block request-record-button-size">Check for Similar
+                        Requests
+                    </button>""" in response.data
+    assert b"""<button class="btn btn-primary btn-lg btn-block request-record-button-size">Request a Record
+                    </button>""" in response.data
 
 
 def test_status(client: Flask.test_client):
