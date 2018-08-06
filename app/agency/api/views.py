@@ -109,6 +109,8 @@ def get_custom_request_form_fields():
 
     form_template = render_template('custom_request_form_templates/form_description_template.html',
                                     form_description=custom_request_form.form_description)
+    data = {}
+    character_counters = {}
     for field in custom_request_form.field_definitions:
         for key, value in field.items():
             field_text = key
@@ -119,9 +121,19 @@ def get_custom_request_form_fields():
             field_required = value['required']
             min_length = value.get('min_length', None)
             max_length = value.get('max_length', None)
+            character_counter = value.get('character_counter', None)
+            placeholder = value.get('placeholder', None)
+
+            if max_length and character_counter:
+                # add to character_counters so they can be later initialized
+                character_counter_key = field_name + "-" + str(instance_id)
+                character_counters[character_counter_key] = max_length
 
             form_template = form_template + render_template(
                 'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
                 field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
-                min_length=min_length, max_length=max_length, instance_id=instance_id) + '\n'
-    return jsonify(form_template), 200
+                min_length=min_length, max_length=max_length, instance_id=instance_id, placeholder=placeholder,
+                character_counter=character_counter) + '\n'
+    data["form_template"] = form_template
+    data["character_counters"] = character_counters
+    return jsonify(data), 200

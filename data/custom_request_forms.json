@@ -9,21 +9,28 @@
           "Arrest Report #": {
             "type": "input",
             "name": "arrest-report-number",
-            "required": false
+            "required": false,
+            "placeholder": "123456789",
+            "max_length": "50",
+            "character_counter": true
           }
         },
         {
           "Precinct #": {
             "type": "input",
             "name": "precinct-number",
-            "required": false
+            "required": false,
+            "max_length": "10",
+            "character_counter": true
           }
         },
         {
           "Name": {
             "type": "input",
             "name": "arrest-report-name",
-            "required": false
+            "required": false,
+            "max_length": "20",
+            "character_counter": true
           }
         },
         {
@@ -214,7 +221,9 @@
           "Textarea Test": {
             "type": "textarea",
             "name": "textarea-test",
-            "required": false
+            "required": false,
+            "max_length": "50",
+            "character_counter": true
           }
         },
         {

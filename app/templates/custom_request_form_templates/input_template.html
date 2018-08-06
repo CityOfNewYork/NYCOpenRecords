@@ -3,5 +3,10 @@
     <input class="input-block-level custom-request-form-data" id="{{ field_name }}-{{ instance_id }}" type="text" name="{{ field_name }}-{{ instance_id }}"
            {% if field_required %}data-parsley-required{% endif %}
            {% if max_length %}data-parsley-maxlength="{{ max_length }}" maxlength="{{ max_length }}"{% endif %}
-           {% if min_length %}data-parsley-minlength="{{ min_length }}" minlength="{{ min_length }}"{% endif %}><br>
+           {% if min_length %}data-parsley-minlength="{{ min_length }}" minlength="{{ min_length }}"{% endif %}
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>
+    {% if max_length and character_counter %}
+        <h5 id="{{ field_name }}-{{ instance_id }}-character-count">{{ max_length }} characters remaining</h5>
+    {% endif %}
+    <br>
 </div>

@@ -48,6 +48,15 @@ function characterCounter(target, limit, currentLength, minLength) {
     }
 }
 
+function generate_character_counter_handler(id, length) {
+    /*
+     * This function creates character counter handlers for when you have multiple events inside a loop
+     */
+    return function () {
+        characterCounter("#" + id + "-character-count", length, $(this).val().length);
+    };
+}
+
 function regexUrlChecker(value) {
     /* Global regexUrlChecker
      *
@@ -430,7 +439,7 @@ function renderCustomRequestForm(target) {
 
                 detectChange(); // determine which request type dropdown was changed
 
-                customRequestFormContent.html(data);
+                customRequestFormContent.html(data["form_template"]);
                 previousValues[target - 1] = formId;
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
@@ -472,7 +481,7 @@ function renderCustomRequestForm(target) {
                     // render timepicker plugins
                     $(".timepicker").timepicker({
                         timeFormat: "h:mm p",
-                        interval: 1,
+                        interval: 30,
                         minTime: "12:00am",
                         maxTime: "11:59pm",
                         startTime: "12:00am",
@@ -507,6 +516,13 @@ function renderCustomRequestForm(target) {
                 catch (err) {
                     // if one of the forms doesn't have a time field it will throw an error when you try to render it
                     // TODO: find a better way to handle this error
+                }
+
+                // initialize character counters in custom forms
+                for (var id in data["character_counters"]) {
+                    $("#" + id).keyup(
+                        generate_character_counter_handler(id, data["character_counters"][id])
+                    );
                 }
 
                 // Do not reset on click
