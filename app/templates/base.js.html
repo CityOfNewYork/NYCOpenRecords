@@ -92,6 +92,11 @@
             .on("click", "#stay-logged-in", sessMon.extendsess)
             .on("click", "#log-out", sessMon.logout)
             .find("#remaining-time").text(Math.round(sessMon.timeBeforeWarning / 60 / 1000));
+        $("#login-processing-modal").modal({
+            "backdrop": "static",
+            "keyboard": false,
+            "show": false
+        })
     });
     window.sessMon = sessMon;
 </script>
