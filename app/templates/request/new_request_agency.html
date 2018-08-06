@@ -77,6 +77,9 @@
                 </div>
 
                 {# Dropdown for request type based on custom request forms #}
+                <div class="alert alert-info" id="category-info" hidden>
+                    <p id="request-info-text"></p>
+                </div>
                 <div id="custom-request-forms-warning" class="alert alert-danger" hidden>
                     <p>You must select at least one request type from the dropdown below.</p>
                 </div>
@@ -95,9 +98,6 @@
                 <div id="custom-request-form-additional-content" style="text-align: center;" hidden>
                     <button type="button" class="btn btn-info">Add New Request Information</button>
                     <br><br>
-                </div>
-                <div class="alert alert-info" id="category-info" hidden>
-                    <p id="request-info-text"></p>
                 </div>
                 <div class="modal fade" id="panel-dismiss-modal" tabindex="-1" role="dialog">
                     <div class="vertical-alignment-helper">
