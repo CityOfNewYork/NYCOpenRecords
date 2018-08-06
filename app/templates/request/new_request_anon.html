@@ -78,6 +78,9 @@
                 </div>
 
                 {# Dropdown for request type based on custom request forms #}
+                <div id="custom-request-forms-warning" class="alert alert-danger" hidden>
+                    <p>You must select at least one request type from the dropdown below.</p>
+                </div>
                 <div class="panel panel-default" id="custom-request-panel-1" hidden>
                     <div class="panel-heading" id="custom-request-forms-1" hidden>
                         {{ form.request_type.label(class="request-heading request-type-label") }}

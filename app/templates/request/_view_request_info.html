@@ -46,7 +46,7 @@
             </div>
             <br>
             {% if current_user.is_agency or is_requester %}
-                {% if request.description %}
+                {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
                     <div class="row">
                         <div class="request-label lead">Description:</div>
                         <div class="request-description-text lead">{{ request.description }}</div>

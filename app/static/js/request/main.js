@@ -145,6 +145,7 @@ function toggleRequestAgencyInstructions(action) {
 }
 
 // variables used to handle custom forms
+var customRequestFormsEnabled = false; // determines if custom request forms have been enabled
 var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
 var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
 var maxRepeatable = {}; // tracks the maximum number of times each form can be repeated
@@ -164,6 +165,7 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    customRequestFormsEnabled = false;
     repeatableCounter = {};
     maxRepeatable = {};
     formCategories = {};
@@ -179,11 +181,15 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
+    var requestDescriptionSection = $("#request-description-section");
+    var requestDescriptionAlert = $("#request-description-alert");
+    var requestDescriptionField = $("#request-description");
 
     requestType.empty();
     customRequestFormContent.html("");
     customRequestFormContent.hide();
     customRequestFormAdditionalContent.hide();
+    $("#custom-request-forms-warning").hide();
 
     // ajax call to show request type drop down
     $.ajax({
@@ -191,6 +197,11 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
+                customRequestFormsEnabled = true;
+                // hide request description and pre fill it with placeholder to bypass parsley
+                requestDescriptionSection.hide();
+                requestDescriptionAlert.hide();
+                requestDescriptionField.val("custom request forms");
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
@@ -243,6 +254,10 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
+                // if custom request forms are disabled then show the regular request description
+                requestDescriptionSection.show();
+                requestDescriptionAlert.show();
+                requestDescriptionField.val("");
             }
             // determine if form options are categorized
             if (data["custom_request_forms"]["categorized"]) {
@@ -255,6 +270,9 @@ function getCustomRequestForms(agencyEin) {
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
+            requestDescriptionSection.show();
+            requestDescriptionAlert.show();
+            requestDescriptionField.val("");
         }
     });
 }
@@ -585,6 +603,24 @@ function handlePanelDismiss() {
     $(panelId).remove();
 }
 
+function checkRequestTypeDropdowns() {
+    /*
+     * Function to check if at least one request type dropdown has a selected value
+     */
+    $("#custom-request-forms-warning").hide();
+    var counter = 0;
+    for (var i = 0; i < currentValues.length; i++) {
+        if (currentValues[i] !== "") {
+            counter++;
+        }
+    }
+    if (customRequestFormsEnabled === true && counter === 0) {
+        $("#custom-request-forms-warning").show();
+        return true;
+    }
+    return false;
+}
+
 function processCustomRequestFormData() {
     /*
      * Process the custom request form data into a JSON to be passed back on submit
@@ -592,6 +628,7 @@ function processCustomRequestFormData() {
     var formNumber = 1;
     var fieldNumber = 1;
     var invalidForms = [];
+    var requestDescriptionText = "";
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
@@ -612,6 +649,9 @@ function processCustomRequestFormData() {
             customRequestFormData[formKey] = {};
             customRequestFormData[formKey]["form_name"] = formName;
             customRequestFormData[formKey]["form_fields"] = {};
+
+            // append form name to request description text
+            requestDescriptionText = requestDescriptionText + formName + ", ";
 
             // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
@@ -675,5 +715,9 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
+    if (customRequestFormsEnabled) {
+        requestDescriptionText = requestDescriptionText.slice(0, -2); // remove the last 2 characters
+        $("#request-description").val(requestDescriptionText);
+    }
     return invalidForms;
 }
