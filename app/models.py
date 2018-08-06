@@ -1235,7 +1235,13 @@ class Responses(db.Model):
 
     @property
     def event_timestamp(self):
-        return Events.query.filter_by(response_id=self.id).one().timestamp
+        """
+        This function runs a query on the Events table to get all associated event rows for a response and returns
+        the newest timestamp of the newest event which will be displayed on the frontend.
+        :return: timestamp of the newest event row associated with a response
+        """
+        timestamps = Events.query.filter_by(response_id=self.id).order_by(desc(Events.timestamp)).all()
+        return timestamps[0].timestamp
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC

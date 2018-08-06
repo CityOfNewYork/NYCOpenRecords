@@ -27,7 +27,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -58,7 +59,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -89,7 +91,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -120,7 +123,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -151,7 +155,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -182,7 +187,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -213,7 +219,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -244,7 +251,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -275,7 +283,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -306,7 +315,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -337,7 +347,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -368,7 +379,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -399,7 +411,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -430,7 +443,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -461,7 +475,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -492,7 +507,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -523,7 +539,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -554,7 +571,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -585,7 +603,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -616,7 +635,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -647,7 +667,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -678,7 +699,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -709,7 +731,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -740,7 +763,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -771,7 +795,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -802,7 +827,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -833,7 +859,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -864,7 +891,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -895,7 +923,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -926,7 +955,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -957,7 +987,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -988,7 +1019,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1019,7 +1051,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1050,7 +1083,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1081,7 +1115,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1112,7 +1147,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1148,7 +1184,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1179,7 +1216,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1210,7 +1248,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1241,7 +1280,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1272,7 +1312,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1303,7 +1344,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1334,7 +1376,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1365,7 +1408,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1396,7 +1440,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1427,7 +1472,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1458,7 +1504,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1489,7 +1536,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1520,7 +1568,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1551,7 +1600,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1582,7 +1632,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1613,7 +1664,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1644,7 +1696,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1675,7 +1728,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1706,7 +1760,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1737,7 +1792,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1768,7 +1824,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1799,7 +1856,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1830,7 +1888,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1861,7 +1920,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1892,7 +1952,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1923,7 +1984,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1960,7 +2022,8 @@
           "categorized": true,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1991,7 +2054,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2022,7 +2086,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2053,7 +2118,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2084,7 +2150,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2115,7 +2182,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2146,7 +2214,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2177,7 +2246,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2208,7 +2278,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2239,7 +2310,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2270,7 +2342,8 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -2301,10 +2374,10 @@
           "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     }
   ]
 }
-

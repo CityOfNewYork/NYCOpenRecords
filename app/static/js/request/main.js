@@ -145,8 +145,10 @@ function toggleRequestAgencyInstructions(action) {
 }
 
 // variables used to handle custom forms
+var customRequestFormsEnabled = false; // determines if custom request forms have been enabled
 var showMultipleRequestTypes = false; // determines if that agency's custom forms can be repeated
 var repeatableCounter = {}; // tracks how many more repeatable options can be rendered
+var maxRepeatable = {}; // tracks the maximum number of times each form can be repeated
 var previousValues = []; // tracks the previous values of each request type dropdown
 var currentValues = []; // tracks the current values of each request type dropdown
 var customRequestFormCounter = 1; // tracks how many request type dropdowns have been rendered
@@ -160,6 +162,7 @@ var categoryDividerText = "─────────────────�
 var defaultCateogryInfoText = "Note: This agency has categorized the different types of requests a user can submit and they are separated in the dropdown below. Your request may have multiple submissions of only one category.";
 var defaultCategoryWarningText = "Selecting this option will remove any existing information for other request types. Are you sure you want to change categories?";
 var currentAgency = ""; // tracks the current agency that has been selected
+var originalFormNames = {}; // tracks the original text for a form option
 var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
 
 function getCustomRequestForms(agencyEin) {
@@ -167,8 +170,10 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    customRequestFormsEnabled = false;
     repeatableCounter = {};
     categorized = false;
+    maxRepeatable = {};
     formCategories = {};
     currentCategory = "";
     categorySelected = false;
@@ -184,11 +189,15 @@ function getCustomRequestForms(agencyEin) {
     var requestType = $(requestTypeId);
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
+    var requestDescriptionSection = $("#request-description-section");
+    var requestDescriptionAlert = $("#request-description-alert");
+    var requestDescriptionField = $("#request-description");
 
     requestType.empty();
     customRequestFormContent.html("");
     customRequestFormContent.hide();
     customRequestFormAdditionalContent.hide();
+    $("#custom-request-forms-warning").hide();
 
     // ajax call to show request type drop down
     $.ajax({
@@ -218,14 +227,20 @@ function getCustomRequestForms(agencyEin) {
                     categorized = false;
                     $("#category-info").hide();
                 }
+                customRequestFormsEnabled = true;
+                // hide request description and pre fill it with placeholder to bypass parsley
+                requestDescriptionSection.hide();
+                requestDescriptionAlert.hide();
+                requestDescriptionField.val("custom request forms");
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
                     url: "/agency/api/v1.0/custom_request_forms/" + selectedAgency,
                     type: "GET",
                     success: function (data) {
                         if (data.length === 1) {
-                            // if only one option, render that form by default
+                            originalFormNames[data[0][0]] = data[0][1];
                             repeatableCounter[[data[0][0]]] = data[0][2];
+                            maxRepeatable[[data[0][0]]] = data[0][2];
                             formCategories[[data[0][0]]] = data[0][3];
                             minimumRequired[[data[0][0]]] = data[0][4];
                             requestType.append(new Option(data[0][1], data[0][0]));
@@ -242,7 +257,9 @@ function getCustomRequestForms(agencyEin) {
                             var categoryCounter = 1;
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
+                                originalFormNames[data[i][0]] = data[i][1];
                                 repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
+                                maxRepeatable[[data[i][0]]] = data[i][2];
                                 formCategories[data[i][0]] = data[i][3];
                                 minimumRequired[data[i][0]] = data[i][4];
                                 var option = new Option(data[i][1], data[i][0]);
@@ -261,6 +278,7 @@ function getCustomRequestForms(agencyEin) {
                             customRequestPanelDiv.show();
                             customRequestFormsDiv.show();
                         }
+                        updateCustomRequestFormDropdowns();
                     }
                 });
                 // check if custom forms are repeatable
@@ -275,12 +293,19 @@ function getCustomRequestForms(agencyEin) {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
                 $("#category-info").hide();
+                // if custom request forms are disabled then show the regular request description
+                requestDescriptionSection.show();
+                requestDescriptionAlert.show();
+                requestDescriptionField.val("");
             }
         },
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
             $("#category-info").hide();
+            requestDescriptionSection.show();
+            requestDescriptionAlert.show();
+            requestDescriptionField.val("");
         }
     });
 }
@@ -327,6 +352,7 @@ function populateDropdown(agencyEin) {
                             requestType.append(option);
                         }
                     }
+                    updateCustomRequestFormDropdowns();
                 }
             });
         }
@@ -336,7 +362,9 @@ function populateDropdown(agencyEin) {
 function updateCustomRequestFormDropdowns() {
     /*
      * Update the dropdowns to disable options where they are no longer repeatable.
+     * Update the option text to show instance number of each form and how many more you can create.
      */
+    // this section handles disabling options when they reach their repeatable limit
     $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
@@ -347,6 +375,54 @@ function updateCustomRequestFormDropdowns() {
                 $(this).removeAttr("disabled");
             }
         });
+    });
+
+    // this section dynamically updates the option text to show how many more times a form can be created
+    var backwards = {}; // we will use this to count backwards from the number of form instances used until we reach 0
+    var originalBackwards = {}; // this keeps track of original number of instances of each form before we started counting backwards
+
+    // set the counters to have 0 for each form id
+    for (var key in repeatableCounter) {
+        backwards[key] = 0;
+        originalBackwards[key] = 0;
+    }
+    // loop through currentValues and every time you see an instance of a form id, increment the counter
+    for (var i = 0; i < currentValues.length; i++) {
+        backwards[currentValues[i]]++;
+        originalBackwards[currentValues[i]]++;
+    }
+
+    // now we have counters that tell us how many times a form id appears on screen
+
+    // loop through each request type dropdown
+    $(".request-type").each(function () {
+        var requestTypeOptions = "#" + this.id + " > option";
+        if (this.value !== "") { // if the dropdown is not exmpty execute this block
+            $(requestTypeOptions).each(function () { // loop through each option in the dropdown
+                console.log(this.text);
+                if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
+                    var originalText = originalFormNames[this.value]; // get the actual form name
+                    if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
+                        $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    }
+                    else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
+                        $(this).text(originalText + " (" + (maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    }
+                    if (backwards[this.value] > 1) { // update the backwards counter for the next time you see the same form selected in another dropdown
+                        backwards[this.value]--;
+                    }
+                }
+            });
+        }
+        else { // if the dropdown is empty execute this block because we have to skip this when counting backwards
+            $(requestTypeOptions).each(function () {
+                if (this.text !== "" && this.text !== categoryDividerText) {
+                    // if we see a dropdown with no value selected then we will use the original instance counter number to prepare for when an option is actually selected
+                    var originalText = originalFormNames[this.value];
+                    $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                }
+            });
+        }
     });
 }
 
@@ -575,8 +651,8 @@ function handleCategorySwitch(formId) {
     $(".appended-div").remove();
     // reset the current and previous value arrays
     for (var i = 0; i < currentValues.length; i++) {
-            previousValues[i] = "";
-            currentValues[i] = "";
+        previousValues[i] = "";
+        currentValues[i] = "";
     }
     currentValues[0] = formId;
     // reset the repeatable counter using ajax
@@ -595,6 +671,24 @@ function handleCategorySwitch(formId) {
     renderCustomRequestForm("1");
 }
 
+function checkRequestTypeDropdowns() {
+    /*
+     * Function to check if at least one request type dropdown has a selected value
+     */
+    $("#custom-request-forms-warning").hide();
+    var counter = 0;
+    for (var i = 0; i < currentValues.length; i++) {
+        if (currentValues[i] !== "") {
+            counter++;
+        }
+    }
+    if (customRequestFormsEnabled === true && counter === 0) {
+        $("#custom-request-forms-warning").show();
+        return true;
+    }
+    return false;
+}
+
 function processCustomRequestFormData() {
     /*
      * Process the custom request form data into a JSON to be passed back on submit
@@ -602,6 +696,7 @@ function processCustomRequestFormData() {
     var formNumber = 1;
     var fieldNumber = 1;
     var invalidForms = [];
+    var requestDescriptionText = "";
     for (var i = 0; i < currentValues.length; i++) {
         if (currentValues[i] !== "") {
             var target = (i + 1).toString();
@@ -622,6 +717,9 @@ function processCustomRequestFormData() {
             customRequestFormData[formKey] = {};
             customRequestFormData[formKey]["form_name"] = formName;
             customRequestFormData[formKey]["form_fields"] = {};
+
+            // append form name to request description text
+            requestDescriptionText = requestDescriptionText + formName + ", ";
 
             // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
@@ -685,5 +783,9 @@ function processCustomRequestFormData() {
         }
     }
     $("#custom-request-forms-data").val(JSON.stringify(customRequestFormData));
+    if (customRequestFormsEnabled) {
+        requestDescriptionText = requestDescriptionText.slice(0, -2); // remove the last 2 characters
+        $("#request-description").val(requestDescriptionText);
+    }
     return invalidForms;
 }

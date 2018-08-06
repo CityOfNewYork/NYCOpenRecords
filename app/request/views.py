@@ -306,11 +306,23 @@ def view(request_id):
     else:
         generate_letters_enabled = False
 
+    # Determine if custom request forms are enabled
+    if 'enabled' in current_request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = current_request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
     # Determine if custom request form panels should be expanded by default
     if 'expand_by_default' in current_request.agency.agency_features['custom_request_forms']:
         expand_by_default = current_request.agency.agency_features['custom_request_forms']['expand_by_default']
     else:
         expand_by_default = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in current_request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = current_request.agency.agency_features['custom_request_forms']['description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     return render_template(
         'request/view_request.html',
@@ -342,7 +354,9 @@ def view(request_id):
         is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL),
         generate_letters_enabled=generate_letters_enabled,
-        expand_by_default=expand_by_default
+        custom_request_forms_enabled = custom_request_forms_enabled,
+        expand_by_default=expand_by_default,
+        description_hidden_by_default=description_hidden_by_default
     )
 
 

@@ -459,6 +459,19 @@ def send_confirmation_email(request, agency, user):
         email_template = "email_templates/email_not_onboarded.html"
         agency_default_email = agency.default_email
 
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     # grabs the html of the email message so we can store the content in the Emails object
     email_content = render_template(email_template,
                                     current_request=request,
@@ -467,7 +480,9 @@ def send_confirmation_email(request, agency, user):
                                     user=user,
                                     address=address,
                                     file_link=file_link,
-                                    page=page)
+                                    page=page,
+                                    custom_request_forms_enabled=custom_request_forms_enabled,
+                                    description_hidden_by_default=description_hidden_by_default)
 
     try:
         # if the requester supplied an email, send it to the request and bcc the agency
