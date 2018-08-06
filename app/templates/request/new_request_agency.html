@@ -53,7 +53,7 @@
                 {{ form.request_title(id="request-title", class="input-block-level",
                         placeholder="Please provide a short summary of your request.", maxlength="90") }}
                 <h5 id="title-character-count">90 characters remaining</h5>
-                <div id="request-description-alert" class="alert alert-info">
+                <div class="alert alert-info">
                     <p><strong>
                         Note: The title of this request will be visible to the public.
                         Do not enter personal information here.
@@ -77,9 +77,6 @@
                 </div>
 
                 {# Dropdown for request type based on custom request forms #}
-                <div class="alert alert-info" id="category-info" hidden>
-                    <p id="category-info-text"></p>
-                </div>
                 <div id="custom-request-forms-warning" class="alert alert-danger" hidden>
                     <p>You must select at least one request type from the dropdown below.</p>
                 </div>
@@ -98,6 +95,9 @@
                 <div id="custom-request-form-additional-content" style="text-align: center;" hidden>
                     <button type="button" class="btn btn-info">Add New Request Information</button>
                     <br><br>
+                </div>
+                <div class="alert alert-info" id="category-info" hidden>
+                    <p id="request-info-text"></p>
                 </div>
                 <div class="modal fade" id="panel-dismiss-modal" tabindex="-1" role="dialog">
                     <div class="vertical-alignment-helper">

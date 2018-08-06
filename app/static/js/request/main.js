@@ -159,7 +159,8 @@ var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
 var categorySelected = false; // a flag that determines if a category has been set yet or not
 var categoryDividerText = "────────────────────";
-var defaultCateogryInfoText = "Note: This agency has categorized the different types of requests a user can submit and they are separated in the dropdown below. Your request may have multiple submissions of only one category.";
+var defaultInfoText = "Note: The request details written here will not be visible to the public. However, this agency may post a description of the records provided.";
+var defaultCateogryInfoText = "This agency has categorized the different types of requests a user can submit and they are separated in the dropdown below. This request may have multiple submissions of only one category.";
 var defaultCategoryWarningText = "Selecting this option will remove any existing information for other request types. Are you sure you want to change categories?";
 var currentAgency = ""; // tracks the current agency that has been selected
 var originalFormNames = {}; // tracks the original text for a form option
@@ -190,7 +191,6 @@ function getCustomRequestForms(agencyEin) {
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
     var requestDescriptionSection = $("#request-description-section");
-    var requestDescriptionAlert = $("#request-description-alert");
     var requestDescriptionField = $("#request-description");
 
     requestType.empty();
@@ -210,10 +210,10 @@ function getCustomRequestForms(agencyEin) {
                     categorized = true;
                     // set custom text is agency has provided it otherwise use the default text
                     if (data["custom_request_forms"]["category_info_text"]) {
-                        $("#category-info-text").html(data["custom_request_forms"]["category_info_text"].bold());
+                        $("#request-info-text").html(defaultInfoText.bold() + " " + data["custom_request_forms"]["category_info_text"].bold());
                     }
                     else {
-                        $("#category-info-text").html(defaultCateogryInfoText.bold());
+                        $("#request-info-text").html(defaultInfoText.bold() + " " + defaultCateogryInfoText.bold());
                     }
                     if (data["custom_request_forms"]["category_warning_text"]) {
                         $("#category-warning-text").html(data["custom_request_forms"]["category_warning_text"]);
@@ -230,7 +230,6 @@ function getCustomRequestForms(agencyEin) {
                 customRequestFormsEnabled = true;
                 // hide request description and pre fill it with placeholder to bypass parsley
                 requestDescriptionSection.hide();
-                requestDescriptionAlert.hide();
                 requestDescriptionField.val("custom request forms");
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
@@ -295,7 +294,6 @@ function getCustomRequestForms(agencyEin) {
                 $("#category-info").hide();
                 // if custom request forms are disabled then show the regular request description
                 requestDescriptionSection.show();
-                requestDescriptionAlert.show();
                 requestDescriptionField.val("");
             }
         },
@@ -304,7 +302,6 @@ function getCustomRequestForms(agencyEin) {
             customRequestFormsDiv.hide();
             $("#category-info").hide();
             requestDescriptionSection.show();
-            requestDescriptionAlert.show();
             requestDescriptionField.val("");
         }
     });
