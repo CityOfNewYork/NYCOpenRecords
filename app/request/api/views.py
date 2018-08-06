@@ -236,7 +236,7 @@ def get_request_responses():
 
     else:
         # If the user is not an agency user assigned to the request or the requester, then only responses that are
-        # "Release and Public" whose release date is not in the future can b e retrieved.
+        # "Release and Public" whose release date is not in the future can be retrieved.
         responses = Responses.query.filter(
             Responses.request_id == current_request.id,
             ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),

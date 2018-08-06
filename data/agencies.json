@@ -548,7 +548,7 @@
           "generate_letters": false
         },
         "specific_request_instructions": {
-          "text": ""
+          "text": "<strong>In the “Request Description” box, please describe with as much specificity as possible the record(s) you are requesting.  Include, as applicable, the following information:</strong><br /><i><ul><li>Project name</li><li>Address</li><li>Borough(s)</li><li>Block numbers(s)</li><li>Lot number(s)</li><li>CP or ULURP number(s)</li><li>CEQR number(s)</li><li>Relevant dates</li><li>Type of record(s)</li></ul></i><strong>Please note: </strong>Broadly worded requests seeking “any” or “all” records related to a subject matter have the potential to implicate hundreds if not thousands of records, including emails. Requests for emails require an extensive search, and a determination regarding such a broad request typically takes a minimum of sixty (60) business days. If making a request for emails, when possible, the specific sender(s) and recipient(s) should be identified, as well as specific date ranges.<br /><br />See more information about the <a rel=\"noopener noreferrer\" target=\"_blank\" href=\"https://www1.nyc.gov/assets/planning/download/pdf/about/proc_pub_inspection.pdf?r=0518\">Department's FOIL procedures</a>."
         }
       }
     },
