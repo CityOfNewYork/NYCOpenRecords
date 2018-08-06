@@ -5,17 +5,14 @@
     synopsis: Handles the functions for responses
 
 """
-import os
-import re
 import json
-
 from datetime import datetime
-from abc import ABCMeta, abstractmethod
 from urllib.parse import urljoin, urlencode
 
+import os
+import re
+from abc import ABCMeta, abstractmethod
 from cached_property import cached_property
-from werkzeug.utils import secure_filename
-from flask_login import current_user
 from flask import (
     current_app,
     request as flask_request,
@@ -25,7 +22,12 @@ from flask import (
     jsonify,
     Markup
 )
+from flask_login import current_user
+from werkzeug.utils import secure_filename
+
+import app.lib.file_utils as fu
 from app import email_redis, calendar, sentry
+from app.auth.utils import find_user_by_email
 from app.constants import (
     event_type,
     response_type,
@@ -42,12 +44,12 @@ from app.constants import (
     CONFIRMATION_LETTER_HEADER_TO_REQUESTER,
     EMAIL_TEMPLATE_FOR_EVENT
 )
-from app.constants.request_date import RELEASE_PUBLIC_DAYS
-from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
 from app.constants import (
     permission,
     TINYMCE_EDITABLE_P_TAG
 )
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
+from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
 from app.lib.date_utils import (
     get_next_business_day,
     get_due_date,
@@ -58,14 +60,13 @@ from app.lib.date_utils import (
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
-import app.lib.file_utils as fu
-from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
-from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.lib.pdf import (
     generate_pdf,
     generate_envelope,
     generate_envelope_pdf
 )
+from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
+from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.models import (
     CommunicationMethods,
     Events,
@@ -86,7 +87,6 @@ from app.models import (
     EnvelopeTemplates
 )
 from app.request.api.utils import create_request_info_event
-from app.auth.utils import find_user_by_email
 
 
 # TODO: class ResponseProducer()
@@ -464,7 +464,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
         previous_status = request.status
-        date = datetime.strptime(date, '%m/%d/%Y')
+        date = datetime.strptime(date, '%Y-%m-%d')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
@@ -492,7 +492,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
             new_value={'status': request.status}
         )
 
-        if method == 'email':
+        if method == 'emails':
             email_id = _send_response_email(request_id,
                                             privacy,
                                             content,
@@ -501,7 +501,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
                                          email_id,
                                          response_type.EMAIL)
 
-        elif method == 'letter':
+        elif method == 'letters':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
 
             letter_id = _add_letter(request_id, letter_template.title, content,
@@ -815,13 +815,13 @@ def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
 
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: number of days the due date is being extended by
-    :param custom_due_date: custom due date of the request (string in format '%m/%d/%Y')
+    :param custom_due_date: custom due date of the request (string in format '%Y-%m-%d')
     :param tz_name: client's timezone name
 
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        date = datetime.strptime(custom_due_date, '%m/%d/%Y')
+        date = datetime.strptime(custom_due_date, '%Y-%m-%d')
         new_due_date = process_due_date(local_to_utc(date, tz_name))
     else:
         new_due_date = get_due_date(
@@ -916,7 +916,12 @@ def process_email_template_request(request_id, data):
             response_type.USER_REQUEST_EDITED: _user_request_edited_email_handler,
             response_type.USER_REQUEST_REMOVED: _user_request_removed_email_handler
         }
-    return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
+    return handler_for_type[rtype](
+        request_id=request_id,
+        data=data,
+        page=page,
+        agency_name=agency_name,
+        email_template=email_template)
 
 
 def assign_point_of_contact(point_of_contact):
@@ -1217,6 +1222,58 @@ def _denial_letter_handler(request_id, data):
                         "header": header}), 200
 
 
+def _reopening_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id (String): FOIL request ID
+    :param data (JSON Dict): data from frontend AJAX call
+    :param page (String): string url link of the request
+    :param agency_name (String): string name of the agency of the request
+    :param email_template (String [HTML Formatted]): raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
+    reason = data.get('reason', None)
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+
+    if reason is not None: # This means we are generating the initial email.
+        default_content = True
+        content = None
+
+        date = datetime.strptime(data['date'], '%Y-%m-%d')
+        reason_id = data.get('reason')
+        reason = Reasons.query.filter_by(id=reason_id).one().content
+        return jsonify(
+            {
+                "template": render_template(
+                    email_template,
+                    default_content=default_content,
+                    content=content,
+                    reason=reason,
+                    request_id=request_id,
+                    agency_name=agency_name,
+                    date=process_due_date(local_to_utc(date, data['tz_name'])),
+                    page=page),
+                "header": header
+            }
+        ), 200
+    else: # If the reason is None, we are only rendering the final confirmation dialog.
+        # TODO (@joelbcastillo): We should probably add a step parameter instead of relying on the value of the reason.
+        default_content = False
+        content = data['email_content']
+        return jsonify(
+            {
+                "template": render_template(
+                    email_template,
+                    default_content=default_content,
+                    content=content,
+                    page=page),
+                "header": header
+            }
+        ), 200
+
+
 def _reopening_letter_handler(request_id, data):
     """
 
@@ -1235,26 +1292,28 @@ def _reopening_letter_handler(request_id, data):
     # Reopening is only provided when getting default letter template.
     if data is not None:
         if data.get('letter_content', None) is not None:
+            # If letter_content is provided, we are displaying confirmation dialog
             letter_content = render_template_string(data['letter_content'])
-            return jsonify({"template": letter_content,
-                            "header": header})
-        contents = LetterTemplates.query.filter_by(id=data['letter_template']).first()
+            return jsonify(
+                {
+                    "template": letter_content,
+                    "header": header
+                }
+            )
 
+        # Process the front-end information and generate the letter content
+
+        # Retrieve letter template
+        letter_template = LetterTemplates.query.filter_by(id=data['letter_template']).first()
+
+        # Retrieve information to be filled in letter template
         now = datetime.utcnow()
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
-
-        letterhead = render_template_string(agency_letter_data['letterhead'])
-
         point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
         tz_name = data.get('tz_name', current_app.config['APP_TIMEZONE'])
         due_date = _get_new_due_date(request_id, '-1', data['date'], tz_name)
 
-        content = render_template_string(contents.content,
-                                         date=request.date_submitted,
-                                         due_date=due_date,
-                                         request_id=request_id,
-                                         user=point_of_contact_user)
-
+        # Setup signature
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
                 u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
@@ -1266,19 +1325,36 @@ def _reopening_letter_handler(request_id, data):
             u = current_user
         signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
 
-        template = render_template('letters/base.html',
-                                   letterhead=Markup(letterhead),
-                                   signature=Markup(signature),
-                                   request=request,
-                                   date=date,
-                                   contents=Markup(content),
-                                   request_id=request_id,
-                                   footer=Markup(agency_letter_data['footer']))
-        return jsonify({"template": template,
-                        "header": header})
+        # Render letter components
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+        rendered_letter_content = render_template_string(letter_template.content,
+                                                         date=request.date_submitted,
+                                                         due_date=due_date,
+                                                         request_id=request_id,
+                                                         user=point_of_contact_user)
+
+        # Combine components and render letter
+        rendered_letter = render_template('letters/base.html',
+                                          letterhead=Markup(letterhead),
+                                          signature=Markup(signature),
+                                          request=request,
+                                          date=date,
+                                          contents=Markup(rendered_letter_content),
+                                          request_id=request_id,
+                                          footer=Markup(agency_letter_data['footer']))
+        return jsonify(
+            {
+                "template": rendered_letter,
+                "header": header
+            }
+        )
 
     else:
-        return jsonify({"error": "bad request"}), 400
+        return jsonify(
+            {
+                "error": "bad request"
+            }
+        ), 400
 
 
 def _response_letter_handler(request_id, data):
@@ -1357,7 +1433,8 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     # Determine if request description should be hidden when custom forms are enabled
     if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
-        description_hidden_by_default = request.agency.agency_features['custom_request_forms']['description_hidden_by_default']
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
     else:
         description_hidden_by_default = False
 
@@ -1433,7 +1510,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
     # Determine if request description should be hidden when custom forms are enabled
     if 'description_hidden_by_default' in req.agency.agency_features['custom_request_forms']:
-        description_hidden_by_default = req.agency.agency_features['custom_request_forms']['description_hidden_by_default']
+        description_hidden_by_default = req.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
     else:
         description_hidden_by_default = False
 
@@ -1495,49 +1573,6 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
-
-
-def _reopening_email_handler(request_id, data, page, agency_name, email_template):
-    """
-    Process email template for reopening a request.
-
-    :param request_id: FOIL request ID
-    :param data: data from frontend AJAX call
-    :param page: string url link of the request
-    :param agency_name: string name of the agency of the request
-    :param email_template: raw HTML email template of a response
-
-    :return: the HTML of the rendered email template of a reopening
-    """
-    reason = data.get('reason', None)
-    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
-
-    if reason is not None:
-        default_content = True
-        content = None
-
-        date = datetime.strptime(data['date'], '%m/%d/%Y')
-        reason_id = data.get('reason')
-        reason = Reasons.query.filter_by(id=reason_id).one().content
-        return jsonify({"template": render_template(
-            email_template,
-            default_content=default_content,
-            content=content,
-            reason=reason,
-            request_id=request_id,
-            agency_name=agency_name,
-            date=process_due_date(local_to_utc(date, data['tz_name'])),
-            page=page), "header": header}), 200
-    else:
-        default_content = False
-        content = data['email_content']
-        date = None
-        return jsonify({"template": render_template(
-            email_template,
-            default_content=default_content,
-            content=content,
-            page=page), "header": header}), 200
-
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):
     """

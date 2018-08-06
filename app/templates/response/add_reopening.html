@@ -20,16 +20,16 @@
                         <label for="reopening-method">Method</label>
                         <select id="reopening-method" name="method" class="disable-enter-submit form-control">
                             <option value="" selected="selected" disabled="disabled">None selected</option>
-                            <option value="email">Email</option>
-                            <option value="letter">Letter</option>
+                            <option value="emails">Email</option>
+                            <option value="letters">Letter</option>
                         </select>
                     </div>
                 {% else %}
                     <input type="hidden" id="reopening-method" name="method" value="email"/>
                 {% endif %}
-                <div id="reopening-email-reason-id-group" class="form-group" hidden>
-                    <label for="reopening-email-reason-id">Reason</label>
-                    <select id="reopening-email-reason-id" name="reason-id" class="disable-enter-submit form-control">
+                <div id="reopening-reason-id-group" class="form-group" hidden>
+                    <label for="reopening-reason-id">Reason</label>
+                    <select id="reopening-reason-id" name="reason-id" class="disable-enter-submit form-control">
                     </select>
                 </div>
                 <div id="reopening-letter-template-group" class="form-group" hidden>
