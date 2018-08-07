@@ -405,7 +405,6 @@ function updateCustomRequestFormDropdowns() {
         var requestTypeOptions = "#" + this.id + " > option";
         if (this.value !== "") { // if the dropdown is not exmpty execute this block
             $(requestTypeOptions).each(function () { // loop through each option in the dropdown
-                console.log(this.text);
                 if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
                     var originalText = originalFormNames[this.value]; // get the actual form name
                     if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
