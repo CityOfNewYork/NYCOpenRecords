@@ -481,7 +481,7 @@ function renderCustomRequestForm(target) {
                     // render timepicker plugins
                     $(".timepicker").timepicker({
                         timeFormat: "h:mm p",
-                        interval: 30,
+                        interval: 15,
                         minTime: "12:00am",
                         maxTime: "11:59pm",
                         startTime: "12:00am",
