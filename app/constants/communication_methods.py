@@ -1,0 +1,12 @@
+EMAIL = 'emails'
+LETTER = 'letters'
+
+COMMUNICATION_METHODS_AS_CHOICES = [
+    (EMAIL, EMAIL.title()),
+    (LETTER, LETTER.title())
+]
+
+COMMUNICATION_METHODS = [
+    EMAIL,
+    LETTER
+]

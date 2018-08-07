@@ -14,22 +14,42 @@
         var prev3 = third.find(".prev");
         var submit = third.find(".submit");
 
-        var edit_body_header = second.find("edit-body-header");
+        var edit_body_header = second.find("#edit-body-header");
 
         var method = first.find("#reopening-method");
         var letter_template_group = first.find("#reopening-letter-template-group");
         var letter_template = first.find("#reopening-letter-template");
-        var email_reason_group = first.find("#reopening-email-reason-id-group");
-        var email_reason = first.find("#reopening-email-reason-id");
+        var reason_group = first.find("#reopening-reason-id-group");
+        var reason = first.find("#reopening-reason-id");
         var date = first.find("#reopening-date");
 
         // Parsley
         method.attr("data-parsley-required", "");
         date.attr("data-parsley-required", "");
 
-        // Datepicker for new due date
+        // Setup the reason dropdown
+
+        reason_group.show();
+        reason.attr("data-parsley-required", "");
+        $.ajax({
+            url: "/agency/api/v1.0/reasons/{{ request.agency.ein }}/re-opening",
+            success: function (data) {
+                var reasons = data['re-opening'];
+                for (var i = 0; i < reasons.length; i++) {
+                    var opt = document.createElement("option");
+                    opt.innerHTML = reasons[i][1];
+                    opt.value = reasons[i][0];
+                    reason.append(opt);
+                }
+            }
+        });
+
+        // Date Picker Setup
+        holiday_dates = {{ holidays | safe }};
         date.datepicker({
             dateFormat: "mm/dd/yy",
+            daysOfWeekDisabled: [0, 6],
+            beforeShowDay: notHolidayOrWeekend,
             minDate: 0
         }).keydown(function (e) {
             // prevent keyboard input except for tab
@@ -39,10 +59,9 @@
         });
 
         method.change(function () {
-            if (method.val() === 'letter') {
-                email_reason_group.hide();
-                email_reason.removeAttr();
-                email_reason.empty();
+            // Handles validation changes caused by changing the value in the method dropdown
+            if (method.val() === 'letters') {
+                // Make letter template required in addition to reason if letter method selected.
                 letter_template_group.show();
                 letter_template.attr("data-parsley-required", "");
                 $.ajax({
@@ -57,52 +76,27 @@
                         }
                     }
                 });
-
-            } else if (method.val() === 'email') {
+            } else if (method.val() === 'emails') {
+                // Hide the letter template if the email value is selected (default option).
                 letter_template_group.hide();
                 letter_template.removeAttr();
                 letter_template.empty().append("<option value='' selected disabled>None Selected</option>");
-                email_reason_group.show();
-                email_reason.attr("data-parsley-required", "");
-                $.ajax({
-                    url: "/agency/api/v1.0/reasons/{{ request.agency.ein }}/re-opening",
-                    success: function (data) {
-                        var reasons = data['re-opening'];
-                        for (var i = 0; i < reasons.length; i++) {
-                            var opt = document.createElement("option");
-                            opt.innerHTML = reasons[i][1];
-                            opt.value = reasons[i][0];
-                            email_reason.append(opt);
-                        }
-                    }
-                });
             }
         });
 
-        // Date Picker
-        holiday_dates = {{ holidays | safe }};
-        date.datepicker({
-            dateFormat: "mm/dd/yyyy",
-            daysOfWeekDisabled: [0, 6],
-            beforeShowDay: notHolidayOrWeekend,
-            minDate: 0
-        });
-        date.keydown(false);
-
         next1.click(function () {
+            // Validate standard fields
             method.parsley().validate();
             date.parsley().validate();
+            reason.parsley().validate();
 
             if (letter_template_group.is(':visible')) {
+                // Only validate the letter template if it is visible (method = 'letters')
                 letter_template.parsley().validate();
             }
 
-            if (email_reason_group.is(':visible')) {
-                email_reason.parsley().validate();
-            }
-
-            if (method.parsley().isValid() && date.parsley().isValid()) {
-                if (method.val() === 'email') {
+            if (method.parsley().isValid() && date.parsley().isValid() && reason.parsley().isValid()) {
+                if (method.val() === 'emails') {
                     $.ajax({
                         url: "/response/email",
                         type: "POST",
@@ -110,7 +104,7 @@
                             request_id: "{{ request.id }}",
                             type: "re-opening",
                             date: date.val(),
-                            reason: email_reason.val(),
+                            reason: reason.val(),
                             tz_name: jstz.determine().name()
                         },
                         success: function (data) {
@@ -119,7 +113,6 @@
                             flask_moment_render_all();
                             tinyMCE.get("reopening-body").setContent(emailContent.html());
 
-                            second.find("#header").text(data.header);
                         }
                     });
                     edit_body_header.html("Edit Email Body");
@@ -132,6 +125,7 @@
                             type: "re-opening",
                             date: date.val(),
                             letter_template: letter_template.val(),
+                            reason: reason.val(),
                             point_of_contact: point_of_contact.val(),
                             tz_name: jstz.determine().name()
                         },
@@ -140,10 +134,9 @@
                             letterContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("reopening-body").setContent(letterContent.html());
-
-                            second.find("#header").text(data.header);
                         }
                     });
+                    edit_body_header.html("Edit Letter Body");
                 }
                 first.hide();
                 second.show();
@@ -153,7 +146,7 @@
         next2.click(function () {
             tinyMCE.triggerSave();
 
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",
@@ -168,6 +161,7 @@
                         third.find("input[name='tz-name']").val(jstz.determine().name());
                         third.find(".confirmation-header").text(data.header);
                         third.find(".method").val(method.val());
+                        third.find("#header").html(data.header)
                     }
                 })
             } else {
@@ -183,11 +177,14 @@
                         third.find(".summary").html(data.template);
                         third.find("input[name='summary']").val(data.template);
                         third.find("input[name='tz-name']").val(jstz.determine().name());
+                        third.find("input[name='letter-template-id']").val(letter_template.val());
                         third.find(".confirmation-header").text(data.header);
                         third.find(".method").val(method.val());
+                        third.find("#header").html(data.header)
                     }
                 });
             }
+
             second.hide();
             third.show();
         });
