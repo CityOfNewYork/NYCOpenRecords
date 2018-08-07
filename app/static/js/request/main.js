@@ -166,6 +166,12 @@ var customRequestFormData = {}; // tracks the data of custom forms that will be 
 var formCategories = {}; // tracks what category each form belongs to
 var categorized = false; // determines if selected agency has categorized forms
 var currentCategory = ""; // tracks the current category that can be submitted for the selected agency
+var categorySelected = false; // a flag that determines if a category has been set yet or not
+var categoryDividerText = "────────────────────";
+var defaultInfoText = "Note: The request details written here will not be visible to the public. However, this agency may post a description of the records provided.";
+var defaultCateogryInfoText = "This agency has categorized the different types of requests a user can submit and they are separated in the dropdown below. This request may have multiple submissions of only one category.";
+var defaultCategoryWarningText = "Selecting this option will remove any existing information for other request types. Are you sure you want to change categories?";
+var currentAgency = ""; // tracks the current agency that has been selected
 var originalFormNames = {}; // tracks the original text for a form option
 var minimumRequired = {}; // tracks the minimum amount of completed fields a custom request forms needs to be submitted
 
@@ -176,10 +182,13 @@ function getCustomRequestForms(agencyEin) {
      */
     customRequestFormsEnabled = false;
     repeatableCounter = {};
+    categorized = false;
     maxRepeatable = {};
     formCategories = {};
     currentCategory = "";
+    categorySelected = false;
     customRequestFormCounter = 1;
+    currentAgency = agencyEin;
 
     var selectedAgency = agencyEin;
     var customRequestPanelDiv = $("#custom-request-panel-" + customRequestFormCounter.toString());
@@ -191,7 +200,6 @@ function getCustomRequestForms(agencyEin) {
     var customRequestFormContent = $(customRequestFormId);
     var customRequestFormAdditionalContent = $("#custom-request-form-additional-content");
     var requestDescriptionSection = $("#request-description-section");
-    var requestDescriptionAlert = $("#request-description-alert");
     var requestDescriptionField = $("#request-description");
 
     requestType.empty();
@@ -206,10 +214,31 @@ function getCustomRequestForms(agencyEin) {
         type: "GET",
         success: function (data) {
             if (data["custom_request_forms"]["enabled"] === true) {
+                // determine if form options are categorized
+                if (data["custom_request_forms"]["categorized"]) {
+                    categorized = true;
+                    // set custom text is agency has provided it otherwise use the default text
+                    if (data["custom_request_forms"]["category_info_text"]) {
+                        $("#request-info-text").html(defaultInfoText.bold() + " " + data["custom_request_forms"]["category_info_text"].bold());
+                    }
+                    else {
+                        $("#request-info-text").html(defaultInfoText.bold() + " " + defaultCateogryInfoText.bold());
+                    }
+                    if (data["custom_request_forms"]["category_warning_text"]) {
+                        $("#category-warning-text").html(data["custom_request_forms"]["category_warning_text"]);
+                    }
+                    else {
+                        $("#category-warning-text").html(defaultCategoryWarningText);
+                    }
+                    $("#category-info").show();
+                }
+                else {
+                    categorized = false;
+                    $("#category-info").hide();
+                }
                 customRequestFormsEnabled = true;
                 // hide request description and pre fill it with placeholder to bypass parsley
                 requestDescriptionSection.hide();
-                requestDescriptionAlert.hide();
                 requestDescriptionField.val("custom request forms");
                 // ajax call to populate request type drop down with custom request form options
                 $.ajax({
@@ -233,6 +262,7 @@ function getCustomRequestForms(agencyEin) {
                             }
                         }
                         else {
+                            var categoryCounter = 1;
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
                                 originalFormNames[data[i][0]] = data[i][1];
@@ -241,6 +271,13 @@ function getCustomRequestForms(agencyEin) {
                                 formCategories[data[i][0]] = data[i][3];
                                 minimumRequired[data[i][0]] = data[i][4];
                                 var option = new Option(data[i][1], data[i][0]);
+                                // append a divider after the last form in a category
+                                if (data[i][3] !== categoryCounter && categorized) {
+                                    var optionDivider = new Option(categoryDividerText);
+                                    optionDivider.disabled = true;
+                                    requestType.append(optionDivider); // append a disabled divider option
+                                    categoryCounter++;
+                                }
                                 requestType.append(option);
                             }
                             previousValues[0] = "";
@@ -263,24 +300,17 @@ function getCustomRequestForms(agencyEin) {
             else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
+                $("#category-info").hide();
                 // if custom request forms are disabled then show the regular request description
                 requestDescriptionSection.show();
-                requestDescriptionAlert.show();
                 requestDescriptionField.val("");
-            }
-            // determine if form options are categorized
-            if (data["custom_request_forms"]["categorized"]) {
-                categorized = true;
-            }
-            else {
-                categorized = false;
             }
         },
         error: function () {
             customRequestPanelDiv.hide();
             customRequestFormsDiv.hide();
+            $("#category-info").hide();
             requestDescriptionSection.show();
-            requestDescriptionAlert.show();
             requestDescriptionField.val("");
         }
     });
@@ -311,9 +341,16 @@ function populateDropdown(agencyEin) {
                         }
                     }
                     else {
+                        var categoryCounter = 1;
                         requestType.append(new Option("", ""));
                         for (var i = 0; i < data.length; i++) {
                             var option = new Option(data[i][1], data[i][0]);
+                            if (data[i][3] !== categoryCounter && categorized) {
+                                    var optionDivider = new Option(categoryDividerText);
+                                    optionDivider.disabled = true;
+                                    requestType.append(optionDivider);
+                                    categoryCounter++;
+                            }
                             if (repeatableCounter[data[i][0]] === 0) {
                                 // if all possible instances of the form have been rendered then disable the option
                                 option.disabled = true;
@@ -322,9 +359,6 @@ function populateDropdown(agencyEin) {
                         }
                     }
                     updateCustomRequestFormDropdowns();
-                    if (categorized) {
-                        disableOptions();
-                    }
                 }
             });
         }
@@ -340,7 +374,7 @@ function updateCustomRequestFormDropdowns() {
     $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
         $(requestTypeOptions).each(function () {
-            if (repeatableCounter[this.value] === 0) {
+            if (repeatableCounter[this.value] === 0 || this.value === categoryDividerText) {
                 $(this).attr("disabled", "disabled");
             }
             else {
@@ -371,7 +405,8 @@ function updateCustomRequestFormDropdowns() {
         var requestTypeOptions = "#" + this.id + " > option";
         if (this.value !== "") { // if the dropdown is not exmpty execute this block
             $(requestTypeOptions).each(function () { // loop through each option in the dropdown
-                if (this.text !== "") { // only update options that actually have text
+                console.log(this.text);
+                if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
                     var originalText = originalFormNames[this.value]; // get the actual form name
                     if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
                         $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
@@ -387,7 +422,7 @@ function updateCustomRequestFormDropdowns() {
         }
         else { // if the dropdown is empty execute this block because we have to skip this when counting backwards
             $(requestTypeOptions).each(function () {
-                if (this.text !== "") {
+                if (this.text !== "" && this.text !== categoryDividerText) {
                     // if we see a dropdown with no value selected then we will use the original instance counter number to prepare for when an option is actually selected
                     var originalText = originalFormNames[this.value];
                     $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
@@ -444,7 +479,6 @@ function renderCustomRequestForm(target) {
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
                     currentCategory = formCategories[formId];
-                    disableOptions();
                 }
 
                 try {
@@ -453,23 +487,24 @@ function renderCustomRequestForm(target) {
                         dateFormat: "mm/dd/yy",
                         maxDate: 0
                     }).keydown(function (e) {
-                        // prevent keyboard input except for tab
-                        if (e.keyCode !== 8 &&
-                            e.keyCode !== 9 &&
-                            e.keyCode !== 37 &&
-                            e.keyCode !== 39 &&
-                            e.keyCode !== 48 &&
-                            e.keyCode !== 49 &&
-                            e.keyCode !== 50 &&
-                            e.keyCode !== 51 &&
-                            e.keyCode !== 52 &&
-                            e.keyCode !== 53 &&
-                            e.keyCode !== 54 &&
-                            e.keyCode !== 55 &&
-                            e.keyCode !== 56 &&
-                            e.keyCode !== 57 &&
-                            e.keyCode !== 191)
+                        // prevent keyboard input except for allowed keys
+                        if (e.keyCode !== 8 && // backspace
+                            e.keyCode !== 9 && // tab
+                            e.keyCode !== 37 && // left-arrow
+                            e.keyCode !== 39 && // right-arrow
+                            e.keyCode !== 48 && // 0
+                            e.keyCode !== 49 && // 1
+                            e.keyCode !== 50 && // 2
+                            e.keyCode !== 51 && // 3
+                            e.keyCode !== 52 && // 4
+                            e.keyCode !== 53 && // 5
+                            e.keyCode !== 54 && // 6
+                            e.keyCode !== 55 && // 7
+                            e.keyCode !== 56 && // 8
+                            e.keyCode !== 57 && // 9
+                            e.keyCode !== 191) { // forward slash
                             e.preventDefault();
+                        }
                     });
                 }
                 catch (err) {
@@ -490,26 +525,27 @@ function renderCustomRequestForm(target) {
                         scrollbar: true
                     }).keydown(function (e) {
                         // prevent keyboard input except for allowed keys
-                        if (e.keyCode !== 8 &&
-                            e.keyCode !== 9 &&
-                            e.keyCode !== 37 &&
-                            e.keyCode !== 39 &&
-                            e.keyCode !== 48 &&
-                            e.keyCode !== 49 &&
-                            e.keyCode !== 50 &&
-                            e.keyCode !== 51 &&
-                            e.keyCode !== 52 &&
-                            e.keyCode !== 53 &&
-                            e.keyCode !== 54 &&
-                            e.keyCode !== 55 &&
-                            e.keyCode !== 56 &&
-                            e.keyCode !== 57 &&
-                            e.keyCode !== 16 &&
-                            e.keyCode !== 65 &&
-                            e.keyCode !== 77 &&
-                            e.keyCode !== 80 &&
-                            e.keyCode !== 186)
+                        if (e.keyCode !== 8 && // backspace
+                            e.keyCode !== 9 && // tab
+                            e.keyCode !== 37 && // left-arrow
+                            e.keyCode !== 39 && // right-arrow
+                            e.keyCode !== 48 && // 0
+                            e.keyCode !== 49 && // 1
+                            e.keyCode !== 50 && // 2
+                            e.keyCode !== 51 && // 3
+                            e.keyCode !== 52 && // 4
+                            e.keyCode !== 53 && // 5
+                            e.keyCode !== 54 && // 6
+                            e.keyCode !== 55 && // 7
+                            e.keyCode !== 56 && // 8
+                            e.keyCode !== 57 && // 9
+                            e.keyCode !== 16 && // Shift
+                            e.keyCode !== 65 && // a
+                            e.keyCode !== 77 && // m
+                            e.keyCode !== 80 && // p
+                            e.keyCode !== 186) {// semi-colon
                             e.preventDefault();
+                        }
                     });
 
                 }
@@ -641,6 +677,35 @@ function handlePanelDismiss() {
 
     // remove custom request panel div
     $(panelId).remove();
+}
+
+function handleCategorySwitch(formId) {
+    /*
+     * handle a category switch by removing all appended divs,
+      * set the new currentCategory,
+      * and render a new form belonging to the new category to the first custom request form panel.
+     */
+    $(".appended-div").remove();
+    // reset the current and previous value arrays
+    for (var i = 0; i < currentValues.length; i++) {
+        previousValues[i] = "";
+        currentValues[i] = "";
+    }
+    currentValues[0] = formId;
+    // reset the repeatable counter using ajax
+    $.ajax({
+        url: "/agency/api/v1.0/custom_request_forms/" + currentAgency,
+        type: "GET",
+        success: function (data) {
+            for (var i = 0; i < data.length; i++) {
+                repeatableCounter[data[i][0]] = data[i][2]; // set the keys to be the form id
+            }
+        }
+    });
+    currentCategory = formCategories[formId];
+    // set the new form to the first dropdown and render it
+    $("#request-type-1").val(formId);
+    renderCustomRequestForm("1");
 }
 
 function checkRequestTypeDropdowns() {

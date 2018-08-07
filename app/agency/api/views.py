@@ -1,5 +1,3 @@
-import json
-
 from flask import (
     jsonify,
     request,
@@ -9,8 +7,6 @@ from flask_login import (
     current_user,
     login_required
 )
-from sqlalchemy import asc
-
 from app.agency.api import agency_api_blueprint
 from app.agency.api.utils import (
     get_active_users_as_choices,
@@ -18,6 +14,8 @@ from app.agency.api.utils import (
     get_reasons
 )
 from app.models import CustomRequestForms
+import json
+from sqlalchemy import asc
 
 
 @login_required
@@ -90,9 +88,8 @@ def get_custom_request_form_options(agency_ein):
     custom_request_forms = CustomRequestForms.query.with_entities(CustomRequestForms.id,
                                                                   CustomRequestForms.form_name,
                                                                   CustomRequestForms.repeatable,
-                                                                  CustomRequestForms.category,
-                                                                  CustomRequestForms.minimum_required).filter_by(
-        agency_ein=agency_ein).order_by(asc(CustomRequestForms.id)).all()
+                                                                  CustomRequestForms.category).filter_by(
+        agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
     return jsonify(custom_request_forms), 200
 
 
