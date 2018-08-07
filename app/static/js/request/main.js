@@ -538,7 +538,7 @@ function renderCustomRequestForm(target) {
                 }
 
                 // initialize tooltips in custom forms
-                for (var id in data["popovers"]) {
+                for (var id in data["tooltips"]) {
                     $("#" + id + "-tooltip").attr({
                         'data-placement': "right",
                         'data-trigger': "hover focus",
