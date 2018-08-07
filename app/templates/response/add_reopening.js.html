@@ -47,7 +47,7 @@
         // Date Picker Setup
         holiday_dates = {{ holidays | safe }};
         date.datepicker({
-            dateFormat: "yy-mm-dd",
+            dateFormat: "mm/dd/yy",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
             minDate: 0

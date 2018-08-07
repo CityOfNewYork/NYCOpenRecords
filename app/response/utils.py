@@ -464,7 +464,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
         previous_status = request.status
-        date = datetime.strptime(date, '%Y-%m-%d')
+        date = datetime.strptime(date, '%m/%d/%Y')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
@@ -815,13 +815,13 @@ def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
 
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: number of days the due date is being extended by
-    :param custom_due_date: custom due date of the request (string in format '%Y-%m-%d')
+    :param custom_due_date: custom due date of the request (string in format '%m/%d/%Y')
     :param tz_name: client's timezone name
 
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        date = datetime.strptime(custom_due_date, '%Y-%m-%d')
+        date = datetime.strptime(custom_due_date, '%m/%d/%Y')
         new_due_date = process_due_date(local_to_utc(date, tz_name))
     else:
         new_due_date = get_due_date(
@@ -1241,7 +1241,7 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
         default_content = True
         content = None
 
-        date = datetime.strptime(data['date'], '%Y-%m-%d')
+        date = datetime.strptime(data['date'], '%m/%d/%Y')
         reason_id = data.get('reason')
         reason = Reasons.query.filter_by(id=reason_id).one().content
         return jsonify(
