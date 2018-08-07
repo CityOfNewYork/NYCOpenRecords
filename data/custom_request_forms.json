@@ -12,7 +12,15 @@
             "required": false,
             "placeholder": "123456789",
             "max_length": "50",
-            "character_counter": true
+            "character_counter": true,
+            "popover": {
+              "title": "Arrest report number title",
+              "content": "Arrest report number content"
+            },
+            "tooltip": {
+              "title": "Arrest report number tooltip title",
+              "content": "Arrest report number tooltip content"
+            }
           }
         },
         {
@@ -21,7 +29,15 @@
             "name": "precinct-number",
             "required": false,
             "max_length": "10",
-            "character_counter": true
+            "character_counter": true,
+            "popover": {
+              "title": "Precinct number title",
+              "content": "Precinct number content"
+            },
+            "tooltip": {
+              "title": "Precinct number tooltip title",
+              "content": "Precinct number tooltip content"
+            }
           }
         },
         {

@@ -525,6 +525,30 @@ function renderCustomRequestForm(target) {
                     );
                 }
 
+                // initialize popovers in custom forms
+                for (var id in data["popovers"]) {
+                    $("#" + id).attr({
+                        'data-placement': "top",
+                        'data-trigger': "hover focus",
+                        'data-toggle': "popover",
+                        'data-content': data["popovers"][id]["content"],
+                        title: data["popovers"][id]["title"]
+                    });
+                    $("#" + id).popover();
+                }
+
+                // initialize tooltips in custom forms
+                for (var id in data["popovers"]) {
+                    $("#" + id + "-tooltip").attr({
+                        'data-placement': "right",
+                        'data-trigger': "hover focus",
+                        'data-toggle': "popover",
+                        'data-content': data["tooltips"][id]["content"],
+                        title: data["tooltips"][id]["title"]
+                    });
+                    $("#" + id + "-tooltip").popover();
+                }
+
                 // Do not reset on click
                 $(".select-multiple").find("option").mousedown(function (e) {
                     e.preventDefault();
