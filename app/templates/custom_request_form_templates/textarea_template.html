@@ -6,8 +6,10 @@
     <br>
     <textarea class="input-block-level custom-request-form-data" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" style="height: 10rem;"
               {% if field_required %}data-parsley-required{% endif %}
-              {% if max_length %}data-parsley-maxlength="{{ max_length }}" maxlength="{{ max_length }}"{% endif %}
-              {% if min_length %}data-parsley-minlength="{{ min_length }}" minlength="{{ min_length }}"{% endif %}
+              {% if max_length and min_length %}maxlength="{{ max_length }}" minlength="{{ min_length }}"
+              {% elif max_length %}data-parsley-maxlength="{{ max_length }}" maxlength="{{ max_length }}"
+              {% elif min_length %}data-parsley-minlength="{{ min_length }}" minlength="{{ min_length }}"
+              {% endif %}
               {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}></textarea>
     {% if max_length and character_counter %}
         <h5 id="{{ field_name }}-{{ instance_id }}-character-count">{{ max_length }} characters remaining</h5>
