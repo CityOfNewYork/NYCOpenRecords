@@ -125,10 +125,10 @@ def get_custom_request_form_fields():
             popover = value.get('popover', None)
             tooltip = value.get('tooltip', None)
 
-            if max_length and character_counter:
-                # add to character_counters so they can be later initialized
+            if character_counter:
                 character_counter_id = field_name + "-" + str(instance_id)
-                character_counters[character_counter_id] = max_length
+                character_counters[character_counter_id] = {"min_length": min_length,
+                                                            "max_length": max_length}
 
             if popover:
                 popover_id = field_name + '-' + str(instance_id)

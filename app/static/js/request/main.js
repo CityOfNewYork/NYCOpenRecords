@@ -16,12 +16,12 @@ $(function () {
     });
 });
 
-function characterCounter(target, limit, currentLength, minLength) {
+function characterCounter(target, maxLength, currentLength, minLength) {
     /* Global character counter
      *
      * Parameters:
      * - target: string of target selector
-     * - limit: integer of maximum character length
+     * - maxLength: integer of maximum character length
      * - currentLength: integer value of keyed in content
      * - minLength: integer of minimum character length (default = 0)
      *
@@ -34,7 +34,7 @@ function characterCounter(target, limit, currentLength, minLength) {
      * }
      *
      * */
-    var length = limit - currentLength;
+    var length = maxLength - currentLength;
     minLength = (typeof minLength !== "undefined") ? minLength : 0;
     var s = length === 1 ? "" : "s";
     $(target).text(length + " character" + s + " remaining");
@@ -48,12 +48,12 @@ function characterCounter(target, limit, currentLength, minLength) {
     }
 }
 
-function generate_character_counter_handler(id, length) {
+function generate_character_counter_handler(id, maxLength, minLength) {
     /*
      * This function creates character counter handlers for when you have multiple events inside a loop
      */
     return function () {
-        characterCounter("#" + id + "-character-count", length, $(this).val().length);
+        characterCounter("#" + id + "-character-count", maxLength, $(this).val().length, minLength);
     };
 }
 
@@ -556,7 +556,7 @@ function renderCustomRequestForm(target) {
                 // initialize character counters in custom forms
                 for (var id in data["character_counters"]) {
                     $("#" + id).keyup(
-                        generate_character_counter_handler(id, data["character_counters"][id])
+                        generate_character_counter_handler(id, data["character_counters"][id]["max_length"], data["character_counters"][id]["min_length"])
                     );
                 }
 
