@@ -4,25 +4,16 @@
    :synopsis: Handles the API request URL endpoints for the OpenRecords application
 """
 
-from sqlalchemy import desc
+from datetime import datetime
+
 from flask import (
     jsonify,
     render_template,
     request as flask_request,
 )
-from datetime import datetime
 from flask_login import current_user, login_required
-from app.lib.date_utils import calendar
-from app.request.api import request_api_blueprint
-from app.request.api.utils import create_request_info_event
-from app.lib.db_utils import update_object
-from app.lib.utils import eval_request_bool
-from app.lib.permission_utils import (
-    is_allowed,
-    get_permission
-)
-from app.permissions.utils import get_permissions_as_list
-from app.models import CommunicationMethods, Requests, Responses, Events
+from sqlalchemy import desc
+
 from app.constants import RESPONSES_INCREMENT, EVENTS_INCREMENT
 from app.constants import (
     determination_type,
@@ -31,6 +22,16 @@ from app.constants import (
     response_privacy,
     request_status,
 )
+from app.lib.db_utils import update_object
+from app.lib.permission_utils import (
+    is_allowed,
+    get_permission
+)
+from app.lib.utils import eval_request_bool
+from app.models import CommunicationMethods, Requests, Responses, Events
+from app.permissions.utils import get_permissions_as_list
+from app.request.api import request_api_blueprint
+from app.request.api.utils import create_request_info_event
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
@@ -210,97 +211,119 @@ def get_request_responses():
 
     current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    responses = Responses.query.filter(
-        Responses.request_id == current_request.id,
-        ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
-        Responses.type != response_type.EMAIL,
-        Responses.deleted == False
-    ).order_by(
-        desc(Responses.date_modified)
-    ).all()[start: start + RESPONSES_INCREMENT]
+    if current_user in current_request.agency_users:
+        # If the user is an agency user assigned to the request, all responses can be retrieved.
+        responses = Responses.query.filter(
+            Responses.request_id == current_request.id,
+            ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
+            Responses.type != response_type.EMAIL,
+            Responses.deleted == False
+        ).order_by(
+            desc(Responses.date_modified)
+        ).all()[start: start + RESPONSES_INCREMENT]
+    elif current_user == current_request.requester:
+        # If the user is the requester, then only responses that are "Release and Private" or "Release and Public"
+        # can be retrieved.
+        responses = Responses.query.filter(
+            Responses.request_id == current_request.id,
+            ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
+            Responses.type != response_type.EMAIL,
+            Responses.deleted == False,
+            Responses.privacy.in_([response_privacy.RELEASE_AND_PRIVATE, response_privacy.RELEASE_AND_PUBLIC])
+        ).order_by(
+            desc(Responses.date_modified)
+        ).all()[start: start + RESPONSES_INCREMENT]
+
+    else:
+        # If the user is not an agency user assigned to the request or the requester, then only responses that are
+        # "Release and Public" whose release date is not in the future can be retrieved.
+        responses = Responses.query.filter(
+            Responses.request_id == current_request.id,
+            ~Responses.id.in_([cm.method_id for cm in CommunicationMethods.query.all()]),
+            Responses.type != response_type.EMAIL,
+            Responses.deleted == False,
+            Responses.privacy.in_([response_privacy.RELEASE_AND_PUBLIC]),
+            Responses.release_date.isnot(None),
+            Responses.release_date < datetime.utcnow()
+        ).order_by(
+            desc(Responses.date_modified)
+        ).all()[start: start + RESPONSES_INCREMENT]
 
     template_path = 'request/responses/'
     response_jsons = []
     row_count = 0
     for response in responses:
-        # If a user is anonymous or a public user who is not the requester AND the date for Release and Public is in
-        # the future, do not generate response row
-
-        if (current_user in response.request.agency_users) or \
-                (current_user == response.request.requester and response.privacy != response_privacy.PRIVATE) or \
-                (response.privacy == response_privacy.RELEASE_AND_PUBLIC and response.release_date and
-                 response.release_date < datetime.utcnow()):
-            json = {
-                'id': response.id,
-                'type': response.type
-            }
-            if eval_request_bool(flask_request.args.get('with_template')):
-                row_count += 1
-                row = render_template(
-                    template_path + 'row.html',
-                    response=response,
-                    row_num=start + row_count,
-                    response_type=response_type,
-                    determination_type=determination_type,
-                    show_preview=not (response.type == response_type.DETERMINATION and
-                                      (response.dtype == determination_type.ACKNOWLEDGMENT or
-                                       response.dtype == determination_type.REOPENING))
-                )
-                modal = render_template(
-                    template_path + 'modal.html',
-                    response=response,
-                    requires_workflow=response.type in response_type.EMAIL_WORKFLOW_TYPES,
-                    modal_body=render_template(
-                        "{}modal_body/{}.html".format(
-                            template_path, response.type
-                        ),
-                        response=response,
-                        privacies=[response_privacy.RELEASE_AND_PUBLIC,
-                                   response_privacy.RELEASE_AND_PRIVATE,
-                                   response_privacy.PRIVATE],
-                        determination_type=determination_type,
-                        request_status=request_status,
-                        edit_response_privacy_permission=is_allowed(user=current_user,
-                                                                    request_id=response.request_id,
-                                                                    permission=get_permission(
-                                                                        permission_type='privacy',
-                                                                        response_type=type(
-                                                                            response))),
-                        edit_response_permission=is_allowed(user=current_user,
-                                                            request_id=response.request_id,
-                                                            permission=get_permission(permission_type='edit',
-                                                                                      response_type=type(
-                                                                                          response))),
-                        delete_response_permission=is_allowed(user=current_user,
-                                                              request_id=response.request_id,
-                                                              permission=get_permission(permission_type='delete',
-                                                                                        response_type=type(response))),
-                        is_editable=response.is_editable,
-                        current_request=current_request
-
+        json = {
+            'id': response.id,
+            'type': response.type
+        }
+        if eval_request_bool(flask_request.args.get('with_template')):
+            row_count += 1
+            row = render_template(
+                template_path + 'row.html',
+                response=response,
+                row_num=start + row_count,
+                response_type=response_type,
+                determination_type=determination_type,
+                show_preview=not (response.type == response_type.DETERMINATION and
+                                  (response.dtype == determination_type.ACKNOWLEDGMENT or
+                                   response.dtype == determination_type.REOPENING))
+            )
+            modal = render_template(
+                template_path + 'modal.html',
+                response=response,
+                requires_workflow=response.type in response_type.EMAIL_WORKFLOW_TYPES,
+                modal_body=render_template(
+                    "{}modal_body/{}.html".format(
+                        template_path, response.type
                     ),
-                    response_type=response_type,
+                    response=response,
+                    privacies=[response_privacy.RELEASE_AND_PUBLIC,
+                               response_privacy.RELEASE_AND_PRIVATE,
+                               response_privacy.PRIVATE],
                     determination_type=determination_type,
                     request_status=request_status,
-                    edit_response_permission=is_allowed(user=current_user,
-                                                        request_id=response.request_id,
-                                                        permission=get_permission(permission_type='edit',
-                                                                                  response_type=type(response))),
-                    delete_response_permission=is_allowed(user=current_user,
-                                                          request_id=response.request_id,
-                                                          permission=get_permission(permission_type='delete',
-                                                                                    response_type=type(response))),
                     edit_response_privacy_permission=is_allowed(user=current_user,
                                                                 request_id=response.request_id,
                                                                 permission=get_permission(
                                                                     permission_type='privacy',
                                                                     response_type=type(
                                                                         response))),
+                    edit_response_permission=is_allowed(user=current_user,
+                                                        request_id=response.request_id,
+                                                        permission=get_permission(permission_type='edit',
+                                                                                  response_type=type(
+                                                                                      response))),
+                    delete_response_permission=is_allowed(user=current_user,
+                                                          request_id=response.request_id,
+                                                          permission=get_permission(permission_type='delete',
+                                                                                    response_type=type(response))),
                     is_editable=response.is_editable,
                     current_request=current_request
-                )
-                json['template'] = row + modal
 
-            response_jsons.append(json)
+                ),
+                response_type=response_type,
+                determination_type=determination_type,
+                request_status=request_status,
+                edit_response_permission=is_allowed(user=current_user,
+                                                    request_id=response.request_id,
+                                                    permission=get_permission(permission_type='edit',
+                                                                              response_type=type(response))),
+                delete_response_permission=is_allowed(user=current_user,
+                                                      request_id=response.request_id,
+                                                      permission=get_permission(permission_type='delete',
+                                                                                response_type=type(response))),
+                edit_response_privacy_permission=is_allowed(user=current_user,
+                                                            request_id=response.request_id,
+                                                            permission=get_permission(
+                                                                permission_type='privacy',
+                                                                response_type=type(
+                                                                    response))),
+                is_editable=response.is_editable,
+                current_request=current_request
+            )
+            json['template'] = row + modal
+
+        response_jsons.append(json)
 
     return jsonify(responses=response_jsons)
