@@ -16,12 +16,12 @@ $(function () {
     });
 });
 
-function characterCounter(target, limit, currentLength, minLength) {
+function characterCounter(target, maxLength, currentLength, minLength) {
     /* Global character counter
      *
      * Parameters:
      * - target: string of target selector
-     * - limit: integer of maximum character length
+     * - maxLength: integer of maximum character length
      * - currentLength: integer value of keyed in content
      * - minLength: integer of minimum character length (default = 0)
      *
@@ -34,7 +34,7 @@ function characterCounter(target, limit, currentLength, minLength) {
      * }
      *
      * */
-    var length = limit - currentLength;
+    var length = maxLength - currentLength;
     minLength = (typeof minLength !== "undefined") ? minLength : 0;
     var s = length === 1 ? "" : "s";
     $(target).text(length + " character" + s + " remaining");
@@ -46,6 +46,15 @@ function characterCounter(target, limit, currentLength, minLength) {
     else {
         $(target).css("color", "black");
     }
+}
+
+function generate_character_counter_handler(id, maxLength, minLength) {
+    /*
+     * This function creates character counter handlers for when you have multiple events inside a loop
+     */
+    return function () {
+        characterCounter("#" + id + "-character-count", maxLength, $(this).val().length, minLength);
+    };
 }
 
 function regexUrlChecker(value) {
@@ -396,7 +405,6 @@ function updateCustomRequestFormDropdowns() {
         var requestTypeOptions = "#" + this.id + " > option";
         if (this.value !== "") { // if the dropdown is not exmpty execute this block
             $(requestTypeOptions).each(function () { // loop through each option in the dropdown
-                console.log(this.text);
                 if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
                     var originalText = originalFormNames[this.value]; // get the actual form name
                     if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
@@ -465,7 +473,7 @@ function renderCustomRequestForm(target) {
 
                 detectChange(); // determine which request type dropdown was changed
 
-                customRequestFormContent.html(data);
+                customRequestFormContent.html(data["form_template"]);
                 previousValues[target - 1] = formId;
                 updateCustomRequestFormDropdowns();
                 if (categorized) {
@@ -507,7 +515,7 @@ function renderCustomRequestForm(target) {
                     // render timepicker plugins
                     $(".timepicker").timepicker({
                         timeFormat: "h:mm p",
-                        interval: 1,
+                        interval: 15,
                         minTime: "12:00am",
                         maxTime: "11:59pm",
                         startTime: "12:00am",
@@ -543,6 +551,37 @@ function renderCustomRequestForm(target) {
                 catch (err) {
                     // if one of the forms doesn't have a time field it will throw an error when you try to render it
                     // TODO: find a better way to handle this error
+                }
+
+                // initialize character counters in custom forms
+                for (var id in data["character_counters"]) {
+                    $("#" + id).keyup(
+                        generate_character_counter_handler(id, data["character_counters"][id]["max_length"], data["character_counters"][id]["min_length"])
+                    );
+                }
+
+                // initialize popovers in custom forms
+                for (var id in data["popovers"]) {
+                    $("#" + id).attr({
+                        'data-placement': "top",
+                        'data-trigger': "hover focus",
+                        'data-toggle': "popover",
+                        'data-content': data["popovers"][id]["content"],
+                        title: data["popovers"][id]["title"]
+                    });
+                    $("#" + id).popover();
+                }
+
+                // initialize tooltips in custom forms
+                for (var id in data["tooltips"]) {
+                    $("#" + id + "-tooltip").attr({
+                        'data-placement': "right",
+                        'data-trigger': "hover focus",
+                        'data-toggle': "popover",
+                        'data-content': data["tooltips"][id]["content"],
+                        title: data["tooltips"][id]["title"]
+                    });
+                    $("#" + id + "-tooltip").popover();
                 }
 
                 // Do not reset on click
@@ -699,7 +738,8 @@ function processCustomRequestFormData() {
             var target = (i + 1).toString();
             var formKey = "form_";
             var fieldKey = "field_";
-            var formName = $("#request-type-" + target + " option:selected").text();
+            var formId = $("#request-type-" + target + " option:selected").val();
+            var formName = originalFormNames[formId];
             var previousRadioId = "";
             var completedFields = 0;
 
