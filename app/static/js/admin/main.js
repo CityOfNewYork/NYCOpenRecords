@@ -53,7 +53,7 @@ $(function () {
         var isAgencyAdmin = $("input[name='is-admin']").is(":checked");
         var agencyEin = $("input[name='agency-ein']").val();
         $("#add-agency-users").block({
-            message: '<img src="/static/img/loading.gif" height="40" width="40">'
+            message: "<img src='/static/img/loading.gif' height='40' width='40'>"
         });
         $.ajax({
             url: "/user/" + id,
@@ -77,7 +77,7 @@ $(function () {
         var isAgencyAdmin = row.find("input[name^='user-status']:checked").val();
         var agencyEin = $("input[name='agency-ein']").val();
         $("#" + splitId[0]).block({
-            message: '<img src="/static/img/loading.gif" height="40" width="40">'
+            message: "<img src='/static/img/loading.gif' height='40' width='40'>"
         });
         $.ajax({
             url: "/user/" + id,
@@ -95,13 +95,10 @@ $(function () {
     $("#remove").click(function () {
         var idsToRemove = $("input[name^='remove']:checked").parents(".row").find("input[name='user-id']");
         var agencyEin = $("input[name='agency-ein']").val();
-        $("#remove-column").block({
-            message: '<img src="/static/img/loading.gif" height="40" width="40">'
-        });
         idsToRemove.each(function () {
             var splitId = $(this).val().split("|");
             $("#" + splitId[0]).block({
-                message: '<img src="/static/img/loading.gif" height="40" width="40">'
+                message: "<img src='/static/img/loading.gif' height='40' width='40'>"
             });
             $.ajax({  // TODO: it would be better if this called a bulk-op endpoint 'users' *once*
                 url: "/user/" + $(this).val(),
