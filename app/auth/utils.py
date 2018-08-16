@@ -34,6 +34,7 @@ from app.constants.web_services import (
     EMAIL_VALIDATION_STATUS_ENDPOINT,
     TOU_ENDPOINT,
     TOU_STATUS_ENDPOINT,
+    ENROLLMENT_STATUS_ENDPOINT,
     ENROLLMENT_ENDPOINT
 )
 from app.auth.constants import error_msg
@@ -444,13 +445,19 @@ def _enroll(guid, user_type):
         "guid": guid,
         "userType": user_type
     }
-    _check_web_services_response(
-        _web_services_request(
-            ENROLLMENT_ENDPOINT,
-            params,
-            method='PUT'
-        ),
-        error_msg.ENROLLMENT_FAILURE)
+    response = _web_services_request(
+        ENROLLMENT_STATUS_ENDPOINT,
+        params.copy()  # signature regenerated
+    )
+    _check_web_services_response(response, error_msg.ENROLLMENT_STATUS_CHECK_FAILURE)
+    if response.status_code != 200 or response.text == '':
+        _check_web_services_response(
+            _web_services_request(
+                ENROLLMENT_ENDPOINT,
+                params,
+                method='PUT'
+            ),
+            error_msg.ENROLLMENT_FAILURE)
 
 
 def _unenroll(guid, user_type):
@@ -475,8 +482,10 @@ def _check_web_services_response(response, msg):
     Log an error message if the specified response's
     status code is not 200.
     """
-    if response.status_code != 200:
+    if response.status_code != 200 and response.json() is None:
         current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
+    elif response.status_code != 200:
+        current_app.logger.error("{}".format(msg))
 
 
 def _web_services_request(endpoint, params, method='GET'):
