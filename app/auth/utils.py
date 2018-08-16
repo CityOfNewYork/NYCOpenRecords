@@ -483,9 +483,9 @@ def _check_web_services_response(response, msg):
     status code is not 200.
     """
     if response.status_code != 200 and response.json() is None:
-        current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
-    elif response.status_code != 200:
         current_app.logger.error("{}".format(msg))
+    elif response.status_code != 200:
+        current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
 
 
 def _web_services_request(endpoint, params, method='GET'):
