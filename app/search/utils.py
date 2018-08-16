@@ -3,11 +3,13 @@ from datetime import datetime
 from flask import current_app
 from flask_login import current_user
 from elasticsearch.helpers import bulk
+from sqlalchemy.orm import joinedload
 
 from app import es
-from app.models import Requests
+from app.models import Requests, Agencies
 from app.constants import (
     ES_DATETIME_FORMAT,
+    USER_ID_DELIMITER,
     request_status
 )
 from app.search.constants import (
@@ -147,42 +149,45 @@ def create_docs():
     Create elasticsearch request docs for every request db record.
     """
     #: :type: collections.Iterable[app.models.Requests]
-    requests = Requests.query.all()
+    import time
+    start = time.time()
+    agency_eins = {a.ein: a for a in Agencies.query.filter_by(is_active=True).all()}
+    requests = Requests.query.filter(Requests.agency_ein.in_(agency_eins.keys())).options(
+        joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).all()
 
     operations = []
     for r in requests:
-        if r.agency.is_active:
-            date_received = r.date_created.strftime(
-                ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else r.date_submitted.strftime(
-                ES_DATETIME_FORMAT)
-            operation = {
-                '_op_type': 'create',
-                '_id': r.id,
-                'title': r.title,
-                'description': r.description,
-                'agency_request_summary': r.agency_request_summary,
-                'requester_name': r.requester.name,
-                'title_private': r.privacy['title'],
-                'agency_request_summary_private': not r.agency_request_summary_released,
-                'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
-                'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
-                'date_received': date_received,
-                'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
-                'submission': r.submission,
-                'status': r.status,
-                'requester_id': r.requester.get_id(),
-                'agency_ein': r.agency_ein,
-                'agency_acronym': r.agency.acronym,
-                'agency_name': r.agency.name,
-                'public_title': 'Private' if r.privacy['title'] else r.title,
-                'assigned_users': [user.get_id() for user in r.agency_users]
-                # public_agency_request_summary
-            }
+        date_received = r.date_created.strftime(
+            ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else r.date_submitted.strftime(
+            ES_DATETIME_FORMAT)
+        operation = {
+            '_op_type': 'create',
+            '_id': r.id,
+            'title': r.title,
+            'description': r.description,
+            'agency_request_summary': r.agency_request_summary,
+            'requester_name': r.requester.name,
+            'title_private': r.privacy['title'],
+            'agency_request_summary_private': not r.agency_request_summary_released,
+            'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
+            'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
+            'date_received': date_received,
+            'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
+            'submission': r.submission,
+            'status': r.status,
+            'requester_id': "{guid}{delimiter}{auth_user_type}".format(guid=r.requester.guid, delimiter=USER_ID_DELIMITER, auth_user_type=r.requester.auth_user_type),
+            'agency_ein': r.agency_ein,
+            'agency_acronym': agency_eins[r.agency_ein].acronym,
+            'agency_name': agency_eins[r.agency_ein].name,
+            'public_title': 'Private' if r.privacy['title'] else r.title,
+            'assigned_users': ["{guid}{delimiter}{auth_user_type}".format(guid=user.guid, delimiter=USER_ID_DELIMITER, auth_user_type=user.auth_user_type) for user in r.agency_users]
+            # public_agency_request_summary
+        }
 
-            if r.date_closed is not None:
-                operation['date_closed'] = r.date_closed.strftime(ES_DATETIME_FORMAT)
+        if r.date_closed is not None:
+            operation['date_closed'] = r.date_closed.strftime(ES_DATETIME_FORMAT)
 
-            operations.append(operation)
+        operations.append(operation)
 
     num_success, _ = bulk(
         es,
@@ -193,7 +198,7 @@ def create_docs():
         raise_on_error=True
     )
     current_app.logger.info("Successfully created {} docs.".format(num_success))
-
+    print("Total Time: {}s".format(time.time()-start))
 
 def update_docs():
     #: :type: collections.Iterable[app.models.Requests]
