@@ -292,6 +292,10 @@ def search_requests(query,
             'date_due': sort_date_due,
             'title.keyword': sort_title}.items() if direction in ("desc", "asc")]
 
+    # if no sort options are selected use date_received desc by default
+    if len(sort) == 0:
+        sort = ['date_received:desc']
+
     # set statuses (list of request statuses)
     if current_user.is_agency:
         statuses = {
