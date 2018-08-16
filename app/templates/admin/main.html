@@ -41,7 +41,7 @@
         {% endif %}
         {% if user_form.users.choices %}
             <input type="hidden" name="agency-ein" value="{{ agency_ein }}">
-            <div class="row">
+            <div class="row" id="add-agency-users">
                 {{ user_form.users.label }}
                 <div class="row">
                     <div class="col-sm-8">
@@ -89,7 +89,7 @@
             </div>
         </div>
         {% for user in users %}
-            <div class="row user-info break-word">
+            <div id="{{ user.guid }}" class="row user-info break-word">
                 <input type="hidden" name="user-id" value="{{ user.get_id() }}">
                 <input type="hidden" name="agency-ein" value="{{ agency_ein }}">
                 <div class="col-sm-2">
@@ -144,5 +144,6 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for("static", filename="js/admin/main.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/admin/main.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.blockUI.js') }}"></script>
 {% endblock %}
