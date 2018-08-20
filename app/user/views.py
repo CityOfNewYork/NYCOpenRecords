@@ -4,7 +4,6 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from flask import request, jsonify
 from flask_login import current_user
-from elasticsearch import helpers
 
 from app.user import user
 from app.user_request.utils import create_user_request_event
@@ -90,8 +89,8 @@ def patch(user_id):
         same_agency = agency_ein in [agency.ein for agency in current_user.agencies.all()]
         associated_anonymous_requester = (user_.is_anonymous_requester
                                           and current_user.user_requests.filter_by(
-                    request_id=user_.anonymous_request.id
-                ).first() is None)
+                                            request_id=user_.anonymous_request.id
+                                          ).first() is None)
 
         is_agency_admin = request.form.get('is_agency_admin')
         is_agency_active = request.form.get('is_agency_active')
@@ -113,30 +112,30 @@ def patch(user_id):
         if ((updating_self and (
                 # super user attempting to change their own super status
                 (current_user.is_super and is_super is not None)
-                or
+            or
                 # agency admin or public user attempting to change their own agency/super status
                 (changing_status and (current_user_is_agency_admin or current_user.is_public)))) or
-                (not updating_self and (
-                        # public user attempting to change another user
-                        current_user.is_public
-                        or
-                        # agency user attempting to change a agency/super status
-                        (current_user_is_agency_user and changing_status)
-                        or
-                        # agency user attempting to change a user that is not an anonymous requester
-                        # for a request they are assigned to
-                        (current_user_is_agency_user and (
-                                not user_.is_anonymous_requester or not associated_anonymous_requester))
-                        or
-                        # agency admin attempting to change another user that is not in the same agency or
-                        # attempting to change more than just the agency status of a user
-                        (current_user_is_agency_admin
-                         and not (associated_anonymous_requester or user_.is_anonymous_requester)
-                         and (not same_agency or changing_more_than_agency_status))
-                        or
-                        # agency admin attempting to change an anonymous requester for a request
-                        # they are not assigned to
-                        (current_user_is_agency_admin and associated_anonymous_requester)))):
+           (not updating_self and (
+                # public user attempting to change another user
+                current_user.is_public
+            or
+                # agency user attempting to change a agency/super status
+                (current_user_is_agency_user and changing_status)
+            or
+                # agency user attempting to change a user that is not an anonymous requester
+                # for a request they are assigned to
+                (current_user_is_agency_user and (
+                            not user_.is_anonymous_requester or not associated_anonymous_requester))
+            or
+                # agency admin attempting to change another user that is not in the same agency or
+                # attempting to change more than just the agency status of a user
+                (current_user_is_agency_admin
+                 and not (associated_anonymous_requester or user_.is_anonymous_requester)
+                 and (not same_agency or changing_more_than_agency_status))
+            or
+                # agency admin attempting to change an anonymous requester for a request
+                # they are not assigned to
+                (current_user_is_agency_admin and associated_anonymous_requester)))):
             return jsonify({}), 403
 
         # UPDATE
@@ -182,12 +181,12 @@ def patch(user_id):
 
         # check if missing contact information
         if (user_field_val['email'] == ''
-                and user_field_val['phone_number'] == ''
-                and user_field_val['fax_number'] == ''
-                and (address_field_val['city'] == ''
-                     or address_field_val['zip'] == ''
-                     or address_field_val['state'] == ''
-                     or address_field_val['address_one'] == '')):
+            and user_field_val['phone_number'] == ''
+            and user_field_val['fax_number'] == ''
+            and (address_field_val['city'] == ''
+                 or address_field_val['zip'] == ''
+                 or address_field_val['state'] == ''
+                 or address_field_val['address_one'] == '')):
             return jsonify({"error": "Missing contact information."}), 400
 
         old = {}
@@ -308,7 +307,6 @@ def patch(user_id):
                         create_user_request_event(event_type.USER_PERM_CHANGED,
                                                   user_req,
                                                   old_permissions)
-
                     if is_agency_admin:
                         permissions = Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
                         # create UserRequests for ALL existing requests under user's agency where user is not assigned
