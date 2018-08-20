@@ -237,6 +237,15 @@ def fix_due_dates():  # for "America/New_York"
 
 
 @manager.command
+def migrate_date_closed():
+    r = Requests.query.filter_by(status='Closed').all()
+    for request in r:
+        request.date_closed = request.last_date_closed
+        db.session.add(request)
+
+    db.session.commit()
+
+@manager.command
 def fix_anonymous_requesters():
     """
     Ensures there is only one anonymous requester per request by

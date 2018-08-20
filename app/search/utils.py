@@ -1,25 +1,25 @@
 from datetime import datetime
 
+from elasticsearch.helpers import bulk
 from flask import current_app
 from flask_login import current_user
-from elasticsearch.helpers import bulk
 from sqlalchemy.orm import joinedload
 
 from app import es
-from app.models import Requests, Agencies
 from app.constants import (
     ES_DATETIME_FORMAT,
     USER_ID_DELIMITER,
     request_status
 )
+from app.lib.date_utils import utc_to_local, local_to_utc
+from app.lib.utils import InvalidUserException
+from app.models import Requests, Agencies
 from app.search.constants import (
     MAX_RESULT_SIZE,
     ES_DATE_RANGE_FORMAT,
     DT_DATE_RANGE_FORMAT,
     MOCK_EMPTY_ELASTICSEARCH_RESULT
 )
-from app.lib.utils import InvalidUserException
-from app.lib.date_utils import utc_to_local, local_to_utc
 
 
 def recreate():
@@ -148,13 +148,12 @@ def create_docs():
     """
     Create elasticsearch request docs for every request db record.
     """
-    #: :type: collections.Iterable[app.models.Requests]
-    import time
-    start = time.time()
+
     agency_eins = {a.ein: a for a in Agencies.query.filter_by(is_active=True).all()}
+
+    #: :type: collections.Iterable[app.models.Requests]
     requests = Requests.query.filter(Requests.agency_ein.in_(agency_eins.keys())).options(
         joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).all()
-
     operations = []
     for r in requests:
         date_received = r.date_created.strftime(
@@ -175,12 +174,16 @@ def create_docs():
             'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
             'submission': r.submission,
             'status': r.status,
-            'requester_id': "{guid}{delimiter}{auth_user_type}".format(guid=r.requester.guid, delimiter=USER_ID_DELIMITER, auth_user_type=r.requester.auth_user_type),
+            'requester_id': "{guid}{delimiter}{auth_user_type}".format(guid=r.requester.guid,
+                                                                       delimiter=USER_ID_DELIMITER,
+                                                                       auth_user_type=r.requester.auth_user_type),
             'agency_ein': r.agency_ein,
             'agency_acronym': agency_eins[r.agency_ein].acronym,
             'agency_name': agency_eins[r.agency_ein].name,
             'public_title': 'Private' if r.privacy['title'] else r.title,
-            'assigned_users': ["{guid}{delimiter}{auth_user_type}".format(guid=user.guid, delimiter=USER_ID_DELIMITER, auth_user_type=user.auth_user_type) for user in r.agency_users]
+            'assigned_users': ["{guid}{delimiter}{auth_user_type}".format(guid=user.guid, delimiter=USER_ID_DELIMITER,
+                                                                          auth_user_type=user.auth_user_type) for user
+                               in r.agency_users]
             # public_agency_request_summary
         }
 
@@ -188,17 +191,17 @@ def create_docs():
             operation['date_closed'] = r.date_closed.strftime(ES_DATETIME_FORMAT)
 
         operations.append(operation)
-
     num_success, _ = bulk(
         es,
         operations,
         index=current_app.config["ELASTICSEARCH_INDEX"],
         doc_type='request',
-        chunk_size=100,
+        chunk_size=5000,
         raise_on_error=True
     )
-    current_app.logger.info("Successfully created {} docs.".format(num_success))
-    print("Total Time: {}s".format(time.time()-start))
+    current_app.logger.info("Successfully created {num_success} of {total_num} docs.".format(num_success=num_success,
+                                                                                             total_num=len(requests)))
+
 
 def update_docs():
     #: :type: collections.Iterable[app.models.Requests]
@@ -592,12 +595,12 @@ def _process_highlights(results, requester_id=None):
                             if requester_id
                             else False)
             if ('title' in hit['highlight']
-                and hit['_source']['title_private']
-                and (current_user.is_anonymous or not is_requester)):
+                    and hit['_source']['title_private']
+                    and (current_user.is_anonymous or not is_requester)):
                 hit['highlight'].pop('title')
             if ('agency_request_summary' in hit['highlight']
-                and hit['_source']['agency_request_summary_private']):
+                    and hit['_source']['agency_request_summary_private']):
                 hit['highlight'].pop('agency_request_summary')
             if ('description' in hit['highlight']
-                and not is_requester):
+                    and not is_requester):
                 hit['highlight'].pop('description')
