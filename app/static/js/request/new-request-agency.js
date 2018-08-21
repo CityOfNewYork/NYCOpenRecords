@@ -107,9 +107,9 @@ $(document).ready(function () {
 
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
-        'data-placement': "top",
-        'data-trigger': "hover focus",
-        'data-toggle': "popover",
+        "data-placement": "top",
+        "data-trigger": "hover focus",
+        "data-toggle": "popover",
         "data-content": "Queens Blvd Roadwork Permit. Do NOT put private names, phone numbers, home address, date of birth, etc.",
         title: "Example Title"
     });
@@ -119,9 +119,9 @@ $(document).ready(function () {
     // });
 
     $("#request-description").attr({
-        'data-placement': "top",
-        'data-trigger': "hover focus",
-        'data-toggle': "popover",
+        "data-placement": "top",
+        "data-trigger": "hover focus",
+        "data-toggle": "popover",
         "data-content": "Roadwork permits for work done in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and October 2017.",
         title: "Example Request"
     });
