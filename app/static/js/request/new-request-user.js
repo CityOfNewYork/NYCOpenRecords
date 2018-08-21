@@ -119,7 +119,7 @@ $(document).ready(function () {
         "data-placement": "top",
         "data-trigger": "hover focus",
         "data-toggle": "popover",
-        "data-content": "Public Advocate Emails from 2015",
+        "data-content": "Queens Blvd Roadwork Permit. Do NOT put private names, phone numbers, home address, date of birth, etc.",
         title: "Example Title"
     });
     $("#request-title").popover();
@@ -131,7 +131,7 @@ $(document).ready(function () {
         "data-placement": "top",
         "data-trigger": "hover focus",
         "data-toggle": "popover",
-        "data-content": "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
+        "data-content": "Roadwork permits for work done in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and October 2017.",
         title: "Example Request"
     });
     $("#request-description").click(function () {
