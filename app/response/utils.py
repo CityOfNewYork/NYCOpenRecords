@@ -253,17 +253,29 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
         previous_status = request.status
+        previous_date_closed = request.date_closed
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
             update_object(
-                {'agency_request_summary_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
-                 'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
         else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
             update_object(
-                {'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
@@ -271,8 +283,8 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
         create_request_info_event(
             request_id,
             type_=event_type.REQ_STATUS_CHANGED,
-            previous_value={'status': previous_status},
-            new_value={'status': request.status}
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed}
         )
 
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
@@ -345,44 +357,29 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     if request.status != request_status.CLOSED and (
             request.was_acknowledged or request.was_reopened):
         previous_status = request.status
-        if request.privacy['agency_request_summary'] or not request.agency_request_summary:
-            reason = "Agency Request Summary must be public and not empty, "
-            if request.responses.filter(
-                    Responses.type != response_type.NOTE,  # ignore Notes
-                    Responses.type != response_type.EMAIL,  # ignore Emails
-                    Responses.deleted == False,  # ignore deleted responses
-                    Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
-                    Responses.is_editable == True  # ignore non-editable responses
-            ).first() is not None:
-                raise UserRequestException(action="close",
-                                           request_id=request.id,
-                                           reason=reason + "or all Responses (excluding Notes) must be public."
-                                           )
-            if request.privacy['title']:
-                raise UserRequestException(action="close",
-                                           request_id=request.id,
-                                           reason=reason + "or Title must be public."
-                                           )
-        if request.agency_request_summary and not request.privacy['agency_request_summary']:
-            date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
-            release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
-                                        current_app.config['APP_TIMEZONE'])
+        previous_date_closed = request.date_closed
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
+        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
             update_object(
-                {'agency_request_summary_release_date': release_date,
-                 'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
-            create_request_info_event(
-                request_id,
-                event_type.REQ_AGENCY_REQ_SUM_DATE_SET,
-                None,
-                {"release_date": release_date.isoformat()}
-            )
         else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
             update_object(
-                {'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
@@ -390,9 +387,10 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
         create_request_info_event(
             request_id,
             type_=event_type.REQ_STATUS_CHANGED,
-            previous_value={'status': previous_status},
-            new_value={'status': request.status}
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed}
         )
+
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the closing date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
@@ -1237,7 +1235,7 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
     reason = data.get('reason', None)
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
 
-    if reason is not None: # This means we are generating the initial email.
+    if reason is not None:  # This means we are generating the initial email.
         default_content = True
         content = None
 
@@ -1258,7 +1256,7 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
                 "header": header
             }
         ), 200
-    else: # If the reason is None, we are only rendering the final confirmation dialog.
+    else:  # If the reason is None, we are only rendering the final confirmation dialog.
         # TODO (@joelbcastillo): We should probably add a step parameter instead of relying on the value of the reason.
         default_content = False
         content = data['email_content']
@@ -1573,6 +1571,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
+
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):
     """
