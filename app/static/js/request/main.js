@@ -802,7 +802,6 @@ function processCustomRequestFormData() {
                 fieldNumber++;
                 fieldKey = "field_";
             });
-            debugger;
             if (completedFields < minimumRequired[currentValues[i]]) {
                 var invalidFormContent = "#custom-request-form-content-" + target;
                 var invalidForm = "#custom-request-forms-" + target;
