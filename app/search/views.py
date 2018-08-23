@@ -11,6 +11,7 @@ from flask import (
 )
 from flask.helpers import send_file
 from flask_login import current_user
+from sqlalchemy.orm import joinedload
 
 from app.lib.date_utils import utc_to_local
 from app.lib.utils import eval_request_bool
@@ -204,37 +205,34 @@ def requests_doc(doc_type):
             )
             total = results["hits"]["total"]
             if total != 0:
-                convert_dates(results, tz_name=tz_name)
-                for result in results["hits"]["hits"]:
-                    r = Requests.query.filter_by(id=result["_id"]).one()
-                    mailing_address = (r.requester.mailing_address
-                                       if r.requester.mailing_address is not None
-                                       else {})
-                    date_closed = result["_source"].get('date_closed', '')
-                    date_closed = date_closed if str(date_closed) != str(list()) else ''
+                ids = [result["_id"] for result in results["hits"]["hits"]]
+                all_requests = Requests.query.filter(Requests.id.in_(ids)).options(
+                    joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).options(
+                    joinedload(Requests.agency)).all()
+                for req in all_requests:
                     writer.writerow([
-                        result["_id"],
-                        result["_source"]["agency_name"],
-                        result["_source"]["title"],
-                        result["_source"]["description"],
-                        result["_source"]["agency_request_summary"],
-                        r.status,
-                        result["_source"]["date_created"],
-                        result["_source"]["date_submitted"],
-                        result["_source"]["date_due"],
-                        date_closed,
-                        result["_source"]["requester_name"],
-                        r.requester.email,
-                        r.requester.title,
-                        r.requester.organization,
-                        r.requester.phone_number,
-                        r.requester.fax_number,
-                        mailing_address.get('address_one'),
-                        mailing_address.get('address_two'),
-                        mailing_address.get('city'),
-                        mailing_address.get('state'),
-                        mailing_address.get('zip'),
-                        ", ".join(u.email for u in r.agency_users)])
+                        req.id,
+                        req.agency.name,
+                        req.title,
+                        req.description,
+                        req.agency_request_summary,
+                        req.status,
+                        req.date_created,
+                        req.date_submitted,
+                        req.due_date,
+                        req.date_closed,
+                        req.requester.name,
+                        req.requester.email,
+                        req.requester.title,
+                        req.requester.organization,
+                        req.requester.phone_number,
+                        req.requester.fax_number,
+                        req.requester.mailing_address.get('address_one'),
+                        req.requester.mailing_address.get('address_two'),
+                        req.requester.mailing_address.get('city'),
+                        req.requester.mailing_address.get('state'),
+                        req.requester.mailing_address.get('zip'),
+                        ", ".join(u.email for u in req.agency_users)])
             start += ALL_RESULTS_CHUNKSIZE
             if start > total:
                 break
