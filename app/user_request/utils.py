@@ -47,7 +47,7 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
             added_permissions.append(val)
 
     # send email to agency administrators
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_added.html',
@@ -61,7 +61,7 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
         to=agency_admin_emails)
 
     # send email to user being added
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_added.html',

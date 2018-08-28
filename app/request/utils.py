@@ -60,7 +60,7 @@ from app.models import (
 )
 from app.response.utils import (
     safely_send_and_add_email,
-    get_file_links,
+    get_file_links
 )
 from app.upload.constants import upload_status
 from app.upload.utils import (
@@ -487,7 +487,7 @@ def send_confirmation_email(request, agency, user):
     try:
         # if the requester supplied an email, send it to the request and bcc the agency
         if requester_email:
-            tmp = safely_send_and_add_email(
+            safely_send_and_add_email(
                 request.id,
                 email_content,
                 subject,
@@ -496,7 +496,7 @@ def send_confirmation_email(request, agency, user):
             )
         # otherwise send the email directly to the agency
         else:
-            tmp = safely_send_and_add_email(
+            safely_send_and_add_email(
                 request.id,
                 email_content,
                 subject,

@@ -97,12 +97,10 @@ def add_file(request_id, filename, title, privacy, is_editable):
     Gets the file mimetype and magic file check from a helper function in lib.file_utils
     File privacy options can be either Release and Public, Release and Private, or Private.
     Provides parameters for the process_response function to create and store responses and events object.
-
     :param request_id: Request ID that the file is being added to
     :param filename: The secured_filename of the file.
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
-
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
     try:
@@ -920,6 +918,21 @@ def process_email_template_request(request_id, data):
         page=page,
         agency_name=agency_name,
         email_template=email_template)
+
+
+def assign_point_of_contact(point_of_contact):
+    """
+    Assign a user to be the point of contact in emails/letters
+
+    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
+    :return: A User object to be designated as the point of contact for a request
+    """
+    if point_of_contact:
+        return Users.query.filter(Users.guid == point_of_contact,
+                                  Users.auth_user_type.in_(
+                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+    else:
+        return current_user
 
 
 def assign_point_of_contact(point_of_contact):
@@ -2155,11 +2168,11 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         is_anon=is_anon,
                                                                         release_date=release_date
                                                                         ))
-        tmp = safely_send_and_add_email(request_id,
-                                        email_content_requester,
-                                        'Response Added to {} - File'.format(request_id),
-                                        to=[requester_email],
-                                        bcc=bcc)
+        safely_send_and_add_email(request_id,
+                                  email_content_requester,
+                                  'Response Added to {} - File'.format(request_id),
+                                  to=[requester_email],
+                                  bcc=bcc)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
@@ -2167,10 +2180,10 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    agency_name=agency_name,
                                                    private_links=private_links,
                                                    page=page)
-            tmp = safely_send_and_add_email(request_id,
-                                            email_content_agency,
-                                            'File(s) Added to {}'.format(request_id),
-                                            bcc=bcc)
+            safely_send_and_add_email(request_id,
+                                      email_content_agency,
+                                      'File(s) Added to {}'.format(request_id),
+                                      bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
@@ -2178,7 +2191,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      private_links=private_links,
                                                                      page=page
                                                                      ))
-        tmp = safely_send_and_add_email(request_id,
+        safely_send_and_add_email(request_id,
                                         email_content_agency,
                                         subject,
                                         bcc=bcc)
@@ -2201,9 +2214,9 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-    tmp = safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
+    safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
-        tmp = safely_send_and_add_email(request_id,
+        safely_send_and_add_email(request_id,
                                         email_content_requester,
                                         subject,
                                         to=[requester_email])
@@ -2242,7 +2255,7 @@ def _send_delete_response_email(request_id, response):
     a deleted response.
 
     """
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_response_deleted.html',
