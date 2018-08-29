@@ -201,7 +201,6 @@ def get_request_responses():
     """
     Returns a set of responses (id, type, and template),
     ordered by date descending, and starting from a specified index.
-
     Request parameters:
     - start: (int) starting index
     - request_id: FOIL request id

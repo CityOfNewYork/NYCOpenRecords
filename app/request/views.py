@@ -53,7 +53,8 @@ from app.request.forms import (
     GenerateResponseLetterForm,
     SearchRequestsForm,
     CloseRequestForm,
-    ContactAgencyForm
+    ContactAgencyForm,
+    ReopenRequestForm
 )
 from app.request.utils import (
     create_request,
@@ -68,8 +69,8 @@ from app.user_request.forms import (
     RemoveUserRequestForm
 )
 from app.user_request.utils import get_current_point_of_contact
-
 from app import sentry
+import json
 
 
 @request.route('/new', methods=['GET', 'POST'])
@@ -111,14 +112,16 @@ def new():
             if form.request_file.errors:
                 return render_template(new_request_template, form=form, site_key=site_key)
 
-        # create request
+        custom_metadata = json.loads(flask_request.form.get('custom-request-forms-data', {}))
+        tz_name = flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE']
         if current_user.is_public:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
                                         form.request_category.data,
                                         agency_ein=form.request_agency.data,
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'])
+                                        tz_name=tz_name,
+                                        custom_metadata=custom_metadata)
         elif current_user.is_agency:
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -138,7 +141,8 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'])
+                                        tz_name=tz_name,
+                                        custom_metadata=custom_metadata)
         else:  # Anonymous User
             request_id = create_request(form.request_title.data,
                                         form.request_description.data,
@@ -153,7 +157,8 @@ def new():
                                         fax=form.fax.data,
                                         address=get_address(form),
                                         upload_path=upload_path,
-                                        tz_name=flask_request.form['tz-name'])
+                                        tz_name=tz_name,
+                                        custom_metadata=custom_metadata)
 
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester
@@ -297,11 +302,28 @@ def view(request_id):
                   not current_request.privacy['title'])
 
     # Determine if "Generate Letter" functionality is enabled for the agency.
-
     if 'letters' in current_request.agency.agency_features:
         generate_letters_enabled = current_request.agency.agency_features['letters']['generate_letters']
     else:
         generate_letters_enabled = False
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in current_request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = current_request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if custom request form panels should be expanded by default
+    if 'expand_by_default' in current_request.agency.agency_features['custom_request_forms']:
+        expand_by_default = current_request.agency.agency_features['custom_request_forms']['expand_by_default']
+    else:
+        expand_by_default = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in current_request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = current_request.agency.agency_features['custom_request_forms']['description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     return render_template(
         'request/view_request.html',
@@ -312,6 +334,7 @@ def view(request_id):
         contact_agency_form=ContactAgencyForm(current_request),
         deny_request_form=DenyRequestForm(current_request.agency.ein),
         close_request_form=CloseRequestForm(current_request.agency.ein),
+        reopen_request_form=ReopenRequestForm(current_request.agency.ein),
         remove_user_request_form=RemoveUserRequestForm(assigned_users),
         add_user_request_form=AddUserRequestForm(active_users),
         edit_user_request_form=EditUserRequestForm(assigned_users),
@@ -331,7 +354,10 @@ def view(request_id):
         show_title=show_title,
         is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL),
-        generate_letters_enabled=generate_letters_enabled
+        generate_letters_enabled=generate_letters_enabled,
+        custom_request_forms_enabled = custom_request_forms_enabled,
+        expand_by_default=expand_by_default,
+        description_hidden_by_default=description_hidden_by_default
     )
 
 

@@ -112,6 +112,9 @@
                                 {% if permissions['re_open'] %}
                                     <li class="active"><a href="#reopen-request" data-toggle="tab">Re-Open</a></li>
                                 {% endif %}
+                                {% if permissions['add_note'] and current_user.is_agency%}
+                                    <li><a href="#add-note" data-toggle="tab">Add Note</a></li>
+                                {% endif %}
 {#                                {% if generate_letters_enabled and permissions['generate_letter'] %}#}
 {#                                    <li><a href="#generate-envelope" data-toggle="tab">Generate Envelope</a></li>#}
 {#                                {% endif %}#}
@@ -220,6 +223,11 @@
                                 {% if permissions['re_open'] %}
                                     <div class="tab-pane active" id="reopen-request">
                                         {% include "response/add_reopening.html" %}
+                                    </div>
+                                {% endif %}
+                                {% if permissions['add_note'] and current_user.is_agency %}
+                                    <div class="tab-pane" id="add-note">
+                                        {% include "response/add_note.html" %}
                                     </div>
                                 {% endif %}
 {#                                {% if generate_letters_enabled and permissions['generate_letter'] %}#}

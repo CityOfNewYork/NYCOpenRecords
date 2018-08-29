@@ -52,6 +52,9 @@ $(function () {
         var id = $("#users").val();
         var isAgencyAdmin = $("input[name='is-admin']").is(":checked");
         var agencyEin = $("input[name='agency-ein']").val();
+        $("#add-agency-users").block({
+            message: "<img src='/static/img/loading.gif' height='40' width='40'>"
+        });
         $.ajax({
             url: "/user/" + id,
             type: "PATCH",
@@ -61,6 +64,7 @@ $(function () {
                 agency_ein: agencyEin
             },
             success: function () {
+                $("#add-agency-users").unblock();
                 location.reload();
             }
         });
@@ -69,14 +73,21 @@ $(function () {
     $("input[name^='user-status']").click(function () {
         var row = $(this).parents(".row");
         var id = row.find("input[name='user-id']").val();
+        var splitId = id.split("|");
         var isAgencyAdmin = row.find("input[name^='user-status']:checked").val();
         var agencyEin = $("input[name='agency-ein']").val();
+        $("#" + splitId[0]).block({
+            message: "<img src='/static/img/loading.gif' height='40' width='40'>"
+        });
         $.ajax({
             url: "/user/" + id,
             type: "PATCH",
             data: {
                 is_agency_admin: isAgencyAdmin,
                 agency_ein: agencyEin
+            },
+            success: function () {
+                $("#" + splitId[0]).unblock();
             }
         });
     });
@@ -85,6 +96,10 @@ $(function () {
         var idsToRemove = $("input[name^='remove']:checked").parents(".row").find("input[name='user-id']");
         var agencyEin = $("input[name='agency-ein']").val();
         idsToRemove.each(function () {
+            var splitId = $(this).val().split("|");
+            $("#" + splitId[0]).block({
+                message: "<img src='/static/img/loading.gif' height='40' width='40'>"
+            });
             $.ajax({  // TODO: it would be better if this called a bulk-op endpoint 'users' *once*
                 url: "/user/" + $(this).val(),
                 type: "PATCH",
@@ -94,6 +109,7 @@ $(function () {
                     agency_ein: agencyEin
                 },
                 success: function () {
+                    $("#" + splitId[0]).unblock();
                     location.reload();
                 }
             });

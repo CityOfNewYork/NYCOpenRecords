@@ -1,0 +1,302 @@
+{
+  "custom_request_forms": [
+    {
+      "agency_ein": "0056",
+      "form_name": "Arrest Report",
+      "form_description": "Form for requesting an arrest report",
+      "field_definitions": [
+        {
+          "Arrest Report #": {
+            "type": "input",
+            "name": "arrest-report-number",
+            "required": false,
+            "placeholder": "123456789",
+            "max_length": "50",
+            "character_counter": true,
+            "popover": {
+              "title": "Arrest report number title",
+              "content": "Arrest report number content"
+            },
+            "tooltip": {
+              "title": "Arrest report number tooltip title",
+              "content": "Arrest report number tooltip content"
+            }
+          }
+        },
+        {
+          "Precinct #": {
+            "type": "input",
+            "name": "precinct-number",
+            "required": false,
+            "max_length": "10",
+            "character_counter": true,
+            "popover": {
+              "title": "Precinct number title",
+              "content": "Precinct number content"
+            },
+            "tooltip": {
+              "title": "Precinct number tooltip title",
+              "content": "Precinct number tooltip content"
+            }
+          }
+        },
+        {
+          "Name": {
+            "type": "input",
+            "name": "arrest-report-name",
+            "required": false,
+            "max_length": "20",
+            "character_counter": true
+          }
+        },
+        {
+          "Date of Charge": {
+            "type": "date",
+            "name": "arrest-report-date",
+            "required": false
+          }
+        },
+        {
+          "D.O.B.": {
+            "type": "date",
+            "name": "arrest-report-dob",
+            "required": false
+          }
+        },
+        {
+          "Victim/Complainant Name": {
+            "type": "input",
+            "name": "arrest-report-victim-complainant-name",
+            "required": false
+          }
+        },
+        {
+          "Charge": {
+            "type": "input",
+            "name": "arrest-report-charge",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "5",
+      "category": "1",
+      "minimum_required": "1"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Complaint Report",
+      "form_description": "Form for requesting a complaint report",
+      "field_definitions": [
+        {
+          "Complaint Report #": {
+            "type": "input",
+            "name": "complaint-report-number",
+            "required": false
+          }
+        },
+        {
+          "Precinct #": {
+            "type": "input",
+            "name": "precinct-number",
+            "required": false
+          }
+        },
+        {
+          "Date": {
+            "type": "date",
+            "name": "complaint-report-date",
+            "required": false
+          }
+        },
+        {
+          "Time": {
+            "type": "time",
+            "name": "complaint-report-time",
+            "required": false
+          }
+        },
+        {
+          "Address": {
+            "type": "input",
+            "name": "complaint-report-address",
+            "required": false
+          }
+        },
+        {
+          "Victim/Complainant Name": {
+            "type": "input",
+            "name": "victim-complainant-name",
+            "required": false
+          }
+        },
+        {
+          "Offense": {
+            "type": "input",
+            "name": "complaint-report-offense",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "5",
+      "category": "1",
+      "minimum_required": "1"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Body Worn Camera Video",
+      "form_description": "Form for requesting body worn camera footage",
+      "field_definitions": [
+        {
+          "Date of Incident": {
+            "type": "date",
+            "name": "date-of-incident",
+            "required": false
+          }
+        },
+        {
+          "Start Time": {
+            "type": "time",
+            "name": "start-time",
+            "required": false
+          }
+        },
+        {
+          "End Time": {
+            "type": "time",
+            "name": "end-time",
+            "required": false
+          }
+        },
+        {
+          "Location": {
+            "type": "input",
+            "name": "bwc-location",
+            "required": false
+          }
+        },
+        {
+          "Precinct Number": {
+            "type": "input",
+            "name": "precinct-number",
+            "required": false
+          }
+        },
+        {
+          "Type of Incident/Reason": {
+            "type": "input",
+            "name": "type-of-incident",
+            "required": false
+          }
+        },
+        {
+          "Officer's Name": {
+            "type": "input",
+            "name": "officers-name",
+            "required": false
+          }
+        },
+        {
+          "Arrest Number": {
+            "type": "input",
+            "name": "arrest-number",
+            "required": false
+          }
+        },
+        {
+          "Complaint Number": {
+            "type": "input",
+            "name": "complaint-number",
+            "required": false
+          }
+        },
+        {
+          "Other Police Incident Number": {
+            "type": "input",
+            "name": "other-police-incident-number",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "5",
+      "category": "1",
+      "minimum_required": "1"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "NYPD Test Form",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Input Test": {
+            "type": "input",
+            "name": "input-test",
+            "required": false
+          }
+        },
+        {
+          "Textarea Test": {
+            "type": "textarea",
+            "name": "textarea-test",
+            "required": false,
+            "max_length": "50",
+            "character_counter": true
+          }
+        },
+        {
+          "Date Test": {
+            "type": "date",
+            "name": "date-test",
+            "required": false
+          }
+        },
+        {
+          "Time Test": {
+            "type": "time",
+            "name": "time-test",
+            "required": false
+          }
+        },
+        {
+          "Dropdown Test": {
+            "type": "select_dropdown",
+            "name": "dropdown-test",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Radio Test": {
+            "type": "radio",
+            "name": "radio-test",
+            "info": "Please select an option",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Select Multiple Test": {
+            "type": "select_multiple",
+            "name": "select-multiple-test",
+            "values": [
+              "option1",
+              "option2",
+              "option3"
+            ],
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "5",
+      "category": "2",
+      "minimum_required": "2"
+    }
+  ]
+}

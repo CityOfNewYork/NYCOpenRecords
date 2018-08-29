@@ -25,7 +25,7 @@
         var letter_info = second.find("#letter-template-id");
         var generate_letters_enabled = form.find("#generate-letters-enabled").val();
 
-        var edit_body_header = third.find('#edit-body-header');
+        var edit_body_header = third.find("#edit-body-header");
 
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
@@ -151,6 +151,9 @@
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
                         fourth.find(".method").val(method.val());
+                        if ($(".editable-span").text() === "") {
+                            $(".editable-span").hide();
+                        }
                     }
                 });
             } else {

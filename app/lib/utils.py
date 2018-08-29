@@ -62,13 +62,13 @@ class PDFCreationException(Exception):
     def __init__(self, status_code, stdout=b'', stderr=b''):
         """
         Exception used when xhtml2pdf fails to create a PDF.
-
         :param status_code: Process exit status code
         :param stdout: STDOUT output
         :param stderr: STDERR output
         """
         super(PDFCreationException, self).__init__(
-            "Failed to create PDF: \n\nStatus Code: {status_code}\n\nSTDOUT:\n{stdout}\n\nSTDERR:\n{stderr}".format(status_code=status_code, stdout=str(stdout, 'utf-8'), stderr=str(stderr, 'utf-8'))
+            "Failed to create PDF: \n\nStatus Code: {status_code}\n\nSTDOUT:\n{stdout}\n\nSTDERR:\n{stderr}".format(
+                status_code=status_code, stdout=str(stdout, 'utf-8'), stderr=str(stderr, 'utf-8'))
         )
 
 

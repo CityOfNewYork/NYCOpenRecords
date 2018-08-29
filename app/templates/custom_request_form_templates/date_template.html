@@ -1,0 +1,8 @@
+<div class="custom-request-form-date custom-request-form-field">
+    <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label>
+    {% if tooltip %}
+        <span id="{{ field_name }}-{{ instance_id }}-tooltip" class="glyphicon glyphicon-question-sign"></span>
+    {% endif %}
+    <br>
+    <input class="input-block-level custom-request-form-datepicker custom-request-form-data" id="{{ field_name }}-{{ instance_id }}" type="text" name="{{ field_name }}-{{ instance_id }}" maxlength="10" {% if field_required %}data-parsley-required{% endif %} placeholder="MM/DD/YYYY"><br>
+</div>

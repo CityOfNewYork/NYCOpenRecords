@@ -48,6 +48,7 @@ $(function () {
                     bindFileUpload(
                         "#fileupload-update-" + responses[i].id,
                         request_id,
+                        '',
                         true,
                         responses[i].id,
                         "template-upload-update",
@@ -608,7 +609,7 @@ $(function () {
         var editFileTitle = "#edit-file-title-" + response_id;
         var editFileTitleCharacterCounter = "#edit-file-title-character-counter-" + response_id;
         $(editFileTitle).keyup(function () {
-            characterCounter(editFileTitleCharacterCounter, 140, $(this).val().length)
+            characterCounter(editFileTitleCharacterCounter, 250, $(this).val().length)
         });
     }
 

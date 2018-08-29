@@ -5,17 +5,14 @@
     synopsis: Handles the functions for responses
 
 """
-import os
-import re
 import json
-
 from datetime import datetime
-from abc import ABCMeta, abstractmethod
 from urllib.parse import urljoin, urlencode
 
+import os
+import re
+from abc import ABCMeta, abstractmethod
 from cached_property import cached_property
-from werkzeug.utils import secure_filename
-from flask_login import current_user
 from flask import (
     current_app,
     request as flask_request,
@@ -25,7 +22,12 @@ from flask import (
     jsonify,
     Markup
 )
+from flask_login import current_user
+from werkzeug.utils import secure_filename
+
+import app.lib.file_utils as fu
 from app import email_redis, calendar, sentry
+from app.auth.utils import find_user_by_email
 from app.constants import (
     event_type,
     response_type,
@@ -42,12 +44,12 @@ from app.constants import (
     CONFIRMATION_LETTER_HEADER_TO_REQUESTER,
     EMAIL_TEMPLATE_FOR_EVENT
 )
-from app.constants.request_date import RELEASE_PUBLIC_DAYS
-from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
 from app.constants import (
     permission,
     TINYMCE_EDITABLE_P_TAG
 )
+from app.constants.request_date import RELEASE_PUBLIC_DAYS
+from app.constants.response_privacy import PRIVATE, RELEASE_AND_PUBLIC, RELEASE_AND_PRIVATE
 from app.lib.date_utils import (
     get_next_business_day,
     get_due_date,
@@ -58,14 +60,13 @@ from app.lib.date_utils import (
 )
 from app.lib.db_utils import create_object, update_object, delete_object
 from app.lib.email_utils import send_email, get_agency_emails
-import app.lib.file_utils as fu
-from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
-from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.lib.pdf import (
     generate_pdf,
     generate_envelope,
     generate_envelope_pdf
 )
+from app.lib.redis_utils import redis_get_file_metadata, redis_delete_file_metadata
+from app.lib.utils import eval_request_bool, UserRequestException, DuplicateFileException
 from app.models import (
     CommunicationMethods,
     Events,
@@ -86,7 +87,6 @@ from app.models import (
     EnvelopeTemplates
 )
 from app.request.api.utils import create_request_info_event
-from app.auth.utils import find_user_by_email
 
 
 # TODO: class ResponseProducer()
@@ -250,21 +250,41 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
+        previous_status = request.status
+        previous_date_closed = request.date_closed
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
             update_object(
-                {'agency_request_summary_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
-                 'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
         else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
             update_object(
-                {'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed}
+        )
+
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the denial date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
@@ -331,52 +351,45 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     :param letter_template_id: id of the letter template
 
     """
-    current_request = Requests.query.filter_by(id=request_id).one()
-    if current_request.status != request_status.CLOSED and (
-            current_request.was_acknowledged or current_request.was_reopened):
-        if current_request.privacy['agency_request_summary'] or not current_request.agency_request_summary:
-            reason = "Agency Request Summary must be public and not empty, "
-            if current_request.responses.filter(
-                    Responses.type != response_type.NOTE,  # ignore Notes
-                    Responses.type != response_type.EMAIL,  # ignore Emails
-                    Responses.deleted == False,  # ignore deleted responses
-                    Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
-                    Responses.is_editable == True  # ignore non-editable responses
-            ).first() is not None:
-                raise UserRequestException(action="close",
-                                           request_id=current_request.id,
-                                           reason=reason + "or all Responses (excluding Notes) must be public."
-                                           )
-            if current_request.privacy['title']:
-                raise UserRequestException(action="close",
-                                           request_id=current_request.id,
-                                           reason=reason + "or Title must be public."
-                                           )
-        if current_request.agency_request_summary and not current_request.privacy['agency_request_summary']:
-            date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
-            release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
-                                        current_app.config['APP_TIMEZONE'])
+    request = Requests.query.filter_by(id=request_id).one()
+    if request.status != request_status.CLOSED and (
+            request.was_acknowledged or request.was_reopened):
+        previous_status = request.status
+        previous_date_closed = request.date_closed
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
+        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
             update_object(
-                {'agency_request_summary_release_date': release_date,
-                 'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
-            )
-            create_request_info_event(
-                request_id,
-                event_type.REQ_AGENCY_REQ_SUM_DATE_SET,
-                None,
-                {"release_date": release_date.isoformat()}
             )
         else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
             update_object(
-                {'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < current_request.date_submitted.date():
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed}
+        )
+
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the closing date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
             response = Determinations(
@@ -397,7 +410,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
-        current_request.es_update()
+        request.es_update()
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.CLOSING_LETTER_CREATED)
@@ -407,7 +420,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                           EMAIL_TEMPLATE_FOR_EVENT[event_type.CLOSING_LETTER_CREATED])
             email_content = render_template(email_template,
                                             request_id=request_id,
-                                            agency_name=current_request.agency.name,
+                                            agency_name=request.agency.name,
                                             user=current_user
                                             )
             email_id = safely_send_and_add_email(request_id,
@@ -431,7 +444,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                                    reason="Request is already closed or has not been acknowledged")
 
 
-def add_reopening(request_id, date, tz_name, content, method, letter_template_id=None):
+def add_reopening(request_id, date, tz_name, content, reason, method, letter_template_id=None):
     """
     Create and store a re-opened-determination for the specified request and update the request accordingly.
 
@@ -439,21 +452,24 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
     :param date: string of new date of request completion
     :param tz_name: client's timezone name
     :param content: email body associated with the reopened request
+    :param reason: Reason for re-opening
     :param method: Method of delivery (email or letters)
     :param letter_template_id: id of the letter template, if generating a letter
 
     """
     request = Requests.query.filter_by(id=request_id).one()
     if request.status == request_status.CLOSED:
-        date = datetime.strptime(date, '%Y-%m-%d')
+        previous_status = request.status
+        date = datetime.strptime(date, '%m/%d/%Y')
         previous_due_date = {"due_date": request.due_date.isoformat()}
         new_due_date = process_due_date(local_to_utc(date, tz_name))
         privacy = RELEASE_AND_PUBLIC
+        reason = Reasons.query.filter_by(id=reason).one().content
         response = Determinations(
             request_id,
             privacy,
             determination_type.REOPENING,
-            None,
+            reason,
             new_due_date
         )
         create_object(response)
@@ -465,8 +481,14 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
             Requests,
             request_id
         )
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
+        )
 
-        if method == 'email':
+        if method == 'emails':
             email_id = _send_response_email(request_id,
                                             privacy,
                                             content,
@@ -475,7 +497,7 @@ def add_reopening(request_id, date, tz_name, content, method, letter_template_id
                                          email_id,
                                          response_type.EMAIL)
 
-        elif method == 'letter':
+        elif method == 'letters':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
 
             letter_id = _add_letter(request_id, letter_template.title, content,
@@ -789,13 +811,13 @@ def _get_new_due_date(request_id, extension_length, custom_due_date, tz_name):
 
     :param request_id: FOIL request ID that is being passed in to generate_new_due_date
     :param extension_length: number of days the due date is being extended by
-    :param custom_due_date: custom due date of the request (string in format '%Y-%m-%d')
+    :param custom_due_date: custom due date of the request (string in format '%m/%d/%Y')
     :param tz_name: client's timezone name
 
     :return: new_due_date of the request
     """
     if extension_length == '-1':
-        date = datetime.strptime(custom_due_date, '%Y-%m-%d')
+        date = datetime.strptime(custom_due_date, '%m/%d/%Y')
         new_due_date = process_due_date(local_to_utc(date, tz_name))
     else:
         new_due_date = get_due_date(
@@ -890,7 +912,27 @@ def process_email_template_request(request_id, data):
             response_type.USER_REQUEST_EDITED: _user_request_edited_email_handler,
             response_type.USER_REQUEST_REMOVED: _user_request_removed_email_handler
         }
-    return handler_for_type[rtype](request_id, data, page, agency_name, email_template)
+    return handler_for_type[rtype](
+        request_id=request_id,
+        data=data,
+        page=page,
+        agency_name=agency_name,
+        email_template=email_template)
+
+
+def assign_point_of_contact(point_of_contact):
+    """
+    Assign a user to be the point of contact in emails/letters
+
+    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
+    :return: A User object to be designated as the point of contact for a request
+    """
+    if point_of_contact:
+        return Users.query.filter(Users.guid == point_of_contact,
+                                  Users.auth_user_type.in_(
+                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+    else:
+        return current_user
 
 
 def assign_point_of_contact(point_of_contact):
@@ -1191,6 +1233,58 @@ def _denial_letter_handler(request_id, data):
                         "header": header}), 200
 
 
+def _reopening_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for reopening a request.
+
+    :param request_id (String): FOIL request ID
+    :param data (JSON Dict): data from frontend AJAX call
+    :param page (String): string url link of the request
+    :param agency_name (String): string name of the agency of the request
+    :param email_template (String [HTML Formatted]): raw HTML email template of a response
+
+    :return: the HTML of the rendered email template of a reopening
+    """
+    reason = data.get('reason', None)
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+
+    if reason is not None:  # This means we are generating the initial email.
+        default_content = True
+        content = None
+
+        date = datetime.strptime(data['date'], '%m/%d/%Y')
+        reason_id = data.get('reason')
+        reason = Reasons.query.filter_by(id=reason_id).one().content
+        return jsonify(
+            {
+                "template": render_template(
+                    email_template,
+                    default_content=default_content,
+                    content=content,
+                    reason=reason,
+                    request_id=request_id,
+                    agency_name=agency_name,
+                    date=process_due_date(local_to_utc(date, data['tz_name'])),
+                    page=page),
+                "header": header
+            }
+        ), 200
+    else:  # If the reason is None, we are only rendering the final confirmation dialog.
+        # TODO (@joelbcastillo): We should probably add a step parameter instead of relying on the value of the reason.
+        default_content = False
+        content = data['email_content']
+        return jsonify(
+            {
+                "template": render_template(
+                    email_template,
+                    default_content=default_content,
+                    content=content,
+                    page=page),
+                "header": header
+            }
+        ), 200
+
+
 def _reopening_letter_handler(request_id, data):
     """
 
@@ -1208,23 +1302,29 @@ def _reopening_letter_handler(request_id, data):
 
     # Reopening is only provided when getting default letter template.
     if data is not None:
-        contents = LetterTemplates.query.filter_by(id=data['letter_template']).first()
+        if data.get('letter_content', None) is not None:
+            # If letter_content is provided, we are displaying confirmation dialog
+            letter_content = render_template_string(data['letter_content'])
+            return jsonify(
+                {
+                    "template": letter_content,
+                    "header": header
+                }
+            )
 
+        # Process the front-end information and generate the letter content
+
+        # Retrieve letter template
+        letter_template = LetterTemplates.query.filter_by(id=data['letter_template']).first()
+
+        # Retrieve information to be filled in letter template
         now = datetime.utcnow()
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
-
-        letterhead = render_template_string(agency_letter_data['letterhead'])
-
         point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
+        tz_name = data.get('tz_name', current_app.config['APP_TIMEZONE'])
+        due_date = _get_new_due_date(request_id, '-1', data['date'], tz_name)
 
-        due_date = _get_new_due_date(request_id, '-1', data['date'], data['tz_name'])
-
-        template = render_template_string(contents.content,
-                                          date=request.date_submitted,
-                                          due_date=due_date,
-                                          request_id=request_id,
-                                          user=point_of_contact_user)
-
+        # Setup signature
         if agency_letter_data['signature']['default_user_email'] is not None:
             try:
                 u = find_user_by_email(agency_letter_data['signature']['default_user_email'])
@@ -1236,18 +1336,36 @@ def _reopening_letter_handler(request_id, data):
             u = current_user
         signature = render_template_string(agency_letter_data['signature']['text'], user=u, agency=agency)
 
-        test = render_template('letters/base.html',
-                               letterhead=Markup(letterhead),
-                               signature=Markup(signature),
-                               request=request,
-                               date=date,
-                               contents=Markup(template),
-                               request_id=request_id,
-                               footer=Markup(agency_letter_data['footer']))
-        return jsonify({"template": test,
-                        "header": header})
+        # Render letter components
+        letterhead = render_template_string(agency_letter_data['letterhead'])
+        rendered_letter_content = render_template_string(letter_template.content,
+                                                         date=request.date_submitted,
+                                                         due_date=due_date,
+                                                         request_id=request_id,
+                                                         user=point_of_contact_user)
+
+        # Combine components and render letter
+        rendered_letter = render_template('letters/base.html',
+                                          letterhead=Markup(letterhead),
+                                          signature=Markup(signature),
+                                          request=request,
+                                          date=date,
+                                          contents=Markup(rendered_letter_content),
+                                          request_id=request_id,
+                                          footer=Markup(agency_letter_data['footer']))
+        return jsonify(
+            {
+                "template": rendered_letter,
+                "header": header
+            }
+        )
+
     else:
-        return jsonify({"error": "bad request"}), 400
+        return jsonify(
+            {
+                "error": "bad request"
+            }
+        ), 400
 
 
 def _response_letter_handler(request_id, data):
@@ -1315,7 +1433,21 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
 
     :return: the HTML of the rendered template of a closing
     """
+    request = Requests.query.filter_by(id=request_id).one()
     point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
@@ -1327,7 +1459,7 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         _reasons[index] = reason_list
 
     # Determine if a custom reason is used
-    # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
+    # TODO(joelbcastillo) Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features - Should be completed by v2.4
     custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
 
     # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
@@ -1360,7 +1492,9 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         agency_appeals_email=req.agency.appeals_email,
         agency_name=agency_name,
         reasons=Markup(reasons),
-        page=page),
+        page=page,
+        custom_request_forms_enabled=custom_request_forms_enabled,
+        description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
 
@@ -1378,6 +1512,20 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a closing
     """
     req = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in req.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = req.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in req.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = req.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     if eval_request_bool(data['confirmation']):
         header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         reasons = None
@@ -1431,31 +1579,11 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         agency_name=agency_name,
         reasons=Markup(reasons),
         page=page,
-        denied=denied),
+        denied=denied,
+        custom_request_forms_enabled=custom_request_forms_enabled,
+        description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
-
-
-def _reopening_email_handler(request_id, data, page, agency_name, email_template):
-    """
-    Process email template for reopening a request.
-
-    :param request_id: FOIL request ID
-    :param data: data from frontend AJAX call
-    :param page: string url link of the request
-    :param agency_name: string name of the agency of the request
-    :param email_template: raw HTML email template of a response
-
-    :return: the HTML of the rendered email template of a reopening
-    """
-    date = datetime.strptime(data['date'], '%Y-%m-%d')
-    return jsonify({"template": render_template(
-        email_template,
-        request_id=request_id,
-        agency_name=agency_name,
-        date=process_due_date(local_to_utc(date, data['tz_name'])),
-        page=page
-    )}), 200
 
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):

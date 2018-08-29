@@ -35,12 +35,14 @@ def index():
 
 
 @main.route('/index.html', methods=['GET'])
+@main.route('/status', methods=['GET'])
 def status():
-    return 200
+    return '', 200
 
 
 @main.route('/contact', methods=['GET', 'POST'])
-def contact():
+@main.route('/technical-support', methods=['GET', 'POST'])
+def technical_support():
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')

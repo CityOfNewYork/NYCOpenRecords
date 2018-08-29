@@ -1,8 +1,9 @@
 # manage.py
-
+import ast
 import sys
 import os
 import csv
+# import subprocess
 from tempfile import NamedTemporaryFile
 
 from flask_migrate import Migrate, MigrateCommand
@@ -24,7 +25,8 @@ from app.models import (
     Letters,
     LetterTemplates,
     Envelopes,
-    EnvelopeTemplates
+    EnvelopeTemplates,
+    CustomRequestForms
 )
 from app.request.utils import (
     generate_guid
@@ -36,7 +38,8 @@ COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
 
-    COV = coverage.coverage(branch=True, include='app/*', config_file=os.path.join(os.curdir, '.coveragerc'))
+    COV = coverage.coverage(branch=True, include='app/*',
+                            config_file=os.path.join(os.curdir, '.coveragerc'))
     COV.start()
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default', jobs_enabled=False)
@@ -44,6 +47,7 @@ manager = Manager(app)
 migrate = Migrate(app, db)
 
 
+#
 # class Celery(Command):
 #     """
 #     Start Celery
@@ -53,8 +57,9 @@ migrate = Migrate(app, db)
 #     # http://stackoverflow.com/questions/21666229/celery-auto-reload-on-any-changes
 #     # http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html
 #
+#     celery_command = ['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info']
 #     def run(self):
-#         subprocess.call(['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info'])
+#         subprocess.Popen(['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info'])
 
 def make_shell_context():
     return dict(
@@ -73,7 +78,8 @@ def make_shell_context():
         Letters=Letters,
         LetterTemplates=LetterTemplates,
         Envelopes=Envelopes,
-        EnvelopeTemplates=EnvelopeTemplates
+        EnvelopeTemplates=EnvelopeTemplates,
+        CustomRequestForms=CustomRequestForms
     )
 
 
@@ -145,19 +151,26 @@ def import_data(users, agencies, filename):
 
 
 @manager.option("-t", "--test-name", help="Specify tests (file, class, or specific test)", dest='test_name')
-@manager.option("-c", "--coverage", help="Run coverage analysis for tests", dest='cov')
-def test(cov=False, test_name=None):
+@manager.option("-v", "--verbose", help="Pytest verbose mode (True/False)", dest='verbose')
+@manager.option("-c", "--coverage", help="Run coverage analysis for tests (True/False)", dest='cov')
+def test(cov=False, test_name=None, verbose=False):
     """Run the unit tests."""
     if cov and not os.environ.get('FLASK_COVERAGE'):
         import sys
         os.environ['FLASK_COVERAGE'] = '1'
         os.execvp(sys.executable, [sys.executable] + sys.argv)
-    import unittest
-    if not test_name:
-        tests = unittest.TestLoader().discover('tests', pattern='*.py')
+    import pytest
+    command = []
+
+    if verbose:
+        command.append('-v')
+
+    if test_name:
+        command.append('tests/{test_name}'.format(test_name=test_name))
     else:
-        tests = unittest.TestLoader().loadTestsFromName('tests.' + test_name)
-    unittest.TextTestRunner(verbosity=2).run(tests)
+        command.append('tests/')
+
+    pytest.main(command)
 
     if COV:
         COV.stop()
@@ -193,7 +206,8 @@ def deploy():
         Reasons,
         Users,
         LetterTemplates,
-        EnvelopeTemplates
+        EnvelopeTemplates,
+        CustomRequestForms
     )))
 
     es_recreate()
@@ -216,10 +230,20 @@ def fix_due_dates():  # for "America/New_York"
     from app.lib.db_utils import update_object
     for request in Requests.query.all():
         update_object(
-            {"due_date": request.due_date.replace(hour=22, minute=00, second=00, microsecond=00)},
+            {"due_date": request.due_date.replace(
+                hour=22, minute=00, second=00, microsecond=00)},
             Requests,
             request.id)
 
+
+@manager.command
+def migrate_date_closed():
+    r = Requests.query.filter_by(status='Closed').all()
+    for request in r:
+        request.date_closed = request.last_date_closed
+        db.session.add(request)
+
+    db.session.commit()
 
 @manager.command
 def fix_anonymous_requesters():
@@ -248,7 +272,8 @@ def fix_anonymous_requesters():
         for ur in UserRequests.query.filter_by(
                 user_guid=guid, request_user_type=user_type_request.REQUESTER
         ).offset(1):
-            user = Users.query.filter_by(guid=guid, auth_user_type=user_type_auth.ANONYMOUS_USER).one()
+            user = Users.query.filter_by(
+                guid=guid, auth_user_type=user_type_auth.ANONYMOUS_USER).one()
             new_guid = generate_guid()
             print("{} -> {}".format(guid, new_guid))
             # create new anonymous requester with new guid
@@ -306,13 +331,14 @@ def convert_staff_csvs(input=None, output=None):
                                 ein=row['agency_ein'],
                                 is_active=row['is_agency_active'],
                                 is_admin=row['is_agency_admin'],
-                                is_super=eval(row['is_super']),
+                                is_super=ast.literal_eval(row['is_super']),
                                 first_name=row['first_name'],
                                 middle_initial=row['middle_initial'],
                                 last_name=row['last_name'],
                                 email=row['email'],
-                                email_validated=eval(row['email_validated']),
-                                terms_of_use_accepted=eval(row['terms_of_use_accepted']),
+                                email_validated=ast.literal_eval(row['email_validated']),
+                                terms_of_use_accepted=ast.literal_eval(
+                                    row['terms_of_use_accepted']),
                                 phone_number=row['phone_number'],
                                 fax_number=row['fax_number']
                             ), file=temp_write_file)
@@ -325,7 +351,7 @@ def convert_staff_csvs(input=None, output=None):
 def migrate_to_agency_request_summary():
     """
     Updates the events table in the database to use 'agency_request_summary' wherever 'agency_description' was used.
-    
+
     """
 
     agency_description_types = ['request_agency_description_edited', 'request_agency_description_date_set',
@@ -443,6 +469,17 @@ def update_new_value_to_boolean():
         db.session.add(event)
         flag_modified(event, 'new_value')  # needed when updating JSON columns
     db.session.commit()
+
+
+# @manager.option('-t', '--testing', help='Full path to output csv. File will be overwritten.', default=False)
+# def celery(testing):
+#
+#     celery_command = ['celery', 'worker', '-A', 'celery_worker.celery', '--loglevel=info']
+#
+#     if testing:
+#         os.environ['FLASK_CONFIG'] = 'testing'
+#
+#     subprocess.Popen(celery_command)
 
 
 if __name__ == "__main__":

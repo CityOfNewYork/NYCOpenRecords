@@ -46,10 +46,46 @@
             </div>
             <br>
             {% if current_user.is_agency or is_requester %}
+                {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
+                    <div class="row">
+                        <div class="request-label lead">Description:</div>
+                        <div class="request-description-text lead">{{ request.description }}</div>
+                        <br>
+                    </div>
+                {% endif %}
+            {% endif %}
+            {% if request.custom_metadata and (current_user.is_agency or is_requester) %}
                 <div class="row">
-                    <div class="request-label lead">Description:</div>
-                    <div class="request-description-text lead">{{ request.description }}</div>
+                    <div class="request-label lead">Request Information:</div>
                     <br>
+                    {% for form_number,form_values in request.custom_metadata|dictsort %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="panel-title">
+                                    <a data-toggle="collapse"
+                                       href="#collapse-{{ loop.index }}">{{ form_values['form_name'] }}</a>
+                                </div>
+                            </div>
+                            <div id="collapse-{{ loop.index }}"
+                                 class="panel-collapse collapse {% if expand_by_default %}in{% endif %}">
+                                <div class="panel-body lead" style="padding: 15px !important;">
+                                    {% for field_number,field_values in form_values['form_fields']|dictsort %}
+                                        {{ field_values['field_name'] }}:
+                                        {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
+                                            {% for value in field_values['field_value'] %}
+                                                {{ value }}
+                                                {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
+                                                    , {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {{ field_values['field_value'] }}
+                                        {% endif %}
+                                        <br/>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             {% endif %}
             <div class="row">

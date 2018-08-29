@@ -99,6 +99,96 @@
               ]
             }
           }
+        },
+        "custom_request_forms": {
+          "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_forms",
+          "type": "object",
+          "title": "Custom Request Forms",
+          "description": "JSON object with keys to determine what part of the custom request forms should be turned on or off for a specific agency",
+          "anyOf": [
+            {
+              "required": [
+                "enabled"
+              ]
+            }
+          ],
+          "properties": {
+            "enabled": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/enabled",
+              "type": "boolean",
+              "title": "Enabled",
+              "default": false,
+              "description": "Boolean to determine if the custom request forms features should be displayed",
+              "examples": [
+                true,
+                false
+              ]
+            },
+            "multiple_request_types": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/multiple_request_types",
+              "type": "boolean",
+              "title": "Multiple Request Types",
+              "default": false,
+              "description": "Boolean to determine if the custom request forms are repeatable",
+              "examples": [
+                true,
+                false
+              ]
+            },
+            "categorized": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/categorized",
+              "type": "boolean",
+              "title": "Categorized",
+              "default": false,
+              "description": "Boolean to determine if the custom request forms are categorized. Only forms with the same category can be submitted.",
+              "examples": [
+                true,
+                false
+              ]
+            },
+            "category_info_text": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/category_info_text",
+              "type": "string",
+              "title": "Category Info Text",
+              "default": "",
+              "description": "Text that gives users info on how an agency's custom forms are categorized",
+              "examples": [
+                "This agency's request types are categorized by general requests and specific requests."
+              ]
+            },
+            "category_warning_text": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/category_warning_text",
+              "type": "string",
+              "title": "Category Warning Text",
+              "default": "",
+              "description": "Text that warns users that they are about to switch categories",
+              "examples": [
+                "You would have to submit a separate request regarding a different category."
+              ]
+            },
+            "expand_by_default": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/expand_by_default",
+              "type": "boolean",
+              "title": "Expand By Default",
+              "default": false,
+              "description": "Boolean to determine if the custom request form data should be expanded on the request page",
+              "examples": [
+                true,
+                false
+              ]
+            },
+            "description_hidden_by_default": {
+              "$id": "/properties/agencies/items/properties/agency_features/properties/custom_request_types/properties/description_hidden_by_default",
+              "type": "boolean",
+              "title": "Description Hidden By Default",
+              "default": true,
+              "description": "Boolean to determine if the default request description should be hidden if custom forms are enabled",
+              "examples": [
+                true,
+                false
+              ]
+            }
+          }
         }
       }
     }

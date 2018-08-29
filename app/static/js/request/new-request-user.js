@@ -2,6 +2,14 @@
  * Created by atan on 9/14/16.
  */
 
+/* globals characterCounter: true */
+/* globals getRequestAgencyInstructions: true */
+/* globals getCustomRequestForms: true */
+/* globals toggleRequestAgencyInstructions: true */
+/* globals renderCustomRequestForm: true */
+/* globals processCustomRequestForms: true */
+
+
 "use strict";
 
 $(document).ready(function () {
@@ -11,7 +19,7 @@ $(document).ready(function () {
     });
 
     $("input[name='tz-name']").val(jstz.determine().name());
-    
+
     $("#request-category").change(function () {
         $.ajax({
             url: "/request/agencies",
@@ -31,25 +39,87 @@ $(document).ready(function () {
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
                 toggleRequestAgencyInstructions("show");
+                $(".appended-div").remove(); // remove the appended divs from previous agency
+                previousValues = [];
+                currentValues = [];
+                getCustomRequestForms(sel.find("option:first-child").val());
             }
         });
     });
 
-
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
         toggleRequestAgencyInstructions("show");
+        $(".appended-div").remove(); // remove the appended divs from previous agency
+        previousValues = [];
+        currentValues = [];
+        getCustomRequestForms($("#request-agency").val());
     });
 
     $("#request-agency-instructions-toggle").click(function () {
         toggleRequestAgencyInstructions("default");
     });
+
+    $(document).on("focus", ".request-type", function () {
+        var target = document.activeElement.id;
+        target = target.replace("request-type-", "");
+        var targetId = "#" + document.activeElement.id;
+        $(targetId).off().change(function () {
+            if (categorized && categorySelected) {
+                var formId = $(targetId).val();
+                var selectedCategory = formCategories[formId];
+                // if the selected category is not the same as the current category warn the user with a modal
+                if (selectedCategory !== currentCategory && formId !== "") {
+                    // show the modal
+                    $("#category-warning-modal").modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    // handle modal button actions
+                    $("#change-category-button").off().click(function () {
+                        handleCategorySwitch(formId);
+                    });
+                    $("#cancel-change-category-button").off().click(function () {
+                        $(targetId).val(previousValues[target - 1]);
+                    });
+                }
+                else{ // otherwise render the form normally
+                    renderCustomRequestForm(target);
+                }
+            }
+            else {
+                renderCustomRequestForm(target);
+                categorySelected = true;
+            }
+        });
+    });
+
+    // determine which dismiss button is being clicked
+    $(document).on("click", ".panel-dismiss", function () {
+        dismissTarget = "#" + document.activeElement.id;
+    });
+
+    // append a new dropdown and content div every time the additional content button is clicked
+    $("#custom-request-form-additional-content").click(function () {
+        customRequestFormCounter = customRequestFormCounter + 1;
+        var dropdownTemplate = "<div class='panel panel-default appended-div' id='custom-request-panel-" + customRequestFormCounter + "'><div class='panel-heading' id='custom-request-forms-" + customRequestFormCounter + "' style='display: block;'><label class='request-heading request-type-label' for='request_type'>Request Type (optional)</label><button type='button' class='close panel-dismiss' id='panel-dismiss-button-" + customRequestFormCounter + "' data-target='#panel-dismiss-modal' data-toggle='modal'><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button><select class='input-block-level request-type' id='request-type-" + customRequestFormCounter + "' name='request_type'></select><br></div>";
+        var contentTemplate = "<div class='panel-body' id='custom-request-form-content-" + customRequestFormCounter + "' hidden></div></div>";
+        $(dropdownTemplate + contentTemplate).insertBefore("#custom-request-form-additional-content");
+        $("#custom-request-form-additional-content").hide();
+
+        // populate any empty dropdowns with that agency's form options
+        populateDropdown($("#request-agency").val());
+
+        previousValues[customRequestFormCounter - 1] = "";
+        currentValues[customRequestFormCounter - 1] = "";
+    });
+
     // javascript to add tooltip popovers when selecting the title and description
     $("#request-title").attr({
         "data-placement": "top",
         "data-trigger": "hover focus",
         "data-toggle": "popover",
-        "data-content": "Public Advocate Emails from 2015",
+        "data-content": "Queens Blvd Roadwork Permit. Do NOT put private names, phone numbers, home address, date of birth, etc.",
         title: "Example Title"
     });
     $("#request-title").popover();
@@ -61,7 +131,7 @@ $(document).ready(function () {
         "data-placement": "top",
         "data-trigger": "hover focus",
         "data-toggle": "popover",
-        "data-content": "Topic: Public Advocate Emails from 2015. Emails that mention bike lanes or bicycle lanes from the Public Advocate's Office between July 27, 2015 and September 10, 2015.",
+        "data-content": "Roadwork permits for work done in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and October 2017.",
         title: "Example Request"
     });
     $("#request-description").click(function () {
@@ -133,21 +203,43 @@ $(document).ready(function () {
 
     // Disable submit button on form submission
     $("#request-form").submit(function () {
+        $(".remove-on-resubmit").remove();
+        if ($("#request-form").parsley().isValid()) {
+            // section to check if at least one request type has been selected
+            var emptyRequestDropdown = checkRequestTypeDropdowns();
+            if (customRequestFormsEnabled === true && emptyRequestDropdown === true) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($("#custom-request-forms-warning").offset().top - 50);
+                return;
+            }
+            // section to check if all custom forms pass the minimum required validator
+            var invalidForms = processCustomRequestFormData();
+            if (invalidForms.length > 0) {
+                e.preventDefault();
+                $("#processing-submission").hide();
+                $("#submit").show();
+                $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+        }
+
         // Prevent multiple submissions
         $(this).submit(function () {
             return false;
         });
         $("#submit").hide();
-        $("#processing-submission").show()
+        $("#processing-submission").show();
     });
 
     // Character count for creating a new request
     $("#request-title").keyup(function () {
-        characterCounter("#title-character-count", 90, $(this).val().length)
+        characterCounter("#title-character-count", 90, $(this).val().length);
     });
 
     $("#request-description").keyup(function () {
-        characterCounter("#description-character-count", 5000, $(this).val().length)
+        characterCounter("#description-character-count", 5000, $(this).val().length);
     });
 
 });

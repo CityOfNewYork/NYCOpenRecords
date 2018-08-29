@@ -14,6 +14,7 @@ Vagrantfile.aws
 *.pem
 *.crt
 *.key
+*.htpasswd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -51,6 +52,7 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+.pytest_cache/
 
 # Flask stuff:
 instance/
@@ -84,4 +86,14 @@ pip-selfcheck.json
 .idea_modules/
 
 # Visual Studio Code
-.vscode/
+.vscode/*
+.vscode
+
+# Local Configuration
+.tmux/
+
+# Test Files
+data/FOIL-*
+data_test/*
+executables/*
+openrecords.code-workspace

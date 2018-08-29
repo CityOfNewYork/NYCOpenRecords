@@ -1,7 +1,8 @@
 <form id="add-reopening" action="/response/reopening/{{ request.id }}" method="POST">
 
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <input type="hidden" id="point-of-contact" name="point_of_contact" value="{{ current_point_of_contact['user_guid'] }}"/>
+    <input type="hidden" id="point-of-contact" name="point_of_contact"
+           value="{{ current_point_of_contact['user_guid'] }}"/>
 
     <div class="col-sm-9">
         <fieldset>
@@ -15,17 +16,22 @@
             </legend>
             <div class="first">
                 {% if generate_letters_enabled %}
-                <div class="form-group">
-                    <label for="reopening-method">Method</label>
-                    <select id="reopening-method" name="method" class="disable-enter-submit form-control">
-                        <option value="" selected="selected" disabled="disabled">None selected</option>
-                        <option value="email">Email</option>
-                        <option value="letter">Letter</option>
+                    <div class="form-group">
+                        <label for="reopening-method">Method</label>
+                        <select id="reopening-method" name="method" class="disable-enter-submit form-control">
+                            <option value="" selected="selected" disabled="disabled">None selected</option>
+                            <option value="emails">Email</option>
+                            <option value="letters">Letter</option>
+                        </select>
+                    </div>
+                {% else %}
+                    <input type="hidden" id="reopening-method" name="method" value="emails"/>
+                {% endif %}
+                <div id="reopening-reason-id-group" class="form-group" hidden>
+                    <label for="reopening-reason-id">Reason</label>
+                    <select id="reopening-reason-id" name="reason-id" class="disable-enter-submit form-control">
                     </select>
                 </div>
-                {% else %}
-                    <input type="hidden" id="reopening-method" name="method" value="email" />
-                {% endif %}
                 <div id="reopening-letter-template-group" class="form-group" hidden>
                     <label for="reopening-letter-template">Template</label>
                     <select id="reopening-letter-template" name="template" class="disable-enter-submit form-control">
@@ -35,17 +41,27 @@
                 <div class="form-group">
                     <label for="reopening-date">New Due Date</label>
                     <input type="text" id="reopening-date" name="date"
-                           class="disable-enter-submit">
-                    <input type="hidden" name="tz-name">
+                           class="disable-enter-submit" autocomplete="off">
                 </div>
                 <button type="button" class="next pull-right btn btn-primary">Next</button>
             </div>
             <div class="second" hidden>
+                <h4 id="edit-body-header">Edit Email Body</h4>
+                <div class="form-group">
+                    <div class="reopen-content-hidden" hidden></div>
+                    <textarea title="reopening-body" name="reopening-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+            <div class="third" hidden>
                 <h4 id="header">The following will be emailed to the requester:</h4>
                 <div class="wrap-text summary"></div>
                 <input type="hidden" name="method">
                 <input type="hidden" name="letter-template-id">
                 <input type="hidden" name="summary">
+                <input type="hidden" name="tz-name">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit pull-right btn btn-success">Submit</button>
             </div>

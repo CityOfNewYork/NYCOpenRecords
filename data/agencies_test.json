@@ -20,6 +20,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -43,6 +52,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -66,6 +84,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -89,6 +116,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -112,6 +148,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -135,6 +180,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -158,6 +212,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -181,6 +244,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -204,6 +276,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -227,6 +308,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -250,6 +340,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -273,6 +372,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -296,6 +404,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -319,6 +436,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -342,6 +468,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -365,6 +500,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -388,6 +532,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -411,6 +564,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -434,6 +596,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -457,6 +628,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -480,6 +660,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -503,6 +692,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -526,6 +724,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -549,6 +756,15 @@
         },
         "specific_request_instructions": {
           "text": "<strong>In the “Request Description” box, please describe with as much specificity as possible the record(s) you are requesting.  Include, as applicable, the following information:</strong><br /><i><ul><li>Project name</li><li>Address</li><li>Borough(s)</li><li>Block numbers(s)</li><li>Lot number(s)</li><li>CP or ULURP number(s)</li><li>CEQR number(s)</li><li>Relevant dates</li><li>Type of record(s)</li></ul></i><strong>Please note: </strong>Broadly worded requests seeking “any” or “all” records related to a subject matter have the potential to implicate hundreds if not thousands of records, including emails. Requests for emails require an extensive search, and a determination regarding such a broad request typically takes a minimum of sixty (60) business days. If making a request for emails, when possible, the specific sender(s) and recipient(s) should be identified, as well as specific date ranges.<br /><br />See more information about the <a rel=\"noopener noreferrer\" target=\"_blank\" href=\"https://www1.nyc.gov/assets/planning/download/pdf/about/proc_pub_inspection.pdf?r=0518\">Department's FOIL procedures</a>."
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -572,6 +788,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -595,6 +820,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -618,6 +852,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -641,6 +884,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -664,6 +916,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -687,6 +948,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -710,6 +980,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -733,6 +1012,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -756,6 +1044,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -779,6 +1076,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -802,6 +1108,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -825,6 +1140,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -853,6 +1177,15 @@
         "monitor_agency_requests": [],
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -876,6 +1209,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -899,6 +1241,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -922,6 +1273,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -945,6 +1305,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -968,6 +1337,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -991,6 +1369,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1014,6 +1401,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1037,6 +1433,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1060,6 +1465,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1083,6 +1497,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1106,6 +1529,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1129,6 +1561,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1152,6 +1593,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1175,6 +1625,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1198,6 +1657,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1221,6 +1689,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1244,6 +1721,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1267,6 +1753,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1290,6 +1785,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1313,6 +1817,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1336,6 +1849,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1359,6 +1881,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1382,6 +1913,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1405,6 +1945,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1428,6 +1977,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1442,7 +2000,7 @@
       "next_request_number": "00001",
       "default_email": "openrecords_agency_default_dev_002@mailinator.com",
       "appeals_email": "openrecords_agency_appeals_dev_002@mailinator.com",
-      "is_active": false,
+      "is_active": true,
       "agency_features": {
         "monitor_agency_requests": [
         ],
@@ -1457,6 +2015,15 @@
         },
         "specific_request_instructions": {
           "text": "Requests for Payroll/Employment records should be directed to:<br />&emsp;Director Payroll & Benefits Division<br />&emsp;90 Church Street, 12th Floor<br />&emsp;New York, NY 10007<br /><br />Requests for Medical Records should be directed to:<br />&emsp;Medical Division <br />&emsp;1 Lefrak City Plaza, 16th Floor<br />&emsp;59-17 Junction Blvd.<br />&emsp;Corona, NY 11368<br /><br />Criminal History/Background Checks:<br />Requests for Criminal History/Background checks, should be directed to the NYS Division of Criminal Justice Services website:<br /><a rel=\"noreferrer noopener\" target=\"_blank\" href=\"http://www.criminaljustice.ny.gov/ojis/recordreview.htm\">http://www.criminaljustice.ny.gov/ojis/recordreview.htm</a><br /><br />You can also submit a request in writing to:<br />&emsp;New York State Division of Criminal Justice Services<br />&emsp;80 S Swan Street<br />&emsp;Albany, NY 12210<br /><br />Collision Reports:<br />Requestors seeking Collision Reports taken by the New York City Police Department (NYPD) before September 30, 2016 should access the New York State Department of Motor Vehicles website:<br /><a rel=\"noreferrer noopener\" target=\"_blank\" href=\"http://dmv.ny.gov/get-accident-report\">http://dmv.ny.gov/get-accident-report</a><br /><br />You can also submit a request in writing to:<br />&emsp;NYSDMV, MV-198 C Processing<br />&emsp;6 Empire State Plaza<br />&emsp;Albany, NY 12228<br /><br />Requestors seeking Collision Reports taken by the New York City Police Department (NYPD) after September 30, 2016 should access the NYPD's Collision Report website:<br /><a rel=\"noreferrer noopener\" target=\"_blank\" href=\"https://collisionreport.nypdonline.org/\">https://collisionreport.nypdonline.org/</a> <br /><br /><strong>For all other requests, please fill out the PDF Form linked here and attach it to your request:</strong><br /><a rel=\"noopener noreferrer\" target=\"_blank\" href=\"http://www1.nyc.gov/assets/nypd/downloads/pdf/record_inquiries/foil-request-nypd.pdf\">NYPD FOIL Request Form</a>"
+        },
+        "custom_request_forms": {
+          "enabled": true,
+          "multiple_request_types": true,
+          "categorized": true,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1480,6 +2047,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1503,6 +2079,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1526,6 +2111,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1549,6 +2143,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1572,6 +2175,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1595,6 +2207,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1618,6 +2239,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1641,6 +2271,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1664,6 +2303,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1687,6 +2335,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     },
@@ -1710,6 +2367,15 @@
         },
         "specific_request_instructions": {
           "text": ""
+        },
+        "custom_request_forms": {
+          "enabled": false,
+          "multiple_request_types": false,
+          "categorized": false,
+          "category_info_text": "",
+          "category_warning_text": "",
+          "expand_by_default": false,
+          "description_hidden_by_default": true
         }
       }
     }

@@ -19,8 +19,7 @@ from flask import (
     session,
     url_for,
     request,
-    abort,
-    redirect,
+    jsonify
 )
 from flask_login import login_user, current_user
 from app import (
@@ -35,6 +34,7 @@ from app.constants.web_services import (
     EMAIL_VALIDATION_STATUS_ENDPOINT,
     TOU_ENDPOINT,
     TOU_STATUS_ENDPOINT,
+    ENROLLMENT_STATUS_ENDPOINT,
     ENROLLMENT_ENDPOINT
 )
 from app.auth.constants import error_msg
@@ -191,6 +191,7 @@ def handle_user_data(guid,
       a redirect to the specified next_url, the home page url,
       or to the 404 page if next_url is provided and is unsafe.
     """
+
     redirect_required, user_or_url = _process_user_data(
         guid,
         user_type,
@@ -202,15 +203,18 @@ def handle_user_data(guid,
         email_validation_flag
     )
     if redirect_required:
-        return redirect(user_or_url)
+        return jsonify({'next': user_or_url})
     else:
         login_user(user_or_url)
         _session_regenerate_persist_token()
 
-        if not is_safe_url(next_url):
-            return abort(400, error_msg.UNSAFE_NEXT_URL)
-
-        return redirect(next_url or url_for('main.index', fresh_login=True))
+        if not is_safe_url(next_url) or True:
+            sentry.client.context.merge(
+                {'user': {'guid': user_or_url.guid, 'auth_user_type': user_or_url.auth_user_type}})
+            sentry.captureMessage(error_msg.UNSAFE_NEXT_URL)
+            sentry.client.context.clear()
+            return jsonify({'next': url_for('main.index', fresh_login=True, _external=True, _scheme='https')})
+        jsonify({'next': next_url or url_for('main.index', fresh_login=True, _external=True, _scheme='https')})
 
 
 def _session_regenerate_persist_token():
@@ -304,12 +308,14 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
     `email_validated` and `terms_of_use_accepted` (this function
     should be called AFTER email validation and terms-of-use acceptance
     has been completed).
+
     Update any database objects this user is associated with.
     - user_requests
     - events
     In order to prevent a possbile negative performance impact
     (due to foreign keys CASCADE), guid and user_type are compared with
     stored user attributes and are excluded from the update if both are identical.
+
     Update search index for searching by assigned user.
     """
     updated_data = {
@@ -439,13 +445,19 @@ def _enroll(guid, user_type):
         "guid": guid,
         "userType": user_type
     }
-    _check_web_services_response(
-        _web_services_request(
-            ENROLLMENT_ENDPOINT,
-            params,
-            method='PUT'
-        ),
-        error_msg.ENROLLMENT_FAILURE)
+    response = _web_services_request(
+        ENROLLMENT_STATUS_ENDPOINT,
+        params.copy()  # signature regenerated
+    )
+    _check_web_services_response(response, error_msg.ENROLLMENT_STATUS_CHECK_FAILURE)
+    if response.status_code != 200 or response.text == '':
+        _check_web_services_response(
+            _web_services_request(
+                ENROLLMENT_ENDPOINT,
+                params,
+                method='PUT'
+            ),
+            error_msg.ENROLLMENT_FAILURE)
 
 
 def _unenroll(guid, user_type):
@@ -470,7 +482,9 @@ def _check_web_services_response(response, msg):
     Log an error message if the specified response's
     status code is not 200.
     """
-    if response.status_code != 200:
+    if response.status_code == 404:
+        current_app.logger.error("{}".format(msg))
+    elif response.status_code != 200:
         current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))
 
 

@@ -3,6 +3,8 @@
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/new_request/new-request.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/parsley.css') }}"/>
+    <link rel=stylesheet type=text/css
+          href="{{ url_for('static', filename='styles/plugins/jquery.timepicker.min.css') }}"/>
 {% endblock %}
 
 {% block content %}
@@ -37,11 +39,11 @@
                 <div class="alert alert-info" id="request-agency-instructions" style="display: none;">
                     <div id="request-agency-instructions-content"></div>
                     <span id="request-agency-instructions-toggle">
-                        <button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span class="glyphicon glyphicon-chevron-up"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class="glyphicon glyphicon-chevron-up"></span></button></span>
+                        <button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span
+                                class="glyphicon glyphicon-chevron-up"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span
+                                class="glyphicon glyphicon-chevron-up"></span></button></span>
 
                 </div>
-
-
                 {# Title of the request #}
                 {{ form.request_title.label(class="request-heading title-label") }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
@@ -55,20 +57,87 @@
                 {{ form.request_title(id="request-title", class="input-block-level",
                     placeholder="Please provide a short summary of your request.", maxlength="90") }}
                 <h5 id="title-character-count">90 characters remaining</h5>
-                {# Description of the request #}
-                {{ form.request_description.label(class="request-heading description-label") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
-                      data-content="Enter a detailed description of the request"
-                      class="glyphicon glyphicon-question-sign">
+                {# Description of Request #}
+                <div id="request-description-section">
+                    {{ form.request_description.label(class="request-heading description-label") }}
+                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
+                          data-content="Enter a detailed description of the request."
+                          class="glyphicon glyphicon-question-sign">
                 </span>
-                <div class="alert alert-warning">
-                    <p><b>Note: The request details you write here will not be visible to the public. However, the
-                        agency may post a description of the records provided.</b></p>
-                </div>
-                {{ form.request_description(id="request-description", class="input-block-level",
+                    <div class="alert alert-warning">
+                        <p><b>Note: The request details you write here will not be visible to the public. However, the
+                            agency may post a description of the records provided.</b></p>
+                    </div>
+                    {{ form.request_description(id="request-description", class="input-block-level",
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
                         maxlength="5000") }}
-                <h5 id="description-character-count">5000 characters remaining</h5>
+                    <h5 id="description-character-count">5000 characters remaining</h5>
+                </div>
+
+                {# Dropdown for request type based on custom request forms #}
+                <div class="alert alert-warning" id="category-info" hidden>
+                    <p id="request-info-text"></p>
+                </div>
+                <div id="custom-request-forms-warning" class="alert alert-danger" hidden>
+                    <p>You must select at least one request type from the dropdown below.</p>
+                </div>
+                <div class="panel panel-default" id="custom-request-panel-1" hidden>
+                    <div class="panel-heading" id="custom-request-forms-1" hidden>
+                        {{ form.request_type.label(class="request-heading request-type-label") }}
+                        <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Request Type"
+                              data-content="List of all agency specific request types that can be made within OpenRecords."
+                              class="glyphicon glyphicon-question-sign">
+                        </span>
+                        {{ form.request_type(id="request-type-1", class="input-block-level request-type") }}<br>
+                    </div>
+                    <div class="panel-body" id="custom-request-form-content-1" hidden>
+                    </div>
+                </div>
+                <div id="custom-request-form-additional-content" style="text-align: center;" hidden>
+                    <button type="button" class="btn btn-info">Add New Request Information</button>
+                    <br><br>
+                </div>
+                <div class="modal fade" id="panel-dismiss-modal" tabindex="-1" role="dialog">
+                    <div class="vertical-alignment-helper">
+                        <div class="modal-dialog vertical-align-center">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Confirm Delete</h4>
+                                </div>
+                                <div class="modal-body">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button type="button" onclick="handlePanelDismiss()" data-dismiss="modal"
+                                            class="btn btn-danger">Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="category-warning-modal" tabindex="-1" role="dialog">
+                    <div class="vertical-alignment-helper">
+                        <div class="modal-dialog vertical-align-center">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Warning</h4>
+                                </div>
+                                <div id="category-warning-text" class="modal-body">Selecting this option will remove any
+                                    existing information for other request types. Are you sure you want to change
+                                    categories?
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="cancel-change-category-button" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <button id="change-category-button" type="button" data-dismiss="modal"
+                                            class="btn btn-danger">Change Category
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input id="custom-request-forms-data" name="custom-request-forms-data" type="hidden" value="">
 
                 {# Upload field for user to add files #}
                 <div id="upload-control" class="col-sm-12">
@@ -105,6 +174,8 @@
     <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/plugins/jquery.timepicker.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/validation/custom_validators.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/request/new-request-user.js') }}"></script>
 {% endblock %}

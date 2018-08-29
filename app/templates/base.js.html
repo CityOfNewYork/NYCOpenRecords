@@ -65,7 +65,7 @@
         sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
         timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes
         minPingInterval: 60 * 1000,  // 1 minute
-        pingUrl: '{{ BASE_URL }}/ping',
+        pingUrl: '{{ BASE_URL }}/active',
         logoutUrl: '{{ BASE_URL }}/auth/logout',
         timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=True&next=',
         // The "mouseup" event was used instead of "click" because some of the
@@ -92,6 +92,11 @@
             .on("click", "#stay-logged-in", sessMon.extendsess)
             .on("click", "#log-out", sessMon.logout)
             .find("#remaining-time").text(Math.round(sessMon.timeBeforeWarning / 60 / 1000));
+        $("#login-processing-modal").modal({
+            "backdrop": "static",
+            "keyboard": false,
+            "show": false
+        })
     });
     window.sessMon = sessMon;
 </script>

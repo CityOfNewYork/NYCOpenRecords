@@ -2,25 +2,25 @@
 Models for OpenRecords database
 """
 import csv
-from datetime import datetime
-from operator import ior
-from functools import reduce
 import json
-from uuid import uuid4
+from datetime import datetime
 from urllib.parse import urljoin
-from warnings import warn
+from uuid import uuid4
 
 from flask import current_app, session
 from flask_login import (
     UserMixin,
     AnonymousUserMixin
 )
+from functools import reduce
+from operator import ior
 from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import (
     ARRAY,
     JSONB
 )
 from sqlalchemy.orm.exc import MultipleResultsFound
+from warnings import warn
 
 from app import (
     db,
@@ -44,12 +44,12 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.schemas import AGENCIES_SCHEMA
+from app.lib.json_schema import validate_schema
 from app.lib.utils import (
     eval_request_bool,
     DuplicateFileException,
     InvalidDeterminationException
 )
-from app.lib.json_schema import validate_schema
 
 
 class Roles(db.Model):
@@ -734,6 +734,9 @@ class Requests(db.Model):
     status - an Enum that selects from a list of different statuses a request can have
     privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
               (True = Private, False = Public)
+    agency_request_summary - a string that contains an additional description of the request created by the agency
+    agency_request_summary_release_date - a datetime of when the agency_request_summary will be made public
+    custom_metadata - a JSON that contains the metadata from an agency's custom request forms
     """
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
@@ -743,6 +746,7 @@ class Requests(db.Model):
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
+    date_closed = db.Column(db.DateTime, default=None, nullable=True)
     due_date = db.Column(db.DateTime)
     submission = db.Column(
         db.Enum(submission_methods.DIRECT_INPUT,
@@ -765,6 +769,7 @@ class Requests(db.Model):
     privacy = db.Column(JSONB)
     agency_request_summary = db.Column(db.String(5000))
     agency_request_summary_release_date = db.Column(db.DateTime)
+    custom_metadata = db.Column(JSONB)
 
     user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
     agency = db.relationship('Agencies', backref='requests', uselist=False)
@@ -805,7 +810,8 @@ class Requests(db.Model):
             date_submitted=None,  # FIXME: are some of these really nullable?
             due_date=None,
             submission=None,
-            status=request_status.OPEN
+            status=request_status.OPEN,
+            custom_metadata=None
     ):
         self.id = id
         self.title = title
@@ -818,6 +824,7 @@ class Requests(db.Model):
         self.due_date = due_date
         self.submission = submission
         self.status = status
+        self.custom_metadata = custom_metadata
 
     @property
     def val_for_events(self):
@@ -851,7 +858,7 @@ class Requests(db.Model):
         #     return False
 
     @property
-    def date_closed(self):
+    def last_date_closed(self):
         if self.status == request_status.CLOSED:
             return self.responses.join(Determinations).filter(
                 Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
@@ -1227,6 +1234,16 @@ class Responses(db.Model):
         return response_type.LETTER if response_type.LETTER in [cm.method_type for cm in
                                                                 communication_methods] else response_type.EMAIL
 
+    @property
+    def event_timestamp(self):
+        """
+        This function runs a query on the Events table to get all associated event rows for a response and returns
+        the newest timestamp of the newest event which will be displayed on the frontend.
+        :return: timestamp of the newest event row associated with a response
+        """
+        timestamps = Events.query.filter_by(response_id=self.id).order_by(desc(Events.timestamp)).all()
+        return timestamps[0].timestamp
+
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
         self.release_date = calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
@@ -1254,6 +1271,7 @@ class Reasons(db.Model):
     type = db.Column(db.Enum(
         determination_type.CLOSING,
         determination_type.DENIAL,
+        determination_type.REOPENING,
         name="reason_type"
     ), nullable=False)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
@@ -1445,7 +1463,7 @@ class Files(Responses):
     __tablename__ = response_type.FILE
     __mapper_args__ = {'polymorphic_identity': response_type.FILE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    title = db.Column(db.String(140))
+    title = db.Column(db.String(250))
     name = db.Column(db.String)
     mime_type = db.Column(db.String)
     size = db.Column(db.Integer)
@@ -1839,7 +1857,7 @@ class CommunicationMethods(db.Model):
 
     Define a CommunicationMethods class with the following columns and relationships:
 
-    response_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
+    response_id - an integer that is a primary key of CommunicationMetholds (FK to Responses)
     method_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
     method_type - enum ('letters', 'emails') method associated with the response
     """
@@ -1859,3 +1877,54 @@ class CommunicationMethods(db.Model):
         self.response_id = response_id
         self.method_id = method_id
         self.method_type = method_type
+
+
+class CustomRequestForms(db.Model):
+    """
+    Define the CustomRequestForms class with the following columns and relationships:
+
+    id - an integer that is the primary key of CustomRequestForms
+    agency_ein - a string that is a foreign key to the Agencies table
+    form_name - a string that is the name of the custom form
+    form_description - a string that prompts the user what the form is about and how to fill it out
+    field_definitions - a JSON that contains the the name of the field as the key and type of field as the value
+    repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
+    category - an integer to separate different types of custom forms for an agency
+    minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
+    """
+    __tablename__ = 'custom_request_forms'
+    id = db.Column(db.Integer, primary_key=True)
+    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'), nullable=False)
+    form_name = db.Column(db.String, nullable=False)
+    form_description = db.Column(db.String, nullable=False)
+    field_definitions = db.Column(JSONB, nullable=False)
+    repeatable = db.Column(db.Integer, nullable=False)
+    category = db.Column(db.Integer, nullable=True)
+    minimum_required = db.Column(db.Integer, nullable=True)
+
+    @classmethod
+    def populate(cls, json_name=None):
+        """
+        Automatically populate the custom_request_forms table for the OpenRecords application.
+        """
+        filename = json_name or current_app.config['CUSTOM_REQUEST_FORMS_DATA']
+        with open(filename, 'r') as data:
+            data = json.load(data)
+
+            for form in data['custom_request_forms']:
+                if CustomRequestForms.query.filter_by(agency_ein=form['agency_ein'],
+                                                      form_name=form['form_name']).first() is not None:
+                    warn("Duplicate custom_request_form ({}); Row not imported".format(form['agency_ein']),
+                         category=UserWarning)
+                    continue
+                custom_request_form = cls(
+                    agency_ein=form['agency_ein'],
+                    form_name=form['form_name'],
+                    form_description=form['form_description'],
+                    field_definitions=form['field_definitions'],
+                    repeatable=form['repeatable'],
+                    category=form['category'],
+                    minimum_required=form['minimum_required']
+                )
+                db.session.add(custom_request_form)
+            db.session.commit()

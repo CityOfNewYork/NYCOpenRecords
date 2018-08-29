@@ -48,7 +48,8 @@
                     <div class="skiptranslate goog-te-gadget" dir="ltr">
                         <div id=":0.targetLanguage" class="goog-te-gadget-simple"
                              style="white-space: nowrap; border:none;"><span style="vertical-align: middle;"><a
-                                role="menu" class="goog-te-menu-value2" href="javascript:void(0)"><span
+                                role="menu" class="goog-te-menu-value2" href="javascript:void(0)"
+                                aria-label="Translate"><span
                                 class="translate-text">Translate</span><span
                                 style="border-left: 1px solid rgb(187, 187, 187);padding-right:5px;">​</span><span
                                 style="color: rgb(155, 155, 155);">▼</span></a></span></div>
@@ -74,6 +75,8 @@
             </div>
         {% endfor %}
     {% endwith %}
+
+    {% include 'auth/login_processing_modal.html' %}
     {% if not current_user.is_anonymous %}
         {% include 'auth/session_timeout_modal.html' %}
         {% include 'auth/concurrent_session_modal.html' %}
@@ -98,5 +101,8 @@
 {% include 'base.js.html' %}
 {% block custom_script %}
 {% endblock %}
+{% if debug %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/tota11y.min.js') }}"></script>
+{% endif %}
 </body>
 </html>

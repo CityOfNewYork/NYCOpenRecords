@@ -151,6 +151,9 @@
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
                         fourth.find(".method").val(method.val());
+                        if ($(".editable-span").text() === "") {
+                            $(".editable-span").hide();
+                        }
                     }
                 });
             } else {

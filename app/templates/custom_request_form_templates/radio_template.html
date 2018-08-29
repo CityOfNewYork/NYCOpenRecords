@@ -1,0 +1,12 @@
+<div class="custom-request-form-radio custom-request-form-field">
+    <label class="request-heading" for="{{ field_name }}-{{ instance_id }}">{{ field_text }}</label>
+    {% if tooltip %}
+        <span id="{{ field_name }}-{{ instance_id }}-tooltip" class="glyphicon glyphicon-question-sign"></span>
+    {% endif %}
+    <br>
+    <h5 style="margin-top: 0;">{{ field_info }}</h5>
+    {% for option in options %}
+        <input class="custom-request-form-data" type="radio" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" value="{{ option }}" style="display: inline;"/>&nbsp;{{ option }}<br>
+    {% endfor %}
+    <br>
+</div>
