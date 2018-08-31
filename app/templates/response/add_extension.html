@@ -47,7 +47,7 @@
                     <div class="form-group" style="display:none;" id="custom-due-date">
                         <label class="extension-label">Custom Due Date</label>
                         <input type="text" id="custom-extension" name="due-date" class="disable-enter-submit"
-                               value={{ request.due_date }}>
+                               value={{ request.due_date.strftime('%m/%d/%Y') }}>
                     </div>
                     <label class="extension-label">Extension Reason</label>
                     <textarea class="input-block-level form-group" id="extension-reason" name="reason"
@@ -70,7 +70,7 @@
                     <div class="form-group" style="display:none;" id="custom-due-date-letter">
                         <label class="extension-label">Custom Due Date</label>
                         <input type="text" id="custom-extension-letter" name="due-date-letter" class="disable-enter-submit"
-                               value={{ request.due_date }}>
+                               value={{ request.due_date.strftime('%m/%d/%Y') }}>
                     </div>
                     <div class="form-group">
                         {{ generate_extension_letter_form.letter_templates.label }}<br>
