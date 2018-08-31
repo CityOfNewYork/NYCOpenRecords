@@ -355,7 +355,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     if request.status != request_status.CLOSED and (
             request.was_acknowledged or request.was_reopened):
         previous_status = request.status
-        previous_date_closed = request.date_closed
+        previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
         update_vals = {'status': request_status.CLOSED}
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             update_vals['date_closed'] = get_next_business_day()
@@ -386,7 +386,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
             request_id,
             type_=event_type.REQ_STATUS_CHANGED,
             previous_value={'status': previous_status, 'date_closed': previous_date_closed},
-            new_value={'status': request.status, 'date_closed': request.date_closed}
+            new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
         )
 
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
