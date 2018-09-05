@@ -189,6 +189,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
 
     if not request.was_acknowledged:
         previous_due_date = {"due_date": request.due_date.isoformat()}
+        previous_status = request.status
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
         update_object(
             {'due_date': new_due_date,
@@ -206,6 +207,12 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
         )
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
+        )
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content,
@@ -305,7 +312,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
         if method == 'letter':
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
-        create_response_event(event_type.REQ_CLOSED, response)
+        create_response_event(event_type.REQ_DENIED, response)
         request.es_update()
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
