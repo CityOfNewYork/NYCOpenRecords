@@ -27,7 +27,7 @@ from app.models import (
     Determinations,
 )
 from app.request.utils import generate_guid
-from app.constants import user_type_auth, event_type, request_status, determination_type
+from app.constants import user_type_auth, event_type, determination_type
 from app.lib.user_information import create_mailing_address
 
 COV = None
@@ -579,7 +579,7 @@ def create_missing_request_status_changed_events():
                     )
                     db.session.add(event)
                 else:
-                    # The request was not acnkowledged, so the previous status has to be "Open"
+                    # The request was not acknowledge, so the previous status has to be "Open"
                     event = Events(
                         request_id=request.id,
                         user_guid=closing.user_guid,
@@ -607,6 +607,9 @@ def create_missing_request_status_changed_events():
 
 @manager.command
 def fix_incorrect_key_events():
+    """
+    Fixes Events table for request_status_changed events with a key of 'request' instead of 'status'
+    """
     from sqlalchemy.orm.attributes import flag_modified
 
     events = Events.query.filter(Events.type == "request_status_changed").all()
