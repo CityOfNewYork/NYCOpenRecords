@@ -37,7 +37,6 @@ class LatexCompiler:
         if return_code != 0:
             raise PDFCreationException(status_code=return_code, stdout=out, stderr=err)  # TODO: Make this a proper error
 
-
         data = None
         with open('{filename}.{extension}'.format(filename=temp_file, extension=self.FILE_EXTENSION), 'rb') as f:
             data = f.read()

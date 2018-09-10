@@ -2,25 +2,25 @@
 Models for OpenRecords database
 """
 import csv
-from datetime import datetime
-from operator import ior
-from functools import reduce
 import json
-from uuid import uuid4
+from datetime import datetime
 from urllib.parse import urljoin
-from warnings import warn
+from uuid import uuid4
 
 from flask import current_app, session
 from flask_login import (
     UserMixin,
     AnonymousUserMixin
 )
+from functools import reduce
+from operator import ior
 from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import (
     ARRAY,
     JSONB
 )
 from sqlalchemy.orm.exc import MultipleResultsFound
+from warnings import warn
 
 from app import (
     db,
@@ -44,12 +44,12 @@ from app.constants import (
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.schemas import AGENCIES_SCHEMA
+from app.lib.json_schema import validate_schema
 from app.lib.utils import (
     eval_request_bool,
     DuplicateFileException,
     InvalidDeterminationException
 )
-from app.lib.json_schema import validate_schema
 
 
 class Roles(db.Model):
@@ -750,6 +750,7 @@ class Requests(db.Model):
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
+    date_closed = db.Column(db.DateTime, default=None, nullable=True)
     due_date = db.Column(db.DateTime)
     submission = db.Column(
         db.Enum(submission_methods.DIRECT_INPUT,
@@ -861,7 +862,7 @@ class Requests(db.Model):
         #     return False
 
     @property
-    def date_closed(self):
+    def last_date_closed(self):
         if self.status == request_status.CLOSED:
             return self.responses.join(Determinations).filter(
                 Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
@@ -1917,7 +1918,8 @@ class CustomRequestForms(db.Model):
             for form in data['custom_request_forms']:
                 if CustomRequestForms.query.filter_by(agency_ein=form['agency_ein'],
                                                       form_name=form['form_name']).first() is not None:
-                    warn("Duplicate custom_request_form ({}); Row not imported".format(form['agency_ein']), category=UserWarning)
+                    warn("Duplicate custom_request_form ({}); Row not imported".format(form['agency_ein']),
+                         category=UserWarning)
                     continue
                 custom_request_form = cls(
                     agency_ein=form['agency_ein'],

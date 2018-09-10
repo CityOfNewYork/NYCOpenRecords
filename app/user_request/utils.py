@@ -47,7 +47,7 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
             added_permissions.append(val)
 
     # send email to agency administrators
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_added.html',
@@ -61,7 +61,7 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
         to=agency_admin_emails)
 
     # send email to user being added
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_added.html',
@@ -210,14 +210,43 @@ def remove_user_request(request_id, user_guid):
 
 def create_user_request_event(events_type, user_request, old_permissions=None, user=current_user):
     """
-    Create an Event for the addition, removal, or updating of a UserRequest
+    Create an Event for the addition, removal, or updating of a UserRequest and insert into the database.
+
+    Args:
+        events_type (str): event type from the constants defined in constants.event_type.
+        user_request (UserRequests): UserRequests object.
+        old_permissions (int): Value of permissions for the request.
+        user (Users): Users object that represents the user being modified.
+
+    Returns:
+        Events: The event object representing the change made to the user.
+
+    """
+    event = create_user_request_event_object(events_type, user_request, old_permissions, user)
+    create_object(
+        event
+    )
+
+
+def create_user_request_event_object(events_type, user_request, old_permissions=None, user=current_user):
+    """
+    Create an Event for the addition, removal, or updating of a UserRequest and insert into the database.
+
+    Args:
+        events_type (str): event type from the constants defined in constants.event_type.
+        user_request (UserRequests): UserRequests object.
+        old_permissions (int): Value of permissions for the request.
+        user (Users): Users object that represents the user performing the user_request modification
+
+    Returns:
+        Events: The event object representing the change made to the user.
 
     """
     if old_permissions is not None:
         previous_value = {"permissions": old_permissions}
     else:
         previous_value = None
-    create_object(Events(
+    return Events(
         user_request.request_id,
         user.guid,
         user.auth_user_type,
@@ -225,7 +254,7 @@ def create_user_request_event(events_type, user_request, old_permissions=None, u
         previous_value=previous_value,
         new_value=user_request.val_for_events,
         timestamp=datetime.utcnow(),
-    ))
+    )
 
 
 def get_current_point_of_contact(request_id):
@@ -300,7 +329,8 @@ def determine_point_of_contact_change(request_id, user_request, point_of_contact
     elif current_point_of_contact is None and point_of_contact:
         # set a brand new point of contact
         set_point_of_contact(request_id, user_request, True)
-    elif has_point_of_contact(request_id) and current_point_of_contact.user_guid != user_request.user_guid and point_of_contact:
+    elif has_point_of_contact(
+            request_id) and current_point_of_contact.user_guid != user_request.user_guid and point_of_contact:
         # replace the previous point of contact
         remove_point_of_contact(request_id)
         set_point_of_contact(request_id, user_request, point_of_contact)

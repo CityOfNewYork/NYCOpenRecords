@@ -97,12 +97,10 @@ def add_file(request_id, filename, title, privacy, is_editable):
     Gets the file mimetype and magic file check from a helper function in lib.file_utils
     File privacy options can be either Release and Public, Release and Private, or Private.
     Provides parameters for the process_response function to create and store responses and events object.
-
     :param request_id: Request ID that the file is being added to
     :param filename: The secured_filename of the file.
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
-
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
     try:
@@ -191,6 +189,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
 
     if not request.was_acknowledged:
         previous_due_date = {"due_date": request.due_date.isoformat()}
+        previous_status = request.status
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
         update_object(
             {'due_date': new_due_date,
@@ -208,6 +207,12 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
         )
         create_object(response)
         create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
+        )
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content,
@@ -253,17 +258,29 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
     request = Requests.query.filter_by(id=request_id).one()
     if request.status != request_status.CLOSED:
         previous_status = request.status
+        previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
         if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
             update_object(
-                {'agency_request_summary_release_date': calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS),
-                 'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
         else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
             update_object(
-                {'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
@@ -271,8 +288,8 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
         create_request_info_event(
             request_id,
             type_=event_type.REQ_STATUS_CHANGED,
-            previous_value={'status': previous_status},
-            new_value={'status': request.status}
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
         )
 
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
@@ -295,7 +312,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
         if method == 'letter':
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
-        create_response_event(event_type.REQ_CLOSED, response)
+        create_response_event(event_type.REQ_DENIED, response)
         request.es_update()
         if method == 'letter':
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
@@ -345,44 +362,29 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     if request.status != request_status.CLOSED and (
             request.was_acknowledged or request.was_reopened):
         previous_status = request.status
-        if request.privacy['agency_request_summary'] or not request.agency_request_summary:
-            reason = "Agency Request Summary must be public and not empty, "
-            if request.responses.filter(
-                    Responses.type != response_type.NOTE,  # ignore Notes
-                    Responses.type != response_type.EMAIL,  # ignore Emails
-                    Responses.deleted == False,  # ignore deleted responses
-                    Responses.privacy != RELEASE_AND_PUBLIC,  # ignore public responses
-                    Responses.is_editable == True  # ignore non-editable responses
-            ).first() is not None:
-                raise UserRequestException(action="close",
-                                           request_id=request.id,
-                                           reason=reason + "or all Responses (excluding Notes) must be public."
-                                           )
-            if request.privacy['title']:
-                raise UserRequestException(action="close",
-                                           request_id=request.id,
-                                           reason=reason + "or Title must be public."
-                                           )
-        if request.agency_request_summary and not request.privacy['agency_request_summary']:
-            date_now_local = utc_to_local(datetime.utcnow(), current_app.config['APP_TIMEZONE'])
-            release_date = local_to_utc(calendar.addbusdays(date_now_local, RELEASE_PUBLIC_DAYS),
-                                        current_app.config['APP_TIMEZONE'])
+        previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
+        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
             update_object(
-                {'agency_request_summary_release_date': release_date,
-                 'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
             )
-            create_request_info_event(
-                request_id,
-                event_type.REQ_AGENCY_REQ_SUM_DATE_SET,
-                None,
-                {"release_date": release_date.isoformat()}
-            )
         else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
             update_object(
-                {'status': request_status.CLOSED},
+                update_vals,
                 Requests,
                 request_id,
                 es_update=False
@@ -390,9 +392,10 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
         create_request_info_event(
             request_id,
             type_=event_type.REQ_STATUS_CHANGED,
-            previous_value={'status': previous_status},
-            new_value={'status': request.status}
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
         )
+
         if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
             # push the closing date to the next business day if it is a weekend/holiday
             # or if it is before the date submitted
@@ -939,6 +942,21 @@ def assign_point_of_contact(point_of_contact):
         return current_user
 
 
+def assign_point_of_contact(point_of_contact):
+    """
+    Assign a user to be the point of contact in emails/letters
+
+    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
+    :return: A User object to be designated as the point of contact for a request
+    """
+    if point_of_contact:
+        return Users.query.filter(Users.guid == point_of_contact,
+                                  Users.auth_user_type.in_(
+                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+    else:
+        return current_user
+
+
 def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an acknowledgement.
@@ -1237,7 +1255,7 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
     reason = data.get('reason', None)
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
 
-    if reason is not None: # This means we are generating the initial email.
+    if reason is not None:  # This means we are generating the initial email.
         default_content = True
         content = None
 
@@ -1258,7 +1276,7 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
                 "header": header
             }
         ), 200
-    else: # If the reason is None, we are only rendering the final confirmation dialog.
+    else:  # If the reason is None, we are only rendering the final confirmation dialog.
         # TODO (@joelbcastillo): We should probably add a step parameter instead of relying on the value of the reason.
         default_content = False
         content = data['email_content']
@@ -1573,6 +1591,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         description_hidden_by_default=description_hidden_by_default),
         "header": header
     }), 200
+
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):
     """
@@ -2156,11 +2175,11 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                         is_anon=is_anon,
                                                                         release_date=release_date
                                                                         ))
-        tmp = safely_send_and_add_email(request_id,
-                                        email_content_requester,
-                                        'Response Added to {} - File'.format(request_id),
-                                        to=[requester_email],
-                                        bcc=bcc)
+        safely_send_and_add_email(request_id,
+                                  email_content_requester,
+                                  'Response Added to {} - File'.format(request_id),
+                                  to=[requester_email],
+                                  bcc=bcc)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
@@ -2168,10 +2187,10 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                    agency_name=agency_name,
                                                    private_links=private_links,
                                                    page=page)
-            tmp = safely_send_and_add_email(request_id,
-                                            email_content_agency,
-                                            'File(s) Added to {}'.format(request_id),
-                                            bcc=bcc)
+            safely_send_and_add_email(request_id,
+                                      email_content_agency,
+                                      'File(s) Added to {}'.format(request_id),
+                                      bcc=bcc)
     elif private_links:
         email_content_agency = email_content.replace(replace_string,
                                                      render_template('email_templates/response_file_links.html',
@@ -2179,7 +2198,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      private_links=private_links,
                                                                      page=page
                                                                      ))
-        tmp = safely_send_and_add_email(request_id,
+        safely_send_and_add_email(request_id,
                                         email_content_agency,
                                         subject,
                                         bcc=bcc)
@@ -2202,9 +2221,9 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
     requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-    tmp = safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
+    safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
-        tmp = safely_send_and_add_email(request_id,
+        safely_send_and_add_email(request_id,
                                         email_content_requester,
                                         subject,
                                         to=[requester_email])
@@ -2243,7 +2262,7 @@ def _send_delete_response_email(request_id, response):
     a deleted response.
 
     """
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_response_deleted.html',

@@ -482,7 +482,7 @@ def _check_web_services_response(response, msg):
     Log an error message if the specified response's
     status code is not 200.
     """
-    if response.status_code != 200 and response.json() is None:
+    if response.status_code == 404:
         current_app.logger.error("{}".format(msg))
     elif response.status_code != 200:
         current_app.logger.error("{}\n{}".format(msg, dumps(response.json(), indent=2)))

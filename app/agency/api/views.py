@@ -88,7 +88,8 @@ def get_custom_request_form_options(agency_ein):
     custom_request_forms = CustomRequestForms.query.with_entities(CustomRequestForms.id,
                                                                   CustomRequestForms.form_name,
                                                                   CustomRequestForms.repeatable,
-                                                                  CustomRequestForms.category).filter_by(
+                                                                  CustomRequestForms.category,
+                                                                  CustomRequestForms.minimum_required).filter_by(
         agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
     return jsonify(custom_request_forms), 200
 

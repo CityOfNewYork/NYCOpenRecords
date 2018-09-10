@@ -58,19 +58,19 @@
         // Date Picker - Email
         holiday_dates = {{ holidays | safe }};
         email_date.datepicker({
-            dateFormat: "yy-mm-dd",
+            dateFormat: "mm/dd/yy",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
-            minDate: "{{ request.due_date }}".split(' ')[0]
+            minDate: "{{ request.due_date.strftime('%m/%d/%Y') }}"
         });
         email_date.keydown(false);
 
         // Date Picker - Letter
         letter_date.datepicker({
-            dateFormat: "yy-mm-dd",
+            dateFormat: "mm/dd/yy",
             daysOfWeekDisabled: [0, 6],
             beforeShowDay: notHolidayOrWeekend,
-            minDate: "{{ request.due_date }}".split(' ')[0]
+            minDate: "{{ request.due_date.strftime('%m/%d/%Y') }}"
         });
         letter_date.keydown(false);
 

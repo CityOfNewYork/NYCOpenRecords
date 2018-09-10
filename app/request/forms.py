@@ -377,7 +377,7 @@ class GenerateClosingLetterForm(GenerateLetterForm):
     letter_type = [determination_type.CLOSING, determination_type.DENIAL]
 
     def __init__(self, agency_ein):
-        super(GenerateLetterForm, self).__init__()
+        super(GenerateClosingLetterForm, self).__init__(agency_ein)
         agency_closings = [
             (letter.id, letter.title)
             for letter in LetterTemplates.query.filter(
