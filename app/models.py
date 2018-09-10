@@ -557,6 +557,10 @@ class Users(UserMixin, db.Model):
     def mailing_address(self):
         return self._mailing_address if self._mailing_address is not None else {}
 
+    @mailing_address.setter
+    def mailing_address(self, mailing_address):
+        self._mailing_address = mailing_address
+
     @property
     def formatted_point_of_contact_number(self):
         if self.phone_number:
@@ -634,6 +638,7 @@ class Users(UserMixin, db.Model):
             db.session.commit()
 
     def __init__(self, **kwargs):
+        import ipdb; ipdb.set_trace()
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):

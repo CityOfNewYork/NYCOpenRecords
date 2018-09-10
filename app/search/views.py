@@ -149,6 +149,8 @@ def requests_doc(doc_type):
 
         tz_name = request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
 
+        total = None
+
         start = 0
         buffer = StringIO()  # csvwriter cannot accept BytesIO
         writer = csv.writer(buffer)
@@ -174,75 +176,68 @@ def requests_doc(doc_type):
                          "Requester State",
                          "Requester Zipcode",
                          "Assigned User Emails"])
-        while True:
-            results = search_requests(
-                request.args.get('query'),
-                eval_request_bool(request.args.get('foil_id')),
-                eval_request_bool(request.args.get('title')),
-                eval_request_bool(request.args.get('agency_request_summary')),
-                eval_request_bool(request.args.get('description')),
-                eval_request_bool(request.args.get('requester_name')),
-                request.args.get('date_rec_from'),
-                request.args.get('date_rec_to'),
-                request.args.get('date_due_from'),
-                request.args.get('date_due_to'),
-                request.args.get('date_closed_from'),
-                request.args.get('date_closed_to'),
-                agency_ein,
-                request.args.get('agency_user'),
-                eval_request_bool(request.args.get('open')),
-                eval_request_bool(request.args.get('closed')),
-                eval_request_bool(request.args.get('in_progress')),
-                eval_request_bool(request.args.get('due_soon')),
-                eval_request_bool(request.args.get('overdue')),
-                ALL_RESULTS_CHUNKSIZE,
-                start,
-                request.args.get('sort_date_submitted'),
-                request.args.get('sort_date_due'),
-                request.args.get('sort_title'),
-                tz_name,
-                for_csv=True
-            )
-            total = results["hits"]["total"]
-            if total != 0:
-                ids = [result["_id"] for result in results["hits"]["hits"]]
-                all_requests = Requests.query.filter(Requests.id.in_(ids)).options(
-                    joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).options(
-                    joinedload(Requests.agency)).all()
-                for req in all_requests:
-                    writer.writerow([
-                        req.id,
-                        req.agency.name,
-                        req.title,
-                        req.description,
-                        req.agency_request_summary,
-                        req.status,
-                        req.date_created,
-                        req.date_submitted,
-                        req.due_date,
-                        req.date_closed,
-                        req.requester.name,
-                        req.requester.email,
-                        req.requester.title,
-                        req.requester.organization,
-                        req.requester.phone_number,
-                        req.requester.fax_number,
-                        req.requester.mailing_address.get('address_one'),
-                        req.requester.mailing_address.get('address_two'),
-                        req.requester.mailing_address.get('city'),
-                        req.requester.mailing_address.get('state'),
-                        req.requester.mailing_address.get('zip'),
-                        ", ".join(u.email for u in req.agency_users)])
-            start += ALL_RESULTS_CHUNKSIZE
-            if start > total:
-                break
-        if total != 0:
-            dt = datetime.utcnow()
-            timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
-            return send_file(
-                BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
-                attachment_filename="FOIL_requests_results_{}.csv".format(
-                    timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
-                as_attachment=True
-            )
+        results = search_requests(
+            request.args.get('query'),
+            eval_request_bool(request.args.get('foil_id')),
+            eval_request_bool(request.args.get('title')),
+            eval_request_bool(request.args.get('agency_request_summary')),
+            eval_request_bool(request.args.get('description')),
+            eval_request_bool(request.args.get('requester_name')),
+            request.args.get('date_rec_from'),
+            request.args.get('date_rec_to'),
+            request.args.get('date_due_from'),
+            request.args.get('date_due_to'),
+            request.args.get('date_closed_from'),
+            request.args.get('date_closed_to'),
+            agency_ein,
+            request.args.get('agency_user'),
+            eval_request_bool(request.args.get('open')),
+            eval_request_bool(request.args.get('closed')),
+            eval_request_bool(request.args.get('in_progress')),
+            eval_request_bool(request.args.get('due_soon')),
+            eval_request_bool(request.args.get('overdue')),
+            ALL_RESULTS_CHUNKSIZE,
+            start,
+            request.args.get('sort_date_submitted'),
+            request.args.get('sort_date_due'),
+            request.args.get('sort_title'),
+            tz_name,
+            for_csv=True
+        )
+        ids = [result["_id"] for result in results]
+        all_requests = Requests.query.filter(Requests.id.in_(ids)).options(
+            joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).options(
+            joinedload(Requests.agency)).all()
+        for req in all_requests:
+            writer.writerow([
+                req.id,
+                req.agency.name,
+                req.title,
+                req.description,
+                req.agency_request_summary,
+                req.status,
+                req.date_created,
+                req.date_submitted,
+                req.due_date,
+                req.date_closed,
+                req.requester.name,
+                req.requester.email,
+                req.requester.title,
+                req.requester.organization,
+                req.requester.phone_number,
+                req.requester.fax_number,
+                req.requester.mailing_address.get('address_one'),
+                req.requester.mailing_address.get('address_two'),
+                req.requester.mailing_address.get('city'),
+                req.requester.mailing_address.get('state'),
+                req.requester.mailing_address.get('zip'),
+                ", ".join(u.email for u in req.agency_users)])
+        dt = datetime.utcnow()
+        timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
+        return send_file(
+            BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
+            attachment_filename="FOIL_requests_results_{}.csv".format(
+                timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
+            as_attachment=True
+        )
     return '', 400
