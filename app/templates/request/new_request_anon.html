@@ -148,10 +148,10 @@
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label class="btn btn-info">Choose File
+                    <label class="btn btn-primary choose-file-button">Choose File
                         {{ form.request_file(id="request-file", style="display:none") }}
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right">Clear File</button>
+                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear File</button>
                     <div id="filename"></div>
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
