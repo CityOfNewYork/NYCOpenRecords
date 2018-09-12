@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}{{ request.id }}{% endblock %}
+
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
     <link rel=stylesheet type=text/css
@@ -20,10 +22,6 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_acknowledgment.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_denial.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/add_closing.css') }}"/>
-{% endblock %}
-
-{% block title %}
-    {{ request.id }}
 {% endblock %}
 
 {% block content %}
