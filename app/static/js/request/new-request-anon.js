@@ -6,7 +6,6 @@
 
 /* globals getRequestAgencyInstructions: true */
 /* globals getCustomRequestForms: true */
-/* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
 /* globals processCustomRequestForms: true */
 /* globals requiredFields: true */
