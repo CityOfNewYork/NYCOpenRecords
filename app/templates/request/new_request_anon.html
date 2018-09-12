@@ -37,14 +37,19 @@
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_agency(id="request-agency", class="input-block-level") }}<br>
-                <div class="alert alert-info" id="request-agency-instructions" style="display: none;">
-                    <div id="request-agency-instructions-content"></div>
-                    <span id="request-agency-instructions-toggle">
-                        <button type="button" id="request-agency-instructions-btn" class="btn btn-block btn-info"><span
-                                class="glyphicon glyphicon-chevron-up"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span
-                                class="glyphicon glyphicon-chevron-up"></span></button></span>
+                <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
+                    <div class="panel-heading">
+                        <h4 class="panel-title agency-instructions-title">
+                            <a id="agency-instructions-title-text" data-toggle="collapse"
+                               href="#collapse-agency-instructions"><span
+                                    class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span
+                                    class="glyphicon glyphicon-chevron-down"></span></a>
+                        </h4>
+                    </div>
+                    <div id="collapse-agency-instructions" class="panel-collapse collapse in">
+                        <div class="panel-body" id="request-agency-instructions-content"></div>
+                    </div>
                 </div>
-
                 {# Title of request #}
                 {{ form.request_title.label(class="request-heading title-label") }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
@@ -254,8 +259,6 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>

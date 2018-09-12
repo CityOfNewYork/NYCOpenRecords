@@ -102,3 +102,12 @@
     background-color: #dc3545;
     border-color: #dc3545;
 }
+
+.agency-instructions-panel {
+    /*border-width: thick;*/
+    /*border-color: #31708f;*/
+}
+
+.agency-instructions-title {
+    text-align: center;
+}

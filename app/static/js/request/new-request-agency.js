@@ -5,7 +5,6 @@
 /* globals characterCounter: true */
 /* globals getRequestAgencyInstructions: true */
 /* globals getCustomRequestForms: true */
-/* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
 /* globals processCustomRequestForms: true */
 /* globals requiredFields: true */
@@ -39,15 +38,11 @@ $(document).ready(function () {
 
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
-        toggleRequestAgencyInstructions("hide");
+        $("#collapse-agency-instructions").collapse("hide");
         $(".appended-div").remove(); // remove the appended divs from previous agency
         previousValues = [];
         currentValues = [];
         getCustomRequestForms($("#request-agency").val());
-    });
-
-    $("#request-agency-instructions-toggle").click(function () {
-        toggleRequestAgencyInstructions("default");
     });
 
     // render a new form every time a request type dropdown is changed
