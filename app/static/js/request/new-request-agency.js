@@ -38,7 +38,6 @@ $(document).ready(function () {
 
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
-        $("#collapse-agency-instructions").collapse("hide");
         $(".appended-div").remove(); // remove the appended divs from previous agency
         previousValues = [];
         currentValues = [];

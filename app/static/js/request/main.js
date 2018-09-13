@@ -112,6 +112,13 @@ function getRequestAgencyInstructions() {
                 if (data["specific_request_instructions"]["text"] !== "") {
                     requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
                     requestInstructionsDiv.fadeIn();
+                    // if the form is for agency users then collapse the panel by default, else expand the panel
+                    if ($(".new-request-agency").length === 1 ) {
+                        $("#collapse-agency-instructions").collapse("hide");
+                    }
+                    else {
+                        $("#collapse-agency-instructions").collapse("show");
+                    }
                 }
                 else {
                     requestInstructionsDiv.fadeOut();
