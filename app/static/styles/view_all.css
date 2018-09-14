@@ -37,7 +37,7 @@
 }
 
 .sort-field {
-    color: #337ab7;
+    color: #0a5796;
 }
 .sort-field:hover {
     text-decoration: underline;
@@ -81,7 +81,7 @@
 }
 
 #advanced-options-toggle {
-    color: #337ab7;
+    color: #0a5796;
     cursor: pointer;
 }
 

@@ -205,3 +205,13 @@ input[type="radio"], input[type="checkbox"] {
     vertical-align: middle;
     pointer-events:none;
 }
+
+.close {
+    color: black;
+    opacity: 1;
+}
+
+.btn-success {
+    background-color: green;
+    border-color: green;
+}
