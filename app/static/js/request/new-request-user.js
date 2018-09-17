@@ -5,7 +5,6 @@
 /* globals characterCounter: true */
 /* globals getRequestAgencyInstructions: true */
 /* globals getCustomRequestForms: true */
-/* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
 /* globals processCustomRequestForms: true */
 
@@ -38,7 +37,6 @@ $(document).ready(function () {
                 }
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
-                toggleRequestAgencyInstructions("show");
                 $(".appended-div").remove(); // remove the appended divs from previous agency
                 previousValues = [];
                 currentValues = [];
@@ -49,15 +47,10 @@ $(document).ready(function () {
 
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
-        toggleRequestAgencyInstructions("show");
         $(".appended-div").remove(); // remove the appended divs from previous agency
         previousValues = [];
         currentValues = [];
         getCustomRequestForms($("#request-agency").val());
-    });
-
-    $("#request-agency-instructions-toggle").click(function () {
-        toggleRequestAgencyInstructions("default");
     });
 
     $(document).on("focus", ".request-type", function () {

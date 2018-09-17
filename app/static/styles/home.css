@@ -21,6 +21,10 @@
     padding-left: 1.5rem;
 }
 
+.non-portal-agency-link {
+    color: #0a5796;
+}
+
 .request-record-button {
     padding-top: 3.5rem;
     padding-bottom: 1.5rem;

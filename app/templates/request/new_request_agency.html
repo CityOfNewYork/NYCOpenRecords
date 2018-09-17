@@ -14,7 +14,7 @@
 {% block content %}
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1">
-            <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data
+            <form method="post" class="form new-request-agency" role="form" id="request-form" enctype=multipart/form-data
                   data-parsley-validate>
                 {{ form.csrf_token }}
 
@@ -37,14 +37,18 @@
                 {% else %}
                     <input type="hidden" id="request-agency" value="{{ current_user.default_agency_ein }}"/>
                 {% endif %}
-
-                <div class="alert alert-info" id="request-agency-instructions" hidden>
-                    <div id="request-agency-instructions-content" style="display: none;"></div>
-                    <span id="request-agency-instructions-toggle"><button type="button"
-                                                                          id="request-agency-instructions-btn"
-                                                                          class="btn btn-block btn-info"><span
-                            class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span
-                            class="glyphicon glyphicon-chevron-down"></span></button></span>
+                <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
+                    <div class="panel-heading">
+                        <h4 class="panel-title agency-instructions-title">
+                            <a id="agency-instructions-title-text" data-toggle="collapse"
+                               href="#collapse-agency-instructions"><span
+                                    class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span
+                                    class="glyphicon glyphicon-chevron-down"></span></a>
+                        </h4>
+                    </div>
+                    <div id="collapse-agency-instructions" class="panel-collapse collapse">
+                        <div class="panel-body" id="request-agency-instructions-content"></div>
+                    </div>
                 </div>
 
                 {# Title of the request #}
@@ -150,10 +154,10 @@
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label class="btn btn-info">Choose File
+                    <label class="btn btn-primary choose-file-button">Choose File
                         {{ form.request_file(id="request-file", style="display:none") }}
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right">Clear File</button>
+                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear File</button>
                     <div id="filename"></div>
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
@@ -264,8 +268,6 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='js/plugins/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/parsley.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>

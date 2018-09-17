@@ -85,7 +85,7 @@
     font-weight: 400;
     font-size: 17.5px;
     line-height: 2;
-    color: #999;
+    color: #707070;
 }
 
 .contact-form-error-message {
@@ -158,12 +158,18 @@ footer {
 .openrecords_nav {
     font-size: 20px;
     /*font-size: 1.4em*/
-    color: #949494;
 }
 .openrecords_nav:hover {
     font-size: 20px;
     /*font-size: 1.4em*/
-    color: #949494;
+}
+
+.navbar-default .navbar-nav > li > a.openrecords-nav-anchor {
+    color: #707070;
+}
+
+.navbar-default .navbar-nav > li > a.openrecords-nav-anchor:hover {
+    color: #333333;
 }
 
 .active {
@@ -198,4 +204,14 @@ input[type="radio"], input[type="checkbox"] {
     display: table-cell;
     vertical-align: middle;
     pointer-events:none;
+}
+
+.close {
+    color: black;
+    opacity: 1;
+}
+
+.btn-success {
+    background-color: green;
+    border-color: green;
 }

@@ -97,3 +97,12 @@
     margin: 0 auto;
     pointer-events: all;
 }
+
+.clear-file-button {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.agency-instructions-title {
+    text-align: center;
+}

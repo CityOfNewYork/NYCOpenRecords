@@ -6,7 +6,6 @@
 
 /* globals getRequestAgencyInstructions: true */
 /* globals getCustomRequestForms: true */
-/* globals toggleRequestAgencyInstructions: true */
 /* globals renderCustomRequestForm: true */
 /* globals processCustomRequestForms: true */
 /* globals requiredFields: true */
@@ -54,7 +53,6 @@ $(document).ready(function () {
                 }
                 // Determine if the agencyRequestInstructions need to be shown on page load.
                 getRequestAgencyInstructions();
-                toggleRequestAgencyInstructions("show");
                 $(".appended-div").remove(); // remove the appended divs from previous agency
                 previousValues = [];
                 currentValues = [];
@@ -66,15 +64,10 @@ $(document).ready(function () {
     // functions to get additional information and custom request forms for the specified agency
     $("#request-agency").change(function () {
         getRequestAgencyInstructions();
-        toggleRequestAgencyInstructions("show");
         $(".appended-div").remove(); // remove the appended divs from previous agency
         previousValues = [];
         currentValues = [];
         getCustomRequestForms($("#request-agency").val());
-    });
-
-    $("#request-agency-instructions-toggle").click(function () {
-        toggleRequestAgencyInstructions("default");
     });
 
     // render a new form every time a request type dropdown is changed
