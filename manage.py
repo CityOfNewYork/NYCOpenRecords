@@ -97,7 +97,6 @@ def create_user(
     if ein is None:
         raise InvalidCommand("Agency EIN is required")
 
-    import ipdb; ipdb.set_trace()
     user = Users(
         guid=generate_guid(),
         auth_user_type=user_type_auth.AGENCY_LDAP_USER,

@@ -638,7 +638,6 @@ class Users(UserMixin, db.Model):
             db.session.commit()
 
     def __init__(self, **kwargs):
-        import ipdb; ipdb.set_trace()
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):

@@ -138,7 +138,6 @@ def requests_doc(doc_type):
 
     :param doc_type: document type ('csv' only)
     """
-    import time
     if current_user.is_agency and doc_type.lower() == 'csv':
         try:
             agency_ein = request.args.get('agency_ein', '')
@@ -147,8 +146,6 @@ def requests_doc(doc_type):
             agency_ein = None
 
         tz_name = request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
-
-        total = None
 
         start = 0
         buffer = StringIO()  # csvwriter cannot accept BytesIO
