@@ -364,7 +364,7 @@ class Users(UserMixin, db.Model):
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
-    mailing_address = db.Column(JSONB)  # TODO: define validation for minimum acceptable mailing address
+    _mailing_address = db.Column(JSONB, name='mailing_address')  # TODO: define validation for minimum acceptable mailing address
     session_id = db.Column(db.String(254), nullable=True, default=None)
     signature = db.Column(db.String(), nullable=True, default=None)
 
@@ -552,6 +552,14 @@ class Users(UserMixin, db.Model):
     @property
     def name(self):
         return ' '.join((self.first_name.title(), self.last_name.title()))
+
+    @property
+    def mailing_address(self):
+        return self._mailing_address if self._mailing_address is not None else {}
+
+    @mailing_address.setter
+    def mailing_address(self, mailing_address):
+        self._mailing_address = mailing_address
 
     @property
     def formatted_point_of_contact_number(self):

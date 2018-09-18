@@ -11,6 +11,7 @@ from flask import (
 )
 from flask.helpers import send_file
 from flask_login import current_user
+from sqlalchemy.orm import joinedload
 
 from app.lib.date_utils import utc_to_local
 from app.lib.utils import eval_request_bool
@@ -81,33 +82,31 @@ def requests():
     foil_id = eval_request_bool(request.args.get('foil_id')) or re.match(r'^(FOIL-|foil-|)\d{4}-\d{3}-\d{5}$', query)
 
     results = search_requests(
-        query,
-        foil_id,
-        eval_request_bool(request.args.get('title')),
-        eval_request_bool(request.args.get('agency_request_summary')),
-        eval_request_bool(request.args.get('description')) if not current_user.is_anonymous else False,
-        eval_request_bool(request.args.get('requester_name')) if current_user.is_agency else False,
-        request.args.get('date_rec_from'),
-        request.args.get('date_rec_to'),
-        request.args.get('date_due_from'),
-        request.args.get('date_due_to'),
-        request.args.get('date_closed_from'),
-        request.args.get('date_closed_to'),
-        agency_ein,
-        request.args.get('agency_user'),
-        eval_request_bool(request.args.get('open')),
-        eval_request_bool(request.args.get('closed')),
-        eval_request_bool(request.args.get('in_progress')) if current_user.is_agency else False,
-        eval_request_bool(request.args.get('due_soon')) if current_user.is_agency else False,
-        eval_request_bool(request.args.get('overdue')) if current_user.is_agency else False,
-        size,
-        start,
-        request.args.get('sort_date_submitted'),
-        request.args.get('sort_date_due'),
-        request.args.get('sort_title'),
-        request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
-        # eval_request_bool(request.args.get('by_phrase')),
-        # eval_request_bool(request.args.get('highlight')),
+        query=query,
+        foil_id=foil_id,
+        title=eval_request_bool(request.args.get('title')),
+        agency_request_summary=eval_request_bool(request.args.get('agency_request_summary')),
+        description=eval_request_bool(request.args.get('description')) if not current_user.is_anonymous else False,
+        requester_name=eval_request_bool(request.args.get('requester_name')) if current_user.is_agency else False,
+        date_rec_from=request.args.get('date_rec_from'),
+        date_rec_to=request.args.get('date_rec_to'),
+        date_due_from=request.args.get('date_due_from'),
+        date_due_to=request.args.get('date_due_to'),
+        date_closed_from=request.args.get('date_closed_from'),
+        date_closed_to=request.args.get('date_closed_to'),
+        agency_ein=agency_ein,
+        agency_user_guid=request.args.get('agency_user'),
+        open_=eval_request_bool(request.args.get('open')),
+        closed=eval_request_bool(request.args.get('closed')),
+        in_progress=eval_request_bool(request.args.get('in_progress')) if current_user.is_agency else False,
+        due_soon=eval_request_bool(request.args.get('due_soon')) if current_user.is_agency else False,
+        overdue=eval_request_bool(request.args.get('overdue')) if current_user.is_agency else False,
+        size=size,
+        start=start,
+        sort_date_received=request.args.get('sort_date_submitted'),
+        sort_date_due=request.args.get('sort_date_due'),
+        sort_title=request.args.get('sort_title'),
+        tz_name=request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
     )
 
     # format results
@@ -173,78 +172,67 @@ def requests_doc(doc_type):
                          "Requester State",
                          "Requester Zipcode",
                          "Assigned User Emails"])
-        while True:
-            results = search_requests(
-                request.args.get('query'),
-                eval_request_bool(request.args.get('foil_id')),
-                eval_request_bool(request.args.get('title')),
-                eval_request_bool(request.args.get('agency_request_summary')),
-                eval_request_bool(request.args.get('description')),
-                eval_request_bool(request.args.get('requester_name')),
-                request.args.get('date_rec_from'),
-                request.args.get('date_rec_to'),
-                request.args.get('date_due_from'),
-                request.args.get('date_due_to'),
-                request.args.get('date_closed_from'),
-                request.args.get('date_closed_to'),
-                agency_ein,
-                request.args.get('agency_user'),
-                eval_request_bool(request.args.get('open')),
-                eval_request_bool(request.args.get('closed')),
-                eval_request_bool(request.args.get('in_progress')),
-                eval_request_bool(request.args.get('due_soon')),
-                eval_request_bool(request.args.get('overdue')),
-                ALL_RESULTS_CHUNKSIZE,
-                start,
-                request.args.get('sort_date_submitted'),
-                request.args.get('sort_date_due'),
-                request.args.get('sort_title'),
-                tz_name,
-                for_csv=True
-            )
-            total = results["hits"]["total"]
-            if total != 0:
-                convert_dates(results, tz_name=tz_name)
-                for result in results["hits"]["hits"]:
-                    r = Requests.query.filter_by(id=result["_id"]).one()
-                    mailing_address = (r.requester.mailing_address
-                                       if r.requester.mailing_address is not None
-                                       else {})
-                    date_closed = result["_source"].get('date_closed', '')
-                    date_closed = date_closed if str(date_closed) != str(list()) else ''
-                    writer.writerow([
-                        result["_id"],
-                        result["_source"]["agency_name"],
-                        result["_source"]["title"],
-                        result["_source"]["description"],
-                        result["_source"]["agency_request_summary"],
-                        r.status,
-                        result["_source"]["date_created"],
-                        result["_source"]["date_submitted"],
-                        result["_source"]["date_due"],
-                        date_closed,
-                        result["_source"]["requester_name"],
-                        r.requester.email,
-                        r.requester.title,
-                        r.requester.organization,
-                        r.requester.phone_number,
-                        r.requester.fax_number,
-                        mailing_address.get('address_one'),
-                        mailing_address.get('address_two'),
-                        mailing_address.get('city'),
-                        mailing_address.get('state'),
-                        mailing_address.get('zip'),
-                        ", ".join(u.email for u in r.agency_users)])
-            start += ALL_RESULTS_CHUNKSIZE
-            if start > total:
-                break
-        if total != 0:
-            dt = datetime.utcnow()
-            timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
-            return send_file(
-                BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
-                attachment_filename="FOIL_requests_results_{}.csv".format(
-                    timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
-                as_attachment=True
-            )
+        results = search_requests(
+            query=request.args.get('query'),
+            foil_id=eval_request_bool(request.args.get('foil_id')),
+            title=eval_request_bool(request.args.get('title')),
+            agency_request_summary=eval_request_bool(request.args.get('agency_request_summary')),
+            description=eval_request_bool(request.args.get('description')) if not current_user.is_anonymous else False,
+            requester_name=eval_request_bool(request.args.get('requester_name')) if current_user.is_agency else False,
+            date_rec_from=request.args.get('date_rec_from'),
+            date_rec_to=request.args.get('date_rec_to'),
+            date_due_from=request.args.get('date_due_from'),
+            date_due_to=request.args.get('date_due_to'),
+            date_closed_from=request.args.get('date_closed_from'),
+            date_closed_to=request.args.get('date_closed_to'),
+            agency_ein=agency_ein,
+            agency_user_guid=request.args.get('agency_user'),
+            open_=eval_request_bool(request.args.get('open')),
+            closed=eval_request_bool(request.args.get('closed')),
+            in_progress=eval_request_bool(request.args.get('in_progress')) if current_user.is_agency else False,
+            due_soon=eval_request_bool(request.args.get('due_soon')) if current_user.is_agency else False,
+            overdue=eval_request_bool(request.args.get('overdue')) if current_user.is_agency else False,
+            start=start,
+            sort_date_received=request.args.get('sort_date_submitted'),
+            sort_date_due=request.args.get('sort_date_due'),
+            sort_title=request.args.get('sort_title'),
+            tz_name=request.args.get('tz_name', current_app.config['APP_TIMEZONE']),
+            for_csv=True
+        )
+        ids = [result["_id"] for result in results]
+        all_requests = Requests.query.filter(Requests.id.in_(ids)).options(
+            joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).options(
+            joinedload(Requests.agency)).all()
+        for req in all_requests:
+            writer.writerow([
+                req.id,
+                req.agency.name,
+                req.title,
+                req.description,
+                req.agency_request_summary,
+                req.status,
+                req.date_created,
+                req.date_submitted,
+                req.due_date,
+                req.date_closed,
+                req.requester.name,
+                req.requester.email,
+                req.requester.title,
+                req.requester.organization,
+                req.requester.phone_number,
+                req.requester.fax_number,
+                req.requester.mailing_address.get('address_one'),
+                req.requester.mailing_address.get('address_two'),
+                req.requester.mailing_address.get('city'),
+                req.requester.mailing_address.get('state'),
+                req.requester.mailing_address.get('zip'),
+                ", ".join(u.email for u in req.agency_users)])
+        dt = datetime.utcnow()
+        timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
+        return send_file(
+            BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
+            attachment_filename="FOIL_requests_results_{}.csv".format(
+                timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
+            as_attachment=True
+        )
     return '', 400
