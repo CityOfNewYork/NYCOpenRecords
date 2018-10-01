@@ -1250,7 +1250,9 @@ class Responses(db.Model):
         :return: timestamp of the newest event row associated with a response
         """
         timestamps = Events.query.filter_by(response_id=self.id).order_by(desc(Events.timestamp)).all()
-        return timestamps[0].timestamp
+        if timestamps:
+            return timestamps[0].timestamp
+        return self.date_modified
 
     def make_public(self):
         self.privacy = response_privacy.RELEASE_AND_PUBLIC
