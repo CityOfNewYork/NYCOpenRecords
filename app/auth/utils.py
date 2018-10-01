@@ -73,7 +73,7 @@ def update_openrecords_user(form):
             'notification_email': form.notification_email.data,
             'phone_number': form.phone_number.data,
             'fax_number': form.fax_number.data,
-            'mailing_address': create_mailing_address(
+            '_mailing_address': create_mailing_address(
                 form.address_one.data or None,
                 form.city.data or None,
                 form.state.data or None,
