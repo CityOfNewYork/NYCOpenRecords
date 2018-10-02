@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+
+{% block title %}Home{% endblock title %}
+
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/home.css') }}"/>
 {% endblock %}
@@ -47,19 +50,19 @@
             </h2>
             <ul class="nyc-gov-links">
                 <li>
-                    <a href="http://www.nyc.gov/health">Department of Health and Mental Hygiene (DOHMH)</a>
+                    <a class="non-portal-agency-link" href="http://www.nyc.gov/health">Department of Health and Mental Hygiene (DOHMH)</a>
                 </li>
                 <li>
-                    <a href="http://www.nycedc.com">NYC Economic Development Corporation (NYEDC)</a>
+                    <a class="non-portal-agency-link" href="http://www.nycedc.com">NYC Economic Development Corporation (NYEDC)</a>
                 </li>
                 <li>
-                    <a href="http://www.nychealthandhospitals.org/">NYC Health and Hospitals Corporation (HHC)</a>
+                    <a class="non-portal-agency-link" href="http://www.nychealthandhospitals.org/">NYC Health and Hospitals Corporation (HHC)</a>
                 </li>
                 <li>
-                    <a href="http://www.nyc.gov/nycha">New York City Housing Authority (NYCHA)</a>
+                    <a class="non-portal-agency-link" href="http://www.nyc.gov/nycha">New York City Housing Authority (NYCHA)</a>
                 </li>
                 <li>
-                    <a href="http://www.snpnyc.org">Office of the Special Narcotics Prosecutor (SNP)</a>
+                    <a class="non-portal-agency-link" href="http://www.snpnyc.org">Office of the Special Narcotics Prosecutor (SNP)</a>
                 </li>
             </ul>
         </div>

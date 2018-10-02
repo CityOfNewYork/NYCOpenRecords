@@ -111,10 +111,17 @@ function getRequestAgencyInstructions() {
             success: function (data) {
                 if (data["specific_request_instructions"]["text"] !== "") {
                     requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
-                    requestInstructionsDiv.show();
+                    requestInstructionsDiv.fadeIn();
+                    // if the form is for agency users then collapse the panel by default, else expand the panel
+                    if ($(".new-request-agency").length === 1 ) {
+                        $("#collapse-agency-instructions").collapse("hide");
+                    }
+                    else {
+                        $("#collapse-agency-instructions").collapse("show");
+                    }
                 }
                 else {
-                    requestInstructionsDiv.hide();
+                    requestInstructionsDiv.fadeOut();
                 }
             },
             error: function () {
@@ -124,34 +131,14 @@ function getRequestAgencyInstructions() {
     }
 }
 
-function toggleRequestAgencyInstructions(action) {
-    /* Global toggleRequestAgencyInstructions
-     *
-     * determine whether or not to show agency instruction content
-     */
-    var el = $("#request-agency-instructions-toggle");
-    var requestInstructionsContentDiv = $("#request-agency-instructions-content");
-    var hideHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span></button>";
-    var showHtml = "<button type=\"button\" id=\"request-agency-instructions-btn\" class=\"btn btn-block btn-info\"><span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span></button>";
+// handle text change for agency instruction panel title
+$('#collapse-agency-instructions').on('shown.bs.collapse', function () {
+    $('#agency-instructions-title-text').html("<span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span>");
+});
 
-    if (action === "show") {
-        el.html(hideHtml);
-        requestInstructionsContentDiv.show();
-    }
-    else if (action === "hide") {
-        el.html(showHtml);
-        requestInstructionsContentDiv.hide();
-    }
-    else if (action === "default") {
-        if (el.html() === showHtml) {
-            el.html(hideHtml);
-            requestInstructionsContentDiv.show();
-        } else {
-            el.html(showHtml);
-            requestInstructionsContentDiv.hide();
-        }
-    }
-}
+$('#collapse-agency-instructions').on('hidden.bs.collapse', function () {
+    $('#agency-instructions-title-text').html("<span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span>");
+});
 
 // variables used to handle custom forms
 var customRequestFormsEnabled = false; // determines if custom request forms have been enabled

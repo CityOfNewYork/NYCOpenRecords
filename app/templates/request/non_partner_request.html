@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
+{% block title %}Non Portal Agency{% endblock %}
+
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}"/>
-{% endblock %}
-
-{% block title %}
-    {{ request.id }}
 {% endblock %}
 
 {% block content %}

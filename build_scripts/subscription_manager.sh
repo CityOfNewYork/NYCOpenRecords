@@ -25,7 +25,7 @@ if [ "$(id -u)" != "0" ]; then
   exec sudo "$0" "$@"
 fi
 
-subscription-manager register --username $1 --password $2
+subscription-manager register --username $1 --password $2 --name $3 --auto-attach --force
 subscription-manager attach
 subscription-manager repos --enable rhel-server-rhscl-6-rpms
 subscription-manager repos --enable rhel-6-server-optional-rpms

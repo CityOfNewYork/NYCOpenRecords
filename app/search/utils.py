@@ -229,12 +229,12 @@ def search_requests(query,
                     in_progress,
                     due_soon,
                     overdue,
-                    size,
                     start,
                     sort_date_received,
                     sort_date_due,
                     sort_title,
                     tz_name,
+                    size=None,
                     by_phrase=False,
                     highlight=False,
                     for_csv=False):
@@ -407,33 +407,75 @@ def search_requests(query,
     result_set_size = size if for_csv else min(size, MAX_RESULT_SIZE)
 
     # search / run query
-    results = es.search(
-        index=current_app.config["ELASTICSEARCH_INDEX"],
-        doc_type='request',
-        body=dsl,
-        _source=['requester_id',
-                 'date_submitted',
-                 'date_due',
-                 'date_received',
-                 'date_created',
-                 'date_closed',
-                 'status',
-                 'agency_ein',
-                 'agency_name',
-                 'agency_acronym',
-                 'requester_name',
-                 'title_private',
-                 'agency_request_summary_private',
-                 'public_title',
-                 'title',
-                 'agency_request_summary',
-                 'description',
-                 'assigned_users'],
-        size=result_set_size,
-        from_=start,
-        sort=sort,
-    )
+    if not for_csv:
+        results = es.search(
+            index=current_app.config["ELASTICSEARCH_INDEX"],
+            doc_type='request',
+            body=dsl,
+            _source=['requester_id',
+                     'date_submitted',
+                     'date_due',
+                     'date_received',
+                     'date_created',
+                     'date_closed',
+                     'status',
+                     'agency_ein',
+                     'agency_name',
+                     'agency_acronym',
+                     'requester_name',
+                     'title_private',
+                     'agency_request_summary_private',
+                     'public_title',
+                     'title',
+                     'agency_request_summary',
+                     'description',
+                     'assigned_users'],
+            size=result_set_size,
+            from_=start,
+            sort=sort,
+        )
 
+    else:
+        results = es.search(
+            index=current_app.config["ELASTICSEARCH_INDEX"],
+            doc_type='request',
+            scroll = '1m',
+            body=dsl,
+            _source=['requester_id',
+                     'date_submitted',
+                     'date_due',
+                     'date_received',
+                     'date_created',
+                     'date_closed',
+                     'status',
+                     'agency_ein',
+                     'agency_name',
+                     'agency_acronym',
+                     'requester_name',
+                     'title_private',
+                     'agency_request_summary_private',
+                     'public_title',
+                     'title',
+                     'agency_request_summary',
+                     'description',
+                     'assigned_users'],
+            size=result_set_size,
+            from_=start,
+            sort=sort,
+        )
+        sid = results['_scroll_id']
+        scroll_size = results['hits']['total']
+
+        scroll_results = results['hits']['hits']
+
+        while scroll_size > 0:
+            results = es.scroll(scroll='1m', body = {"scroll": "1m", "scroll_id": sid})
+
+            scroll_size = len(results['hits']['hits'])
+
+            scroll_results += results['hits']['hits']
+
+        return scroll_results
     # process highlights
     if highlight and not foil_id:
         _process_highlights(results, dsl_gen.requester_id)

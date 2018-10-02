@@ -4,7 +4,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}OpenRecords{% endblock title %}</title>
+    <title>{% block title %}{% endblock title %} - OpenRecords</title>
 
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/plugins/bootstrap-theme.css') }}"/>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/nyc_gov.css') }}"/>
@@ -52,7 +52,7 @@
                                 aria-label="Translate"><span
                                 class="translate-text">Translate</span><span
                                 style="border-left: 1px solid rgb(187, 187, 187);padding-right:5px;">​</span><span
-                                style="color: rgb(155, 155, 155);">▼</span></a></span></div>
+                                style="color: #666;">▼</span></a></span></div>
                     </div>
                 </div>
             </div>
