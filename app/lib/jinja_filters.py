@@ -49,6 +49,7 @@ def format_event_type(type_):
         event_type.REQ_STATUS_CHANGED: "Request Status Changed",
         event_type.REQ_EXTENDED: "Request Extended",
         event_type.REQ_CLOSED: "Request Closed",
+        event_type.REQ_DENIED: "Request Denied",
         event_type.REQ_REOPENED: "Request Re-Opened",
         event_type.REQ_TITLE_EDITED: "Title Changed",
         event_type.REQ_TITLE_PRIVACY_EDITED: "Title Privacy Changed",
