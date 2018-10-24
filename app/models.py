@@ -1105,6 +1105,8 @@ class Events(db.Model):
                 self.RowContent(self, "extended", "{} this request."),
             event_type.REQ_CLOSED:
                 self.RowContent(self, "closed", "{} this request."),
+            event_type.REQ_DENIED:
+                self.RowContent(self, "denied", "{} this request."),
             event_type.REQ_REOPENED:
                 self.RowContent(self, "re-opened", "{} this request."),
             event_type.REQ_TITLE_EDITED:
