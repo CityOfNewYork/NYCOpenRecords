@@ -1,4 +1,4 @@
-<img src="https://www1.nyc.gov/assets/records/images/content/header/logo.png" alt="NYC Department of Records and Information Services" width="100px" /><img src="https://a860-openrecords.nyc.gov/static/img/logo.png" alt="NYC OpenRecords" width="50px" />
+<img src="https://www1.nyc.gov/assets/records/images/content/header/logo.png" alt="NYC Department of Records and Information Services" width="200px" /><img src="https://a860-openrecords.nyc.gov/static/img/logo.png" alt="NYC OpenRecords" width="200px" />  
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2b97fe8319344d699a4bbba48827637b)](https://www.codacy.com/app/NYCRecords/NYCOpenRecords?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=CityOfNewYork/NYCOpenRecords&amp;utm_campaign=Badge_Grade) [![Requirements Status](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements.svg?branch=develop)](https://requires.io/github/joelbcastillo/openrecords_v2_0/requirements/?branch=develop) 
 
 
