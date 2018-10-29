@@ -19,8 +19,6 @@ Authentication
 - OpenRecords currently implements LDAP and OAuth for authentication. For development, you can bypass authentication by setting both `'USE_OAUTH'` and `'USE_LDAP'` to `False`.
     
 We have optional integrations with [Sentry](https://sentry.io) for error tracing and are working on an integration with the ELK stack for log aggregation and analytics.
-    
-
 
 ### Pre-Requisites
 - Vagrant (v2.1.4) - Newer version may work but have not been tested.
@@ -29,7 +27,7 @@ We have optional integrations with [Sentry](https://sentry.io) for error tracing
 - Redhat Developer Account (https://developers.redhat.com)
 - FakeSMTP (Optional, for testing email functionality)
 
-### Setting Up Development Environment
+### Setting Up Development Environment (WIP)
 
 #### On Mac OS X:
 1. Install Virtualbox and Vagrant.
@@ -56,3 +54,6 @@ We have optional integrations with [Sentry](https://sentry.io) for error tracing
     ```bash
     sh /vagrant/.startup/flask_startup.sh
     ```
+    
+## Questions?
+Please open an issue in this repository if you have any questions or any difficulty setting up and using OpenRecords.
