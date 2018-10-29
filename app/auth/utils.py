@@ -19,13 +19,17 @@ from flask import (
     session,
     url_for,
     request,
-    jsonify
+    jsonify,
+    redirect
 )
 from flask_login import login_user, current_user
 from app import (
     login_manager,
     sentry
 )
+from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from onelogin.saml2.utils import OneLogin_Saml2_Utils
+
 from app.models import Users, AgencyUsers, Events, Requests
 from app.constants import user_type_auth, USER_ID_DELIMITER
 from app.constants.web_services import (
@@ -58,6 +62,91 @@ def user_loader(user_id):
     """
     user_id = user_id.split(USER_ID_DELIMITER)
     return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
+
+
+def init_saml_auth(req):
+    auth = OneLogin_Saml2_Auth(req, custom_base_path=app.config['SAML_PATH'])
+    return auth
+
+
+def prepare_onelogin_request(flask_request):
+    # If server is behind proxys or balancers use the HTTP_X_FORWARDED fields
+    url_data = urlparse(flask_request.url)
+    return {
+        'https': 'on' if flask_request.scheme == 'https' else 'off',
+        'http_host': flask_request.host,
+        'server_port': url_data.port,
+        'script_name': flask_request.path,
+        'get_data': flask_request.args.copy(),
+        # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
+        # 'lowercase_urlencoding': True,
+        'post_data': flask_request.form.copy()
+    }
+
+
+def saml_sso(auth):
+    """
+
+    Args:
+        auth:
+
+    Returns:
+
+    """
+    return redirect(auth.login())
+
+
+def saml_slo(auth):
+    """
+
+    Args:
+        auth:
+
+    Returns:
+
+    """
+    name_id = None
+    session_index = None
+    if 'samlNameId' in session:
+        name_id = session['samlNameId']
+    if 'samlSessionIndex' in session:
+        session_index = session['samlSessionIndex']
+
+    return redirect(auth.logout(name_id=name_id, session_index=session_index))
+
+
+def saml_acs(auth):
+    """
+
+    Args:
+        auth:
+
+    Returns:
+
+    """
+    auth.process_response()
+    errors = auth.get_errors()
+
+    if len(errors) == 0:
+        session['samlUserdata'] = auth.get_attributes()
+        session['samlNameId'] = auth.get_nameid()
+        session['samlSessionIndex'] = auth.get_session_index()
+
+        user = session['samlUserdata']
+        return None
+    return errors
+
+
+def saml_get_self_url(flask_request):
+    """
+
+    Args:
+        flask_request:
+
+    Returns:
+
+    """
+    return OneLogin_Saml2_Utils.get_self_url(prepare_onelogin_request(flask_request))
 
 
 def update_openrecords_user(form):

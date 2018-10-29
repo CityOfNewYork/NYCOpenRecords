@@ -30,6 +30,11 @@ from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
 from app.auth.forms import ManageUserAccountForm, LDAPLoginForm, ManageAgencyUserAccountForm
 from app.auth.utils import (
+    prepare_onelogin_request,
+    init_saml_auth,
+    saml_sso,
+    saml_acs,
+    saml_get_self_url,
     revoke_and_remove_access_token,
     ldap_authentication,
     find_user_by_email,
@@ -57,78 +62,49 @@ def login():
     If no token exists, send the user to the authorization url
     (first leg of the OAuth 2 workflow).
 
-    * NOTE *
-    Since we are using OAuth Mobile Application Flow to fetch the information
-    normally retrieved in a SAML Assertion, the url resulting from authorization
-    is in the format 'redirect_uri#access_token=123guid=ABC...'. Notice the fragment
-    identifier ('#') in place of what would normally be the '?' separator.
-    Since Flask drops everything after the identifier, we must extract these values
-    client-side in order to forward them to the server. Therefore, the redirect uri
-    we are using is our home page (main.index, along with the 'next' url if present)
-    which contains a script that detects the presence of an access token
-    and redirects to the intended OAuth callback (auth.authorize).
-
-    https://tools.ietf.org/html/rfc3986#section-3.5
-
     """
-    next_url = request.args.get('next')
+    next_url = request.args.get('next', url_for('main.index'))
 
-    if current_app.config['USE_LDAP']:
-        return redirect(url_for('auth.ldap_login', next=next_url))
-
-    elif current_app.config['USE_OAUTH']:
-        if session.get('token') is not None:
-            status, user_json = fetch_user_json()
-            if status == 200:
-                return handle_user_data(
-                    user_json['id'],
-                    user_json['userType'],
-                    user_json['email'],
-                    user_json.get('firstName'),
-                    user_json.get('middleInitial'),
-                    user_json.get('lastName'),
-                    user_json.get('termsOfUse'),
-                    user_json.get('validated'),
-                    next_url)
-
-        redirect_uri = urljoin(request.host_url, url_for('main.index', next=next_url))
-
-        oauth = OAuth2Session(
-            client=MobileApplicationClient(client_id=current_app.config['NYC_ID_USERNAME']),
-            redirect_uri=redirect_uri
-        )
-        auth_url, _ = oauth.authorization_url(
-            urljoin(current_app.config['WEB_SERVICES_URL'], AUTH_ENDPOINT)
-        )
-        return redirect(auth_url)
-    return abort(404)
+    if 'samlUserData' in session:
+        return redirect(next_url)
+    else:
+        return redirect(url_for('auth.sso'))
 
 
-@auth.route('/authorize', methods=['GET'])
-def authorize():
+@auth.route('/sso', methods=['GET'])
+def sso():
     """
-    Store access token and a UTC timestamp for its
-    expiration date and time in the session, then
-    process SAML Assertion information.
 
-    See: https://nyc4d.nycnet/nycidauthentication.shtml
+    Returns:
     """
-    session['token'] = {
-        'access_token': request.args['access_token'],
-        'token_type': request.args['token_type']
-    }
-    session['token_expires_at'] = datetime.utcnow().timestamp() + int(request.args['expires_in'])
+    req = prepare_onelogin_request(request)
+    auth = init_saml_auth(req)
+    return redirect(saml_sso(auth))
 
-    return handle_user_data(
-        request.args['GUID'],
-        request.args['userType'],
-        request.args['mail'],
-        request.args.get('givenName'),
-        request.args.get('middleName'),
-        request.args.get('sn'),
-        request.args.get('nycExtTOUVersion'),
-        request.args.get('nycExtEmailValidationFlag'),
-        request.args.get('next'))
+
+@auth.route('/acs', methods=['POST'])
+def acs():
+    """
+
+    Returns:
+    """
+    req = prepare_onelogin_request(request)
+    auth = init_saml_auth(req)
+
+    errors = saml_acs(auth)
+
+    if errors:
+        for error in errors:
+            flash(error, category='warning')
+
+    if not auth.is_authenticated():
+        return redirect(url_for('auth.sso'))
+
+    if 'RelayState' in request.form and saml_get_self_url(request) != request.form['RelayState']:
+        return redirect(auth.redirect_to(request.form(['RelayState'])))
+
+    flash('Logged in successfully!', category='success')
+    return redirect(url_for('main.index'))
 
 
 @auth.route('/logout', methods=['GET'])
@@ -154,6 +130,23 @@ def logout():
         return redirect(url_for('auth.oauth_logout', timed_out=timed_out, forced_logout=forced_logout))
 
     return abort(404)
+
+
+@auth.route('/sls', methods=['GET'])
+def sls():
+    """
+
+    Returns:
+    """
+
+    req = prepare_onelogin_request(request)
+    auth = init_saml_auth(req)
+
+    errors = saml_sls(auth)
+
+   if errors:
+        for error in errors:
+            flash(error, category='warning')
 
 
 @auth.route('/manage', methods=['GET', 'POST'])
