@@ -59,8 +59,8 @@ We have optional integrations with [Sentry](https://sentry.io) for error tracing
     sh /vagrant/.startup/flask_startup.sh
     ```
     
-#### ON Windows:
-TBD (If you would like to help us setup a development environment on Windows, please try it out and submit issues as they come up.)
+#### On Windows:
+**TBD** (If you would like to help us setup a development environment on Windows, please try it out and submit issues as they come up.)
     
 ## Questions?
 Please open an issue in this repository if you have any questions or any difficulty setting up and using OpenRecords.
