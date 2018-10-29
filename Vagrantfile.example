@@ -8,7 +8,7 @@ $redhat_password = ENV['RH_PASSWORD'].to_s.empty? ? "<INSERT_PASSWORD_HERE>" : E
 $rhsn_system_name = ENV['RHSN_SYSTEM_NAME'].to_s.empty? ? $default_system_name : ENV['RHSN_SYSTEM_NAME']
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "samdoran/rhel6"
+  config.vm.box = "generic/rhel7"
 
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:

@@ -39,7 +39,11 @@ We have optional integrations with [Sentry](https://sentry.io) for error tracing
     ```bash
     cp .env.example .env
     ```
-4. Edit your `.env` file. Look at the comments in `.env.example` to choose valid values
+4. Edit your `.env` file. Look at the comments in `.env.example` and `config.py` for examples of valid values.
+5. Create your `Vagrantfile`
+    ```bash
+    cp Vagrantfile.example Vagrantfile
+    ```
 5. Startup your Vagrant machine 
     ```bash
     RH_USER=<YOUR REDHAT DEVELOPER USERNAME> RH_PASS=<YOUR REDHAT DEVELOPER PASSWORD> vagrant up default
@@ -54,6 +58,9 @@ We have optional integrations with [Sentry](https://sentry.io) for error tracing
     ```bash
     sh /vagrant/.startup/flask_startup.sh
     ```
+    
+#### ON Windows:
+TBD (If you would like to help us setup a development environment on Windows, please try it out and submit issues as they come up.)
     
 ## Questions?
 Please open an issue in this repository if you have any questions or any difficulty setting up and using OpenRecords.
