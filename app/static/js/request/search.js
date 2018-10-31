@@ -23,20 +23,13 @@ $(function() {
         * Convert an element associated with a date input
         * to a Date object
         * */
-        var date = new Date(),
-            year = parseInt(elem.val().substr(6, 4)),
-            month = parseInt(elem.val().substr(0, 2)) - 1,
-            day = parseInt(elem.val().substr(3, 2)),
+        var date = new Date(elem.val()),
             daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
 
-        if (month < 0 || month > 11 ||
-            day < 1 || day > daysInMonth[month]) {
+        if (date.getMonth() < 0 || date.getMonth() > 11 ||
+            date.getDay() < 1 || date.getDay() > daysInMonth[date.getMonth()]) {
             throw 'Invalid date';
         }
-
-        date.setFullYear(year);
-        date.setMonth(month);
-        date.setDate(day);
 
         return date;
     }
