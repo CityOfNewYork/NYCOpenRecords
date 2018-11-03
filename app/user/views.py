@@ -238,9 +238,9 @@ def patch(user_id):
             new['auth_user_type'] = user_.auth_user_type
 
             if new_address:
-                new['mailing_address'] = new_address
+                new['_mailing_address'] = new_address
             if old_address:
-                old['mailing_address'] = old_address
+                old['_mailing_address'] = old_address
 
             if ('is_agency_admin' in new) or ('is_agency_active' in new):
                 new['agency_ein'] = agency_ein
