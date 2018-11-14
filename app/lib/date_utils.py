@@ -78,13 +78,13 @@ def get_holidays_date_list(year_start, year_end=None):
     :param year_start: 4 digit year e.g. 2016
     :param year_end: 4 digit year e.g. 2022
 
-    :return: List of dates formatted as strings ['YYYY-MM-DD']
+    :return: List of dates formatted as strings ['MM/DD/YYYY']
     """
     if year_end:
         years = [year for year in range(year_start, year_end + 1)]
     else:
         years = year_start
-    return [str(date) for date, name in NYCHolidays(years=years).items()]
+    return [str(date.strftime("%m/%d/%Y")) for date, name in NYCHolidays(years=years).items()]
 
 
 def get_release_date(initial_date, days_until_release, tz_name):

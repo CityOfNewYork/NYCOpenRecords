@@ -44,7 +44,6 @@ from app.lib.utils import eval_request_bool
 from app.lib.redis_utils import redis_get_user_session
 from app.models import Users
 
-
 @auth.route('/login', methods=['GET'])
 def login():
     """
@@ -72,6 +71,40 @@ def login():
 
     """
     next_url = request.args.get('next')
+
+    if not current_app.config['USE_LDAP'] and not current_app.config['USE_OAUTH']:
+        login_form = LDAPLoginForm()
+        if request.method == 'POST':
+            email = request.form['email']
+
+            user = find_user_by_email(email)
+
+            if user is not None:
+                authenticated = True
+
+                if authenticated:
+                    login_user(user)
+                    session.regenerate()
+                    session['user_id'] = current_user.get_id()
+
+                    next_url = request.form.get('next')
+                    if not is_safe_url(next_url):
+                        return abort(400, UNSAFE_NEXT_URL)
+
+                    return redirect(next_url or url_for('main.index'))
+
+                flash("Invalid username/password combination.", category="danger")
+                return render_template('auth/ldap_login_form.html', login_form=login_form)
+            else:
+                flash("User not found. Please contact your agency FOIL Officer to gain access to the system.",
+                      category="warning")
+                return render_template('auth/ldap_login_form.html', login_form=login_form)
+
+        elif request.method == 'GET':
+            return render_template(
+                'auth/ldap_login_form.html',
+                login_form=login_form,
+                next_url=request.args.get('next', ''))
 
     if current_app.config['USE_LDAP']:
         return redirect(url_for('auth.ldap_login', next=next_url))
