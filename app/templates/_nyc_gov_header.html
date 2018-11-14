@@ -24,7 +24,7 @@
             {% else %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="{{ url_for('auth.login') }}">Log In</a>
+                        <a href="{{ url_for('auth.index', sso="") }}">Log In</a>
                     </span>
                 </span>
             {% endif %}

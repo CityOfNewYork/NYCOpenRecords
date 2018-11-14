@@ -351,7 +351,8 @@ class Users(UserMixin, db.Model):
                 user_type_auth.PUBLIC_USER_NYC_ID,
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'),
-        primary_key=True)
+        primary_key=True,
+        default=user_type_auth.PUBLIC_USER_NYC_ID)
     is_super = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
     middle_initial = db.Column(db.String(1))
@@ -364,7 +365,8 @@ class Users(UserMixin, db.Model):
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
-    _mailing_address = db.Column(JSONB, name='mailing_address')  # TODO: define validation for minimum acceptable mailing address
+    _mailing_address = db.Column(JSONB,
+                                 name='mailing_address')  # TODO: define validation for minimum acceptable mailing address
     session_id = db.Column(db.String(254), nullable=True, default=None)
     signature = db.Column(db.String(), nullable=True, default=None)
 
@@ -709,7 +711,8 @@ class AgencyUsers(db.Model):
                 user_type_auth.PUBLIC_USER_NYC_ID,
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'),
-        primary_key=True)
+        primary_key=True,
+        default=user_type_auth.PUBLIC_USER_NYC_ID)
     agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"), primary_key=True)
     is_agency_active = db.Column(db.Boolean, default=False, nullable=False)
     is_agency_admin = db.Column(db.Boolean, default=False, nullable=False)
@@ -993,7 +996,8 @@ class Events(db.Model):
                 user_type_auth.PUBLIC_USER_GOOGLE,
                 user_type_auth.PUBLIC_USER_NYC_ID,
                 user_type_auth.ANONYMOUS_USER,
-                name='auth_user_type'))
+                name='auth_user_type'),
+        default=user_type_auth.PUBLIC_USER_NYC_ID)
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
@@ -1335,7 +1339,7 @@ class UserRequests(db.Model):
                 user_type_auth.PUBLIC_USER_NYC_ID,
                 user_type_auth.ANONYMOUS_USER,
                 name='auth_user_type'),
-        primary_key=True)
+        primary_key=True, default=user_type_auth.PUBLIC_USER_NYC_ID)
     request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
     request_user_type = db.Column(
         db.Enum(user_type_request.REQUESTER,

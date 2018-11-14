@@ -65,7 +65,7 @@ def user_loader(user_id):
 
 
 def init_saml_auth(req):
-    auth = OneLogin_Saml2_Auth(req, custom_base_path=app.config['SAML_PATH'])
+    auth = OneLogin_Saml2_Auth(req, custom_base_path=current_app.config['SAML_PATH'])
     return auth
 
 
@@ -76,7 +76,7 @@ def prepare_onelogin_request(flask_request):
         'https': 'on' if flask_request.scheme == 'https' else 'off',
         'http_host': flask_request.host,
         'server_port': url_data.port,
-        'script_name': flask_request.path,
+        'script_name': flask_request.path.split('/auth/')[1],
         'get_data': flask_request.args.copy(),
         # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
         # 'lowercase_urlencoding': True,
@@ -93,6 +93,7 @@ def saml_sso(auth):
     Returns:
 
     """
+    print(auth.login())
     return redirect(auth.login())
 
 
@@ -115,7 +116,7 @@ def saml_slo(auth):
     return redirect(auth.logout(name_id=name_id, session_index=session_index))
 
 
-def saml_acs(auth):
+def saml_acs(auth, request):
     """
 
     Args:
@@ -132,21 +133,31 @@ def saml_acs(auth):
         session['samlNameId'] = auth.get_nameid()
         session['samlSessionIndex'] = auth.get_session_index()
 
-        user = session['samlUserdata']
+        # Log User In
+        user_data = session['samlUserdata']
+
+        user = Users.query.filter_by(guid=user_data['GUID'][0]).one_or_none()
+
+        if user:
+            login_user(user)
+
+        else:
+            user = Users(
+                guid=user_data['GUID'],
+                first_name=user_data['givenName'],
+                middle_initial=user_data['middleName'],
+                last_name=user_data['sn'],
+                email=user_data['mail'],
+                email_validated=user_data['nycExtEmailValidationFlag']
+            )
+            create_object(user)
+        self_url = OneLogin_Saml2_Utils.get_self_url(request)
+
+        if 'RelayState' in request.form and self_url != request.form['RelayState']:
+            return auth.redirect_to(request.form['RelayState'])
+
         return None
     return errors
-
-
-def saml_get_self_url(flask_request):
-    """
-
-    Args:
-        flask_request:
-
-    Returns:
-
-    """
-    return OneLogin_Saml2_Utils.get_self_url(prepare_onelogin_request(flask_request))
 
 
 def update_openrecords_user(form):
