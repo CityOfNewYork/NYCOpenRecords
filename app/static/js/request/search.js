@@ -47,7 +47,7 @@ $(function() {
                 var compDate = null;
                 if (compDateElem.val().length === 10) {
                     try {
-                        compDate = new Date(compDateElem.val())
+                        compDate = new Date(compDateElem.val());
                     }
                     catch (err) {
                         compDate = null;
