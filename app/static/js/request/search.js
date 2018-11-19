@@ -18,22 +18,6 @@ $(function() {
         agencyUserSelect = $("#agency_user");
 
     // Date stuff
-    function elemToDate(elem) {
-        /*
-        * Convert an element associated with a date input
-        * to a Date object
-        * */
-        var date = new Date(elem.val()),
-            daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
-
-        if (date.getMonth() < 0 || date.getMonth() > 11 ||
-            date.getDay() < 1 || date.getDay() > daysInMonth[date.getMonth()]) {
-            throw 'Invalid date';
-        }
-
-        return date;
-    }
-
     function dateInvalid(dateElem, msg, highlightDateRequirement) {
         dateElem
             .addClass("bad-input-text")
@@ -64,14 +48,14 @@ $(function() {
                 var compDate = null;
                 if (compDateElem.val().length === 10) {
                     try {
-                        compDate = elemToDate(compDateElem);
+                        compDate = new Date(compDateElem.val())
                     }
                     catch (err) {
                         compDate = null;
                     }
                 }
                 try {
-                    var checkDate = elemToDate(checkDateElem);
+                    var checkDate = new Date(checkDateElem.val())
                     var validComp = compDate !== null ?
                         (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
