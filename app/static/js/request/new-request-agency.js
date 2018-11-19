@@ -205,7 +205,24 @@ $(document).ready(function () {
             $(".file-error").hide();
         }
         $("#request-file").val("");
-        $("#filename").text("");
+        $("#filename").val("");
+        $("#filename").attr('placeholder', 'No file uploaded');
+    });
+
+    // trigger file explorer on space and enter
+    $('#buttonlabel span[role=button]').bind('keypress keyup', function (e) {
+        if (e.which === 32 || e.which === 13) {
+            e.preventDefault();
+            $('#request-file').click();
+        }
+    });
+
+    // return chosen filename to additional input
+    $('#request-file').change(function (e) {
+        var filename = $('#request-file').val().split('\\').pop();
+        $('#filename').val(filename);
+        $('#filename').attr('placeholder', filename);
+        $('#filename').focus();
     });
 
     // Contact information validation
