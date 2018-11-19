@@ -48,14 +48,14 @@ $(function() {
                 var compDate = null;
                 if (compDateElem.val().length === 10) {
                     try {
-                        compDate = new Date(compDateElem.val())
+                        compDate = new Date(compDateElem.val());
                     }
                     catch (err) {
                         compDate = null;
                     }
                 }
                 try {
-                    var checkDate = new Date(checkDateElem.val())
+                    var checkDate = new Date(checkDateElem.val());
                     var validComp = compDate !== null ?
                         (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
