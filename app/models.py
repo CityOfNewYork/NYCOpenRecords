@@ -893,6 +893,9 @@ class Requests(db.Model):
 
     @property
     def agency_request_summary_released(self):
+        '''
+        Determine whether the agency_request_summary has been made public and has passed its release date
+        '''
         return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
                self.agency_request_summary and self.agency_request_summary_release_date is not None and \
                self.agency_request_summary_release_date < datetime.utcnow()
