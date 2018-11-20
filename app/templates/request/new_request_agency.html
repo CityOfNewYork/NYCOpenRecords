@@ -28,7 +28,7 @@
                     respond to your request.</p>
                 {# Agency request belongs to #}
                 {% if current_user.agencies.all()|length > 1 %}
-                    {{ form.request_agency.label(class="request-heading agency-label") }}
+                    {{ form.request_agency.label(class="request-heading agency-label", for="request-agency") }}
                     <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
                           data-content="List of agencies you can submit a request to on behalf of a requester."
                           class="glyphicon glyphicon-question-sign">
@@ -52,7 +52,7 @@
                 </div>
 
                 {# Title of the request #}
-                {{ form.request_title.label(class="request-heading title-label") }}
+                {{ form.request_title.label(class="request-heading title-label", for="request-title") }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
                       data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
                       class="glyphicon glyphicon-question-sign">
@@ -68,7 +68,7 @@
                 </div>
                 {# Description of the request #}
                 <div id="request-description-section">
-                    {{ form.request_description.label(class="request-heading description-label") }}
+                    {{ form.request_description.label(class="request-heading description-label", for="request-description") }}
                     <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
                           data-content="Enter a detailed description of the request."
                           class="glyphicon glyphicon-question-sign">
@@ -150,7 +150,7 @@
 
                 {# Upload field for user to add files #}
                 <div id="upload-control" class="col-sm-12">
-                    {{ form.request_file.label(class="request-heading") }}
+                    {{ form.request_file.label(class="request-heading", for="request-file") }}
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
@@ -163,7 +163,7 @@
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}
-                    <label for="filename" class="hide">
+                    <label for="filename" aria-label="filename" class="hide">
                         Uploaded File
                     </label>
                     <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
@@ -180,11 +180,11 @@
                 </div>
                 {# Format of request received #}
                 <div class="format-label">
-                    Format Received (required)
+                    <label for="method-received">Format Received (required)</label>
                 </div>
                 {{ form.method_received(id="method-received", class="input-block-level") }}
                 {# Date request was received #}
-                Request Date (required)
+                <label for="request-date">Request Date (required)</label>
                 {{ form.request_date(id="request-date", class="input-block-level dtpick") }}
 
                 <h1>Personal Information
@@ -198,15 +198,15 @@
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name of user #}
-                {{ form.first_name.label(class="request-heading first-name-label") }}
+                {{ form.first_name.label(class="request-heading first-name-label", for="first-name") }}
                 {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32") }}
                 <h5 id="first-name-character-count">32 characters remaining</h5><br>
                 {# Last name of user #}
-                {{ form.last_name.label(class="request-heading last-name-label") }}
+                {{ form.last_name.label(class="request-heading last-name-label", for="last-name") }}
                 {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64") }}
                 <h5 id="last-name-character-count">64 characters remaining</h5><br>
                 {# Email of user #}
-                {{ form.email.label(class="request-heading email-label") }}
+                {{ form.email.label(class="request-heading email-label", for="email") }}
                 {{ form.email(id="email", class="input-block-level",
                 placeholder="requester@email.com", maxlength="254") }}<br>
 
@@ -223,43 +223,43 @@
                 <p>Note: You must provide at least one type of contact information (phone number, fax number, or
                     address)</p>
                 {# User of title #}
-                {{ form.user_title.label(class="request-heading") }}
+                {{ form.user_title.label(class="request-heading", for="user-title") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
                 placeholder="Your role in your organization (if applicable)", maxlength="64") }}
                 <h5 id="user-title-character-count">64 characters remaining</h5><br>
                 {# Organization/Agency user belongs to #}
-                {{ form.user_organization.label(class="request-heading") }}
+                {{ form.user_organization.label(class="request-heading", for="user-organization") }}
                 {{ form.user_organization(id="user-organization", class="input-block-level",
                 placeholder="Your organization (if applicable)", maxlength="128") }}
                 <h5 id="organization-character-count">128 characters remaining</h5><br>
                 {# Phone number of user #}
-                {{ form.phone.label(class="request-heading") }}
+                {{ form.phone.label(class="request-heading", for="phone") }}
                 {{ form.phone(id="phone", class="input-block-level",
                 placeholder="(555) 555-5555") }}<br>
                 {# Fax number of user #}
-                {{ form.fax.label(class="request-heading") }}
+                {{ form.fax.label(class="request-heading", for="fax") }}
                 {{ form.fax(id="fax", class="input-block-level",
                 placeholder="(555) 555-5555") }}<br>
                 {# Address of user #}
                 <div class="request-heading">Address</div>
-                Address Line 1
+                <label for="address-line-1">Address Line 1</label>
                 {{ form.address(id="address-line-1", class="input-block-level",
                 placeholder="123 Main Street") }}<br>
 
-                Address Line 2
+                <label for="address_two">Address Line 2</label>
                 {{ form.address_two(id="address_two", class="input-block-level",
                 placeholder="Apartment 3D") }}<br>
                 <div class="col-sm-4 no-padding-left">
-                    {{ form.city.label(class="request-heading") }}
+                    {{ form.city.label(class="request-heading", for="city") }}
                     {{ form.city(id="city", class="input-block-level",
                     placeholder="New York") }}<br>
                 </div>
                 <div class="col-sm-4">
-                    {{ form.state.label(class="request-heading") }}
+                    {{ form.state.label(class="request-heading", for="state") }}
                     {{ form.state(id="state", class="input-block-level") }}<br>
                 </div>
                 <div class="col-sm-4">
-                    {{ form.zipcode.label(class="request-heading", selected="New York") }}
+                    {{ form.zipcode.label(class="request-heading", selected="New York", for="zipcode") }}
                     {{ form.zipcode(id="zipcode", class="input-block-level",
                     placeholder="12345") }}<br>
                 </div>
