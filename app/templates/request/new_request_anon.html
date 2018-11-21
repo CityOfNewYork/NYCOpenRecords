@@ -30,6 +30,7 @@
                 {{ form.request_category.label(class="request-heading", for="request-category") }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
                       data-content="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
+                      aria-label="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_category(id="request-category", class="input-block-level") }}<br>
@@ -37,6 +38,7 @@
                 {{ form.request_agency.label(class="request-heading agency-label", for="request-agency") }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
                       data-content="List of all agencies available within OpenRecords that would handle your request."
+                      aria-label="List of all agencies available within OpenRecords that would handle your request."
                       class="glyphicon glyphicon-question-sign">
                 </span>
                 {{ form.request_agency(id="request-agency", class="input-block-level") }}<br>
@@ -57,6 +59,7 @@
                 {{ form.request_title.label(class="request-heading title-label", for="request-title") }}
                 <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
                       data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
+                      aria-label="Enter a brief title for your request, title will be made public and limited to 90 characters."
                       class="glyphicon glyphicon-question-sign">
                 </span>
 
@@ -73,8 +76,9 @@
                     {{ form.request_description.label(class="request-heading description-label", for="request-description") }}
                     <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
                           data-content="Enter a detailed description of the request."
+                          aria-label="Enter a detailed description of the request."
                           class="glyphicon glyphicon-question-sign">
-                </span>
+                    </span>
                     <div class="alert alert-warning">
                         <p><b>Note: The request details you write here will not be visible to the public. However, the
                             agency may post a description of the records provided.</b></p>
@@ -97,6 +101,7 @@
                         {{ form.request_type.label(class="request-heading request-type-label") }}
                         <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Request Type"
                               data-content="List of all agency specific request types that can be made within OpenRecords."
+                              aria-label="List of all agency specific request types that can be made within OpenRecords."
                               class="glyphicon glyphicon-question-sign">
                         </span>
                         {{ form.request_type(id="request-type-1", class="input-block-level request-type") }}<br>
@@ -176,15 +181,10 @@
                     {% endif %}
                 </div>
 
-                <h1>Personal Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
-                           title="Personal Information"
-                           data-content="First and last name fields are required. The Email field is optional but recommended.">
-                        <span class="glyphicon glyphicon-question-sign"></span>
-                    </small>
-                </h1>
-
-                <p>This information will not be publicly viewable on this site. You must provide contact
+                <h1>Personal Information</h1>
+                <p>First and last name fields are required. The Email field is optional but recommended.
+                    <br><br>
+                    This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name field #}
                 {{ form.first_name.label(class="request-heading first-name-label", for="first-name") }}
@@ -200,14 +200,10 @@
                 placeholder="requester@email.com", maxlength="254") }}<br>
 
                 <div class="contact-form-error-message"></div>
-                <h1>Alternate Contact Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
-                           title="Alternate Contact Information"
-                           data-content="Fields are included in case alternate contact method is needed.">
-                        <span class="glyphicon glyphicon-question-sign"></span>
-                    </small>
-                </h1>
-                <p>No information entered in this section will be visible to the public.</p>
+                <h1>Alternate Contact Information</h1>
+                <p>No information entered in this section will be visible to the public.
+                    <br><br>
+                    Fields are included in case alternate contact method is needed.</p>
                 {# Title of user #}
                 {{ form.user_title.label(class="request-heading", for="user-title") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
