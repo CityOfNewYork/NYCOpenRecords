@@ -31,12 +31,12 @@
                     {{ edit_requester_form.title.label }}
                     {{ edit_requester_form.title(id='inputTitle', class='form-control', maxlength="64",
                         readonly=is_public_requester) }}
-                    <h5 id="user-title-character-count">64 characters remaining</h5>
+                    <p id="user-title-character-count" class="character-counter">64 characters remaining</p>
 
                     {{ edit_requester_form.organization.label }}
                     {{ edit_requester_form.organization(id='inputOrganization', class='form-control', maxlength="128",
                         readonly=is_public_requester) }}
-                    <h5 id="organization-character-count">128 characters remaining</h5>
+                    <p id="organization-character-count" class="character-counter">128 characters remaining</p>
 
                     {{ edit_requester_form.phone.label }}
                     {{ edit_requester_form.phone(id='inputTelephone', class='form-control',

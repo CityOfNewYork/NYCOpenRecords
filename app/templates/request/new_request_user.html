@@ -41,12 +41,12 @@
                 {{ form.request_agency(id="request-agency", class="input-block-level") }}<br>
                 <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
                     <div class="panel-heading">
-                        <h4 class="panel-title agency-instructions-title">
+                        <p class="panel-title agency-instructions-title">
                             <a id="agency-instructions-title-text" data-toggle="collapse"
                                href="#collapse-agency-instructions"><span
                                     class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span
                                     class="glyphicon glyphicon-chevron-down"></span></a>
-                        </h4>
+                        </p>
                     </div>
                     <div id="collapse-agency-instructions" class="panel-collapse collapse in">
                         <div class="panel-body" id="request-agency-instructions-content"></div>
@@ -64,7 +64,7 @@
                 </div>
                 {{ form.request_title(id="request-title", class="input-block-level",
                     placeholder="Please provide a short summary of your request.", maxlength="90") }}
-                <h5 id="title-character-count">90 characters remaining</h5>
+                <p id="title-character-count" class="character-counter">90 characters remaining</p>
                 {# Description of Request #}
                 <div id="request-description-section">
                     {{ form.request_description.label(class="request-heading description-label") }}
@@ -79,7 +79,7 @@
                     {{ form.request_description(id="request-description", class="input-block-level",
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
                         maxlength="5000") }}
-                    <h5 id="description-character-count">5000 characters remaining</h5>
+                    <p id="description-character-count" class="character-counter">5000 characters remaining</p>
                 </div>
 
                 {# Dropdown for request type based on custom request forms #}
@@ -110,7 +110,7 @@
                         <div class="modal-dialog vertical-align-center">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h4 class="modal-title">Confirm Delete</h4>
+                                    <strong class="modal-title">Confirm Delete</strong>
                                 </div>
                                 <div class="modal-body">
                                 </div>
@@ -129,7 +129,7 @@
                         <div class="modal-dialog vertical-align-center">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h4 class="modal-title">Warning</h4>
+                                    <strong class="modal-title">Warning</strong>
                                 </div>
                                 <div id="category-warning-text" class="modal-body">Selecting this option will remove any
                                     existing information for other request types. Are you sure you want to change
