@@ -182,9 +182,9 @@
                 </div>
 
                 <h1>Personal Information</h1>
-                <p>First and last name fields are required. The Email field is optional but recommended.
-                    <br><br>
-                    This information will not be publicly viewable on this site. You must provide contact
+
+                <p>First and last name fields are required. The Email field is optional but recommended.</p>
+                <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name field #}
                 {{ form.first_name.label(class="request-heading first-name-label", for="first-name") }}
@@ -201,9 +201,9 @@
 
                 <div class="contact-form-error-message"></div>
                 <h1>Alternate Contact Information</h1>
-                <p>No information entered in this section will be visible to the public.
-                    <br><br>
-                    Fields are included in case alternate contact method is needed.</p>
+
+                <p>No information entered in this section will be visible to the public.</p>
+                <p>Fields are included in case alternate contact method is needed.</p>
                 {# Title of user #}
                 {{ form.user_title.label(class="request-heading", for="user-title") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
