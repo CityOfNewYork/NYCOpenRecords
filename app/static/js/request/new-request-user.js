@@ -65,7 +65,7 @@ $(document).ready(function () {
                 if (selectedCategory !== currentCategory && formId !== "") {
                     // show the modal
                     $("#category-warning-modal").modal({
-                        backdrop: 'static',
+                        backdrop: "static",
                         keyboard: false
                     });
                     // handle modal button actions
@@ -172,23 +172,23 @@ $(document).ready(function () {
         }
         $("#request-file").val("");
         $("#filename").val("");
-        $("#filename").attr('placeholder', 'No file uploaded');
+        $("#filename").attr("placeholder", "No file uploaded");
     });
 
     // trigger file explorer on space and enter
-    $('#buttonlabel span[role=button]').bind('keypress keyup', function (e) {
+    $("#buttonlabel span[role=button]").bind("keypress keyup", function (e) {
         if (e.which === 32 || e.which === 13) {
             e.preventDefault();
-            $('#request-file').click();
+            $("#request-file").click();
         }
     });
 
     // return chosen filename to additional input
-    $('#request-file').change(function (e) {
-        var filename = $('#request-file').val().split('\\').pop();
-        $('#filename').val(filename);
-        $('#filename').attr('placeholder', filename);
-        $('#filename').focus();
+    $("#request-file").change(function (e) {
+        var filename = $("#request-file").val().split("\\").pop();
+        $("#filename").val(filename);
+        $("#filename").attr("placeholder", filename);
+        $("#filename").focus();
     });
 
     $("#request-form").parsley().on("form:validate", function () {
