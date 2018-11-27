@@ -566,6 +566,7 @@ function renderCustomRequestForm(target) {
                         'data-trigger': "hover focus",
                         'data-toggle': "popover",
                         'data-content': data["tooltips"][id]["content"],
+                        'aria-label': data["tooltips"][id]["content"],
                         title: data["tooltips"][id]["title"]
                     });
                     $("#" + id + "-tooltip").popover();

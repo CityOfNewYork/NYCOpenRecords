@@ -154,7 +154,7 @@ input[type=text] .file-text-input {
     background-color: #ffffff;
 }
 
-.file-text-input:focus{
+.file-text-input:focus {
     box-shadow: 0 0 5px #595959;
     border-color: #4D90FE;
     outline: 2px solid transparent;
