@@ -83,7 +83,7 @@ $(document).ready(function () {
                 if (selectedCategory !== currentCategory && formId !== "") {
                     // show the modal
                     $("#category-warning-modal").modal({
-                        backdrop: 'static',
+                        backdrop: "static",
                         keyboard: false
                     });
                     // handle modal button actions
@@ -222,7 +222,24 @@ $(document).ready(function () {
             $(".file-error").hide();
         }
         $("#request-file").val("");
-        $("#filename").text("");
+        $("#filename").val("");
+        $("#filename").attr("placeholder", "No file uploaded");
+    });
+
+    // trigger file explorer on space and enter
+    $("#buttonlabel span[role=button]").bind("keypress keyup", function (e) {
+        if (e.which === 32 || e.which === 13) {
+            e.preventDefault();
+            $("#request-file").click();
+        }
+    });
+
+    // return chosen filename to additional input
+    $("#request-file").change(function (e) {
+        var filename = $("#request-file").val().split("\\").pop();
+        $("#filename").val(filename);
+        $("#filename").attr("placeholder", filename);
+        $("#filename").focus();
     });
 
     // Contact information validation
@@ -306,7 +323,7 @@ $(document).ready(function () {
     });
 
     // Disable submit button on form submission
-    $("#request-form").on('submit', function (e) {
+    $("#request-form").on("submit", function (e) {
         $(".remove-on-resubmit").remove();
         if ($("#request-form").parsley().isValid()) {
             // section to check if at least one request type has been selected

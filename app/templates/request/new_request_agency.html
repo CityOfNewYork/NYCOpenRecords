@@ -154,11 +154,19 @@
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label class="btn btn-primary choose-file-button">Choose File
-                        {{ form.request_file(id="request-file", style="display:none") }}
+                    <label for="request-file" id="buttonlabel">
+                    <span role="button" aria-controls="filename" tabindex="0">
+                      Choose File
+                    </span>
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear File</button>
-                    <div id="filename"></div>
+                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear
+                        File
+                    </button>
+                    {{ form.request_file(id="request-file", style="display:none") }}
+                    <label for="filename" class="hide">
+                        Uploaded File
+                    </label>
+                    <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
                             <div class="alert alert-danger upload-error">{{ error }}</div>
