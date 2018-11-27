@@ -12,7 +12,7 @@
            {% endif %}
            {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>
     {% if max_length and character_counter %}
-        <h5 id="{{ field_name }}-{{ instance_id }}-character-count">{{ max_length }} characters remaining</h5>
+        <p id="{{ field_name }}-{{ instance_id }}-character-count" class="character-counter">{{ max_length }} characters remaining</p>
     {% endif %}
     <br>
 </div>

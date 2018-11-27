@@ -18,18 +18,18 @@
 
             <label for="name">Name</label>
             <input id="name" class="form-control" name="name" maxlength="32" type="text">
-            <h5 id="name-character-count">32 characters remaining</h5>
+            <p id="name-character-count" class="character-counter">32 characters remaining</p>
             <br>
             <label for="email">Email</label>
             <input id="email" class="form-control" name="email" maxlength="254" type="email">
             <br>
             <label for="subject">Subject</label>
             <input id="subject" class="form-control" name="subject" maxlength="90" type="text" value="{{ error_id }}">
-            <h5 id="subject-character-count">90 characters remaining</h5>
+            <p id="subject-character-count" class="character-counter">90 characters remaining</p>
             <br>
             <label for="message">Message</label>
             <textarea id="message" name="message" rows="10" maxlength="5000"></textarea>
-            <h5 id="message-character-count">5000 characters remaining</h5>
+            <p id="message-character-count" class="character-counter">5000 characters remaining</p>
 
             <br>
             <input id="submit" name="submit" type="submit" value="Send">

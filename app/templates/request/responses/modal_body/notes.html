@@ -21,9 +21,9 @@ and current_request.status != request_status.CLOSED %}
         {% if edit_response_permission %}
             <textarea class="input-block-level form-group note-content"
                       title="content" name="content" maxlength="5000">{{ response.content }}</textarea>
-            <h5 class="required note-content-character-count">
+            <p class="required note-content-character-count character-counter">
                 5000 characters remaining
-            </h5>
+            </p>
         {% else %}
             {{ response.content }}
         {% endif %}

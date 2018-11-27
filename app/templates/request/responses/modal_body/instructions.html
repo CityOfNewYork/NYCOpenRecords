@@ -9,9 +9,9 @@ and current_request.status != request_status.CLOSED %}
             <div class="instruction-error-messages alert alert-danger" hidden></div>
             <textarea class="input-block-level form-group instruction-content"
                       title="content" name="content" maxlength="500">{{ response.content }}</textarea>
-            <h5 class="required instruction-content-character-count">
+            <p class="required instruction-content-character-count character-counter">
                 500 characters remaining
-            </h5>
+            </p>
         {% else %}
             {{ response.content }}
         {% endif %}
