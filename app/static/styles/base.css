@@ -215,3 +215,11 @@ input[type="radio"], input[type="checkbox"] {
     background-color: green;
     border-color: green;
 }
+
+.character-counter {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
