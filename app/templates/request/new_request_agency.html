@@ -167,8 +167,8 @@
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}
-                    <label for="filename" aria-label="filename" class="hide">
-                        Uploaded File
+                    <label for="filename" aria-label="file name" class="hide">
+                        Filename
                     </label>
                     <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
                     {% if form.request_file.errors %}
@@ -191,13 +191,7 @@
                 <label for="request-date">Request Date (required)</label>
                 {{ form.request_date(id="request-date", class="input-block-level dtpick") }}
 
-                <h2>Personal Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
-                           title="Personal Information"
-                           data-content="First and last name fields are required. The Email field is optional but recommended.">
-                        <span class="glyphicon glyphicon-question-sign"></span>
-                    </small>
-                </h2>
+                <h2>Personal Information</h2>
 
                 <p>First and last name fields are required. The Email field is optional but recommended.</p>
                 <p>This information will not be publicly viewable on this site. You must provide contact
@@ -216,13 +210,7 @@
                 placeholder="requester@email.com", maxlength="254") }}<br>
 
                 <div class="contact-form-error-message"></div>
-                <h2>Alternate Contact Information
-                    <small data-toggle="popover" data-placement="right" data-trigger="hover"
-                           title="Alternate Contact Information"
-                           data-content="Fields are included in case alternate contact method is needed.">
-                        <span class="glyphicon glyphicon-question-sign"></span>
-                    </small>
-                </h2>
+                <h2>Alternate Contact Information</h2>
 
                 <p>Fields are included in case alternate contact method is needed.</p>
                 <p>No information entered in this section will be visible to the public.</p>
@@ -247,12 +235,12 @@
                 {{ form.fax(id="fax", class="input-block-level",
                 placeholder="(555) 555-5555") }}<br>
                 {# Address of user #}
-                <div class="request-heading">Address</div>
-                <label for="address-line-1">Address Line 1</label>
+                <h3>Address</h3>
+                {{ form.address.label(class="request-heading", for="address-line-1") }}
                 {{ form.address(id="address-line-1", class="input-block-level",
                 placeholder="123 Main Street") }}<br>
 
-                <label for="address_two">Address Line 2</label>
+                {{ form.address_two.label(class="request-heading", for="address-two") }}
                 {{ form.address_two(id="address_two", class="input-block-level",
                 placeholder="Apartment 3D") }}<br>
                 <div class="col-sm-4 no-padding-left">
