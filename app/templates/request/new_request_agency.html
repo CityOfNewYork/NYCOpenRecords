@@ -13,7 +13,7 @@
 
 {% block content %}
     <div id="container-fluid">
-        <div class="col-sm-10 col-sm-push-1">
+        <div class="col-sm-10 col-sm-push-1" role="main">
             <form method="post" class="form new-request-agency" role="form" id="request-form" enctype=multipart/form-data
                   data-parsley-validate>
                 {{ form.csrf_token }}
