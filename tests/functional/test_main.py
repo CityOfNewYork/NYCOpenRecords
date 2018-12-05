@@ -59,7 +59,7 @@ def test_get_contact(
     # Test `/technical-support`
     response = client.get("/contact")
     assert response.status_code == 200
-    assert b'<h2 class="text-center">Technical Support</h2>' in response.data
+    assert b'<h1 class="text-center">Technical Support</h1>' in response.data
     assert b"Use this form only for technical support." in response.data
 
 
@@ -122,7 +122,7 @@ def test_get_technical_support(
     # Test `/technical-support`
     response = client.get("/technical-support")
     assert response.status_code == 200
-    assert b'<h2 class="text-center">Technical Support</h2>' in response.data
+    assert b'<h1 class="text-center">Technical Support</h1>' in response.data
     assert b"Use this form only for technical support." in response.data
 
 
