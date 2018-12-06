@@ -125,34 +125,6 @@ $(document).ready(function () {
         currentValues[customRequestFormCounter - 1] = "";
     });
 
-    // javascript to add tooltip popovers when selecting the title and description
-    $("#request-title").attr({
-        "data-placement": "top",
-        "data-trigger": "hover focus",
-        "data-toggle": "popover",
-        "data-content": "Queens Blvd Roadwork Permit. Do NOT put private names, phone numbers, home address, date of birth, etc.",
-        title: "Example Title"
-    });
-    $("#request-title").popover();
-    // $("#request-title").click(function(){
-    //     $("#request-title").popover("show");
-    // });
-
-    $("#request-description").attr({
-        "data-placement": "top",
-        "data-trigger": "hover focus",
-        "data-toggle": "popover",
-        "data-content": "Roadwork permits for work done in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and October 2017.",
-        title: "Example Request"
-    });
-    $("#request-description").click(function () {
-        $("#request-description").popover("show");
-    });
-    $("#request-description").popover();
-    // $("#request-description").click(function(){
-    //     $("#request-description").popover("show");
-    // });
-
     // jQuery mask plugin to format fields
     $("#phone").mask("(999) 999-9999");
     $("#fax").mask("(999) 999-9999");
