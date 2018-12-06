@@ -39,7 +39,7 @@
                 class='input-block-level',
                 placeholder='Your role in your organization (if applicable)',
                 maxlength="64") }}
-            <h5 id="title-character-count">64 characters remaining</h5>
+            <p id="title-character-count" class="character-counter">64 characters remaining</p>
             <br>
             {{ form.organization.label(class='request-heading') }}
             {{ form.organization(
@@ -47,7 +47,7 @@
                 class='input-block-level',
                 placeholder='Your organization (if applicable)',
                 maxlength="128") }}
-            <h5 id="organization-character-count">128 characters remaining</h5>
+            <p id="organization-character-count" class="character-counter">128 characters remaining</p>
             <br>
             <div class="contact-form-error-message"></div>
 

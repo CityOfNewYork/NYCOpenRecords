@@ -39,12 +39,12 @@
                 {% endif %}
                 <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
                     <div class="panel-heading">
-                        <h4 class="panel-title agency-instructions-title">
+                        <p class="panel-title agency-instructions-title">
                             <a id="agency-instructions-title-text" data-toggle="collapse"
                                href="#collapse-agency-instructions"><span
                                     class="glyphicon glyphicon-chevron-down"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span
                                     class="glyphicon glyphicon-chevron-down"></span></a>
-                        </h4>
+                        </p>
                     </div>
                     <div id="collapse-agency-instructions" class="panel-collapse collapse">
                         <div class="panel-body" id="request-agency-instructions-content"></div>
@@ -59,7 +59,7 @@
                 </span>
                 {{ form.request_title(id="request-title", class="input-block-level",
                         placeholder="Please provide a short summary of your request.", maxlength="90") }}
-                <h5 id="title-character-count">90 characters remaining</h5>
+                <p id="title-character-count" class="character-counter">90 characters remaining</p>
                 <div class="alert alert-info">
                     <p><strong>
                         Note: The title of this request will be visible to the public.
@@ -76,7 +76,7 @@
                     {{ form.request_description(id="request-description", class="input-block-level",
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
                         maxlength="5000") }}
-                    <h5 id="description-character-count">5000 characters remaining</h5>
+                    <p id="description-character-count" class="character-counter">5000 characters remaining</p>
                     <div class="alert alert-info">
                         <p><b>Note: The request details written here will not be visible to the public.
                             However, your agency may post a description of the records provided.</b></p>
@@ -111,7 +111,7 @@
                         <div class="modal-dialog vertical-align-center">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h4 class="modal-title">Confirm Delete</h4>
+                                    <strong class="modal-title">Confirm Delete</strong>
                                 </div>
                                 <div class="modal-body">
                                 </div>
@@ -130,7 +130,7 @@
                         <div class="modal-dialog vertical-align-center">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h4 class="modal-title">Warning</h4>
+                                    <strong class="modal-title">Warning</strong>
                                 </div>
                                 <div id="category-warning-text" class="modal-body">Selecting this option will remove any
                                     existing information for other request types. Are you sure you want to change
@@ -154,11 +154,19 @@
                     &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label class="btn btn-primary choose-file-button">Choose File
-                        {{ form.request_file(id="request-file", style="display:none") }}
+                    <label for="request-file" id="buttonlabel">
+                    <span role="button" aria-controls="filename" tabindex="0">
+                      Choose File
+                    </span>
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear File</button>
-                    <div id="filename"></div>
+                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear
+                        File
+                    </button>
+                    {{ form.request_file(id="request-file", style="display:none") }}
+                    <label for="filename" class="hide">
+                        Uploaded File
+                    </label>
+                    <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
                             <div class="alert alert-danger upload-error">{{ error }}</div>
@@ -166,7 +174,7 @@
                     {% endif %}
                 </div>
 
-                <h1>Private Information</h1>
+                <h2>Private Information</h2>
                 <div class="request-heading">
                     Receipt Information
                 </div>
@@ -179,37 +187,37 @@
                 Request Date (required)
                 {{ form.request_date(id="request-date", class="input-block-level dtpick") }}
 
-                <h1>Personal Information
+                <h2>Personal Information
                     <small data-toggle="popover" data-placement="right" data-trigger="hover"
                            title="Personal Information"
                            data-content="First and last name fields are required. The Email field is optional but recommended.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
-                </h1>
+                </h2>
 
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name of user #}
                 {{ form.first_name.label(class="request-heading first-name-label") }}
                 {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32") }}
-                <h5 id="first-name-character-count">32 characters remaining</h5><br>
+                <p id="first-name-character-count" class="character-counter">32 characters remaining</p><br>
                 {# Last name of user #}
                 {{ form.last_name.label(class="request-heading last-name-label") }}
                 {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64") }}
-                <h5 id="last-name-character-count">64 characters remaining</h5><br>
+                <p id="last-name-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Email of user #}
                 {{ form.email.label(class="request-heading email-label") }}
                 {{ form.email(id="email", class="input-block-level",
                 placeholder="requester@email.com", maxlength="254") }}<br>
 
                 <div class="contact-form-error-message"></div>
-                <h1>Alternate Contact Information
+                <h2>Alternate Contact Information
                     <small data-toggle="popover" data-placement="right" data-trigger="hover"
                            title="Alternate Contact Information"
                            data-content="Fields are included in case alternate contact method is needed.">
                         <span class="glyphicon glyphicon-question-sign"></span>
                     </small>
-                </h1>
+                </h2>
 
                 <p>No information entered in this section will be visible to the public.</p>
                 <p>Note: You must provide at least one type of contact information (phone number, fax number, or
@@ -218,12 +226,12 @@
                 {{ form.user_title.label(class="request-heading") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
                 placeholder="Your role in your organization (if applicable)", maxlength="64") }}
-                <h5 id="user-title-character-count">64 characters remaining</h5><br>
+                <p id="user-title-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Organization/Agency user belongs to #}
                 {{ form.user_organization.label(class="request-heading") }}
                 {{ form.user_organization(id="user-organization", class="input-block-level",
                 placeholder="Your organization (if applicable)", maxlength="128") }}
-                <h5 id="organization-character-count">128 characters remaining</h5><br>
+                <p id="organization-character-count" class="character-counter">128 characters remaining</p><br>
                 {# Phone number of user #}
                 {{ form.phone.label(class="request-heading") }}
                 {{ form.phone(id="phone", class="input-block-level",
