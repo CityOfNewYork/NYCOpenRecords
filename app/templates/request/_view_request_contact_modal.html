@@ -12,12 +12,12 @@
 
                     {{ contact_agency_form.first_name.label }}
                     {{ contact_agency_form.first_name(id="first-name", class="form-control", maxlength="32") }}
-                    <h5 id="first-name-character-count">32 characters remaining</h5>
+                    <p id="first-name-character-count" class="character-counter">32 characters remaining</p>
                     <br/>
 
                     {{ contact_agency_form.last_name.label }}
                     {{ contact_agency_form.last_name(id="last-name", class="form-control", maxlength="64") }}
-                    <h5 id="last-name-character-count">64 characters remaining</h5>
+                    <p id="last-name-character-count" class="character-counter">64 characters remaining</p>
                     <br/>
 
                     {{ contact_agency_form.email.label }}
@@ -30,7 +30,7 @@
 
                     {{ contact_agency_form.message.label }}
                     {{ contact_agency_form.message(id="message", class="form-control", rows="10", maxlength="5000") }}
-                    <h5 id="message-character-count">5000 characters remaining</h5>
+                    <p id="message-character-count" class="character-counter">5000 characters remaining</p>
 
                     <br/>
                     {{ contact_agency_form.submit(id="submit") }}
