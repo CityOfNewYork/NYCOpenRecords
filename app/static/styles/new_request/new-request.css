@@ -106,3 +106,56 @@
 .agency-instructions-title {
     text-align: center;
 }
+
+/* Styles for keyboard accessible upload section */
+span[role=button] {
+    display: table-cell;
+    font-weight: normal;
+    font-size: 14px;
+    padding: 8px 8px;
+    border-radius: 5px;
+    border: 2px solid #265986;
+    color: #ffffff;
+    cursor: pointer;
+    background-color: #265986;
+    outline: none;
+}
+
+span[role=button]:hover,
+span[role=button]:focus {
+    box-shadow: 0 0 5px #595959;
+    background-color: #183a57;
+    border-color: #4D90FE;
+    outline: 2px solid transparent;
+}
+
+.hide {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+input[type=text] .file-text-input {
+    display: table-cell;
+    margin-left: -5px;
+    width: 20rem;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 8px 8px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border: 2px solid #265986;
+    color: #000000;
+    background-color: #ffffff;
+}
+
+.file-text-input:focus {
+    box-shadow: 0 0 5px #595959;
+    border-color: #4D90FE;
+    outline: 2px solid transparent;
+}
