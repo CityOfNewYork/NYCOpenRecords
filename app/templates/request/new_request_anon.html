@@ -143,7 +143,7 @@
                 <input id="custom-request-forms-data" name="custom-request-forms-data" type="hidden" value="">
 
                 {# Upload field for user to add files #}
-                <div id="upload-control" class="col-sm-12">
+                <div id="upload-control" class="col-sm-12" aria-live="polite">
                     {{ form.request_file.label(class="request-heading", for="request-file", tabindex=0) }}
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
@@ -169,7 +169,7 @@
 
                 <h2>Personal Information</h2>
 
-                <p>First and last name fields are required. The Email field is optional but recommended.</p>
+                <p>First and last name fields are required. The Email field is optional but recommended. If you do not provide an email you must enter either a phone number, fax number, or address in the Alternate Contact Information section.</p>
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name field #}
