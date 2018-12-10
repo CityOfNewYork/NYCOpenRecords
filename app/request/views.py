@@ -391,7 +391,7 @@ def get_agencies_as_choices():
             [(agencies.ein, agencies.name)
              for agencies in Agencies.query.all()],
             key=lambda x: x[1])
-    choices.insert(0, ('', '')) # Insert blank option at the beginning of choices to prevent auto selection
+    choices.insert(0, ('', ''))  # Insert blank option at the beginning of choices to prevent auto selection
     return jsonify(choices)
 
 
