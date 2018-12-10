@@ -154,13 +154,18 @@ $(document).ready(function () {
         var isChrome = window.chrome;
 
         if (file) {
-            $("#filename").text((this.files[0].name));
+            // return chosen filename to additional input
+            var filename = this.files[0].name;
+            $("#filename").val(filename);
+            $("#filename").attr("placeholder", filename);
+            $("#filename").focus();
         }
         // Cancel is clicked on upload window
         else {
             // If browser is chrome, reset filename text
             if (isChrome) {
-                $("#filename").text("");
+                $("#filename").val("");
+                $("#filename").attr("placeholder", "No file uploaded");
             }
         }
     });
@@ -181,14 +186,6 @@ $(document).ready(function () {
             e.preventDefault();
             $("#request-file").click();
         }
-    });
-
-    // return chosen filename to additional input
-    $("#request-file").change(function (e) {
-        var filename = $("#request-file").val().split("\\").pop();
-        $("#filename").val(filename);
-        $("#filename").attr("placeholder", filename);
-        $("#filename").focus();
     });
 
     $("#request-form").parsley().on("form:validate", function () {
