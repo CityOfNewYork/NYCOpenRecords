@@ -168,6 +168,13 @@ def logout():
     elif current_app.config['USE_OAUTH']:
         return redirect(url_for('auth.oauth_logout', timed_out=timed_out, forced_logout=forced_logout))
 
+    elif current_app.config['USE_LOCAL_AUTH']:
+        logout_user()
+        session.destroy()
+        if timed_out:
+            flash("Your session timed out. Please login again", category='info')
+        return redirect(url_for('main.index'))
+
     return abort(404)
 
 
