@@ -1,34 +1,18 @@
 # manage.py
 import sys
-import os
 from datetime import timedelta
 
+import os
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell
 from flask_script.commands import InvalidCommand
 
 from app import create_app, db, sentry
-from app.models import (
-    Users,
-    Agencies,
-    Requests,
-    Responses,
-    Events,
-    Reasons,
-    Roles,
-    UserRequests,
-    AgencyUsers,
-    Emails,
-    Letters,
-    LetterTemplates,
-    Envelopes,
-    EnvelopeTemplates,
-    CustomRequestForms,
-    Determinations,
-)
-from app.request.utils import generate_guid
-from app.constants import user_type_auth, event_type, determination_type
+from app.constants import determination_type, event_type, user_type_auth
 from app.lib.user_information import create_mailing_address
+from app.models import (Agencies, AgencyUsers, CustomRequestForms, Determinations, Emails, EnvelopeTemplates, Envelopes,
+                        Events, LetterTemplates, Letters, Reasons, Requests, Responses, Roles, UserRequests, Users)
+from app.request.utils import generate_guid
 
 COV = None
 if os.environ.get("FLASK_COVERAGE"):

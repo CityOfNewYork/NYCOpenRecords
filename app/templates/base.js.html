@@ -33,16 +33,16 @@
         {% if duplicate_session %}
             $("#concurrent-session-modal").modal("show");
         {% endif %}
-        $("#logout").click(function(e) {
-            /* Before sending user to auth.logout page, open a new tab
-             * and logout of the NYC.ID IDP (and close the tab after completion).
-             */
-            e.preventDefault();
-            var logoutPage = this.href;
-            idpLogout(function () {
-                window.location = logoutPage;
-            });
-        });
+        {#$("#logout").click(function(e) {#}
+        {#    /* Before sending user to auth.logout page, open a new tab#}
+        {#     * and logout of the NYC.ID IDP (and close the tab after completion).#}
+        {#     */#}
+        {#    e.preventDefault();#}
+        {#    var logoutPage = this.href;#}
+        {#    idpLogout(function () {#}
+        {#        window.location = logoutPage;#}
+        {#    });#}
+        {#});#}
     {% endif %}
 
     $.ajaxSetup({

@@ -1,8 +1,0 @@
-{
-    "globals": {
-        "$": true,
-        "document": true,
-        "window": true,
-        "jstz": true
-    }
-}

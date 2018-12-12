@@ -8,7 +8,7 @@
                             See: base.js.html
                             NYC.ID IDP logout url based on app environment (stg, prod, etc.)
                         -->
-                        <a id="logout" href="{{ url_for('auth.logout') }}">Log Out</a>
+                        <a id="logout" href="{{ url_for('auth.saml', slo="") }}">Log Out</a>
                     </span>
                 </span>
                 {% if current_user.has_nyc_id_profile %}
@@ -24,7 +24,7 @@
             {% else %}
                 <span class="upper-header-right">
                     <span class="upper-header-a">
-                        <a href="{{ url_for('auth.index', sso="") }}">Log In</a>
+                        <a href="{{ url_for('auth.saml', sso="") }}">Log In</a>
                     </span>
                 </span>
             {% endif %}

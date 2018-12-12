@@ -55,6 +55,7 @@ class Config:
 
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
+    USE_SAML = os.environ.get('USE_SAML') == "True"
     SAML_PATH = (os.environ.get('SAML_PATH') or
                  os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
 

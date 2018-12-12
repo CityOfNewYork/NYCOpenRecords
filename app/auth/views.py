@@ -4,212 +4,183 @@
    :synopsis: Handles OAUTH and LDAP authentication endpoints for NYC OpenRecords
 
 """
-from datetime import datetime
 from urllib.parse import urljoin
 
-from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import MobileApplicationClient
-
 from flask import (
-    request,
-    redirect,
-    session,
-    render_template,
-    url_for,
-    abort,
-    flash,
-    make_response,
+    abort, flash, make_response, redirect, render_template, request, session, url_for
 )
 from flask_login import (
-    login_user,
-    logout_user,
-    current_user,
-    current_app,
-    login_required,
+    current_app, current_user, login_required, login_user, logout_user
 )
+from oauthlib.oauth2 import MobileApplicationClient
+from requests_oauthlib import OAuth2Session
+
+from app import csrf
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
-from app.auth.forms import ManageUserAccountForm, LDAPLoginForm, ManageAgencyUserAccountForm
+from app.auth.forms import LDAPLoginForm, ManageAgencyUserAccountForm, ManageUserAccountForm
 from app.auth.utils import (
-    prepare_onelogin_request,
-    init_saml_auth,
-    saml_sso,
-    saml_acs,
-    revoke_and_remove_access_token,
-    ldap_authentication,
-    find_user_by_email,
-    handle_user_data,
-    fetch_user_json,
-    is_safe_url,
-    update_openrecords_user,
+    fetch_user_json, find_user_by_email, handle_user_data, init_saml_auth, is_safe_url,
+    ldap_authentication, prepare_onelogin_request, revoke_and_remove_access_token, saml_acs,
+    saml_slo, saml_sls, update_openrecords_user
 )
-
-from urllib.parse import urlparse
-from app import csrf
-
 from app.constants.web_services import AUTH_ENDPOINT
 from app.lib.db_utils import update_object
-from app.lib.utils import eval_request_bool
 from app.lib.redis_utils import redis_get_user_session
+from app.lib.utils import eval_request_bool
 from app.models import Users
 
-from onelogin.saml2.auth import OneLogin_Saml2_Auth
-from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
-
-@auth.route('/', methods=['GET', 'POST'])
+@auth.route('/saml', methods=['GET', 'POST'])
 @csrf.exempt
-def index():
-    req = prepare_onelogin_request(request)
-    saml_auth = init_saml_auth(req)
-    errors = []
-    not_auth_warn = False
-    success_slo = False
-    attributes = False
-    paint_logout = False
+def saml():
+    """
+    View function to handle SAML SSO Workflow.
 
+    GET Parameters:
+        sso - Handle a regular login request (user clicks Login in the navbar)
+        sso2 - Handle a login request from the application (user attempts to access a privileged resource)
+        acs - Handle a login response from the IdP and return the user to the provided redirect URL (defaults to the home page)
+        slo - Generate a Logout request for the IdP
+        sls - Handle a Logout Response from the IdP and destroy the local session
+
+    """
+    # 1. Convert Flask Request object to OneLogin Request Dictionary
+    onelogin_request = prepare_onelogin_request(request)
+
+    # 2. Create OneLogin Object to handle SAML Workflow
+    onelogin_saml_auth = init_saml_auth(onelogin_request)
+
+    # 3. Handle request based on GET parameter.
     if 'sso' in request.args or len(request.args) == 0:
-        return redirect(saml_auth.login())
+        return redirect(onelogin_saml_auth.login())
     elif 'sso2' in request.args:
         return_to = '%sattrs/' % request.host_url
-        return redirect(saml_auth.login(return_to))
-    elif 'slo' in request.args:
-        name_id = None
-        session_index = None
-        if 'samlNameId' in session:
-            name_id = session['samlNameId']
-        if 'samlSessionIndex' in session:
-            session_index = session['samlSessionIndex']
-
-        return redirect(saml_auth.logout(name_id=name_id, session_index=session_index))
+        return redirect(onelogin_saml_auth.login(return_to))
     elif 'acs' in request.args:
-        redirect_url = saml_acs(saml_auth, request)
-        if redirect_url:
-            return redirect(redirect)
+        return saml_acs(onelogin_saml_auth, onelogin_request)
+    elif 'slo' in request.args:
+        return redirect(saml_slo(onelogin_saml_auth))
     elif 'sls' in request.args:
-        dscb = lambda: session.clear()
-        url = saml_auth.process_slo(delete_session_cb=dscb)
-        errors = saml_auth.get_errors()
-        if len(errors) == 0:
-            if url is not None:
-                return redirect(url)
+        return saml_sls(onelogin_saml_auth)
+
+    else:
+        flash('Oops! Something went wrong. Please try to perform your action again later.', category="warning")
+        return redirect(url_for('main.index'))
+
+
+@auth.route('/login', methods=['GET'])
+def login():
+    """
+    Based off of: https://flask-login.readthedocs.io/en/latest/#login-example
+    If using LDAP, see ldap_login().
+    If using SAML/OAuth, check for the presence of an access token
+    in the session, which is used to fetch user information for processing.
+    If no token exists, send the user to the authorization url
+    (first leg of the OAuth 2 workflow).
+    * NOTE *
+    Since we are using OAuth Mobile Application Flow to fetch the information
+    normally retrieved in a SAML Assertion, the url resulting from authorization
+    is in the format 'redirect_uri#access_token=123guid=ABC...'. Notice the fragment
+    identifier ('#') in place of what would normally be the '?' separator.
+    Since Flask drops everything after the identifier, we must extract these values
+    client-side in order to forward them to the server. Therefore, the redirect uri
+    we are using is our home page (main.index, along with the 'next' url if present)
+    which contains a script that detects the presence of an access token
+    and redirects to the intended OAuth callback (auth.authorize).
+    https://tools.ietf.org/html/rfc3986#section-3.5
+    """
+    next_url = request.args.get('next')
+
+    if not current_app.config['USE_LDAP'] and not current_app.config['USE_OAUTH']:
+        login_form = LDAPLoginForm()
+        if request.method == 'POST':
+            email = request.form['email']
+
+            user = find_user_by_email(email)
+
+            if user is not None:
+                authenticated = True
+
+                if authenticated:
+                    login_user(user)
+                    session.regenerate()
+                    session['user_id'] = current_user.get_id()
+
+                    next_url = request.form.get('next')
+                    if not is_safe_url(next_url):
+                        return abort(400, UNSAFE_NEXT_URL)
+
+                    return redirect(next_url or url_for('main.index'))
+
+                flash("Invalid username/password combination.", category="danger")
+                return render_template('auth/ldap_login_form.html', login_form=login_form)
             else:
-                success_slo = True
+                flash("User not found. Please contact your agency FOIL Officer to gain access to the system.",
+                      category="warning")
+                return render_template('auth/ldap_login_form.html', login_form=login_form)
 
-    if 'samlUserdata' in session:
-        paint_logout = True
-        if len(session['samlUserdata']) > 0:
-            attributes = session['samlUserdata'].items()
+        elif request.method == 'GET':
+            return render_template(
+                'auth/ldap_login_form.html',
+                login_form=login_form,
+                next_url=request.args.get('next', ''))
 
-    return render_template(
-        'index.html',
-        errors=errors,
-        not_auth_warn=not_auth_warn,
-        success_slo=success_slo,
-        attributes=attributes,
-        paint_logout=paint_logout
-    )
+    if current_app.config['USE_LDAP']:
+        return redirect(url_for('auth.ldap_login', next=next_url))
+
+    elif current_app.config['USE_OAUTH']:
+        if session.get('token') is not None:
+            status, user_json = fetch_user_json()
+            if status == 200:
+                return handle_user_data(
+                    user_json['id'],
+                    user_json['userType'],
+                    user_json['email'],
+                    user_json.get('firstName'),
+                    user_json.get('middleInitial'),
+                    user_json.get('lastName'),
+                    user_json.get('termsOfUse'),
+                    user_json.get('validated'),
+                    next_url)
+
+        redirect_uri = urljoin(request.host_url, url_for('main.index', next=next_url))
+
+        oauth = OAuth2Session(
+            client=MobileApplicationClient(client_id=current_app.config['NYC_ID_USERNAME']),
+            redirect_uri=redirect_uri
+        )
+        auth_url, _ = oauth.authorization_url(
+            urljoin(current_app.config['WEB_SERVICES_URL'], AUTH_ENDPOINT)
+        )
+        return redirect(auth_url)
+    return abort(404)
 
 
-# @auth.route('/login', methods=['GET'])
-# def login():
-#     """
-#     Based off of: https://flask-login.readthedocs.io/en/latest/#login-example
-#
-#     If using LDAP, see ldap_login().
-#
-#     If using SAML/OAuth, check for the presence of an access token
-#     in the session, which is used to fetch user information for processing.
-#     If no token exists, send the user to the authorization url
-#     (first leg of the OAuth 2 workflow).
-#
-#     """
-#     next_url = request.args.get('next', url_for('main.index'))
-#
-#     if 'samlUserData' in session:
-#         return redirect(next_url)
-#     else:
-#         return redirect(url_for('auth.sso'))
-#
-#
-# @auth.route('/sso', methods=['GET'])
-# def sso():
-#     """
-#
-#     Returns:
-#     """
-#     req = prepare_onelogin_request(request)
-#     auth = init_saml_auth(req)
-#     return redirect(saml_sso(auth))
-#
-#
-# @auth.route('/acs', methods=['POST'])
-# def acs():
-#     """
-#
-#     Returns:
-#     """
-#     req = prepare_onelogin_request(request)
-#     auth = init_saml_auth(req)
-#
-#     errors = saml_acs(auth)
-#
-#     if errors:
-#         for error in errors:
-#             flash(error, category='warning')
-#
-#     if not auth.is_authenticated():
-#         return redirect(url_for('auth.sso'))
-#
-#     if 'RelayState' in request.form and saml_get_self_url(request) != request.form['RelayState']:
-#         return redirect(auth.redirect_to(request.form(['RelayState'])))
-#
-#     flash('Logged in successfully!', category='success')
-#     return redirect(url_for('main.index'))
-#
-#
-# @auth.route('/logout', methods=['GET'])
-# def logout():
-#     """
-#     Provides a unified interface for logging out users.
-#
-#     Accepts two request arguments:
-#         :param timeout: Logout being called due to a session timeout.
-#         :type timeout: Boolean; Default = False
-#         :param forced_logout: Logout being called to close any duplicate sessions.
-#         :param forced_logout: Boolean; Default = False
-#
-#     :return:
-#     """
-#     timed_out = request.args.get('timeout', False)
-#     forced_logout = request.args.get('forced_logout', False)
-#
-#     if current_app.config['USE_LDAP']:
-#         return redirect(url_for('auth.ldap_logout', timed_out=timed_out, forced_logout=forced_logout))
-#
-#     elif current_app.config['USE_OAUTH']:
-#         return redirect(url_for('auth.oauth_logout', timed_out=timed_out, forced_logout=forced_logout))
-#
-#     return abort(404)
-#
-#
-# @auth.route('/sls', methods=['GET'])
-# def sls():
-#     """
-#
-#     Returns:
-#     """
-#
-#     req = prepare_onelogin_request(request)
-#     auth = init_saml_auth(req)
-#
-#     errors = saml_sls(auth)
-#
-#     if errors:
-#         for error in errors:
-#             flash(error, category='warning')
-#
-#     return
+@auth.route('/logout', methods=['GET'])
+def logout():
+    """Unified logout endpoint for all authentication types.
+
+    GET Args:
+        timeout (bool): If True, logout is being called due to a session timeout.
+        forced_logout (bool): If True, logout is being called due to a duplicate session.
+
+    Returns:
+        Redirect to the appropriate logout endpoint.
+    """
+    timeout = request.args.get('timeout', False)
+    forced_logout = request.args.get('forced_logout', False)
+
+    if current_app.config['USE_LDAP']:
+        return redirect(url_for('auth.ldap_logout', timeout=timeout, forced_logout=forced_logout))
+
+    elif current_app.config['USE_OAUTH']:
+        return redirect(url_for('auth.oauth_logout', timeout=timeout, forced_logout=forced_logout))
+
+    if current_app.config['USE_SAML']:
+        return redirect(url_for('auth.saml', slo='true', timeout=timeout, forced_logout=forced_logout))
+
+    return abort(404)
 
 
 @auth.route('/metadata/', methods=['GET'])
