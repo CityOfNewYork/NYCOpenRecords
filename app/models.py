@@ -896,8 +896,12 @@ class Requests(db.Model):
 
     @property
     def agency_request_summary_released(self):
+        """
+        Determine whether the agency_request_summary has been made public and has passed its release date
+        """
         return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
-               self.agency_request_summary and self.agency_request_summary_release_date < datetime.utcnow()
+               self.agency_request_summary and self.agency_request_summary_release_date is not None and \
+               self.agency_request_summary_release_date < datetime.utcnow()
 
     def es_update(self):
         if self.agency.is_active:
@@ -1109,6 +1113,8 @@ class Events(db.Model):
                 self.RowContent(self, "extended", "{} this request."),
             event_type.REQ_CLOSED:
                 self.RowContent(self, "closed", "{} this request."),
+            event_type.REQ_DENIED:
+                self.RowContent(self, "denied", "{} this request."),
             event_type.REQ_REOPENED:
                 self.RowContent(self, "re-opened", "{} this request."),
             event_type.REQ_TITLE_EDITED:

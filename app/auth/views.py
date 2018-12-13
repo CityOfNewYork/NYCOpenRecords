@@ -30,7 +30,6 @@ from app.lib.redis_utils import redis_get_user_session
 from app.lib.utils import eval_request_bool
 from app.models import Users
 
-
 @auth.route('/saml', methods=['GET', 'POST'])
 @csrf.exempt
 def saml():
