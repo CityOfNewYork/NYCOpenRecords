@@ -182,14 +182,8 @@ $(document).ready(function () {
             $("#filename").val(filename);
             $("#filename").attr("placeholder", filename);
             $("#filename").focus();
-        }
-        // Cancel is clicked on upload window
-        else {
-            // If browser is chrome, reset filename text
-            if (isChrome) {
-                $("#filename").val("");
-                $("#filename").attr("placeholder", "No file uploaded");
-            }
+            $("#choose-file").hide();
+            $("#clear-file").show();
         }
     });
 
@@ -201,10 +195,13 @@ $(document).ready(function () {
         $("#request-file").val("");
         $("#filename").val("");
         $("#filename").attr("placeholder", "No file uploaded");
+        $("#clear-file").hide();
+        $("#choose-file").show();
+        $("#choose-file-button").focus();
     });
 
     // trigger file explorer on space and enter
-    $("#buttonlabel span[role=button]").bind("keypress keyup", function (e) {
+    $("#choose-file span[role=button]").bind("keypress keyup", function (e) {
         if (e.which === 32 || e.which === 13) {
             e.preventDefault();
             $("#request-file").click();

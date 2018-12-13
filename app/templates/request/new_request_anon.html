@@ -143,16 +143,16 @@
                 <input id="custom-request-forms-data" name="custom-request-forms-data" type="hidden" value="">
 
                 {# Upload field for user to add files #}
-                <div id="upload-control" class="col-sm-12" aria-live="polite">
+                <div id="upload-control" class="col-sm-12">
                     {{ form.request_file.label(class="request-heading", for="request-file", tabindex=0) }}
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label for="request-file" id="buttonlabel">
-                    <span role="button" aria-controls="filename" tabindex="0">
+                    <label for="request-file" id="choose-file" aria-live="assertive">
+                    <span id="choose-file-button" role="button" aria-controls="filename" tabindex="0">
                       Choose File
                     </span>
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear
+                    <button type="button" id="clear-file" class="btn btn-danger clear-file-button" aria-live="assertive">Clear
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}

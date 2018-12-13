@@ -101,6 +101,10 @@
 .clear-file-button {
     background-color: #dc3545;
     border-color: #dc3545;
+    margin-bottom: 10px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    display: none;
 }
 
 .agency-instructions-title {
