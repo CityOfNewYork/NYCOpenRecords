@@ -155,10 +155,7 @@
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}
-                    <label for="filename" aria-label="file name" class="hide">
-                        Filename
-                    </label>
-                    <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
+                    <input class="file-text-input" type="text" id="filename" aria-label="Uploaded filename" aria-readonly="true" readonly autocomplete="off" placeholder="No file uploaded">
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
                             <div class="alert alert-danger upload-error">{{ error }}</div>
