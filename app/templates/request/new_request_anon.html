@@ -174,11 +174,11 @@
                     information so that the agency can respond to your request for records.</p>
                 {# First name field #}
                 {{ form.first_name.label(class="request-heading first-name-label", for="first-name") }}
-                {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32") }}
+                {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32", **{'aria-label':"First name, required, 32 character limit"}) }}
                 <p id="first-name-character-count" class="character-counter">32 characters remaining</p><br>
                 {# Last name field #}
                 {{ form.last_name.label(class="request-heading last-name-label", for="last-name") }}
-                {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64") }}
+                {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64", **{'aria-label':"Last name, required, 64 character limit"}) }}
                 <p id="last-name-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Email field #}
                 {{ form.email.label(class="request-heading email-label", for="email") }}
@@ -194,12 +194,12 @@
                 {# Title of user #}
                 {{ form.user_title.label(class="request-heading", for="user-title") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
-                placeholder="Your role in your organization (if applicable)", maxlength="64") }}
+                placeholder="Your role in your organization (if applicable)", maxlength="64", **{'aria-label':"Title, optional, 64 character limit"}) }}
                 <p id="user-title-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Organization user belongs to #}
                 {{ form.user_organization.label(class="request-heading", for="user-organization") }}
                 {{ form.user_organization(id="user-organization", class="input-block-level",
-                placeholder="Your organization (if applicable)", maxlength="128") }}
+                placeholder="Your organization (if applicable)", maxlength="128", **{'aria-label':"Organization, optional, 128 character limit"}) }}
                 <p id="organization-character-count" class="character-counter">128 characters remaining</p><br>
                 {# User's phone number #}
                 {{ form.phone.label(class="request-heading", for="phone") }}

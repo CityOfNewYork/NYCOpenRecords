@@ -174,7 +174,6 @@ $(document).ready(function () {
     // Set name of the file to the text of filename div if file exists
     $("#request-file").change(function () {
         var file = this.files[0];
-        var isChrome = window.chrome;
 
         if (file) {
             // return chosen filename to additional input

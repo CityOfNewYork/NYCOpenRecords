@@ -25,22 +25,17 @@
                     notify
                     you about how much time is required to
                     respond to your request.</p>
+
                 {# Category of requests #}
                 {{ form.request_category.label(class="request-heading", for="request-category") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
-                      data-content="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
-                      aria-label="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
+                <p>Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories.</p>
                 {{ form.request_category(id="request-category", class="input-block-level") }}<br>
+
                 {# Agency request belongs to #}
                 {{ form.request_agency.label(class="request-heading agency-label", for="request-agency") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
-                      data-content="List of all agencies available within OpenRecords that would handle your request."
-                      aria-label="List of all agencies available within OpenRecords that would handle your request."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
+                <p>Select the agency that will handle your request.</p>
                 {{ form.request_agency(id="request-agency", class="input-block-level") }}<br>
+
                 <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
                     <div class="panel-heading">
                         <p class="panel-title agency-instructions-title">
@@ -54,36 +49,30 @@
                         <div class="panel-body" id="request-agency-instructions-content"></div>
                     </div>
                 </div>
+
                 {# Title of the request #}
                 {{ form.request_title.label(class="request-heading title-label", for="request-title") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
-                      data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                      aria-label="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
+                {{ form.request_title(id="request-title", class="input-block-level",
+                        placeholder="Please provide a short summary of your request.", maxlength="90", **{'aria-label':"Request title, required, 90 character limit"}) }}
+                <p id="title-character-count" class="character-counter">90 characters remaining</p>
                 <div class="alert alert-warning">
                     <p><b>Note: The agency, category, and title of your request will be visible to the public. Do not
-                        enter personal information here.</b></p>
+                        enter personal information here.<br><br>Ex: Queens Blvd Roadwork Permit.</b></p>
                 </div>
-                {{ form.request_title(id="request-title", class="input-block-level",
-                    placeholder="Please provide a short summary of your request.", maxlength="90") }}
-                <p id="title-character-count" class="character-counter">90 characters remaining</p>
+
                 {# Description of Request #}
                 <div id="request-description-section">
                     {{ form.request_description.label(class="request-heading description-label", for="request-description") }}
-                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
-                          data-content="Enter a detailed description of the request."
-                          aria-label="Enter a detailed description of the request."
-                          class="glyphicon glyphicon-question-sign">
-                </span>
-                    <div class="alert alert-warning">
-                        <p><b>Note: The request details you write here will not be visible to the public. However, the
-                            agency may post a description of the records provided.</b></p>
-                    </div>
                     {{ form.request_description(id="request-description", class="input-block-level",
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
-                        maxlength="5000") }}
+                        maxlength="5000", **{'aria-label':"Request description, required, 5000 character limit"}) }}
                     <p id="description-character-count" class="character-counter">5000 characters remaining</p>
+                    <div class="alert alert-warning">
+                        <p><b>Note: The request details you write here will not be visible to the public. However, the
+                            agency may post a description of the records provided.<br><br>Ex: Roadwork permits for work done
+                            in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and
+                            October 2017.</b></p>
+                    </div>
                 </div>
 
                 {# Dropdown for request type based on custom request forms #}
@@ -154,16 +143,15 @@
 
                 {# Upload field for user to add files #}
                 <div id="upload-control" class="col-sm-12">
-                    {{ form.request_file.label(class="request-heading", for="request-file") }}
-                    &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
+                    {{ form.request_file.label(class="request-heading", for="request-file", tabindex=0) }}
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label for="request-file" id="buttonlabel">
-                    <span role="button" aria-controls="filename" tabindex="0">
+                    <label for="request-file" id="choose-file" aria-live="assertive">
+                    <span id="choose-file-button" role="button" aria-controls="filename" tabindex="0">
                       Choose File
                     </span>
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear
+                    <button type="button" id="clear-file" class="btn btn-danger clear-file-button" aria-live="assertive">Clear
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}
