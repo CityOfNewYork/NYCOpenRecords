@@ -179,6 +179,7 @@ $(document).ready(function () {
             // return chosen filename to additional input
             var filename = this.files[0].name;
             $("#filename").val(filename);
+            $("#filename").removeAttr("placeholder");
             $("#filename").focus();
             $("#choose-file").hide();
             $("#clear-file").show();
@@ -192,6 +193,7 @@ $(document).ready(function () {
         }
         $("#request-file").val("");
         $("#filename").val("");
+        $("#filename").attr("placeholder", "No file uploaded");
         $("#clear-file").hide();
         $("#choose-file").show();
         $("#choose-file-button").focus();
