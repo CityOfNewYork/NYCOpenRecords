@@ -26,18 +26,16 @@
                     notify
                     you about how much time is required to
                     respond to your request.</p>
+
                 {# Agency request belongs to #}
                 {% if current_user.agencies.all()|length > 1 %}
                     {{ form.request_agency.label(class="request-heading agency-label", for="request-agency") }}
-                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
-                          data-content="List of agencies you can submit a request to on behalf of a requester."
-                          aria-label="List of agencies you can submit a request to on behalf of a requester."
-                          class="glyphicon glyphicon-question-sign">
-                    </span>
+                    <p>List of agencies you can submit a request to on behalf of a requester.</p>
                     {{ form.request_agency(id="request-agency", class="input-block-level") }}<br>
                 {% else %}
                     <input type="hidden" id="request-agency" value="{{ current_user.default_agency_ein }}"/>
                 {% endif %}
+
                 <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
                     <div class="panel-heading">
                         <p class="panel-title agency-instructions-title">
@@ -54,35 +52,31 @@
 
                 {# Title of the request #}
                 {{ form.request_title.label(class="request-heading title-label", for="request-title") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
-                      data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                      aria-label="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
                 {{ form.request_title(id="request-title", class="input-block-level",
-                        placeholder="Please provide a short summary of your request.", maxlength="90") }}
+                        placeholder="Please provide a short summary of your request.", maxlength="90", **{'aria-label':"Request title, required, 90 character limit"}) }}
                 <p id="title-character-count" class="character-counter">90 characters remaining</p>
                 <div class="alert alert-info">
                     <p><strong>
                         Note: The title of this request will be visible to the public.
                         Do not enter personal information here.
+                        <br><br>
+                        Ex: Queens Blvd Roadwork Permit.
                     </strong></p>
                 </div>
+
                 {# Description of the request #}
                 <div id="request-description-section">
                     {{ form.request_description.label(class="request-heading description-label", for="request-description") }}
-                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
-                          data-content="Enter a detailed description of the request."
-                          aria-label="Enter a detailed description of the request."
-                          class="glyphicon glyphicon-question-sign">
-                    </span>
                     {{ form.request_description(id="request-description", class="input-block-level",
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
-                        maxlength="5000") }}
+                        maxlength="5000", **{'aria-label':"Request description, required, 5000 character limit"}) }}
                     <p id="description-character-count" class="character-counter">5000 characters remaining</p>
                     <div class="alert alert-info">
                         <p><b>Note: The request details written here will not be visible to the public.
-                            However, your agency may post a description of the records provided.</b></p>
+                            However, your agency may post a description of the records provided.<br><br>Ex: Roadwork
+                            permits for work done
+                            in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and
+                            October 2017.</b></p>
                     </div>
                 </div>
 
@@ -154,23 +148,19 @@
 
                 {# Upload field for user to add files #}
                 <div id="upload-control" class="col-sm-12">
-                    {{ form.request_file.label(class="request-heading", for="request-file") }}
-                    &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
+                    {{ form.request_file.label(class="request-heading", for="request-file", tabindex=0) }}
                     <br>
                     <div class="alert alert-danger file-error" hidden></div>
-                    <label for="request-file" id="buttonlabel">
-                    <span role="button" aria-controls="filename" tabindex="0">
+                    <label for="request-file" id="choose-file" aria-live="assertive">
+                    <span id="choose-file-button" role="button" aria-controls="filename" tabindex="0">
                       Choose File
                     </span>
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear
+                    <button type="button" id="clear-file" class="btn btn-danger clear-file-button" aria-live="assertive">Clear
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}
-                    <label for="filename" aria-label="file name" class="hide">
-                        Filename
-                    </label>
-                    <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
+                    <input class="file-text-input" type="text" id="filename" aria-label="Uploaded filename" aria-readonly="true" readonly autocomplete="off" placeholder="No file uploaded">
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
                             <div class="alert alert-danger upload-error">{{ error }}</div>
@@ -189,7 +179,7 @@
                 {{ form.method_received(id="method-received", class="input-block-level") }}
                 {# Date request was received #}
                 <label for="request-date">Request Date (required)</label>
-                {{ form.request_date(id="request-date", class="input-block-level dtpick") }}
+                {{ form.request_date(id="request-date", class="input-block-level dtpick", **{'aria-label':"Request date, required"}) }}
 
                 <h2>Personal Information</h2>
 
@@ -198,11 +188,11 @@
                     information so that the agency can respond to your request for records.</p>
                 {# First name of user #}
                 {{ form.first_name.label(class="request-heading first-name-label", for="first-name") }}
-                {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32") }}
+                {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32", **{'aria-label':"First name, required, 32 character limit"}) }}
                 <p id="first-name-character-count" class="character-counter">32 characters remaining</p><br>
                 {# Last name of user #}
                 {{ form.last_name.label(class="request-heading last-name-label", for="last-name") }}
-                {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64") }}
+                {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64", **{'aria-label':"Last name, required, 64 character limit"}) }}
                 <p id="last-name-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Email of user #}
                 {{ form.email.label(class="request-heading email-label", for="email") }}
@@ -219,12 +209,12 @@
                 {# User of title #}
                 {{ form.user_title.label(class="request-heading", for="user-title") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
-                placeholder="Your role in your organization (if applicable)", maxlength="64") }}
+                placeholder="Your role in your organization (if applicable)", maxlength="64", **{'aria-label':"Title, optional, 64 character limit"}) }}
                 <p id="user-title-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Organization/Agency user belongs to #}
                 {{ form.user_organization.label(class="request-heading", for="user-organization") }}
                 {{ form.user_organization(id="user-organization", class="input-block-level",
-                placeholder="Your organization (if applicable)", maxlength="128") }}
+                placeholder="Your organization (if applicable)", maxlength="128", **{'aria-label':"Organization, optional, 128 character limit"}) }}
                 <p id="organization-character-count" class="character-counter">128 characters remaining</p><br>
                 {# Phone number of user #}
                 {{ form.phone.label(class="request-heading", for="phone") }}

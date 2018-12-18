@@ -62,7 +62,7 @@ class PublicUserRequestForm(Form):
     request_description = TextAreaField('Request Description (required)')
 
     # File Upload
-    request_file = FileField('Upload File')
+    request_file = FileField('Upload File (optional, must be less than 20 Mb)')
 
     # Submit Button
     submit = SubmitField('Submit Request')
@@ -125,7 +125,7 @@ class AgencyUserRequestForm(Form):
                                   choices=submission_methods.AS_CHOICES)
 
     # File Upload
-    request_file = FileField('Upload File')
+    request_file = FileField('Upload File (optional, must be less than 20 Mb)')
 
     # Submit Button
     submit = SubmitField('Submit Request')
@@ -180,7 +180,7 @@ class AnonymousRequestForm(Form):
     zipcode = StringField('Zip')
 
     # File Upload
-    request_file = FileField('Upload File')
+    request_file = FileField('Upload File (optional, must be less than 20 Mb)')
 
     submit = SubmitField('Submit Request')
 
