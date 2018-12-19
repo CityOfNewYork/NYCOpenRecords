@@ -18,7 +18,7 @@
         <br>
         <canvas id="reportChart" width="500" height="500"></canvas>
         <div class="container" style="padding-top:20px">
-            <div class="form-group">`
+            <div class="form-group">
                 {{ report_filter_form.agency.label }}
                 <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Filter"
                        data-content="This allows the graph to be filtered by the number of requests assigned to a specific agency.">
@@ -41,6 +41,6 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/Chart.misn.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/Chart.min.js') }}"></script>
     {% include 'report/reports.js.html' %}
 {% endblock %}

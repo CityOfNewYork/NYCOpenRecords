@@ -2,28 +2,32 @@
 
 {% block title %}FAQ{% endblock %}
 
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/faq.css') }}"/>
+{% endblock %}
+
 {% block content %}
     <div class="container-fluid" role="main">
 
-        <h2 class="text-center" id="faq-header">Frequently Asked Questions</h2>
-        <h4><a href="#faq-one">What does FOIL mean?</a></h4>
-        <h4><a href="#faq-two">What kinds of records do I have the right to see?</a></h4>
-        <h4><a href="#faq-three">Are there any public records that I can’t see?</a></h4>
-        <h4><a href="#faq-four">Do I have to explain why I want the records?</a></h4>
-        <h4><a href="#faq-five">How much does it cost to get access to government records?</a></h4>
-        <h4><a href="#faq-six">How long does it take to get access to government records?</a></h4>
-        <h4><a href="#faq-seven">Can I make an anonymous request?</a></h4>
-        <h4><a href="#faq-eight">How do I know which agency handles the records I need?</a></h4>
-        <h4><a href="#faq-nine">How do I make a request?</a></h4>
-        <h4><a href="#faq-ten">I asked for a copy of public records and the agency refused my request, saying that
-            it was too broad. What can I do?</a></h4>
-        <h4><a href="#faq-eleven">How do I track a request?</a></h4>
-        <h4><a href="#faq-twelve">What if I have multiple requests that I want to track or would like to see what other
-            requests have been submitted?</a></h4>
-        <h4><a href="#faq-thirteen">What if I don’t agree with an agency’s response?</a></h4>
-        <br>
+        <h1 class="text-center" id="faq-header">Frequently Asked Questions</h1>
+        <a class="faq-link" href="#faq-one">What does FOIL mean?</a><br>
+        <a class="faq-link" href="#faq-two">What kinds of records do I have the right to see?</a><br>
+        <a class="faq-link" href="#faq-three">Are there any public records that I can’t see?</a><br>
+        <a class="faq-link" href="#faq-four">Do I have to explain why I want the records?</a><br>
+        <a class="faq-link" href="#faq-five">How much does it cost to get access to government records?</a><br>
+        <a class="faq-link" href="#faq-six">How long does it take to get access to government records?</a><br>
+        <a class="faq-link" href="#faq-seven">Can I make an anonymous request?</a><br>
+        <a class="faq-link" href="#faq-eight">How do I know which agency handles the records I need?</a><br>
+        <a class="faq-link" href="#faq-nine">How do I make a request?</a><br>
+        <a class="faq-link" href="#faq-ten">I asked for a copy of public records and the agency refused my request, saying that
+            it was too broad. What can I do?</a><br>
+        <a class="faq-link" href="#faq-eleven">How do I track a request?</a><br>
+        <a class="faq-link" href="#faq-twelve">What if I have multiple requests that I want to track or would like to see what other
+            requests have been submitted?</a><br>
+        <a class="faq-link" href="#faq-thirteen">What if I don’t agree with an agency’s response?</a>
+        <br><br>
 
-        <h4 id="faq-one">What does FOIL mean?</h4>
+        <h2 class="faq-question" id="faq-one">What does FOIL mean?</h2>
 
         <p>FOIL stands for the Freedom of Information Law. The New York State Freedom of Information Law
             requires government agencies to provide records to the public upon request. Government records
@@ -33,7 +37,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-two">What kinds of records do I have the right to see?</h4>
+        <h2 class="faq-question" id="faq-two">What kinds of records do I have the right to see?</h2>
 
         <p>The FOIL definition of records is very broad and includes information found in paper and electronic
             documents and audio and visual recordings. All records are available upon request, unless an
@@ -42,7 +46,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-three">Are there any public records that I can’t see?</h4>
+        <h2 class="faq-question" id="faq-three">Are there any public records that I can’t see?</h2>
 
         <p>Yes, there are exceptions in FOIL. Most of the exceptions are based upon common sense and the
             potential for harm that would arise if the contents of the record were disclosed to unauthorized
@@ -54,7 +58,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-four">Do I have to explain why I want the records?</h4>
+        <h2 class="faq-question" id="faq-four">Do I have to explain why I want the records?</h2>
 
         <p>No, unless you are a business or other organization that is requesting a list of names and
             addresses.
@@ -62,7 +66,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-five">How much does it cost to get access to government records?</h4>
+        <h2 class="faq-question" id="faq-five">How much does it cost to get access to government records?</h2>
 
         <p>There is no charge to submit a FOIL request or to look at records in the office of an agency.
             However, you may be charged by an agency for the cost of reproducing the records you requested. FOIL
@@ -74,7 +78,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-six">How long does it take to get access to government records?</h4>
+        <h2 class="faq-question" id="faq-six">How long does it take to get access to government records?</h2>
         <p>The agency will acknowledge your request within five (5) business days of receiving it. The actual
             time to complete a request will vary depending on many factors, such as the number of records
             requested and the difficulty involved in locating and reviewing the records. You will be notified of
@@ -83,14 +87,14 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-seven">Can I make an anonymous request?</h4>
+        <h2 class="faq-question" id="faq-seven">Can I make an anonymous request?</h2>
         <p>On the OpenRecords portal, your name will not be viewable by the public. The topic of the request
             will be shown.
             <br/>
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-eight">How do I know which agency handles the records I need?</h4>
+        <h2 class="faq-question" id="faq-eight">How do I know which agency handles the records I need?</h2>
         <p>The OpenRecords portal has a field named “categories” that will help you identify the correct agency.
             When you choose one of the categories, the list of possible agencies will be narrowed to those that
             may have the records you want. You can select the agency from the list provided to start the FOIL
@@ -100,7 +104,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-nine">How do I make a request?</h4>
+        <h2 class="faq-question" id="faq-nine">How do I make a request?</h2>
         <p>You can submit a FOIL request at the OpenRecords portal for all NYC agencies. Visit <a
                 href="{{ url_for('request.new') }}">{{ request.url_root }}request/new</a> and follow
             the prompts and directions provided in order to make your request.
@@ -108,8 +112,8 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-ten">I asked for a copy of public records and the agency refused my request, saying that
-            it was too broad. What can I do?</h4>
+        <h2 class="faq-question" id="faq-ten">I asked for a copy of public records and the agency refused my request, saying that
+            it was too broad. What can I do?</h2>
         <p>An agency may deny a request that does not "reasonably describe" records. If the request is too
             vague, the agency may ask for clarification. You may then submit a new request with a more specific
             description of the records you would like.
@@ -117,7 +121,7 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-eleven">How do I track a request?</h4>
+        <h2 class="faq-question" id="faq-eleven">How do I track a request?</h2>
         <p>After your request has been submitted, a message will display verifying the submission and providing
             a request number. Select Search Requests from the top menu and enter your request number,
             then press the Search button. The status of your request will be displayed.
@@ -125,15 +129,15 @@
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-twelve">What if I have multiple requests that I want to track or would like to see what other
-            requests have been submitted?</h4>
+        <h2 class="faq-question" id="faq-twelve">What if I have multiple requests that I want to track or would like to see what other
+            requests have been submitted?</h2>
         <p>Select View Requests from the top menu. You can then search existing requests using text from the
             request, the current status, the date range and the agency.
             <br/>
             <a href="#"><span class="glyphicon glyphicon-chevron-up"></span>Back to top</a></p>
         <br>
 
-        <h4 id="faq-thirteen">What if I don’t agree with an agency’s response?</h4>
+        <h2 class="faq-question" id="faq-thirteen">What if I don’t agree with an agency’s response?</h2>
         <p>You may appeal a decision to deny your request within 30 days of receiving the denial or partial
             denial. The denial or partial denial should provide the contact information for the Agency Appeals
             Officer. Your appeal letter should state the reason you are appealing and why the agency's response
