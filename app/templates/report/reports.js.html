@@ -61,7 +61,8 @@
             agency_ein: agencyFilter.val()
         },
         success: function (data) {
-            drawChart(data.labels, data.values)
+            drawChart(data.labels, data.values);
+            $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. " + data.values[0] + " requests open. " + data.values[1] + " requests closed.");
         }
     });
 
@@ -80,6 +81,7 @@
                 reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
                 reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                 reportChart.update();
+                $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " + $("#agency-filter option:selected").text() + ". " + data.values[0] + " requests open. " + data.values[1] + " requests closed.");
 
                 if (data.is_visible && data.active_users.length > 0 && data.results) {
                     var sel = agencyUserFilter;
@@ -124,6 +126,7 @@
                         reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
                         reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                         reportChart.update();
+                        $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests assigned to " + $("#agency-user-filter option:selected").text() + ". " + data.values[0] + " requests open. " + data.values[1] + " requests closed.");
                     }
                 }
             })
