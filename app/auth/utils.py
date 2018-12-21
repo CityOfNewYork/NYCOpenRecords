@@ -168,9 +168,10 @@ def saml_acs(saml_sp, onelogin_request):
         session['samlSessionIndex'] = saml_sp.get_session_index()
 
         # Log User In
-        user_data = {k: v[0] for (k, v) in session['samlUserdata'].items()}
+        user_data = {k: v[0] if len(v) else None for (k, v) in session['samlUserdata'].items()}
 
-        email_validation_url = _validate_email(user_data['nycExtEmailValidationFlag'], user_data['GUID'], user_data['mail'])
+        email_validation_url = _validate_email(user_data['nycExtEmailValidationFlag'], user_data['GUID'],
+                                               user_data['mail'])
 
         if email_validation_url:
             return redirect(email_validation_url)
@@ -181,12 +182,12 @@ def saml_acs(saml_sp, onelogin_request):
             login_user(user)
         else:
             user = Users(
-                guid=user_data['GUID'],
-                first_name=user_data['givenName'],
-                middle_initial=user_data['middleName'],
-                last_name=user_data['sn'],
-                email=user_data['mail'],
-                email_validated=user_data['nycExtEmailValidationFlag']
+                guid=user_data.get('GUID', None),
+                first_name=user_data.get('givenName', None),
+                middle_initial=user_data.get('middleName', None),
+                last_name=user_data.get('sn', None),
+                email=user_data.get('mail', None),
+                email_validated=user_data.get('nycExtEmailValidationFlag', None)
             )
             create_object(user)
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
@@ -293,35 +294,6 @@ def oauth_user_web_service_request(method="GET"):
         {"accessToken": session['token']['access_token']},
         method=method
     )
-
-
-def revoke_and_remove_access_token(user_session=None):
-    """
-    Invoke the Delete OAuth User Web Service
-    to revoke an access token and remove the
-    token from the session.
-
-    * Assumes the access token is stored in the session. *
-
-    """
-    if user_session:
-        user_session.pop('token')
-    else:
-        session.pop('token')
-
-
-def fetch_user_json():
-    """
-    Invoke the Get OAuth User Web Service to fetch
-    a JSON-formatted user.
-    https://nyc4d.nycnet/nycid/search.shtml#json-formatted-users
-
-    * Assumes the access token is stored in the session. *
-
-    :return: response status code, user data json dict
-    """
-    response = oauth_user_web_service_request()
-    return response.status_code, response.json()
 
 
 def handle_user_data(guid,

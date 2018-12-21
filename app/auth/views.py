@@ -4,7 +4,6 @@
    :synopsis: Handles OAUTH and LDAP authentication endpoints for NYC OpenRecords
 
 """
-from urllib.parse import urljoin
 
 from flask import (
     abort, flash, make_response, redirect, render_template, request, session, url_for
@@ -12,23 +11,17 @@ from flask import (
 from flask_login import (
     current_app, current_user, login_required, login_user, logout_user
 )
-from oauthlib.oauth2 import MobileApplicationClient
-from requests_oauthlib import OAuth2Session
 
 from app import csrf
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
 from app.auth.forms import LDAPLoginForm, ManageAgencyUserAccountForm, ManageUserAccountForm
 from app.auth.utils import (
-    fetch_user_json, find_user_by_email, handle_user_data, init_saml_auth, is_safe_url,
-    ldap_authentication, prepare_onelogin_request, revoke_and_remove_access_token, saml_acs,
+    find_user_by_email, init_saml_auth, is_safe_url,
+    ldap_authentication, prepare_onelogin_request, saml_acs,
     saml_slo, saml_sls, update_openrecords_user
 )
-from app.constants.web_services import AUTH_ENDPOINT
-from app.lib.db_utils import update_object
-from app.lib.redis_utils import redis_get_user_session
-from app.lib.utils import eval_request_bool
-from app.models import Users
+
 
 @auth.route('/saml', methods=['GET', 'POST'])
 @csrf.exempt
@@ -128,31 +121,10 @@ def login():
     if current_app.config['USE_LDAP']:
         return redirect(url_for('auth.ldap_login', next=next_url))
 
-    elif current_app.config['USE_OAUTH']:
-        if session.get('token') is not None:
-            status, user_json = fetch_user_json()
-            if status == 200:
-                return handle_user_data(
-                    user_json['id'],
-                    user_json['userType'],
-                    user_json['email'],
-                    user_json.get('firstName'),
-                    user_json.get('middleInitial'),
-                    user_json.get('lastName'),
-                    user_json.get('termsOfUse'),
-                    user_json.get('validated'),
-                    next_url)
+    if current_app.config['USE_SAML']:
+        if next_url:
+            return redirect(url_for('auth.saml', sso2=next))
 
-        redirect_uri = urljoin(request.host_url, url_for('main.index', next=next_url))
-
-        oauth = OAuth2Session(
-            client=MobileApplicationClient(client_id=current_app.config['NYC_ID_USERNAME']),
-            redirect_uri=redirect_uri
-        )
-        auth_url, _ = oauth.authorization_url(
-            urljoin(current_app.config['WEB_SERVICES_URL'], AUTH_ENDPOINT)
-        )
-        return redirect(auth_url)
     return abort(404)
 
 
@@ -267,26 +239,3 @@ def ldap_logout(timed_out=False, forced_logout=False):
     if timed_out:
         flash("Your session timed out. Please login again", category='info')
     return redirect(url_for('main.index'))
-
-
-@auth.route('/oauth_logout', methods=['GET'])
-def oauth_logout():
-    timed_out = eval_request_bool(request.args.get('timeout'))
-    forced_logout = eval_request_bool(request.args.get('forced_logout'))
-    if forced_logout:
-        user_session = redis_get_user_session(current_user.session_id)
-        if user_session is not None:
-            user_session.destroy()
-    if timed_out:
-        flash("Your session timed out. Please login again", category='info')
-    if 'token' in session:
-        revoke_and_remove_access_token()
-    if current_user.is_anonymous:
-        return redirect(url_for("main.index"))
-    update_object({'session_id': None}, Users,
-                  (current_user.guid, current_user.auth_user_type))
-    logout_user()
-    session.destroy()
-    if forced_logout:
-        return redirect(url_for("auth.login"))
-    return redirect(url_for("main.index"))
