@@ -10,10 +10,11 @@
 {% block content %}
     <div role="main">
         <h1 class="text-center">FOIL Request Stats</h1>
+        <h2 id="request-stats" class="text-center"></h2>
         <p class="text-center">This chart represents the aggregate data of all requests opened on OpenRecords, along with the status of
             all requests.</p>
         <br>
-        <canvas id="reportChart" width="500" height="500" aria-label="Hello world" role="img"></canvas>
+        <canvas id="reportChart" width="500" height="500" role="img"></canvas>
         <div class="container" style="padding-top:20px">
             <div class="form-group">
                 {{ report_filter_form.agency.label(for="agency-filter") }}
@@ -22,7 +23,7 @@
             </div>
 
             {% if current_user.is_agency %}
-            <div id="user-filter" aria-live="polite">
+            <div id="user-filter">
                 {{ report_filter_form.user.label(for="agency-user-filter") }}
                 <p>This allows the graph to be filtered by the requests assigned to specific users.</p>
                 {{ report_filter_form.user(id="agency-user-filter", class="input-block-level") }}
