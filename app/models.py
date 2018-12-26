@@ -213,8 +213,7 @@ class Agencies(db.Model):
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
                     "AgencyUsers.is_agency_active == True, "
                     "AgencyUsers.is_agency_admin == True)",
-        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
-                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
+        secondaryjoin="AgencyUsers.user_guid == Users.guid"
     )
     standard_users = db.relationship(
         'Users',
@@ -222,24 +221,21 @@ class Agencies(db.Model):
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
                     "AgencyUsers.is_agency_active == True, "
                     "AgencyUsers.is_agency_admin == False)",
-        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
-                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
+        secondaryjoin="AgencyUsers.user_guid == Users.guid"
     )
     active_users = db.relationship(
         'Users',
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
                     "AgencyUsers.is_agency_active == True)",
-        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
-                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
+        secondaryjoin="AgencyUsers.user_guid == Users.guid"
     )
     inactive_users = db.relationship(
         'Users',
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
                     "AgencyUsers.is_agency_active == False)",
-        secondaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
-                      "AgencyUsers.auth_user_type == Users.auth_user_type)"
+        secondaryjoin="AgencyUsers.user_guid == Users.guid"
     )
 
     @property
@@ -322,8 +318,9 @@ class Users(UserMixin, db.Model):
     Define the Users class with the following columns and relationships:
 
     guid - a string that contains the unique guid of users
-    auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
-    guid and auth_user_type are combined to create a composite primary key
+    is_nyc_employee - a boolean value that determines if the user is a NYC Employee
+    has_nyc_account - a boolean value that determines if the user has a NYC account
+    active - a boolean value that determines if the user can login to NYC.ID
     agency_ein - a foreign key that links to the primary key of the agency table
     email - a string containing the user's email
     notification_email - a string containing the user's email for notifications
@@ -337,22 +334,15 @@ class Users(UserMixin, db.Model):
     phone_number - string containing the user's phone number
     fax_number - string containing the user's fax number
     mailing_address - a JSON object containing the user's address
+
+    TODO @joelbcastillo: Swap `auth_user_type` with boolean `is_nyc_employee` field
     """
     __tablename__ = 'users'
-    guid = db.Column(db.String(64), primary_key=True)  # guid + auth_user_type
-    auth_user_type = db.Column(
-        db.Enum(user_type_auth.AGENCY_USER,
-                user_type_auth.AGENCY_LDAP_USER,
-                user_type_auth.PUBLIC_USER_FACEBOOK,
-                user_type_auth.PUBLIC_USER_MICROSOFT,
-                user_type_auth.PUBLIC_USER_YAHOO,
-                user_type_auth.PUBLIC_USER_LINKEDIN,
-                user_type_auth.PUBLIC_USER_GOOGLE,
-                user_type_auth.PUBLIC_USER_NYC_ID,
-                user_type_auth.ANONYMOUS_USER,
-                name='auth_user_type'),
-        primary_key=True,
-        default=user_type_auth.PUBLIC_USER_NYC_ID)
+    guid = db.Column(db.String(64), unique=True, primary_key=True)
+    is_nyc_employee = db.Column(db.Boolean, default=False)
+    has_nyc_account = db.Column(db.Boolean, default=False)
+    active = db.Column(db.Boolean, default=False)
+    is_anonymous_requester = db.Column(db.Boolean)
     is_super = db.Column(db.Boolean, nullable=False, default=False)
     first_name = db.Column(db.String(32), nullable=False)
     middle_initial = db.Column(db.String(1))
@@ -375,8 +365,7 @@ class Users(UserMixin, db.Model):
     agencies = db.relationship(
         'Agencies',
         secondary="agency_users",
-        primaryjoin="and_(AgencyUsers.user_guid == Users.guid, "
-                    "AgencyUsers.auth_user_type == Users.auth_user_type)",
+        primaryjoin="AgencyUsers.user_guid == Users.guid",
         secondaryjoin="and_(AgencyUsers.agency_ein == Agencies.ein, "
                       "AgencyUsers.is_agency_active == True)",
         lazy='dynamic'
@@ -404,28 +393,18 @@ class Users(UserMixin, db.Model):
     def is_public(self):
         """
         Checks to see if the current user is a public user as defined below:
-
-        PUBLIC_USER_NYC_ID = 'EDIRSSO'
-        PUBLIC_USER_FACEBOOK = 'FacebookSSO'
-        PUBLIC_USER_LINKEDIN = 'LinkedInSSO'
-        PUBLIC_USER_GOOGLE = 'GoogleSSO'
-        PUBLIC_USER_YAHOO = 'YahooSSO'
-        PUBLIC_USER_MICROSOFT = 'MSLiveSSO'
-
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.PUBLIC_USER_TYPES
+        return not self.is_nyc_employee
 
     @property
     def is_agency(self):
         """
         Check to see if the current user is an agency user.
 
-        AGENCY_USER = 'Saml2In:NYC Employees'
-
         :return: Boolean
         """
-        return self.auth_user_type in user_type_auth.AGENCY_USER_TYPES and self.agencies is not None
+        return self.is_nyc_employee
 
     @property
     def default_agency_ein(self):
@@ -434,8 +413,7 @@ class Users(UserMixin, db.Model):
         :return: String
         """
         agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True,
-                                                      AgencyUsers.user_guid == self.guid,
-                                                      AgencyUsers.auth_user_type == self.auth_user_type).one_or_none()
+                                                      AgencyUsers.user_guid == self.guid).one_or_none()
         if agency is not None:
             return agency.agency_ein
         return None
@@ -467,19 +445,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.auth_user_type == user_type_auth.PUBLIC_USER_NYC_ID
-
-    @property
-    def is_anonymous_requester(self):
-        """
-        Checks to see if the user is an anonymous requester
-
-        NOTE: This is not the same as an anonymous user! This returns
-        true if this user has been created for a specific request.
-
-        :return: Boolean
-        """
-        return self.auth_user_type == user_type_auth.ANONYMOUS_USER
+        return self.has_nyc_account
 
     @property
     def anonymous_request(self):
@@ -512,13 +478,6 @@ class Users(UserMixin, db.Model):
             if agency.is_agency_active:
                 return True
         return False
-
-    def get_id(self):
-        return USER_ID_DELIMITER.join((self.guid, self.auth_user_type))
-
-    def from_id(self, user_id):  # Might come in useful
-        guid, auth_user_type = user_id.split(USER_ID_DELIMITER)
-        return self.query.filter_by(guid=guid, auth_user_type=auth_user_type).one()
 
     def is_agency_admin(self, ein=None):
         """
@@ -571,6 +530,9 @@ class Users(UserMixin, db.Model):
             formatted_phone_number = formatted_phone_number.replace(') ', '-')
             return formatted_phone_number
 
+    def get_id(self):
+        return self.guid
+
     def es_update(self):
         """
         Call es_update for any request where this user is the requester
@@ -586,7 +548,6 @@ class Users(UserMixin, db.Model):
         """
         return {
             "guid": self.guid,
-            "auth_user_type": self.auth_user_type,
             "email": self.email,
             "notification_email": self.notification_email,
             "first_name": self.first_name,
@@ -598,6 +559,9 @@ class Users(UserMixin, db.Model):
             "mailing_address": self.mailing_address,
             "email_validated": self.email_validated,
             "terms_of_use_accepted": self.terms_of_use_accepted,
+            "active": self.active,
+            "has_nyc_account": self.has_nyc_account,
+            "is_nyc_employee": self.is_nyc_employee
         }
 
     @classmethod
@@ -609,8 +573,6 @@ class Users(UserMixin, db.Model):
                 if Users.query.filter_by(email=row['email']).first() is None:
                     user = cls(
                         guid=str(uuid4()),
-                        auth_user_type=user_type_auth.AGENCY_LDAP_USER if current_app.config[
-                            'USE_LDAP'] else user_type_auth.AGENCY_USER,
                         is_super=eval(row['is_super']),
                         first_name=row['first_name'],
                         middle_initial=row['middle_initial'],
@@ -629,7 +591,6 @@ class Users(UserMixin, db.Model):
                         ein, is_active, is_admin, is_primary_agency = agency.split('#')
                         agency_user = AgencyUsers(
                             user_guid=user.guid,
-                            auth_user_type=user.auth_user_type,
                             agency_ein=ein,
                             is_agency_active=eval_request_bool(is_active),
                             is_agency_admin=eval_request_bool(is_admin),
@@ -689,7 +650,6 @@ class AgencyUsers(db.Model):
     Define the AgencyUsers class with the following columns and relationships:
 
     user_guid - a string that contains the unique guid of users
-    auth_user_type - a string that tells what type of a user they are (agency user, helper, etc.)
     agency_ein - a foreign key that links that the primary key of the agency the request was assigned to
     user_guid, auth_user_type, and agency_ein are combined to create a composite primary key
     is_agency_active - a boolean value that allows the user to login as a user for the agency identified by agency_ein
@@ -699,20 +659,7 @@ class AgencyUsers(db.Model):
         agency
     """
     __tablename__ = 'agency_users'
-    user_guid = db.Column(db.String(64), primary_key=True)
-    auth_user_type = db.Column(
-        db.Enum(user_type_auth.AGENCY_USER,
-                user_type_auth.AGENCY_LDAP_USER,
-                user_type_auth.PUBLIC_USER_FACEBOOK,
-                user_type_auth.PUBLIC_USER_MICROSOFT,
-                user_type_auth.PUBLIC_USER_YAHOO,
-                user_type_auth.PUBLIC_USER_LINKEDIN,
-                user_type_auth.PUBLIC_USER_GOOGLE,
-                user_type_auth.PUBLIC_USER_NYC_ID,
-                user_type_auth.ANONYMOUS_USER,
-                name='auth_user_type'),
-        primary_key=True,
-        default=user_type_auth.PUBLIC_USER_NYC_ID)
+    user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"), primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"), primary_key=True)
     is_agency_active = db.Column(db.Boolean, default=False, nullable=False)
     is_agency_admin = db.Column(db.Boolean, default=False, nullable=False)
@@ -720,8 +667,8 @@ class AgencyUsers(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type],
+            [user_guid],
+            [Users.guid],
             onupdate="CASCADE"
         ),
     )
@@ -790,7 +737,6 @@ class Requests(db.Model):
         secondary='user_requests',  # expects table name
         primaryjoin=lambda: Requests.id == UserRequests.request_id,
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
-                      "Users.auth_user_type == UserRequests.auth_user_type,"
                       "UserRequests.request_user_type == '{}')".format(user_type_request.REQUESTER),
         backref="requests",
         viewonly=True,
@@ -802,7 +748,6 @@ class Requests(db.Model):
         secondary='user_requests',
         primaryjoin=lambda: Requests.id == UserRequests.request_id,
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
-                      "Users.auth_user_type == UserRequests.auth_user_type, "
                       "UserRequests.request_user_type == '{}')".format(user_type_request.AGENCY),
         viewonly=True
     )
@@ -862,11 +807,6 @@ class Requests(db.Model):
     def was_reopened(self):
         return self.responses.join(Determinations).filter(
             Determinations.dtype == determination_type.REOPENING).first() is not None
-        # try:
-        #     self.responses.join(Determinations).filter(Determinations.dtype == determination_type.REOPENING).first()
-        #     return True
-        # except NoResultFound:
-        #     return False
 
     @property
     def last_date_closed(self):
@@ -989,19 +929,7 @@ class Events(db.Model):
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
     request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    user_guid = db.Column(db.String(64))  # who did the action
-    auth_user_type = db.Column(
-        db.Enum(user_type_auth.AGENCY_USER,
-                user_type_auth.AGENCY_LDAP_USER,
-                user_type_auth.PUBLIC_USER_FACEBOOK,
-                user_type_auth.PUBLIC_USER_MICROSOFT,
-                user_type_auth.PUBLIC_USER_YAHOO,
-                user_type_auth.PUBLIC_USER_LINKEDIN,
-                user_type_auth.PUBLIC_USER_GOOGLE,
-                user_type_auth.PUBLIC_USER_NYC_ID,
-                user_type_auth.ANONYMOUS_USER,
-                name='auth_user_type'),
-        default=user_type_auth.PUBLIC_USER_NYC_ID)
+    user_guid = db.Column(db.String(64))
     response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
     type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
@@ -1010,8 +938,8 @@ class Events(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type],
+            [user_guid],
+            [Users.guid],
             onupdate="CASCADE"
         ),
     )
@@ -1020,15 +948,13 @@ class Events(db.Model):
     request = db.relationship("Requests", backref="events")
     user = db.relationship(
         "Users",
-        primaryjoin="and_(Events.user_guid == Users.guid, "
-                    "Events.auth_user_type == Users.auth_user_type)",
+        primaryjoin="Events.user_guid == Users.guid",
         backref="events"
     )
 
     def __init__(self,
                  request_id,
                  user_guid,
-                 auth_user_type,
                  type_,
                  previous_value=None,
                  new_value=None,
@@ -1036,7 +962,6 @@ class Events(db.Model):
                  timestamp=None):
         self.request_id = request_id
         self.user_guid = user_guid
-        self.auth_user_type = auth_user_type
         self.response_id = response_id
         self.type = type_
         self.previous_value = previous_value
@@ -1048,10 +973,9 @@ class Events(db.Model):
 
     @property
     def affected_user(self):
-        if self.new_value is not None and "user_guid" and "auth_user_type" in self.new_value:
+        if self.new_value is not None and "user_guid" in self.new_value:
             return Users.query.filter_by(
-                guid=self.new_value["user_guid"],
-                auth_user_type=self.new_value["auth_user_type"]
+                guid=self.new_value["user_guid"]
             ).one()
 
     class RowContent(object):
@@ -1334,18 +1258,6 @@ class UserRequests(db.Model):
     """
     __tablename__ = 'user_requests'
     user_guid = db.Column(db.String(64), primary_key=True)
-    auth_user_type = db.Column(
-        db.Enum(user_type_auth.AGENCY_USER,
-                user_type_auth.AGENCY_LDAP_USER,
-                user_type_auth.PUBLIC_USER_FACEBOOK,
-                user_type_auth.PUBLIC_USER_MICROSOFT,
-                user_type_auth.PUBLIC_USER_YAHOO,
-                user_type_auth.PUBLIC_USER_LINKEDIN,
-                user_type_auth.PUBLIC_USER_GOOGLE,
-                user_type_auth.PUBLIC_USER_NYC_ID,
-                user_type_auth.ANONYMOUS_USER,
-                name='auth_user_type'),
-        primary_key=True, default=user_type_auth.PUBLIC_USER_NYC_ID)
     request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
     request_user_type = db.Column(
         db.Enum(user_type_request.REQUESTER,
@@ -1359,8 +1271,8 @@ class UserRequests(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(
-            [user_guid, auth_user_type],
-            [Users.guid, Users.auth_user_type],
+            [user_guid],
+            [Users.guid],
             onupdate="CASCADE"
         ),
     )
@@ -1372,7 +1284,6 @@ class UserRequests(db.Model):
         """
         return {
             "user_guid": self.user_guid,
-            "auth_user_type": self.auth_user_type,
             "request_user_type": self.request_user_type,
             "permissions": self.permissions,
             "point_of_contact": self.point_of_contact

@@ -27,8 +27,7 @@ from app.auth.constants import error_msg
 from app.constants import USER_ID_DELIMITER, user_type_auth
 from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
-    ENROLLMENT_ENDPOINT, ENROLLMENT_STATUS_ENDPOINT, TOU_ENDPOINT,
-    TOU_STATUS_ENDPOINT, USER_ENDPOINT
+    USER_SEARCH_ENDPOINT, USER_ENDPOINT
 )
 from app.lib.db_utils import create_object, update_object
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
@@ -38,7 +37,7 @@ from app.models import AgencyUsers, Events, Requests, Users
 
 
 @login_manager.user_loader
-def user_loader(user_id: str) -> Users:
+def user_loader(guid: str) -> Users:
     """Given a user_id (GUID + UserType), return the associated User object.
 
     Args:
@@ -47,8 +46,7 @@ def user_loader(user_id: str) -> Users:
     Returns:
         Users: User object from the database or None.
     """
-    user_id = user_id.split(USER_ID_DELIMITER)
-    return Users.query.filter_by(guid=user_id[0], auth_user_type=user_id[1]).first()
+    return Users.query.filter_by(guid=guid).first()
 
 
 def init_saml_auth(onelogin_request):
@@ -173,12 +171,16 @@ def saml_acs(saml_sp, onelogin_request):
         email_validation_url = _validate_email(user_data['nycExtEmailValidationFlag'], user_data['GUID'],
                                                user_data['mail'])
 
+        nycid_user_data = get_nycid_user_data(user_data['GUID'])
+
+        user_data = {**user_data, **nycid_user_data}
+
         if email_validation_url:
             return redirect(email_validation_url)
 
         user = Users.query.filter_by(guid=user_data['GUID']).one_or_none() or find_user_by_email(user_data['mail'])
 
-        if user:
+        if user and (user.has_nyc_id_profile or user.is_agency):
             login_user(user)
         else:
             user = Users(
@@ -187,9 +189,15 @@ def saml_acs(saml_sp, onelogin_request):
                 middle_initial=user_data.get('middleName', None),
                 last_name=user_data.get('sn', None),
                 email=user_data.get('mail', None),
-                email_validated=user_data.get('nycExtEmailValidationFlag', None)
+                email_validated=user_data.get('nycExtEmailValidationFlag', None),
+                is_nyc_employee=user_data.get('nycEmployee', False),
+                has_nyc_account=user_data.get('hasNYCaccount', False),
+                active=user_data.get('active', False)
             )
             create_object(user)
+            if user_data.get('nycEmployee', False) or user_data.get('active', False):
+                login_user(user)
+
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
 
         if 'RelayState' in request.form and self_url != request.form['RelayState']:
@@ -267,15 +275,13 @@ def find_user_by_email(email):
     """
     if current_app.config['USE_LDAP']:
         user = Users.query.filter_by(
-            email=email,
-            auth_user_type=user_type_auth.AGENCY_LDAP_USER
+            email=email
         ).first()
         return user if user.agencies.all() else None
     elif current_app.config['USE_OAUTH'] or current_app.config['USE_SAML']:
         from sqlalchemy import func
         return Users.query.filter(
-            func.lower(Users.email) == email.lower(),
-            Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+            func.lower(Users.email) == email.lower()
         ).first()
     return None
 
@@ -515,7 +521,24 @@ def _validate_email(email_validation_flag, guid, email_address):
             )
 
 
-def _check_web_services_response(response, msg):
+def get_nycid_user_data(guid):
+    """
+    Validate whether the user is a NYC Employee.
+    If the returned validation status equals false,
+    return url to the 'Email Confirmation Required' page
+    where the user can request a validation email.
+
+    :return: redirect url or None
+    """
+    response = _web_services_request(
+        USER_SEARCH_ENDPOINT,
+        {"guid": guid}
+    )
+    _check_web_services_response(response, error_msg.USER_DATA_RETRIEVAL_FAILURE)
+    return response.json()
+
+
+def _check_web_services_response(response, msg=''):
     """
     Log an error message if the specified response's
     status code is not 200.
