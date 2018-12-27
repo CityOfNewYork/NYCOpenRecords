@@ -29,6 +29,7 @@ from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
     USER_SEARCH_ENDPOINT, USER_ENDPOINT
 )
+from app.lib.utils import eval_request_bool
 from app.lib.db_utils import create_object, update_object
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
@@ -168,31 +169,45 @@ def saml_acs(saml_sp, onelogin_request):
         # Log User In
         user_data = {k: v[0] if len(v) else None for (k, v) in session['samlUserdata'].items()}
 
-        email_validation_url = _validate_email(user_data['nycExtEmailValidationFlag'], user_data['GUID'],
-                                               user_data['mail'])
-
         nycid_user_data = get_nycid_user_data(user_data['GUID'])
 
-        user_data = {**user_data, **nycid_user_data}
-
-        if email_validation_url:
+        if not nycid_user_data.get('validated', False):
+            email_validation_url = _validate_email(user_data['nycExtEmailValidationFlag'], user_data['GUID'],
+                                                   user_data['mail'])
             return redirect(email_validation_url)
 
-        user = Users.query.filter_by(guid=user_data['GUID']).one_or_none() or find_user_by_email(user_data['mail'])
+        user = Users.query.filter_by(
+            guid=nycid_user_data['id']).one_or_none() or find_user_by_email(nycid_user_data['email'])
 
-        if user and (user.has_nyc_id_profile or user.is_agency):
+        if user and (user.has_nyc_id_profile or user.is_agency or user.is_super):
+            updated_user_data = {
+                'guid': nycid_user_data.get('id', None),
+                'first_name': nycid_user_data.get('firstName', None),
+                'middle_initial': nycid_user_data.get('middleInitial', None),
+                'last_name': nycid_user_data.get('lastName', None),
+                'email': nycid_user_data.get('email', None),
+                'email_validated': nycid_user_data.get('validated', False),
+                'is_nyc_employee': nycid_user_data.get('nycEmployee', False),
+                'has_nyc_account': nycid_user_data.get('hasNYCAccount', False),
+                'active': nycid_user_data.get('active', False),
+                'terms_of_use_accepted': nycid_user_data.get('termsOfUse', False),
+                'is_anonymous_requester': False
+            }
+            update_object(updated_user_data, Users, user.guid)
             login_user(user)
         else:
             user = Users(
-                guid=user_data.get('GUID', None),
-                first_name=user_data.get('givenName', None),
-                middle_initial=user_data.get('middleName', None),
-                last_name=user_data.get('sn', None),
-                email=user_data.get('mail', None),
-                email_validated=user_data.get('nycExtEmailValidationFlag', None),
-                is_nyc_employee=user_data.get('nycEmployee', False),
-                has_nyc_account=user_data.get('hasNYCaccount', False),
-                active=user_data.get('active', False)
+                guid=nycid_user_data.get('id', None),
+                first_name=nycid_user_data.get('firstName', None),
+                middle_initial=nycid_user_data.get('middleInitial', None),
+                last_name=nycid_user_data.get('lastName', None),
+                email=nycid_user_data.get('email', None),
+                email_validated=nycid_user_data.get('validated', False),
+                is_nyc_employee=nycid_user_data.get('nycEmployee', False),
+                has_nyc_account=nycid_user_data.get('hasNYCAccount', False),
+                active=nycid_user_data.get('active', False),
+                terms_of_use_accepted=nycid_user_data.get('termsOfUse', False),
+                is_anonymous_requester=False
             )
             create_object(user)
             if user_data.get('nycEmployee', False) or user_data.get('active', False):

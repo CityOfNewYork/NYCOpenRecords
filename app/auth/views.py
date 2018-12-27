@@ -55,7 +55,6 @@ def saml():
         return redirect(saml_slo(onelogin_saml_auth))
     elif 'sls' in request.args:
         return saml_sls(onelogin_saml_auth)
-
     else:
         flash('Oops! Something went wrong. Please try to perform your action again later.', category="warning")
         return redirect(url_for('main.index'))
