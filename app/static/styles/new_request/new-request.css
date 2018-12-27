@@ -30,6 +30,16 @@
     color: #e74c3c;
 }
 
+.parsley-custom-error-message {
+    font-size: 14px;
+    color: #df0000;
+}
+
+.parsley-length {
+    font-size: 14px;
+    color: #df0000;
+}
+
 #state {
     height: 50px;
 }
