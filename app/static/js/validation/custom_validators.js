@@ -11,6 +11,6 @@ window.Parsley.addValidator('maxFileSize', {
   },
   requirementType: 'integer',
   messages: {
-    en: 'The file cannot not be larger than %s Mb',
+    en: '<span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>The file cannot be larger than %s Mb.</strong> Please choose a smaller file.'
   }
 });
