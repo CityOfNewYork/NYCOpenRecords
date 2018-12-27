@@ -12,10 +12,12 @@ $(document).ready(function () {
     subject.attr("data-parsley-required", "");
     message.attr("data-parsley-required", "");
 
-    name.attr('data-parsley-required-message', 'This information is required.');
-    email.attr('data-parsley-required-message', 'This information is required.');
-    subject.attr('data-parsley-required-message', 'This information is required.');
-    message.attr('data-parsley-required-message', 'This information is required.');
+    // Custom validation messages
+    name.attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A name is required.</strong> Please type in your name.");
+    email.attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>An email is required.</strong> Please type in your email.");
+    email.attr("data-parsley-type-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>This value should be an email.</strong> Please type in a valid email.");
+    subject.attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A subject is required.</strong> Please type in a subject name.");
+    message.attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A message is required.</strong> Please type in a message.");
 
     // Specify length requirement of certain fields
     name.attr('data-parsley-maxlength', 32);
@@ -23,7 +25,7 @@ $(document).ready(function () {
     subject.attr('data-parsley-maxlength', 90);
     message.attr('data-parsley-maxlength', 5000);
 
-    $("#contact-info").parsley().on("form:validate", function () {
+    $("#contact-info").parsley().on("form:validated", function () {
         if (name.parsley().isValid() === false) {
             $(window).scrollTop($("label[for=name]").offset().top);
         }
@@ -36,6 +38,13 @@ $(document).ready(function () {
         else {
             $(window).scrollTop($("label[for=message]").offset().top);
         }
+        // Add tab index to any error messages
+        $(".parsley-required").each(function () {
+            $(this).attr("tabindex", 0);
+        });
+        $(".parsley-type").each(function () {
+            $(this).attr("tabindex", 0);
+        });
     });
     
     // Set character counter for note content

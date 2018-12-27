@@ -223,3 +223,8 @@ input[type="radio"], input[type="checkbox"] {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+.parsley-errors-list.filled {
+    font-size: 14px;
+    color: #df0000;
+}
