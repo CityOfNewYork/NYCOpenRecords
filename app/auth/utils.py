@@ -38,15 +38,15 @@ from app.models import AgencyUsers, Events, Requests, Users
 
 @login_manager.user_loader
 def user_loader(guid: str) -> Users:
-    """Given a user_id (GUID + UserType), return the associated User object.
+    """Given a GUID return the associated User object.
 
     Args:
-        user_id (str): User ID (GUID) of the user to retrieve from the database.
+        guid (str): User ID (GUID) of the user to retrieve from the database.
 
     Returns:
         Users: User object from the database or None.
     """
-    return Users.query.filter_by(guid=guid).first()
+    return Users.query.filter_by(guid=guid).one_or_none()
 
 
 def init_saml_auth(onelogin_request):

@@ -236,6 +236,7 @@ class Agencies(db.Model):
         secondaryjoin="AgencyUsers.user_guid == Users.guid"
     )
 
+
     @property
     def formatted_parent_ein(self):
         """
@@ -376,9 +377,13 @@ class Users(UserMixin, db.Model):
         """
         if current_app.config['USE_LDAP']:
             return True
-        if session.get('token') is not None:
-            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
-            return oauth_user_web_service_request().status_code == 200
+        if current_app.config['USE_OAUTH']:
+            if session.get('token') is not None:
+                from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
+                return oauth_user_web_service_request().status_code == 200
+        if current_app.config['USE_SAML']:
+            if session.get('samlUserdata', None):
+                return True
         return False
 
     @property
