@@ -78,7 +78,6 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
         remove_point_of_contact(request_id)
     user_request = UserRequests(
         user_guid=user.guid,
-        auth_user_type=user.auth_user_type,
         request_id=request_id,
         request_user_type=user_type_request.AGENCY,
         permissions=0,
@@ -249,7 +248,6 @@ def create_user_request_event_object(events_type, user_request, old_permissions=
     return Events(
         user_request.request_id,
         user.guid,
-        user.auth_user_type,
         events_type,
         previous_value=previous_value,
         new_value=user_request.val_for_events,
@@ -275,7 +273,7 @@ def set_point_of_contact(request_id, user_request, point_of_contact):
     """
     update_object({"point_of_contact": point_of_contact},
                   UserRequests,
-                  (user_request.user_guid, user_request.auth_user_type, request_id)
+                  (user_request.user_guid, request_id)
                   )
 
 
@@ -300,13 +298,10 @@ def remove_point_of_contact(request_id):
     create_object(Events(
         request_id,
         current_user.guid,
-        current_user.auth_user_type,
         event_type.REQ_POINT_OF_CONTACT_REMOVED,
         previous_value={"user_guid": point_of_contact.user_guid,
-                        "auth_user_type": point_of_contact.auth_user_type,
                         "point_of_contact": "True"},
         new_value={"user_guid": point_of_contact.user_guid,
-                   "auth_user_type": point_of_contact.auth_user_type,
                    "point_of_contact": "False"},
         timestamp=datetime.utcnow(),
     ))

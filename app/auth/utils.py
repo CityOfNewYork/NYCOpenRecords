@@ -24,7 +24,6 @@ from app import (
     sentry
 )
 from app.auth.constants import error_msg
-from app.constants import USER_ID_DELIMITER, user_type_auth
 from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
     USER_SEARCH_ENDPOINT, USER_ENDPOINT
@@ -116,6 +115,13 @@ def saml_sls(saml_sp):
     dscb = lambda: session.clear()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
+    update_object(
+        {
+            'session_id': None
+        },
+        Users,
+        current_user.guid
+    )
     logout_user()
     if not errors:
         return redirect(url) if url else redirect(url_for('main.index'))
@@ -172,46 +178,24 @@ def saml_acs(saml_sp, onelogin_request):
         nycid_user_data = get_nycid_user_data(user_data['GUID'])
 
         if not nycid_user_data.get('validated', False):
-            email_validation_url = _validate_email(user_data['nycExtEmailValidationFlag'], user_data['GUID'],
-                                                   user_data['mail'])
+            email_validation_url = _validate_email(nycid_user_data.get('validated', False), nycid_user_data.get('id'),
+                                                   nycid_user_data.get('email'))
             return redirect(email_validation_url)
 
-        user = Users.query.filter_by(
-            guid=nycid_user_data['id']).one_or_none() or find_user_by_email(nycid_user_data['email'])
-
-        if user and (user.has_nyc_id_profile or user.is_agency or user.is_super):
-            updated_user_data = {
-                'guid': nycid_user_data.get('id', None),
-                'first_name': nycid_user_data.get('firstName', None),
-                'middle_initial': nycid_user_data.get('middleInitial', None),
-                'last_name': nycid_user_data.get('lastName', None),
-                'email': nycid_user_data.get('email', None),
-                'email_validated': nycid_user_data.get('validated', False),
-                'is_nyc_employee': nycid_user_data.get('nycEmployee', False),
-                'has_nyc_account': nycid_user_data.get('hasNYCAccount', False),
-                'active': nycid_user_data.get('active', False),
-                'terms_of_use_accepted': nycid_user_data.get('termsOfUse', False),
-                'is_anonymous_requester': False
-            }
-            update_object(updated_user_data, Users, user.guid)
-            login_user(user)
-        else:
-            user = Users(
-                guid=nycid_user_data.get('id', None),
-                first_name=nycid_user_data.get('firstName', None),
-                middle_initial=nycid_user_data.get('middleInitial', None),
-                last_name=nycid_user_data.get('lastName', None),
-                email=nycid_user_data.get('email', None),
-                email_validated=nycid_user_data.get('validated', False),
-                is_nyc_employee=nycid_user_data.get('nycEmployee', False),
-                has_nyc_account=nycid_user_data.get('hasNYCAccount', False),
-                active=nycid_user_data.get('active', False),
-                terms_of_use_accepted=nycid_user_data.get('termsOfUse', False),
-                is_anonymous_requester=False
-            )
-            create_object(user)
-            if user_data.get('nycEmployee', False) or user_data.get('active', False):
-                login_user(user)
+        user = _process_user_data(
+            guid=nycid_user_data.get('id', None),
+            first_name=nycid_user_data.get('firstName', None),
+            middle_initial=nycid_user_data.get('middleInitial', None),
+            last_name=nycid_user_data.get('lastName', None),
+            email=nycid_user_data.get('email', None),
+            email_validated=nycid_user_data.get('validated', False),
+            is_nyc_employee=nycid_user_data.get('nycEmployee', False),
+            has_nyc_account=nycid_user_data.get('hasNYCAccount', False),
+            active=nycid_user_data.get('active', False),
+            terms_of_use_accepted=nycid_user_data.get('termsOfUse', False),
+            is_anonymous_requester=False
+        )
+        login_user(user)
 
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
 
@@ -243,18 +227,19 @@ def update_openrecords_user(form):
                 form.address_two.data or None)
         },
         Users,
-        (current_user.guid, current_user.auth_user_type))
+        current_user.guid
+    )
 
     if current_user.is_agency and current_user.default_agency_ein != form.default_agency.data:
         update_object(
             {'is_primary_agency': False},
             AgencyUsers,
-            (current_user.guid, current_user.auth_user_type, current_user.default_agency_ein)
+            (current_user.guid, current_user.default_agency_ein)
         )
         update_object(
             {'is_primary_agency': True},
             AgencyUsers,
-            (current_user.guid, current_user.auth_user_type, form.default_agency.data)
+            (current_user.guid, form.default_agency.data)
         )
 
 
@@ -317,51 +302,6 @@ def oauth_user_web_service_request(method="GET"):
     )
 
 
-def handle_user_data(guid,
-                     user_type,
-                     email,
-                     first_name=None,
-                     middle_initial=None,
-                     last_name=None,
-                     terms_of_use=None,
-                     email_validation_flag=None,
-                     token=None,
-                     next_url=None):
-    """
-    Interpret the result of processing the specified
-    user data and act accordingly:
-    - If a redirect url is returned, redirect to that url.
-    - If a user is returned, login that user and return
-      a redirect to the specified next_url, the home page url,
-      or to the 404 page if next_url is provided and is unsafe.
-    """
-
-    redirect_url = _validate_email(email_validation_flag, guid, email)
-
-    if redirect_url:
-        return jsonify({'next': redirect_url})
-    else:
-        user = _process_user_data(
-            guid,
-            user_type,
-            email,
-            first_name,
-            middle_initial,
-            last_name
-        )
-
-        login_user(user)
-        _session_regenerate_persist_token()
-
-        if not is_safe_url(next_url) or True:
-            sentry.client.context.merge(
-                {'user': {'guid': user.guid, 'auth_user_type': user.auth_user_type}})
-            sentry.captureMessage(error_msg.UNSAFE_NEXT_URL)
-            sentry.client.context.clear()
-            return jsonify({'next': url_for('main.index', fresh_login=True, _external=True, _scheme='https')})
-        jsonify({'next': next_url or url_for('main.index', fresh_login=True, _external=True, _scheme='https')})
-
-
 def _session_regenerate_persist_token():
     """
     Regenerate the Session ID while persisting session contents on Server Side.
@@ -377,11 +317,16 @@ def _session_regenerate_persist_token():
 
 
 def _process_user_data(guid,
-                       user_type,
                        email,
                        first_name,
                        middle_initial,
-                       last_name):
+                       last_name,
+                       email_validated,
+                       is_nyc_employee,
+                       has_nyc_account,
+                       active,
+                       terms_of_use_accepted,
+                       is_anonymous_requester):
     """
     Kickoff email validation (if the user did not authenticate
     with a federated identity) or terms-of-use acceptance if the
@@ -407,36 +352,46 @@ def _process_user_data(guid,
     if first_name is None:
         first_name = mailbox
 
-    user = Users.query.filter_by(guid=guid, auth_user_type=user_type).first()
-    if user is None and user_type in user_type_auth.AGENCY_USER_TYPES:
+    user = Users.query.filter_by(guid=guid).first()
+    if user is None:
         user = find_user_by_email(email)
 
     # update or create user
     if user is not None:
-        _update_user_data(user,
-                          guid,
-                          user_type,
-                          email,
-                          first_name,
-                          middle_initial,
-                          last_name)
-    else:
-        user = Users(
-            guid=guid,
-            auth_user_type=user_type,
-            first_name=first_name,
-            middle_initial=middle_initial,
-            last_name=last_name,
-            email=email,
-            email_validated=True,
-            terms_of_use_accepted=True,
+        _update_user_data(
+            user,
+            guid,
+            email,
+            first_name,
+            middle_initial,
+            last_name,
+            email_validated,
+            is_nyc_employee,
+            has_nyc_account,
+            active,
+            terms_of_use_accepted,
+            is_anonymous_requester
         )
+    else:
+        user = Users(guid=guid,
+                     email=email,
+                     first_name=first_name,
+                     middle_initial=middle_initial,
+                     last_name=last_name,
+                     email_validated=email_validated,
+                     is_nyc_employee=is_nyc_employee,
+                     has_nyc_account=has_nyc_account,
+                     active=active,
+                     terms_of_use_accepted=terms_of_use_accepted,
+                     is_anonymous_requester=is_anonymous_requester
+                     )
         create_object(user)
 
     return user
 
 
-def _update_user_data(user, guid, user_type, email, first_name, middle_initial, last_name):
+def _update_user_data(user, guid, email, first_name, middle_initial, last_name, email_validated, is_nyc_employee=False,
+                      has_nyc_account=False, active=False, terms_of_use_accepted=False, is_anonymous_requester=False):
     """
     Update specified user with the information provided, which is
     assumed to have originated from an NYC Service Account, and set
@@ -454,26 +409,27 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
     Update search index for searching by assigned user.
     """
     updated_data = {
-        'email': email,
+        'guid': guid,
         'first_name': first_name,
         'middle_initial': middle_initial,
         'last_name': last_name,
-        'email_validated': True,
-        'terms_of_use_accepted': True,
+        'email': email,
+        'email_validated': email_validated,
+        'is_nyc_employee': is_nyc_employee,
+        'has_nyc_account': has_nyc_account,
+        'active': active,
+        'terms_of_use_accepted': terms_of_use_accepted,
+        'is_anonymous_requester': is_anonymous_requester
     }
-    if guid != user.guid or user_type != user.auth_user_type:
+    if guid != user.guid:
         updated_data.update(
-            guid=guid,
-            auth_user_type=user_type
+            guid=guid
         )
-        update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid,
-                                                   Events.new_value[
-                                                       'auth_user_type'].astext == user.auth_user_type).all()
+        update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).all()
 
         for event in update_events_values:
             update_object(
-                {'new_value': {'user_guid': guid,
-                               'auth_user_type': user_type}},
+                {'new_value': {'user_guid': guid}},
                 Events,
                 event.id
             )
@@ -481,7 +437,7 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         update_object(
             updated_data,
             Users,
-            (user.guid, user.auth_user_type)
+            user.guid
         )
 
         for user_request in user.user_requests:
@@ -491,7 +447,7 @@ def _update_user_data(user, guid, user_type, email, first_name, middle_initial, 
         update_object(
             updated_data,
             Users,
-            (user.guid, user.auth_user_type)
+            (user.guid)
         )
 
 

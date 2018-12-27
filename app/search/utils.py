@@ -174,15 +174,12 @@ def create_docs():
             'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
             'submission': r.submission,
             'status': r.status,
-            'requester_id': "{guid}{delimiter}{auth_user_type}".format(guid=r.requester.guid,
-                                                                       delimiter=USER_ID_DELIMITER,
-                                                                       auth_user_type=r.requester.auth_user_type),
+            'requester_id': "{guid}".format(guid=r.requester.guid),
             'agency_ein': r.agency_ein,
             'agency_acronym': agency_eins[r.agency_ein].acronym,
             'agency_name': agency_eins[r.agency_ein].name,
             'public_title': 'Private' if r.privacy['title'] else r.title,
-            'assigned_users': ["{guid}{delimiter}{auth_user_type}".format(guid=user.guid, delimiter=USER_ID_DELIMITER,
-                                                                          auth_user_type=user.auth_user_type) for user
+            'assigned_users': ["{guid}".format(guid=user.guid) for user
                                in r.agency_users]
             # public_agency_request_summary
         }

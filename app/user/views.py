@@ -9,11 +9,9 @@ from app.user import user
 from app.user_request.utils import create_user_request_event
 from app.models import Users, Events, Roles, UserRequests, AgencyUsers, Agencies
 from app.constants import (
-    USER_ID_DELIMITER,
     event_type,
     permission,
     role_name,
-    user_type_auth,
     user_type_request,
 )
 from app.lib.db_utils import (
@@ -66,15 +64,13 @@ def patch(user_id):
     if not current_user.is_anonymous and current_user.is_authenticated:
         # attempt to parse user_id and find user
         try:
-            guid, auth_type = user_id.split(USER_ID_DELIMITER)
-            user_ = Users.query.filter_by(guid=guid,
-                                          auth_user_type=auth_type).one()
+            user_ = Users.query.filter_by(guid=user_id).one()
         except (ValueError, NoResultFound, MultipleResultsFound):
             sentry.captureException()
             return jsonify({}), 404
 
         agency_ein = request.form.get('agency_ein', None)
-        if agency_ein is None and not (auth_type == user_type_auth.ANONYMOUS_USER or 'is_super' in request.form):
+        if agency_ein is None and not (user_.is_anonymous_requester or 'is_super' in request.form):
             return jsonify({}), 404
 
         updating_self = current_user == user_
@@ -235,7 +231,6 @@ def patch(user_id):
             # the user being updated is added to Events.new_value
             # in order to identify this user
             new['user_guid'] = user_.guid
-            new['auth_user_type'] = user_.auth_user_type
 
             if new_address:
                 new['_mailing_address'] = new_address
@@ -247,13 +242,13 @@ def patch(user_id):
                 update_object(
                     new,
                     AgencyUsers,
-                    (guid, auth_type, agency_ein)
+                    (user_id, agency_ein)
                 )
             else:
                 update_object(
                     new,
                     Users,
-                    (guid, auth_type)
+                    (user_id)
                 )
 
             # create event(s)
@@ -261,7 +256,6 @@ def patch(user_id):
                 'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
                 'response_id': None,
                 'user_guid': current_user.guid,
-                'auth_user_type': current_user.auth_user_type,
                 'timestamp': datetime.utcnow()
             }
 
@@ -275,7 +269,6 @@ def patch(user_id):
 
                 # TODO: a better way to store user identifiers (than in the value columns)
                 new_statuses['user_guid'] = user_.guid
-                new_statuses['auth_user_type'] = user_.auth_user_type
                 new_statuses['agency_ein'] = agency_ein
 
                 is_agency_active = new_statuses.get('is_agency_active')
@@ -315,13 +308,11 @@ def patch(user_id):
                         for req in user_.agencies.filter_by(ein=agency_ein).one().requests:
                             user_request = UserRequests.query.filter_by(
                                 request_id=req.id,
-                                user_guid=user_.guid,
-                                auth_user_type=user_.auth_user_type
+                                user_guid=user_.guid
                             ).first()
                             if user_request is None:
                                 user_request = UserRequests(
                                     user_guid=user_.guid,
-                                    auth_user_type=user_.auth_user_type,
                                     request_id=req.id,
                                     request_user_type=user_type_request.AGENCY,
                                     permissions=permissions

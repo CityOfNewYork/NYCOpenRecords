@@ -30,10 +30,8 @@ from app import (
 )
 from app.constants import (
     ES_DATETIME_FORMAT,
-    USER_ID_DELIMITER,
     permission,
     role_name,
-    user_type_auth,
     user_type_request,
     request_status,
     response_type,
@@ -334,8 +332,6 @@ class Users(UserMixin, db.Model):
     phone_number - string containing the user's phone number
     fax_number - string containing the user's fax number
     mailing_address - a JSON object containing the user's address
-
-    TODO @joelbcastillo: Swap `auth_user_type` with boolean `is_nyc_employee` field
     """
     __tablename__ = 'users'
     guid = db.Column(db.String(64), unique=True, primary_key=True)
@@ -395,7 +391,7 @@ class Users(UserMixin, db.Model):
         Checks to see if the current user is a public user as defined below:
         :return: Boolean
         """
-        return not self.is_nyc_employee
+        return not self.is_nyc_employee and not self.is_anonymous_requester
 
     @property
     def is_agency(self):
@@ -651,7 +647,7 @@ class AgencyUsers(db.Model):
 
     user_guid - a string that contains the unique guid of users
     agency_ein - a foreign key that links that the primary key of the agency the request was assigned to
-    user_guid, auth_user_type, and agency_ein are combined to create a composite primary key
+    user_guid and agency_ein are combined to create a composite primary key
     is_agency_active - a boolean value that allows the user to login as a user for the agency identified by agency_ein
     is_agency_admin - a boolean value that allows the user to administer settings for the agency identified by
         agency_ein
