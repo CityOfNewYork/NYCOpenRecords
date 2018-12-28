@@ -146,7 +146,7 @@
                 <div id="upload-control" class="col-sm-12">
                     {{ form.request_file.label(class="request-heading", for="request-file", tabindex=0) }}
                     <br>
-                    <div class="file-error" hidden></div>
+                    <div class="file-error" tabindex="0" hidden></div>
                     <label for="request-file" id="choose-file" aria-live="assertive">
                     <span id="choose-file-button" role="button" aria-controls="filename" tabindex="0">
                       Choose File
@@ -182,7 +182,7 @@
                 {{ form.email(id="email", class="input-block-level",
                 placeholder="requester@email.com", maxlength="254") }}<br>
 
-                <div class="contact-form-error-message"></div>
+                <div class="contact-form-error-message" tabindex="0"></div>
 
                 <h2>Alternate Contact Information</h2>
 

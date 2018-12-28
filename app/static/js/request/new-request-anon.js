@@ -153,11 +153,12 @@ $(document).ready(function () {
     $("#zipcode").attr("data-parsley-length", "[5,5]");
 
     // Custom Validation Messages
-    $("#request-agency").attr("data-parsley-error-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>An agency is required.</strong> Please select an agency from the drop-down menu.");
-    $("#request-title").attr("data-parsley-error-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A title is required.</strong> Please type in a short title for your request.");
-    $("#request-description").attr("data-parsley-error-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A description is required.</strong> Please type in a detailed description of your request.");
-    $("#first-name").attr("data-parsley-error-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A first name is required.</strong> Please type in a your first name.");
-    $("#last-name").attr("data-parsley-error-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A last name is required.</strong> Please type in a your last name.");
+    $("#request-agency").attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>An agency is required.</strong> Please select an agency from the drop-down menu.");
+    $("#request-title").attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A title is required.</strong> Please type in a short title for your request.");
+    $("#request-description").attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A description is required.</strong> Please type in a detailed description of your request.");
+    $("#first-name").attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A first name is required.</strong> Please type in a your first name.");
+    $("#last-name").attr("data-parsley-required-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>A last name is required.</strong> Please type in a your last name.");
+    $("#email").attr("data-parsley-type-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>This value should be an email.</strong> Please type in a valid email.");
     $("#fax").attr("data-parsley-length-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>The fax number must be 10 digits.</strong>");
     $("#phone").attr("data-parsley-length-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>The phone number must be 10 digits.</strong>");
     $("#zipcode").attr("data-parsley-length-message", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>The zipcode must be 5 digits.</strong>");
@@ -216,7 +217,7 @@ $(document).ready(function () {
     $("#email").attr("data-parsley-type", "email");
 
     // Checks that at least one form of contact was filled out in addition to the rest of the form.
-    $("#request-form").parsley().on("form:validate", function () {
+    $("#request-form").parsley().on("form:validated", function () {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
         for (i = 0; i < requiredFields.length; i++) {
             $("#" + requiredFields[i]).attr("data-parsley-required", "");
@@ -281,6 +282,19 @@ $(document).ready(function () {
         else if ($("#email").parsley().isValid() === false) {
             $(window).scrollTop($(".email-label").offset().top);
         }
+
+        // Add tab index to any error messages
+        $(".parsley-required").each(function () {
+            // only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
+        $(".parsley-length").each(function () {
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
     });
 
     // Clear error messages for form.request_file on submit...
