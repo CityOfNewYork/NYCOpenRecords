@@ -217,7 +217,7 @@ $(document).ready(function () {
     $("#email").attr("data-parsley-type", "email");
 
     // Checks that at least one form of contact was filled out in addition to the rest of the form.
-    $("#request-form").parsley().on("form:validated", function () {
+    $("#request-form").parsley().on("form:validate", function () {
         // Re-apply validators to fields in the event that they were removed from previous validation requests.
         for (i = 0; i < requiredFields.length; i++) {
             $("#" + requiredFields[i]).attr("data-parsley-required", "");
@@ -282,10 +282,12 @@ $(document).ready(function () {
         else if ($("#email").parsley().isValid() === false) {
             $(window).scrollTop($(".email-label").offset().top);
         }
+    });
 
+    $("#request-form").parsley().on("form:error", function () {
         // Add tab index to any error messages
         $(".parsley-required").each(function () {
-            // only add tab index to sections where error messages are currently visible
+            // Only add tab index to sections where error messages are currently visible
             if ($(this).text() !== "") {
                 $(this).attr("tabindex", 0);
             }

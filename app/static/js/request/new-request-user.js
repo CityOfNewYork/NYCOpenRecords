@@ -161,7 +161,7 @@ $(document).ready(function () {
         }
     });
 
-    $("#request-form").parsley().on("form:validated", function () {
+    $("#request-form").parsley().on("form:validate", function () {
         // Do stuff when parsley validates
         // TODO: this or combine (see the other new-request-* js files)
         if ($("#request-file").parsley().isValid() === false) {
@@ -174,6 +174,16 @@ $(document).ready(function () {
         // Add tab index to any error messages
         $(".parsley-required").each(function () {
             // only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
+    });
+
+    // Add tab index to any error messages after validation has failed
+    $("#request-form").parsley().on("form:error", function () {
+        $(".parsley-required").each(function () {
+            // Only add tab index to sections where error messages are currently visible
             if ($(this).text() !== "") {
                 $(this).attr("tabindex", 0);
             }
