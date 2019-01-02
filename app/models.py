@@ -39,6 +39,7 @@ from app.constants import (
     response_privacy,
     submission_methods,
     event_type,
+    user_type_auth
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.schemas import AGENCIES_SCHEMA
@@ -236,7 +237,6 @@ class Agencies(db.Model):
         secondaryjoin="AgencyUsers.user_guid == Users.guid"
     )
 
-
     @property
     def formatted_parent_ein(self):
         """
@@ -335,6 +335,18 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
+    # auth_user_type = db.Column(
+    #     db.Enum(user_type_auth.AGENCY_USER,
+    #             user_type_auth.AGENCY_LDAP_USER,
+    #             user_type_auth.PUBLIC_USER_FACEBOOK,
+    #             user_type_auth.PUBLIC_USER_MICROSOFT,
+    #             user_type_auth.PUBLIC_USER_YAHOO,
+    #             user_type_auth.PUBLIC_USER_LINKEDIN,
+    #             user_type_auth.PUBLIC_USER_GOOGLE,
+    #             user_type_auth.PUBLIC_USER_NYC_ID,
+    #             user_type_auth.ANONYMOUS_USER,
+    #             name='auth_user_type'),
+    #     primary_key=True)
     guid = db.Column(db.String(64), unique=True, primary_key=True)
     is_nyc_employee = db.Column(db.Boolean, default=False)
     has_nyc_account = db.Column(db.Boolean, default=False)
@@ -539,8 +551,9 @@ class Users(UserMixin, db.Model):
         Call es_update for any request where this user is the requester
         since the request es doc relies on the requester's name.
         """
-        for request in self.requests:
-            request.es_update()
+        if current_app.config['ELASTICSEARCH_ENABLED']:
+            for request in self.requests:
+                request.es_update()
 
     @property
     def val_for_events(self):
@@ -845,69 +858,72 @@ class Requests(db.Model):
                self.agency_request_summary_release_date < datetime.utcnow()
 
     def es_update(self):
-        if self.agency.is_active:
-            es.update(
+        if current_app.config['ELASTICSEARCH_ENABLED']:
+            if self.agency.is_active:
+                es.update(
+                    index=current_app.config["ELASTICSEARCH_INDEX"],
+                    doc_type='request',
+                    id=self.id,
+                    body={
+                        'doc': {
+                            'title': self.title,
+                            'description': self.description,
+                            'agency_request_summary': self.agency_request_summary,
+                            'assigned_users': [user.get_id() for user in self.agency_users],
+                            'title_private': self.privacy['title'],
+                            'agency_request_summary_private': not self.agency_request_summary_released,
+                            'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                            'date_closed': self.date_closed.strftime(
+                                ES_DATETIME_FORMAT) if self.date_closed is not None else [],
+                            'status': self.status,
+                            'requester_name': self.requester.name,
+                            'public_title': 'Private' if self.privacy['title'] else self.title
+                        }
+                    },
+                    # refresh='wait_for'
+                )
+
+    def es_create(self):
+        """ Must be called AFTER UserRequest has been created. """
+        if current_app.config['ELASTICSEARCH_ENABLED']:
+            es.create(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
                 doc_type='request',
                 id=self.id,
                 body={
-                    'doc': {
-                        'title': self.title,
-                        'description': self.description,
-                        'agency_request_summary': self.agency_request_summary,
-                        'assigned_users': [user.get_id() for user in self.agency_users],
-                        'title_private': self.privacy['title'],
-                        'agency_request_summary_private': not self.agency_request_summary_released,
-                        'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                        'date_closed': self.date_closed.strftime(
-                            ES_DATETIME_FORMAT) if self.date_closed is not None else [],
-                        'status': self.status,
-                        'requester_name': self.requester.name,
-                        'public_title': 'Private' if self.privacy['title'] else self.title
-                    }
-                },
-                # refresh='wait_for'
+                    'title': self.title,
+                    'description': self.description,
+                    'agency_request_summary': self.agency_request_summary,
+                    'agency_ein': self.agency_ein,
+                    'agency_name': self.agency.name,
+                    'assigned_users': [user.get_id() for user in self.agency_users],
+                    'agency_acronym': self.agency.acronym,
+                    'title_private': self.privacy['title'],
+                    'agency_request_summary_private': not self.agency_request_summary_released,
+                    'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
+                    'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                    'date_received': self.date_created.strftime(
+                        ES_DATETIME_FORMAT) if self.date_created < self.date_submitted else self.date_submitted.strftime(
+                        ES_DATETIME_FORMAT),
+                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
+                    'submission': self.submission,
+                    'status': self.status,
+                    'requester_id': (self.requester.get_id()
+                                     if not self.requester.is_anonymous_requester
+                                     else ''),
+                    'requester_name': self.requester.name,
+                    'public_title': 'Private' if self.privacy['title'] else self.title,
+                }
             )
-
-    def es_create(self):
-        """ Must be called AFTER UserRequest has been created. """
-        es.create(
-            index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
-            id=self.id,
-            body={
-                'title': self.title,
-                'description': self.description,
-                'agency_request_summary': self.agency_request_summary,
-                'agency_ein': self.agency_ein,
-                'agency_name': self.agency.name,
-                'assigned_users': [user.get_id() for user in self.agency_users],
-                'agency_acronym': self.agency.acronym,
-                'title_private': self.privacy['title'],
-                'agency_request_summary_private': not self.agency_request_summary_released,
-                'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
-                'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
-                'date_received': self.date_created.strftime(
-                    ES_DATETIME_FORMAT) if self.date_created < self.date_submitted else self.date_submitted.strftime(
-                    ES_DATETIME_FORMAT),
-                'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                'submission': self.submission,
-                'status': self.status,
-                'requester_id': (self.requester.get_id()
-                                 if not self.requester.is_anonymous_requester
-                                 else ''),
-                'requester_name': self.requester.name,
-                'public_title': 'Private' if self.privacy['title'] else self.title,
-            }
-        )
 
     def es_delete(self):
         """ Delete a document from the elastic search index """
-        es.delete(
-            index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
-            id=self.id
-        )
+        if current_app.config['ELASTICSEARCH_ENABLED']:
+            es.delete(
+                index=current_app.config["ELASTICSEARCH_INDEX"],
+                doc_type='request',
+                id=self.id
+            )
 
     def __repr__(self):
         return '<Requests %r>' % self.id

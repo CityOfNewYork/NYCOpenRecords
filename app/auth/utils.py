@@ -21,9 +21,11 @@ from requests.exceptions import SSLError
 
 from app import (
     login_manager,
-    sentry
+    sentry,
+    db
 )
 from app.auth.constants import error_msg
+from app.constants.bulk_updates import EventsDict
 from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
     USER_SEARCH_ENDPOINT, USER_ENDPOINT
@@ -33,7 +35,7 @@ from app.lib.db_utils import create_object, update_object
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 from app.lib.user_information import create_mailing_address
-from app.models import AgencyUsers, Events, Requests, Users
+from app.models import AgencyUsers, Events, Requests, Users, UserRequests
 
 
 @login_manager.user_loader
@@ -281,7 +283,8 @@ def find_user_by_email(email):
     elif current_app.config['USE_OAUTH'] or current_app.config['USE_SAML']:
         from sqlalchemy import func
         return Users.query.filter(
-            func.lower(Users.email) == email.lower()
+            func.lower(Users.email) == email.lower(),
+            Users.is_anonymous_requester == False
         ).first()
     return None
 
@@ -408,6 +411,8 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
 
     Update search index for searching by assigned user.
     """
+    old_guid = user.guid
+
     updated_data = {
         'guid': guid,
         'first_name': first_name,
@@ -421,18 +426,40 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
         'terms_of_use_accepted': terms_of_use_accepted,
         'is_anonymous_requester': is_anonymous_requester
     }
+
+    updated_agency_users_data = {
+        'guid': guid
+    }
+
     if guid != user.guid:
         updated_data.update(
             guid=guid
         )
-        update_events_values = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).all()
+        # Get all the events that need to be changed to associate with the updated GUID.
+        events_to_update = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).all()
+        event_ids_to_update = [e.id for e in events_to_update]
 
-        for event in update_events_values:
-            update_object(
-                {'new_value': {'user_guid': guid}},
-                Events,
-                event.id
+        # Staging area for update events
+        updated_events = []
+
+        # Loop through the events and create a dictionary that contains the updated GUID in the proper keys
+        for event in events_to_update:
+            update = EventsDict(
+                id=event.id,
+                request_id=event.request_id,
+                user_guid=event.user_guid,
+                response_id=event.response_id,
+                type=event.type,
+                timestamp=event.timestamp,
+                previous_value=event.previous_value,
+                new_value=event.new_value
             )
+
+            update['new_value']['user_guid'] = guid
+            
+            updated_events.append(('new_value', update['new_value']))
+
+        update_events_count = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).update(updated_events, synchronize_session=False)
 
         update_object(
             updated_data,
@@ -447,7 +474,7 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
         update_object(
             updated_data,
             Users,
-            (user.guid)
+            user.guid
         )
 
 

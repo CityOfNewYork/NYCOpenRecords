@@ -10,8 +10,10 @@ from flask_script.commands import InvalidCommand
 from app import create_app, db, sentry
 from app.constants import determination_type, event_type, user_type_auth
 from app.lib.user_information import create_mailing_address
-from app.models import (Agencies, AgencyUsers, CustomRequestForms, Determinations, Emails, EnvelopeTemplates, Envelopes,
-                        Events, LetterTemplates, Letters, Reasons, Requests, Responses, Roles, UserRequests, Users)
+from app.models import (
+    Agencies, AgencyUsers, CustomRequestForms, Determinations, Emails, EnvelopeTemplates, Envelopes,
+    Events, LetterTemplates, Letters, Reasons, Requests, Responses, Roles, UserRequests, Users
+)
 from app.request.utils import generate_guid
 
 COV = None
@@ -61,12 +63,12 @@ manager.add_command("db", MigrateCommand)
 @manager.option("--is-admin", dest="is_admin", default=False)
 @manager.option("--is-active", dest="is_active", default=False)
 def create_user(
-    first_name=None,
-    last_name=None,
-    email=None,
-    ein=None,
-    is_admin=False,
-    is_active=False,
+        first_name=None,
+        last_name=None,
+        email=None,
+        ein=None,
+        is_admin=False,
+        is_active=False,
 ):
     """Create an agency user."""
     if first_name is None:
@@ -305,7 +307,7 @@ def create_missing_request_status_changed_events():
                         "date_closed": request_closed_event.timestamp.isoformat(),
                     },
                     timestamp=request_closed_event.timestamp
-                    - timedelta(microseconds=30),
+                              - timedelta(microseconds=30),
                 )
                 print(
                     request.id,
@@ -321,8 +323,8 @@ def create_missing_request_status_changed_events():
                 # "Open" (the request was denied outright)
                 was_acknowledged = (
                     request.responses.join(Determinations)
-                    .filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT)
-                    .one_or_none()
+                        .filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT)
+                        .one_or_none()
                 )
                 if was_acknowledged:
                     # The request was acknowledged, so the previous status has to be "In Progress"
@@ -340,7 +342,7 @@ def create_missing_request_status_changed_events():
                             "date_closed": request_closed_event.timestamp.isoformat(),
                         },
                         timestamp=request_closed_event.timestamp
-                        - timedelta(microseconds=30),
+                                  - timedelta(microseconds=30),
                     )
                     print(
                         request.id,
@@ -367,7 +369,7 @@ def create_missing_request_status_changed_events():
                             "date_closed": request_closed_event.timestamp.isoformat(),
                         },
                         timestamp=request_closed_event.timestamp
-                        - timedelta(microseconds=30),
+                                  - timedelta(microseconds=30),
                     )
                     print(
                         request.id,
@@ -432,10 +434,10 @@ def create_missing_request_status_changed_events():
                     # "Open" (the request was denied outright)
                     was_acknowledged = (
                         request.responses.join(Determinations)
-                        .filter(
+                            .filter(
                             Determinations.dtype == determination_type.ACKNOWLEDGMENT
                         )
-                        .one_or_none()
+                            .one_or_none()
                     )
                     if was_acknowledged:
                         # The request was acknowledged, so the previous status has to be "In Progress"
@@ -534,8 +536,8 @@ def create_missing_request_status_changed_events():
                 # "Open" (the request was denied outright)
                 was_acknowledged = (
                     request.responses.join(Determinations)
-                    .filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT)
-                    .one_or_none()
+                        .filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT)
+                        .one_or_none()
                 )
                 if was_acknowledged:
                     # The request was acknowledged, so the previous status has to be "In Progress"
@@ -589,6 +591,7 @@ def create_missing_request_status_changed_events():
                     db.session.add(event)
     db.session.commit()
 
+
 @manager.command
 def fix_incorrect_key_events():
     """
@@ -608,6 +611,65 @@ def fix_incorrect_key_events():
 
     db.session.commit()
 
+
+@manager.command
+def migrate_nycid_users():
+    """
+    Migrate users to the NYC.ID v2.0 Schema
+    """
+
+    class UserNYCIDDict(dict):
+        """
+
+        """
+        _keys = [
+            'is_nyc_employee',
+            'has_nyc_account',
+            'active',
+            'is_anonymous_requester'
+        ]
+
+        def __init__(self, **kwargs):
+            super(UserNYCIDDict, self).__init__(self)
+            self['is_nyc_employee'] = kwargs.get('is_nyc_employee')
+            self['has_nyc_account'] = kwargs.get('has_nyc_account')
+            self['active'] = kwargs.get('active')
+            self['is_anonymous_requester'] = kwargs.get('is_anonymous_requester')
+
+        def __setitem__(self, key, value):
+            if key not in UserNYCIDDict._keys:
+                raise KeyError
+            dict.__setitem__(self, key, value)
+
+    anonymous_users_updates = UserNYCIDDict(
+        is_nyc_employee=False,
+        has_nyc_account=False,
+        active=False,
+        is_anonymous_requester=True
+    )
+
+    public_users_updates = UserNYCIDDict(
+        is_nyc_employee=False,
+        has_nyc_account=False,
+        active=False,
+        is_anonymous_requester=False
+    )
+    agency_users_updates = UserNYCIDDict(
+        is_nyc_employee=True,
+        has_nyc_account=False,
+        active=False,
+        is_anonymous_requester=False
+    )
+
+    anon = Users.query.filter(Users.auth_user_type == user_type_auth.ANONYMOUS_USER).update(
+        anonymous_users_updates, synchronize_session=False)
+
+    public = Users.query.filter(Users.auth_user_type.in_(user_type_auth.PUBLIC_USER_TYPES)).update(
+        public_users_updates, synchronize_session=False)
+
+    agency = Users.query.filter(Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)).update(
+        agency_users_updates, synchronize_session=False)
+    db.session.commit()
 
 if __name__ == "__main__":
     try:

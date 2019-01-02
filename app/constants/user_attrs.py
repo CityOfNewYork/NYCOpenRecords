@@ -63,16 +63,20 @@ class UserAddressDict(dict):
     """
 
     """
-    _keys = ['address_one',
-             'address_two',
-             'city',
-             'state',
-             'zip']
+    _keys = [
+        'address_one',
+        'address_two',
+        'city',
+        'state',
+        'zip'
+    ]
 
-    _valid_keys = ['address_one',
-                   'city',
-                   'state',
-                   'zip']
+    _valid_keys = [
+        'address_one',
+        'city',
+        'state',
+        'zip'
+    ]
 
     def __init__(self, **kwargs):
         super(UserAddressDict, self).__init__(self)
@@ -99,12 +103,27 @@ class UserStatusDict(dict):
     """
 
     """
-    _keys = ['is_agency_admin',
-             'is_agency_active',
-             'is_super']
+    _keys = [
+        'is_agency_admin',
+        'is_agency_active',
+        'is_super'
+    ]
 
     def __init__(self, **kwargs):
         super(UserStatusDict, self).__init__(self)
         self['is_agency_admin'] = kwargs.get('is_agency_admin')
         self['is_agency_active'] = kwargs.get('is_agency_active')
         self['is_super'] = kwargs.get('is_super')
+
+    def __setitem__(self, key, value):
+        if key not in UserStatusDict._keys:
+            raise KeyError
+        dict.__setitem__(self, key, value)
+
+    @property
+    def is_valid(self):
+        valid = [val for val in self.values() if val is not None]
+
+        if valid:
+            return True
+        return False

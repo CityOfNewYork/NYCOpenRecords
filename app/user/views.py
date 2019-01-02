@@ -6,15 +6,13 @@ from flask_login import current_user
 from app.constants import (
     event_type,
     permission,
-    role_name,
-    user_type_request,
     user_attrs
 )
-from app.lib.db_utils import (create_object, delete_object, update_object)
+from app.lib.db_utils import (create_object, update_object)
 from app.lib.utils import eval_request_bool
-from app.models import Agencies, AgencyUsers, Events, Roles, UserRequests, Users
+from app.models import Agencies, AgencyUsers, Events, Users
 from app.user import user
-from app.user_request.utils import create_user_request_event
+from app.user.utils import make_user_admin, remove_user_permissions
 
 
 @user.route('/<user_id>', methods=['PATCH'])
@@ -75,16 +73,21 @@ def patch(user_id):
     if not user_:
         return jsonify({'error': 'Specified user does not exist.'}), 404
 
-
     # Gather Form details
-    is_agency_admin = request.form.get('is_agency_admin')
-    is_agency_active = request.form.get('is_agency_active')
-    is_super = request.form.get('is_super')
+    is_agency_admin = eval_request_bool(request.form.get('is_agency_admin')) if request.form.get('is_agency_admin',
+                                                                                                 None) else None
+    is_agency_active = eval_request_bool(request.form.get('is_agency_active')) if request.form.get('is_agency_active',
+                                                                                                   None) else None
+    is_super = eval_request_bool(request.form.get('is_super')) if request.form.get('is_super', None) else None
+
+    agency_ein = request.form.get('agency_ein', None)
+
+    # Checks that apply if user is changing their own profile
+    changing_self = current_user == user_
 
     # Agency User Restrictions (applies to Admins and Regular Users)
     if user_.is_agency:
         # Endpoint can only be used for a specific agency
-        agency_ein = request.form.get('agency_ein', None)
         if not agency_ein:
             return jsonify({'error': 'agency_ein must be provided to modify an agency user'}), 400
 
@@ -119,10 +122,8 @@ def patch(user_id):
 
             if counter != 1:
                 return jsonify({
-                    'error': 'Only one of is_agency_admin, is_agency_active or is_super can be changed in a single operation.'}), 400
-
-        # Checks that apply if user is changing their own profile
-        changing_self = current_user == user_
+                    'error': 'Only one of is_agency_admin, is_agency_active or is_super '
+                             'can be changed in a single operation.'}), 400
 
         if changing_self:
             # Super users cannot change their own is_super value
@@ -163,9 +164,12 @@ def patch(user_id):
         is_agency_active=request.form.get('is_agency_active'),
         is_super=request.form.get('is_super')
     )
-
-    if not user_editable_fields.is_valid:
-        return jsonify({"error": "Missing contact information."}), 400
+    if changing_self:
+        if not user_editable_fields.is_valid:
+            return jsonify({"error": "Missing contact information."}), 400
+    else:
+        if not status_field_val.is_valid:
+            return jsonify({"error": "User status values invalid"}), 400
 
     # Status Values for Events
     old_status = {}
@@ -232,107 +236,99 @@ def patch(user_id):
             new_value=new_user_attrs,
             **event_kwargs
         ))
-        return jsonify({'success': 'User successfully updated'}), 200
 
-    return jsonify({}), 500
-    #
-    #     if changing_status:
-    #         if ('is_agency_admin' in new) or ('is_agency_active' in new):
-    #             new['agency_ein'] = agency_ein
-    #             update_object(
-    #                 new,
-    #                 AgencyUsers,
-    #                 (user_id, agency_ein)
-    #             )
-    #         else:
-    #             update_object(
-    #                 new,
-    #                 Users,
-    #                 user_id
-    #             )
-    #
-    #         new_statuses = {}
-    #         old_statuses = {}
-    #         for field in status_fields:
-    #             if new.get(field) is not None:
-    #                 new_statuses[field] = new.pop(field)
-    #                 old_statuses[field] = old.pop(field)
-    #
-    #         # TODO: a better way to store user identifiers (than in the value columns)
-    #         new_statuses['user_guid'] = user_.guid
-    #         new_statuses['agency_ein'] = agency_ein
-    #
-    #         is_agency_active = new_statuses.get('is_agency_active')
-    #         is_agency_admin = new_statuses.get('is_agency_admin')
-    #
-    #         # deactivate user
-    #         if is_agency_active is not None and not is_agency_active:
-    #             # remove ALL UserRequests
-    #             for user_request in user_.user_requests.all():
-    #                 create_user_request_event(event_type.USER_REMOVED, user_request)
-    #                 delete_object(user_request)
-    #             # update index
-    #             agency = Agencies.query.filter_by(ein=agency_ein).one()
-    #             for req in agency.requests:
-    #                 req.es_update()
-    #
-    #         elif is_agency_admin is not None:
-    #
-    #             def set_permissions_and_create_event(user_req, perms):
-    #                 """
-    #                 Set permissions for a user request and create a
-    #                 'user_permissions_changed' Event.
-    #
-    #                 :param user_req: user request
-    #                 :param perms: permissions to set for user request
-    #                 """
-    #                 old_permissions = user_req.permissions
-    #                 user_request.set_permissions(perms)
-    #                 create_user_request_event(event_type.USER_PERM_CHANGED,
-    #                                           user_req,
-    #                                           old_permissions)
-    #
-    #             if is_agency_admin:
-    #                 permissions = Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
-    #                 # create UserRequests for ALL existing requests under user's agency where user is not assigned
-    #                 # for where the user *is* assigned, only change the permissions
-    #                 for req in user_.agencies.filter_by(ein=agency_ein).one().requests:
-    #                     user_request = UserRequests.query.filter_by(
-    #                         request_id=req.id,
-    #                         user_guid=user_.guid
-    #                     ).first()
-    #                     if user_request is None:
-    #                         user_request = UserRequests(
-    #                             user_guid=user_.guid,
-    #                             request_id=req.id,
-    #                             request_user_type=user_type_request.AGENCY,
-    #                             permissions=permissions
-    #                         )
-    #                         create_object(user_request)
-    #                         create_user_request_event(event_type.USER_ADDED,
-    #                                                   user_request)
-    #                         user_request.request.es_update()
-    #                     else:
-    #                         set_permissions_and_create_event(user_request, permissions)
-    #                         user_request.request.es_update()
-    #
-    #             else:
-    #                 # update ALL UserRequests (strip user of permissions)
-    #                 for user_request in user_.user_requests.all():
-    #                     set_permissions_and_create_event(user_request, permission.NONE)
-    #                     user_request.request.es_update()
-    #
-    #         # TODO: single email detailing user changes?
-    #
-    #         create_object(Events(
-    #             type_=event_type.USER_STATUS_CHANGED,
-    #             previous_value=old_statuses,
-    #             new_value=new_statuses,
-    #             **event_kwargs
-    #         ))
-    #
-    #     if old:  # something besides status changed ('new' holds user guid and auth type)
-    #
-    #     return jsonify({}), 200
-    # else:
-    #     return jsonify({"message": "No changes detected."}), 200
+    if new_status:
+        new_status['user_guid'] = user_.guid
+        # Update agency admin status and create associated event.
+        if is_agency_admin is not None:
+            new_status['agency_ein'] = agency_ein
+            update_object(
+                new_status,
+                AgencyUsers,
+                (user_.guid, agency_ein)
+            )
+            event_kwargs = {
+                'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
+                'response_id': None,
+                'user_guid': current_user.guid,
+                'timestamp': datetime.utcnow()
+            }
+            if is_agency_admin:
+                create_object(Events(
+                    type_=event_type.USER_MADE_AGENCY_ADMIN,
+                    previous_value=old_user_attrs,
+                    new_value=new_user_attrs,
+                    **event_kwargs
+                ))
+                make_user_admin(user_, agency_ein)
+
+            else:
+                create_object(Events(
+                    type_=event_type.USER_MADE_AGENCY_USER,
+                    previous_value=old_user_attrs,
+                    new_value=new_user_attrs,
+                    **event_kwargs
+                ))
+                remove_user_permissions(user_, agency_ein)
+            return jsonify({'success': 'Agency user successfully updated'}), 200
+        # Update agency active status and create associated event.
+        elif is_agency_active is not None:
+            new_status['agency_ein'] = agency_ein
+            update_object(
+                new_status,
+                AgencyUsers,
+                (user_.guid, agency_ein)
+            )
+            event_kwargs = {
+                'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
+                'response_id': None,
+                'user_guid': current_user.guid,
+                'timestamp': datetime.utcnow()
+            }
+            if is_agency_active:
+                create_object(Events(
+                    type_=event_type.AGENCY_USER_ACTIVATED,
+                    previous_value=old_user_attrs,
+                    new_value=new_user_attrs,
+                    **event_kwargs
+                ))
+            else:
+                create_object(Events(
+                    type_=event_type.AGENCY_USER_DEACTIVATED,
+                    previous_value=old_user_attrs,
+                    new_value=new_user_attrs,
+                    **event_kwargs
+                ))
+                remove_user_permissions(user_, agency_ein)
+            return jsonify({'success': 'Agency user successfully updated'}), 200
+        # Update user super status and create associated event.
+        elif is_super is not None:
+            new_status['agency_ein'] = agency_ein
+            update_object(
+                new_status,
+                AgencyUsers,
+                (user_.guid, agency_ein)
+            )
+            event_kwargs = {
+                'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
+                'response_id': None,
+                'user_guid': current_user.guid,
+                'timestamp': datetime.utcnow()
+            }
+            if is_super:
+                create_object(Events(
+                    type_=event_type.USER_MADE_SUPER_USER,
+                    previous_value=old_user_attrs,
+                    new_value=new_user_attrs,
+                    **event_kwargs
+                ))
+            else:
+                create_object(Events(
+                    type_=event_type.USER_REMOVED_FROM_SUPER,
+                    previous_value=old_user_attrs,
+                    new_value=new_user_attrs,
+                    **event_kwargs
+                ))
+            return jsonify({'success': 'Agency user successfully updated'}), 200
+
+    return jsonify({'status': "No changes detected"}), 200
