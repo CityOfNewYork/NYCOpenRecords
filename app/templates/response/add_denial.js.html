@@ -53,6 +53,17 @@
             required[i].attr("data-parsley-required", "");
         }
 
+        // Custom Validation Messages
+        method.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Denial method is required.</strong> Please select an option from the drop-down menu.");
+        reason_ids.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>A denial reason is requred.</strong> Please select an option.");
+        letter_info.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>A template is requred.</strong> Please select an option from the drop-down-menu.");
+
         next1.click(function (e) {
             method.parsley().validate();
             if (!(method.parsley().isValid())) {
