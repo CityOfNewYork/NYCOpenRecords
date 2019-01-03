@@ -10,20 +10,34 @@ $(function() {
         total = 0,
         canSearch = true,
         searchBtn = $("#search"),
+        searchBtnAdv = $("#search-adv"),
         dateReq = $("#date-req"),
         noResultsFound = true,
         generateDocBtn = $("#generate-document"),
         agencySelect = $("#agency_ein"),
         agencyUserDiv = $("#agency-user-div"),
-        agencyUserSelect = $("#agency_user");
+        agencyUserSelect = $("#agency_user"),
+        resultsHeader = "resultsHeading";
 
+    //Table head values
+    var resultcol = [
+            ['Status',''],
+            ['ID',''],
+            ['Date Submitted', 'sort_date_submitted','desc'],
+            ['Title', 'sort_title','none'],
+            ['Assigned Agency', ''],
+            ['Date Due','sort_date_due','none']
+    ]
+    var sortSequence = ["none", "desc", "asc"];
+
+    // Date stuff
     function dateInvalid(dateElem, msg, highlightDateRequirement) {
         dateElem
             .addClass("bad-input-text")
             .attr('data-content', msg)
             .popover(msg === null ? 'hide' : 'show');
         if (highlightDateRequirement) {
-            dateReq.css("color", "red");
+            dateReq.css("display", "block");
         }
         return false;
     }
@@ -93,12 +107,14 @@ $(function() {
         if (!fromValid || !toValid) {
             canSearch = false;
             searchBtn.attr("disabled", true);
+            searchBtnAdv.attr("disabled", true);
             generateDocBtn.attr("disabled", true);
         }
         else {
             canSearch = true;
             searchBtn.attr("disabled", false);
-            dateReq.css("color", "black");
+            searchBtnAdv.attr("disabled", false);
+            dateReq.css("display", "none");
             if (!noResultsFound) {
                 generateDocBtn.attr("disabled", false);
             }
@@ -146,6 +162,7 @@ $(function() {
     $("#search-section").keyup(function(e){
         if (canSearch && e.keyCode === 13) {
             searchBtn.click();
+            searchBtnAdv.click();
         }
     });
     // but don't submit form (it is only used to generate results document)
@@ -170,6 +187,55 @@ $(function() {
     //     }
     // };
 
+
+    function buildResultsTable (theResults, count, total)
+    {
+
+        var theTable = "";
+        theTable=theTable +'<div class="col-sm-12 searchResults-heading">';
+        theTable=theTable +'<h2 id="resultsHeading" aria-live="assertive" tabindex="0" >' + total + '&nbsp;Results Found</h2> <h3 aria-live="assertive">Displaying Results&nbsp;' + (start + 1) + " - " + (start + count)+'</h3>';
+        theTable=theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="open.svg" > </div><div class="legend legend-closed">Closed=<img src="closed.svg" ></div>';
+        // Activate for Agency view. A flag is needed to determine if view is active
+        // if (agencyView) {
+        //     theTable=theTable + '<div class="legend legend-progress">In-progress=<img src="progress.svg" ></div>';
+        //     theTable=theTable + '<div class="legend legend-soon">Soon=<img src="soon.svg" ></div>';
+        //     theTable=theTable + '<div class="legend legend-overdue">Overdue=<img src="overdue.svg" ></div>';
+        // }
+        theTable=theTable + '</div></div>';
+        theTable=theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
+        theTable=theTable + buildResultsTableHead (resultcol, sortSequence);
+        theTable=theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
+        return(theTable);
+    }
+
+    function buildResultsTableHead (col, sort){
+
+        var tableHead = '';
+
+        for (var i=0; i< col.length; i++){
+
+            if (col[i][1] === '')
+                {
+                tableHead = tableHead + '<th>' + col[i][0] + '</th>';
+                }
+            else
+                {
+                tableHead = tableHead + '<th><button type="button" class="sort-field" data-sort-order="' + col[i][2] +'" id="' + col[i][1] +'">' + col[i][0];
+                var CurrentSort = $("input[name="+ col[i][1]+ "]").val();
+                if (CurrentSort !=""){
+
+                }
+                tableHead = tableHead + '<span class="glyphicon glyphicon-sort" aria-hidden="true"></span>' +
+                                        '<span class="sr-only unsorted">Unsorted</span>' +
+                                        '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>' +
+                                        '<span class="sr-only sorted-asc">Sorted, Ascending</span>' +
+                                        '<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>' +
+                                        '<span class="sr-only sorted-desc">Sorted, Descending</span> </button></th>';
+            }
+        }
+        return tableHead;
+    }
+
     var next = $("#next");
     var prev = $("#prev");
 
@@ -181,14 +247,16 @@ $(function() {
         var results = $("#results");
         var pageInfo = $("#page-info");
 
+
         $.ajax({
             url: "/search/requests",
             data: $("#search-form").serializeArray(),
             success: function(data) {
                 if (data.total !== 0) {
                     noResultsFound = false;
-                    results.html(data.results);
+                    results.html(buildResultsTable(data.results, data.count, data.total));
                     flask_moment_render_all();
+                    $(".pagination").css("display", "flex");
                     pageInfo.text(
                         (start + 1) + " - " +
                         (start + data.count) +
@@ -197,42 +265,45 @@ $(function() {
                     total = data.total;
                     end = start + data.count;
                     if (end === total) {
-                        next.hide();
+                        next.attr("aria-disabled", true);
+                        next.addClass("disabled")
                     }
                     else {
-                        next.show();
+                        next.attr("aria-disabled", false);
+                        next.removeClass("disabled")
                     }
                     if (start === 0) {
-                        prev.hide();
+                        prev.attr("aria-disabled", true);
+                        prev.addClass("disabled")
                     }
                     else {
-                        prev.show();
+                        prev.attr("aria-disabled", false);
+                        prev.removeClass("disabled")
                     }
                     generateDocBtn.attr("disabled", false);
+
                 }
                 else {
                     noResultsFound = true;
-                    results.html("<li class='list-group-item text-center'>" +
-                        "No results found.</li>");
-                    pageInfo.text("");
-                    next.hide();
-                    prev.hide();
+                    results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
+                          "<p class='text-center aria-live='polite''>No results found.</p></div></div>");
                     generateDocBtn.attr("disabled", true);
                 }
             },
             error: function(e) {
-                results.html("<li class='list-group-item text-center'>" +
-                    "Hmmmm.... Looks like something's gone wrong.</li>");
-                pageInfo.text("");
-                next.hide();
-                prev.hide();
+                results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
+                    "<p class='text-center' aria-live='assertive'>Hmmmm.... Looks like something's gone wrong.</p></div></div>");
                 generateDocBtn.attr("disabled", true);
             }
         });
     }
 
     // search on load
-    search();
+    $(document).ready(function(){
+        search();
+
+    });
+
 
     // disable other filters if searching by FOIL-ID
     $("input[name='foil_id']").click(function() {
@@ -246,7 +317,7 @@ $(function() {
             }
         }
         else {
-            query.attr("placeholder", "");
+            query.attr("placeholder", "Enter keywords");
             for (i = 0; i < names.length; i++) {
                 $("input[name='" + names[i] + "']").prop("disabled", false);
             }
@@ -259,21 +330,22 @@ $(function() {
     }
 
     // Sorting
-    var sortOrderToGlyphicon = {
-        desc: "glyphicon-triangle-bottom",
-        asc: "glyphicon-triangle-top",
-        none: "",
-    };
+    function updateSorting(theHeadingId,sequence){
 
-    var sortSequence = ["none", "desc", "asc"];
+        for (var i=0; i< resultcol.length; i++){
+
+            if (resultcol[i][1] === theHeadingId){
+                resultcol[i][2] = sequence;
+                console.log (resultcol[i][2] + "--" + resultcol[i][1]);
+            }
+        }
+    }
 
     function cycleSort(elem) {
         /*
-        * Cycle through sortSequence and 'style' elem with triangle
+        * Cycle through sortSequence and 'style' elem with arrows
         * glyphicons representing sort direction.
         * */
-        var icon = elem.find(".glyphicon");
-        icon.removeClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
 
         elem.attr(
             "data-sort-order",
@@ -281,7 +353,6 @@ $(function() {
                 (sortSequence.indexOf(elem.attr("data-sort-order")) + 1 + sortSequence.length)
                 % sortSequence.length]);
 
-        icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
     }
 
     function resetAndSearch() {
@@ -301,10 +372,19 @@ $(function() {
     });
     searchBtn.click(function () {
         resetAndSearch();
+        scrollToElement(resultsHeader);
+
+    });
+    searchBtnAdv.click(function () {
+        resetAndSearch();
+        scrollToElement(resultsHeader);
+
+
     });
     $("#size").change(function () {
         resetAndSearch();
     });
+
     agencySelect.change(function () {
         agencyUserSelect.empty();
 
@@ -344,31 +424,46 @@ $(function() {
         resetAndSearch();
     });
     next.click(function () {
+        event.preventDefault();
         if (canSearch && end < total) {
             setStart(start + parseInt($("#size").val()));
             search();
+            scrollToElement(resultsHeader);
         }
+
+
     });
     prev.click(function () {
+        event.preventDefault();
         if (canSearch && start > 0) {
             setStart(start - parseInt($("#size").val()));
             search();
+            scrollToElement(resultsHeader);
         }
+
+
     });
 
-    $(".sort-field").click(function () {
+    $('body').on('click', '.sort-field', function() {
         if (canSearch) {
             setStart(0);
             cycleSort($(this));
+
             // fill hidden inputs
             $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
-            search();
+
+            //Update Array to reflect column status
+            updateSorting($(this).attr("id"),$(this).attr("data-sort-order"));
+
+           search();
         }
     });
 
-    // Toggle advanced search options (hide/show) and glyphicons directions on click
-    $("#advanced-options-toggle").click(function() {
-        $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
-        $("#advanced-search-options").toggle();
-    });
+    function scrollToElement(theId){
+        $("#"+theId).focus();
+        $('html, body').animate({
+            scrollTop: $("#"+theId).offset().top
+        }, 500);
+    }
+
 });
