@@ -108,22 +108,13 @@ def patch(user_id):
                 return jsonify({'error': 'User to be modified must belong to agency specified by agency_ein'}), 400
 
         # Non-Agency Admins cannot access endpoint to modify other agency_users
-        if not current_user.is_agency_admin(agency_ein) or not current_user.is_super:
+        if not current_user.is_super and not current_user.is_agency_admin(agency_ein):
             return jsonify({'error': 'User must be agency admin to modify users'}), 403
 
-        # Only one of is_agency_admin, is_agency_active or is_super can be changed in a single operation.
-        status_changes = (is_agency_active, is_agency_admin, is_super)
-
-        if any(status_changes):
-            counter = 0
-            for status in status_changes:
-                if status:
-                    counter += 1
-
-            if counter != 1:
-                return jsonify({
-                    'error': 'Only one of is_agency_admin, is_agency_active or is_super '
-                             'can be changed in a single operation.'}), 400
+        # Cannot modify super status when changing agency active or agency admin status
+        if (is_agency_admin or is_agency_active) and is_super:
+            return jsonify({
+                'error': 'Cannot modify super status when changing agency active or agency admin status'}), 400
 
         if changing_self:
             # Super users cannot change their own is_super value
@@ -238,6 +229,9 @@ def patch(user_id):
         ))
 
     if new_status:
+        redis_key = "{current_user_guid}-{update_user_guid}-{agency_ein}-{timestamp}".format(
+            current_user_guid=current_user.guid, update_user_guid=user_.guid, agency_ein=agency_ein,
+            timestamp=datetime.now())
         new_status['user_guid'] = user_.guid
         # Update agency admin status and create associated event.
         if is_agency_admin is not None:
@@ -260,8 +254,8 @@ def patch(user_id):
                     new_value=new_user_attrs,
                     **event_kwargs
                 ))
-                make_user_admin(user_, agency_ein)
-
+                make_user_admin.apply_async(args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
+                return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
             else:
                 create_object(Events(
                     type_=event_type.USER_MADE_AGENCY_USER,
@@ -269,8 +263,9 @@ def patch(user_id):
                     new_value=new_user_attrs,
                     **event_kwargs
                 ))
-                remove_user_permissions(user_, agency_ein)
-            return jsonify({'success': 'Agency user successfully updated'}), 200
+                remove_user_permissions.apply_async(
+                    args=(user_.guid, current_user.guid, agency_ein, redis_key), task_id=redis_key)
+                return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
         # Update agency active status and create associated event.
         elif is_agency_active is not None:
             new_status['agency_ein'] = agency_ein
@@ -299,8 +294,10 @@ def patch(user_id):
                     new_value=new_user_attrs,
                     **event_kwargs
                 ))
-                remove_user_permissions(user_, agency_ein)
-            return jsonify({'success': 'Agency user successfully updated'}), 200
+                remove_user_permissions.apply_async(
+                    args=(user_.guid, current_user.guid, agency_ein, redis_key), task_id=redis_key)
+                return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
+            return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
         # Update user super status and create associated event.
         elif is_super is not None:
             new_status['agency_ein'] = agency_ein
@@ -329,6 +326,28 @@ def patch(user_id):
                     new_value=new_user_attrs,
                     **event_kwargs
                 ))
-            return jsonify({'success': 'Agency user successfully updated'}), 200
+            return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
 
-    return jsonify({'status': "No changes detected"}), 200
+    return jsonify({'status': "success", 'message': 'No changes detected'}), 200
+
+#
+# @user.route('/update_status', methods=['POST'])
+# def update_status():
+#     update_type = request.form.get('update_type', None)
+#     update_id = request.args.get('update_id', None)
+#
+#     if not update_type:
+#         return jsonify({'status': 'error', 'message': 'Invalid update type'}), 400
+#     if not update_id:
+#         return jsonify({'status': 'error', 'message': 'Invalid task id'}), 400
+#
+#     update_types = {
+#         bulk_updates.MAKE_USER_ADMIN: make_user_admin,
+#         bulk_updates.REMOVE_USER_PERMISSIONS: remove_user_permissions
+#     }
+#
+#     update = update_types[update_type].AsyncResult(update_id)
+#
+#     return jsonify({'status': update.state, 'update_type': update_type}), 202, {
+#         'Location': url_for('user.update_status', update_id=update.id,
+#                             _scheme='https', _external=True)}

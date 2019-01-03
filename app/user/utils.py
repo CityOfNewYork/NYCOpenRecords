@@ -1,13 +1,16 @@
 from datetime import datetime
 
-from flask_login import current_user
-
-from app import db
+from app import (
+    celery,
+    db
+)
 from app.constants import (bulk_updates, event_type, role_name, user_type_request)
-from app.models import (Events, Roles, UserRequests, Users, Requests)
+from app.lib.email_utils import send_email
+from app.models import (Events, Requests, Roles, UserRequests, Users)
 
 
-def make_user_admin(user: Users, agency_ein: str):
+@celery.task(bind=True, name='app.user.utils.make_user_admin')
+def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agency_ein: str):
     """
     Make the specified user an admin for the agency.
 
@@ -19,7 +22,7 @@ def make_user_admin(user: Users, agency_ein: str):
 
     """
     permissions = Roles.query.filter_by(name=role_name.AGENCY_ADMIN).one().permissions
-
+    user = Users.query.filter_by(guid=modified_user_guid).one()
     requests = [request.id for request in user.agencies.filter_by(ein=agency_ein).one().requests]
 
     new_user_requests = []
@@ -76,7 +79,7 @@ def make_user_admin(user: Users, agency_ein: str):
             }
             user_request_event = bulk_updates.UserRequestsEventDict(
                 request_id=request,
-                user_guid=current_user.guid,
+                user_guid=current_user_guid,
                 response_id=None,
                 type=event_type.USER_ADDED,
                 timestamp=datetime.utcnow(),
@@ -84,16 +87,27 @@ def make_user_admin(user: Users, agency_ein: str):
                 new_value=new_value
             )
             new_user_requests_events.append(user_request_event)
+    try:
+        UserRequests.query.filter(UserRequests.user_guid == user.guid).update([('permissions', permissions)])
 
-    UserRequests.query.filter(UserRequests.user_guid == user.guid).update([('permissions', permissions)])
+        db.session.bulk_insert_mappings(Events, update_user_requests_events)
+        db.session.bulk_insert_mappings(UserRequests, new_user_requests)
+        db.session.bulk_insert_mappings(Events, new_user_requests_events)
+        db.session.commit()
 
-    db.session.bulk_insert_mappings(Events, update_user_requests_events)
-    db.session.bulk_insert_mappings(UserRequests, new_user_requests)
-    db.session.bulk_insert_mappings(Events, new_user_requests_events)
-    db.session.commit()
+        admin_user = Users.query.filter_by(guid=current_user_guid).one()
+
+        send_email(
+            subject='User {user_name} Made Admin',
+            to=admin_user.email,
+            email_content='Finished making changes.'
+        )
+    except:
+        db.session.rollback()
 
 
-def remove_user_permissions(user: Users, agency_ein: str):
+@celery.task(bind=True, name='app.user.utils.remove_user_permissions')
+def remove_user_permissions(self, modified_user_guid: str, current_user_guid: str, agency_ein: str):
     """
     Make the specified user an admin for the agency.
 
@@ -104,6 +118,7 @@ def remove_user_permissions(user: Users, agency_ein: str):
     Returns:
 
     """
+    user = Users.query.filter_by(guid=modified_user_guid).one()
     permissions = 0
 
     user_requests = db.session.query(UserRequests, Requests).join(Requests).with_entities(UserRequests.request_id,
@@ -131,7 +146,7 @@ def remove_user_permissions(user: Users, agency_ein: str):
         }
         user_request_event = bulk_updates.UserRequestsEventDict(
             request_id=user_request.request_id,
-            user_id=current_user.guid,
+            user_id=current_user_guid,
             response_id=None,
             type=event_type.USER_PERM_CHANGED,
             timestamp=datetime.utcnow(),
@@ -140,6 +155,18 @@ def remove_user_permissions(user: Users, agency_ein: str):
         )
         update_user_requests_events.append(user_request_event)
 
-    UserRequests.query.filter(UserRequests.user_guid == user.guid).update([('permissions', permissions)])
-    db.session.bulk_insert_mappings(Events, update_user_requests_events)
-    db.session.commit()
+    try:
+        UserRequests.query.filter(UserRequests.user_guid == user.guid).update([('permissions', permissions)])
+        db.session.bulk_insert_mappings(Events, update_user_requests_events)
+        db.session.commit()
+
+        admin_user = Users.query.filter_by(guid=current_user_guid).one()
+
+        send_email(
+            subject='User {user_name} Permissions Removed',
+            to=admin_user.email,
+            email_content='Finished making changes.'
+        )
+
+    except:
+        db.session.rollback()
