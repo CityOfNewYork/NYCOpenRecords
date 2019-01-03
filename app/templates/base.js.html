@@ -1,9 +1,5 @@
 <script type="text/javascript">
     "use strict";
-
-    var webServicesUrl = "{{ config.WEB_SERVICES_URL }}",
-        logoutUrl = "{{ config.LOGOUT_URL }}";
-
     {% if current_user.has_nyc_id_profile %}
         /* Set profile link href value with 'target' parameter being the current page
          * (base64 encoded: https://nyc4d.nycnet/nycid/account-profile.shtml)
@@ -12,37 +8,6 @@
             "href",
             webServicesUrl + "/account?returnOnSave=true&target=" + btoa(window.location.href)
         );
-    {% endif %}
-
-    function idpLogout(afterTimeout) {
-        /* Open NYC.ID Logout page in new tab and close it
-         * after after a 500 milliseconds (the page must have been loaded by this time).
-         * After closing, call afterTimeout if specified.
-         */
-        var logoutTab = window.open(logoutUrl);
-        logoutTab.opener =- null;
-        setTimeout(function() {
-            logoutTab.close();
-            if (typeof afterTimeout === "function") {
-                afterTimeout();
-            }
-        }, 1000);
-    }
-
-    {% if not current_user.is_anonymous %}
-        {% if duplicate_session %}
-            $("#concurrent-session-modal").modal("show");
-        {% endif %}
-        {#$("#logout").click(function(e) {#}
-        {#    /* Before sending user to auth.logout page, open a new tab#}
-        {#     * and logout of the NYC.ID IDP (and close the tab after completion).#}
-        {#     */#}
-        {#    e.preventDefault();#}
-        {#    var logoutPage = this.href;#}
-        {#    idpLogout(function () {#}
-        {#        window.location = logoutPage;#}
-        {#    });#}
-        {#});#}
     {% endif %}
 
     $.ajaxSetup({
@@ -58,45 +23,33 @@
             }
         }
     });
+    {% if current_user.is_authenticated %}
+        $.sessionTimeout({
+            title: 'Your Session is About to Expire!',
+            message: 'Your session is about to expire.',
+            logoutButton: 'Logout',
+            keepAliveButton: 'Stay Connected',
+            keepAliveUrl: '/active',
+            ajaxType: 'POST',
+            ajaxData: '',
+            redirUrl: '/auth/logout?timeout=True&forced_logout=True',
+            logoutUrl: '/auth/logout',
+            warnAfter: 10 * 60 * 1000, // 10 minutes
+            redirAfter: 15 * 60 * 1000, // 15 minutes
+            keepAliveInterval: 5 * 1000, // 5 seconds
+            keepAlive: true,
+            ignoreUserActivity: false,
+            onStart: false,
+            onWarn: false,
+            onRedir: false,
+            countdownMessage: 'You will be automatically logged out in {timer}.',
+            countdownBar: true,
+            countdownSmart: true
+        });
+        {% if duplicate_session %}
+            $("#concurrent-session-modal").modal("show");
+        {% endif %}
+    {% endif %}
 
-    // Configure and start the session timeout monitor
-    var sessMon = sessionMonitor({
-        // Subtract 1 minute to ensure the backend doesn't expire the session first
-        sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} - (60 * 1000),
-        timeBeforeWarning: 5 * 60 * 1000,  // 5 minutes
-        minPingInterval: 60 * 1000,  // 1 minute
-        pingUrl: '{{ BASE_URL }}/active',
-        logoutUrl: '{{ BASE_URL }}/auth/logout',
-        timeoutUrl: '{{ BASE_URL }}/auth/logout?timeout=True&next=',
-        // The "mouseup" event was used instead of "click" because some of the
-        // inner elements on some pages have click event handlers that stop propagation.
-        activityEvents: 'mouseup',
-        onwarning: function () {
-            $("#session-warning-modal").modal("show");
-        },
-        logout: function() {
-            // Logout of IPD and go to the logout page.
-            idpLogout(function() {
-                window.location.href = self.logoutUrl;
-            });
-        }
-    });
-    $(document).ready(function () {
-        // Configure the session timeout warning modal
-        $("#session-warning-modal")
-            .modal({
-                "backdrop": "static",
-                "keyboard": false,
-                "show": false
-            })
-            .on("click", "#stay-logged-in", sessMon.extendsess)
-            .on("click", "#log-out", sessMon.logout)
-            .find("#remaining-time").text(Math.round(sessMon.timeBeforeWarning / 60 / 1000));
-        $("#login-processing-modal").modal({
-            "backdrop": "static",
-            "keyboard": false,
-            "show": false
-        })
-    });
-    window.sessMon = sessMon;
+
 </script>

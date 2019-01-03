@@ -22,7 +22,6 @@ from app.auth.utils import (
     saml_slo, saml_sls, update_openrecords_user
 )
 
-
 @auth.route('/saml', methods=['GET', 'POST'])
 @csrf.exempt
 def saml():
@@ -47,7 +46,7 @@ def saml():
     if 'sso' in request.args or len(request.args) == 0:
         return redirect(onelogin_saml_auth.login())
     elif 'sso2' in request.args:
-        return_to = '%sattrs/' % request.host_url
+        return_to = '{host_url}{endpoint}'.format(host_url=request.host_url, endpoint=request.args.get('sso2', '/')[1:])
         return redirect(onelogin_saml_auth.login(return_to))
     elif 'acs' in request.args:
         return saml_acs(onelogin_saml_auth, onelogin_request)
@@ -83,7 +82,14 @@ def login():
     """
     next_url = request.args.get('next')
 
-    if not current_app.config['USE_LDAP'] and not current_app.config['USE_OAUTH']:
+    if current_app.config['USE_SAML']:
+        if next_url:
+            return redirect(url_for('auth.saml', sso2=next_url))
+
+    if current_app.config['USE_LDAP']:
+        return redirect(url_for('auth.ldap_login', next=next_url))
+
+    else:
         login_form = LDAPLoginForm()
         if request.method == 'POST':
             email = request.form['email']
@@ -116,13 +122,6 @@ def login():
                 'auth/ldap_login_form.html',
                 login_form=login_form,
                 next_url=request.args.get('next', ''))
-
-    if current_app.config['USE_LDAP']:
-        return redirect(url_for('auth.ldap_login', next=next_url))
-
-    if current_app.config['USE_SAML']:
-        if next_url:
-            return redirect(url_for('auth.saml', sso2=next))
 
     return abort(404)
 

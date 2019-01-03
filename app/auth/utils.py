@@ -202,9 +202,9 @@ def saml_acs(saml_sp, onelogin_request):
         self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
 
         if 'RelayState' in request.form and self_url != request.form['RelayState']:
-            return saml_sp.redirect_to(request.form['RelayState'])
+            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'fresh_login': 'true'}))
 
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.index', fresh_login=True))
     return abort(500)
 
 
