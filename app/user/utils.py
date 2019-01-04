@@ -99,7 +99,7 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
 
         send_email(
             subject='User {user_name} Made Admin',
-            to=admin_user.email,
+            to=[admin_user.email],
             email_content='Finished making changes.'
         )
     except:
@@ -118,55 +118,23 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
     Returns:
 
     """
-    user = Users.query.filter_by(guid=modified_user_guid).one()
-    permissions = 0
-
-    user_requests = db.session.query(UserRequests, Requests).join(Requests).with_entities(UserRequests.request_id,
-                                                                                          UserRequests.permissions,
-                                                                                          UserRequests.point_of_contact).filter(
-        Requests.agency_ein == agency_ein, UserRequests.user_guid == user.guid).all()
-
-    update_user_requests = []
-    update_user_requests_events = []
-
-    for user_request in user_requests:
-        user_request_dict = bulk_updates.UserRequestsDict(
-            guid=user.guid,
-            request_id=user_request.request_id,
-            request_user_type=user_type_request.AGENCY,
-            permissions=permissions,
-            point_of_contact=user_request.point_of_contact
-        )
-        update_user_requests.append(user_request_dict)
-        previous_value = {
-            'permissions': user_request.permissions
-        }
-        new_value = {
-            'permissions': permissions
-        }
-        user_request_event = bulk_updates.UserRequestsEventDict(
-            request_id=user_request.request_id,
-            user_id=current_user_guid,
-            response_id=None,
-            type=event_type.USER_PERM_CHANGED,
-            timestamp=datetime.utcnow(),
-            previous_value=previous_value,
-            new_value=new_value,
-        )
-        update_user_requests_events.append(user_request_event)
+    user_requests = db.session.query(UserRequests, Requests).join(Requests).with_entities(
+        UserRequests.request_id).filter(
+        Requests.agency_ein == agency_ein, UserRequests.user_guid == modified_user_guid).all()
+    request_ids = [ur.request_id for ur in user_requests]
 
     try:
-        UserRequests.query.filter(UserRequests.user_guid == user.guid).update([('permissions', permissions)])
-        db.session.bulk_insert_mappings(Events, update_user_requests_events)
+        delete_user_requests_query = UserRequests.__table__.delete().where(UserRequests.user_guid == modified_user_guid,
+                                                                           UserRequests.request_id.in_(request_ids))
+        db.session.execute(delete_user_requests_query)
         db.session.commit()
 
         admin_user = Users.query.filter_by(guid=current_user_guid).one()
 
         send_email(
             subject='User {user_name} Permissions Removed',
-            to=admin_user.email,
+            to=[admin_user.email],
             email_content='Finished making changes.'
         )
-
     except:
         db.session.rollback()

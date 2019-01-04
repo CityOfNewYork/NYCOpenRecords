@@ -427,17 +427,12 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
         'is_anonymous_requester': is_anonymous_requester
     }
 
-    updated_agency_users_data = {
-        'guid': guid
-    }
-
     if guid != user.guid:
         updated_data.update(
             guid=guid
         )
         # Get all the events that need to be changed to associate with the updated GUID.
         events_to_update = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).all()
-        event_ids_to_update = [e.id for e in events_to_update]
 
         # Staging area for update events
         updated_events = []
@@ -459,13 +454,14 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
             
             updated_events.append(('new_value', update['new_value']))
 
-        update_events_count = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).update(updated_events, synchronize_session=False)
-
         update_object(
             updated_data,
             Users,
             user.guid
         )
+
+        Events.query.filter(Events.new_value['user_guid'].astext == old_guid).update(updated_events, synchronize_session=False)
+        UserRequests.query.filter(UserRequests.user_guid == old_guid).update([('user_guid', guid)])
 
         for user_request in user.user_requests:
             Requests.query.filter_by(id=user_request.request_id).one().es_update()

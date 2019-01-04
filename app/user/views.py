@@ -264,7 +264,7 @@ def patch(user_id):
                     **event_kwargs
                 ))
                 remove_user_permissions.apply_async(
-                    args=(user_.guid, current_user.guid, agency_ein, redis_key), task_id=redis_key)
+                    args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
                 return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
         # Update agency active status and create associated event.
         elif is_agency_active is not None:
@@ -295,7 +295,7 @@ def patch(user_id):
                     **event_kwargs
                 ))
                 remove_user_permissions.apply_async(
-                    args=(user_.guid, current_user.guid, agency_ein, redis_key), task_id=redis_key)
+                    args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
                 return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
             return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
         # Update user super status and create associated event.
