@@ -48,7 +48,7 @@ function characterCounter(target, maxLength, currentLength, minLength) {
     }
 }
 
-function generate_character_counter_handler(id, maxLength, minLength) {
+function generateCharacterCounterHandler(id, maxLength, minLength) {
     /*
      * This function creates character counter handlers for when you have multiple events inside a loop
      */
@@ -543,7 +543,7 @@ function renderCustomRequestForm(target) {
                 // initialize character counters in custom forms
                 for (var id in data["character_counters"]) {
                     $("#" + id).keyup(
-                        generate_character_counter_handler(id, data["character_counters"][id]["max_length"], data["character_counters"][id]["min_length"])
+                        generateCharacterCounterHandler(id, data["character_counters"][id]["max_length"], data["character_counters"][id]["min_length"])
                     );
                 }
 

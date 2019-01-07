@@ -1,7 +1,7 @@
 "use strict";
 
 
-function generate_faq_click_handler(id) {
+function generateFaqClickHandler(id) {
     /*
      * This function creates faq link click handlers for when you have multiple events inside a loop
      */
@@ -20,6 +20,6 @@ $(document).ready(function () {
 
     // Create handlers to focus on the FAQ answer paragraph when the link is clicked
     $(".faq-link").each(function (index) {
-        $("#" + this.id).click(generate_faq_click_handler(index + 1));
+        $("#" + this.id).click(generateFaqClickHandler(index + 1));
     });
 });
