@@ -128,9 +128,11 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
     request_ids = [ur.request_id for ur in user_requests]
 
     try:
-        delete_user_requests_query = UserRequests.__table__.delete().where(UserRequests.user_guid == modified_user_guid,
-                                                                           UserRequests.request_id.in_(request_ids))
-        db.session.execute(delete_user_requests_query)
+        db.session.query(UserRequests).filter(UserRequests.user_guid == modified_user_guid,
+                                              UserRequests.request_id.in_(request_ids)).delete(synchronize_session=False)
+        # delete_user_requests_query = UserRequests.__table__.delete().where(UserRequests.user_guid == modified_user_guid,
+        #                                                                    UserRequests.request_id.in_(request_ids))
+        # db.session.execute(delete_user_requests_query)
         db.session.commit()
 
         admin_user = Users.query.filter_by(guid=current_user_guid).one()

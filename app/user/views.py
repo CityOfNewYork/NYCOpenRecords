@@ -79,7 +79,6 @@ def patch(user_id):
     is_agency_active = eval_request_bool(request.form.get('is_agency_active')) if request.form.get('is_agency_active',
                                                                                                    None) else None
     is_super = eval_request_bool(request.form.get('is_super')) if request.form.get('is_super', None) else None
-    deactivate = eval_request_bool(request.form.get('deactivate', None))
 
     agency_ein = request.form.get('agency_ein', None)
 
@@ -99,13 +98,14 @@ def patch(user_id):
 
         if not current_user.is_super:
             # Current user must belong to agency specified by agency_ein
-            current_user_is_agency_admin = agency_ein in [agency.ein for agency in current_user.agencies.all() if
-                                                          current_user.is_agency_admin(agency.ein)]
-            user_in_agency = agency_ein in [agency.ein for agency in user_.agencies.all()]
+            current_user_is_agency_admin = current_user.is_agency_admin(agency.ein)
+
+            # user_in_agency = agency_ein in [agency.ein for agency in user_.agencies.all()]
+            user_in_agency = AgencyUsers.query.filter(AgencyUsers.user_guid == user_.guid, AgencyUsers.agency_ein == agency_ein).one_or_none()
             if not current_user_is_agency_admin:
                 return jsonify({'error': 'Current user must belong to agency specified by agency_ein'}), 400
 
-            if not user_in_agency:
+            if user_in_agency is None:
                 return jsonify({'error': 'User to be modified must belong to agency specified by agency_ein'}), 400
 
         # Non-Agency Admins cannot access endpoint to modify other agency_users
@@ -233,6 +233,7 @@ def patch(user_id):
         redis_key = "{current_user_guid}-{update_user_guid}-{agency_ein}-{timestamp}".format(
             current_user_guid=current_user.guid, update_user_guid=user_.guid, agency_ein=agency_ein,
             timestamp=datetime.now())
+        # TODO: Do we need to put user_guid in old_status for previous_value?
         new_status['user_guid'] = user_.guid
 
         # Update agency admin status and create associated event.
@@ -252,8 +253,8 @@ def patch(user_id):
             if is_agency_admin:
                 create_object(Events(
                     type_=event_type.USER_MADE_AGENCY_ADMIN,
-                    previous_value=old_user_attrs,
-                    new_value=new_user_attrs,
+                    previous_value=old_status,
+                    new_value=new_status,
                     **event_kwargs
                 ))
                 make_user_admin.apply_async(args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
@@ -261,8 +262,8 @@ def patch(user_id):
             else:
                 create_object(Events(
                     type_=event_type.USER_MADE_AGENCY_USER,
-                    previous_value=old_user_attrs,
-                    new_value=new_user_attrs,
+                    previous_value=old_status,
+                    new_value=new_status,
                     **event_kwargs
                 ))
                 remove_user_permissions.apply_async(
@@ -286,15 +287,15 @@ def patch(user_id):
             if is_agency_active:
                 create_object(Events(
                     type_=event_type.AGENCY_USER_ACTIVATED,
-                    previous_value=old_user_attrs,
-                    new_value=new_user_attrs,
+                    previous_value=old_status,
+                    new_value=new_status,
                     **event_kwargs
                 ))
             else:
                 create_object(Events(
                     type_=event_type.AGENCY_USER_DEACTIVATED,
-                    previous_value=old_user_attrs,
-                    new_value=new_user_attrs,
+                    previous_value=old_status,
+                    new_value=new_status,
                     **event_kwargs
                 ))
                 remove_user_permissions.apply_async(
@@ -319,20 +320,18 @@ def patch(user_id):
             if is_super:
                 create_object(Events(
                     type_=event_type.USER_MADE_SUPER_USER,
-                    previous_value=old_user_attrs,
-                    new_value=new_user_attrs,
+                    previous_value=old_status,
+                    new_value=new_status,
                     **event_kwargs
                 ))
             else:
                 create_object(Events(
                     type_=event_type.USER_REMOVED_FROM_SUPER,
-                    previous_value=old_user_attrs,
-                    new_value=new_user_attrs,
+                    previous_value=old_status,
+                    new_value=new_status,
                     **event_kwargs
                 ))
             return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
-
-        # elif deactivate is not None and deactivate:
 
     return jsonify({'status': "success", 'message': 'No changes detected'}), 200
 

@@ -98,7 +98,7 @@ $(function () {
                 url: "/user/" + $(this).val(),
                 type: "PATCH",
                 data: {
-                    deactivate: true,
+                    is_agency_active: false,
                     agency_ein: agencyEin
                 },
                 success: function () {
