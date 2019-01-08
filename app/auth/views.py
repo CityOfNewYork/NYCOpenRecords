@@ -22,6 +22,7 @@ from app.auth.utils import (
     saml_slo, saml_sls, update_openrecords_user
 )
 
+
 @auth.route('/saml', methods=['GET', 'POST'])
 @csrf.exempt
 def saml():

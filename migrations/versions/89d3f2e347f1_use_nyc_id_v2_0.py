@@ -50,6 +50,5 @@ def downgrade():
     op.create_foreign_key('events_user_guid_fkey', 'events', 'users', ['user_guid', 'auth_user_type'], ['guid', 'auth_user_type'], onupdate='CASCADE')
     op.add_column('agency_users', sa.Column('auth_user_type', postgresql.ENUM('Saml2In:NYC Employees', 'LDAP:NYC Employees', 'FacebookSSO', 'MSLiveSSO', 'YahooSSO', 'LinkedInSSO', 'GoogleSSO', 'EDIRSSO', 'AnonymousUser', name='auth_user_type'), autoincrement=False, nullable=False))
     op.drop_constraint(None, 'agency_users', type_='foreignkey')
-    op.drop_constraint(None, 'agency_users', type_='foreignkey')
     op.create_foreign_key('agency_users_user_guid_fkey', 'agency_users', 'users', ['user_guid', 'auth_user_type'], ['guid', 'auth_user_type'], onupdate='CASCADE')
     ### end Alembic commands ###

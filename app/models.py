@@ -49,6 +49,7 @@ from app.lib.utils import (
     DuplicateFileException,
     InvalidDeterminationException
 )
+from elasticsearch.helpers import bulk
 
 
 class Roles(db.Model):

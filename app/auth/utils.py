@@ -12,7 +12,7 @@ import hmac
 import requests
 from base64 import b64encode
 from flask import (
-    abort, current_app, flash, jsonify, redirect, request, session, url_for
+    abort, current_app, flash, redirect, request, session, url_for
 )
 from flask_login import current_user, login_user, logout_user
 from hashlib import sha1
@@ -21,8 +21,7 @@ from requests.exceptions import SSLError
 
 from app import (
     login_manager,
-    sentry,
-    db
+    sentry
 )
 from app.auth.constants import error_msg
 from app.constants.bulk_updates import EventsDict
@@ -30,12 +29,12 @@ from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
     USER_SEARCH_ENDPOINT, USER_ENDPOINT
 )
-from app.lib.utils import eval_request_bool
 from app.lib.db_utils import create_object, update_object
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 from app.lib.user_information import create_mailing_address
-from app.models import AgencyUsers, Events, Requests, Users, UserRequests
+from app.models import AgencyUsers, Events, Users, UserRequests
+from app.user.utils import es_update_assigned_users
 
 
 @login_manager.user_loader
@@ -451,7 +450,7 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
             )
 
             update['new_value']['user_guid'] = guid
-            
+
             updated_events.append(('new_value', update['new_value']))
 
         update_object(
@@ -460,11 +459,11 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
             user.guid
         )
 
-        Events.query.filter(Events.new_value['user_guid'].astext == old_guid).update(updated_events, synchronize_session=False)
+        Events.query.filter(Events.new_value['user_guid'].astext == old_guid).update(updated_events,
+                                                                                     synchronize_session=False)
         UserRequests.query.filter(UserRequests.user_guid == old_guid).update([('user_guid', guid)])
 
-        for user_request in user.user_requests:
-            Requests.query.filter_by(id=user_request.request_id).one().es_update()
+        es_update_assigned_users.apply_async(args=[guid])
 
     else:
         update_object(

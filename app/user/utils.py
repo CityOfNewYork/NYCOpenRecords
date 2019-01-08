@@ -1,8 +1,12 @@
 from datetime import datetime
 
+from elasticsearch.helpers import bulk
+from flask_login import current_app
+
 from app import (
     celery,
-    db
+    db,
+    es
 )
 from app.constants import (bulk_updates, event_type, role_name, user_type_request)
 from app.lib.email_utils import send_email
@@ -138,3 +142,18 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
         )
     except:
         db.session.rollback()
+
+
+@celery.task(bind=True, name='app.user.utils.es_update_assigned_users')
+def es_update_assigned_users(self, user_guid: str):
+    user_requests = UserRequests.query.filter_by(user_guid=user_guid).all()
+
+    actions = [{
+        '_op_type': 'update',
+        '_id': ur.request_id,
+        'doc': {
+            'assigned_users': [user.get_id() for user in ur.request.agency_users]
+        }
+    } for ur in user_requests]
+
+    bulk(es, actions, doc_type='request', index=current_app.config['ELASTICSEARCH_INDEX'])

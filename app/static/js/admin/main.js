@@ -91,18 +91,20 @@ $(function () {
 
     // REMOVE FROM ACTIVE USERS
     $("#remove").click(function () {
+        var idsToRemove = $("input[name^='remove']:checked").parents(".row").find("input[name='user-id']");
         var agencyEin = $("input[name='agency-ein']").val();
-        $.ajax({  // TODO: it would be better if this called a bulk-op endpoint 'users' *once*
-            url: "/user/" + $(this).val(),
-            type: "PATCH",
-            data: {
-                is_agency_active: false,
-                is_agency_admin: false,
-                agency_ein: agencyEin
-            },
-            success: function () {
-                alert("You will receive an email when the changes you requested have been completed.")
-            }
+        idsToRemove.each(function () {
+            $.ajax({  // TODO: it would be better if this called a bulk-op endpoint 'users' *once*
+                url: "/user/" + $(this).val(),
+                type: "PATCH",
+                data: {
+                    deactivate: true,
+                    agency_ein: agencyEin
+                },
+                success: function () {
+                    alert("You will receive an email when the changes you requested have been completed.")
+                }
+            });
         });
     });
 });

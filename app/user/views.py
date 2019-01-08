@@ -79,6 +79,7 @@ def patch(user_id):
     is_agency_active = eval_request_bool(request.form.get('is_agency_active')) if request.form.get('is_agency_active',
                                                                                                    None) else None
     is_super = eval_request_bool(request.form.get('is_super')) if request.form.get('is_super', None) else None
+    deactivate = eval_request_bool(request.form.get('deactivate', None))
 
     agency_ein = request.form.get('agency_ein', None)
 
@@ -233,6 +234,7 @@ def patch(user_id):
             current_user_guid=current_user.guid, update_user_guid=user_.guid, agency_ein=agency_ein,
             timestamp=datetime.now())
         new_status['user_guid'] = user_.guid
+
         # Update agency admin status and create associated event.
         if is_agency_admin is not None:
             new_status['agency_ein'] = agency_ein
@@ -266,6 +268,7 @@ def patch(user_id):
                 remove_user_permissions.apply_async(
                     args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
                 return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
+
         # Update agency active status and create associated event.
         elif is_agency_active is not None:
             new_status['agency_ein'] = agency_ein
@@ -298,6 +301,7 @@ def patch(user_id):
                     args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
                 return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
             return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
+
         # Update user super status and create associated event.
         elif is_super is not None:
             new_status['agency_ein'] = agency_ein
@@ -327,6 +331,8 @@ def patch(user_id):
                     **event_kwargs
                 ))
             return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
+
+        # elif deactivate is not None and deactivate:
 
     return jsonify({'status': "success", 'message': 'No changes detected'}), 200
 
