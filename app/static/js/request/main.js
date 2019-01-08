@@ -580,6 +580,11 @@ function renderCustomRequestForm(target) {
                     return false;
                 });
 
+                // Set custom validation messages
+                for (var id in data["error_messages"]) {
+                    $("#" + id).attr("data-parsley-required-message", data["error_messages"][id]);
+                }
+
                 customRequestFormContent.show();
                 // check to show add new request information button
                 if (showMultipleRequestTypes === true) {
@@ -749,6 +754,7 @@ function processCustomRequestFormData() {
             // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
                 var fieldName = $("label[for='" + this.id + "']").html();
+                fieldName = fieldName.replace(" (required)", "");
                 // add leading zero to fields less than 10 so they can be properly sorted
                 if (fieldNumber < 10) {
                     fieldKey = fieldKey + "0" + fieldNumber;
