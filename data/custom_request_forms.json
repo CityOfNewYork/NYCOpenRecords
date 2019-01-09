@@ -20,7 +20,8 @@
             "tooltip": {
               "title": "Arrest report number tooltip title",
               "content": "Arrest report number tooltip content"
-            }
+            },
+            "help_text": "Arrest report number help text."
           }
         },
         {
@@ -272,7 +273,7 @@
           "Radio Test": {
             "type": "radio",
             "name": "radio-test",
-            "info": "Please select an option",
+            "help_text": "Please select an option",
             "values": [
               "option1",
               "option2",

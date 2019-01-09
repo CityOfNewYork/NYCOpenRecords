@@ -3,6 +3,9 @@
     {% if tooltip %}
         <span id="{{ field_name }}-{{ instance_id }}-tooltip" class="glyphicon glyphicon-question-sign"></span>
     {% endif %}
+    {% if help_text %}
+        <p class="help-text">{{ help_text }}</p>
+    {% endif %}
     <br>
     <select class="input-block-level custom-request-form-data" id="{{ field_name }}-{{ instance_id }}" name="{{ field_name }}-{{ instance_id }}" {% if field_required %}data-parsley-required{% endif %}>
         <option value=""></option>
