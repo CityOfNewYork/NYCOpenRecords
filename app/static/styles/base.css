@@ -59,9 +59,9 @@
     padding: .7rem;
     width: calc(100% - 1.4rem);
     display: block;
-    -moz-box-sizing: content-box;
-    -webkit-box-sizing: content-box;
-    box-sizing: content-box;
+    /*-moz-box-sizing: content-box;*/
+    /*-webkit-box-sizing: content-box;*/
+    /*box-sizing: content-box;*/
 }
 
 .wrapper textarea {
