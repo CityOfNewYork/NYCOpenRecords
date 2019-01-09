@@ -99,6 +99,7 @@ $(function () {
                 type: "PATCH",
                 data: {
                     is_agency_active: false,
+                    is_agency_admin: false,
                     agency_ein: agencyEin
                 },
                 success: function () {

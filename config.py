@@ -148,6 +148,7 @@ class Config:
                                               ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
+    ELASTICSEARCH_CHUNK_SIZE = int(os.environ.get('ELASTICSEARCH_CHUNK_SIZE', 100))
 
     # https://www.elastic.co/blog/index-vs-type
 

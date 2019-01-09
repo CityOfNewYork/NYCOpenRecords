@@ -193,7 +193,7 @@ def create_docs():
         operations,
         index=current_app.config["ELASTICSEARCH_INDEX"],
         doc_type='request',
-        chunk_size=5000,
+        chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE'],
         raise_on_error=True
     )
     current_app.logger.info("Successfully created {num_success} of {total_num} docs.".format(num_success=num_success,

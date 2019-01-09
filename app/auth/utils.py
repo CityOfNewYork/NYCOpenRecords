@@ -463,7 +463,10 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
                                                                                      synchronize_session=False)
         UserRequests.query.filter(UserRequests.user_guid == old_guid).update([('user_guid', guid)])
 
-        es_update_assigned_users.apply_async(args=[guid])
+        request_ids = [ur.request_id for ur in UserRequests.query.with_entities(UserRequests.request_id).filter(
+            UserRequests.user_guid == guid).all()]
+
+        es_update_assigned_users.apply_async(args=[request_ids])
 
     else:
         update_object(

@@ -233,11 +233,50 @@ def patch(user_id):
         redis_key = "{current_user_guid}-{update_user_guid}-{agency_ein}-{timestamp}".format(
             current_user_guid=current_user.guid, update_user_guid=user_.guid, agency_ein=agency_ein,
             timestamp=datetime.now())
-        # TODO: Do we need to put user_guid in old_status for previous_value?
+        old_status['user_guid'] = user_.guid
         new_status['user_guid'] = user_.guid
 
+        old_status['agency_ein'] = agency_ein
+        new_status['agency_ein'] = agency_ein
+
+        # Update agency active status and create associated event. Occurs first because a user can be
+        # activated / deactivated with admin status set to True.
+        if is_agency_active is not None:
+            update_object(
+                new_status,
+                AgencyUsers,
+                (user_.guid, agency_ein)
+            )
+            event_kwargs = {
+                'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
+                'response_id': None,
+                'user_guid': current_user.guid,
+                'timestamp': datetime.utcnow()
+            }
+            if is_agency_active:
+                create_object(Events(
+                    type_=event_type.AGENCY_USER_ACTIVATED,
+                    previous_value=old_status,
+                    new_value=new_status,
+                    **event_kwargs
+                ))
+                if is_agency_admin is not None and is_agency_admin:
+                    make_user_admin.apply_async(args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
+                    return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
+            else:
+                create_object(Events(
+                    type_=event_type.AGENCY_USER_DEACTIVATED,
+                    previous_value=old_status,
+                    new_value=new_status,
+                    **event_kwargs
+                ))
+                remove_user_permissions.apply_async(
+                    args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
+                return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
+            return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
+
         # Update agency admin status and create associated event.
-        if is_agency_admin is not None:
+        elif is_agency_admin is not None:
             new_status['agency_ein'] = agency_ein
             update_object(
                 new_status,
@@ -269,39 +308,6 @@ def patch(user_id):
                 remove_user_permissions.apply_async(
                     args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
                 return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
-
-        # Update agency active status and create associated event.
-        elif is_agency_active is not None:
-            new_status['agency_ein'] = agency_ein
-            update_object(
-                new_status,
-                AgencyUsers,
-                (user_.guid, agency_ein)
-            )
-            event_kwargs = {
-                'request_id': user_.anonymous_request.id if user_.is_anonymous_requester else None,
-                'response_id': None,
-                'user_guid': current_user.guid,
-                'timestamp': datetime.utcnow()
-            }
-            if is_agency_active:
-                create_object(Events(
-                    type_=event_type.AGENCY_USER_ACTIVATED,
-                    previous_value=old_status,
-                    new_value=new_status,
-                    **event_kwargs
-                ))
-            else:
-                create_object(Events(
-                    type_=event_type.AGENCY_USER_DEACTIVATED,
-                    previous_value=old_status,
-                    new_value=new_status,
-                    **event_kwargs
-                ))
-                remove_user_permissions.apply_async(
-                    args=(user_.guid, current_user.guid, agency_ein), task_id=redis_key)
-                return jsonify({'status': 'success', 'message': 'Update task has been scheduled.'}), 200
-            return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
 
         # Update user super status and create associated event.
         elif is_super is not None:

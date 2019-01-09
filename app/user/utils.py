@@ -2,6 +2,7 @@ from datetime import datetime
 
 from elasticsearch.helpers import bulk
 from flask_login import current_app
+from sqlalchemy.orm import joinedload
 
 from app import (
     celery,
@@ -38,7 +39,7 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
     for request in requests:
         existing_value = UserRequests.query.filter_by(request_id=request, user_guid=user.guid).one_or_none()
 
-        if existing_value:
+        if existing_value and existing_value.permissions != permissions:
             user_request = bulk_updates.UserRequestsDict(
                 user_guid=user.guid,
                 request_id=request,
@@ -48,9 +49,11 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
             )
             update_user_requests.append(user_request)
             previous_value = {
+                'user_guid': modified_user_guid,
                 'permissions': existing_value.permissions
             }
             new_value = {
+                'user_guid': modified_user_guid,
                 'permissions': permissions
             }
             user_request_event = bulk_updates.UserRequestsEventDict(
@@ -64,7 +67,7 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
             )
             update_user_requests_events.append(user_request_event)
 
-        else:
+        elif existing_value is None:
             user_request = bulk_updates.UserRequestsDict(
                 user_guid=user.guid,
                 request_id=request,
@@ -101,6 +104,8 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
 
         admin_user = Users.query.filter_by(guid=current_user_guid).one()
 
+        es_update_assigned_users.apply_async(args=[requests])
+
         send_email(
             subject='User {user_name} Made Admin',
             to=[admin_user.email],
@@ -113,7 +118,7 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
 @celery.task(bind=True, name='app.user.utils.remove_user_permissions')
 def remove_user_permissions(self, modified_user_guid: str, current_user_guid: str, agency_ein: str):
     """
-    Make the specified user an admin for the agency.
+    Remove the specified users permissions for the agency identified by agency_ein
 
     Args:
         user (Users): User to be modified
@@ -123,19 +128,37 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
 
     """
     user_requests = db.session.query(UserRequests, Requests).join(Requests).with_entities(
-        UserRequests.request_id).filter(
+        UserRequests.request_id, UserRequests.permissions, UserRequests.point_of_contact).filter(
         Requests.agency_ein == agency_ein, UserRequests.user_guid == modified_user_guid).all()
     request_ids = [ur.request_id for ur in user_requests]
 
+    remove_user_request_events = [bulk_updates.UserRequestsEventDict(
+        request_id=ur.request_id,
+        user_guid=current_user_guid,
+        response_id=None,
+        type=event_type.USER_REMOVED,
+        timestamp=datetime.utcnow(),
+        previous_value={
+            'user_guid': modified_user_guid,
+            'permissions': ur.permissions,
+            'point_of_contact': ur.point_of_contact
+        },
+        new_value={
+            'user_guid': modified_user_guid,
+            'point_of_contact': False
+        }
+    ) for ur in user_requests]
+
     try:
         db.session.query(UserRequests).filter(UserRequests.user_guid == modified_user_guid,
-                                              UserRequests.request_id.in_(request_ids)).delete(synchronize_session=False)
-        # delete_user_requests_query = UserRequests.__table__.delete().where(UserRequests.user_guid == modified_user_guid,
-        #                                                                    UserRequests.request_id.in_(request_ids))
-        # db.session.execute(delete_user_requests_query)
+                                              UserRequests.request_id.in_(request_ids)).delete(
+            synchronize_session=False)
+        db.session.bulk_insert_mappings(Events, remove_user_request_events)
         db.session.commit()
 
         admin_user = Users.query.filter_by(guid=current_user_guid).one()
+
+        es_update_assigned_users.apply_async(args=[request_ids])
 
         send_email(
             subject='User {user_name} Permissions Removed',
@@ -147,15 +170,20 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
 
 
 @celery.task(bind=True, name='app.user.utils.es_update_assigned_users')
-def es_update_assigned_users(self, user_guid: str):
-    user_requests = UserRequests.query.filter_by(user_guid=user_guid).all()
-
+def es_update_assigned_users(self, request_ids: list):
     actions = [{
         '_op_type': 'update',
-        '_id': ur.request_id,
+        '_id': request.id,
         'doc': {
-            'assigned_users': [user.get_id() for user in ur.request.agency_users]
+            'assigned_users': [user.get_id() for user in request.agency_users]
         }
-    } for ur in user_requests]
+    } for request in
+        Requests.query.filter(Requests.id.in_(request_ids)).options(joinedload(Requests.agency_users)).all()]
 
-    bulk(es, actions, doc_type='request', index=current_app.config['ELASTICSEARCH_INDEX'])
+    bulk(
+        es,
+        actions,
+        index=current_app.config['ELASTICSEARCH_INDEX'],
+        doc_type='request',
+        chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE']
+    )
