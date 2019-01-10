@@ -58,16 +58,16 @@
         // Custom Validation Messages
         method.attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>Acknowledgement method is required.</strong> Please select an option from the drop-down menu.");
+            "<strong>Acknowledgement method is required.</strong> Please select an acknowledgment method from the drop-down menu.");
         email_days.attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>This value is required.</strong> Please select an option from the drop-down menu.");
+            "<strong>Estimated time-frame for the request is required.</strong> Please select an estimated time-frame from the drop-down menu or choose a custom due date");
         letter_days.attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>This value is required.</strong> Please select an option from the drop-down menu.");
+            "<strong>Estimated time-frame for the request is required.</strong> Please select an estimated time-frame from the drop-down menu or choose a custom due date.");
         letter_info.attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>A template is required.</strong> Please select an option from the drop-down menu.");
+            "<strong>A template is required.</strong> Please select a template from the drop-down menu.");
 
         // Date Picker - Email
         holiday_dates = {{ holidays | safe }};

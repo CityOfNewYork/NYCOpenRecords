@@ -28,7 +28,7 @@ $(document).ready(function () {
         "<strong>This value should be an email.</strong> Please type in a valid email.");
     subject.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A subject is required.</strong> Please type in a subject name.");
+        "<strong>A subject is required.</strong> Please type in a subject for your message.");
     message.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
         "<strong>A message is required.</strong> Please type in a message.");
