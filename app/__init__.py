@@ -36,7 +36,7 @@ from app.constants import OPENRECORDS_DL_EMAIL
 
 from config import config, Config
 from raven.contrib.flask import Sentry
-
+import app.celery_config
 recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
 es = FlaskElasticsearch()
@@ -64,7 +64,6 @@ calendar = Calendar(
     workdays=[MO, TU, WE, TH, FR],
     holidays=[str(key) for key in holidays.keys()]
 )
-
 
 def create_app(config_name='default', jobs_enabled=True):
     """
@@ -124,6 +123,7 @@ def create_app(config_name='default', jobs_enabled=True):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
+    celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
 
     if jobs_enabled:
