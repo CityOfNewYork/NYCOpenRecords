@@ -24,7 +24,7 @@
         </td>
         <td>
             {{ moment(request._source.date_received).format('MM/DD/YYYY') }}
-        <td>
+        </td>
         <td>
             {% if current_user.is_agency %}
                 <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
