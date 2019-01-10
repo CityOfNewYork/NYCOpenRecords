@@ -5,6 +5,7 @@
     var agencyUserFilter = $("#agency-user-filter");
     var userFilterDiv = $("#user-filter");
     var chartDescription = $("#chart-description");
+    var clearFilter = $("#clear-filter-button");
 
     var ctx = document.getElementById("reportChart");
     var reportChart;
@@ -167,4 +168,25 @@
             })
         });
     }
+
+    clearFilter.click(function () {
+        userFilterDiv.hide();
+        $("#agency-filter").val("all");
+        $.ajax({
+            url: "/report/",
+            type: "GET",
+            data: {
+                agency_ein: agencyFilter.val()
+            },
+            success: function (data) {
+                drawChart(data.labels, data.values);
+                $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. "
+                    + data.values[0] + " requests open, " + data.values[1] + " requests closed.");
+                chartDescription.html("This chart represents the aggregate data of all requests opened on OpenRecords, " +
+                    "along with the status of all requests. <strong>" + data.values[0] + " requests open, " +
+                    data.values[1] + " requests closed.</strong>");
+                chartDescription.focus();
+            }
+        });
+    });
 </script>

@@ -23,12 +23,13 @@
             </div>
 
             {% if current_user.is_agency %}
-            <div id="user-filter">
+            <div id="user-filter" class="form-group">
                 {{ report_filter_form.user.label(for="agency-user-filter") }}
                 <p>This allows the graph to be filtered by the requests assigned to specific users.</p>
                 {{ report_filter_form.user(id="agency-user-filter", class="input-block-level") }}
             </div>
             {% endif %}
+            <button id="clear-filter-button" class="btn btn-primary">Clear Filter</button>
         </div>
     </div>
 {% endblock %}
