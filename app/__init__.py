@@ -16,7 +16,6 @@ from flask import (
     render_template,
     request as flask_request,
 )
-from flask_apscheduler import APScheduler
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
 from flask_tracy import Tracy
@@ -27,8 +26,6 @@ from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CsrfProtect
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
 from app.lib import NYCHolidays, jinja_filters
@@ -46,7 +43,6 @@ moment = Moment()
 mail = Mail()
 tracy = Tracy()
 login_manager = LoginManager()
-scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB,
                                      host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 session_redis = PrefixDecorator('session_', store)
@@ -126,34 +122,11 @@ def create_app(config_name='default', jobs_enabled=True):
     celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
 
-    if jobs_enabled:
-        scheduler.init_app(app)
-
     with app.app_context():
         from app.models import Anonymous
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
         KVSessionExtension(session_redis, app)
-
-    # schedule jobs
-    if jobs_enabled:
-        # NOTE: if running with reloader, jobs will execute twice
-        import jobs
-        scheduler.add_job(
-            'update_request_statuses',
-            jobs.update_request_statuses,
-            name="Update requests statuses every day at 3 AM.",
-            trigger=CronTrigger(hour=3),
-        )
-        scheduler.add_job(
-            'check_sanity',
-            jobs.check_sanity,
-            name="Check if scheduler is running every morning at 8 AM.",
-            # trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
-            trigger=CronTrigger(hour=8)
-        )
-
-        scheduler.start()
 
     # Error Handlers
     @app.errorhandler(400)

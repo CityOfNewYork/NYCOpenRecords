@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import (current_app, render_template)
 import celery
 
-from app import calendar, scheduler, sentry, db
+from app import calendar, sentry, db
 from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
@@ -176,5 +176,7 @@ def _update_request_statuses():
 
 @celery.task()
 def update_next_request_number():
-    Agencies.query.update([('next_request_number', 1)])
+    for agency in Agencies.query.all():
+        agency.next_request_number = 1
+        db.session.add(agency)
     db.session.commit()
