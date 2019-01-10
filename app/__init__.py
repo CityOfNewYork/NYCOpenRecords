@@ -1,39 +1,35 @@
 import atexit
-from datetime import date
 import json
+import logging
+import uuid
+from datetime import date
+from logging import Formatter
+from logging.handlers import SMTPHandler, TimedRotatingFileHandler
 
 import os
-import uuid
 import redis
-import logging
-from logging import Formatter
-from logging.handlers import TimedRotatingFileHandler, SMTPHandler
-from business_calendar import Calendar, MO, TU, WE, TH, FR
+from business_calendar import Calendar, FR, MO, TH, TU, WE
 from celery import Celery
-from flask import (
-    abort,
-    Flask,
-    render_template,
-    request as flask_request,
-)
+from flask import (Flask, abort, render_template, request as flask_request)
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
-from flask_tracy import Tracy
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
+from flask_tracy import Tracy
 from flask_wtf import CsrfProtect
+from raven.contrib.flask import Sentry
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
-from app.lib import NYCHolidays, jinja_filters
-from app.constants import OPENRECORDS_DL_EMAIL
 
-from config import config, Config
-from raven.contrib.flask import Sentry
-import app.celery_config
+from app import celery_config
+from app.constants import OPENRECORDS_DL_EMAIL
+from app.lib import NYCHolidays, jinja_filters
+from config import Config, config
+
 recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
 es = FlaskElasticsearch()
@@ -60,6 +56,7 @@ calendar = Calendar(
     workdays=[MO, TU, WE, TH, FR],
     holidays=[str(key) for key in holidays.keys()]
 )
+
 
 def create_app(config_name='default', jobs_enabled=True):
     """
@@ -190,7 +187,7 @@ def create_app(config_name='default', jobs_enabled=True):
         """
         return {
             'PERMANENT_SESSION_LIFETIME_MS': (
-                app.permanent_session_lifetime.seconds * 1000),
+                    app.permanent_session_lifetime.seconds * 1000),
         }
 
     @app.context_processor
