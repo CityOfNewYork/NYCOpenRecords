@@ -194,7 +194,7 @@ $(function() {
         var theTable = "";
         theTable=theTable +'<div class="col-sm-12 searchResults-heading">';
         theTable=theTable +'<h2 id="resultsHeading" aria-live="assertive" tabindex="0" >' + total + '&nbsp;Results Found</h2> <h3 aria-live="assertive">Displaying Results&nbsp;' + (start + 1) + " - " + (start + count)+'</h3>';
-        theTable=theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="open.svg" > </div><div class="legend legend-closed">Closed=<img src="closed.svg" ></div>';
+        theTable=theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" > </div><div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" ></div>';
         // Activate for Agency view. A flag is needed to determine if view is active
         // if (agencyView) {
         //     theTable=theTable + '<div class="legend legend-progress">In-progress=<img src="progress.svg" ></div>';
