@@ -19,17 +19,6 @@ STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
 
 
-def check_sanity():
-    """
-    Email a messsage indicating the scheduler is still functioning correctly.
-    """
-    with scheduler.app.app_context():
-        send_email(
-            subject="Scheduler Sanity Check",
-            to=[OPENRECORDS_DL_EMAIL],
-            email_content="You got this email, so the OpenRecords scheduler is running."
-        )
-
 @celery.task()
 def update_request_statuses():
     try:

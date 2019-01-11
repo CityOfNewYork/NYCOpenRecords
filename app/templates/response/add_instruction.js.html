@@ -81,14 +81,18 @@
         });
 
         // Apply parsley data required validation to instruction title and url
-        $('#instruction-content').attr('data-parsley-required', '');
+        $("#instruction-content").attr("data-parsley-required", "");
 
         // Apply parsley max length validation to instruction title and url
-        $('#instruction-content').attr('data-parsley-maxlength', '500');
+        $("#instruction-content").attr("data-parsley-maxlength", "500");
 
         // Apply custom validation messages
-        $('#instruction-content').attr('data-parsley-required-message', 'Offline Instructions must be provided');
-        $('#instruction-content').attr('data-parsley-maxlength-message', 'Offline Instructions must be less than 500 characters');
+        $("#instruction-content").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Offline Instructions are required.</strong> Please type in some instructions.");
+        $("#instruction-content").attr("data-parsley-maxlength-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "Offline Instructions must be less than 500 characters.");
 
         // Set character counter for instruction content
         $("#instruction-content").keyup(function () {
