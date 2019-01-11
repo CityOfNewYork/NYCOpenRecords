@@ -5,9 +5,7 @@ CELERY_IMPORTS = ['app.jobs']
 CELERY_TASK_RESULT_EXPIRES = 30
 CELERY_TIMEZONE = 'EST'
 
-CELERY_ACCEPT_CONTENT = ['json', 'msgpack', 'yaml']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
 CELERYBEAT_SCHEDULE = {
     'update_request_statuses': {
