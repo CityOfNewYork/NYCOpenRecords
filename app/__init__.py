@@ -239,8 +239,4 @@ def create_app(config_name='default', jobs_enabled=True):
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
 
-    # exit handling
-    if jobs_enabled:
-        atexit.register(lambda: scheduler.shutdown())
-
     return app
