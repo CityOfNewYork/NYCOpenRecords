@@ -400,11 +400,10 @@ def generate_request_id(agency_ein):
         if Requests.query.filter_by(id=request_id).one_or_none():
             update_object(
                 {'next_request_number': next_request_number + 1},
-                Agencies.query.filter_by(
-                    ein=agency.formatted_parent_ein).one(),
-                Agencies
+                Agencies,
+                agency.ein
             )
-            request_id = generate_request_id(agency_ein)
+            request_id = generate_request_id(agency.ein)
         return request_id
     return None
 
