@@ -65,7 +65,9 @@ $(function () {
                 agency_ein: agencyEin
             },
             success: function () {
-                alert("You will receive an email when the changes you requested have been completed.")
+                if (!alert("You will receive an email when the changes you requested have been completed.")) {
+                    window.location.reload()
+                }
             }
         });
     });
@@ -84,7 +86,9 @@ $(function () {
                 agency_ein: agencyEin
             },
             success: function () {
-                alert("You will receive an email when the changes you requested have been completed.")
+                if (!alert("You will receive an email when the changes you requested have been completed.")) {
+                    window.location.reload()
+                }
             }
         });
     });
@@ -103,7 +107,9 @@ $(function () {
                     agency_ein: agencyEin
                 },
                 success: function () {
-                    alert("You will receive an email when the changes you requested have been completed.")
+                    if (!alert("You will receive an email when the changes you requested have been completed.")) {
+                        window.location.reload()
+                    }
                 }
             });
         });

@@ -11,7 +11,7 @@ from app import (
 )
 from app.constants import (bulk_updates, event_type, role_name, user_type_request)
 from app.lib.email_utils import send_email
-from app.models import (Events, Requests, Roles, UserRequests, Users)
+from app.models import (Agencies, Events, Requests, Roles, UserRequests, Users)
 
 
 @celery.task(bind=True, name='app.user.utils.make_user_admin')
@@ -102,21 +102,27 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
         db.session.bulk_insert_mappings(Events, new_user_requests_events)
         db.session.commit()
 
-        admin_user = Users.query.filter_by(guid=current_user_guid).one()
+        agency = Agencies.query.filter_by(ein=agency_ein).one()
+
+        admin_users = list(
+            set(user.notification_email if user.notification_email is not None else user.email for user in
+                agency.administrators))
 
         es_update_assigned_users.apply_async(args=[requests])
 
         send_email(
-            subject='User {user_name} Made Admin',
-            to=[admin_user.email],
-            email_content='Finished making changes.'
+            subject='User {name} Made Admin'.format(name=user.name),
+            to=admin_users,
+            template='email_templates/email_user_made_agency_admin',
+            agency_name=agency.name,
+            name=user.name
         )
     except:
         db.session.rollback()
 
 
 @celery.task(bind=True, name='app.user.utils.remove_user_permissions')
-def remove_user_permissions(self, modified_user_guid: str, current_user_guid: str, agency_ein: str):
+def remove_user_permissions(self, modified_user_guid: str, current_user_guid: str, agency_ein: str, action: str = None):
     """
     Remove the specified users permissions for the agency identified by agency_ein
 
@@ -131,6 +137,7 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
         UserRequests.request_id, UserRequests.permissions, UserRequests.point_of_contact).filter(
         Requests.agency_ein == agency_ein, UserRequests.user_guid == modified_user_guid).all()
     request_ids = [ur.request_id for ur in user_requests]
+    user = Users.query.filter_by(guid=modified_user_guid).one()
 
     remove_user_request_events = [bulk_updates.UserRequestsEventDict(
         request_id=ur.request_id,
@@ -156,15 +163,30 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
         db.session.bulk_insert_mappings(Events, remove_user_request_events)
         db.session.commit()
 
-        admin_user = Users.query.filter_by(guid=current_user_guid).one()
-
         es_update_assigned_users.apply_async(args=[request_ids])
 
-        send_email(
-            subject='User {user_name} Permissions Removed',
-            to=[admin_user.email],
-            email_content='Finished making changes.'
+        agency = Agencies.query.filter_by(ein=agency_ein).one()
+
+        admin_users = list(
+            set(user.notification_email if user.notification_email is not None else user.email for user in
+                agency.administrators)
         )
+        if action == event_type.AGENCY_USER_DEACTIVATED:
+            send_email(
+                subject='User {name} Deactivated'.format(name=user.name),
+                to=admin_users,
+                template='email_templates/email_agency_user_deactivated',
+                agency_name=agency.name,
+                name=user.name
+            )
+        elif action == event_type.USER_MADE_AGENCY_USER:
+            send_email(
+                subject='User {name} Made Regular User'.format(name=user.name),
+                to=admin_users,
+                template='email_templates/email_user_removed_agency_admin',
+                agency_name=agency.name,
+                name=user.name
+            )
     except:
         db.session.rollback()
 
