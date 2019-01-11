@@ -165,6 +165,10 @@ def _update_request_statuses():
 
 @celery.task()
 def update_next_request_number():
+    """
+    Celery task to automatically update the next request number of each agency to 1
+    :return:
+    """
     for agency in Agencies.query.all():
         agency.next_request_number = 1
         db.session.add(agency)
