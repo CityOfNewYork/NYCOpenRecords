@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import (current_app, render_template)
 import celery
 
-from app import calendar, scheduler, sentry
+from app import calendar, sentry
 from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
@@ -18,17 +18,6 @@ from app.models import Agencies, Emails, Events, Requests
 STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
 
-
-def check_sanity():
-    """
-    Email a messsage indicating the scheduler is still functioning correctly.
-    """
-    with scheduler.app.app_context():
-        send_email(
-            subject="Scheduler Sanity Check",
-            to=[OPENRECORDS_DL_EMAIL],
-            email_content="You got this email, so the OpenRecords scheduler is running."
-        )
 
 @celery.task()
 def update_request_statuses():

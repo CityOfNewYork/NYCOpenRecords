@@ -8,7 +8,7 @@ from logging.handlers import SMTPHandler, TimedRotatingFileHandler
 
 import os
 import redis
-from business_calendar import Calendar, FR, MO, TH, TU, WE
+from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import (Flask, abort, render_template, request as flask_request)
 from flask_bootstrap import Bootstrap
