@@ -7,7 +7,8 @@
                 <h4 class="modal-title">Contact the Agency</h4>
             </div>
             <div class="modal-body">
-                <form id="contact-form" role="form" action="/request/contact/{{ request.id }}" method="POST">
+                <form id="contact-form" role="form" action="/request/contact/{{ request.id }}" method="POST"
+                    data-parsley-focus="first">
                     {{ contact_agency_form.csrf_token }}
 
                     {{ contact_agency_form.first_name.label }}

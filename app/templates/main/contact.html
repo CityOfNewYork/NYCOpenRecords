@@ -13,7 +13,7 @@
             available within the actual request.</p>
         <br/>
         <div>
-            <form id="contact-info" action="{{ url_for('main.technical_support') }}" method="POST" role="form">
+            <form id="contact-info" action="{{ url_for('main.technical_support') }}" method="POST" role="form" data-parsley-focus="first">
 
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
