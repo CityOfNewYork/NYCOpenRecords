@@ -87,7 +87,7 @@ def get():
         requests_closed = len([u for u in ureqs if u.request.status == request_status.CLOSED])
         requests_opened = len([u for u in ureqs if u.request.status != request_status.CLOSED])
 
-    return jsonify({"labels": ["Opened", "Closed"],
+    return jsonify({"labels": ["Open", "Closed"],
                     "values": [requests_opened, requests_closed],
                     "active_users": active_users,
                     "is_visible": is_visible,

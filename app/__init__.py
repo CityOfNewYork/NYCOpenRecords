@@ -1,41 +1,33 @@
-import atexit
-from datetime import date
 import json
+import logging
+import uuid
+from datetime import date
+from logging import Formatter
+from logging.handlers import SMTPHandler, TimedRotatingFileHandler
 
 import os
-import uuid
 import redis
-import logging
-from logging import Formatter
-from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import (
-    abort,
-    Flask,
-    render_template,
-    request as flask_request,
-)
-from flask_apscheduler import APScheduler
+from flask import (Flask, abort, render_template, request as flask_request)
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
-from flask_tracy import Tracy
 from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
+from flask_tracy import Tracy
 from flask_wtf import CsrfProtect
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
+from raven.contrib.flask import Sentry
 from simplekv.decorator import PrefixDecorator
 from simplekv.memory.redisstore import RedisStore
-from app.lib import NYCHolidays, jinja_filters
-from app.constants import OPENRECORDS_DL_EMAIL
 
-from config import config, Config
-from raven.contrib.flask import Sentry
+from app import celery_config
+from app.constants import OPENRECORDS_DL_EMAIL
+from app.lib import NYCHolidays, jinja_filters
+from config import Config, config
 
 recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
@@ -46,7 +38,6 @@ moment = Moment()
 mail = Mail()
 tracy = Tracy()
 login_manager = LoginManager()
-scheduler = APScheduler()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB,
                                      host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 session_redis = PrefixDecorator('session_', store)
@@ -124,10 +115,8 @@ def create_app(config_name='default', jobs_enabled=True):
     login_manager.init_app(app)
     mail.init_app(app)
     celery.conf.update(app.config)
+    celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
-
-    if jobs_enabled:
-        scheduler.init_app(app)
 
     with app.app_context():
         from app.models import Anonymous
@@ -137,26 +126,6 @@ def create_app(config_name='default', jobs_enabled=True):
             login_manager.login_message = None
             login_manager.login_message_category = None
         KVSessionExtension(session_redis, app)
-
-    # schedule jobs
-    if jobs_enabled:
-        # NOTE: if running with reloader, jobs will execute twice
-        import jobs
-        scheduler.add_job(
-            'update_request_statuses',
-            jobs.update_request_statuses,
-            name="Update requests statuses every day at 3 AM.",
-            trigger=CronTrigger(hour=3),
-        )
-        scheduler.add_job(
-            'check_sanity',
-            jobs.check_sanity,
-            name="Check if scheduler is running every morning at 8 AM.",
-            # trigger=IntervalTrigger(minutes=1)  # TODO: switch to cron below after testing
-            trigger=CronTrigger(hour=8)
-        )
-
-        scheduler.start()
 
     # Error Handlers
     @app.errorhandler(400)
@@ -220,7 +189,7 @@ def create_app(config_name='default', jobs_enabled=True):
         """
         return {
             'PERMANENT_SESSION_LIFETIME_MS': (
-                app.permanent_session_lifetime.seconds * 1000),
+                    app.permanent_session_lifetime.seconds * 1000),
         }
 
     @app.context_processor
@@ -271,9 +240,5 @@ def create_app(config_name='default', jobs_enabled=True):
 
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
-
-    # exit handling
-    if jobs_enabled:
-        atexit.register(lambda: scheduler.shutdown())
 
     return app

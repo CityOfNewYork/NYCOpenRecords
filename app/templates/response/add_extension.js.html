@@ -273,26 +273,45 @@
         $("#custom-extension-letter").keydown(false);
 
         // Loop through required fields and apply a data-parsley-required attribute to them
-        var required_fields = ['custom-extension','custom-extension-letter', 'extension-select',
-                               'extension-select-letter', 'extension-reason', 'extension-method'];
+        var required_fields = ["custom-extension","custom-extension-letter", "extension-select",
+                               "extension-select-letter", "extension-reason", "extension-method"];
         for (var i = 0; i < required_fields.length; i++) {
-            $('#' + required_fields[i]).attr('data-parsley-required', '');
+            $("#" + required_fields[i]).attr("data-parsley-required", "");
         }
 
         // Apply parsley minimum length validation to extension reason
-        $('#extension-reason').attr('data-parsley-minlength', '20');
-        $('#extension-reason').attr('data-parsley-maxlength', '5000');
+        $("#extension-reason").attr("data-parsley-minlength", "20");
+        $("#extension-reason").attr("data-parsley-maxlength", "5000");
 
         // Apply parsley minimum length validation to extension reason
-        $('#extension-reason').attr('data-parsley-minlength','20');
-        $('#extension-reason').attr('data-parsley-maxlength','5000');
+        $("#extension-reason").attr("data-parsley-minlength","20");
+        $("#extension-reason").attr("data-parsley-maxlength","5000");
 
         // Apply custom validation messages
-        $('#custom-extension').attr('data-parsley-required-message', 'Extension date must be chosen');
-        $('#extension-select').attr('data-parsley-required-message', 'Extension length must be selected');
-        $('#custom-extension-letter').attr('data-parsley-required-message', 'Extension date must be chosen');
-        $('#extension-select-letter').attr('data-parsley-required-message', 'Extension length must be selected');
-        $('#extension-reason').attr('data-parsley-minlength-message', 'Extension reason must be at least 20 characters');
+        method.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension method is required.</strong> Please select an extension method from the drop-down menu.");
+        letter_info.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>A template is required.</strong> Please select a template from the drop-down menu.");
+        $("#custom-extension").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension date must be chosen.</strong>");
+        $("#extension-select").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension duration is required. Please select an extension duration from the drop-down menu.</strong>");
+        $("#extension-reason").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension reason is required.</strong> Please type in a reason.");
+        $("#custom-extension-letter").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension date must be chosen.</strong>");
+        $("#extension-select-letter").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension length must be selected.</strong>");
+        $("#extension-reason").attr("data-parsley-minlength-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Extension reason must be at least 20 characters.</strong>");
 
         // Set character counter for extension reason
         $("#extension-reason").keyup(function () {
