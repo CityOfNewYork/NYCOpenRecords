@@ -7,17 +7,40 @@
 from datetime import datetime
 from urllib.parse import urljoin
 
-from flask import (abort, flash, redirect, render_template, request, session, url_for)
-from flask_login import (current_app, current_user, login_required, login_user, logout_user)
+from flask import (
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for
+)
+from flask_login import (
+    current_app,
+    current_user,
+    login_required,
+    login_user,
+    logout_user
+)
 from oauthlib.oauth2 import MobileApplicationClient
 from requests_oauthlib import OAuth2Session
 
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
-from app.auth.forms import LDAPLoginForm, ManageAgencyUserAccountForm, ManageUserAccountForm
+from app.auth.forms import (
+    LDAPLoginForm,
+    ManageAgencyUserAccountForm,
+    ManageUserAccountForm
+)
 from app.auth.utils import (
-    fetch_user_json, find_user_by_email, handle_user_data, is_safe_url, ldap_authentication,
-    revoke_and_remove_access_token, update_openrecords_user
+    fetch_user_json,
+    find_user_by_email,
+    handle_user_data,
+    is_safe_url,
+    ldap_authentication,
+    revoke_and_remove_access_token,
+    update_openrecords_user
 )
 from app.constants.web_services import AUTH_ENDPOINT
 from app.lib.db_utils import update_object

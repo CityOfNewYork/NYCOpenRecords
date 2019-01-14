@@ -9,7 +9,7 @@
             <br>
             <form method="POST" action="{{ url_for('auth.login') }}">
                 {{ login_form.csrf_token }}
-                <input type="hidden" value="{{ next_url }}" name="next">
+                <input type="hidden" value="{{ next_url }}" name="next" aria-label="Next URL">
                 <p>
                     {{ login_form.email.label }}
                     {{ login_form.email(class="form-control") }}
