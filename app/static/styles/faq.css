@@ -1,0 +1,15 @@
+.faq-link {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 30px;
+}
+
+.faq-question {
+    font-size: 18px;
+}
+
+.faq-answer {
+    margin-bottom: 0;
+}

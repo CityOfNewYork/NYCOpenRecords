@@ -101,6 +101,10 @@
 .clear-file-button {
     background-color: #dc3545;
     border-color: #dc3545;
+    margin-bottom: 10px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    display: none;
 }
 
 .agency-instructions-title {
@@ -158,4 +162,10 @@ input[type=text] .file-text-input {
     box-shadow: 0 0 5px #595959;
     border-color: #4D90FE;
     outline: 2px solid transparent;
+}
+
+.parsley-maxFileSize {
+    font-size: 14px;
+    color: #df0000;
+    padding-bottom: 10px;
 }

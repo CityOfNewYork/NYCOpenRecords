@@ -48,7 +48,7 @@ function characterCounter(target, maxLength, currentLength, minLength) {
     }
 }
 
-function generate_character_counter_handler(id, maxLength, minLength) {
+function generateCharacterCounterHandler(id, maxLength, minLength) {
     /*
      * This function creates character counter handlers for when you have multiple events inside a loop
      */
@@ -543,7 +543,7 @@ function renderCustomRequestForm(target) {
                 // initialize character counters in custom forms
                 for (var id in data["character_counters"]) {
                     $("#" + id).keyup(
-                        generate_character_counter_handler(id, data["character_counters"][id]["max_length"], data["character_counters"][id]["min_length"])
+                        generateCharacterCounterHandler(id, data["character_counters"][id]["max_length"], data["character_counters"][id]["min_length"])
                     );
                 }
 
@@ -579,6 +579,11 @@ function renderCustomRequestForm(target) {
                     $(this).prop("selected", !$(this).prop("selected"));
                     return false;
                 });
+
+                // Set custom validation messages
+                for (var id in data["error_messages"]) {
+                    $("#" + id).attr("data-parsley-required-message", data["error_messages"][id]);
+                }
 
                 customRequestFormContent.show();
                 // check to show add new request information button
@@ -749,6 +754,7 @@ function processCustomRequestFormData() {
             // loop through each form field to get the value
             $("#custom-request-form-content-" + target + " > .custom-request-form-field > .custom-request-form-data").each(function () {
                 var fieldName = $("label[for='" + this.id + "']").html();
+                fieldName = fieldName.replace(" (required)", "");
                 // add leading zero to fields less than 10 so they can be properly sorted
                 if (fieldNumber < 10) {
                     fieldKey = fieldKey + "0" + fieldNumber;

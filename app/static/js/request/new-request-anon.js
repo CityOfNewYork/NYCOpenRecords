@@ -125,34 +125,6 @@ $(document).ready(function () {
         currentValues[customRequestFormCounter - 1] = "";
     });
 
-    // javascript to add tooltip popovers when selecting the title and description
-    $("#request-title").attr({
-        "data-placement": "top",
-        "data-trigger": "hover focus",
-        "data-toggle": "popover",
-        "data-content": "Queens Blvd Roadwork Permit. Do NOT put private names, phone numbers, home address, date of birth, etc.",
-        title: "Example Title"
-    });
-    $("#request-title").popover();
-    // $("#request-title").click(function(){
-    //     $("#request-title").popover("show");
-    // });
-
-    $("#request-description").attr({
-        "data-placement": "top",
-        "data-trigger": "hover focus",
-        "data-toggle": "popover",
-        "data-content": "Roadwork permits for work done in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and October 2017.",
-        title: "Example Request"
-    });
-    $("#request-description").click(function () {
-        $("#request-description").popover("show");
-    });
-    $("#request-description").popover();
-    // $("#request-description").click(function(){
-    //     $("#request-description").popover("show");
-    // });
-
     // jQuery mask plugin to format fields
     $("#phone").mask("(999) 999-9999");
     $("#fax").mask("(999) 999-9999");
@@ -181,9 +153,33 @@ $(document).ready(function () {
     $("#zipcode").attr("data-parsley-length", "[5,5]");
 
     // Custom Validation Messages
-    $("#fax").attr("data-parsley-length-message", "The fax number must be 10 digits.");
-    $("#phone").attr("data-parsley-length-message", "The phone number must be 10 digits.");
-    $("#zipcode").attr("data-parsley-length-message", "The Zipcode must be 5 digits.");
+    $("#request-agency").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>An agency is required.</strong> Please select an agency from the drop-down menu.");
+    $("#request-title").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>A title is required.</strong> Please type in a short title for your request.");
+    $("#request-description").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>A description is required.</strong> Please type in a detailed description of your request.");
+    $("#first-name").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>A first name is required.</strong> Please type in a your first name.");
+    $("#last-name").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>A last name is required.</strong> Please type in a your last name.");
+    $("#email").attr("data-parsley-type-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>This value should be an email.</strong> Please type in a valid email.");
+    $("#fax").attr("data-parsley-length-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>The fax number must be 10 digits.</strong>");
+    $("#phone").attr("data-parsley-length-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>The phone number must be 10 digits.</strong>");
+    $("#zipcode").attr("data-parsley-length-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>The zipcode must be 5 digits.</strong>");
 
     // Disable default error messages for email,phone,fax,address so custom one can be used instead.
     $("#phone").attr("data-parsley-required-message", "");
@@ -202,22 +198,15 @@ $(document).ready(function () {
     // Set name of the file to the text of filename div if file exists
     $("#request-file").change(function () {
         var file = this.files[0];
-        var isChrome = window.chrome;
 
         if (file) {
             // return chosen filename to additional input
             var filename = this.files[0].name;
             $("#filename").val(filename);
-            $("#filename").attr("placeholder", filename);
+            $("#filename").removeAttr("placeholder");
             $("#filename").focus();
-        }
-        // Cancel is clicked on upload window
-        else {
-            // If browser is chrome, reset filename text
-            if (isChrome) {
-                $("#filename").val("");
-                $("#filename").attr("placeholder", "No file uploaded");
-            }
+            $("#choose-file").hide();
+            $("#clear-file").show();
         }
     });
 
@@ -229,10 +218,13 @@ $(document).ready(function () {
         $("#request-file").val("");
         $("#filename").val("");
         $("#filename").attr("placeholder", "No file uploaded");
+        $("#clear-file").hide();
+        $("#choose-file").show();
+        $("#choose-file-button").focus();
     });
 
     // trigger file explorer on space and enter
-    $("#buttonlabel span[role=button]").bind("keypress keyup", function (e) {
+    $("#choose-file span[role=button]").bind("keypress keyup", function (e) {
         if (e.which === 32 || e.which === 13) {
             e.preventDefault();
             $("#request-file").click();
@@ -271,7 +263,9 @@ $(document).ready(function () {
         }
         else {
             // If none of the fields are valid then produce an error message and apply required fields.
-            $(".contact-form-error-message").html("*At least one of the following must be filled out: Email, Phone, Fax, and/or Address (with City, State, and Zipcode)");
+            $(".contact-form-error-message").html("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                "<strong>Contact information is required.</strong>" +
+                " Please fill out at least one of the following: Email, Phone, Fax, and/or Address (with City, State, and Zipcode)");
             $("#fax").attr("data-parsley-required", "");
             $("#phone").attr("data-parsley-required", "");
             $("#address-line-1").attr("data-parsley-required", "");
@@ -308,6 +302,21 @@ $(document).ready(function () {
         else if ($("#email").parsley().isValid() === false) {
             $(window).scrollTop($(".email-label").offset().top);
         }
+    });
+
+    $("#request-form").parsley().on("form:error", function () {
+        // Add tab index to any error messages
+        $(".parsley-required").each(function () {
+            // Only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
+        $(".parsley-length").each(function () {
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
     });
 
     // Clear error messages for form.request_file on submit...

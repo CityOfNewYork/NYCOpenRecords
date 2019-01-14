@@ -15,7 +15,7 @@
     <div id="container-fluid">
         <div class="col-sm-10 col-sm-push-1" role="main">
             <form method="post" class="form" role="form" id="request-form" enctype=multipart/form-data
-                  data-parsley-validate>
+                  data-parsley-validate data-parsley-focus="first">
                 {{ form.csrf_token }}
 
                 <h1>Request a Record</h1>
@@ -26,22 +26,17 @@
                     notify
                     you about how much time is required to
                     respond to your request.</p>
+
                 {# Dropdown field Category for a Request #}
                 {{ form.request_category.label(class="request-heading", for="request-category") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Category Field"
-                      data-content="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
-                      aria-label="Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
+                <p>Selecting a category helps clarify which agency will receive the request by listing agencies grouped by categories.</p>
                 {{ form.request_category(id="request-category", class="input-block-level") }}<br>
+
                 {# Field for the agency that the request will be submitted to #}
                 {{ form.request_agency.label(class="request-heading agency-label", for="request-agency") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency Field"
-                      data-content="List of all agencies available within OpenRecords that would handle your request."
-                      aria-label="List of all agencies available within OpenRecords that would handle your request."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
+                <p>Select the agency that will handle your request.</p>
                 {{ form.request_agency(id="request-agency", class="input-block-level") }}<br>
+
                 <div class="panel panel-info agency-instructions-panel" id="request-agency-instructions" hidden>
                     <div class="panel-heading">
                         <p class="panel-title agency-instructions-title">
@@ -55,38 +50,30 @@
                         <div class="panel-body" id="request-agency-instructions-content"></div>
                     </div>
                 </div>
+
                 {# Title of request #}
                 {{ form.request_title.label(class="request-heading title-label", for="request-title") }}
-                <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Title Field"
-                      data-content="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                      aria-label="Enter a brief title for your request, title will be made public and limited to 90 characters."
-                      class="glyphicon glyphicon-question-sign">
-                </span>
-
+                {{ form.request_title(id="request-title", class="input-block-level",
+                        placeholder="Please provide a short summary of your request.", maxlength="90", **{'aria-label':"Request title, required, 90 character limit"}) }}
+                <p id="title-character-count" class="character-counter">90 characters remaining</p>
                 <div class="alert alert-warning">
                     <p><b>Note: The agency, category, and title of your request will be visible to the public. Do not
-                        enter personal information here.</b></p>
+                        enter personal information here.<br><br>Ex: Queens Blvd Roadwork Permit.</b></p>
                 </div>
-                {{ form.request_title(id="request-title", class="input-block-level",
-                        placeholder="Please provide a short summary of your request.", maxlength="90") }}
-                <p id="title-character-count" class="character-counter">90 characters remaining</p>
 
                 {# Description of Request #}
                 <div id="request-description-section">
                     {{ form.request_description.label(class="request-heading description-label", for="request-description") }}
-                    <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Description Field"
-                          data-content="Enter a detailed description of the request."
-                          aria-label="Enter a detailed description of the request."
-                          class="glyphicon glyphicon-question-sign">
-                    </span>
-                    <div class="alert alert-warning">
-                        <p><b>Note: The request details you write here will not be visible to the public. However, the
-                            agency may post a description of the records provided.</b></p>
-                    </div>
                     {{ form.request_description(id="request-description", class="input-block-level",
                     placeholder="Provide more information about your request to help the City locate the record. If you don't know the record name, describe the type of information you think it would contain and the approximate date range. Do not include private information such as a social security # or credit card.",
-                        maxlength="5000") }}
+                        maxlength="5000", **{'aria-label':"Request description, required, 5000 character limit"}) }}
                     <p id="description-character-count" class="character-counter">5000 characters remaining</p>
+                    <div class="alert alert-warning">
+                        <p><b>Note: The request details you write here will not be visible to the public. However, the
+                            agency may post a description of the records provided.<br><br>Ex: Roadwork permits for work done
+                            in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and
+                            October 2017.</b></p>
+                    </div>
                 </div>
 
                 {# Dropdown for request type based on custom request forms #}
@@ -121,6 +108,8 @@
                                     <strong class="modal-title">Confirm Delete</strong>
                                 </div>
                                 <div class="modal-body">
+                                    Are you sure you want to delete this form? All your entered
+                                    information will be lost.
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -157,23 +146,19 @@
 
                 {# Upload field for user to add files #}
                 <div id="upload-control" class="col-sm-12">
-                    {{ form.request_file.label(class="request-heading", for="request-file") }}
-                    &nbsp;<span class="request-heading">(Must be less than 20 Mb)</span>
+                    {{ form.request_file.label(class="request-heading", for="request-file", tabindex=0) }}
                     <br>
-                    <div class="alert alert-danger file-error" hidden></div>
-                    <label for="request-file" id="buttonlabel">
-                    <span role="button" aria-controls="filename" tabindex="0">
+                    <div class="file-error" tabindex="0" hidden></div>
+                    <label for="request-file" id="choose-file" aria-live="assertive">
+                    <span id="choose-file-button" role="button" aria-controls="filename" tabindex="0">
                       Choose File
                     </span>
                     </label>
-                    <button type="button" id="clear-file" class="btn btn-danger pull-right clear-file-button">Clear
+                    <button type="button" id="clear-file" class="btn btn-danger clear-file-button" aria-live="assertive">Clear
                         File
                     </button>
                     {{ form.request_file(id="request-file", style="display:none") }}
-                    <label for="filename" aria-label="file name" class="hide">
-                        Filename
-                    </label>
-                    <input class="file-text-input" type="text" id="filename" autocomplete="off" readonly placeholder="No file uploaded">
+                    <input class="file-text-input" type="text" id="filename" aria-label="Uploaded filename" aria-readonly="true" readonly autocomplete="off" placeholder="No file uploaded">
                     {% if form.request_file.errors %}
                         {% for error in form.request_file.errors %}
                             <div class="alert alert-danger upload-error">{{ error }}</div>
@@ -183,23 +168,23 @@
 
                 <h2>Personal Information</h2>
 
-                <p>First and last name fields are required. The Email field is optional but recommended.</p>
+                <p>First and last name fields are required. The Email field is optional but recommended. If you do not provide an email you must enter either a phone number, fax number, or address in the Alternate Contact Information section.</p>
                 <p>This information will not be publicly viewable on this site. You must provide contact
                     information so that the agency can respond to your request for records.</p>
                 {# First name field #}
                 {{ form.first_name.label(class="request-heading first-name-label", for="first-name") }}
-                {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32") }}
+                {{ form.first_name(id="first-name", class="input-block-level", placeholder="John", maxlength="32", **{'aria-label':"First name, required, 32 character limit"}) }}
                 <p id="first-name-character-count" class="character-counter">32 characters remaining</p><br>
                 {# Last name field #}
                 {{ form.last_name.label(class="request-heading last-name-label", for="last-name") }}
-                {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64") }}
+                {{ form.last_name(id="last-name", class="input-block-level", placeholder="Doe", maxlength="64", **{'aria-label':"Last name, required, 64 character limit"}) }}
                 <p id="last-name-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Email field #}
                 {{ form.email.label(class="request-heading email-label", for="email") }}
                 {{ form.email(id="email", class="input-block-level",
                 placeholder="requester@email.com", maxlength="254") }}<br>
 
-                <div class="contact-form-error-message"></div>
+                <div class="contact-form-error-message" tabindex="0"></div>
 
                 <h2>Alternate Contact Information</h2>
 
@@ -208,12 +193,12 @@
                 {# Title of user #}
                 {{ form.user_title.label(class="request-heading", for="user-title") }}
                 {{ form.user_title(id="user-title", class="input-block-level",
-                placeholder="Your role in your organization (if applicable)", maxlength="64") }}
+                placeholder="Your role in your organization (if applicable)", maxlength="64", **{'aria-label':"Title, optional, 64 character limit"}) }}
                 <p id="user-title-character-count" class="character-counter">64 characters remaining</p><br>
                 {# Organization user belongs to #}
                 {{ form.user_organization.label(class="request-heading", for="user-organization") }}
                 {{ form.user_organization(id="user-organization", class="input-block-level",
-                placeholder="Your organization (if applicable)", maxlength="128") }}
+                placeholder="Your organization (if applicable)", maxlength="128", **{'aria-label':"Organization, optional, 128 character limit"}) }}
                 <p id="organization-character-count" class="character-counter">128 characters remaining</p><br>
                 {# User's phone number #}
                 {{ form.phone.label(class="request-heading", for="phone") }}

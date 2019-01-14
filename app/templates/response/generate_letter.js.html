@@ -17,7 +17,9 @@
         var letter_template_id = first.find("#letter-template-id");
 
         // Parsley
-        letter_template_id.attr("data-parsley-required", "");
+        letter_template_id.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>A template is required.</strong> Please select a template from the drop-down menu.");
 
         next1.click(function (e) {
             letter_template_id.parsley().validate();
