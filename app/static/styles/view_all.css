@@ -277,3 +277,7 @@ div.search-results .pagination .newrecord-wrap {
 .errorResults {
     padding: 1.8rem;
 }
+
+#query {
+    height: 24px;
+}
