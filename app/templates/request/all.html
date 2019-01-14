@@ -9,169 +9,197 @@
 {% endblock %}
 
 {% block content %}
-    <form id="search-form" action="https://a860-openrecords.nyc.gov/search/requests/csv" method="get" target="_blank" rel="noreferrer">
+    <form id="search-form" action="https://a860-openrecords.nyc.gov/search/requests/csv" method="get" target="_blank"
+          rel="noreferrer">
         <div class="row">
-                <div class="col-sm-12">
-                    <h1>Explore OpenRecords Requests</h1>
-                    <p>OpenRecords makes every public request available using the View Requests option, including
-                        messages or documents uploaded by agency staff. By searching the requests, you may find the
-                        information you are interested in before requesting documents. This will save time for you
-                        and for the City of New York.</p>
-                </div>
-                <div class="col-sm-12 well form-group">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label for="searchTerms" class="h4"><strong>Search Term(s)</strong><button data-toggle="collapse" data-target="#helptext-search" aria-expanded="false" aria-controls="helptext-search" type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span aria-hidden="true"></span></button></label>
-                                <div class="helptext-wrapper bg-info collapse" id="helptext-search">
-                                    <p class="helptext text-white">
-                                            Enter keywords to search by request titles and agency descriptions. If you know the FOIL ID
-                                            you can search for a specific request. To refine your search, select Advanced Search Options below.
-                                    </p>
-                                </div>
-                            <div class="input-group input-group-lg">
-                                <input type="text" class="form-control" id="query" name="query" placeholder="Enter keywords">
-                                <span class="input-group-btn">
+            <div class="col-sm-12">
+                <h1>Explore OpenRecords Requests</h1>
+                <p>OpenRecords makes every public request available using the View Requests option, including
+                    messages or documents uploaded by agency staff. By searching the requests, you may find the
+                    information you are interested in before requesting documents. This will save time for you
+                    and for the City of New York.</p>
+            </div>
+            <div class="col-sm-12 well form-group">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="searchTerms" class="h4"><strong>Search Term(s)</strong>
+                            <button data-toggle="collapse" data-target="#helptext-search" aria-expanded="false"
+                                    aria-controls="helptext-search" type="button" class="helptext-button"><span
+                                    class="sr-only">Additional Information</span><span aria-hidden="true"></span>
+                            </button>
+                        </label>
+                        <div class="helptext-wrapper bg-info collapse" id="helptext-search">
+                            <p class="helptext text-white">
+                                Enter keywords to search by request titles and agency descriptions. If you know the FOIL
+                                ID
+                                you can search for a specific request. To refine your search, select Advanced Search
+                                Options below.
+                            </p>
+                        </div>
+                        <div class="input-group input-group-lg">
+                            <input type="text" class="form-control" id="query" name="query"
+                                   placeholder="Enter keywords">
+                            <span class="input-group-btn">
                                     <button type="button" id="search" class="btn btn-primary">Search</button>
                                 </span>
-                            </div>
                         </div>
-                            <div class="col-xs-12"><button type="button" class="btn-link" data-toggle="collapse"
-                                    data-target="#advanced-options" aria-expanded="false" aria-controls="advanced-options">Advanced
-                                    Search Options</button>
-                            </div>
-                            <div class="col-xs-12">
+                    </div>
+                    <div class="col-xs-12">
+                        <button type="button" class="btn-link" data-toggle="collapse"
+                                data-target="#advanced-options" aria-expanded="false" aria-controls="advanced-options">
+                            Advanced
+                            Search Options
+                        </button>
+                    </div>
+                    <div class="col-xs-12">
 
 
-                                <div class="row collapse" id="advanced-options">
+                        <div class="row collapse" id="advanced-options">
 
-                                    <div class="col-xs-12 col-sm-6 col-md-4">
-                                      <div class="fieldset" aria-labelledby="searchBy-legend">
+                            <div class="col-xs-12 col-sm-6 col-md-4">
+                                <div class="fieldset" aria-labelledby="searchBy-legend">
 
-                                            <div class="h4" id="searchBy-legend"><strong>Search By</strong></div>
-                                            <div class="checkbox">
-                                                    <label>
-                                                    <input type="checkbox" name="foil_id">
-                                                      FOIL ID
-                                                    </label>
-                                                  </div>
-                                                  <div class="checkbox">
-                                                        <label>
-                                                        <input type="checkbox" name="title" checked>
-                                                          Title
-                                                        </label>
-                                                      </div>
-                                                      <div class="checkbox">
-                                                            <label>
-                                                            <input type="checkbox" name="agency_request_summary" checked>
-                                                              Agency Request Summary<button data-toggle="collapse" data-target="#helptext-agencyrequest" aria-expanded="false" aria-controls="helptext-agencyrequest" type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span aria-hidden="true"></span></button>
-                                                            </label>
-                                                            <div class="helptext-wrapper collapse bg-info" id="helptext-agencyrequest">
-                                                                <p class="helptext">Agency version of the request description that does not contain any personal information from the requester so it can be searched by other users.</p>
-                                                            </div>
-                                                          </div>
-                                      </div>
-                                      <div class="fieldset" aria-labelledby="status-legend">
-
-                                            <div class="h4" id="status-legend"><strong>Status</strong></div>
-                                            <div class="checkbox">
-                                                    <label>
-                                                            <input type="checkbox" name="open" checked>
-                                                      Open
-                                                    </label>
-                                                  </div>
-                                                  <div class="checkbox">
-                                                        <label>
-                                                        <input type="checkbox" name="closed" checked>
-                                                          Closed
-                                                        </label>
-                                                      </div>
-                                      </div>
+                                    <div class="h4" id="searchBy-legend"><strong>Search By</strong></div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="foil_id">
+                                            FOIL ID
+                                        </label>
                                     </div>
-                                    <div class="col-xs-12 col-sm-6 col-md-4">
-                                       <div class="fieldset" aria-labelledby="dateSubmitted-legend">
-                                           <div class="h4" id="dateSubmitted-legend"><strong>Date Submitted</strong>
-                                            <button data-toggle="collapse" data-target="#helptext-datesubmitted" aria-expanded="false" aria-controls="helptext-datesubmitted" type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span aria-hidden="true"></span></button>
-                                            </div>
-                                            <div class="helptext-wrapper collapse bg-info" id="helptext-datesubmitted">
-                                                <p class="helptext text-white">This field allows you to search for requests that were received between
-                                                    two specific dates.</p>
-                                            </div>
-                                          <div class="form-group">
-                                              <label for="date-rec-from">From:</label>
-                                              <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false" type="text" id="date-rec-from" name="date_rec_from" data-original-title="" title="" class="form-control">
-                                            </div>
-                                        <div class="form-group">
-                                                <label for="date-rec-to">To:</label>
-                                                <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false" type="text" id="date-rec-to" name="date_rec_to" data-original-title="" title="" class="form-control">
-                                            </div>
-
-                                            <div id="date-req" class="date-required" aria-live="assertive">
-                                                <strong>*</strong> The date entered in the <strong>From</strong> field above must have taken place before the dated entered in the <strong>To</strong> field.
-                                            </div>
-                                       </div>
-                                       </div>
-                                    <div class="col-xs-12 col-sm-12 col-md-4">
-                                            <div class="fieldset">
-                                        <div class="form-group">
-                                              <label for="agency_select" class="h4"><strong>Agency</strong></label>
-                                              <select class="form-control" id="agency_ein" name="agency_ein">
-                                                    <option value="">All</option>
-                                                    <option value="0067">Administration for Children's Services (ACS)</option><option value="0073">Board of Correction (BOC)</option><option value="0003">Board of Elections (BOE)</option><option value="0059">Board of Standards and Appeals (BSA)</option><option value="0831">Business Integrity Commission (BIC)</option><option value="0134">Civil Service Commission (CSC)</option><option value="0054">Civilian Complaint Review Board (CCRB)</option><option value="032A">Commission to Combat Police Corruption (CCPC)</option><option value="0312">Conflicts of Interest Board (COIB)</option><option value="0125">Department for the Aging (DFTA)</option><option value="0810">Department of Buildings (DOB)</option><option value="0030">Department of City Planning (DCP)</option><option value="0868">Department of Citywide Administrative Services (DCAS)</option><option value="0866">Department of Consumer Affairs (DCA)</option><option value="0072">Department of Correction (DOC)</option><option value="0126">Department of Cultural Affairs (DCLA)</option><option value="0850">Department of Design and Construction (DDC)</option><option value="0040">Department of Education (DOE)</option><option value="0826">Department of Environmental Protection (DEP)</option><option value="0836">Department of Finance (DOF)</option><option value="0816">Department of Health and Mental Hygiene (DOHMH)</option><option value="0071">Department of Homeless Services (DHS)</option><option value="0806">Department of Housing Preservation and Development (HPD)</option><option value="0858">Department of Information Technology and Telecommunications (DOITT)</option><option value="0032">Department of Investigation (DOI)</option><option value="0846">Department of Parks and Recreation (DPR)</option><option value="0781">Department of Probation (DOP)</option><option value="0860">Department of Records and Information Services (DORIS)</option><option value="0827">Department of Sanitation (DSNY)</option><option value="0801">Department of Small Business Services (SBS)</option><option value="0841">Department of Transportation (DOT)</option><option value="0063">Department of Veterans' Services (DVS)</option><option value="0260">Department of Youth and Community Development (DYCD)</option><option value="0113">Equal Employment Practices Commission (EEPC)</option><option value="0127">Financial Information Services Agency (FISA)</option><option value="826A">Housing Recovery Operations (HRO)</option><option value="0069">Human Resources Administration (HRA)</option><option value="0136">Landmarks Preservation Commission (LPC)</option><option value="0025">Law Department (LAW)</option><option value="810A">Loft Board</option><option value="0002">Mayor's Office (OOM)</option><option value="002F">Mayor's Office for People with Disabilities (MOPD)</option><option value="002H">Mayor's Office of Contract Services (MOCS)</option><option value="002I">Mayor's Office of Criminal Justice (MOCJ)</option><option value="002K">Mayor's Office of Environmental Remediation (OER)</option><option value="002M">Mayor's Office of Media and Entertainment (MOME)</option><option value="002Q">Mayor's Office of Technology and Innovation (MOTI)</option><option value="0226">NYC Commission on Human Rights (CCHR)</option><option value="0017">NYC Office of Emergency Management (OEM)</option><option value="0214">NYC Office of Labor Relations (OLR)</option><option value="0008">NYC Office of the Actuary (NYCOA)</option><option value="816A">NYC Office of the Chief Medical Examiner (OCME)</option><option value="0906">NYC Office of the Special Narcotics Prosecutor</option><option value="0102">New York City Council</option><option value="0057">New York City Fire Department (FDNY)</option><option value="0996">New York City Housing Authority (NYCHA)</option><option value="0056">New York City Police Department (NYPD)</option><option value="0820">Office of Administrative Trials and Hearings (OATH)</option><option value="0019">Office of Management and Budget (MOMB)</option><option value="0131">Office of Payroll Administration (OPA)</option><option value="0156">Taxi and Limousine Commission (TLC)</option>
-                                                </select>
-                                          </div>
-                                      </div>
-                                      <div class="fieldset">
-                                      <div class="form-group">
-                                                <label for="size" class="h4"><strong>Results Per Page</strong></label>
-                                                <select name="size" id="size" name="size" title="size"  class="form-control">
-                                                    <option value="10">10</option>
-                                                    <option value="20">20</option>
-                                                    <option value="50">50</option>
-                                                </select>
-                                            </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="title" checked>
+                                            Title
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="agency_request_summary" checked>
+                                            Agency Request Summary
+                                            <button data-toggle="collapse" data-target="#helptext-agencyrequest"
+                                                    aria-expanded="false" aria-controls="helptext-agencyrequest"
+                                                    type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span
+                                                    aria-hidden="true"></span></button>
+                                        </label>
+                                        <div class="helptext-wrapper collapse bg-info" id="helptext-agencyrequest">
+                                            <p class="helptext">Agency version of the request description that does not
+                                                contain any personal information from the requester so it can be
+                                                searched by other users.</p>
                                         </div>
                                     </div>
-                                    <div class="col-sm-12">
-                                        <button type="button" id="search-adv" class="btn btn-primary btn-lg">Search</button>
+                                </div>
+                                <div class="fieldset" aria-labelledby="status-legend">
+
+                                    <div class="h4" id="status-legend"><strong>Status</strong></div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="open" checked>
+                                            Open
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="closed" checked>
+                                            Closed
+                                        </label>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-4">
+                                <div class="fieldset" aria-labelledby="dateSubmitted-legend">
+                                    <div class="h4" id="dateSubmitted-legend"><strong>Date Submitted</strong>
+                                        <button data-toggle="collapse" data-target="#helptext-datesubmitted"
+                                                aria-expanded="false" aria-controls="helptext-datesubmitted"
+                                                type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span
+                                                aria-hidden="true"></span></button>
+                                    </div>
+                                    <div class="helptext-wrapper collapse bg-info" id="helptext-datesubmitted">
+                                        <p class="helptext text-white">This field allows you to search for requests that
+                                            were received between
+                                            two specific dates.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="date-rec-from">From:</label>
+                                        <input data-toggle="popover" data-placement="top" data-trigger="manual"
+                                               data-animation="false" type="text" id="date-rec-from"
+                                               name="date_rec_from" data-original-title="" title=""
+                                               class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="date-rec-to">To:</label>
+                                        <input data-toggle="popover" data-placement="top" data-trigger="manual"
+                                               data-animation="false" type="text" id="date-rec-to" name="date_rec_to"
+                                               data-original-title="" title="" class="form-control">
+                                    </div>
 
-
+                                    <div id="date-req" class="date-required" aria-live="assertive">
+                                        <strong>*</strong> The date entered in the <strong>From</strong> field above
+                                        must have taken place before the dated entered in the <strong>To</strong> field.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-4">
+                                <div class="fieldset">
+                                    <div class="form-group">
+                                        <label for="agency_select" class="h4"><strong>Agency</strong></label>
+                                        {{ form.agency_ein(class="form-control") }}
+                                    </div>
+                                </div>
+                                <div class="fieldset">
+                                    <div class="form-group">
+                                        <label for="size" class="h4"><strong>Results Per Page</strong></label>
+                                        <select name="size" id="size" name="size" title="size" class="form-control">
+                                            <option value="10">10</option>
+                                            <option value="20">20</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <button type="button" id="search-adv" class="btn btn-primary btn-lg">Search</button>
                             </div>
                         </div>
-                </div>
-        </div>
-         <!-- hidden inputs with out-of-form counterparts must have identical values -->
-         <input type="hidden" name="tz_name" value="America/New_York">
-         <input type="hidden" name="start" value="">
-         <input type="hidden" name="sort_date_submitted">
-         <input type="hidden" name="sort_date_due">
-         <input type="hidden" name="sort_title">
-    </form>
-        <div class="search-results col-sm-12">
-            <div class="row">
-                <div id="results"></div>
-                <!--Pagination-->
-                <div id="pagination" class="pagination well">
-                    <div class="pagination-wrap">
-                        <a href="#" role="button" id="prev" class="btn btn-primary" aria-label="Previous">Prev</a>
-                         <span id="page-info" class="pagination-text"></span>
-                        <a href="#" role="button" id="next" class="btn btn-primary">Next</a>
+
+
                     </div>
                 </div>
             </div>
         </div>
+        <!-- hidden inputs with out-of-form counterparts must have identical values -->
+        <input type="hidden" name="tz_name" value="America/New_York">
+        <input type="hidden" name="start" value="">
+        <input type="hidden" name="sort_date_submitted">
+        <input type="hidden" name="sort_date_due">
+        <input type="hidden" name="sort_title">
+    </form>
+    <div class="search-results col-sm-12">
         <div class="row">
-            <div class="col-sm-12">
-                    <div class="newrecord-wrap">
-                            <a href="/request/new" role="button" class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
-                        </div>
+            <div id="results"></div>
+            <!--Pagination-->
+            <div id="pagination" class="pagination well">
+                <div class="pagination-wrap">
+                    <a href="#" role="button" id="prev" class="btn btn-primary" aria-label="Previous">Prev</a>
+                    <span id="page-info" class="pagination-text"></span>
+                    <a href="#" role="button" id="next" class="btn btn-primary">Next</a>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="newrecord-wrap">
+                <a href="/request/new" role="button"
+                   class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block custom_script %}
-    <script type="text/javascript">$(function() {holiday_dates = {{ holidays | safe }}; });</script>
+    <script type="text/javascript">$(function () {
+        holiday_dates = {{ holidays | safe }};
+    });</script>
     <script type="text/javascript" src="{{ url_for('static',filename='js/request/search.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery.mask.js') }}"></script>
 {% endblock %}

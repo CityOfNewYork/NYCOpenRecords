@@ -27,7 +27,7 @@ $(function() {
             ['Title', 'sort_title','none'],
             ['Assigned Agency', ''],
             ['Date Due','sort_date_due','none']
-    ]
+    ];
     var sortSequence = ["none", "desc", "asc"];
 
     // Date stuff
