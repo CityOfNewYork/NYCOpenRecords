@@ -74,6 +74,8 @@ class Config:
     LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
     LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
 
+    USE_LOCAL_AUTH = os.environ.get('USE_LOCAL_AUTH') == "True"
+
     # Redis Settings
     REDIS_HOST = os.environ.get('REDIS_HOST') or 'localhost'
     REDIS_PORT = os.environ.get('REDIS_PORT') or '6379'

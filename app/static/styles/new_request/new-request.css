@@ -164,6 +164,10 @@ input[type=text] .file-text-input {
     outline: 2px solid transparent;
 }
 
+.help-text {
+    margin-bottom: 0;
+}
+
 .parsley-maxFileSize {
     font-size: 14px;
     color: #df0000;
