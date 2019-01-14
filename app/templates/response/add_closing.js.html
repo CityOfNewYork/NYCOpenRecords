@@ -53,6 +53,17 @@
             required[i].attr("data-parsley-required", "");
         }
 
+        // Apply custom validation messages
+        method.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Closing method is required.</strong> Please select a closing method from the drop-down menu.");
+        reason_ids.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Closing reason is required.</strong> Please select at least one closing reason from the multi-select field.");
+        letter_info.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>A template is required.</strong> Please select a template from the drop-down menu.");
+
         next1.click(function (e) {
             method.parsley().validate();
             if (!(method.parsley().isValid())) {

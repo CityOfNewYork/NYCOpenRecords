@@ -114,6 +114,17 @@ $(document).ready(function () {
     $("#request-description").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-maxlength", 5000);
 
+    // Custom Validation Messages
+    $("#request-agency").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>An agency is required.</strong> Please select an agency from the drop-down menu.");
+    $("#request-title").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>A title is required.</strong> Please type in a short title for your request.");
+    $("#request-description").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>A description is required.</strong> Please type in a detailed description of your request.");
+
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
     $("#request-file").attr("data-parsley-max-file-size", "20");
 
@@ -165,6 +176,24 @@ $(document).ready(function () {
         else {
             $(".file-error").hide();
         }
+
+        // Add tab index to any error messages
+        $(".parsley-required").each(function () {
+            // only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
+    });
+
+    // Add tab index to any error messages after validation has failed
+    $("#request-form").parsley().on("form:error", function () {
+        $(".parsley-required").each(function () {
+            // Only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
     });
 
     // Clear error messages for form.request_file on submit .
