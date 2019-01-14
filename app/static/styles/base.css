@@ -90,7 +90,7 @@
 
 .contact-form-error-message {
     /*color: indianred;*/
-    color: #e74c3c;
+    color: #df0000;
 }
 
 footer .form-search .input-search {
@@ -222,4 +222,9 @@ input[type="radio"], input[type="checkbox"] {
     line-height: 1.1;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+.parsley-errors-list.filled {
+    font-size: 14px;
+    color: #df0000;
 }

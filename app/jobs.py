@@ -1,16 +1,16 @@
 import traceback
 from datetime import datetime
-from flask import (
-    render_template,
-    current_app,
-)
-from app import calendar, scheduler, sentry
-from app.models import Requests, Events, Emails, Agencies
-from app.constants import request_status, OPENRECORDS_DL_EMAIL
+
+from flask import (current_app, render_template)
+import celery
+
+from app import calendar, sentry, db
+from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
-from app.lib.db_utils import update_object, create_object
+from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email
+from app.models import Agencies, Emails, Events, Requests
 
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context, app.test_request_context() might come in handy.
@@ -19,29 +19,17 @@ STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
 
 
-def check_sanity():
-    """
-    Email a messsage indicating the scheduler is still functioning correctly.
-    """
-    with scheduler.app.app_context():
-        send_email(
-            subject="Scheduler Sanity Check",
-            to=[OPENRECORDS_DL_EMAIL],
-            email_content="You got this email, so the OpenRecords scheduler is running."
-        )
-
-
+@celery.task()
 def update_request_statuses():
-    with scheduler.app.app_context():
-        try:
-            _update_request_statuses()
-        except Exception:
-            sentry.captureException()
-            send_email(
-                subject="Update Request Statuses Failure",
-                to=[OPENRECORDS_DL_EMAIL],
-                email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
-            )
+    try:
+        _update_request_statuses()
+    except Exception:
+        sentry.captureException()
+        send_email(
+            subject="Update Request Statuses Failure",
+            to=[OPENRECORDS_DL_EMAIL],
+            email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
+        )
 
 
 def _update_request_statuses():
@@ -55,7 +43,7 @@ def _update_request_statuses():
     ).replace(hour=23, minute=59, second=59)  # the entire day
 
     agencies = Agencies.query.with_entities(Agencies.ein).filter_by(is_active=True).all()
-
+    print(agencies)
     for agency_ein, in agencies:
         requests_overdue = Requests.query.filter(
             Requests.due_date < now,
@@ -173,3 +161,15 @@ def _update_request_statuses():
                 timestamp=datetime.utcnow()
             )
         )
+
+
+@celery.task()
+def update_next_request_number():
+    """
+    Celery task to automatically update the next request number of each agency to 1
+    :return:
+    """
+    for agency in Agencies.query.all():
+        agency.next_request_number = 1
+        db.session.add(agency)
+    db.session.commit()

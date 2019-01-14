@@ -6,20 +6,40 @@
 """
 
 from flask import (
-    abort, flash, make_response, redirect, render_template, request, session, url_for
+    abort,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for
 )
 from flask_login import (
-    current_app, current_user, login_required, login_user, logout_user
+    current_app,
+    current_user,
+    login_required,
+    login_user,
+    logout_user
 )
-
 from app import csrf
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
-from app.auth.forms import LDAPLoginForm, ManageAgencyUserAccountForm, ManageUserAccountForm
+from app.auth.forms import (
+    LDAPLoginForm,
+    ManageAgencyUserAccountForm,
+    ManageUserAccountForm
+)
 from app.auth.utils import (
-    find_user_by_email, init_saml_auth, is_safe_url,
-    ldap_authentication, prepare_onelogin_request, saml_acs,
-    saml_slo, saml_sls, update_openrecords_user
+    find_user_by_email,
+    init_saml_auth,
+    is_safe_url,
+    ldap_authentication,
+    prepare_onelogin_request,
+    saml_acs,
+    saml_slo,
+    saml_sls,
+    update_openrecords_user
 )
 
 
@@ -87,10 +107,10 @@ def login():
         if next_url:
             return redirect(url_for('auth.saml', sso2=next_url))
 
-    if current_app.config['USE_LDAP']:
+    elif current_app.config['USE_LDAP']:
         return redirect(url_for('auth.ldap_login', next=next_url))
 
-    else:
+    elif current_app.config['USE_LOCAL_AUTH']:
         login_form = LDAPLoginForm()
         if request.method == 'POST':
             email = request.form['email']
@@ -112,15 +132,15 @@ def login():
                     return redirect(next_url or url_for('main.index'))
 
                 flash("Invalid username/password combination.", category="danger")
-                return render_template('auth/ldap_login_form.html', login_form=login_form)
+                return render_template('auth/local_login_form.html', login_form=login_form)
             else:
                 flash("User not found. Please contact your agency FOIL Officer to gain access to the system.",
                       category="warning")
-                return render_template('auth/ldap_login_form.html', login_form=login_form)
+                return render_template('auth/local_login_form.html', login_form=login_form)
 
         elif request.method == 'GET':
             return render_template(
-                'auth/ldap_login_form.html',
+                'auth/local_login_form.html',
                 login_form=login_form,
                 next_url=request.args.get('next', ''))
 
@@ -147,8 +167,15 @@ def logout():
     elif current_app.config['USE_OAUTH']:
         return redirect(url_for('auth.oauth_logout', timeout=timeout, forced_logout=forced_logout))
 
-    if current_app.config['USE_SAML']:
+    elif current_app.config['USE_SAML']:
         return redirect(url_for('auth.saml', slo='true', timeout=timeout, forced_logout=forced_logout))
+
+    elif current_app.config['USE_LOCAL_AUTH']:
+        logout_user()
+        session.destroy()
+        if timeout:
+            flash("Your session timed out. Please login again", category='info')
+        return redirect(url_for('main.index'))
 
     return abort(404)
 

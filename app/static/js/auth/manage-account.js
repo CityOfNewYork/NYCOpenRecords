@@ -83,11 +83,13 @@ $(document).ready(function () {
         }
         else {
             $(".contact-form-error-message").html(
+                "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
                 "At least one of the following needs to be filled: " +
                 "<strong>Notification Email</strong>, <strong>Phone</strong>, " +
                 "<strong>Fax</strong>, and/or <strong>Address</strong> " +
                 "(with <strong>City</strong>, <strong>State</strong>, and <strong>Zip code</strong>.)"
             );
+            $(".contact-form-error-message").focus();
         }
     });
 

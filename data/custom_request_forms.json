@@ -9,7 +9,7 @@
           "Arrest Report #": {
             "type": "input",
             "name": "arrest-report-number",
-            "required": false,
+            "required": true,
             "placeholder": "123456789",
             "max_length": "50",
             "character_counter": true,
@@ -20,7 +20,9 @@
             "tooltip": {
               "title": "Arrest report number tooltip title",
               "content": "Arrest report number tooltip content"
-            }
+            },
+            "help_text": "Arrest report number help text.",
+            "error_message": "<strong>Arrest Report Number is required.</strong> Please type in a number."
           }
         },
         {
@@ -272,7 +274,7 @@
           "Radio Test": {
             "type": "radio",
             "name": "radio-test",
-            "info": "Please select an option",
+            "help_text": "Please select an option",
             "values": [
               "option1",
               "option2",

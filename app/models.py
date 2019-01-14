@@ -397,6 +397,11 @@ class Users(UserMixin, db.Model):
         if current_app.config['USE_SAML']:
             if session.get('samlUserdata', None):
                 return True
+        if current_app.config['USE_LOCAL_AUTH']:
+            return True
+        if session.get('token') is not None:
+            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
+            return oauth_user_web_service_request().status_code == 200
         return False
 
     @property

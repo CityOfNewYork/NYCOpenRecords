@@ -55,6 +55,20 @@
             characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
         });
 
+        // Custom Validation Messages
+        method.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Acknowledgement method is required.</strong> Please select an acknowledgment method from the drop-down menu.");
+        email_days.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Estimated time-frame for the request is required.</strong> Please select an estimated time-frame from the drop-down menu or choose a custom due date");
+        letter_days.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Estimated time-frame for the request is required.</strong> Please select an estimated time-frame from the drop-down menu or choose a custom due date.");
+        letter_info.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>A template is required.</strong> Please select a template from the drop-down menu.");
+
         // Date Picker - Email
         holiday_dates = {{ holidays | safe }};
         email_date.datepicker({
@@ -80,8 +94,12 @@
                 email_date.parent().show();
                 email_info.attr("data-parsley-required", "");
                 email_info.attr("data-parsley-required-message",
-                    "This field is required when selecting a custom due date.");
+                    "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                    "Additional information is required when selecting a custom due date.");
                 email_info.attr("data-parsley-minlength", "20");
+                email_info.attr("data-parsley-length-message",
+                    "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                    "Additional information must have 20 characters or more.");
 
             } else {
                 email_date.parent().hide();
