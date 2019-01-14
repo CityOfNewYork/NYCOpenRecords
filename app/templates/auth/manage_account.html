@@ -10,7 +10,7 @@
 
 <div id="container-fluid">
     <div class="col-sm-12">
-        <form method="post" class="form" role="form" id="request-form" data-parsley-validate>
+        <form method="post" class="form" role="form" id="request-form" data-parsley-validate data-parsley-focus="none">
             <h1 class="text-center">Manage OpenRecords Account
             <small data-toggle="popover"
                    data-placement="bottom"
@@ -49,7 +49,7 @@
                 maxlength="128") }}
             <p id="organization-character-count" class="character-counter">128 characters remaining</p>
             <br>
-            <div class="contact-form-error-message"></div>
+            <div class="contact-form-error-message" tabindex="0"></div>
 
             {{ form.notification_email.label(class='request-heading') }}
             <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Notification Email"
