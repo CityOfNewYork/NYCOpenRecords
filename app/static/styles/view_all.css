@@ -1,8 +1,8 @@
-div.row {
-    margin-left: -15px;
-    margin-right: -15px;
-    width: unset;
-}
+/*div.row {*/
+    /*margin-left: -15px;*/
+    /*margin-right: -15px;*/
+    /*width: unset;*/
+/*}*/
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
@@ -280,4 +280,9 @@ div.search-results .pagination .newrecord-wrap {
 
 #query {
     height: 24px;
+}
+
+.search-results {
+    padding-left: 0;
+    padding-right: 0;
 }

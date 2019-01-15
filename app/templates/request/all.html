@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-    <form id="search-form" action="https://a860-openrecords.nyc.gov/search/requests/csv" method="get" target="_blank"
+    <form id="search-form" action="{{ url_for("search.requests_doc", doc_type="csv") }}" method="get" target="_blank"
           rel="noreferrer">
         <div class="row">
             <div class="col-sm-12">
@@ -20,6 +20,7 @@
                     and for the City of New York.</p>
             </div>
             <div class="col-sm-12 well form-group">
+{#                THIS ROW STARTS THE SEARCH FORM TEMPLATE#}
                 <div class="row">
                     <div class="col-sm-12">
                         <label for="searchTerms" class="h4"><strong>Search Term(s)</strong>
@@ -166,7 +167,18 @@
 
                     </div>
                 </div>
+{#                END OF THE SEARCH FORM TEMPLATE#}
             </div>
+            {% if current_user.is_agency %}
+                <div class="row">
+                    <div class="col-sm-12 no-pad-left no-pad-right">
+                        <button type="submit" id="generate-document" class="btn btn-primary">Generate Results CSV
+                        </button>
+                        <span id="generate-document-error"></span>
+                    </div>
+                </div>
+                <br>
+            {% endif %}
         </div>
         <!-- hidden inputs with out-of-form counterparts must have identical values -->
         <input type="hidden" name="tz_name" value="America/New_York">
@@ -189,12 +201,14 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-12">
-            <div class="newrecord-wrap">
-                <a href="/request/new" role="button"
-                   class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
+        {% if not current_user.is_agency %}
+            <div class="col-sm-12">
+                <div class="newrecord-wrap">
+                    <a href="/request/new" role="button"
+                       class="btn btn-lg btn-block btn-primary request-record-button-size">Request a New Record</a>
+                </div>
             </div>
-        </div>
+        {% endif %}
     </div>
 {% endblock %}
 
