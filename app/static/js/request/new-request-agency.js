@@ -147,10 +147,10 @@ $(document).ready(function () {
         "<strong>Format received is required.</strong> Please select a format from the drop-down menu.");
     $("#first-name").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A first name is required.</strong> Please type in a your first name.");
+        "<strong>A first name is required.</strong> Please type in your first name.");
     $("#last-name").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A last name is required.</strong> Please type in a your last name.");
+        "<strong>A last name is required.</strong> Please type in your last name.");
     $("#email").attr("data-parsley-type-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
         "<strong>This value should be an email.</strong> Please type in a valid email.");
