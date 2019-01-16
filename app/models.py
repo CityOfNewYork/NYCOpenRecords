@@ -552,6 +552,7 @@ class Users(UserMixin, db.Model):
         Call es_update for any request where this user is the requester
         since the request es doc relies on the requester's name.
         """
+        # TODO: USE BULK UPDATE FUNCTION INSTEAD OF BACKREF @joelbcastillo
         if current_app.config['ELASTICSEARCH_ENABLED']:
             for request in self.requests:
                 request.es_update()
