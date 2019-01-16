@@ -1,8 +1,8 @@
-/*div.row {*/
-    /*margin-left: -15px;*/
-    /*margin-right: -15px;*/
+div.row {
+    margin-left: -15px;
+    margin-right: -15px;
     /*width: unset;*/
-/*}*/
+}
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
@@ -201,36 +201,33 @@ div.search-results table thead button span.glyphicon {
 }
 
 div.search-results table thead tr > *:first-child, div.search-results table tbody tr > *:first-child {
-    position: absolute;
-    left: -99999px;
-}
-
-div.search-results table thead tr > *:first-child + *, div.search-results table tbody tr > *:first-child + * {
-    padding-left: 2.5rem;
+    text-indent: -9999px;
+    max-width: 1.5rem;
+    width: 1.5rem;
     position: relative;
 }
 
-div.search-results table thead tr > *:first-child.open + *, div.search-results table tbody tr > *:first-child.open + * {
-    background: url("/static/img/open.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #073b66 1.5rem, transparent 1.5rem);
+div.search-results table thead tr > *:first-child.open, div.search-results table tbody tr > *:first-child.open {
+    background: url("../open.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #073b66 1.5rem, transparent 1.5rem);
 }
 
-div.search-results table thead tr > *:first-child.closed + *, div.search-results table tbody tr > *:first-child.closed + * {
-    background: url("/static/img/closed.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #094709 1.5rem, transparent 1.5rem);
+div.search-results table thead tr > *:first-child.closed, div.search-results table tbody tr > *:first-child.closed {
+    background: url("../closed.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #094709 1.5rem, transparent 1.5rem);
 }
 
-div.search-results table thead tr > *:first-child.soon + *, div.search-results table tbody tr > *:first-child.soon + * {
-    background: url("/static/img/soon.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #777677 1.5rem, transparent 1.5rem);
+div.search-results table thead tr > *:first-child.soon, div.search-results table tbody tr > *:first-child.soon {
+    background: url("../soon.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #777677 1.5rem, transparent 1.5rem);
 }
 
-div.search-results table thead tr > *:first-child.progress + *, div.search-results table tbody tr > *:first-child.progress + * {
-    background: url("/static/img/progress.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #007dbb 1.5rem, transparent 1.5rem);
+div.search-results table thead tr > *:first-child.progress, div.search-results table tbody tr > *:first-child.progress {
+    background: url("../progress.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #007dbb 1.5rem, transparent 1.5rem);
 }
 
-div.search-results table thead tr > *:first-child.overdue + *, div.search-results table tbody tr > *:first-child.overdue + * {
-    background: url("/static/img/overdue.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #df0000 1.5rem, transparent 1.5rem);
+div.search-results table thead tr > *:first-child.overdue, div.search-results table tbody tr > *:first-child.overdue {
+    background: url("../overdue.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #df0000 1.5rem, transparent 1.5rem);
 }
 
-div.search-results table thead tr > *:first-child:not([class]) + *, div.search-results table tbody tr > *:first-child:not([class]) + * {
+div.search-results table thead tr > *:first-child:not([class]), div.search-results table tbody tr > *:first-child:not([class]) {
     background: linear-gradient(to right, rgba(0, 0, 0, 0.125) 1.5rem, transparent 1.5rem);
 }
 
@@ -278,8 +275,17 @@ div.search-results .pagination .newrecord-wrap {
     padding: 1.8rem;
 }
 
+#advanced-options div:last-child {
+    clear: both;
+}
+
+.ui-datepicker {
+    z-index: 99 !important;
+}
+
 #query {
     height: 24px;
+    width: 744px;
 }
 
 .search-results {

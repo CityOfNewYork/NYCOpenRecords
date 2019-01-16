@@ -170,7 +170,7 @@ $(function() {
         var keyCode = e.keyCode || e.which;
         if (keyCode === 13) {
             e.preventDefault();
-            return false;
+            searchBtn.click();
         }
     });
 
@@ -193,7 +193,7 @@ $(function() {
 
         var theTable = "";
         theTable=theTable +'<div class="col-sm-12 searchResults-heading">';
-        theTable=theTable +'<h2 id="resultsHeading" aria-live="assertive" tabindex="0" >' + total + '&nbsp;Results Found</h2> <h3 aria-live="assertive">Displaying Results&nbsp;' + (start + 1) + " - " + (start + count)+'</h3>';
+        theTable=theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying Results&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total + '&nbsp;Results Found</h2>';
         theTable=theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" > </div><div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" ></div>';
         // Activate for Agency view. A flag is needed to determine if view is active
         // if (agencyView) {
@@ -427,6 +427,7 @@ $(function() {
         event.preventDefault();
         if (canSearch && end < total) {
             setStart(start + parseInt($("#size").val()));
+            $('html, body').stop();
             search();
             scrollToElement(resultsHeader);
         }
@@ -437,6 +438,7 @@ $(function() {
         event.preventDefault();
         if (canSearch && start > 0) {
             setStart(start - parseInt($("#size").val()));
+            $('html, body').stop();
             search();
             scrollToElement(resultsHeader);
         }
