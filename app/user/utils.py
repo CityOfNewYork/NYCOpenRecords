@@ -194,33 +194,6 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
 
 
 @celery.task(bind=True, name='app.user.utils.es_update_assigned_users')
-def es_update_requester(self, request_ids: list, guid: str = None):
-    """
-    Update the ElasticSearch index requester for the provided request IDs
-    Args:
-        request_ids (list): List of Request IDs
-    """
-    if guid is None:
-        guid = Requests.query.filter_by(id=request_ids[0].one().requester.guid)
-    actions = [{
-        '_op_type': 'update',
-        '_id': request.id,
-        'doc': {
-            'requester_id': guid
-        }
-    } for request in
-        Requests.query.filter(Requests.id.in_(request_ids)).all()]
-
-    bulk(
-        es,
-        actions,
-        index=current_app.config['ELASTICSEARCH_INDEX'],
-        doc_type='request',
-        chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE']
-    )
-
-
-@celery.task(bind=True, name='app.user.utils.es_update_assigned_users')
 def es_update_assigned_users(self, request_ids: list):
     """
     Update the ElasticSearch index assigned_users for the provided request IDs

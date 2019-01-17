@@ -7,6 +7,7 @@ from datetime import datetime
 from urllib.parse import urljoin
 from uuid import uuid4
 
+from elasticsearch.helpers import bulk
 from flask import current_app, session
 from flask_login import (
     UserMixin,
@@ -547,10 +548,24 @@ class Users(UserMixin, db.Model):
         Call es_update for any request where this user is the requester
         since the request es doc relies on the requester's name.
         """
-        # TODO: USE BULK UPDATE FUNCTION INSTEAD OF BACKREF @joelbcastillo
         if current_app.config['ELASTICSEARCH_ENABLED']:
-            for request in self.requests:
-                request.es_update()
+            requests = [request.id for request in self.requests]
+            actions = [{
+                '_op_type': 'update',
+                '_id': request_id,
+                'doc': {
+                    'requester_id': self.guid,
+                    'requester_name': self.name
+                }
+            } for request_id in requests]
+
+            bulk(
+                es,
+                actions,
+                index=current_app.config['ELASTICSEARCH_INDEX'],
+                doc_type='request',
+                chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE']
+            )
 
     @property
     def val_for_events(self):
@@ -710,7 +725,8 @@ class Requests(db.Model):
     __tablename__ = 'requests'
     id = db.Column(db.String(19), primary_key=True)
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
-    category = db.Column(db.String, default='All', nullable=False)  # FIXME: should be nullable, 'All' shouldn't be used
+    category = db.Column(db.String, default='All',
+                         nullable=False)  # FIXME: should be nullable, 'All' shouldn't be used
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())

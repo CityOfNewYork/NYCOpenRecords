@@ -8,7 +8,6 @@ from sqlalchemy.orm import joinedload
 from app import es
 from app.constants import (
     ES_DATETIME_FORMAT,
-    USER_ID_DELIMITER,
     request_status
 )
 from app.lib.date_utils import utc_to_local, local_to_utc
@@ -166,6 +165,7 @@ def create_docs():
             'description': r.description,
             'agency_request_summary': r.agency_request_summary,
             'requester_name': r.requester.name,
+            'requester_id': "{guid}".format(guid=r.requester.guid),
             'title_private': r.privacy['title'],
             'agency_request_summary_private': not r.agency_request_summary_released,
             'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
@@ -174,7 +174,6 @@ def create_docs():
             'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
             'submission': r.submission,
             'status': r.status,
-            'requester_id': "{guid}".format(guid=r.requester.guid),
             'agency_ein': r.agency_ein,
             'agency_acronym': agency_eins[r.agency_ein].acronym,
             'agency_name': agency_eins[r.agency_ein].name,
@@ -198,13 +197,6 @@ def create_docs():
     )
     current_app.logger.info("Successfully created {num_success} of {total_num} docs.".format(num_success=num_success,
                                                                                              total_num=len(requests)))
-
-
-def update_docs():
-    #: :type: collections.Iterable[app.models.Requests]
-    requests = Requests.query.all()
-    for r in requests:
-        r.es_update()  # TODO: in bulk, if re-creating starts to get too slow
 
 
 def search_requests(query,
@@ -436,7 +428,7 @@ def search_requests(query,
         results = es.search(
             index=current_app.config["ELASTICSEARCH_INDEX"],
             doc_type='request',
-            scroll = '1m',
+            scroll='1m',
             body=dsl,
             _source=['requester_id',
                      'date_submitted',
@@ -466,7 +458,7 @@ def search_requests(query,
         scroll_results = results['hits']['hits']
 
         while scroll_size > 0:
-            results = es.scroll(scroll='1m', body = {"scroll": "1m", "scroll_id": sid})
+            results = es.scroll(scroll='1m', body={"scroll": "1m", "scroll_id": sid})
 
             scroll_size = len(results['hits']['hits'])
 
