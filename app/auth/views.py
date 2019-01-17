@@ -1,7 +1,7 @@
 """
 .. module:: auth.views.
 
-   :synopsis: Handles OAUTH and LDAP authentication endpoints for NYC OpenRecords
+   :synopsis: Handles authentication endpoints for NYC OpenRecords
 
 """
 
@@ -22,6 +22,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+
 from app import csrf
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
@@ -40,12 +41,14 @@ from app.auth.utils import (
     saml_slo,
     saml_sls,
     update_openrecords_user,
+    create_auth_event
 )
+from app.constants import event_type
 
 
 @auth.route("/login", methods=["GET"])
 def login():
-    """Handle login redirects for users. 
+    """Handle login redirects for users.
 
     This application supports three methods for login: SAML 2.0, LDAP, and Local Authentication
 
@@ -68,16 +71,18 @@ def login():
     Returns:
         HTTP Response (werkzeug.wrappers.Response): Response redirecting the browser to the proper URL for login
     """
-    next_url = request.args.get("next")
+    next_url = request.form.get("next", None)
 
     if current_app.config["USE_SAML"]:
         if next_url:
             return redirect(url_for("auth.saml", sso2=next_url))
+        return redirect(url_for("auth.saml", sso=None))
 
     elif current_app.config["USE_LDAP"]:
         return redirect(url_for("auth.ldap_login", next=next_url))
 
     elif current_app.config["USE_LOCAL_AUTH"]:
+        return redirect(url_for("auth.local_login", nex=next_url))
 
     return abort(404)
 
@@ -237,7 +242,7 @@ def ldap_login():
     Login a user using the LDAP protocol
 
     Args:
-        next (str): URL to redirect the user to if login is successful.
+        next (str): URL to redirect the user to if login is successful. (in request.args)
 
     Returns:
         HTTP Response (werkzeug.wrappers.Response): Redirects the user to the home page (if successful) or to the
@@ -261,19 +266,44 @@ def ldap_login():
                 session.regenerate()
                 session["user_id"] = current_user.get_id()
 
-                next_url = request.form.get("next")
-                if not is_safe_url(next_url):
+                create_auth_event(
+                    auth_event_type=event_type.USER_LOGIN,
+                    user_guid=session["user_id"],
+                    new_value={
+                        'success': True,
+                        'type': current_app.config['AUTH_TYPE']
+                    }
+                )
+
+                next_url = request.form.get("next", None)
+                if not is_safe_url(next_url) or next_url is None:
                     return abort(400, UNSAFE_NEXT_URL)
 
                 return redirect(next_url or url_for("main.index"))
-
-            flash("Invalid username/password combination.", category="danger")
+            error_message = "Invalid username/password combination."
+            create_auth_event(
+                auth_event_type=event_type.USER_FAILED_LOG_IN,
+                user_guid=session["user_id"],
+                new_value={
+                    'success': False,
+                    'type': current_app.config['AUTH_TYPE'],
+                    'message': error_message
+                }
+            )
+            flash(error_message, category="danger")
             return render_template("auth/ldap_login_form.html", login_form=login_form)
         else:
-            flash(
-                "User not found. Please contact your agency FOIL Officer to gain access to the system.",
-                category="warning",
+            error_message = "User not found. Please contact your agency FOIL Officer to gain access to the system."
+            create_auth_event(
+                auth_event_type=event_type.USER_FAILED_LOG_IN,
+                user_guid=session["user_id"],
+                new_value={
+                    'success': False,
+                    'type': current_app.config['AUTH_TYPE'],
+                    'message': error_message
+                }
             )
+            flash(error_message, category="warning")
             return render_template("auth/ldap_login_form.html", login_form=login_form)
 
     elif request.method == "GET":
@@ -285,7 +315,7 @@ def ldap_login():
 
 
 @auth.route("/ldap_logout", methods=["GET"])
-def ldap_logout(timed_out=False):
+def ldap_logout():
     """
     Log a user out from the LDAP server.
     Args:
@@ -295,7 +325,17 @@ def ldap_logout(timed_out=False):
         HTTP Response (werkzeug.wrappers.Response): Redirects the user to the home page
 
     """
+    timed_out = request.args.get('timed_out', False)
     logout_user()
+    create_auth_event(
+        auth_event_type=event_type.USER_FAILED_LOG_IN,
+        user_guid=session["user_id"],
+        new_value={
+            'success': True,
+            'type': current_app.config['AUTH_TYPE'],
+            'timed_out': timed_out
+        }
+    )
     session.destroy()
     if timed_out:
         flash("Your session timed out. Please login again", category="info")
@@ -304,7 +344,7 @@ def ldap_logout(timed_out=False):
 
 # Local Authentication Endpoints
 @auth.route('/local_login', methods=['GET', 'POST'])
-def local_auth():
+def local_auth:
     """
     Authenticate a user against the database (ignore password).
 
@@ -323,11 +363,17 @@ def local_auth():
         user = find_user_by_email(email)
 
         if user is not None:
-            authenticated = True
-
             login_user(user)
             session.regenerate()
             session["user_id"] = current_user.get_id()
+
+            create_auth_event(
+                auth_event_type=event_type.USER_LOGIN,
+                user_guid=session["user_id"],
+                new_value={
+                    'success': True,
+                }
+            )
 
             next_url = request.form.get("next")
             if not is_safe_url(next_url):
@@ -335,10 +381,17 @@ def local_auth():
 
             return redirect(next_url or url_for("main.index"))
         else:
-            flash(
-                "User not found. Please contact your agency FOIL Officer to gain access to the system.",
-                category="warning",
+            error_message = "User not found. Please contact your agency FOIL Officer to gain access to the system."
+            create_auth_event(
+                auth_event_type=event_type.USER_FAILED_LOG_IN,
+                user_guid=session["user_id"],
+                new_value={
+                    'success': False,
+                    'type': current_app.config['AUTH_TYPE'],
+                    'message': error_message
+                }
             )
+            flash(error_message, category="warning")
             return render_template(
                 "auth/local_login_form.html", login_form=login_form
             )
@@ -362,6 +415,14 @@ def local_logout(timed_out=False):
         HTTP Response (werkzeug.wrappers.Response): Redirects the user to the home page
     """
     logout_user()
+    create_auth_event(
+        auth_event_type=event_type.USER_FAILED_LOG_IN,
+        user_guid=session["user_id"],
+        new_value={
+            'success': True,
+            'type': current_app.config['AUTH_TYPE']
+        }
+    )
     session.destroy()
     if timed_out:
         flash("Your session timed out. Please login again", category="info")

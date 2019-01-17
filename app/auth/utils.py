@@ -5,6 +5,7 @@
 
 """
 import ssl
+from datetime import datetime
 from json import dumps
 from urllib.parse import urljoin, urlparse
 
@@ -24,6 +25,7 @@ from app import (
     sentry
 )
 from app.auth.constants import error_msg
+from app.constants import event_type
 from app.constants.bulk_updates import EventsDict
 from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
@@ -37,6 +39,7 @@ from app.models import AgencyUsers, Events, Users, UserRequests
 from app.user.utils import es_update_assigned_users
 
 
+# General Purpose Auth
 @login_manager.user_loader
 def user_loader(guid: str) -> Users:
     """Given a GUID return the associated User object.
@@ -48,163 +51,6 @@ def user_loader(guid: str) -> Users:
         Users: User object from the database or None.
     """
     return Users.query.filter_by(guid=guid).one_or_none()
-
-
-def init_saml_auth(onelogin_request):
-    """Initialize a SAML SP from a dictionary representation of a Flask request.
-
-    Args:
-        onelogin_request (dict): Dictionary representation of a Flask Request object.
-
-    Returns:
-        OneLogin_Saml2_Auth: SAML SP Instance.
-
-    """
-    saml_sp = OneLogin_Saml2_Auth(onelogin_request, custom_base_path=current_app.config['SAML_PATH'])
-    return saml_sp
-
-
-def prepare_onelogin_request(flask_request):
-    """Convert a Flask request object to a dictionary for use with OneLogin SAML.
-
-    Args:
-        flask_request (Flask.Request): Flask Request object.
-
-    Returns:
-        dict: Dictionary of Flask Request fields for OneLogin
-
-    """
-    url_data = urlparse(flask_request.url)
-    return {
-        'https': 'on' if flask_request.scheme == 'https' else 'off',
-        'http_host': flask_request.host,
-        'server_port': url_data.port,
-        'script_name': flask_request.path,
-        'request_uri': url_for('auth.saml', _external=True),
-        'get_data': flask_request.args.copy(),
-        # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
-        # 'lowercase_urlencoding': True,
-        'post_data': flask_request.form.copy()
-    }
-
-
-def saml_sso(saml_sp):
-    """ Handle Single Sign-On for SAML.
-
-    Calls the login function in the OneLogin python3-saml library to generate an Assertion Request to the IdP.
-
-    Args:
-        saml_sp (OneLogin_Saml2_Auth): Saml SP Instance
-
-    Returns:
-        Response Object: Redirect the user to the IdP for SSO.
-
-    """
-    return redirect(saml_sp.login())
-
-
-def saml_sls(saml_sp):
-    """Process a SAML LogoutResponse from the IdP
-
-    Args:
-        saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
-
-    Returns:
-        Response Object: Redirect the user to the Home Page.
-
-    """
-    dscb = lambda: session.clear()
-    url = saml_sp.process_slo(delete_session_cb=dscb)
-    errors = saml_sp.get_errors()
-    update_object(
-        {
-            'session_id': None
-        },
-        Users,
-        current_user.guid
-    )
-    logout_user()
-    if not errors:
-        return redirect(url) if url else redirect(url_for('main.index'))
-    else:
-        current_app.logger.exception("Errors on SAML Logout:\n{errors}".format(errors='\n'.join(errors)))
-        flash("Sorry! An unexpected error has occurred. Please try again later.", category='danger')
-        return redirect(url_for('main.index'))
-
-
-def saml_slo(saml_sp):
-    """Generate a SAML LogoutRequest for the user.
-
-    Args:
-        saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
-
-    Returns:
-        Response Object: Redirect the user to the IdP for SLO.
-    """
-    name_id = None
-    session_index = None
-    if 'samlNameId' in session:
-        name_id = session['samlNameId']
-    if 'samlSessionIndex' in session:
-        session_index = session['samlSessionIndex']
-
-    return saml_sp.logout(name_id=name_id, session_index=session_index)
-
-
-def saml_acs(saml_sp, onelogin_request):
-    """Process a SAML Assertion for the user
-
-    Args:
-        saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
-
-    Returns:
-        Response Object: Redirect the user to the appropriate page for the next step.
-            If the user needs to validate their email, they are redirected to the IdP
-            Otherwise, the user is redirected to a valid RelayState.
-            If RelayState is invalid, the user is redirected to the home page.
-
-    """
-
-    saml_sp.process_response()
-    errors = saml_sp.get_errors()
-
-    if len(errors) == 0:
-        session['samlUserdata'] = saml_sp.get_attributes()
-        session['samlNameId'] = saml_sp.get_nameid()
-        session['samlSessionIndex'] = saml_sp.get_session_index()
-
-        # Log User In
-        user_data = {k: v[0] if len(v) else None for (k, v) in session['samlUserdata'].items()}
-
-        nycid_user_data = get_nycid_user_data(user_data['GUID'])
-
-        if not nycid_user_data.get('validated', False):
-            email_validation_url = _validate_email(nycid_user_data.get('validated', False), nycid_user_data.get('id'),
-                                                   nycid_user_data.get('email'))
-            return redirect(email_validation_url)
-
-        user = _process_user_data(
-            guid=nycid_user_data.get('id', None),
-            first_name=nycid_user_data.get('firstName', None),
-            middle_initial=nycid_user_data.get('middleInitial', None),
-            last_name=nycid_user_data.get('lastName', None),
-            email=nycid_user_data.get('email', None),
-            email_validated=nycid_user_data.get('validated', False),
-            is_nyc_employee=nycid_user_data.get('nycEmployee', False),
-            has_nyc_account=nycid_user_data.get('hasNYCAccount', False),
-            active=nycid_user_data.get('active', False),
-            terms_of_use_accepted=nycid_user_data.get('termsOfUse', False),
-            is_anonymous_requester=False
-        )
-        login_user(user)
-
-        self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
-
-        if 'RelayState' in request.form and self_url != request.form['RelayState']:
-            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'fresh_login': 'true'}))
-
-        return redirect(url_for('main.index', fresh_login=True))
-    return abort(500)
 
 
 def update_openrecords_user(form):
@@ -474,6 +320,227 @@ def _update_user_data(
             user.guid
         )
 
+
+def create_auth_event(auth_event_type: str, user_guid: str, new_value: dict):
+    """
+    Create and store event object for given response.
+
+    Args:
+        auth_event_type (str): one of app.constants.event_type
+        user_guid (Users): Users object performing the authentication event
+        new_value (dict): Value to be stored in events table
+
+    """
+    event = Events(request_id=None,
+                   user_guid=user_guid,
+                   type_=auth_event_type,
+                   timestamp=datetime.utcnow(),
+                   response_id=None,
+                   previous_value=None,
+                   new_value=new_value)
+    # store event object
+    create_object(event)
+
+
+# SAML Auth
+
+def init_saml_auth(onelogin_request):
+    """Initialize a SAML SP from a dictionary representation of a Flask request.
+
+    Args:
+        onelogin_request (dict): Dictionary representation of a Flask Request object.
+
+    Returns:
+        OneLogin_Saml2_Auth: SAML SP Instance.
+
+    """
+    saml_sp = OneLogin_Saml2_Auth(onelogin_request, custom_base_path=current_app.config['SAML_PATH'])
+    return saml_sp
+
+
+def prepare_onelogin_request(flask_request):
+    """Convert a Flask request object to a dictionary for use with OneLogin SAML.
+
+    Args:
+        flask_request (Flask.Request): Flask Request object.
+
+    Returns:
+        dict: Dictionary of Flask Request fields for OneLogin
+
+    """
+    url_data = urlparse(flask_request.url)
+    return {
+        'https': 'on' if flask_request.scheme == 'https' else 'off',
+        'http_host': flask_request.host,
+        'server_port': url_data.port,
+        'script_name': flask_request.path,
+        'request_uri': url_for('auth.saml', _external=True),
+        'get_data': flask_request.args.copy(),
+        # Uncomment if using ADFS as IdP, https://github.com/onelogin/python-saml/pull/144
+        # 'lowercase_urlencoding': True,
+        'post_data': flask_request.form.copy()
+    }
+
+
+def saml_sso(saml_sp):
+    """ Handle Single Sign-On for SAML.
+
+    Calls the login function in the OneLogin python3-saml library to generate an Assertion Request to the IdP.
+
+    Args:
+        saml_sp (OneLogin_Saml2_Auth): Saml SP Instance
+
+    Returns:
+        Response Object: Redirect the user to the IdP for SSO.
+
+    """
+    return redirect(saml_sp.login())
+
+
+def saml_sls(saml_sp):
+    """Process a SAML LogoutResponse from the IdP
+
+    Args:
+        saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
+
+    Returns:
+        Response Object: Redirect the user to the Home Page.
+
+    """
+    user_guid = current_user
+    dscb = lambda: session.clear()
+    url = saml_sp.process_slo(delete_session_cb=dscb)
+    errors = saml_sp.get_errors()
+    update_object(
+        {
+            'session_id': None
+        },
+        Users,
+        current_user.guid
+    )
+    logout_user()
+    if not errors:
+        create_auth_event(
+            auth_event_type=event_type.USER_LOGGED_OUT,
+            user_guid=user_guid,
+            new_value={
+                'success': True,
+                'type': current_app.config['AUTH_TYPE']
+            }
+        )
+        return redirect(url) if url else redirect(url_for('main.index'))
+    else:
+        error_message = "Errors on SAML Logout:\n{errors}".format(errors='\n'.join(errors))
+        current_app.logger.exception(error_message)
+        create_auth_event(
+            auth_event_type=event_type.USER_FAILED_LOG_OUT,
+            user_guid=user_guid,
+            new_value={
+                'success': False,
+                'type': current_app.config['AUTH_TYPE'],
+                'errors': error_message
+            }
+        )
+        flash("Sorry! An unexpected error has occurred. Please try again later.", category='danger')
+        return redirect(url_for('main.index'))
+
+
+def saml_slo(saml_sp):
+    """Generate a SAML LogoutRequest for the user.
+
+    Args:
+        saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
+
+    Returns:
+        Response Object: Redirect the user to the IdP for SLO.
+    """
+    name_id = None
+    session_index = None
+    if 'samlNameId' in session:
+        name_id = session['samlNameId']
+    if 'samlSessionIndex' in session:
+        session_index = session['samlSessionIndex']
+
+    return saml_sp.logout(name_id=name_id, session_index=session_index)
+
+
+def saml_acs(saml_sp, onelogin_request):
+    """Process a SAML Assertion for the user
+
+    Args:
+        saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
+
+    Returns:
+        Response Object: Redirect the user to the appropriate page for the next step.
+            If the user needs to validate their email, they are redirected to the IdP
+            Otherwise, the user is redirected to a valid RelayState.
+            If RelayState is invalid, the user is redirected to the home page.
+
+    """
+
+    saml_sp.process_response()
+    errors = saml_sp.get_errors()
+
+    session['samlUserdata'] = saml_sp.get_attributes()
+    session['samlNameId'] = saml_sp.get_nameid()
+    session['samlSessionIndex'] = saml_sp.get_session_index()
+
+    # Log User In
+    user_data = {k: v[0] if len(v) else None for (k, v) in session['samlUserdata'].items()}
+
+    if len(errors) == 0:
+        nycid_user_data = get_nycid_user_data(user_data['GUID'])
+
+        if not nycid_user_data.get('validated', False):
+            email_validation_url = _validate_email(nycid_user_data.get('validated', False), nycid_user_data.get('id'),
+                                                   nycid_user_data.get('email'))
+            return redirect(email_validation_url)
+
+        user = _process_user_data(
+            guid=nycid_user_data.get('id', None),
+            first_name=nycid_user_data.get('firstName', None),
+            middle_initial=nycid_user_data.get('middleInitial', None),
+            last_name=nycid_user_data.get('lastName', None),
+            email=nycid_user_data.get('email', None),
+            email_validated=nycid_user_data.get('validated', False),
+            is_nyc_employee=nycid_user_data.get('nycEmployee', False),
+            has_nyc_account=nycid_user_data.get('hasNYCAccount', False),
+            active=nycid_user_data.get('active', False),
+            terms_of_use_accepted=nycid_user_data.get('termsOfUse', False),
+            is_anonymous_requester=False
+        )
+        login_user(user)
+        create_auth_event(
+            auth_event_type=event_type.USER_LOGIN,
+            user_guid=user.guid,
+            new_value={
+                'success': True,
+                'type': current_app.config['AUTH_TYPE']
+            }
+        )
+        self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
+
+        if 'RelayState' in request.form and self_url != request.form['RelayState']:
+            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'fresh_login': 'true'}))
+
+        return redirect(url_for('main.index', fresh_login=True))
+
+    error_message = "Errors on SAML ACS:\n{errors}\n\nUser Data: {user_data".format(errors='\n'.join(errors),
+                                                                                    user_data=user_data)
+    current_app.logger.exception(error_message)
+    create_auth_event(
+        auth_event_type=event_type.USER_FAILED_LOG_IN,
+        user_guid=user_data['GUID'] if user_data['GUID'] is not None else '',
+        new_value={
+            'success': False,
+            'type': current_app.config['AUTH_TYPE'],
+            'message': error_message
+        }
+    )
+    return abort(500)
+
+
+# NYC.ID Web Services
 
 def _validate_email(email_validation_flag, guid, email_address):
     """

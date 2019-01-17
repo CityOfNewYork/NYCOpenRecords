@@ -1,13 +1,12 @@
-import os
 from datetime import timedelta
 
+import os
 from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
-
 
 class Config:
     NYC_GOV_BASE = 'www1.nyc.gov'
@@ -56,6 +55,9 @@ class Config:
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     USE_SAML = os.environ.get('USE_SAML') == "True"
+
+    AUTH_TYPE = 'None'
+
     if USE_SAML:
         SAML_PATH = (os.environ.get('SAML_PATH') or
                      os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
@@ -63,14 +65,7 @@ class Config:
         VERIFY_WEB_SERVICES = os.environ.get('SAML_VERIFY_WEB_SERVICES') == "True"
         NYC_ID_USERNAME = os.environ.get('SAML_NYC_ID_USERNAME')
         NYC_ID_PASSWORD = os.environ.get('SAML_NYC_ID_PASSWORD')
-
-    USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
-    if USE_OAUTH:
-        WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
-        LOGOUT_URL = os.environ.get("LOGOUT_URL")
-        VERIFY_WEB_SERVICES = os.environ.get('VERIFY_WEB_SERVICES') == "True"
-        NYC_ID_USERNAME = os.environ.get('NYC_ID_USERNAME')
-        NYC_ID_PASSWORD = os.environ.get('NYC_ID_PASSWORD')
+        AUTH_TYPE = 'saml'
 
     USE_LDAP = os.environ.get('USE_LDAP') == "True"
     if USE_LDAP:
@@ -81,8 +76,11 @@ class Config:
         LDAP_SA_BIND_DN = os.environ.get('LDAP_SA_BIND_DN') or None
         LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
         LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
+        AUTH_TYPE = 'ldap'
 
     USE_LOCAL_AUTH = os.environ.get('USE_LOCAL_AUTH') == "True"
+    if USE_LOCAL_AUTH:
+        AUTH_TYPE = 'local_auth'
 
     # Redis Settings
     REDIS_HOST = os.environ.get('REDIS_HOST') or 'localhost'
