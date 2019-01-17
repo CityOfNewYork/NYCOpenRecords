@@ -38,8 +38,7 @@ from app.constants import (
     determination_type,
     response_privacy,
     submission_methods,
-    event_type,
-    user_type_auth
+    event_type
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.schemas import AGENCIES_SCHEMA
@@ -49,7 +48,6 @@ from app.lib.utils import (
     DuplicateFileException,
     InvalidDeterminationException
 )
-from elasticsearch.helpers import bulk
 
 
 class Roles(db.Model):
@@ -241,10 +239,9 @@ class Agencies(db.Model):
     @property
     def formatted_parent_ein(self):
         """
-        Return the correctly formated EIN for a parent agency.
+        Return the correctly formatted EIN for a parent agency.
 
         Parent EINs are ALWAYS preceded by a 0, since City of New York EINs are always 3 characters.
-        :param parent_ein: 3 character parent ein
         :return: String
         """
         return "0{}".format(self.parent_ein)
@@ -390,18 +387,11 @@ class Users(UserMixin, db.Model):
         """
         if current_app.config['USE_LDAP']:
             return True
-        if current_app.config['USE_OAUTH']:
-            if session.get('token') is not None:
-                from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
-                return oauth_user_web_service_request().status_code == 200
         if current_app.config['USE_SAML']:
             if session.get('samlUserdata', None):
                 return True
         if current_app.config['USE_LOCAL_AUTH']:
             return True
-        if session.get('token') is not None:
-            from app.auth.utils import oauth_user_web_service_request  # circular import (auth.utils needs Users)
-            return oauth_user_web_service_request().status_code == 200
         return False
 
     @property

@@ -20,7 +20,8 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
     Make the specified user an admin for the agency.
 
     Args:
-        user (Users): User to be modified
+        modified_user_guid (str): GUID of the user to be modified
+        current_user_guid (str): GUID of the current user
         agency_ein (str): Agency the user is being added to
 
     Returns:
@@ -127,7 +128,8 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
     Remove the specified users permissions for the agency identified by agency_ein
 
     Args:
-        user (Users): User to be modified
+        modified_user_guid (str): GUID of the user to be modified
+        current_user_guid (str): GUID of the current user
         agency_ein (str): Agency the user is being removed from
 
     Returns:
@@ -192,15 +194,25 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
 
 
 @celery.task(bind=True, name='app.user.utils.es_update_assigned_users')
-def es_update_assigned_users(self, request_ids: list):
-    actions = [{
-        '_op_type': 'update',
-        '_id': request.id,
-        'doc': {
-            'assigned_users': [user.get_id() for user in request.agency_users]
-        }
-    } for request in
-        Requests.query.filter(Requests.id.in_(request_ids)).options(joinedload(Requests.agency_users)).all()]
+def es_update_assigned_users(self, request_ids: list, is_agency: bool):
+    if is_agency:
+        actions = [{
+            '_op_type': 'update',
+            '_id': request.id,
+            'doc': {
+                'assigned_users': [user.get_id() for user in request.agency_users]
+            }
+        } for request in
+            Requests.query.filter(Requests.id.in_(request_ids)).options(joinedload(Requests.agency_users)).all()]
+    else:
+        actions = [{
+            '_op_type': 'update',
+            '_id': request.id,
+            'doc': {
+                'assigned_users': [user.get_id() for user in request.agency_users]
+            }
+        } for request in
+            Requests.query.filter(Requests.id.in_(request_ids)).options(joinedload(Requests.agency_users)).all()]
 
     bulk(
         es,
