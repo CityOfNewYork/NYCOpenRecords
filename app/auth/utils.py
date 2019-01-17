@@ -27,7 +27,7 @@ from app.auth.constants import error_msg
 from app.constants.bulk_updates import EventsDict
 from app.constants.web_services import (
     EMAIL_VALIDATION_ENDPOINT, EMAIL_VALIDATION_STATUS_ENDPOINT,
-    USER_SEARCH_ENDPOINT, USER_ENDPOINT
+    USER_SEARCH_ENDPOINT
 )
 from app.lib.db_utils import create_object, update_object
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
@@ -210,8 +210,9 @@ def saml_acs(saml_sp, onelogin_request):
 def update_openrecords_user(form):
     """
     Update OpenRecords-specific user attributes.
-    :param form: validated ManageUserAccountForm or ManageAgencyUserAccountForm
-    :type form: app.auth.forms.ManageUserAccountForm or app.auth.forms.ManageAgencyUserAccountForm
+
+    Args:
+        form (app.auth.forms.ManageAgencyUserAccountForm OR app.auth.forms.ManageUserAccountForm): validated form
     """
     update_object(
         {
@@ -289,39 +290,9 @@ def find_user_by_email(email):
         from sqlalchemy import func
         return Users.query.filter(
             func.lower(Users.email) == email.lower(),
-            Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+            Users.is_agency == True
         ).first()
     return None
-
-
-def oauth_user_web_service_request(method="GET"):
-    """
-    Invoke the OAuth User Web Service with specified method.
-    https://nyc4d.nycnet/nycid/mobile.shtml#get-oauth-user-web-service
-
-    * Assumes the access token is stored in the session. *
-
-    :returns: response for user web services request
-    """
-    return _web_services_request(
-        USER_ENDPOINT,
-        {"accessToken": session['token']['access_token']},
-        method=method
-    )
-
-
-def _session_regenerate_persist_token():
-    """
-    Regenerate the Session ID while persisting session contents on Server Side.
-
-    TODO @joelbcastillo: Determine if we need to manually persist session data.
-
-    """
-    token = session['token']
-    token_expires_at = session['token_expires_at']
-    session.regenerate()
-    session['token'] = token
-    session['token_expires_at'] = token_expires_at
 
 
 def _process_user_data(guid,
@@ -336,24 +307,32 @@ def _process_user_data(guid,
                        terms_of_use_accepted,
                        is_anonymous_requester):
     """
-    Kickoff email validation (if the user did not authenticate
-    with a federated identity) or terms-of-use acceptance if the
-    user has not validated their email or has not accepted the
-    latest terms of use version.
+    Create or Update an OpenRecords User based on the data received from the SAML Assertion.
 
-    Otherwise, create or update a user with the specified fields.
+    If no first_name is provided, the mailbox portion of the email will be used
+        e.g. jdoe@records.nyc.gov -> first_name: jdoe
 
-    If no first_name is provided, the mailbox portion of the email
-    will be used (e.g. jdoe@records.nyc.gov -> first_name: jdoe).
+    If a user cannot be found using the specified guid and user_type, a second attempt is made with the specified email.
 
-    If a user cannot be found using the specified guid and user_type,
-    a second attempt is made with the specified email.
+    NOTE: A user's agency is not determined here. After login, a user's agency supervisor must email us requesting that
+    user be added to the agency.
+    TODO (@joelbcastillo): Add endpoint to add user by email to the Agency on the Agency Administration Page
 
-    NOTE: A user's agency is not determined here. After login, a user's
-    agency supervisor must email us requesting that user be added
-    to the agency.
+    Args:
+        guid (str): The users unique identifier
+        email (str): The users email address
+        first_name (str): The users' first name. If None, then the mailbox part of the email address will be used
+        middle_initial (str): The users' middle initial. Can be None
+        last_name (str): The users' last name. Required.
+        email_validated (bool): Determines whether the users' email has been validated.
+        is_nyc_employee (bool): Determines
+        has_nyc_account,
+        active,
+        terms_of_use_accepted,
+        is_anonymous_requester
 
-    :return: (redirect required?, user that has been found or created OR redirect url)
+    Returns:
+        Users: The user that was pulled from the database (and updated) or the new user)
     """
     mailbox, domain = email.split('@')
 
@@ -381,42 +360,57 @@ def _process_user_data(guid,
             is_anonymous_requester
         )
     else:
-        user = Users(guid=guid,
-                     email=email,
-                     first_name=first_name,
-                     middle_initial=middle_initial,
-                     last_name=last_name,
-                     email_validated=email_validated,
-                     is_nyc_employee=is_nyc_employee,
-                     has_nyc_account=has_nyc_account,
-                     active=active,
-                     terms_of_use_accepted=terms_of_use_accepted,
-                     is_anonymous_requester=is_anonymous_requester
-                     )
+        user = Users(
+            guid=guid,
+            email=email,
+            first_name=first_name,
+            middle_initial=middle_initial,
+            last_name=last_name,
+            email_validated=email_validated,
+            is_nyc_employee=is_nyc_employee,
+            has_nyc_account=has_nyc_account,
+            active=active,
+            terms_of_use_accepted=terms_of_use_accepted,
+            is_anonymous_requester=is_anonymous_requester
+        )
         create_object(user)
 
     return user
 
 
-def _update_user_data(user, guid, email, first_name, middle_initial, last_name, email_validated, is_nyc_employee=False,
-                      has_nyc_account=False, active=False, terms_of_use_accepted=False, is_anonymous_requester=False):
+def _update_user_data(
+        user,
+        guid,
+        email,
+        first_name=None,
+        middle_initial=None,
+        last_name=None,
+        email_validated=False,
+        is_nyc_employee=False,
+        has_nyc_account=False,
+        active=False,
+        terms_of_use_accepted=False,
+        is_anonymous_requester=False
+):
     """
-    Update specified user with the information provided, which is
-    assumed to have originated from an NYC Service Account, and set
-    `email_validated` and `terms_of_use_accepted` (this function
-    should be called AFTER email validation and terms-of-use acceptance
-    has been completed).
+    Update a users data with the updated values.
 
-    Update any database objects this user is associated with.
-    - user_requests
-    - events
-    In order to prevent a possbile negative performance impact
-    (due to foreign keys CASCADE), guid and user_type are compared with
-    stored user attributes and are excluded from the update if both are identical.
+    Args:
+        user (Users): User to be updated.
+        guid (str): Updated GUID (Required)
+        email (str): Updated email address
+        first_name (str): Updated first name
+        middle_initial (str): Updated middle initial
+        last_name (str): Updated last name
+        email_validated (bool): Updated email validation status
+        is_nyc_employee (bool): Updated NYC Employee status
+        has_nyc_account (bool): Updated NYC Account Status
+        active (bool): Updated active status (is the user account active in the authentication provider)
+        terms_of_use_accepted (bool): Terms of Use Accepted Status
+        is_anonymous_requester (bool): Updated Anonymous Requester status
 
-    Update search index for searching by assigned user.
     """
-    old_guid = user.guid
+    current_data = user.val_for_events()
 
     updated_data = {
         'guid': guid,
@@ -432,10 +426,9 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
         'is_anonymous_requester': is_anonymous_requester
     }
 
-    if guid != user.guid:
-        updated_data.update(
-            guid=guid
-        )
+    updates = dict(set(current_data) ^ set(updated_data))
+
+    if updates:
         # Get all the events that need to be changed to associate with the updated GUID.
         events_to_update = Events.query.filter(Events.new_value['user_guid'].astext == user.guid).all()
 
@@ -460,14 +453,14 @@ def _update_user_data(user, guid, email, first_name, middle_initial, last_name, 
             updated_events.append(('new_value', update['new_value']))
 
         update_object(
-            updated_data,
+            updates,
             Users,
             user.guid
         )
 
-        Events.query.filter(Events.new_value['user_guid'].astext == old_guid).update(updated_events,
-                                                                                     synchronize_session=False)
-        UserRequests.query.filter(UserRequests.user_guid == old_guid).update([('user_guid', guid)])
+        Events.query.filter(Events.new_value['user_guid'].astext == current_data['guid']).update(updated_events,
+                                                                                                 synchronize_session=False)
+        UserRequests.query.filter(UserRequests.user_guid == current_data['guid']).update([('user_guid', guid)])
 
         request_ids = [ur.request_id for ur in UserRequests.query.with_entities(UserRequests.request_id).filter(
             UserRequests.user_guid == guid).all()]
