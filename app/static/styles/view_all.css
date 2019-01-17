@@ -208,23 +208,23 @@ div.search-results table thead tr > *:first-child, div.search-results table tbod
 }
 
 div.search-results table thead tr > *:first-child.open, div.search-results table tbody tr > *:first-child.open {
-    background: url("../open.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #073b66 1.5rem, transparent 1.5rem);
+    background: url("/static/img/open.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #073b66 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child.closed, div.search-results table tbody tr > *:first-child.closed {
-    background: url("../closed.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #094709 1.5rem, transparent 1.5rem);
+    background: url("/static/img/closed.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #094709 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child.soon, div.search-results table tbody tr > *:first-child.soon {
-    background: url("../soon.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #777677 1.5rem, transparent 1.5rem);
+    background: url("/static/img/soon.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #777677 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child.progress, div.search-results table tbody tr > *:first-child.progress {
-    background: url("../progress.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #007dbb 1.5rem, transparent 1.5rem);
+    background: url("/static/img/progress.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #007dbb 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child.overdue, div.search-results table tbody tr > *:first-child.overdue {
-    background: url("../overdue.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #df0000 1.5rem, transparent 1.5rem);
+    background: url("/static/img/overdue.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #df0000 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child:not([class]), div.search-results table tbody tr > *:first-child:not([class]) {
