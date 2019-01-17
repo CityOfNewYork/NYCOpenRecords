@@ -90,23 +90,23 @@
         // Apply custom validation messages
         $("#link-title").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>Link title is required.</strong> Please type in a link title.");
+            "<strong>Error, link title is required.</strong> Please type in a link title.");
         $("#link-url").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>URL link is required.</strong> Please type in a link.");
+            "<strong>Error, URL link is required.</strong> Please type in a link.");
         $("#link-title").attr("data-parsley-maxlength-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "Link title must be less than 90 characters.");
+            "Error, link title must be less than 90 characters.");
         $("#link-url").attr("data-parsley-maxlength-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "URL link must be less than 254 characters.");
+            "Error, URL link must be less than 254 characters.");
 
         // Custom validator to validate strict url using regexUrlChecker
         $("#link-url").attr("data-parsley-urlstrict", "");
         window.Parsley.addValidator("urlstrict", function (value) {
             return "" !== value ? regexUrlChecker(value) : false;
         }).addMessage("en", "urlstrict", "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>This URL is invalid.</strong> Please type in a valid URL.");
+            "<strong>Error, this URL is invalid.</strong> Please type in a valid URL.");
 
         // Set character counter for link title
         $("#link-title").keyup(function () {

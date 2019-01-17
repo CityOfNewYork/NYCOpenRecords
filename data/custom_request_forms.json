@@ -22,7 +22,7 @@
               "content": "Arrest report number tooltip content"
             },
             "help_text": "Arrest report number help text.",
-            "error_message": "<strong>Arrest Report Number is required.</strong> Please type in a number."
+            "error_message": "<strong>Error, Arrest Report Number is required.</strong> Please type in a number."
           }
         },
         {
