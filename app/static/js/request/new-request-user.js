@@ -117,13 +117,13 @@ $(document).ready(function () {
     // Custom Validation Messages
     $("#request-agency").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>An agency is required.</strong> Please select an agency from the drop-down menu.");
+        "<strong>Error, an agency is required.</strong> Please select an agency from the drop-down menu.");
     $("#request-title").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A title is required.</strong> Please type in a short title for your request.");
+        "<strong>Error, a title is required.</strong> Please type in a short title for your request.");
     $("#request-description").attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A description is required.</strong> Please type in a detailed description of your request.");
+        "<strong>Error, a description is required.</strong> Please type in a detailed description of your request.");
 
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
     $("#request-file").attr("data-parsley-max-file-size", "20");
