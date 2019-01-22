@@ -1,4 +1,4 @@
-"""empty message
+"""Remove auth_user_type
 
 Revision ID: 838a6ad16cf4
 Revises: 89d3f2e347f1

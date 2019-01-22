@@ -344,7 +344,7 @@ def ldap_logout():
 
 # Local Authentication Endpoints
 @auth.route('/local_login', methods=['GET', 'POST'])
-def local_auth:
+def local_auth():
     """
     Authenticate a user against the database (ignore password).
 
