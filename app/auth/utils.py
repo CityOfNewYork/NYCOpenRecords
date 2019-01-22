@@ -126,7 +126,7 @@ def find_user_by_email(email):
             email=email
         ).first()
         return user if user.agencies.all() else None
-    elif current_app.config['USE_OAUTH'] or current_app.config['USE_SAML']:
+    elif current_app.config['USE_SAML']:
         from sqlalchemy import func
         return Users.query.filter(
             func.lower(Users.email) == email.lower(),
@@ -256,7 +256,7 @@ def _update_user_data(
         is_anonymous_requester (bool): Updated Anonymous Requester status
 
     """
-    current_data = user.val_for_events()
+    current_data = user.val_for_events
 
     updated_data = {
         'guid': guid,
@@ -272,7 +272,12 @@ def _update_user_data(
         'is_anonymous_requester': is_anonymous_requester
     }
 
-    updates = dict(set(current_data) ^ set(updated_data))
+    updates = {}
+
+    for k, v in current_data.items():
+        _temp_update = updated_data.get(k, None)
+        if _temp_update and _temp_update != v:
+            updates[k] = updated_data.get(k)
 
     if updates:
         # Get all the events that need to be changed to associate with the updated GUID.
@@ -304,8 +309,9 @@ def _update_user_data(
             user.guid
         )
 
-        Events.query.filter(Events.new_value['user_guid'].astext == current_data['guid']).update(updated_events,
-                                                                                                 synchronize_session=False)
+        if updated_events:
+            Events.query.filter(Events.new_value['user_guid'].astext == current_data['guid']).update(updated_events,
+                                                                                                     synchronize_session=False)
         UserRequests.query.filter(UserRequests.user_guid == current_data['guid']).update([('user_guid', guid)])
 
         request_ids = [ur.request_id for ur in UserRequests.query.with_entities(UserRequests.request_id).filter(
@@ -397,17 +403,17 @@ def saml_sso(saml_sp):
     return redirect(saml_sp.login())
 
 
-def saml_sls(saml_sp):
+def saml_sls(saml_sp, user_guid):
     """Process a SAML LogoutResponse from the IdP
 
     Args:
         saml_sp (OneLogin_Saml2_Auth): SAML SP Instance
+        user_guid (str): Unique identifier for user being logged out.
 
     Returns:
         Response Object: Redirect the user to the Home Page.
 
     """
-    user_guid = current_user
     dscb = lambda: session.clear()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
@@ -416,7 +422,7 @@ def saml_sls(saml_sp):
             'session_id': None
         },
         Users,
-        current_user.guid
+        user_guid
     )
     logout_user()
     if not errors:

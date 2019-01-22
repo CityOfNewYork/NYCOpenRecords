@@ -107,11 +107,6 @@ def logout():
             url_for("auth.ldap_logout", timeout=timeout, forced_logout=forced_logout)
         )
 
-    elif current_app.config["USE_OAUTH"]:
-        return redirect(
-            url_for("auth.oauth_logout", timeout=timeout, forced_logout=forced_logout)
-        )
-
     elif current_app.config["USE_SAML"]:
         return redirect(
             url_for(
@@ -204,7 +199,7 @@ def saml():
     elif "slo" in request.args:
         return redirect(saml_slo(onelogin_saml_auth))
     elif "sls" in request.args:
-        return saml_sls(onelogin_saml_auth)
+        return saml_sls(onelogin_saml_auth, current_user.guid)
     else:
         flash(
             "Oops! Something went wrong. Please try to perform your action again later.",
