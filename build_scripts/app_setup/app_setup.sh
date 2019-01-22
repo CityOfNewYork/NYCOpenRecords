@@ -33,9 +33,9 @@ yum -y install libtool-ltdl-devel
 # 5. Setup SAML
 mkdir -p /vagrant/saml
 openssl req \
-       -newkey rsa:4096 -nodes -keyout /vagrant/saml/saml.key \
-       -x509 -days 365 -out /vagrant/saml/saml.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=saml.intranet.dev"
-openssl x509 -in /vagrant/saml/saml.crt -out /vagrant/saml/saml.pem -outform PEM
+       -newkey rsa:4096 -nodes -keyout /vagrant/instance/saml/saml.key \
+       -x509 -days 365 -out /vagrant/instance/saml/saml.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=saml.intranet.dev"
+openssl x509 -in /vagrant/instance/saml/saml.crt -out /vagrant/instance/saml/saml.pem -outform PEM
 
 
 # 6. Install Developer Tools

@@ -66,9 +66,9 @@ Your should fill out the fields in the following way:
    Name: <URL created above>
    Issuer: <URL created above>/auth/metadata
    Single Logout Service Binding: `urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect`
-   X.509 Certificate: Copy the contents of `/vagrant/instance/saml/saml.pub`
+   X.509 Certificate: Copy the contents of `/vagrant/instance/saml/certs/saml.crt`
    Encrypt Assertions: False (unchecked)
-   X.509 Encryption Certificate: Copy the contents of `/vagrant/instance/saml/saml.pub`
+   X.509 Encryption Certificate: Copy the contents of `/vagrant/instance/saml/certs/saml.crt`
    ```
 
 ## Setup SAML Configuration
