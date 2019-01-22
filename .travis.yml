@@ -10,6 +10,14 @@ before_script:
   - sleep 10
 addons:
   postgresql: "9.5"
+  apt:
+    packages:
+      - libssl-dev
+      - libxmlsec1
+      - libxmlsec1-dev
+      - libxmlsec1-openssl
+      - libxslt1-dev
+      - pkg-config
 services:
   - postgresql
   - redis-server
