@@ -319,13 +319,6 @@ def _update_user_data(
 
         es_update_assigned_users.apply_async(args=[request_ids])
 
-    else:
-        update_object(
-            updated_data,
-            Users,
-            user.guid
-        )
-
 
 def create_auth_event(auth_event_type: str, user_guid: str, new_value: dict):
     """
@@ -571,7 +564,7 @@ def _validate_email(email_validation_flag, guid, email_address):
 
     :return: redirect url or None
     """
-    if email_validation_flag == str(False):
+    if email_validation_flag is False:
         response = _web_services_request(
             EMAIL_VALIDATION_STATUS_ENDPOINT,
             {"guid": guid}
