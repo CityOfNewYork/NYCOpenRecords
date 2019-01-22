@@ -16,22 +16,22 @@ $(document).ready(function () {
 
     firstName.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>First name is required.</strong> Please type in your first name.");
+        "<strong>Error, first name is required.</strong> Please type in your first name.");
     lastName.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>Last name is required.</strong> Please type in your last name.");
+        "<strong>Error, last name is required.</strong> Please type in your last name.");
     email.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>An email name is required.</strong> Please type in your email.");
+        "<strong>Error, an email name is required.</strong> Please type in your email.");
     email.attr("data-parsley-type-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>This value should be an email.</strong> Please type in a valid email.");
+        "<strong>Error, this value should be an email.</strong> Please type in a valid email.");
     subject.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A subject is required.</strong> Please type in a subject for your message.");
+        "<strong>Error, a subject is required.</strong> Please type in a subject for your message.");
     message.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A message is required.</strong> Please type in a message.");
+        "<strong>Error, a message is required.</strong> Please type in a message.");
 
     firstName.attr('data-parsley-maxlength', 32);
     lastName.attr('data-parsley-maxlength', 64);

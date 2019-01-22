@@ -183,7 +183,7 @@ def test_faq(
     """
     response = client.get('/faq')
     assert response.status_code == 200
-    assert b'<h1 class="text-center" id="faq-header" tabindex="-1">Frequently Asked Questions</h1>' in response.data
+    assert b'<h1 class="text-center" id="faq-header" tabindex="0">Frequently Asked Questions</h1>' in response.data
 
 
 def test_about(

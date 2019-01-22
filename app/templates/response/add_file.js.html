@@ -53,7 +53,7 @@
             // Prevent default if no file has been added or uploaded
             if (templateDownload.length === 0 && (templateUpload.length === 0)) {
                 errorMessage.html("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-                    "<strong>A file is required.</strong> Please select a file.").show();
+                    "<strong>Error, a file is required.</strong> Please select a file.").show();
                 e.preventDefault();
                 return false;
             }

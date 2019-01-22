@@ -15,19 +15,19 @@ $(document).ready(function () {
     // Custom validation messages
     name.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A name is required.</strong> Please type in your name.");
+        "<strong>Error, a name is required.</strong> Please type in your name.");
     email.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>An email is required.</strong> Please type in your email.");
+        "<strong>Error, an email is required.</strong> Please type in your email.");
     email.attr("data-parsley-type-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>This value should be an email.</strong> Please type in a valid email.");
+        "<strong>Error, this value should be an email.</strong> Please type in a valid email.");
     subject.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A subject is required.</strong> Please type in a subject name.");
+        "<strong>Error, a subject is required.</strong> Please type in a subject name.");
     message.attr("data-parsley-required-message",
         "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>A message is required.</strong> Please type in a message.");
+        "<strong>Error, a message is required.</strong> Please type in a message.");
 
     // Specify length requirement of certain fields
     name.attr('data-parsley-maxlength', 32);
