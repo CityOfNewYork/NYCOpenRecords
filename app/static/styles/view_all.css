@@ -292,3 +292,11 @@ div.search-results .pagination .newrecord-wrap {
     padding-left: 0;
     padding-right: 0;
 }
+
+.advanced-search-col {
+    padding-top: 1.2rem;
+}
+
+.agency-advanced-options {
+    padding-top: 25px;
+}

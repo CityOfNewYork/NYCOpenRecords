@@ -11,6 +11,7 @@ $(function() {
         canSearch = true,
         searchBtn = $("#search"),
         searchBtnAdv = $("#search-adv"),
+        clearSearchBtn = $("#clearsearch"),
         dateReq = $("#date-req"),
         noResultsFound = true,
         generateDocBtn = $("#generate-document"),
@@ -174,6 +175,28 @@ $(function() {
         }
     });
 
+    //Capture form reset
+    $(clearSearchBtn).on('click', function(event) {
+        event.preventDefault();
+        $("#search-form")[0].reset();
+
+        //Need to do some self clean up
+        var query = $("#query");
+        var names = ["title", "description", "agency_request_summary", "requester_name"];
+        var i;
+
+        query.attr("placeholder", "Enter keywords");
+        for (i = 0; i < names.length; i++) {
+            $("input[name='" + names[i] + "']").prop("disabled", false);
+        }
+
+        $(query).focus();
+        resetAndSearch();
+
+
+
+    });
+
     // show test info
     // document.onkeypress = function (e) {
     //     var testInfo = $(".test-info");
@@ -286,7 +309,7 @@ $(function() {
                 else {
                     noResultsFound = true;
                     results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
-                          "<p class='text-center aria-live='polite''>No results found.</p></div></div>");
+                          "<p class='text-center' aria-live='polite'>No results found.</p></div></div>");
                     generateDocBtn.attr("disabled", true);
                 }
             },
@@ -336,7 +359,7 @@ $(function() {
 
             if (resultcol[i][1] === theHeadingId){
                 resultcol[i][2] = sequence;
-                console.log (resultcol[i][2] + "--" + resultcol[i][1]);
+                // console.log (resultcol[i][2] + "--" + resultcol[i][1]);
             }
         }
     }
