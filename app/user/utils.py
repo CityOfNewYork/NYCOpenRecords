@@ -2,6 +2,7 @@ from datetime import datetime
 
 from elasticsearch.helpers import bulk
 from flask_login import current_app
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 
 from app import (
@@ -118,7 +119,8 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
             agency_name=agency.name,
             name=user.name
         )
-    except:
+
+    except SQLAlchemyError:
         db.session.rollback()
 
 
@@ -189,7 +191,8 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
                 agency_name=agency.name,
                 name=user.name
             )
-    except:
+
+    except SQLAlchemyError:
         db.session.rollback()
 
 

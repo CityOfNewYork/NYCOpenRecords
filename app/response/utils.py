@@ -939,19 +939,6 @@ def assign_point_of_contact(point_of_contact):
         return current_user
 
 
-def assign_point_of_contact(point_of_contact):
-    """
-    Assign a user to be the point of contact in emails/letters
-
-    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
-    :return: A User object to be designated as the point of contact for a request
-    """
-    if point_of_contact:
-        return Users.query.filter(Users.guid == point_of_contact).one_or_none()
-    else:
-        return current_user
-
-
 def _acknowledgment_email_handler(request_id, data, page, agency_name, email_template):
     """
     Process email template for an acknowledgement.
@@ -2416,12 +2403,13 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
 
-    def _bool_check(self, value):
+    @staticmethod
+    def _bool_check(value):
         if isinstance(value, str) and value.lower() in ("true", "false"):
             return eval_request_bool(value)
         return value
 
-    def validate_deleted(self):
+    def validate_deleted(self) -> object:
         """
         Removes the 'deleted' key-value pair from the data containers
         if the confirmation string (see response PATCH) is not valid.

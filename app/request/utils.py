@@ -538,8 +538,8 @@ def _create_agency_user_requests(request_id, agency_admins, guid_for_event):
 def create_contact_record(request, first_name, last_name, email, subject, message):
     """
     Creates Users, Emails, and Events entries for a contact submission for a request.
-    Sends email with message to all agency users associated with
-    
+    Sends email with message to all agency users associated with the request.
+
     :param request: request object
     :param first_name: sender's first name
     :param last_name: sender's last name

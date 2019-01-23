@@ -130,7 +130,7 @@ def import_data(users, agencies, filename):
     if users:
         Users.populate(csv_name=filename)
     elif agencies:
-        Agencies.populate(csv_name=filename)
+        Agencies.populate(json_name=filename)
 
 
 @manager.option(
@@ -148,8 +148,6 @@ def import_data(users, agencies, filename):
 def test(cov=False, test_name=None, verbose=False):
     """Run the unit tests."""
     if cov and not os.environ.get("FLASK_COVERAGE"):
-        import sys
-
         os.environ["FLASK_COVERAGE"] = "1"
         os.execvp(sys.executable, [sys.executable] + sys.argv)
     import pytest
@@ -190,7 +188,6 @@ def profile(length=25, profile_dir=None):
 def deploy():
     """Run deployment tasks."""
     from flask_migrate import upgrade
-    from app.models import Roles, Agencies, Reasons
 
     # migrate database to latest revision
     upgrade()
@@ -331,7 +328,6 @@ def create_missing_request_status_changed_events():
                     event = Events(
                         request_id=request.id,
                         user_guid=request_closed_event.user_guid,
-                        auth_user_type=request_closed_event.auth_user_type,
                         type_=event_type.REQ_STATUS_CHANGED,
                         previous_value={
                             "status": request_status.IN_PROGRESS,
@@ -358,7 +354,6 @@ def create_missing_request_status_changed_events():
                     event = Events(
                         request_id=request.id,
                         user_guid=request_closed_event.user_guid,
-                        auth_user_type=request_closed_event.auth_user_type,
                         type_=event_type.REQ_STATUS_CHANGED,
                         previous_value={
                             "status": request_status.OPEN,
@@ -401,7 +396,7 @@ def create_missing_request_status_changed_events():
                     )
                     last_status = has_request_status_changed[0]
                 else:
-                    last_status = []
+                    last_status = None
 
                 if last_status:
                     # This request was "Due Soon" or "Overdue"; We'll use the last status (from the request_status
@@ -409,7 +404,6 @@ def create_missing_request_status_changed_events():
                     event = Events(
                         request_id=request.id,
                         user_guid=closing.user_guid,
-                        auth_user_type=closing.auth_user_type,
                         type_=event_type.REQ_STATUS_CHANGED,
                         previous_value={
                             "status": last_status.new_value["status"],
@@ -444,7 +438,6 @@ def create_missing_request_status_changed_events():
                         event = Events(
                             request_id=request.id,
                             user_guid=closing.user_guid,
-                            auth_user_type=closing.auth_user_type,
                             type_=event_type.REQ_STATUS_CHANGED,
                             previous_value={
                                 "status": request_status.IN_PROGRESS,
@@ -470,7 +463,6 @@ def create_missing_request_status_changed_events():
                         event = Events(
                             request_id=request.id,
                             user_guid=closing.user_guid,
-                            auth_user_type=closing.auth_user_type,
                             type_=event_type.REQ_STATUS_CHANGED,
                             previous_value={
                                 "status": request_status.OPEN,
@@ -503,7 +495,7 @@ def create_missing_request_status_changed_events():
                 has_request_status_changed.sort(key=lambda x: x.timestamp, reverse=True)
                 last_status = has_request_status_changed[0]
             else:
-                last_status = []
+                last_status = None
 
             if last_status:
                 # This request was "Due Soon" or "Overdue"; We'll use the last status (from the request_status
@@ -511,7 +503,6 @@ def create_missing_request_status_changed_events():
                 event = Events(
                     request_id=request.id,
                     user_guid=closing.user_guid,
-                    auth_user_type=closing.auth_user_type,
                     type_=event_type.REQ_STATUS_CHANGED,
                     previous_value={
                         "status": last_status.new_value["status"],
@@ -544,7 +535,6 @@ def create_missing_request_status_changed_events():
                     event = Events(
                         request_id=request.id,
                         user_guid=closing.user_guid,
-                        auth_user_type=closing.auth_user_type,
                         type_=event_type.REQ_STATUS_CHANGED,
                         previous_value={
                             "status": request_status.IN_PROGRESS,
@@ -569,7 +559,6 @@ def create_missing_request_status_changed_events():
                     event = Events(
                         request_id=request.id,
                         user_guid=closing.user_guid,
-                        auth_user_type=closing.auth_user_type,
                         type_=event_type.REQ_STATUS_CHANGED,
                         previous_value={
                             "status": request_status.OPEN,

@@ -35,7 +35,7 @@ from app.lib.db_utils import create_object, update_object
 from app.lib.onelogin.saml2.auth import OneLogin_Saml2_Auth
 from app.lib.onelogin.saml2.utils import OneLogin_Saml2_Utils
 from app.lib.user_information import create_mailing_address
-from app.models import AgencyUsers, Events, Users, UserRequests
+from app.models import AgencyUsers, Events, UserRequests, Users
 from app.user.utils import es_update_assigned_users
 
 
@@ -180,7 +180,7 @@ def _process_user_data(guid,
     Returns:
         Users: The user that was pulled from the database (and updated) or the new user)
     """
-    mailbox, domain = email.split('@')
+    mailbox, _ = email.split('@')
 
     if first_name is None:
         first_name = mailbox
@@ -407,7 +407,7 @@ def saml_sls(saml_sp, user_guid):
         Response Object: Redirect the user to the Home Page.
 
     """
-    dscb = lambda: session.clear()
+    dscb = session.clear()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
     update_object(
@@ -524,8 +524,8 @@ def saml_acs(saml_sp, onelogin_request):
 
         return redirect(url_for('main.index', fresh_login=True))
 
-    error_message = "Errors on SAML ACS:\n{errors}\n\nUser Data: {user_data".format(errors='\n'.join(errors),
-                                                                                    user_data=user_data)
+    error_message = "Errors on SAML ACS:\n{errors}\n\nUser Data: {user_data}".format(errors='\n'.join(errors),
+                                                                                     user_data=user_data)
     current_app.logger.exception(error_message)
     create_auth_event(
         auth_event_type=event_type.USER_FAILED_LOG_IN,
@@ -630,7 +630,7 @@ def _web_services_request(endpoint, params, method='GET'):
     req = None
     # SSLError with 'bad signature' is sometimes thrown when sending the request which causes an nginx error and 502
     # resending the request resolves the issue
-    for i in range(0, 5):
+    for _ in range(5):
         try:
             req = requests.request(
                 method,
