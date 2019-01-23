@@ -496,11 +496,11 @@ def saml_acs(saml_sp, onelogin_request):
             return redirect(email_validation_url)
 
         user = _process_user_data(
-            guid=nycid_user_data.get('id', None),
-            first_name=nycid_user_data.get('firstName', None),
-            middle_initial=nycid_user_data.get('middleInitial', None),
-            last_name=nycid_user_data.get('lastName', None),
-            email=nycid_user_data.get('email', None),
+            guid=nycid_user_data.get('id', ''),
+            first_name=nycid_user_data.get('firstName', ''),
+            middle_initial=nycid_user_data.get('middleInitial', ''),
+            last_name=nycid_user_data.get('lastName', ''),
+            email=nycid_user_data.get('email', ''),
             email_validated=nycid_user_data.get('validated', False),
             is_nyc_employee=nycid_user_data.get('nycEmployee', False),
             has_nyc_account=nycid_user_data.get('hasNYCAccount', False),
