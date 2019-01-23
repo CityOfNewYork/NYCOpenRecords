@@ -5,6 +5,7 @@
     var agencyUserFilter = $("#agency-user-filter");
     var userFilterDiv = $("#user-filter");
     var chartDescription = $("#chart-description");
+    var submit = $("#submit-button");
     var clearFilter = $("#clear-filter-button");
 
     var ctx = document.getElementById("reportChart");
@@ -56,6 +57,7 @@
         });
     }
 
+    // ajax call on initial page load
     $.ajax({
         url: "/report/",
         type: "GET",
@@ -73,25 +75,15 @@
         }
     });
 
+    // Update the agency user filter list whenever you change agencies
     agencyFilter.change(function () {
         $.ajax({
             url: "/report/",
             type: "GET",
             data: {
-                agency_ein: $(this).val()
+                agency_ein: agencyFilter.val()
             },
             success: function (data) {
-                for (var i = 0; i < (data.values).length; ++i) {
-                    reportChart.data.datasets[0].data[i] = data.values[i]
-                }
-                var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
-                reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
-                reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
-                reportChart.update();
-                $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " +
-                    $("#agency-filter option:selected").text() + ". " + data.values[0] + " requests open, " +
-                    data.values[1] + " requests closed.");
-
                 if (data.is_visible && data.active_users.length > 0 && data.results) {
                     var sel = agencyUserFilter;
                     sel.empty();
@@ -106,18 +98,6 @@
                 else {
                     userFilterDiv.hide();
                 }
-                if ($("#agency-filter option:selected").text() === "All") {
-                    chartDescription.html("This chart represents the aggregate data of all requests opened on " +
-                        "OpenRecords, along with the status of all requests. <strong>" + data.values[0] +
-                        " requests open, " + data.values[1] + " requests closed.</strong>");
-                }
-                else {
-                    chartDescription.html("This chart represents the aggregate data of all requests opened for " +
-                        $("#agency-filter option:selected").text() +
-                        ", along with the status of those requests. <strong>" + data.values[0] + " requests open, " +
-                        data.values[1] + " requests closed.</strong>");
-                }
-                chartDescription.focus();
             }
         });
     });
@@ -125,17 +105,17 @@
     var superUser = "{{ current_user.is_super }}";
     var agencyAdmin = "{{ current_user.has_agency_admin }}";
 
-    // check if current user is an admin for any agency or is a super user
-    // the views function will check if user is active or admin of the specific agency
-    if (agencyAdmin || superUser) {
-        agencyUserFilter.change(function () {
+    // handler for submit button
+    submit.click(function () {
+        // Behavior when user is agency agency admin/super user and the user filter is visible
+        if ((agencyAdmin || superUser) && userFilterDiv.is(":visible")) {
             // set agencyEin to value of selected agency if no user is selected
             var agencyEin = agencyUserFilter.val() === '' ? agencyFilter.val() : '';
             $.ajax({
                 url: "/report/",
                 type: "GET",
                 data: {
-                    user_guid: $(this).val(),
+                    user_guid: agencyUserFilter.val(),
                     agency_ein: agencyEin
                 },
                 success: function (data) {
@@ -165,9 +145,58 @@
                         chartDescription.focus();
                     }
                 }
-            })
-        });
-    }
+            });
+        }
+        // Default behavior for all other users
+        else {
+            $.ajax({
+                url: "/report/",
+                type: "GET",
+                data: {
+                    agency_ein: agencyFilter.val()
+                },
+                success: function (data) {
+                    for (var i = 0; i < (data.values).length; ++i) {
+                        reportChart.data.datasets[0].data[i] = data.values[i]
+                    }
+                    var maxTicks = Math.min(Math.max.apply(null, data.values), 10);
+                    reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
+                    reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
+                    reportChart.update();
+                    $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " +
+                        $("#agency-filter option:selected").text() + ". " + data.values[0] + " requests open, " +
+                        data.values[1] + " requests closed.");
+
+                    if (data.is_visible && data.active_users.length > 0 && data.results) {
+                        var sel = agencyUserFilter;
+                        sel.empty();
+                        for (var i = 0; i < (data.active_users).length; i++) {
+                            var opt = document.createElement("option");
+                            opt.innerHTML = data.active_users[i][1];
+                            opt.value = data.active_users[i][0];
+                            sel.append(opt);
+                        }
+                        userFilterDiv.show();
+                    }
+                    else {
+                        userFilterDiv.hide();
+                    }
+                    if ($("#agency-filter option:selected").text() === "All") {
+                        chartDescription.html("This chart represents the aggregate data of all requests opened on " +
+                            "OpenRecords, along with the status of all requests. <strong>" + data.values[0] +
+                            " requests open, " + data.values[1] + " requests closed.</strong>");
+                    }
+                    else {
+                        chartDescription.html("This chart represents the aggregate data of all requests opened for " +
+                            $("#agency-filter option:selected").text() +
+                            ", along with the status of those requests. <strong>" + data.values[0] + " requests open, " +
+                            data.values[1] + " requests closed.</strong>");
+                    }
+                    chartDescription.focus();
+                }
+            });
+        }
+    });
 
     clearFilter.click(function () {
         userFilterDiv.hide();
