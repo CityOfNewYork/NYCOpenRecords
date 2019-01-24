@@ -216,11 +216,11 @@ div.search-results table thead tr > *:first-child.closed, div.search-results tab
 }
 
 div.search-results table thead tr > *:first-child.soon, div.search-results table tbody tr > *:first-child.soon {
-    background: url("/static/img/soon.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #777677 1.5rem, transparent 1.5rem);
+    background: url("/static/img/soon.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #007dbb 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child.progress, div.search-results table tbody tr > *:first-child.progress {
-    background: url("/static/img/progress.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #007dbb 1.5rem, transparent 1.5rem);
+    background: url("/static/img/progress.svg") no-repeat left top 1rem/1.5rem auto, linear-gradient(to right, #777677 1.5rem, transparent 1.5rem);
 }
 
 div.search-results table thead tr > *:first-child.overdue, div.search-results table tbody tr > *:first-child.overdue {
@@ -299,4 +299,12 @@ div.search-results .pagination .newrecord-wrap {
 
 .agency-advanced-options {
     padding-top: 25px;
+}
+
+.date-filter-section {
+    height: 100px;
+}
+
+.date-filter {
+    padding-left: 0;
 }

@@ -3,7 +3,8 @@
         <label for="searchTerms" class="h4"><strong>Search Term(s)</strong>
             <button data-toggle="collapse" data-target="#helptext-search" aria-expanded="false"
                     aria-controls="helptext-search" type="button" class="helptext-button"><span
-                    class="sr-only">Additional Information</span><span aria-hidden="true"></span>
+                    class="sr-only">Learn more about search terms.</span><span
+                    aria-hidden="true"></span>
             </button>
         </label>
         <div class="helptext-wrapper bg-info collapse" id="helptext-search">
@@ -22,7 +23,7 @@
                 </span>
         </div>
     </div>
-    <div class="col-xs-12">
+    <div class="col-xs-12 advanced-search-col">
         <button type="button" class="btn-link" data-toggle="collapse"
                 data-target="#advanced-options" aria-expanded="false" aria-controls="advanced-options">
             Advanced
@@ -30,13 +31,9 @@
         </button>
     </div>
     <div class="col-xs-12">
-
-
         <div class="row collapse" id="advanced-options">
-
             <div class="col-xs-12 col-sm-6 col-md-4">
                 <div class="fieldset" aria-labelledby="searchBy-legend">
-
                     <div class="h4" id="searchBy-legend"><strong>Search By</strong></div>
                     <div class="checkbox">
                         <label>
@@ -55,9 +52,10 @@
                             <input type="checkbox" name="agency_request_summary" checked>
                             Agency Request Summary
                             <button data-toggle="collapse" data-target="#helptext-agencyrequest"
-                                    aria-expanded="false" aria-controls="helptext-agencyrequest"
-                                    type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span
-                                    aria-hidden="true"></span></button>
+                                    aria-expanded="false" aria-controls="helptext-agencyrequest" type="button"
+                                    class="helptext-button"><span class="sr-only">Additional Information about Agency Request Summary</span><span
+                                    aria-hidden="true"></span>
+                            </button>
                         </label>
                         <div class="helptext-wrapper collapse bg-info" id="helptext-agencyrequest">
                             <p class="helptext">Agency version of the request description that does not
@@ -67,7 +65,6 @@
                     </div>
                 </div>
                 <div class="fieldset" aria-labelledby="status-legend">
-
                     <div class="h4" id="status-legend"><strong>Status</strong></div>
                     <div class="checkbox">
                         <label>
@@ -88,13 +85,15 @@
                     <div class="h4" id="dateSubmitted-legend"><strong>Date Submitted</strong>
                         <button data-toggle="collapse" data-target="#helptext-datesubmitted"
                                 aria-expanded="false" aria-controls="helptext-datesubmitted"
-                                type="button" class="helptext-button"><span class="sr-only">Additional Information</span><span
+                                type="button" class="helptext-button"><span class="sr-only">Learn more about date submitted requirements</span><span
                                 aria-hidden="true"></span></button>
                     </div>
-                    <div class="helptext-wrapper collapse bg-info" id="helptext-datesubmitted">
+                    <div class="helptext-wrapper bg-info collapse" id="helptext-datesubmitted"
+                         aria-expanded="false" style="height: 0;">
                         <p class="helptext text-white">This field allows you to search for requests that
                             were received between
-                            two specific dates.</p>
+                            two specific dates. The date format accepted in numerical format of month,
+                            day and year (mm/dd/yyyy)</p>
                     </div>
                     <div class="form-group">
                         <label for="date-rec-from">From:</label>
@@ -140,7 +139,10 @@
                 <button type="button" id="search-adv" class="btn btn-primary btn-lg">Search</button>
             </div>
         </div>
-
-
+    </div>
+    <div class="col-xs-12">
+        <button type="reset" class="btn-link" id="clearsearch">Clear
+            Search
+        </button>
     </div>
 </div>

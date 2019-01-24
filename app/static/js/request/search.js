@@ -18,17 +18,33 @@ $(function() {
         agencySelect = $("#agency_ein"),
         agencyUserDiv = $("#agency-user-div"),
         agencyUserSelect = $("#agency_user"),
-        resultsHeader = "resultsHeading";
+        resultsHeader = "resultsHeading",
+        isAgencyUser = ($("#is-agency-user").val() === "true");
 
-    //Table head values
-    var resultcol = [
+
+    // Table head values
+    if (isAgencyUser) {
+        var resultcol = [
             ['Status',''],
             ['ID',''],
             ['Date Submitted', 'sort_date_submitted','desc'],
             ['Title', 'sort_title','none'],
             ['Assigned Agency', ''],
-            ['Date Due','sort_date_due','none']
-    ];
+            ['Date Due','sort_date_due','none'],
+            ['Date Closed', ''],
+            ['Requester Name', '']
+        ];
+    }
+    else {
+        var resultcol = [
+            ['Status', ''],
+            ['ID', ''],
+            ['Date Submitted', 'sort_date_submitted', 'desc'],
+            ['Title', 'sort_title', 'none'],
+            ['Assigned Agency', ''],
+            ['Date Due', 'sort_date_due', 'none']
+        ];
+    }
     var sortSequence = ["none", "desc", "asc"];
 
     // Date stuff
@@ -175,12 +191,12 @@ $(function() {
         }
     });
 
-    //Capture form reset
+    // Capture form reset
     $(clearSearchBtn).on('click', function(event) {
         event.preventDefault();
         $("#search-form")[0].reset();
 
-        //Need to do some self clean up
+        // Need to do some self clean up
         var query = $("#query");
         var names = ["title", "description", "agency_request_summary", "requester_name"];
         var i;
@@ -192,9 +208,6 @@ $(function() {
 
         $(query).focus();
         resetAndSearch();
-
-
-
     });
 
     // show test info
@@ -211,32 +224,28 @@ $(function() {
     // };
 
 
-    function buildResultsTable (theResults, count, total)
-    {
-
+    function buildResultsTable (theResults, count, total) {
         var theTable = "";
-        theTable=theTable +'<div class="col-sm-12 searchResults-heading">';
-        theTable=theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total.toLocaleString() + '&nbsp;Results Found</h2>';
-        theTable=theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" > </div><div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" ></div>';
-        // Activate for Agency view. A flag is needed to determine if view is active
-        // if (agencyView) {
-        //     theTable=theTable + '<div class="legend legend-progress">In-progress=<img src="progress.svg" ></div>';
-        //     theTable=theTable + '<div class="legend legend-soon">Soon=<img src="soon.svg" ></div>';
-        //     theTable=theTable + '<div class="legend legend-overdue">Overdue=<img src="overdue.svg" ></div>';
-        // }
-        theTable=theTable + '</div></div>';
-        theTable=theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
-        theTable=theTable + buildResultsTableHead (resultcol, sortSequence);
-        theTable=theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
+        theTable = theTable +'<div class="col-sm-12 searchResults-heading">';
+        theTable = theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total.toLocaleString() + '&nbsp;Results Found</h2>';
+        theTable = theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" ></div>';
+        if (isAgencyUser) {
+            theTable = theTable + '<div class="legend legend-progress">In Progress=<img src="/static/img/progress.svg" ></div>';
+            theTable = theTable + '<div class="legend legend-soon">Due Soon=<img src="/static/img/soon.svg" ></div>';
+            theTable = theTable + '<div class="legend legend-overdue">Overdue=<img src="/static/img/overdue.svg" ></div>';
+        }
+        theTable = theTable + '<div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" ></div>';
+        theTable = theTable + '</div></div>';
+        theTable = theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
+        theTable = theTable + buildResultsTableHead (resultcol, sortSequence);
+        theTable = theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
         return(theTable);
     }
 
-    function buildResultsTableHead (col, sort){
-
+    function buildResultsTableHead (col, sort) {
         var tableHead = '';
 
-        for (var i=0; i< col.length; i++){
-
+        for (var i=0; i< col.length; i++) {
             if (col[i][1] === '')
                 {
                 tableHead = tableHead + '<th>' + col[i][0] + '</th>';
@@ -245,7 +254,7 @@ $(function() {
                 {
                 tableHead = tableHead + '<th><button type="button" class="sort-field" data-sort-order="' + col[i][2] +'" id="' + col[i][1] +'">' + col[i][0];
                 var CurrentSort = $("input[name="+ col[i][1]+ "]").val();
-                if (CurrentSort !=""){
+                if (CurrentSort !== ""){
 
                 }
                 tableHead = tableHead + '<span class="glyphicon glyphicon-sort" aria-hidden="true"></span>' +
@@ -324,7 +333,6 @@ $(function() {
     // search on load
     $(document).ready(function(){
         search();
-
     });
 
 
@@ -359,7 +367,6 @@ $(function() {
 
             if (resultcol[i][1] === theHeadingId){
                 resultcol[i][2] = sequence;
-                // console.log (resultcol[i][2] + "--" + resultcol[i][1]);
             }
         }
     }
@@ -485,9 +492,9 @@ $(function() {
     });
 
     function scrollToElement(theId){
-        $("#"+theId).focus();
+        $("#" + theId).focus();
         $('html, body').animate({
-            scrollTop: $("#"+theId).offset().top
+            scrollTop: $("#" + theId).offset().top
         }, 500);
     }
 
