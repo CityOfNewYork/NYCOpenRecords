@@ -17,13 +17,13 @@
                         aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">Requester Information</h4>
             </div>
-            <form id="user-info">
+            <form id="user-info" data-parsley-focus="none">
                 {{ edit_requester_form.csrf_token }}
 
                 <div class="modal-body">
                     {% set is_public_requester = request.requester.is_public %}
                     <div id="requester-name">{{ request.requester.name }}</div>
-                    <div class="contact-form-error-message"></div>
+                    <div class="contact-form-error-message" tabindex="0"></div>
                     {{ edit_requester_form.email.label }}
                     {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', maxlength="254",
                         readonly=is_public_requester) }}

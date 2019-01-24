@@ -81,14 +81,18 @@
         });
 
         // Apply parsley data required validation to note title and url
-        $('#note-content').attr('data-parsley-required', '');
+        $("#note-content").attr("data-parsley-required", "");
 
         // Apply parsley max length validation to note title and url
-        $('#note-content').attr('data-parsley-maxlength', '5000');
+        $("#note-content").attr("data-parsley-maxlength", "5000");
 
         // Apply custom validation messages
-        $('#note-content').attr('data-parsley-required-message', 'Note content must be provided');
-        $('#note-content').attr('data-parsley-maxlength-message', 'Note content must be less than 5000 characters');
+        $("#note-content").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, note content is required.</strong> Please type in a message.");
+        $("#note-content").attr("data-parsley-maxlength-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, note content must be less than 5000 characters</strong>");
 
         // Set character counter for note content
         $("#note-content").keyup(function () {

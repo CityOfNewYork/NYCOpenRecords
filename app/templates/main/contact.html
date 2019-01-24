@@ -7,33 +7,35 @@
 {% endblock %}
 
 {% block content %}
-    <h2 class="text-center">Technical Support</h2>
-    <p align="center">Use this form only for technical support. Agency contact for other questions and information is
-        available within the actual request.</p>
-    <br/>
-    <div>
-        <form id="contact-info" action="{{ url_for('main.technical_support') }}" method="POST">
+    <div role="main">
+        <h1 class="text-center">Technical Support</h1>
+        <p align="center">Use this form only for technical support. Agency contact for other questions and information is
+            available within the actual request.</p>
+        <br/>
+        <div>
+            <form id="contact-info" action="{{ url_for('main.technical_support') }}" method="POST" role="form" data-parsley-focus="first">
 
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-            <label for="name">Name</label>
-            <input id="name" class="form-control" name="name" maxlength="32" type="text">
-            <p id="name-character-count" class="character-counter">32 characters remaining</p>
-            <br>
-            <label for="email">Email</label>
-            <input id="email" class="form-control" name="email" maxlength="254" type="email">
-            <br>
-            <label for="subject">Subject</label>
-            <input id="subject" class="form-control" name="subject" maxlength="90" type="text" value="{{ error_id }}">
-            <p id="subject-character-count" class="character-counter">90 characters remaining</p>
-            <br>
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="10" maxlength="5000"></textarea>
-            <p id="message-character-count" class="character-counter">5000 characters remaining</p>
+                <label for="name">Name</label>
+                <input id="name" class="form-control" name="name" maxlength="32" type="text" aria-label="Name, required, 32 character limit">
+                <p id="name-character-count" class="character-counter">32 characters remaining</p>
+                <br>
+                <label for="email" aria-label="Email">Email</label>
+                <input id="email" class="form-control" name="email" maxlength="254" type="email" aria-label="Email, required, 254 character limit">
+                <br>
+                <label for="subject">Subject</label>
+                <input id="subject" class="form-control" name="subject" maxlength="90" type="text" value="{{ error_id }}" aria-label="Subject, required, 90 character limit">
+                <p id="subject-character-count" class="character-counter">90 characters remaining</p>
+                <br>
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="10" maxlength="5000" aria-label="Message, required, 5000 character limit"></textarea>
+                <p id="message-character-count" class="character-counter">5000 characters remaining</p>
 
-            <br>
-            <input id="submit" name="submit" type="submit" value="Send">
-        </form>
+                <br>
+                <input id="submit" name="submit" type="submit" value="Send" aria-label="Submit button">
+            </form>
+        </div>
     </div>
 {% endblock %}
 

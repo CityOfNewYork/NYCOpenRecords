@@ -18,6 +18,23 @@
         state.attr("data-parsley-required", "");
         zipcode.attr("data-parsley-required", "");
 
+        // Custom Validation Messages
+        recipient_name.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, recipient name is required.</strong> Please type in a name.");
+        address_one.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, address is required.</strong> Please type in an address.");
+        city.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, city is required.</strong> Please type in a city.");
+        state.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, state is required.</strong> Please type in a state.");
+        zipcode.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, zipcode is required.</strong> Please type in a zipcode.");
+
         form.submit(function () {
             submit.attr("disabled", true);
         });

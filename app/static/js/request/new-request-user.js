@@ -107,40 +107,23 @@ $(document).ready(function () {
         currentValues[customRequestFormCounter - 1] = "";
     });
 
-    // javascript to add tooltip popovers when selecting the title and description
-    $("#request-title").attr({
-        "data-placement": "top",
-        "data-trigger": "hover focus",
-        "data-toggle": "popover",
-        "data-content": "Queens Blvd Roadwork Permit. Do NOT put private names, phone numbers, home address, date of birth, etc.",
-        title: "Example Title"
-    });
-    $("#request-title").popover();
-    // $("#request-title").click(function(){
-    //     $("#request-title").popover("show");
-    // });
-
-    $("#request-description").attr({
-        "data-placement": "top",
-        "data-trigger": "hover focus",
-        "data-toggle": "popover",
-        "data-content": "Roadwork permits for work done in on Queens Blvd. between 40th and 45th streets, Borough of Queens, in September and October 2017.",
-        title: "Example Request"
-    });
-    $("#request-description").click(function () {
-        $("#request-description").popover("show");
-    });
-    $("#request-description").popover();
-    // $("#request-description").click(function(){
-    //     $("#request-description").popover("show");
-    // });
-
     // Apply parsley validation styles to the input forms for a new request.
     $("#request-title").attr("data-parsley-required", "");
     $("#request-title").attr("data-parsley-maxlength", 90);
     $("#request-agency").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-required", "");
     $("#request-description").attr("data-parsley-maxlength", 5000);
+
+    // Custom Validation Messages
+    $("#request-agency").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, an agency is required.</strong> Please select an agency from the drop-down menu.");
+    $("#request-title").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, a title is required.</strong> Please type in a short title for your request.");
+    $("#request-description").attr("data-parsley-required-message",
+        "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, a description is required.</strong> Please type in a detailed description of your request.");
 
     // Limit the size of the file upload to 20 Mb. Second parameter is number of Mb's.
     $("#request-file").attr("data-parsley-max-file-size", "20");
@@ -151,22 +134,15 @@ $(document).ready(function () {
     // Set name of the file to the text of filename div if file exists
     $("#request-file").change(function () {
         var file = this.files[0];
-        var isChrome = window.chrome;
 
         if (file) {
             // return chosen filename to additional input
             var filename = this.files[0].name;
             $("#filename").val(filename);
-            $("#filename").attr("placeholder", filename);
+            $("#filename").removeAttr("placeholder");
             $("#filename").focus();
-        }
-        // Cancel is clicked on upload window
-        else {
-            // If browser is chrome, reset filename text
-            if (isChrome) {
-                $("#filename").val("");
-                $("#filename").attr("placeholder", "No file uploaded");
-            }
+            $("#choose-file").hide();
+            $("#clear-file").show();
         }
     });
 
@@ -178,10 +154,13 @@ $(document).ready(function () {
         $("#request-file").val("");
         $("#filename").val("");
         $("#filename").attr("placeholder", "No file uploaded");
+        $("#clear-file").hide();
+        $("#choose-file").show();
+        $("#choose-file-button").focus();
     });
 
     // trigger file explorer on space and enter
-    $("#buttonlabel span[role=button]").bind("keypress keyup", function (e) {
+    $("#choose-file span[role=button]").bind("keypress keyup", function (e) {
         if (e.which === 32 || e.which === 13) {
             e.preventDefault();
             $("#request-file").click();
@@ -197,6 +176,24 @@ $(document).ready(function () {
         else {
             $(".file-error").hide();
         }
+
+        // Add tab index to any error messages
+        $(".parsley-required").each(function () {
+            // only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
+    });
+
+    // Add tab index to any error messages after validation has failed
+    $("#request-form").parsley().on("form:error", function () {
+        $(".parsley-required").each(function () {
+            // Only add tab index to sections where error messages are currently visible
+            if ($(this).text() !== "") {
+                $(this).attr("tabindex", 0);
+            }
+        });
     });
 
     // Clear error messages for form.request_file on submit .

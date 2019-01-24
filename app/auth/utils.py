@@ -125,6 +125,12 @@ def find_user_by_email(email):
             func.lower(Users.email) == email.lower(),
             Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
         ).first()
+    elif current_app.config['USE_LOCAL_AUTH']:
+        from sqlalchemy import func
+        return Users.query.filter(
+            func.lower(Users.email) == email.lower(),
+            Users.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+        ).first()
     return None
 
 

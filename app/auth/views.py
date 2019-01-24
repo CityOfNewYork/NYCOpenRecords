@@ -7,45 +7,49 @@
 from datetime import datetime
 from urllib.parse import urljoin
 
-from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import MobileApplicationClient
-
 from flask import (
-    request,
-    redirect,
-    session,
-    render_template,
-    url_for,
     abort,
     flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for
 )
 from flask_login import (
-    login_user,
-    logout_user,
-    current_user,
     current_app,
+    current_user,
     login_required,
+    login_user,
+    logout_user
 )
+from oauthlib.oauth2 import MobileApplicationClient
+from requests_oauthlib import OAuth2Session
+
 from app.auth import auth
 from app.auth.constants.error_msg import UNSAFE_NEXT_URL
-from app.auth.forms import ManageUserAccountForm, LDAPLoginForm, ManageAgencyUserAccountForm
+from app.auth.forms import (
+    LDAPLoginForm,
+    ManageAgencyUserAccountForm,
+    ManageUserAccountForm
+)
 from app.auth.utils import (
-    revoke_and_remove_access_token,
-    ldap_authentication,
+    fetch_user_json,
     find_user_by_email,
     handle_user_data,
-    fetch_user_json,
     is_safe_url,
-    update_openrecords_user,
+    ldap_authentication,
+    revoke_and_remove_access_token,
+    update_openrecords_user
 )
 from app.constants.web_services import AUTH_ENDPOINT
 from app.lib.db_utils import update_object
-from app.lib.utils import eval_request_bool
 from app.lib.redis_utils import redis_get_user_session
+from app.lib.utils import eval_request_bool
 from app.models import Users
 
 
-@auth.route('/login', methods=['GET'])
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
     """
     Based off of: https://flask-login.readthedocs.io/en/latest/#login-example
@@ -72,6 +76,40 @@ def login():
 
     """
     next_url = request.args.get('next')
+
+    if current_app.config['USE_LOCAL_AUTH']:
+        login_form = LDAPLoginForm()
+        if request.method == 'POST':
+            email = request.form['email']
+
+            user = find_user_by_email(email)
+
+            if user is not None:
+                authenticated = True
+
+                if authenticated:
+                    login_user(user)
+                    session.regenerate()
+                    session['user_id'] = current_user.get_id()
+
+                    next_url = request.form.get('next')
+                    if not is_safe_url(next_url):
+                        return abort(400, UNSAFE_NEXT_URL)
+
+                    return redirect(next_url or url_for('main.index'))
+
+                flash("Invalid username/password combination.", category="danger")
+                return render_template('auth/local_login_form.html', login_form=login_form)
+            else:
+                flash("User not found. Please contact your agency FOIL Officer to gain access to the system.",
+                      category="warning")
+                return render_template('auth/local_login_form.html', login_form=login_form)
+
+        elif request.method == 'GET':
+            return render_template(
+                'auth/local_login_form.html',
+                login_form=login_form,
+                next_url=request.args.get('next', ''))
 
     if current_app.config['USE_LDAP']:
         return redirect(url_for('auth.ldap_login', next=next_url))
@@ -152,6 +190,13 @@ def logout():
 
     elif current_app.config['USE_OAUTH']:
         return redirect(url_for('auth.oauth_logout', timed_out=timed_out, forced_logout=forced_logout))
+
+    elif current_app.config['USE_LOCAL_AUTH']:
+        logout_user()
+        session.destroy()
+        if timed_out:
+            flash("Your session timed out. Please login again", category='info')
+        return redirect(url_for('main.index'))
 
     return abort(404)
 

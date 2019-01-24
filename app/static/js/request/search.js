@@ -17,7 +17,6 @@ $(function() {
         agencyUserDiv = $("#agency-user-div"),
         agencyUserSelect = $("#agency_user");
 
-    // Date stuff
     function dateInvalid(dateElem, msg, highlightDateRequirement) {
         dateElem
             .addClass("bad-input-text")

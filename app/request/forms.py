@@ -62,7 +62,7 @@ class PublicUserRequestForm(Form):
     request_description = TextAreaField('Request Description (required)')
 
     # File Upload
-    request_file = FileField('Upload File')
+    request_file = FileField('Upload File (optional, must be less than 20 Mb)')
 
     # Submit Button
     submit = SubmitField('Submit Request')
@@ -114,7 +114,7 @@ class AgencyUserRequestForm(Form):
     email = StringField('Email')
     phone = StringField('Phone')
     fax = StringField('Fax')
-    address = StringField('Address 1')
+    address = StringField('Address Line 1')
     address_two = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=STATES, default='NY')
@@ -125,7 +125,7 @@ class AgencyUserRequestForm(Form):
                                   choices=submission_methods.AS_CHOICES)
 
     # File Upload
-    request_file = FileField('Upload File')
+    request_file = FileField('Upload File (optional, must be less than 20 Mb)')
 
     # Submit Button
     submit = SubmitField('Submit Request')
@@ -173,14 +173,14 @@ class AnonymousRequestForm(Form):
     email = StringField('Email')
     phone = StringField('Phone')
     fax = StringField('Fax')
-    address = StringField('Address 1')
+    address = StringField('Address Line 1')
     address_two = StringField('Address Line 2')
     city = StringField('City')
     state = SelectField('State', choices=STATES, default='NY')
     zipcode = StringField('Zip')
 
     # File Upload
-    request_file = FileField('Upload File')
+    request_file = FileField('Upload File (optional, must be less than 20 Mb)')
 
     submit = SubmitField('Submit Request')
 

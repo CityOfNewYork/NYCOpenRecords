@@ -111,12 +111,12 @@ def get_custom_request_form_fields():
     character_counters = {}
     popovers = {}
     tooltips = {}
+    error_messages = {}
     for field in custom_request_form.field_definitions:
         for key, value in field.items():
             field_text = key
             field_name = value['name']
             field_type = value['type']
-            field_info = value.get('info', None)
             field_values = value.get('values', None)
             field_required = value['required']
             min_length = value.get('min_length', None)
@@ -125,6 +125,8 @@ def get_custom_request_form_fields():
             placeholder = value.get('placeholder', None)
             popover = value.get('popover', None)
             tooltip = value.get('tooltip', None)
+            help_text = value.get('help_text', None)
+            error_message = value.get('error_message', None)
 
             if character_counter:
                 character_counter_id = field_name + "-" + str(instance_id)
@@ -139,13 +141,18 @@ def get_custom_request_form_fields():
                 tooltip_id = field_name + '-' + str(instance_id)
                 tooltips[tooltip_id] = tooltip
 
+            if error_message:
+                error_message_id = field_name + '-' + str(instance_id)
+                error_messages[error_message_id] = error_message
+
             form_template = form_template + render_template(
                 'custom_request_form_templates/{}_template.html'.format(field_type), field_text=field_text,
-                field_name=field_name, field_info=field_info, options=field_values, field_required=field_required,
+                field_name=field_name, options=field_values, field_required=field_required,
                 min_length=min_length, max_length=max_length, instance_id=instance_id, placeholder=placeholder,
-                character_counter=character_counter, tooltip=tooltip) + '\n'
+                character_counter=character_counter, tooltip=tooltip, help_text=help_text) + '\n'
     data['form_template'] = form_template
     data['character_counters'] = character_counters
     data['popovers'] = popovers
     data['tooltips'] = tooltips
+    data['error_messages'] = error_messages
     return jsonify(data), 200

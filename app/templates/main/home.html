@@ -7,7 +7,7 @@
 {% endblock %}
 {% block content %}
     <div class="container col-sm-12">
-        <div class=" col-sm-8">
+        <div class=" col-sm-8" role="main">
             <h1 class="home-page-header">Welcome to NYC Government’s home for filing Freedom of Information Law (FOIL)
                 requests.
             </h1>
@@ -44,7 +44,7 @@
                 and other protections.
             </p>
         </div>
-        <div class="col-sm-4 well public-authorities">
+        <div class="col-sm-4 well public-authorities" role="complementary">
             <h2 class="public-authorities-header">
                 Public Authorities and Agencies not using OpenRecords
             </h2>
@@ -66,7 +66,7 @@
                 </li>
             </ul>
         </div>
-        <div class="col-sm-12 request-record-button">
+        <div class="col-sm-12 request-record-button" role="navigation" aria-label="Search or request a record">
             <div class="col-sm-6">
                 <a href="{{ url_for('request.view_all') }}">
                     <button class="btn btn-primary btn-lg btn-block request-record-button-size">Check for Similar

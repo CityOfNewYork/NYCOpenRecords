@@ -27,6 +27,17 @@
         method.attr("data-parsley-required", "");
         date.attr("data-parsley-required", "");
 
+        // Apply custom validation messages
+        method.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, re-opening method is required.</strong> Please select a re-opening method from the drop-down menu.");
+        date.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, new due date is required.</strong> Please select a date using the date picker.");
+        letter_template.attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, template is required.</strong> Please select a letter template from the drop-down menu.");
+
         // Setup the reason dropdown
 
         reason_group.show();

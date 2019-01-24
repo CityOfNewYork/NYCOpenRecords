@@ -109,11 +109,13 @@ $(function () {
         }
         else {
             errorMessage.html(
+                "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
                 "At least one of the following needs to be filled: " +
                 "<strong>Email</strong>, <strong>Phone</strong>, <strong>Fax</strong>, " +
                 "and/or <strong>Address</strong> (with <strong>City</strong>, " +
                 "<strong>State</strong>, and <strong>Zipcode</strong>.)"
             );
+            errorMessage.focus();
         }
     });
 
