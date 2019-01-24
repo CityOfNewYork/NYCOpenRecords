@@ -1767,7 +1767,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 page=page,
                                                 agency_name=agency_name,
                                                 agency_default_email=request.agency.default_email,
-                                                public_requester=(request.requester.is_nyc_employee is False),
+                                                public_requester=request.requester.has_nyc_account,
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,

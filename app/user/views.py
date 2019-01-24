@@ -100,10 +100,10 @@ def patch(user_id):
             # Current user must belong to agency specified by agency_ein
             current_user_is_agency_admin = current_user.is_agency_admin(agency.ein)
 
-            # user_in_agency = agency_ein in [agency.ein for agency in user_.agencies.all()]
-            user_in_agency = AgencyUsers.query.filter(AgencyUsers.user_guid == user_.guid, AgencyUsers.agency_ein == agency_ein).one_or_none()
             if not current_user_is_agency_admin:
                 return jsonify({'error': 'Current user must belong to agency specified by agency_ein'}), 400
+
+            user_in_agency = AgencyUsers.query.filter(AgencyUsers.user_guid == user_.guid, AgencyUsers.agency_ein == agency_ein).one_or_none()
 
             if user_in_agency is None:
                 return jsonify({'error': 'User to be modified must belong to agency specified by agency_ein'}), 400
@@ -340,25 +340,3 @@ def patch(user_id):
             return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
 
     return jsonify({'status': "success", 'message': 'No changes detected'}), 200
-
-#
-# @user.route('/update_status', methods=['POST'])
-# def update_status():
-#     update_type = request.form.get('update_type', None)
-#     update_id = request.args.get('update_id', None)
-#
-#     if not update_type:
-#         return jsonify({'status': 'error', 'message': 'Invalid update type'}), 400
-#     if not update_id:
-#         return jsonify({'status': 'error', 'message': 'Invalid task id'}), 400
-#
-#     update_types = {
-#         bulk_updates.MAKE_USER_ADMIN: make_user_admin,
-#         bulk_updates.REMOVE_USER_PERMISSIONS: remove_user_permissions
-#     }
-#
-#     update = update_types[update_type].AsyncResult(update_id)
-#
-#     return jsonify({'status': update.state, 'update_type': update_type}), 202, {
-#         'Location': url_for('user.update_status', update_id=update.id,
-#                             _scheme='https', _external=True)}

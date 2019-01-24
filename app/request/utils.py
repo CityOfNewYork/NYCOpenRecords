@@ -154,7 +154,7 @@ def create_request(title,
         user = current_user
     else:
         user = Users(
-            guid=generate_guid(),\
+            guid=generate_guid(),
             email=email,
             first_name=first_name,
             last_name=last_name,
