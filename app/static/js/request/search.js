@@ -12,7 +12,9 @@ $(function() {
         searchBtn = $("#search"),
         searchBtnAdv = $("#search-adv"),
         clearSearchBtn = $("#clearsearch"),
-        dateReq = $("#date-req"),
+        dateSubmittedReq = $("#date-submitted-req"),
+        dateDueReq = $("#date-due-req"),
+        dateClosedReq = $("#date-closed-req"),
         noResultsFound = true,
         generateDocBtn = $("#generate-document"),
         agencySelect = $("#agency_ein"),
@@ -48,13 +50,14 @@ $(function() {
     var sortSequence = ["none", "desc", "asc"];
 
     // Date stuff
-    function dateInvalid(dateElem, msg, highlightDateRequirement) {
+    function dateInvalid(dateElem, msg, highlightDateRequirement, dateError) {
         dateElem
             .addClass("bad-input-text")
             .attr('data-content', msg)
             .popover(msg === null ? 'hide' : 'show');
         if (highlightDateRequirement) {
-            dateReq.css("display", "block");
+            dateError.css("display", "block");
+            dateError.focus();
         }
         return false;
     }
@@ -66,7 +69,7 @@ $(function() {
         return true;
     }
 
-    function valiDate(checkDateElem, compDateElem, isLessThan) {
+    function valiDate(checkDateElem, compDateElem, isLessThan, dateError) {
         /*
         * Check that 'checkDateElem' holds an empty value or
         * that it is not a holiday or weekend and
@@ -89,10 +92,10 @@ $(function() {
                     var validComp = compDate !== null ?
                         (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
-                        return dateInvalid(checkDateElem, "This date does not fall on a business day.");
+                        return dateInvalid(checkDateElem, "This date does not fall on a business day.", null, dateError);
                     }
                     else if (!validComp) {
-                        return dateInvalid(checkDateElem, null, true);
+                        return dateInvalid(checkDateElem, null, true, dateError);
                     }
                     else {
                         return dateValid(checkDateElem);
@@ -100,12 +103,12 @@ $(function() {
                 }
                 catch (err) {
                     // failure parsing date string
-                    return dateInvalid(checkDateElem, "This is not a valid date.");
+                    return dateInvalid(checkDateElem, "This is not a valid date.", null, dateError);
                 }
             }
             else {
                 // missing full date string length
-                return dateInvalid(checkDateElem, "This is not a valid date.");
+                return dateInvalid(checkDateElem, "This is not a valid date.", null, dateError);
             }
         }
         else {
@@ -114,13 +117,13 @@ $(function() {
         }
     }
 
-    function valiDates(fromDateElem, toDateElem) {
+    function valiDates(fromDateElem, toDateElem, dateError) {
         /*
         * Check that 'fromDateElem' is less than 'toDateElem'
         * and that both dates are not holidays or weekends.
         * */
-        var fromValid = valiDate(fromDateElem, toDateElem, true),
-            toValid = valiDate(toDateElem, fromDateElem, false);
+        var fromValid = valiDate(fromDateElem, toDateElem, true, dateError),
+            toValid = valiDate(toDateElem, fromDateElem, false, dateError);
         if (!fromValid || !toValid) {
             canSearch = false;
             searchBtn.attr("disabled", true);
@@ -131,7 +134,7 @@ $(function() {
             canSearch = true;
             searchBtn.attr("disabled", false);
             searchBtnAdv.attr("disabled", false);
-            dateReq.css("display", "none");
+            dateError.css("display", "none");
             if (!noResultsFound) {
                 generateDocBtn.attr("disabled", false);
             }
@@ -157,22 +160,22 @@ $(function() {
         dates[i].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
     }
     dateRecFromElem.on("input change", function () {
-        valiDates(dateRecFromElem, dateRecToElem);
+        valiDates(dateRecFromElem, dateRecToElem, dateSubmittedReq);
     });
     dateRecToElem.on("input change", function () {
-        valiDates(dateRecFromElem, dateRecToElem);
+        valiDates(dateRecFromElem, dateRecToElem, dateSubmittedReq);
     });
     dateDueFromElem.on("input change", function () {
-        valiDates(dateDueFromElem, dateDueToElem);
+        valiDates(dateDueFromElem, dateDueToElem, dateDueReq);
     });
     dateDueToElem.on("input change", function () {
-        valiDates(dateDueFromElem, dateDueToElem);
+        valiDates(dateDueFromElem, dateDueToElem, dateDueReq);
     });
     dateClosedFromElem.on("input change", function () {
-        valiDates(dateClosedFromElem, dateClosedToElem);
+        valiDates(dateClosedFromElem, dateClosedToElem, dateClosedReq);
     });
     dateClosedToElem.on("input change", function () {
-        valiDates(dateClosedFromElem, dateClosedToElem);
+        valiDates(dateClosedFromElem, dateClosedToElem, dateClosedReq);
     });
 
     // keypress 'Enter' = click search button
@@ -205,6 +208,13 @@ $(function() {
         for (i = 0; i < names.length; i++) {
             $("input[name='" + names[i] + "']").prop("disabled", false);
         }
+
+        // re enable search buttons and hide date error
+        searchBtn.attr("disabled", false);
+        searchBtnAdv.attr("disabled", false);
+        dateSubmittedReq.hide();
+        dateDueReq.hide();
+        dateClosedReq.hide();
 
         $(query).focus();
         resetAndSearch();

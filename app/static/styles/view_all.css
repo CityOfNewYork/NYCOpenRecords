@@ -302,7 +302,7 @@ div.search-results .pagination .newrecord-wrap {
 }
 
 .date-filter-section {
-    height: 100px;
+    min-height: 100px;
 }
 
 .date-filter {
