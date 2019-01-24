@@ -1,7 +1,7 @@
-div.row {
+div.row.search-row {
     margin-left: -15px;
     margin-right: -15px;
-    /*width: unset;*/
+    width: unset;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -285,7 +285,7 @@ div.search-results .pagination .newrecord-wrap {
 
 #query {
     height: 24px;
-    width: 744px;
+    width: 773px;
 }
 
 .search-results {
@@ -307,4 +307,15 @@ div.search-results .pagination .newrecord-wrap {
 
 .date-filter {
     padding-left: 0;
+}
+
+.btn-link.clear-search-agency {
+    margin-top: 15px;
+    margin-bottom: 0;
+    margin-left: 15px;
+}
+
+.btn-link.clear-search-public {
+    margin-top: 15px;
+    margin-bottom: 0;
 }
