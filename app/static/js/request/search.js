@@ -207,6 +207,7 @@ $(function() {
         query.attr("placeholder", "Enter keywords");
         for (i = 0; i < names.length; i++) {
             $("input[name='" + names[i] + "']").prop("disabled", false);
+            $("input[name='" + names[i] + "']").removeClass("disabled");
         }
 
         // re enable search buttons and hide date error
@@ -288,6 +289,7 @@ $(function() {
 
         var results = $("#results");
         var pageInfo = $("#page-info");
+        results.html('<div class="col-sm-12 search-load-container"> <div class="search-loader"><span class="sr-only">Loading the results...</span></div></div>');
 
 
         $.ajax({
@@ -355,12 +357,14 @@ $(function() {
             query.attr("placeholder", "0000-000-00000");
             for (i = 0; i < names.length; i++) {
                 $("input[name='" + names[i] + "']").prop("disabled", true);
+                $("input[name='" + names[i] + "']").addClass("disabled");
             }
         }
         else {
             query.attr("placeholder", "Enter keywords");
             for (i = 0; i < names.length; i++) {
                 $("input[name='" + names[i] + "']").prop("disabled", false);
+                $("input[name='" + names[i] + "']").removeClass("disabled");
             }
         }
     });
