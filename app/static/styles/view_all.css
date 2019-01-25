@@ -341,7 +341,7 @@ div.search-results .pagination .newrecord-wrap {
 
 #query {
     height: 24px;
-    width: 773px;
+    /*width: 773px;*/
 }
 
 .search-results {
@@ -370,4 +370,12 @@ div.search-results .pagination .newrecord-wrap {
 .btn-link.clear-search-public {
     margin-top: 15px;
     margin-bottom: 0;
+}
+
+input#query {
+    width: 100%;
+}
+
+input#query:focus {
+    z-index: 0;
 }

@@ -9,6 +9,7 @@ $(function() {
         end = 0,
         total = 0,
         canSearch = true,
+        toFocus = false,
         searchBtn = $("#search"),
         searchBtnAdv = $("#search-adv"),
         clearSearchBtn = $("#clearsearch"),
@@ -182,7 +183,6 @@ $(function() {
     $("#search-section").keyup(function(e){
         if (canSearch && e.keyCode === 13) {
             searchBtn.click();
-            searchBtnAdv.click();
         }
     });
     // but don't submit form (it is only used to generate results document)
@@ -326,6 +326,10 @@ $(function() {
                     }
                     generateDocBtn.attr("disabled", false);
 
+                    if (toFocus) {
+                        scrollToElement(resultsHeader);
+                        toFocus = false;
+                    }
                 }
                 else {
                     noResultsFound = true;
@@ -415,15 +419,12 @@ $(function() {
         resetAndSearch();
     });
     searchBtn.click(function () {
+        toFocus = true;
         resetAndSearch();
-        scrollToElement(resultsHeader);
-
     });
     searchBtnAdv.click(function () {
+        toFocus = true;
         resetAndSearch();
-        scrollToElement(resultsHeader);
-
-
     });
     $("#size").change(function () {
         resetAndSearch();
@@ -467,24 +468,26 @@ $(function() {
     agencyUserSelect.change(function () {
         resetAndSearch();
     });
-    next.click(function () {
+
+    next.click(function (event) {
+        toFocus = true;
         event.preventDefault();
         if (canSearch && end < total) {
             setStart(start + parseInt($("#size").val()));
             $('html, body').stop();
             search();
-            scrollToElement(resultsHeader);
         }
 
 
     });
-    prev.click(function () {
+
+    prev.click(function (event) {
+        toFocus = true;
         event.preventDefault();
         if (canSearch && start > 0) {
             setStart(start - parseInt($("#size").val()));
             $('html, body').stop();
             search();
-            scrollToElement(resultsHeader);
         }
 
 
