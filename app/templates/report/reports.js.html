@@ -66,11 +66,13 @@
         },
         success: function (data) {
             drawChart(data.labels, data.values);
-            $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. " + data.values[0] +
-                " requests open, " + data.values[1] + " requests closed.");
+            $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. " + (data.values[0] +
+                data.values[1]).toLocaleString() + " requests total. " + data.values[0].toLocaleString() +
+                " requests open. " + data.values[1].toLocaleString() + " requests closed.");
             chartDescription.html("This chart represents the aggregate data of all requests opened on OpenRecords, " +
-                "along with the status of all requests. <strong>" + data.values[0] + " requests open, " +
-                data.values[1] + " requests closed.</strong>");
+                "along with the status of all requests. <strong>" + (data.values[0] + data.values[1]).toLocaleString() +
+                " requests total. " + data.values[0].toLocaleString() + " requests open. " +
+                data.values[1].toLocaleString() + " requests closed.</strong>");
             chartDescription.focus();
         }
     });
@@ -127,20 +129,31 @@
                         reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
                         reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                         reportChart.update();
-                        $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests assigned to " +
-                            $("#agency-user-filter option:selected").text() + ". " +
-                            data.values[0] + " requests open, " + data.values[1] + " requests closed.");
                         if ($("#agency-user-filter option:selected").text() === "") {
+                            $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " +
+                                $("#agency-filter option:selected").text() + ". " +
+                                (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                                data.values[0].toLocaleString() + " requests open. " + data.values[1].toLocaleString() +
+                                " requests closed.");
                             chartDescription.html("This chart represents the aggregate data of all requests opened for "
                                 + $("#agency-filter option:selected").text() +
-                                ", along with the status of those requests. <strong>" + data.values[0] +
-                                " requests open, " + data.values[1] + " requests closed.</strong>");
+                                ", along with the status of those requests. <strong>" +
+                                (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                                data.values[0].toLocaleString() + " requests open. " +
+                                data.values[1].toLocaleString() + " requests closed.</strong>");
                         }
                         else {
+                            $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests assigned to " +
+                                $("#agency-user-filter option:selected").text() + ". " +
+                                (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                                data.values[0].toLocaleString() + " requests open. " + data.values[1].toLocaleString() +
+                                " requests closed.");
                             chartDescription.html("This chart represents the aggregate data of all requests assigned " +
                                 "to " + $("#agency-user-filter option:selected").text() +
-                                ", along with the status of those requests. <strong>" + data.values[0] +
-                                " requests open, " + data.values[1] + " requests closed.</strong>");
+                                ", along with the status of those requests. <strong>" +
+                                (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                                data.values[0].toLocaleString() + " requests open. " +
+                                data.values[1].toLocaleString() + " requests closed.</strong>");
                         }
                         chartDescription.focus();
                     }
@@ -163,9 +176,6 @@
                     reportChart.options.scales.yAxes[0].ticks.maxTicksLimit = 10;
                     reportChart.options.scales.yAxes[0].ticks.stepSize = maxTicks < 10 ? 1 : false;
                     reportChart.update();
-                    $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " +
-                        $("#agency-filter option:selected").text() + ". " + data.values[0] + " requests open, " +
-                        data.values[1] + " requests closed.");
 
                     if (data.is_visible && data.active_users.length > 0 && data.results) {
                         var sel = agencyUserFilter;
@@ -182,15 +192,27 @@
                         userFilterDiv.hide();
                     }
                     if ($("#agency-filter option:selected").text() === "All") {
+                        $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. " + (data.values[0] +
+                            data.values[1]).toLocaleString() + " requests total. " + data.values[0].toLocaleString() +
+                            " requests open. " + data.values[1].toLocaleString() + " requests closed.");
                         chartDescription.html("This chart represents the aggregate data of all requests opened on " +
-                            "OpenRecords, along with the status of all requests. <strong>" + data.values[0] +
-                            " requests open, " + data.values[1] + " requests closed.</strong>");
+                            "OpenRecords, along with the status of all requests. <strong>" +
+                            (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                            data.values[0].toLocaleString() + " requests open. " +
+                            data.values[1].toLocaleString() + " requests closed.</strong>");
                     }
                     else {
+                        $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " +
+                            $("#agency-filter option:selected").text() + ". " +
+                            (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                            data.values[0].toLocaleString() + " requests open. " + data.values[1].toLocaleString() +
+                            " requests closed.");
                         chartDescription.html("This chart represents the aggregate data of all requests opened for " +
                             $("#agency-filter option:selected").text() +
-                            ", along with the status of those requests. <strong>" + data.values[0] + " requests open, " +
-                            data.values[1] + " requests closed.</strong>");
+                            ", along with the status of those requests. <strong>" +
+                            (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
+                            data.values[0].toLocaleString() + " requests open. " +
+                            data.values[1].toLocaleString() + " requests closed.</strong>");
                     }
                     chartDescription.focus();
                 }
@@ -209,11 +231,13 @@
             },
             success: function (data) {
                 drawChart(data.labels, data.values);
-                $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. "
-                    + data.values[0] + " requests open, " + data.values[1] + " requests closed.");
+                $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests in OpenRecords. " + (data.values[0] +
+                    data.values[1]).toLocaleString() + " requests total. " + data.values[0].toLocaleString() +
+                    " requests open. " + data.values[1].toLocaleString() + " requests closed.");
                 chartDescription.html("This chart represents the aggregate data of all requests opened on OpenRecords, " +
-                    "along with the status of all requests. <strong>" + data.values[0] + " requests open, " +
-                    data.values[1] + " requests closed.</strong>");
+                    "along with the status of all requests. <strong>" + (data.values[0] + data.values[1]).toLocaleString() +
+                    " requests total. " + data.values[0].toLocaleString() + " requests open. " +
+                    data.values[1].toLocaleString() + " requests closed.</strong>");
                 chartDescription.focus();
             }
         });
