@@ -456,7 +456,7 @@ class Users(UserMixin, db.Model):
 
         :return: Boolean
         """
-        return self.has_nyc_account
+        return self.has_nyc_account or self.is_nyc_employee
 
     @property
     def anonymous_request(self):

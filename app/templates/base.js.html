@@ -4,9 +4,10 @@
         /* Set profile link href value with 'target' parameter being the current page
          * (base64 encoded: https://nyc4d.nycnet/nycid/account-profile.shtml)
          */
+        var webServicesUrl = "{{ config.WEB_SERVICES_URL }}";
         $("#profile-link").attr(
             "href",
-            webServicesUrl + "/account?returnOnSave=true&target=" + btoa(window.location.href)
+            webServicesUrl + "/account/user/profile.htm?returnOnSave=true&target=" + btoa(window.location.href)
         );
     {% endif %}
 
