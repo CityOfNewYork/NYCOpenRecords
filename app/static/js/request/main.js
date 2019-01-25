@@ -390,7 +390,7 @@ function updateCustomRequestFormDropdowns() {
     // loop through each request type dropdown
     $(".request-type").each(function () {
         var requestTypeOptions = "#" + this.id + " > option";
-        if (this.value !== "") { // if the dropdown is not exmpty execute this block
+        if (this.value !== "") { // if the dropdown is not empty execute this block
             $(requestTypeOptions).each(function () { // loop through each option in the dropdown
                 if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
                     var originalText = originalFormNames[this.value]; // get the actual form name
@@ -398,7 +398,12 @@ function updateCustomRequestFormDropdowns() {
                         $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
                     }
                     else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
-                        $(this).text(originalText + " (" + (maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                        if (showMultipleRequestTypes) {
+                            $(this).text(originalText + " (" + (maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                        }
+                        else { // use original text if only one custom form can display
+                            $(this).text(originalText);
+                        }
                     }
                     if (backwards[this.value] > 1) { // update the backwards counter for the next time you see the same form selected in another dropdown
                         backwards[this.value]--;
