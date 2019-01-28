@@ -927,6 +927,15 @@ class Requests(db.Model):
                 # refresh='wait_for'
             )
 
+
+    def process_custom_metadata_for_search(self):
+        data = ''
+        for form_key, form_value in self.custom_metadata.items():
+            for field_key, field_value in form_value['form_fields'].items():
+                data += field_value['field_value'] + '\n'
+        return data.rstrip()
+
+
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
         es.create(
@@ -956,6 +965,7 @@ class Requests(db.Model):
                                  else ''),
                 'requester_name': self.requester.name,
                 'public_title': 'Private' if self.privacy['title'] else self.title,
+                'custom_metadata': self.process_custom_metadata_for_search()
             }
         )
 

@@ -160,6 +160,8 @@ def new():
                                         tz_name=tz_name,
                                         custom_metadata=custom_metadata)
 
+        print(custom_metadata)
+
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester
 

@@ -106,7 +106,8 @@ def requests():
         sort_date_received=request.args.get('sort_date_submitted'),
         sort_date_due=request.args.get('sort_date_due'),
         sort_title=request.args.get('sort_title'),
-        tz_name=request.args.get('tz_name', current_app.config['APP_TIMEZONE'])
+        tz_name=request.args.get('tz_name', current_app.config['APP_TIMEZONE']),
+        custom_metadata=eval_request_bool(request.args.get('custom_metadata'))
     )
 
     # format results

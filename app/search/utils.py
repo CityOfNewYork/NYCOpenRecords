@@ -234,6 +234,7 @@ def search_requests(query,
                     sort_date_due,
                     sort_title,
                     tz_name,
+                    custom_metadata,
                     size=None,
                     by_phrase=False,
                     highlight=False,
@@ -286,7 +287,7 @@ def search_requests(query,
 
     # return no results if there is nothing to query by
     if query and not any((foil_id, title, agency_request_summary,
-                          description, requester_name)):
+                          description, requester_name, custom_metadata)):
         return MOCK_EMPTY_ELASTICSEARCH_RESULT
 
     # if searching by foil-id, strip "FOIL-"
@@ -369,7 +370,8 @@ def search_requests(query,
         'title': title,
         'description': description,
         'agency_request_summary': agency_request_summary,
-        'requester_name': requester_name
+        'requester_name': requester_name,
+        'custom_metadata': custom_metadata
     }
     dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, agency_user_guid, match_type)
     if foil_id:
@@ -429,7 +431,8 @@ def search_requests(query,
                      'title',
                      'agency_request_summary',
                      'description',
-                     'assigned_users'],
+                     'assigned_users',
+                     'custom_metadata'],
             size=result_set_size,
             from_=start,
             sort=sort,
@@ -458,7 +461,8 @@ def search_requests(query,
                      'title',
                      'agency_request_summary',
                      'description',
-                     'assigned_users'],
+                     'assigned_users',
+                     'custom_metadata'],
             size=result_set_size,
             from_=start,
             sort=sort,
