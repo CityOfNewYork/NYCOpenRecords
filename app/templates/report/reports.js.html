@@ -111,7 +111,6 @@
     submit.click(function () {
         // Behavior when user is agency agency admin/super user and the user filter is visible
         if ((agencyAdmin || superUser) && userFilterDiv.is(":visible")) {
-            // set agencyEin to value of selected agency if no user is selected
             $.ajax({
                 url: "/report/",
                 type: "GET",
