@@ -45,13 +45,13 @@ def get():
                           "active_users": [('', ''), ('o8pj0k', 'John Doe')]}), 200
     """
     agency_ein = request.args.get('agency_ein')
-    user_guid = request.args.get('user_guid')
+    user_guid = request.args.get('user_guid', '')
     requests_opened = 0
     requests_closed = 0
     active_users = []
     is_visible = False
     results = False
-    if agency_ein:
+    if agency_ein and user_guid == '':
         if agency_ein == 'all':
             active_requests = Requests.query.with_entities(Requests.status).join(
                 Agencies, Requests.agency_ein == Agencies.ein).filter(
