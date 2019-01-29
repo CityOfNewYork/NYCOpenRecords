@@ -32,16 +32,16 @@ def requests():
 
     Anonymous Users can search by:
     - Title (public only)
-    - Agency Description (public only)
+    - Agency Request Summary (public only)
 
     Public Users can search by:
     - Title (public only OR public and private if user is requester)
-    - Agency Description (public only)
+    - Agency Request Summary (public only)
     - Description (if user is requester)
 
     Agency Users can search by:
     - Title
-    - Agency Description
+    - Agency Request Summary
     - Description
     - Requester Name
 
@@ -154,7 +154,7 @@ def requests_doc(doc_type):
                          "Agency",
                          "Title",
                          "Description",
-                         "Agency Description",
+                         "Agency Request Summary",
                          "Current Status",
                          "Date Created",
                          "Date Received",
