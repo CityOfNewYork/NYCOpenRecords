@@ -50,7 +50,7 @@
                 e.preventDefault();
                 return false;
             }
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 letter_div.hide();
                 email_div.show();
             } else {
@@ -63,7 +63,7 @@
 
         // Handles click events on the second next button
         $(next2).click(function (e) {
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 if ($("#custom-extension").is(':visible')) {
                     $("#custom-extension").parsley().validate();
                     if (!$('#custom-extension').parsley().isValid()) {
@@ -163,7 +163,7 @@
 
         $(next3).click(function () {
             tinyMCE.triggerSave();
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 $.ajax({
                     url: "/response/email",
                     type: 'POST',
