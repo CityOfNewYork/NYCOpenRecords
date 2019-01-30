@@ -10,9 +10,9 @@
 
 {% block content %}
     {% if current_user.is_agency %}
-        <input class="hidden" id="is-agency-user" value="true">
+        <input type="hidden" id="is-agency-user" value="true">
     {% else %}
-        <input class="hidden" id="is-agency-user" value="false">
+        <input type="hidden" id="is-agency-user" value="false">
     {% endif %}
     <form id="search-form" action="{{ url_for("search.requests_doc", doc_type="csv") }}" method="get" target="_blank"
           rel="noreferrer">
