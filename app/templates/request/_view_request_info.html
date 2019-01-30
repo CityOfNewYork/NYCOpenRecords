@@ -92,7 +92,7 @@
                 {% if show_agency_request_summary %}
                     <div class="request-label lead col-sm-6">Agency Request Summary:</div>
                 {% endif %}
-                <!-- privacy options for agency description -->
+                <!-- privacy options for agency request summary -->
                 <div class="btn-group col-sm-push-3" data-toggle="buttons">
                     {% if permissions['edit_agency_request_summary_privacy'] and request.status != status.CLOSED %}
                         {% if request.privacy['agency_request_summary'] %}
@@ -116,7 +116,7 @@
             <div class="row">
                 <div class="agency-request-summary-text lead">
                     {% if permissions['edit_agency_request_summary'] and request.status != status.CLOSED %}
-                        <!-- editable area for agency description -->
+                        <!-- editable area for agency request summary -->
                         <a href="#" class="xedit"
                            id="agency_request_summary">{{ request.agency_request_summary or "" }}</a>
                     {% else %}
