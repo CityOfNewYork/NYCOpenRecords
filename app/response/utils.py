@@ -1019,6 +1019,12 @@ def _acknowledgment_letter_handler(request_id, data):
         acknowledgment = json.loads(acknowledgment)
         contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
 
+        if acknowledgment.get('days') == '-1':
+            acknowledgment['days'] = None
+            acknowledgment['date'] = datetime.strptime(acknowledgment['date'], '%m/%d/%Y')
+        else:
+            acknowledgment['date'] = None
+
         now = datetime.utcnow()
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
 
@@ -1027,7 +1033,8 @@ def _acknowledgment_letter_handler(request_id, data):
         point_of_contact_user = assign_point_of_contact(acknowledgment.get('point_of_contact', None))
 
         template = render_template_string(contents.content,
-                                          days=acknowledgment['days'],
+                                          days=acknowledgment.get('days', None),
+                                          response_due_date=acknowledgment['date'],
                                           date=request.date_submitted,
                                           user=point_of_contact_user)
 
