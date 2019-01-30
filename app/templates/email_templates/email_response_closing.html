@@ -9,7 +9,7 @@
     <span class="mceNonEditable">
         You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
         by contacting the agency's FOIL Appeals Officer: <a
-            href="mailto:{{ agency_appeals_email }}">{{ agency_appeals_email }}</a>
+            href="mailto:{{ agency_appeals_email }}?subject={{ request.id }}%20-%20Appeal">{{ agency_appeals_email }}</a>
         within 30 days.
     </span>
 {% else %}

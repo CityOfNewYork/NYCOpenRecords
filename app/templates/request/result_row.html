@@ -1,112 +1,56 @@
 {% for request in requests %}
-    <a href="{{ url_for("request.view", request_id=request._id) }}"
-    {% if current_user.is_agency %}
-        {% if request._source.status == "Open" %}
-            class="list-group-item open" style="border-left: 5px solid dodgerblue;">
-        {% elif request._source.status == "In Progress" %}
-            class="list-group-item in-progress" style="border-left: 5px solid forestgreen;">
-        {% elif request._source.status == "Due Soon" %}
-            class="list-group-item due-soon" style="border-left: 5px solid darkorange;">
-        {% elif request._source.status == "Overdue" %}
-            class="list-group-item overdue" style="border-left: 5px solid red;">
-        {% elif request._source.status == "Closed" %}
-            class="list-group-item closed" style="border-left: 5px solid dimgray;">
-        {% endif %}
+<tr>
+{% if current_user.is_agency %}
+    {% if request._source.status == "Open" %}
+        <td class="open">Open</td>
+    {% elif request._source.status == "In Progress" %}
+        <td class="progress">In Progress</td>
+    {% elif request._source.status == "Due Soon" %}
+        <td class="soon">Due Soon</td>
+    {% elif request._source.status == "Overdue" %}
+        <td class="overdue">Overdue</td>
+    {% elif request._source.status == "Closed" %}
+        <td class="closed">Closed</td>
+    {% endif %}
+{% else %}
+    {% if request._source.status == "Closed" %}
+        <td class="closed">Closed</td>
     {% else %}
-        {% if request._source.status == "Closed" %}
-            class="list-group-item closed" style="border-left: 5px solid dimgray;">
-        {% else %}
-            class="list-group-item open" style="border-left: 5px solid dodgerblue;">
-        {% endif %}
+        <td class="open">Open</td>
     {% endif %}
-        <div class="row">
-            <div class="col-sm-2">
-                {{ request._id }}
-            </div>
-            <div class="col-sm-2">
-                {{ moment(request._source.date_received).format('MM/DD/YYYY') }}
-            </div>
-            <div class="col-sm-{% if current_user.is_agency %}1{% else %}3{% endif %}">
-                {% if current_user.is_agency %}
-                    {{ request._source.title }}
-                {% else %}
-                    {{ request._source.public_title }}
-                {% endif %}
-            </div>
+{% endif %}
+        <td>
+            {{ request._id }}
+        </td>
+        <td>
+            {{ moment(request._source.date_received).format('MM/DD/YYYY') }}
+        </td>
+        <td>
             {% if current_user.is_agency %}
-                <div class="col-sm-1">
-                    {{ request._source.agency_acronym }}
-                </div>
+                <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
             {% else %}
-                <div class="col-sm-3">
-                    {{ request._source.agency_name }}
-                </div>
+                <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title }}</a>
             {% endif %}
-            <div class="col-sm-2">
-                {{ moment(request._source.date_due).format('MM/DD/YYYY') }}
-            </div>
-            {% if current_user.is_agency %}
-                <div class="col-sm-2">
-                    {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else '' }}
-                </div>
-                <div class="col-sm-2">
-                    {{ request._source.requester_name }}
-                </div>
-            {% endif %}
-        </div>
-    {% if config['TESTING'] %}
-    <!-- Only for testing -->
-{#        <div class="test-info">#}
-{#            <div class="row">#}
-{#                <div class="col-sm-2">#}
-{#                    <strong>Title</strong>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    <strong>Description</strong>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    <strong>Agency Description</strong>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    <strong>Title Private?</strong>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    <strong>Agency Desc Private?</strong>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    <strong>Current User is Requester?</strong>#}
-{#                </div>#}
-{#            </div>#}
-{#            <div class="row">#}
-{#                <div class="col-sm-2">#}
-{#                    <span {% if request._source.title in query %}style="background-color: lawngreen;"{% endif %}>#}
-{#                    {{ request._source.title }}</span>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    <span {% if request._source.description in query %}style="background-color: lawngreen;"{% endif %}>#}
-{#                    {{ request._source.description }}</span>#}
-{#                </div>#}
-{#                <div class="col-sm-2">#}
-{#                    {% if request._source.agency_request_summary %}#}
-{#                        <span {% if request._source.agency_request_summary in query %}style="background-color: lawngreen;"{% endif %}>#}
-{#                        {{ request._source.agency_request_summary }}</span>#}
-{#                    {% endif %}#}
-{#                </div>#}
-{#                <div class="col-sm-2" style="color: {% if request._source.title_private %}red{% else %}lawngreen{% endif %}">#}
-{#                    {{ request._source.title_private }}#}
-{#                </div>#}
-{#                <div class="col-sm-2" style="color: {% if request._source.agency_request_summary_private %}red{% else %}lawngreen{% endif %}">#}
-{#                    {{ request._source.agency_request_summary_private }}#}
-{#                </div>#}
-{#                <div class="col-sm-2" style="color: {% if current_user.is_anonymous or request._source.requester_id != current_user.get_id() %}red{% else %}lawngreen{% endif %}">#}
-{#                    {% if current_user.is_anonymous %}#}
-{#                        False#}
-{#                    {% else %}#}
-{#                        {{  request._source.requester_id == current_user.get_id() }}#}
-{#                    {% endif %}#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
-    {% endif %}
-    </a>
+        </td>
+        {% if current_user.is_agency %}
+            <td>
+                {{ request._source.agency_acronym }}
+            </td>
+        {% else %}
+            <td>
+                {{ request._source.agency_name }}
+            </td>
+        {% endif %}
+        <td>
+            {{ moment(request._source.date_due).format('MM/DD/YYYY') }}
+        </td>
+        {% if current_user.is_agency %}
+            <td>
+                {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else '' }}
+            </td>
+            <td>
+                {{ request._source.requester_name }}
+            </td>
+        {% endif %}
+ </tr>
 {% endfor %}

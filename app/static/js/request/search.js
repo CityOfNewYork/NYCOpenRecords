@@ -9,21 +9,56 @@ $(function() {
         end = 0,
         total = 0,
         canSearch = true,
+        toFocus = false,
         searchBtn = $("#search"),
-        dateReq = $("#date-req"),
+        searchBtnAdv = $("#search-adv"),
+        clearSearchBtn = $("#clearsearch"),
+        dateSubmittedReq = $("#date-submitted-req"),
+        dateDueReq = $("#date-due-req"),
+        dateClosedReq = $("#date-closed-req"),
         noResultsFound = true,
         generateDocBtn = $("#generate-document"),
         agencySelect = $("#agency_ein"),
         agencyUserDiv = $("#agency-user-div"),
-        agencyUserSelect = $("#agency_user");
+        agencyUserSelect = $("#agency_user"),
+        resultsHeader = "resultsHeading",
+        isAgencyUser = ($("#is-agency-user").val() === "true"),
+        resultcol = [];
+    
+    // Table head values
+    if (isAgencyUser) {
+        resultcol = [
+            ["Status",""],
+            ["ID",""],
+            ["Date Submitted", "sort_date_submitted","desc"],
+            ["Title", "sort_title","none"],
+            ["Assigned Agency", ""],
+            ["Date Due","sort_date_due","none"],
+            ["Date Closed", ""],
+            ["Requester Name", ""]
+        ];
+    }
+    else {
+        resultcol = [
+            ["Status", ""],
+            ["ID", ""],
+            ["Date Submitted", "sort_date_submitted", "desc"],
+            ["Title", "sort_title", "none"],
+            ["Assigned Agency", ""],
+            ["Date Due", "sort_date_due", "none"]
+        ];
+    }
+    var sortSequence = ["none", "desc", "asc"];
 
-    function dateInvalid(dateElem, msg, highlightDateRequirement) {
+    // Date stuff
+    function dateInvalid(dateElem, msg, highlightDateRequirement, dateError) {
         dateElem
             .addClass("bad-input-text")
             .attr('data-content', msg)
             .popover(msg === null ? 'hide' : 'show');
         if (highlightDateRequirement) {
-            dateReq.css("color", "red");
+            dateError.css("display", "block");
+            dateError.focus();
         }
         return false;
     }
@@ -35,7 +70,7 @@ $(function() {
         return true;
     }
 
-    function valiDate(checkDateElem, compDateElem, isLessThan) {
+    function valiDate(checkDateElem, compDateElem, isLessThan, dateError) {
         /*
         * Check that 'checkDateElem' holds an empty value or
         * that it is not a holiday or weekend and
@@ -58,10 +93,10 @@ $(function() {
                     var validComp = compDate !== null ?
                         (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
-                        return dateInvalid(checkDateElem, "This date does not fall on a business day.");
+                        return dateInvalid(checkDateElem, "This date does not fall on a business day.", null, dateError);
                     }
                     else if (!validComp) {
-                        return dateInvalid(checkDateElem, null, true);
+                        return dateInvalid(checkDateElem, null, true, dateError);
                     }
                     else {
                         return dateValid(checkDateElem);
@@ -69,12 +104,12 @@ $(function() {
                 }
                 catch (err) {
                     // failure parsing date string
-                    return dateInvalid(checkDateElem, "This is not a valid date.");
+                    return dateInvalid(checkDateElem, "This is not a valid date.", null, dateError);
                 }
             }
             else {
                 // missing full date string length
-                return dateInvalid(checkDateElem, "This is not a valid date.");
+                return dateInvalid(checkDateElem, "This is not a valid date.", null, dateError);
             }
         }
         else {
@@ -83,22 +118,24 @@ $(function() {
         }
     }
 
-    function valiDates(fromDateElem, toDateElem) {
+    function valiDates(fromDateElem, toDateElem, dateError) {
         /*
         * Check that 'fromDateElem' is less than 'toDateElem'
         * and that both dates are not holidays or weekends.
         * */
-        var fromValid = valiDate(fromDateElem, toDateElem, true),
-            toValid = valiDate(toDateElem, fromDateElem, false);
+        var fromValid = valiDate(fromDateElem, toDateElem, true, dateError),
+            toValid = valiDate(toDateElem, fromDateElem, false, dateError);
         if (!fromValid || !toValid) {
             canSearch = false;
             searchBtn.attr("disabled", true);
+            searchBtnAdv.attr("disabled", true);
             generateDocBtn.attr("disabled", true);
         }
         else {
             canSearch = true;
             searchBtn.attr("disabled", false);
-            dateReq.css("color", "black");
+            searchBtnAdv.attr("disabled", false);
+            dateError.css("display", "none");
             if (!noResultsFound) {
                 generateDocBtn.attr("disabled", false);
             }
@@ -124,22 +161,22 @@ $(function() {
         dates[i].mask("00/00/0000", {placeholder: "mm/dd/yyyy"});
     }
     dateRecFromElem.on("input change", function () {
-        valiDates(dateRecFromElem, dateRecToElem);
+        valiDates(dateRecFromElem, dateRecToElem, dateSubmittedReq);
     });
     dateRecToElem.on("input change", function () {
-        valiDates(dateRecFromElem, dateRecToElem);
+        valiDates(dateRecFromElem, dateRecToElem, dateSubmittedReq);
     });
     dateDueFromElem.on("input change", function () {
-        valiDates(dateDueFromElem, dateDueToElem);
+        valiDates(dateDueFromElem, dateDueToElem, dateDueReq);
     });
     dateDueToElem.on("input change", function () {
-        valiDates(dateDueFromElem, dateDueToElem);
+        valiDates(dateDueFromElem, dateDueToElem, dateDueReq);
     });
     dateClosedFromElem.on("input change", function () {
-        valiDates(dateClosedFromElem, dateClosedToElem);
+        valiDates(dateClosedFromElem, dateClosedToElem, dateClosedReq);
     });
     dateClosedToElem.on("input change", function () {
-        valiDates(dateClosedFromElem, dateClosedToElem);
+        valiDates(dateClosedFromElem, dateClosedToElem, dateClosedReq);
     });
 
     // keypress 'Enter' = click search button
@@ -153,8 +190,35 @@ $(function() {
         var keyCode = e.keyCode || e.which;
         if (keyCode === 13) {
             e.preventDefault();
-            return false;
+            searchBtn.click();
         }
+    });
+
+    // Capture form reset
+    $(clearSearchBtn).on('click', function(event) {
+        event.preventDefault();
+        $("#search-form")[0].reset();
+
+        // Need to do some self clean up
+        var query = $("#query");
+        var names = ["title", "description", "agency_request_summary", "requester_name"];
+        var i;
+
+        query.attr("placeholder", "Enter keywords");
+        for (i = 0; i < names.length; i++) {
+            $("input[name='" + names[i] + "']").prop("disabled", false);
+            $("input[name='" + names[i] + "']").removeClass("disabled");
+        }
+
+        // re enable search buttons and hide date error
+        searchBtn.attr("disabled", false);
+        searchBtnAdv.attr("disabled", false);
+        dateSubmittedReq.hide();
+        dateDueReq.hide();
+        dateClosedReq.hide();
+
+        $(query).focus();
+        resetAndSearch();
     });
 
     // show test info
@@ -170,16 +234,60 @@ $(function() {
     //     }
     // };
 
+    function buildResultsTableHead (col, sort) {
+        var tableHead = "";
+
+        for (var i=0; i< col.length; i++) {
+            if (col[i][1] === "")
+                {
+                tableHead = tableHead + "<th>" + col[i][0] + "</th>";
+                }
+            else
+                {
+                tableHead = tableHead + '<th><button type="button" class="sort-field" data-sort-order="' + col[i][2] +'" id="' + col[i][1] +'">' + col[i][0];
+                var CurrentSort = $("input[name="+ col[i][1]+ "]").val();
+                if (CurrentSort !== ""){
+
+                }
+                tableHead = tableHead + '<span class="glyphicon glyphicon-sort" aria-hidden="true"></span>' +
+                                        '<span class="sr-only unsorted">Unsorted</span>' +
+                                        '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>' +
+                                        '<span class="sr-only sorted-asc">Sorted, Ascending</span>' +
+                                        '<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>' +
+                                        '<span class="sr-only sorted-desc">Sorted, Descending</span> </button></th>';
+            }
+        }
+        return tableHead;
+    }
+
+    function buildResultsTable (theResults, count, total) {
+        var theTable = "";
+        theTable = theTable +'<div class="col-sm-12 searchResults-heading">';
+        theTable = theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total.toLocaleString() + '&nbsp;Results Found</h2>';
+        theTable = theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" alt="Open status icon"></div>';
+        if (isAgencyUser) {
+            theTable = theTable + '<div class="legend legend-progress">In Progress=<img src="/static/img/progress.svg" alt="In progress status icon"></div>';
+            theTable = theTable + '<div class="legend legend-soon">Due Soon=<img src="/static/img/soon.svg" alt="Due soon status icon"></div>';
+            theTable = theTable + '<div class="legend legend-overdue">Overdue=<img src="/static/img/overdue.svg" alt="Overdue status icon"></div>';
+        }
+        theTable = theTable + '<div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" alt="Closed status icon"></div>';
+        theTable = theTable + '</div></div>';
+        theTable = theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
+        theTable = theTable + buildResultsTableHead (resultcol, sortSequence);
+        theTable = theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
+        return theTable;
+    }
+
     var next = $("#next");
     var prev = $("#prev");
 
     function search() {
-
         // first clear out any "bad" input
         $(".bad-input-text").removeClass("bad-input-text").val("");
 
         var results = $("#results");
         var pageInfo = $("#page-info");
+        results.html('<div class="col-sm-12 search-load-container"> <div class="search-loader"><span class="sr-only">Loading the results...</span></div></div>');
 
         $.ajax({
             url: "/search/requests",
@@ -187,52 +295,58 @@ $(function() {
             success: function(data) {
                 if (data.total !== 0) {
                     noResultsFound = false;
-                    results.html(data.results);
+                    results.html(buildResultsTable(data.results, data.count, data.total));
                     flask_moment_render_all();
+                    $(".pagination").css("display", "flex");
                     pageInfo.text(
                         (start + 1) + " - " +
                         (start + data.count) +
-                        " of " + data.total
+                        " of " + (data.total).toLocaleString()
                     );
                     total = data.total;
                     end = start + data.count;
                     if (end === total) {
-                        next.hide();
+                        next.attr("aria-disabled", true);
+                        next.addClass("disabled")
                     }
                     else {
-                        next.show();
+                        next.attr("aria-disabled", false);
+                        next.removeClass("disabled")
                     }
                     if (start === 0) {
-                        prev.hide();
+                        prev.attr("aria-disabled", true);
+                        prev.addClass("disabled")
                     }
                     else {
-                        prev.show();
+                        prev.attr("aria-disabled", false);
+                        prev.removeClass("disabled")
                     }
                     generateDocBtn.attr("disabled", false);
+
+                    if (toFocus) {
+                        scrollToElement(resultsHeader);
+                        toFocus = false;
+                    }
                 }
                 else {
                     noResultsFound = true;
-                    results.html("<li class='list-group-item text-center'>" +
-                        "No results found.</li>");
-                    pageInfo.text("");
-                    next.hide();
-                    prev.hide();
+                    results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
+                          "<p class='text-center' aria-live='polite'>No results found.</p></div></div>");
                     generateDocBtn.attr("disabled", true);
                 }
             },
             error: function(e) {
-                results.html("<li class='list-group-item text-center'>" +
-                    "Hmmmm.... Looks like something's gone wrong.</li>");
-                pageInfo.text("");
-                next.hide();
-                prev.hide();
+                results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
+                    "<p class='text-center' aria-live='assertive'>Hmmmm.... Looks like something's gone wrong.</p></div></div>");
                 generateDocBtn.attr("disabled", true);
             }
         });
     }
 
     // search on load
-    search();
+    $(document).ready(function(){
+        search();
+    });
 
     // disable other filters if searching by FOIL-ID
     $("input[name='foil_id']").click(function() {
@@ -243,12 +357,14 @@ $(function() {
             query.attr("placeholder", "0000-000-00000");
             for (i = 0; i < names.length; i++) {
                 $("input[name='" + names[i] + "']").prop("disabled", true);
+                $("input[name='" + names[i] + "']").addClass("disabled");
             }
         }
         else {
-            query.attr("placeholder", "");
+            query.attr("placeholder", "Enter keywords");
             for (i = 0; i < names.length; i++) {
                 $("input[name='" + names[i] + "']").prop("disabled", false);
+                $("input[name='" + names[i] + "']").removeClass("disabled");
             }
         }
     });
@@ -259,21 +375,21 @@ $(function() {
     }
 
     // Sorting
-    var sortOrderToGlyphicon = {
-        desc: "glyphicon-triangle-bottom",
-        asc: "glyphicon-triangle-top",
-        none: "",
-    };
+    function updateSorting(theHeadingId,sequence){
 
-    var sortSequence = ["none", "desc", "asc"];
+        for (var i=0; i< resultcol.length; i++){
+
+            if (resultcol[i][1] === theHeadingId){
+                resultcol[i][2] = sequence;
+            }
+        }
+    }
 
     function cycleSort(elem) {
         /*
-        * Cycle through sortSequence and 'style' elem with triangle
+        * Cycle through sortSequence and 'style' elem with arrows
         * glyphicons representing sort direction.
         * */
-        var icon = elem.find(".glyphicon");
-        icon.removeClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
 
         elem.attr(
             "data-sort-order",
@@ -281,7 +397,6 @@ $(function() {
                 (sortSequence.indexOf(elem.attr("data-sort-order")) + 1 + sortSequence.length)
                 % sortSequence.length]);
 
-        icon.addClass(sortOrderToGlyphicon[elem.attr("data-sort-order")]);
     }
 
     function resetAndSearch() {
@@ -300,11 +415,17 @@ $(function() {
         resetAndSearch();
     });
     searchBtn.click(function () {
+        toFocus = true;
+        resetAndSearch();
+    });
+    searchBtnAdv.click(function () {
+        toFocus = true;
         resetAndSearch();
     });
     $("#size").change(function () {
         resetAndSearch();
     });
+
     agencySelect.change(function () {
         agencyUserSelect.empty();
 
@@ -343,32 +464,46 @@ $(function() {
     agencyUserSelect.change(function () {
         resetAndSearch();
     });
-    next.click(function () {
+
+    next.click(function (event) {
+        toFocus = true;
+        event.preventDefault();
         if (canSearch && end < total) {
             setStart(start + parseInt($("#size").val()));
-            search();
-        }
-    });
-    prev.click(function () {
-        if (canSearch && start > 0) {
-            setStart(start - parseInt($("#size").val()));
+            $('html, body').stop();
             search();
         }
     });
 
-    $(".sort-field").click(function () {
+    prev.click(function (event) {
+        toFocus = true;
+        event.preventDefault();
+        if (canSearch && start > 0) {
+            setStart(start - parseInt($("#size").val()));
+            $('html, body').stop();
+            search();
+        }
+    });
+
+    $('body').on('click', '.sort-field', function() {
         if (canSearch) {
             setStart(0);
             cycleSort($(this));
+
             // fill hidden inputs
             $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
-            search();
+
+            //Update Array to reflect column status
+            updateSorting($(this).attr("id"),$(this).attr("data-sort-order"));
+
+           search();
         }
     });
 
-    // Toggle advanced search options (hide/show) and glyphicons directions on click
-    $("#advanced-options-toggle").click(function() {
-        $(this).find("span").toggleClass('glyphicon-triangle-bottom glyphicon-triangle-top');
-        $("#advanced-search-options").toggle();
-    });
+    function scrollToElement(theId){
+        $("#" + theId).focus();
+        $('html, body').animate({
+            scrollTop: $("#" + theId).offset().top
+        }, 500);
+    }
 });
