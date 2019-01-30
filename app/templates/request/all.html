@@ -26,9 +26,9 @@
             </div>
             <div class="col-sm-12 well form-group">
                 {% if current_user.is_agency %}
-                    {% include 'request/agency_search.html' %}
+                    {% include 'request/_agency_search_form.html' %}
                 {% else %}
-                    {% include 'request/public_search.html' %}
+                    {% include 'request/_public_search_form.html' %}
                 {% endif %}
             </div>
             {% if current_user.is_agency %}

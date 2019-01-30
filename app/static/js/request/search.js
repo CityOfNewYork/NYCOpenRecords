@@ -22,30 +22,30 @@ $(function() {
         agencyUserDiv = $("#agency-user-div"),
         agencyUserSelect = $("#agency_user"),
         resultsHeader = "resultsHeading",
-        isAgencyUser = ($("#is-agency-user").val() === "true");
-
-
+        isAgencyUser = ($("#is-agency-user").val() === "true"),
+        resultcol = [];
+    
     // Table head values
     if (isAgencyUser) {
-        var resultcol = [
-            ['Status',''],
-            ['ID',''],
-            ['Date Submitted', 'sort_date_submitted','desc'],
-            ['Title', 'sort_title','none'],
-            ['Assigned Agency', ''],
-            ['Date Due','sort_date_due','none'],
-            ['Date Closed', ''],
-            ['Requester Name', '']
+        resultcol = [
+            ["Status",""],
+            ["ID",""],
+            ["Date Submitted", "sort_date_submitted","desc"],
+            ["Title", "sort_title","none"],
+            ["Assigned Agency", ""],
+            ["Date Due","sort_date_due","none"],
+            ["Date Closed", ""],
+            ["Requester Name", ""]
         ];
     }
     else {
-        var resultcol = [
-            ['Status', ''],
-            ['ID', ''],
-            ['Date Submitted', 'sort_date_submitted', 'desc'],
-            ['Title', 'sort_title', 'none'],
-            ['Assigned Agency', ''],
-            ['Date Due', 'sort_date_due', 'none']
+        resultcol = [
+            ["Status", ""],
+            ["ID", ""],
+            ["Date Submitted", "sort_date_submitted", "desc"],
+            ["Title", "sort_title", "none"],
+            ["Assigned Agency", ""],
+            ["Date Due", "sort_date_due", "none"]
         ];
     }
     var sortSequence = ["none", "desc", "asc"];
@@ -234,32 +234,13 @@ $(function() {
     //     }
     // };
 
-
-    function buildResultsTable (theResults, count, total) {
-        var theTable = "";
-        theTable = theTable +'<div class="col-sm-12 searchResults-heading">';
-        theTable = theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total.toLocaleString() + '&nbsp;Results Found</h2>';
-        theTable = theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" ></div>';
-        if (isAgencyUser) {
-            theTable = theTable + '<div class="legend legend-progress">In Progress=<img src="/static/img/progress.svg" ></div>';
-            theTable = theTable + '<div class="legend legend-soon">Due Soon=<img src="/static/img/soon.svg" ></div>';
-            theTable = theTable + '<div class="legend legend-overdue">Overdue=<img src="/static/img/overdue.svg" ></div>';
-        }
-        theTable = theTable + '<div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" ></div>';
-        theTable = theTable + '</div></div>';
-        theTable = theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
-        theTable = theTable + buildResultsTableHead (resultcol, sortSequence);
-        theTable = theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
-        return(theTable);
-    }
-
     function buildResultsTableHead (col, sort) {
-        var tableHead = '';
+        var tableHead = "";
 
         for (var i=0; i< col.length; i++) {
-            if (col[i][1] === '')
+            if (col[i][1] === "")
                 {
-                tableHead = tableHead + '<th>' + col[i][0] + '</th>';
+                tableHead = tableHead + "<th>" + col[i][0] + "</th>";
                 }
             else
                 {
@@ -279,18 +260,34 @@ $(function() {
         return tableHead;
     }
 
+    function buildResultsTable (theResults, count, total) {
+        var theTable = "";
+        theTable = theTable +'<div class="col-sm-12 searchResults-heading">';
+        theTable = theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total.toLocaleString() + '&nbsp;Results Found</h2>';
+        theTable = theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" alt="Open status icon"></div>';
+        if (isAgencyUser) {
+            theTable = theTable + '<div class="legend legend-progress">In Progress=<img src="/static/img/progress.svg" alt="In progress status icon"></div>';
+            theTable = theTable + '<div class="legend legend-soon">Due Soon=<img src="/static/img/soon.svg" alt="Due soon status icon"></div>';
+            theTable = theTable + '<div class="legend legend-overdue">Overdue=<img src="/static/img/overdue.svg" alt="Overdue status icon"></div>';
+        }
+        theTable = theTable + '<div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" alt="Closed status icon"></div>';
+        theTable = theTable + '</div></div>';
+        theTable = theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
+        theTable = theTable + buildResultsTableHead (resultcol, sortSequence);
+        theTable = theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
+        return theTable;
+    }
+
     var next = $("#next");
     var prev = $("#prev");
 
     function search() {
-
         // first clear out any "bad" input
         $(".bad-input-text").removeClass("bad-input-text").val("");
 
         var results = $("#results");
         var pageInfo = $("#page-info");
         results.html('<div class="col-sm-12 search-load-container"> <div class="search-loader"><span class="sr-only">Loading the results...</span></div></div>');
-
 
         $.ajax({
             url: "/search/requests",
@@ -350,7 +347,6 @@ $(function() {
     $(document).ready(function(){
         search();
     });
-
 
     // disable other filters if searching by FOIL-ID
     $("input[name='foil_id']").click(function() {
@@ -477,8 +473,6 @@ $(function() {
             $('html, body').stop();
             search();
         }
-
-
     });
 
     prev.click(function (event) {
@@ -489,8 +483,6 @@ $(function() {
             $('html, body').stop();
             search();
         }
-
-
     });
 
     $('body').on('click', '.sort-field', function() {
@@ -514,5 +506,4 @@ $(function() {
             scrollTop: $("#" + theId).offset().top
         }, 500);
     }
-
 });
