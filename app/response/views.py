@@ -173,7 +173,8 @@ def response_acknowledgment(request_id):
                        'method',
                        'summary']
     if flask_request.form.get('days', '-1') == '-1':
-        required_fields.append('info')
+        if flask_request.form.get('method', LETTER) != LETTER:
+            required_fields.append('info')
     for field in required_fields:
         if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the acknowledgment {} is missing! '
