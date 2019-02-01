@@ -90,11 +90,6 @@
                 <div class="panel panel-default" id="custom-request-panel-1" hidden>
                     <div class="panel-heading" id="custom-request-forms-1" hidden>
                         {{ form.request_type.label(class="request-heading request-type-label") }}
-                        <span data-toggle="popover" data-placement="right" data-trigger="hover" title="Request Type"
-                              data-content="List of all agency specific request types that can be made within OpenRecords."
-                              aria-label="List of all agency specific request types that can be made within OpenRecords."
-                              class="glyphicon glyphicon-question-sign">
-                        </span>
                         {{ form.request_type(id="request-type-1", class="input-block-level request-type") }}<br>
                     </div>
                     <div class="panel-body" id="custom-request-form-content-1" hidden>
@@ -180,8 +175,8 @@
                 </div>
                 {{ form.method_received(id="method-received", class="input-block-level") }}
                 {# Date request was received #}
-                <label for="request-date">Request Date (required)</label>
-                {{ form.request_date(id="request-date", class="input-block-level dtpick", **{'aria-label':"Request date, required"}) }}
+                <label for="request-date">Agency Received Date (required)</label>
+                {{ form.request_date(id="request-date", class="input-block-level dtpick", **{'aria-label':"Agency Recieved Date, required"}) }}
 
                 <h2>Personal Information</h2>
 

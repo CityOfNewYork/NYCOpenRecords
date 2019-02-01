@@ -37,10 +37,10 @@ from app.request.api.utils import create_request_info_event
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
 def edit_privacy():
     """
-    Edits the privacy privacy options of a request's title and agency description.
+    Edits the privacy privacy options of a request's title and agency request summary.
     Retrieves updated privacy options from AJAX call on view_request page and stores changes into database.
 
-    :return: JSON Response with updated title and agency description privacy options
+    :return: JSON Response with updated title and agency request summary privacy options
     """
     request_id = flask_request.form.get('id')
     current_request = Requests.query.filter_by(id=request_id).first()
@@ -73,10 +73,10 @@ def edit_privacy():
 @request_api_blueprint.route('/view/edit', methods=['PUT'])
 def edit_request_info():
     """
-    Edits the title and agency description of a FOIL request through an API PUT method.
+    Edits the title and agency request summary of a FOIL request through an API PUT method.
     Retrieves updated edited content from AJAX call on view_request page and stores changes into database.
 
-    :return: JSON Response with updated content: either request title or agency description)
+    :return: JSON Response with updated content: either request title or agency request summary)
     """
     edit_request = flask_request.form
     request_id = flask_request.form.get('pk')

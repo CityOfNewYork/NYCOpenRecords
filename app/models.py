@@ -718,7 +718,7 @@ class Requests(db.Model):
             not OPEN - the request must be completed by this date
     submission - a Enum that selects from a list of submission methods
     status - an Enum that selects from a list of different statuses a request can have
-    privacy - a JSON object that contains the boolean privacy options of a request's title and agency description
+    privacy - a JSON object that contains the boolean privacy options of a request's title and agency request summary
               (True = Private, False = Public)
     agency_request_summary - a string that contains an additional description of the request created by the agency
     agency_request_summary_release_date - a datetime of when the agency_request_summary will be made public
@@ -1076,11 +1076,11 @@ class Events(db.Model):
             event_type.REQ_TITLE_EDITED:
                 self.RowContent(self, "changed", "{} the title."),
             event_type.REQ_AGENCY_REQ_SUM_EDITED:
-                self.RowContent(self, "changed", "{} the agency description."),
+                self.RowContent(self, "changed", "{} the agency request summary."),
             event_type.REQ_TITLE_PRIVACY_EDITED:
                 self.RowContent(self, "changed", "{} the title privacy."),
             event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED:
-                self.RowContent(self, "changed", "{} the agency description privacy."),
+                self.RowContent(self, "changed", "{} the agency request summary privacy."),
             event_type.FILE_ADDED:
                 self.RowContent(self, "added", "{} a file response."),
             event_type.FILE_EDITED:

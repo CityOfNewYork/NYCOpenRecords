@@ -237,7 +237,7 @@ def search_requests(query,
     :param query: string to query for
     :param foil_id: search by request id?
     :param title: search by title?
-    :param agency_request_summary: search by agency description?
+    :param agency_request_summary: search by agency request summary?
     :param description: search by description?
     :param requester_name: search by requester name?
     :param date_rec_from: date created/submitted from

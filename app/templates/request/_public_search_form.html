@@ -1,116 +1,146 @@
-<div class="col-sm-6">
-    <h4><label for="query">Search By</label>
-        <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Search By"
-               data-content="Enter keywords to search by request titles and agency descriptions. If you know the FOIL ID
-                             you can search for a specific request. To refine your search, select Advanced Search Options.">
-            <span class="glyphicon glyphicon-question-sign"></span>
-        </small>
-    </h4>
-</div>
-<div class="col-sm-10">
-    <input type="text" id="query" name="query">
-</div>
-<div class="col-sm-2 text-right">
-    <button type="button" id="search" class="btn btn-lg btn-primary">SEARCH</button>
-</div>
-<div class="row">
-    <div class="advanced-options-div col-sm-4">
-        <span id="advanced-options-toggle">Advanced Search Options&nbsp;<span
-                class="glyphicon glyphicon-triangle-bottom"></span></span>
+<div class="row search-row">
+    <div class="col-sm-12">
+        <label for="searchTerms" class="h4"><strong>Search Term(s)</strong>
+            <button data-toggle="collapse" data-target="#helptext-search" aria-expanded="false"
+                    aria-controls="helptext-search" type="button" class="helptext-button"><span class="sr-only">Help: Learn more about search terms.</span><span
+                    aria-hidden="true"></span>
+            </button>
+        </label>
+        <div class="helptext-wrapper bg-info collapse" id="helptext-search">
+            <p class="helptext text-white">
+                Enter keywords to search by request titles and agency descriptions. If you know the FOIL
+                ID
+                you can search for a specific request. To refine your search, select Advanced Search
+                Options below.
+            </p>
+        </div>
+        <div class="input-group input-group-lg">
+            <input type="text" class="form-control" id="query" name="query"
+                   placeholder="Enter keywords" aria-label="Search Terms">
+            <span class="input-group-btn">
+                    <button type="button" id="search" class="btn btn-primary">Search</button>
+                </span>
+        </div>
     </div>
-</div>
-<div id="advanced-search-options" hidden>
-    <div class="col-sm-4">
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="foil_id">
-                FOIL ID
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="title" checked>
-                Title
-            </label>
-        </div>
-        {% if not current_user.is_anonymous %}
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="description">
-                    Description
-                </label>
-                <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Description"
-                       data-content="The description entered by the requester. This is private due to the possibility
-                       of personal information being included.">
-                    <span class="glyphicon glyphicon-question-sign"></span>
-                </small>
+    <div class="col-xs-12 advanced-search-col">
+        <button type="button" class="btn-link" data-toggle="collapse"
+                data-target="#advanced-options" aria-expanded="false" aria-controls="advanced-options">
+            Advanced
+            Search Options
+        </button>
+    </div>
+    <div class="col-xs-12">
+        <div class="row collapse" id="advanced-options">
+            <div class="col-xs-12 col-sm-6 col-md-4">
+                <div class="fieldset" aria-labelledby="searchBy-legend">
+                    <div class="h4" id="searchBy-legend"><strong>Search By</strong></div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="foil_id">
+                            FOIL ID
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="title" checked>
+                            Title
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="agency_request_summary" checked>
+                            Agency Request Summary
+                        </label>
+                        <button data-toggle="collapse" data-target="#helptext-agencyrequest" aria-expanded="false"
+                                aria-controls="helptext-agencyrequest" type="button" class="helptext-button"><span
+                                class="sr-only">Help: Additional Information about Agency Request Summary</span><span
+                                aria-hidden="true"></span>
+                        </button>
+                        <div class="helptext-wrapper collapse bg-info" id="helptext-agencyrequest">
+                            <p class="helptext">Agency version of the request description that does not
+                                contain any personal information from the requester so it can be
+                                searched by other users.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="fieldset" aria-labelledby="status-legend">
+                    <div class="h4" id="status-legend"><strong>Status</strong></div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="open" checked>
+                            Open
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="closed" checked>
+                            Closed
+                        </label>
+                    </div>
+                </div>
             </div>
-        {% endif %}
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="agency_request_summary" checked>
-                Agency Request Summary
-            </label>
-            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Agency Request Summary"
-                   data-content="Agency version of the request description that does not contain any personal
-                   information from the requester so it can be searched by other users.">
-                <span class="glyphicon glyphicon-question-sign"></span>
-            </small>
+            <div class="col-xs-12 col-sm-6 col-md-4">
+                <div class="fieldset" aria-labelledby="dateSubmitted-legend">
+                    <div class="h4" id="dateSubmitted-legend"><strong>Date Submitted</strong>
+                        <button data-toggle="collapse" data-target="#helptext-datesubmitted" aria-expanded="false"
+                                aria-controls="helptext-datesubmitted" type="button" class="helptext-button"><span
+                                class="sr-only">Help: Learn more about date submitted requirements</span><span
+                                aria-hidden="true"></span></button>
+                    </div>
+                    <div class="helptext-wrapper bg-info collapse" id="helptext-datesubmitted" aria-expanded="false"
+                         style="height: 0;">
+                        <p class="helptext text-white">This field allows you to search for requests that
+                            were received between
+                            two specific dates. The date format accepted in numerical format of month, day and year
+                            (mm/dd/yyyy)</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="date-rec-from">From:</label>
+                        <input data-toggle="popover" data-placement="top" data-trigger="manual"
+                               data-animation="false" type="text" id="date-rec-from"
+                               name="date_rec_from" data-original-title="" title=""
+                               aria-label="From, date submitted, date format must be month month/day day/year year year"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="date-rec-to">To:</label>
+                        <input data-toggle="popover" data-placement="top" data-trigger="manual"
+                               data-animation="false" type="text" id="date-rec-to" name="date_rec_to"
+                               data-original-title="" title=""
+                               aria-label="To, date submitted, date format must be month month/day day/year year year">
+                    </div>
+
+                    <div id="date-submitted-req" class="date-required" aria-live="assertive" tabindex="0">
+                        <strong>*</strong> Date Submitted error. The date entered in the <strong>From</strong> field above
+                        must have taken place before the date entered in the <strong>To</strong> field.
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-12 col-md-4">
+                <div class="fieldset">
+                    <div class="form-group">
+                        <label for="agency_select" class="h4"><strong>Agency</strong></label>
+                        {{ form.agency_ein(class="form-control") }}
+                    </div>
+                </div>
+                <div class="fieldset">
+                    <div class="form-group">
+                        <label for="size" class="h4"><strong>Results Per Page</strong></label>
+                        <select name="size" id="size" title="size" class="form-control">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <button type="button" id="search-adv" class="btn btn-primary btn-lg">Search</button>
+            </div>
         </div>
-        <br>
-        <select id="size" name="size" title="size" class="input-block-level">
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-        </select>
-        <strong>&nbsp;Results Per Page</strong>
     </div>
-    <div class="col-sm-3">
-        <h4><label>Date Submitted*</label>
-            <small data-toggle="popover" data-placement="top" data-trigger="hover" title="Date Received"
-                   data-content="This field allows you to search for requests that were received between
-                                                    two specific dates.">
-                <span id="filter-glyphicon" class="glyphicon glyphicon-question-sign"></span>
-            </small>
-        </h4>
-        <label for="date-rec-from">From:</label>
-        <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
-               type="text" id="date-rec-from" name="date_rec_from">
-        <br>
-        <label for="date-rec-to">To:</label>
-        <input data-toggle="popover" data-placement="top" data-trigger="manual" data-animation="false"
-               type="text" id="date-rec-to" name="date_rec_to">
-        <br>
-        <div id="date-req">
-            <strong>*From</strong> must be before <strong>To</strong>.
-        </div>
-    </div>
-    <div class="col-sm-4 col-sm-push-1">
-        <h4>{{ form.agency_ein.label }}
-            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Agency"
-                   data-content="This section allows you to search by different agencies.">
-                <span class="glyphicon glyphicon-question-sign"></span>
-            </small>
-        </h4>
-        {{ form.agency_ein(class="input-block-level") }}
-        <br>
-        <h4><label>Status</label>
-            <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Status"
-                   data-content="This field allows you to search by status of the request.">
-                <span class="glyphicon glyphicon-question-sign"></span>
-            </small>
-        </h4>
-        <div class="status open checkbox">
-            <label>
-                <input type="checkbox" name="open" checked>
-                Open
-            </label>
-        </div>
-        <div class="status closed checkbox">
-            <label>
-                <input type="checkbox" name="closed" checked>
-                Closed
-            </label>
-        </div>
+    <div class="col-xs-12">
+        <button type="reset" class="btn-link clear-search-public" id="clearsearch">Clear
+            Search
+        </button>
     </div>
 </div>
