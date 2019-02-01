@@ -34,7 +34,6 @@ from app.constants import (
     response_privacy,
     request_status,
     determination_type,
-    user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
@@ -935,24 +934,7 @@ def assign_point_of_contact(point_of_contact):
     :return: A User object to be designated as the point of contact for a request
     """
     if point_of_contact:
-        return Users.query.filter(Users.guid == point_of_contact,
-                                  Users.auth_user_type.in_(
-                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-    else:
-        return current_user
-
-
-def assign_point_of_contact(point_of_contact):
-    """
-    Assign a user to be the point of contact in emails/letters
-
-    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
-    :return: A User object to be designated as the point of contact for a request
-    """
-    if point_of_contact:
-        return Users.query.filter(Users.guid == point_of_contact,
-                                  Users.auth_user_type.in_(
-                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        return Users.query.filter(Users.guid == point_of_contact).one_or_none()
     else:
         return current_user
 
@@ -1785,8 +1767,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 page=page,
                                                 agency_name=agency_name,
                                                 agency_default_email=request.agency.default_email,
-                                                public_requester=request.requester.auth_user_type in
-                                                                 user_type_auth.PUBLIC_USER_TYPES,
+                                                public_requester=request.requester.has_nyc_account,
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
@@ -2315,7 +2296,6 @@ def create_response_event(events_type, response, previous_value=None, user=curre
     """
     event = Events(request_id=response.request_id,
                    user_guid=response.request.requester.guid if user.is_anonymous else user.guid,
-                   auth_user_type=user_type_auth.ANONYMOUS_USER if user.is_anonymous else user.auth_user_type,
                    type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
@@ -2423,12 +2403,13 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
 
-    def _bool_check(self, value):
+    @staticmethod
+    def _bool_check(value):
         if isinstance(value, str) and value.lower() in ("true", "false"):
             return eval_request_bool(value)
         return value
 
-    def validate_deleted(self):
+    def validate_deleted(self) -> object:
         """
         Removes the 'deleted' key-value pair from the data containers
         if the confirmation string (see response PATCH) is not valid.
@@ -2450,7 +2431,6 @@ class ResponseEditor(metaclass=ABCMeta):
             request_id=self.response.request_id,
             response_id=self.response.id,
             user_guid=self.user.guid,
-            auth_user_type=self.user.auth_user_type,
             timestamp=timestamp,
             previous_value=self.data_old,
             new_value=self.data_new)

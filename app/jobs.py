@@ -83,7 +83,6 @@ def _update_request_statuses():
                     Events(
                         request.id,
                         user_guid=None,
-                        auth_user_type=None,
                         type_=REQ_STATUS_CHANGED,
                         previous_value={"status": request.status},
                         new_value={"status": request_status.OVERDUE},
@@ -108,7 +107,6 @@ def _update_request_statuses():
                     Events(
                         request.id,
                         user_guid=None,
-                        auth_user_type=None,
                         type_=REQ_STATUS_CHANGED,
                         previous_value={"status": request.status},
                         new_value={"status": request_status.DUE_SOON},
@@ -153,7 +151,6 @@ def _update_request_statuses():
             Events(
                 request.id,
                 user_guid=None,
-                auth_user_type=None,
                 type_=EMAIL_NOTIFICATION_SENT,
                 previous_value=None,
                 new_value=email.val_for_events,

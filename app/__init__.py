@@ -122,6 +122,9 @@ def create_app(config_name='default', jobs_enabled=True):
         from app.models import Anonymous
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
+        if app.config['USE_SAML']:
+            login_manager.login_message = None
+            login_manager.login_message_category = None
         KVSessionExtension(session_redis, app)
 
     # Error Handlers

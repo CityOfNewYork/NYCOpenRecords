@@ -29,7 +29,7 @@ def index():
                 'session_id': session.sid_s
             },
             Users,
-            (current_user.guid, current_user.auth_user_type)
+            current_user.guid
         )
     return render_template('main/home.html')
 

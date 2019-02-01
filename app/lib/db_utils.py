@@ -6,6 +6,7 @@
 from flask import current_app
 from app import db, sentry
 from app.models import Agencies, Requests
+from app.constants import HIDDEN_AGENCIES
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -35,9 +36,11 @@ def create_object(obj):
         return None
     else:
         # create elasticsearch doc
-        if (not isinstance(obj, Requests)
-            and hasattr(obj, 'es_create')
-            and current_app.config['ELASTICSEARCH_ENABLED']):
+        if (
+                not isinstance(obj, Requests)
+                and hasattr(obj, 'es_create')
+                and current_app.config['ELASTICSEARCH_ENABLED']
+        ):
             obj.es_create()
         return str(obj)
 
@@ -137,6 +140,6 @@ def get_object(obj_type, obj_id):
 
 def get_agency_choices():
     choices = sorted([(agencies.ein, agencies.name)
-                      for agencies in db.session.query(Agencies).all()],
+                      for agencies in db.session.query(Agencies).all() if agencies.ein not in HIDDEN_AGENCIES],
                      key=lambda x: x[1])
     return choices

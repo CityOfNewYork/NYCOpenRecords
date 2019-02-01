@@ -75,13 +75,8 @@
             </div>
         {% endfor %}
     {% endwith %}
-
-    {% include 'auth/login_processing_modal.html' %}
-    {% if not current_user.is_anonymous %}
-        {% include 'auth/session_timeout_modal.html' %}
-        {% include 'auth/concurrent_session_modal.html' %}
-    {% endif %}
 </div>
+{% include 'auth/concurrent_session_modal.html' %}
 <div class="wrapper">
     {% block content %}
     {% endblock %}
@@ -97,7 +92,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jquery-ui.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/request/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/jstz.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/auth/session-monitor.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/plugins/bootstrap-session-timeout.min.js') }}"></script>
 {% include 'base.js.html' %}
 {% block custom_script %}
 {% endblock %}
