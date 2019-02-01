@@ -78,7 +78,6 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
         remove_point_of_contact(request_id)
     user_request = UserRequests(
         user_guid=user.guid,
-        auth_user_type=user.auth_user_type,
         request_id=request_id,
         request_user_type=user_type_request.AGENCY,
         permissions=0,
@@ -151,6 +150,7 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
         to=[user_request.user.notification_email or user_request.user.email])
 
     old_permissions = user_request.permissions
+    old_point_of_contact = user_request.point_of_contact
 
     if added_permissions:
         user_request.add_permissions([capability.value for capability in added_permissions])
@@ -158,7 +158,7 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
         user_request.remove_permissions([capability.value for capability in removed_permissions])
 
     determine_point_of_contact_change(request_id, user_request, point_of_contact)
-    create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions)
+    create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions, old_point_of_contact)
 
 
 def remove_user_request(request_id, user_guid):
@@ -201,14 +201,17 @@ def remove_user_request(request_id, user_guid):
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))),
         'User Removed from Request {}'.format(request_id),
         to=[user_request.user.email])
+    old_permissions = user_request.permissions
+    old_point_of_contact = user_request.point_of_contact
 
-    create_user_request_event(event_type.USER_REMOVED, user_request)
+    create_user_request_event(event_type.USER_REMOVED, old_permissions, old_point_of_contact)
     delete_object(user_request)
 
     request.es_update()
 
 
-def create_user_request_event(events_type, user_request, old_permissions=None, user=current_user):
+def create_user_request_event(events_type, user_request, old_permissions=None, old_point_of_contact=None,
+                              user=current_user):
     """
     Create an Event for the addition, removal, or updating of a UserRequest and insert into the database.
 
@@ -222,13 +225,14 @@ def create_user_request_event(events_type, user_request, old_permissions=None, u
         Events: The event object representing the change made to the user.
 
     """
-    event = create_user_request_event_object(events_type, user_request, old_permissions, user)
+    event = create_user_request_event_object(events_type, user_request, old_permissions, old_point_of_contact, user)
     create_object(
         event
     )
 
 
-def create_user_request_event_object(events_type, user_request, old_permissions=None, user=current_user):
+def create_user_request_event_object(events_type, user_request, old_permissions=None, old_point_of_contact=None,
+                                     user=current_user):
     """
     Create an Event for the addition, removal, or updating of a UserRequest and insert into the database.
 
@@ -242,14 +246,17 @@ def create_user_request_event_object(events_type, user_request, old_permissions=
         Events: The event object representing the change made to the user.
 
     """
+
+    previous_value = {'user_guid': user_request.user_guid}
     if old_permissions is not None:
-        previous_value = {"permissions": old_permissions}
-    else:
-        previous_value = None
+        previous_value['permissions'] = old_permissions
+
+    if old_point_of_contact is not None:
+        previous_value['point_of_contact'] = old_point_of_contact
+
     return Events(
         user_request.request_id,
         user.guid,
-        user.auth_user_type,
         events_type,
         previous_value=previous_value,
         new_value=user_request.val_for_events,
@@ -275,7 +282,7 @@ def set_point_of_contact(request_id, user_request, point_of_contact):
     """
     update_object({"point_of_contact": point_of_contact},
                   UserRequests,
-                  (user_request.user_guid, user_request.auth_user_type, request_id)
+                  (user_request.user_guid, request_id)
                   )
 
 
@@ -300,13 +307,10 @@ def remove_point_of_contact(request_id):
     create_object(Events(
         request_id,
         current_user.guid,
-        current_user.auth_user_type,
         event_type.REQ_POINT_OF_CONTACT_REMOVED,
         previous_value={"user_guid": point_of_contact.user_guid,
-                        "auth_user_type": point_of_contact.auth_user_type,
                         "point_of_contact": "True"},
         new_value={"user_guid": point_of_contact.user_guid,
-                   "auth_user_type": point_of_contact.auth_user_type,
                    "point_of_contact": "False"},
         timestamp=datetime.utcnow(),
     ))

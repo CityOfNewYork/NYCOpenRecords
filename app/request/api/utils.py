@@ -14,7 +14,6 @@ def create_request_info_event(request_id, type_, previous_value, new_value):
     """
     event = Events(request_id=request_id,
                    user_guid=current_user.guid,
-                   auth_user_type=current_user.auth_user_type,
                    type_=type_,
                    previous_value=previous_value,
                    new_value=new_value)

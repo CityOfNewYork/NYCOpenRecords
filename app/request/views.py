@@ -23,7 +23,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from app.constants import (
     request_status,
-    permission
+    permission,
+    HIDDEN_AGENCIES
 )
 from app.lib.date_utils import (
     DEFAULT_YEARS_HOLIDAY_LIST,
@@ -264,7 +265,7 @@ def view(request_id):
     # Build permissions dictionary for checking on the front-end.
     for key, val in permissions.items():
         if current_user.is_anonymous or not current_request.user_requests.filter_by(
-                user_guid=current_user.guid, auth_user_type=current_user.auth_user_type).first():
+                user_guid=current_user.guid).first():
             permissions[key] = False
         else:
             permissions[key] = is_allowed(current_user, request_id, val) if not current_user.is_anonymous else False
@@ -384,12 +385,12 @@ def get_agencies_as_choices():
             [(agencies.ein, agencies.name)
              for agencies in Agencies.query.filter(
                 flask_request.args['category'] == any_(Agencies.categories)
-            ).all()],
+            ).all() if agencies.ein not in HIDDEN_AGENCIES],
             key=lambda x: x[1])
     else:
         choices = sorted(
             [(agencies.ein, agencies.name)
-             for agencies in Agencies.query.all()],
+             for agencies in Agencies.query.all() if agencies.ein not in HIDDEN_AGENCIES],
             key=lambda x: x[1])
     choices.insert(0, ('', ''))  # Insert blank option at the beginning of choices to prevent auto selection
     return jsonify(choices)
