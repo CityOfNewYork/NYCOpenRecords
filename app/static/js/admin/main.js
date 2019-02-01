@@ -66,7 +66,7 @@ $(function () {
             },
             success: function () {
                 if (!alert("You will receive an email when the changes you requested have been completed.")) {
-                    window.location.reload()
+                    window.location.reload();
                 }
             }
         });
@@ -87,7 +87,7 @@ $(function () {
             },
             success: function () {
                 if (!alert("You will receive an email when the changes you requested have been completed.")) {
-                    window.location.reload()
+                    window.location.reload();
                 }
             }
         });
