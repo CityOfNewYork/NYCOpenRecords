@@ -9,6 +9,27 @@
                 <ul>
                     <li>Request Title: {{ request.title }}</li>
                     <li>Request Description: {{ request.description }}</li>
+                    {% if request.custom_metadata %}
+                        {% for form_number,form_values in request.custom_metadata|dictsort %}
+                            <li>
+                                <u>{{ form_values['form_name'] }}</u>
+                                <br/>
+                                {% for field_number,field_values in form_values['form_fields']|dictsort %}
+                                    {{ field_values['field_name'] }}:
+                                    {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
+                                        {% for value in field_values['field_value'] %}
+                                            {{ value }}
+                                                    {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
+                                                        , {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ field_values['field_value'] }}
+                                    {% endif %}
+                                    <br/>
+                                {% endfor %}
+                            </li>
+                        {% endfor %}
+                    {% endif %}
                     <li>Requester Last Name: {{ request.requester.last_name }}</li>
                     <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
@@ -27,6 +48,27 @@
                     <ul>
                         <li>Request Title: {{ request.title }}</li>
                         <li>Request Description: {{ request.description }}</li>
+                        {% if request.custom_metadata %}
+                            {% for form_number,form_values in request.custom_metadata|dictsort %}
+                                <li>
+                                    <u>{{ form_values['form_name'] }}</u>
+                                    <br/>
+                                    {% for field_number,field_values in form_values['form_fields']|dictsort %}
+                                        {{ field_values['field_name'] }}:
+                                        {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
+                                            {% for value in field_values['field_value'] %}
+                                                {{ value }}
+                                                        {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
+                                                            , {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {{ field_values['field_value'] }}
+                                        {% endif %}
+                                        <br/>
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                        {% endif %}
                         <li>Requester Last Name: {{ request.requester.last_name }}</li>
                         <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
@@ -52,6 +94,27 @@
                 <ul>
                     <li>Request Title: {{ request.title }}</li>
                     <li>Request Description: {{ request.description }}</li>
+                    {% if request.custom_metadata %}
+                        {% for form_number,form_values in request.custom_metadata|dictsort %}
+                            <li>
+                                <u>{{ form_values['form_name'] }}</u>
+                                <br/>
+                                {% for field_number,field_values in form_values['form_fields']|dictsort %}
+                                    {{ field_values['field_name'] }}:
+                                    {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
+                                        {% for value in field_values['field_value'] %}
+                                            {{ value }}
+                                                    {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
+                                                        , {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ field_values['field_value'] }}
+                                    {% endif %}
+                                    <br/>
+                                {% endfor %}
+                            </li>
+                        {% endfor %}
+                    {% endif %}
                     <li>Requester Last Name: {{ request.requester.last_name }}</li>
                     <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
@@ -77,6 +140,27 @@
                     <ul>
                         <li>Request Title: {{ request.title }}</li>
                         <li>Request Description: {{ request.description }}</li>
+                        {% if request.custom_metadata %}
+                            {% for form_number,form_values in request.custom_metadata|dictsort %}
+                                <li>
+                                    <u>{{ form_values['form_name'] }}</u>
+                                    <br/>
+                                    {% for field_number,field_values in form_values['form_fields']|dictsort %}
+                                        {{ field_values['field_name'] }}:
+                                        {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
+                                            {% for value in field_values['field_value'] %}
+                                                {{ value }}
+                                                        {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
+                                                            , {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {{ field_values['field_value'] }}
+                                        {% endif %}
+                                        <br/>
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                        {% endif %}
                         <li>Requester Last Name: {{ request.requester.last_name }}</li>
                         <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
