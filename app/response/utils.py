@@ -412,12 +412,12 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                 determination_type.CLOSING,
                 format_determination_reasons(reason_ids)
             )
-        if method == 'letter':
+        if method == response_type.LETTER:
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
         request.es_update()
-        if method == 'letter':
+        if method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.CLOSING_LETTER_CREATED)
             _create_communication_method(response.id, letter_id, response_type.LETTER)
@@ -494,7 +494,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
             new_value={'status': request.status}
         )
 
-        if method == 'emails':
+        if method == response_type.EMAIL:
             email_id = _send_response_email(request_id,
                                             privacy,
                                             content,
@@ -503,7 +503,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
                                          email_id,
                                          response_type.EMAIL)
 
-        elif method == 'letters':
+        elif method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
 
             letter_id = _add_letter(request_id, letter_template.title, content,
@@ -994,7 +994,7 @@ def _acknowledgment_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Acknowledgment is only provided when getting default letter template.
     if acknowledgment is not None:
@@ -1060,7 +1060,7 @@ def _extension_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Extension is only provided when getting default letter template.
     if extension is not None:
@@ -1125,7 +1125,7 @@ def _closing_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Closing is only provided when getting default letter template.
     if closing is not None:
@@ -1184,7 +1184,7 @@ def _denial_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Denial is only provided when getting default letter template.
     if denial is not None:
@@ -1294,7 +1294,7 @@ def _reopening_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Reopening is only provided when getting default letter template.
     if data is not None:
@@ -1375,7 +1375,7 @@ def _response_letter_handler(request_id, data):
     if not eval_request_bool(data.get('confirmation', None)):
         request = Requests.query.filter_by(id=request_id).first()
         agency = request.agency
-        agency_letter_data = agency.agency_features['letters']
+        agency_letter_data = agency.agency_features[response_type.LETTER]
 
         contents = LetterTemplates.query.filter_by(id=data['letter_template_id']).first()
 
@@ -2318,7 +2318,7 @@ def _create_communication_method(response_id, method_id, method_type):
 
     :param response_id: response ID
     :param method_id: response ID of the method
-    :param method_type: 'letters' or 'emails'
+    :param method_type: response_type.LETTER or response_type.EMAIL
     """
     communication_method = CommunicationMethods(response_id,
                                                 method_id,
