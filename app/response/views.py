@@ -27,7 +27,7 @@ from flask_login import current_user, login_url
 from app import login_manager, sentry
 from app.constants import permission
 from app.constants.pdf import EnvelopeDict
-from app.constants.response_type import FILE, LETTER
+from app.constants.response_type import FILE, LETTER, EMAIL
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
 from app.lib.utils import UserRequestException
 from app.lib.date_utils import get_holidays_date_list
@@ -195,7 +195,7 @@ def response_acknowledgment(request_id):
 @response.route('/denial/<request_id>', methods=['POST'])
 @has_permission(permission.DENY)
 def response_denial(request_id):
-    if flask_request.form.get('method') == 'email':
+    if flask_request.form.get('method') == EMAIL:
         required_fields = ['reasons',
                            'method',
                            'summary']
@@ -229,7 +229,7 @@ def response_closing(request_id):
 
     :return: redirect to view request page
     """
-    if flask_request.form.get('method') == 'email':
+    if flask_request.form.get('method') == EMAIL:
         required_fields = ['reasons',
                            'method',
                            'summary']
@@ -276,13 +276,13 @@ def response_reopening(request_id):
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
-    if flask_request.form.get('method') == 'letters':
+    if flask_request.form.get('method') == LETTER:
         if not flask_request.form.get('letter-template-id', ''):
             flash('Uh Oh, it looks like the re-opening letter-template-id is missing! '
                   'This is probably NOT your fault.', category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
-    if flask_request.form.get('method') == 'emails':
+    if flask_request.form.get('method') == EMAIL:
         if not flask_request.form.get('reason-id', ''):
             flash('Uh Oh, it looks like the re-opening reason-id is missing! '
                   'This is probably NOT your fault.', category='danger')
@@ -313,7 +313,7 @@ def response_extension(request_id):
     :return: redirect to view request page
     """
     extension_data = flask_request.form
-    if extension_data.get('method') == 'email':
+    if extension_data.get('method') == EMAIL:
         required_fields = ['length',
                            'reason',
                            'due-date',
@@ -333,7 +333,7 @@ def response_extension(request_id):
             flash('Uh Oh, it looks like the extension {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-    due_date = extension_data['due-date'] if extension_data['method'] == 'email' else extension_data['due-date-letter']
+    due_date = extension_data['due-date'] if extension_data['method'] == EMAIL else extension_data['due-date-letter']
 
     add_extension(request_id,
                   extension_data['length'],
