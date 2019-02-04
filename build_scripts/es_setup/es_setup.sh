@@ -58,7 +58,7 @@ cd /usr/share/elasticsearch/plugins/search-guard-5/tools/
 sudo ./install_configuration.sh -y
 sudo /etc/init.d/elasticsearch start
 # The following last line needs to run manually after the build scripts are finished. Will not work even with a vagrant reload
-# sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn openrecords_v2_0_development -ks /etc/elasticsearch/keystore.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
+# sudo /usr/share/elasticsearch/plugins/search-guard-5/tools/sgadmin.sh -cd /usr/share/elasticsearch/plugins/search-guard-5/sgconfig -cn openrecords_development -ks /etc/elasticsearch/keystore.jks -ts /etc/elasticsearch/truststore.jks -nhnv -icl
 
 # 7. Setup sudo Access
 cp /vagrant/build_scripts/es_setup/elasticsearch /etc/sudoers.d/elasticsearch

@@ -164,7 +164,7 @@ class ManageAgencyUserAccountForm(StripFieldsForm):
             ))
 
 
-class LDAPLoginForm(Form):
+class BasicLoginForm(Form):
     email = StringField('Email')
     password = PasswordField('Password')
 

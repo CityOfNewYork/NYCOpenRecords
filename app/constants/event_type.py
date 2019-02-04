@@ -44,10 +44,14 @@ AGENCY_USER_ACTIVATED = "agency_user_activated"
 AGENCY_USER_DEACTIVATED = "agency_user_deactivated"
 CONTACT_EMAIL_SENT = "contact_email_sent"
 USER_LOGIN = "user_logged_in"
+USER_FAILED_LOG_IN = "user_failed_login"
 USER_AUTHORIZED = "user_authorized"
 USER_LOGGED_OUT = "user_logged_out"
+USER_FAILED_LOG_OUT = "user_failed_log_out"
 USER_MADE_AGENCY_ADMIN = "user_made_agency_admin"
 USER_MADE_AGENCY_USER = "user_made_agency_user"
+USER_MADE_SUPER_USER = "user_made_super_user"
+USER_REMOVED_FROM_SUPER = "user_removed_from_super"
 USER_PROFILE_UPDATED = "user_profile_updated"
 ACKNOWLEDGMENT_LETTER_CREATED = 'acknowledgment_letter_created'
 DENIAL_LETTER_CREATED = 'denial_letter_created'
@@ -123,8 +127,10 @@ SYSTEM_TYPES = [
     AGENCY_USER_DEACTIVATED,
     CONTACT_EMAIL_SENT,
     USER_LOGIN,
+    USER_FAILED_LOG_IN,
     USER_AUTHORIZED,
     USER_LOGGED_OUT,
+    USER_FAILED_LOG_OUT,
     USER_MADE_AGENCY_ADMIN,
     USER_MADE_AGENCY_USER,
     USER_PROFILE_UPDATED

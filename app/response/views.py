@@ -695,8 +695,7 @@ def get_response_content(response_id):
                             # user is associated with request
                             and UserRequests.query.filter_by(
                                 request_id=response_.request_id,
-                                user_guid=current_user.guid,
-                                auth_user_type=current_user.auth_user_type
+                                user_guid=current_user.guid
                             ).first() is not None):
                         @after_this_request
                         def remove(resp):

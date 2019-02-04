@@ -25,11 +25,21 @@ yum -y install liberation-fonts-common
 yum -y install liberation-sans-fonts
 yum -y install urw-fonts
 yum -y install texlive-latex
+yum -y install libxml2-devel
+yum -y install xmlsec1-devel
+yum -y install xmlsec1-openssl-devel
+yum -y install libtool-ltdl-devel
 
-# 5. Install Developer Tools
+# 5. Setup SAML
+mkdir -p /vagrant/saml
+openssl req \
+       -newkey rsa:4096 -nodes -keyout /vagrant/instance/saml/certs/saml.key \
+       -x509 -days 365 -out /vagrant/instance/saml/certs/saml.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=saml.openrecords.dev"
+
+# 6. Install Developer Tools
 yum -y groupinstall "Development Tools"
 
-# 6. Install Required pip Packages
+# 7. Install Required pip Packages
 source /opt/rh/rh-python35/enable
 pip install virtualenv
 mkdir /home/vagrant/.virtualenvs
@@ -40,19 +50,16 @@ pip install -r /vagrant/requirements/common.txt
 
 if [ "$1" -eq development ] || [ "$2" -eq development ]; then
     pip install -r /vagrant/requirements/dev.txt
+    yum -y install telnet-server
+    yum -y install telnet
 fi
 
 if [ "$1" -eq rhel ] || [ "$2" -eq rhel ]; then
     pip install -r /vagrant/requirements/rhel.txt
 fi
 
-# 7. Install telnet-server
-yum -y install telnet-server
 
-# 8. Install telnet
-yum -y install telnet
-
-# 9. Automatically Use Virtualenv
+# 8. Automatically Use Virtualenv
 echo "source /home/vagrant/.virtualenvs/openrecords/bin/activate" >> /home/vagrant/.bash_profile
 
 # 9. Setup sudo Access
