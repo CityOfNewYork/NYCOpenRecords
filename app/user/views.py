@@ -160,7 +160,7 @@ def patch(user_id):
         if not user_editable_fields.is_valid:
             return jsonify({"error": "Missing contact information."}), 400
     else:
-        if not status_field_val.is_valid:
+        if user_.is_agency and not status_field_val.is_valid:
             return jsonify({"error": "User status values invalid"}), 400
 
     # Status Values for Events

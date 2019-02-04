@@ -339,7 +339,7 @@ def ldap_logout():
 
 # Local Authentication Endpoints
 @auth.route('/local_login', methods=['GET', 'POST'])
-def local_auth():
+def local_login():
     """
     Authenticate a user against the database (ignore password).
 
@@ -376,16 +376,8 @@ def local_auth():
 
             return redirect(next_url or url_for("main.index"))
         else:
-            error_message = "User not found. Please contact your agency FOIL Officer to gain access to the system."
-            create_auth_event(
-                auth_event_type=event_type.USER_FAILED_LOG_IN,
-                user_guid=session["user_id"],
-                new_value={
-                    'success': False,
-                    'type': current_app.config['AUTH_TYPE'],
-                    'message': error_message
-                }
-            )
+            error_message = "User {email} not found. Please contact your agency FOIL Officer to gain access to the system.".format(
+                email=email)
             flash(error_message, category="warning")
             return render_template(
                 "auth/local_login_form.html", login_form=login_form

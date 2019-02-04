@@ -136,7 +136,7 @@ def find_user_by_email(email):
         from sqlalchemy import func
         return Users.query.filter(
             func.lower(Users.email) == email.lower(),
-            Users.is_agency == True
+            Users.is_nyc_employee == True
         ).first()
     return None
 

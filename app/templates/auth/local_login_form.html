@@ -7,7 +7,7 @@
         <div class="col-sm-8 col-centered">
             <h4 class="text-center">Login to NYC OpenRecords</h4>
             <br>
-            <form method="POST" action="{{ url_for('auth.login') }}">
+            <form method="POST" action="{{ url_for('auth.local_login') }}">
                 {{ login_form.csrf_token }}
                 <input type="hidden" value="{{ next_url }}" name="next" aria-label="Next URL">
                 <p>
