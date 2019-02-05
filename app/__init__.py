@@ -16,7 +16,6 @@ from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
-from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from flask_tracy import Tracy
 from flask_wtf import CsrfProtect
@@ -29,7 +28,6 @@ from app.constants import OPENRECORDS_DL_EMAIL
 from app.lib import NYCHolidays, jinja_filters
 from config import Config, config
 
-recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
 es = FlaskElasticsearch()
 db = SQLAlchemy()
@@ -57,7 +55,7 @@ calendar = Calendar(
 )
 
 
-def create_app(config_name='default', jobs_enabled=True):
+def create_app(config_name='default'):
     """
     Set up the Flask Application context.
 
@@ -104,7 +102,6 @@ def create_app(config_name='default', jobs_enabled=True):
     app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
     app.jinja_env.filters['format_ultimate_determination_reason'] = jinja_filters.format_ultimate_determination_reason
 
-    recaptcha.init_app(app)
     bootstrap.init_app(app)
     es.init_app(app,
                 use_ssl=app.config['ELASTICSEARCH_USE_SSL'],

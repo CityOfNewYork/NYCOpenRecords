@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from elasticsearch.helpers import bulk
-from flask_login import current_app
+from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 
