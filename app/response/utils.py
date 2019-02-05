@@ -180,7 +180,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
     :param date: date of request completion
     :param tz_name: client's timezone name
     :param content: body text associated with the acknowledgment
-    :param method: the communication method of the acknowledgement ('letter' or 'email')
+    :param method: the communication method of the acknowledgement (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -212,7 +212,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
             previous_value={'status': previous_status},
             new_value={'status': request.status}
         )
-        if method == 'letter':
+        if method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content,
                                     event_type.ACKNOWLEDGMENT_LETTER_CREATED)
@@ -250,7 +250,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
     :param request_id: FOIL request ID
     :param reason_ids: reason for denial
     :param content: body text associated with the denial
-    :param method: the communication method of the denial ('letter' or 'email')
+    :param method: the communication method of the denial (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -308,12 +308,12 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
                 determination_type.DENIAL,
                 format_determination_reasons(reason_ids)
             )
-        if method == 'letter':
+        if method == response_type.LETTER:
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_DENIED, response)
         request.es_update()
-        if method == 'letter':
+        if method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.DENIAL_LETTER_CREATED)
             _create_communication_method(response.id, letter_id, response_type.LETTER)
@@ -353,7 +353,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     :param request_id: FOIL request ID
     :param reason_ids: reason(s) for closing
     :param content: body text associated with the closing
-    :param method: the communication method of the closing ('letter' or 'email')
+    :param method: the communication method of the closing (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -545,7 +545,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param tz_name: client's timezone name
     :param content: body text associated with the extension
-    :param method: the communication method of the extension ('letter' or 'email')
+    :param method: the communication method of the extension (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -574,11 +574,11 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
         reason,
         new_due_date
     )
-    if method == 'letter':
+    if method == response_type.LETTER:
         response.reason = 'A letter will be mailed to the requester.'
     create_object(response)
     create_response_event(event_type.REQ_EXTENDED, response, previous_value=previous_due_date)
-    if method == 'letter':
+    if method == response_type.LETTER:
         letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
         letter_id = _add_letter(request_id, letter_template.title, content, event_type.EXTENSION_LETTER_CREATED)
         _create_communication_method(response.id, letter_id, response_type.LETTER)
