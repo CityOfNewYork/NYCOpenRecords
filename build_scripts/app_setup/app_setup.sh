@@ -31,7 +31,7 @@ yum -y install xmlsec1-openssl-devel
 yum -y install libtool-ltdl-devel
 
 # 5. Setup SAML
-mkdir -p /vagrant/saml
+mkdir -p /vagrant/instance/saml
 openssl req \
        -newkey rsa:4096 -nodes -keyout /vagrant/instance/saml/certs/saml.key \
        -x509 -days 365 -out /vagrant/instance/saml/certs/saml.crt -subj "/C=US/ST=New York/L=New York/O=NYC Department of Records and Information Services/OU=IT/CN=saml.openrecords.dev"
