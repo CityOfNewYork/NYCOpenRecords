@@ -17,4 +17,4 @@ def test_default_config():
 
 def test_testing_config():
     """Test the app.testing variable is set when using the testing config."""
-    assert create_app(config_name='testing', jobs_enabled=False).testing
+    assert create_app(config_name='testing').testing
