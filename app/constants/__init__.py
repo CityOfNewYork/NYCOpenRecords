@@ -1,7 +1,8 @@
 from app.constants import response_type, determination_type, event_type
 
 ACKNOWLEDGMENT_DAYS_DUE = 5
-REQUESTER_ACKNOWLEDGMENT_DAYS_DUE = 4
+REQUESTER_ACKNOWLEDGMENT_DAYS_DUE = 5
+ACKNOWLEDGMENT_PERIOD_LENGTH = 5
 
 CATEGORIES = [
     ('', 'All'),

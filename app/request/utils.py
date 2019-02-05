@@ -22,8 +22,7 @@ from app import upload_redis, sentry
 from app.constants import (
     event_type,
     role_name as role,
-    ACKNOWLEDGMENT_DAYS_DUE,
-    REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
+    ACKNOWLEDGMENT_PERIOD_LENGTH,
     user_type_request,
     response_type
 )
@@ -44,6 +43,7 @@ from app.lib.date_utils import (
     get_due_date,
     local_to_utc,
     utc_to_local,
+    is_business_day,
 )
 from app.models import (
     Requests,
@@ -78,7 +78,7 @@ def create_request(title,
                    first_name=None,
                    last_name=None,
                    submission=DIRECT_INPUT,
-                   agency_date_submitted=None,
+                   agency_date_submitted_local=None,
                    email=None,
                    user_title=None,
                    organization=None,
@@ -97,7 +97,7 @@ def create_request(title,
     :param first_name: first name of the requester
     :param last_name: last name of the requester
     :param submission: request submission method
-    :param agency_date_submitted: submission date chosen by agency
+    :param agency_date_submitted_local: submission date chosen by agency
     :param email: requester's email address
     :param user_title: requester's organizational title
     :param organization: requester's organization
@@ -118,15 +118,19 @@ def create_request(title,
     # 3b. Send Email Notification Text for Requester
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
-    date_created_local = utc_to_local(datetime.utcnow(), tz_name)
-    date_submitted_local = (agency_date_submitted
-                            if current_user.is_agency
-                            else get_following_date(date_created_local))
+    date_created_local = utc_to_local(datetime.strptime("2019-02-14 09:00:00", "%Y-%m-%d %H:%M:%S"), tz_name)
+    if current_user.is_agency:
+        date_submitted_local = agency_date_submitted_local
+    else:
+        if is_business_day(date_created_local):
+            date_submitted_local = date_created_local
+        else:
+            date_submitted_local = get_following_date(date_created_local)
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(
         date_submitted_local,
-        ACKNOWLEDGMENT_DAYS_DUE if current_user.is_agency else REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
+        ACKNOWLEDGMENT_PERIOD_LENGTH,
         tz_name)
 
     date_created = local_to_utc(date_created_local, tz_name)
@@ -260,10 +264,10 @@ def create_request(title,
     # 13. Add all parent agency administrators to the request.
     if agency != agency.parent:
         if (
-            agency.parent.agency_features is not None and
-            agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
-            agency.parent.is_active and
-            agency.parent.administrators
+                agency.parent.agency_features is not None and
+                agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
+                agency.parent.is_active and
+                agency.parent.administrators
         ):
             _create_agency_user_requests(request_id=request_id,
                                          agency_admins=agency.parent.administrators,
@@ -396,7 +400,6 @@ def generate_request_id(agency_ein):
             request_id = generate_request_id(agency.ein)
         return request_id
     return None
-
 
 
 def generate_email_template(template_name, **kwargs):
