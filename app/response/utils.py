@@ -1003,7 +1003,7 @@ def _acknowledgment_letter_handler(request_id, data):
 
         if acknowledgment.get('days') == '-1':
             acknowledgment['days'] = None
-            acknowledgment['date'] = datetime.strptime(acknowledgment['date'], '%m/%d/%Y')
+            acknowledgment['date'] = local_to_utc(datetime.strptime(acknowledgment['date'], '%m/%d/%Y'), data.get('tz_name'))
         else:
             acknowledgment['date'] = None
 

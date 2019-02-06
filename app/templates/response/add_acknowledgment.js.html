@@ -148,6 +148,13 @@
                     return false;
                 }
             }
+            if (letter_date.is(":visible")) {
+                letter_date.parsley().validate();
+                if (!(letter_date.parsley().isValid())) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
 
             if (method.val() === 'emails') {
                 email_days.parsley().validate();

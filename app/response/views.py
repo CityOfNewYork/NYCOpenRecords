@@ -168,27 +168,45 @@ def response_file(request_id):
 @response.route('/acknowledgment/<request_id>', methods=['POST'])
 @has_permission(permission.ACKNOWLEDGE)
 def response_acknowledgment(request_id):
-    required_fields = ['date',
-                       'days',
-                       'method',
-                       'summary']
-    if flask_request.form.get('days', '-1') == '-1':
-        if flask_request.form.get('method', LETTER) != LETTER:
-            required_fields.append('info')
+    required_fields = ['method', 'summary']
+    if flask_request.form.get('method') == LETTER:
+        if flask_request.form.get('letter-days', '-1') == '-1':
+            required_fields.append('letter-date')
+        else:
+            required_fields.append('letter-days')
+
+    if flask_request.form.get('method') == EMAIL:
+        required_fields.append('info')
+        if flask_request.form.get('email-days', '-1') == '-1':
+            required_fields.append('email-date')
+        else:
+            required_fields.append('email-days')
     for field in required_fields:
         if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the acknowledgment {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-    add_acknowledgment(request_id,
-                       flask_request.form['info'].strip() or None,
-                       flask_request.form['days'],
-                       flask_request.form['date'],
-                       flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
-                           'APP_TIMEZONE'],
-                       flask_request.form['summary'],
-                       flask_request.form['method'],
-                       flask_request.form.get('letter_templates'))
+    if flask_request.form.get('method') == LETTER:
+        add_acknowledgment(request_id,
+                           flask_request.form['info'].strip() or None,
+                           flask_request.form['letter-days'],
+                           flask_request.form['letter-date'],
+                           flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
+                               'APP_TIMEZONE'],
+                           flask_request.form['summary'],
+                           flask_request.form['method'],
+                           flask_request.form.get('letter_templates'))
+    else:
+        add_acknowledgment(request_id,
+                           flask_request.form['info'].strip() or None,
+                           flask_request.form['email-days'],
+                           flask_request.form['email-date'],
+                           flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config[
+                               'APP_TIMEZONE'],
+                           flask_request.form['summary'],
+                           flask_request.form['method'],
+                           flask_request.form.get('letter_templates'))
+
     return redirect(url_for('request.view', request_id=request_id))
 
 
