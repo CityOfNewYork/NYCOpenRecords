@@ -118,14 +118,11 @@ def create_request(title,
     # 3b. Send Email Notification Text for Requester
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
-    date_created_local = utc_to_local(datetime.strptime("2019-02-14 09:00:00", "%Y-%m-%d %H:%M:%S"), tz_name)
+    date_created_local = utc_to_local(datetime.utcnow(), tz_name)
     if current_user.is_agency:
         date_submitted_local = agency_date_submitted_local
     else:
-        if is_business_day(date_created_local):
-            date_submitted_local = date_created_local
-        else:
-            date_submitted_local = get_following_date(date_created_local)
+        date_submitted_local = date_created_local
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(
