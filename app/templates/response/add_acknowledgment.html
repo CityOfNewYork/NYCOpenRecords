@@ -22,20 +22,20 @@
                         <label for="acknowledgment-method">Acknowledgment Method</label>
                         <select id="acknowledgment-method" name="method" class="disable-enter-submit form-control">
                             <option value="" selected="selected" disabled="disabled">None selected</option>
-                            <option value="email">Email</option>
-                            <option value="letter">Letter</option>
+                            <option value="emails">Email</option>
+                            <option value="letters">Letter</option>
                         </select>
                     </div>
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
                 {% else %}
-                    <input type="hidden" id="acknowledgment-method" name="method" value="email"/>
+                    <input type="hidden" id="acknowledgment-method" name="method" value="emails"/>
                 {% endif %}
             </div>
             <div class="second" hidden>
                 <div id="acknowledgment-email">
                     <div class="form-group">
                         <label for="acknowledgment-email-days">Days until Completion</label>
-                        <select id="acknowledgment-email-days" name="days" class="disable-enter-submit form-control">
+                        <select id="acknowledgment-email-days" name="email-days" class="disable-enter-submit form-control">
                             <option value="0" selected="selected" disabled="disabled">None selected</option>
                             <option value="20">20 Business Days</option>
                             <option value="30">30 Business Days</option>
@@ -47,7 +47,7 @@
                         </select>
                         <br>
                         <div hidden>
-                            <input type="text" id="acknowledgment-email-date" name="date"
+                            <input type="text" id="acknowledgment-email-date" name="email-date"
                                    class="disable-enter-submit" title="date" value={{ request.due_date.strftime('%m/%d/%Y') }}>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                 <div id="acknowledgment-letter">
                     <div class="form-group">
                         <label for="acknowledgment-letter-days">Days until Completion</label>
-                        <select id="acknowledgment-letter-days" name="days" class="disable-enter-submit form-control">
+                        <select id="acknowledgment-letter-days" name="letter-days" class="disable-enter-submit form-control">
                             <option value="0" selected="selected" disabled="disabled">None selected</option>
                             <option value="20">20 Business Days</option>
                             <option value="30">30 Business Days</option>
@@ -72,7 +72,7 @@
                         </select>
                         <br>
                         <div hidden>
-                            <input type="text" id="acknowledgment-letter-date" name="date"
+                            <input type="text" id="acknowledgment-letter-date" name="letter-date"
                                    class="disable-enter-submit" title="date" value={{ request.due_date.strftime('%m/%d/%Y') }}>
                         </div>
                     </div>

@@ -126,7 +126,7 @@
                 e.preventDefault();
                 return false;
             }
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 letter_div.hide();
                 email_div.show();
             } else {
@@ -148,25 +148,32 @@
                     return false;
                 }
             }
+            if (letter_date.is(":visible")) {
+                letter_date.parsley().validate();
+                if (!(letter_date.parsley().isValid())) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
 
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 email_days.parsley().validate();
                 email_info.parsley().validate(); // for max length
             }
-            if (method.val() === 'letter') {
+            if (method.val() === 'letters') {
                 letter_days.parsley().validate();
                 letter_info.parsley().validate(); // ensure exists
             }
 
-            if (method.val() === 'email' && !(email_days.parsley().isValid() && email_info.parsley().isValid())) {
+            if (method.val() === 'emails' && !(email_days.parsley().isValid() && email_info.parsley().isValid())) {
                 e.preventDefault();
                 return false;
-            } else if (method.val() === 'letter' && !(letter_days.parsley().isValid() && letter_info.parsley()
+            } else if (method.val() === 'letters' && !(letter_days.parsley().isValid() && letter_info.parsley()
                 .isValid())) {
                 e.preventDefault();
                 return false;
             } else {
-                if (method.val() === 'email') {
+                if (method.val() === 'emails') {
                     $.ajax({
                         url: "/response/email",
                         type: "POST",
@@ -226,7 +233,7 @@
         next3.click(function () {
             tinyMCE.triggerSave();
 
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",
