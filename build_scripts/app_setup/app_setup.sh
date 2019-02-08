@@ -44,10 +44,7 @@ source /opt/rh/rh-python35/enable
 pip install virtualenv
 pip install --upgrade pip setuptools
 mkdir /home/vagrant/.virtualenvs
-sudo -E vagrant virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords
 chown -R vagrant:vagrant /home/vagrant
-source /home/vagrant/.virtualenvs/openrecords/bin/activate
-pip install -r /vagrant/requirements/common.txt
 
 if [[ "$1" -eq development ]] || [[ "$2" -eq development ]]; then
     pip install -r /vagrant/requirements/dev.txt
