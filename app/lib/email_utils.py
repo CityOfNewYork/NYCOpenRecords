@@ -22,7 +22,7 @@ from app import mail, celery, sentry
 from app.models import Requests
 
 
-@celery.task
+@celery.task(serializer='pickle')
 def send_async_email(msg):
     try:
         mail.send(msg)

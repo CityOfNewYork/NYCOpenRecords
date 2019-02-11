@@ -14,9 +14,9 @@ from flask import (
     request,
     session,
     url_for,
+    current_app,
 )
 from flask_login import (
-    current_app,
     current_user,
     login_required,
     login_user,

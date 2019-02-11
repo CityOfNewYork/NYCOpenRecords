@@ -42,22 +42,12 @@ yum -y groupinstall "Development Tools"
 # 7. Install Required pip Packages
 source /opt/rh/rh-python35/enable
 pip install virtualenv
-mkdir /home/vagrant/.virtualenvs
-virtualenv --system-site-packages /home/vagrant/.virtualenvs/openrecords
-chown -R vagrant:vagrant /home/vagrant
-source /home/vagrant/.virtualenvs/openrecords/bin/activate
-pip install -r /vagrant/requirements/common.txt
+pip install --upgrade pip setuptools
 
-if [ "$1" -eq development ] || [ "$2" -eq development ]; then
-    pip install -r /vagrant/requirements/dev.txt
+if [[ "$1" -eq development ]] || [[ "$2" -eq development ]]; then
     yum -y install telnet-server
     yum -y install telnet
 fi
-
-if [ "$1" -eq rhel ] || [ "$2" -eq rhel ]; then
-    pip install -r /vagrant/requirements/rhel.txt
-fi
-
 
 # 8. Automatically Use Virtualenv
 echo "source /home/vagrant/.virtualenvs/openrecords/bin/activate" >> /home/vagrant/.bash_profile
