@@ -11,7 +11,8 @@ CELERYBEAT_SCHEDULE = {
     # Every weekday at 7AM EST
     'update_request_statuses': {
         'task': 'app.jobs.update_request_statuses',
-        'schedule': crontab(minute='0', hour='7', day_of_week='1-5')
+        # 'schedule': crontab(minute='0', hour='7', day_of_week='1-5')
+        'schedule': 60.0
     },
     # Every January 1st
     'update_next_request_number': {

@@ -3,6 +3,8 @@ from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
+from app.constants import OPENRECORDS_DL_EMAIL
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 dotenv_path = os.path.join(basedir, '.env')
@@ -110,6 +112,8 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
+
+    ERROR_RECIPIENTS = os.environ.get('ERROR_RECIPIENTS', '').split(',') or OPENRECORDS_DL_EMAIL
 
     # TODO: should be a constant
     EMAIL_TEMPLATE_DIR = 'email_templates/'
