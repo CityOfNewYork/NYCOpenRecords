@@ -132,7 +132,7 @@ def new():
                                             if form.request_agency.data != 'None'
                                             else current_user.default_agency_ein),
                                         submission=form.method_received.data,
-                                        agency_date_submitted=form.request_date.data,
+                                        agency_date_submitted_local=form.request_date.data,
                                         email=form.email.data,
                                         first_name=form.first_name.data,
                                         last_name=form.last_name.data,
