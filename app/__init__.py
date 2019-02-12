@@ -71,7 +71,7 @@ def create_app(config_name='default'):
     # TODO: handler_info, handler_debug, handler_warn
     mail_handler = SMTPHandler(mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
                                fromaddr=app.config['MAIL_SENDER'],
-                               toaddrs=OPENRECORDS_DL_EMAIL, subject='OpenRecords Error')
+                               toaddrs=app.config['ERROR_RECIPIENTS'], subject='OpenRecords Error')
     mail_handler.setLevel(logging.ERROR)
     mail_handler.setFormatter(Formatter('''
     Message Type:       %(levelname)s
