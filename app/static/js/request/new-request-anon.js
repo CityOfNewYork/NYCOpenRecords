@@ -15,6 +15,8 @@ $(document).ready(function () {
     $(window).load(function () {
         // Determine if the agencyRequestInstructions need to be shown on page load.
         getRequestAgencyInstructions();
+        // Check for custom request forms on page load (browser back button behavior).
+        getCustomRequestForms($("#request-agency").val());
     });
 
     $("input[name='tz-name']").val(jstz.determine().name());
