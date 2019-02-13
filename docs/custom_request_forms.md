@@ -163,11 +163,13 @@ Date
   "Date Test": {
     "type": "date",
     "name": "date-test",
-    "required": false
+    "required": false,
+    "date_less_than": true
   }
 }
 ```
-Date can only use `type`, `name`, `required`, `help_text`, and `error_message`.
+Date can only use `type`, `name`, `required`, `help_text`, `error_message`, and `date_less_than`.
+- `date_less_than` makes sure the entered date is less than the current date
 
 
 Time

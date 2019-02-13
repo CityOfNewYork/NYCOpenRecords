@@ -16,19 +16,39 @@ window.Parsley.addValidator("maxFileSize", {
     }
 });
 
-window.Parsley.addValidator("date", {
+window.Parsley.addValidator("validDate", {
     validateString: function (value) {
         if (value.length < 10) {
             return false;
         }
-
-        var enteredDate = new Date(value);
-        var today = new Date();
-
-        return !(isNaN(enteredDate.getMonth()) || isNaN(enteredDate.getDate()) || enteredDate > today.setHours(0, 0, 0, 0));
+        var valid = false;
+        $.ajax({
+            url: "/request/api/v1.0/validate_date",
+            type: "GET",
+            async: false,
+            data: {
+                "date": value
+            },
+            success: function (data) {
+                valid = data;
+            }
+        });
+        return valid;
     },
     messages: {
         en: "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
         "<strong>Error, this date is invalid.</strong> Please enter a valid date."
+    }
+});
+
+window.Parsley.addValidator("dateLessThan", {
+    validateString: function (value) {
+        var enteredDate = new Date(value);
+        var today = new Date();
+        return enteredDate < today.setHours(0, 0, 0, 0);
+    },
+    messages: {
+        en: "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, this date is must be less than the current date.</strong> Please enter a valid date."
     }
 });
