@@ -15,6 +15,7 @@ $(function () {
 
     $.blockUI.defaults.css.border = '';
     $.blockUI.defaults.css.backgroundColor = '';
+    $.blockUI.defaults.overlayCSS.backgroundColor = 'gray';
     requestResponses.block({
         message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
         "<span class=\"sr-only\">Loading responses...</span></div></div>"
