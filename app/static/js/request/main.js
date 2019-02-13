@@ -477,7 +477,8 @@ function renderCustomRequestForm(target) {
                     $(".custom-request-form-datepicker").datepicker({
                         dateFormat: "mm/dd/yy",
                         maxDate: 0
-                    })
+                    });
+                    $(".custom-request-form-datepicker").mask("99/99/9999");
                 }
                 catch (err) {
                     // if one of the forms doesn't have a date field it will throw an error when you try to render it
