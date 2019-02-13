@@ -176,9 +176,9 @@ def response_acknowledgment(request_id):
             required_fields.append('letter-days')
 
     if flask_request.form.get('method') == EMAIL:
-        required_fields.append('info')
         if flask_request.form.get('email-days', '-1') == '-1':
             required_fields.append('email-date')
+            required_fields.append('info')
         else:
             required_fields.append('email-days')
     for field in required_fields:
