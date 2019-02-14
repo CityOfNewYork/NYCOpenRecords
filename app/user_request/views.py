@@ -37,11 +37,11 @@ def create(request_id):
     current_request = current_user_request.request
 
     if (
-                current_user.is_agency and (
-                            current_user.is_super or
-                            current_user.is_agency_admin(current_request.agency.ein) or
-                        current_user_request.has_permission(permission.ADD_USER_TO_REQUEST)
-            )
+            current_user.is_agency and (
+            current_user.is_super or
+            current_user.is_agency_admin(current_request.agency.ein) or
+            current_user_request.has_permission(permission.ADD_USER_TO_REQUEST)
+    )
     ):
         user_data = flask_request.form
         point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
@@ -84,11 +84,11 @@ def edit(request_id):
     current_request = current_user_request.request
 
     if (
-                current_user.is_agency and (
-                            current_user.is_super or
-                            current_user.is_agency_admin(current_request.agency.ein) or
-                        current_user_request.has_permission(permission.EDIT_USER_REQUEST_PERMISSIONS)
-            )
+            current_user.is_agency and (
+            current_user.is_super or
+            current_user.is_agency_admin(current_request.agency.ein) or
+            current_user_request.has_permission(permission.EDIT_USER_REQUEST_PERMISSIONS)
+    )
     ):
         user_data = flask_request.form
         point_of_contact = True if role_name.POINT_OF_CONTACT in user_data else False
@@ -129,12 +129,12 @@ def delete(request_id):
     agency_ein = Requests.query.filter_by(id=request_id).one().agency.ein
 
     if (current_user.is_agency and (
-                current_user.is_super or (
-                        current_user.is_agency_active(agency_ein) and
-                        current_user.is_agency_admin(agency_ein)
-                )
-            )
-        ):
+            current_user.is_super or (
+            current_user.is_agency_active(agency_ein) and
+            current_user.is_agency_admin(agency_ein)
+    )
+    )
+    ):
         user_data = flask_request.form
 
         required_fields = ['user',
@@ -153,8 +153,12 @@ def delete(request_id):
             flash('Uh Oh, it looks like the confirmation text is incorrect! '
                   'This is probably NOT your fault.', category='danger')
             return redirect(url_for('request.view', request_id=request_id))
-
-        remove_user_request(request_id,
-                            user_data['user'])
-        return '', 200
+        try:
+            remove_user_request(request_id,
+                                user_data['user'])
+            return '', 200
+        except UserRequestException:
+            sentry.captureException()
+            flash('Uh Oh, something went wrong. Please try again later', category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
     return '', 403

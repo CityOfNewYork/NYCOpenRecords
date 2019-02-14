@@ -1,33 +1,41 @@
 from datetime import datetime
 from urllib.parse import urljoin
-from flask import (
-    request as flask_request,
-    render_template,
-    url_for
-)
+from typing import List
+
+from flask import (render_template, request as flask_request, url_for)
 from flask_login import current_user
-from app.response.utils import safely_send_and_add_email
-from app.lib.db_utils import delete_object, create_object, update_object
-from app.models import (
-    Users,
-    UserRequests,
-    Requests,
-    Events,
-)
-from app.lib.utils import UserRequestException
-from app.lib.email_utils import get_agency_emails
+
 from app.constants import event_type, permission, user_type_request
+from app.lib.db_utils import create_object, delete_object, update_object
+from app.lib.email_utils import get_agency_emails
+from app.lib.utils import UserRequestException
+from app.models import (Events, Requests, UserRequests, Users)
+from app.response.utils import safely_send_and_add_email
 
 
-def add_user_request(request_id, user_guid, permissions, point_of_contact):
+def add_user_request(request_id: str, user_guid: str, permissions: List, point_of_contact: bool = False):
+    """"""
     """
-    Create a users permissions entry for a request and notify all agency administrators and the user that the permissions
-    have changed.
+    Create a UserRequest object for a request. Only used for Agency Users.
 
-    :param request_id: FOIL request ID
-    :param user_guid: string guid of the user being edited
-    :param permissions: Updated permissions values {'permission': true}
-    :param point_of_contact: boolean value to set user as point of contact or not
+    Triggers notifications to the following groups:
+        - Agency Administrators
+        - User
+
+    Notifications will contain the new permissions the user has for the request.
+
+    Args:
+        request_id (str): FOIL Request Identifier
+        user_guid (str): GUID for the Agency User
+        permissions (list): List of permissions that have been granted. 
+                            Each entry is the index of the permission that has been selected in the 
+                            app.constants.permission.ALL
+        point_of_contact (bool, optional): Determine whether the User should be assigned as the Point of Contact for 
+                                           this request. Defaults to False
+
+    
+    Raises:
+        UserRequestException: If the UserRequest entry already exists or if there is an error storing the request data
     """
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).first()
@@ -45,6 +53,25 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
     for i, val in enumerate(permission.ALL):
         if i in permissions:
             added_permissions.append(val)
+
+    if point_of_contact and has_point_of_contact(request_id):
+        remove_point_of_contact(request_id)
+    user_request = UserRequests(
+        user_guid=user.guid,
+        request_id=request_id,
+        request_user_type=user_type_request.AGENCY,
+        permissions=0,
+        point_of_contact=point_of_contact
+    )
+
+    create_object(user_request)
+
+    if added_permissions:
+        user_request.add_permissions([capability.value for capability in added_permissions])
+
+    user_request.request.es_update()
+
+    create_user_request_event(event_type.USER_ADDED, user_request)
 
     # send email to agency administrators
     safely_send_and_add_email(
@@ -74,25 +101,6 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
         'User Added to Request {}'.format(request_id),
         to=[user.notification_email or user.email])
 
-    if point_of_contact and has_point_of_contact(request_id):
-        remove_point_of_contact(request_id)
-    user_request = UserRequests(
-        user_guid=user.guid,
-        request_id=request_id,
-        request_user_type=user_type_request.AGENCY,
-        permissions=0,
-        point_of_contact=point_of_contact
-    )
-
-    create_object(user_request)
-
-    if added_permissions:
-        user_request.add_permissions([capability.value for capability in added_permissions])
-
-    user_request.request.es_update()
-
-    create_user_request_event(event_type.USER_ADDED, user_request)
-
 
 def edit_user_request(request_id, user_guid, permissions, point_of_contact):
     """
@@ -119,8 +127,19 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
         else:
             removed_permissions.append(val)
 
+    old_permissions = user_request.permissions
+    old_point_of_contact = user_request.point_of_contact
+
+    if added_permissions:
+        user_request.add_permissions([capability.value for capability in added_permissions])
+    if removed_permissions:
+        user_request.remove_permissions([capability.value for capability in removed_permissions])
+
+    determine_point_of_contact_change(request_id, user_request, point_of_contact)
+    create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions, old_point_of_contact)
+
     # send email to agency administrators
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_edited.html',
@@ -135,7 +154,7 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
         to=agency_admin_emails)
 
     # send email to user being edited
-    tmp = safely_send_and_add_email(
+    safely_send_and_add_email(
         request_id,
         render_template(
             'email_templates/email_user_request_edited.html',
@@ -148,17 +167,6 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
         ),
         'User Permissions Edited for Request {}'.format(request_id),
         to=[user_request.user.notification_email or user_request.user.email])
-
-    old_permissions = user_request.permissions
-    old_point_of_contact = user_request.point_of_contact
-
-    if added_permissions:
-        user_request.add_permissions([capability.value for capability in added_permissions])
-    if removed_permissions:
-        user_request.remove_permissions([capability.value for capability in removed_permissions])
-
-    determine_point_of_contact_change(request_id, user_request, point_of_contact)
-    create_user_request_event(event_type.USER_PERM_CHANGED, user_request, old_permissions, old_point_of_contact)
 
 
 def remove_user_request(request_id, user_guid):
@@ -177,37 +185,39 @@ def remove_user_request(request_id, user_guid):
     request = Requests.query.filter_by(id=request_id).one()
     agency_name = request.agency.name
 
-    # send email to agency administrators
-    tmp = safely_send_and_add_email(
-        request_id,
-        render_template(
-            'email_templates/email_user_request_removed.html',
-            request_id=request_id,
-            name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=agency_name,
-            page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
-            admin=True),
-        'User Removed from Request {}'.format(request_id),
-        to=agency_admin_emails)
-
-    # send email to user being removed
-    tmp = safely_send_and_add_email(
-        request_id,
-        render_template(
-            'email_templates/email_user_request_removed.html',
-            request_id=request_id,
-            name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=agency_name,
-            page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))),
-        'User Removed from Request {}'.format(request_id),
-        to=[user_request.user.email])
     old_permissions = user_request.permissions
     old_point_of_contact = user_request.point_of_contact
 
-    create_user_request_event(event_type.USER_REMOVED, old_permissions, old_point_of_contact)
-    delete_object(user_request)
+    if delete_object(user_request):
 
-    request.es_update()
+        create_user_request_event(event_type.USER_REMOVED, old_permissions, old_point_of_contact)
+
+        request.es_update()
+
+        # send email to agency administrators
+        safely_send_and_add_email(
+            request_id,
+            render_template(
+                'email_templates/email_user_request_removed.html',
+                request_id=request_id,
+                name=' '.join([user_request.user.first_name, user_request.user.last_name]),
+                agency_name=agency_name,
+                page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
+                admin=True),
+            'User Removed from Request {}'.format(request_id),
+            to=agency_admin_emails)
+
+        # send email to user being removed
+        safely_send_and_add_email(
+            request_id,
+            render_template(
+                'email_templates/email_user_request_removed.html',
+                request_id=request_id,
+                name=' '.join([user_request.user.first_name, user_request.user.last_name]),
+                agency_name=agency_name,
+                page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))),
+            'User Removed from Request {}'.format(request_id),
+            to=[user_request.user.email])
 
 
 def create_user_request_event(events_type, user_request, old_permissions=None, old_point_of_contact=None,
@@ -226,7 +236,7 @@ def create_user_request_event(events_type, user_request, old_permissions=None, o
 
     """
     event = create_user_request_event_object(events_type, user_request, old_permissions, old_point_of_contact, user)
-    create_object(
+    return create_object(
         event
     )
 
