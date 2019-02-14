@@ -16,6 +16,8 @@ window.Parsley.addValidator("maxFileSize", {
     }
 });
 
+// Custom parsley validator to check if a date is valid. The function makes a ajax call to the backend
+// and uses python's datetime library to validate the date.
 window.Parsley.addValidator("validDate", {
     validateString: function (value) {
         if (value.length < 10) {
@@ -31,7 +33,8 @@ window.Parsley.addValidator("validDate", {
             },
             success: function (data) {
                 valid = data;
-            }
+            },
+            timeout: 5000
         });
         return valid;
     },
@@ -41,7 +44,8 @@ window.Parsley.addValidator("validDate", {
     }
 });
 
-window.Parsley.addValidator("dateLessThan", {
+// Custom parsley validator to check if the entered date is less than the current date.
+window.Parsley.addValidator("dateLessThanToday", {
     validateString: function (value) {
         var enteredDate = new Date(value);
         var today = new Date();

@@ -164,12 +164,12 @@ Date
     "type": "date",
     "name": "date-test",
     "required": false,
-    "date_less_than": true
+    "date_less_than_today": true
   }
 }
 ```
 Date can only use `type`, `name`, `required`, `help_text`, `error_message`, and `date_less_than`.
-- `date_less_than` makes sure the entered date is less than the current date
+- `date_less_than_today` makes sure the entered date is less than the current date
 
 
 Time

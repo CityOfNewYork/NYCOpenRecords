@@ -127,7 +127,7 @@ def get_custom_request_form_fields():
             tooltip = value.get('tooltip', None)
             help_text = value.get('help_text', None)
             error_message = value.get('error_message', None)
-            date_less_than = value.get('date_less_than', None)
+            date_less_than_today = value.get('date_less_than_today', None)
 
             if character_counter:
                 character_counter_id = field_name + "-" + str(instance_id)
@@ -151,7 +151,7 @@ def get_custom_request_form_fields():
                 field_name=field_name, options=field_values, field_required=field_required,
                 min_length=min_length, max_length=max_length, instance_id=instance_id, placeholder=placeholder,
                 character_counter=character_counter, tooltip=tooltip, help_text=help_text,
-                date_less_than=date_less_than) + '\n'
+                date_less_than_today=date_less_than_today) + '\n'
     data['form_template'] = form_template
     data['character_counters'] = character_counters
     data['popovers'] = popovers

@@ -34,6 +34,7 @@ from app.request.api import request_api_blueprint
 from app.request.api.utils import create_request_info_event
 from app.search.constants import DT_DATE_RANGE_FORMAT
 
+
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])
 def edit_privacy():
     """
@@ -330,6 +331,10 @@ def get_request_responses():
 
 @request_api_blueprint.route('/validate_date', methods=['GET'])
 def validate_date():
+    """
+    API endpoint to validate a date string that is passed in using ajax. Check against a MM/DD/YYYY format.
+    :return: True if the date is valid, False otherwise
+    """
     try:
         datetime.strptime(flask_request.args['date'], DT_DATE_RANGE_FORMAT)
         return jsonify(True)

@@ -167,6 +167,8 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    if (agencyEin === "") return;
+
     customRequestFormsEnabled = false;
     repeatableCounter = {};
     categorized = false;
