@@ -22,7 +22,7 @@
             "required": false,
             "placeholder": "MM/DD/YYYY",
             "help_text": "e.g. 03/15/2018",
-            "date_less_than_today": true
+            "future_date_invalid": true
           }
         },
         {

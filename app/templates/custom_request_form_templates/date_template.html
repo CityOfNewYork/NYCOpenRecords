@@ -7,5 +7,19 @@
         <p class="help-text">{{ help_text }}</p>
     {% endif %}
     <br>
-    <input class="input-block-level custom-request-form-datepicker custom-request-form-data" id="{{ field_name }}-{{ instance_id }}" type="text" name="{{ field_name }}-{{ instance_id }}" maxlength="10" {% if field_required %}data-parsley-required{% endif %} placeholder="MM/DD/YYYY" data-parsley-valid-date {% if date_less_than_today %}data-parsley-date-less-than-today{% endif %}><br>
+    <input class="input-block-level custom-request-form-data
+        {% if future_date_invalid %}datepicker-past-only
+        {% elif past_date_invalid %}datepicker-future-only
+        {% else %}custom-request-form-datepicker
+        {% endif %}"
+           id="{{ field_name }}-{{ instance_id }}"
+           type="text"
+           name="{{ field_name }}-{{ instance_id }}"
+           maxlength="10"
+           placeholder="MM/DD/YYYY"
+           data-parsley-valid-date
+           {% if field_required %}data-parsley-required{% endif %}
+           {% if past_date_invalid %}data-parsley-past-date-invalid{% endif %}
+           {% if current_date_invalid %}data-parsley-current-date-invalid{% endif %}
+           {% if future_date_invalid %}data-parsley-future-date-invalid{% endif %}><br>
 </div>

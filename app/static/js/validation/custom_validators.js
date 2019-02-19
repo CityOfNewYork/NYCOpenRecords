@@ -44,15 +44,41 @@ window.Parsley.addValidator("validDate", {
     }
 });
 
-// Custom parsley validator to check if the entered date is less than the current date.
-window.Parsley.addValidator("dateLessThanToday", {
+// Custom parsley validator to check the entered date and display an error if it is in the past.
+window.Parsley.addValidator("pastDateInvalid", {
     validateString: function (value) {
-        var enteredDate = new Date(value);
-        var today = new Date();
-        return enteredDate < today.setHours(0, 0, 0, 0);
+        var enteredDate = new Date(value).setHours(0, 0, 0, 0);
+        var currentDate = new Date().setHours(0, 0, 0, 0);
+        return enteredDate >= currentDate;
     },
     messages: {
         en: "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-        "<strong>Error, this date is must be less than the current date.</strong> Please enter a valid date."
+        "<strong>Error, this date cannot be a past date.</strong> Please enter a valid date."
+    }
+});
+
+// Custom parsley validator to check the entered date and display an error if it is equal to the current date.
+window.Parsley.addValidator("currentDateInvalid", {
+    validateString: function (value) {
+        var enteredDate = new Date(value).setHours(0, 0, 0, 0);
+        var currentDate = new Date().setHours(0, 0, 0, 0);
+        return enteredDate !== currentDate;
+    },
+    messages: {
+        en: "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, this date cannot be the current date.</strong> Please enter a valid date."
+    }
+});
+
+// Custom parsley validator to check the entered date and display an error if it is in the future.
+window.Parsley.addValidator("futureDateInvalid", {
+    validateString: function (value) {
+        var enteredDate = new Date(value).setHours(0, 0, 0, 0);
+        var currentDate = new Date().setHours(0, 0, 0, 0);
+        return enteredDate <= currentDate;
+    },
+    messages: {
+        en: "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+        "<strong>Error, this date cannot be in the future.</strong> Please enter a valid date."
     }
 });

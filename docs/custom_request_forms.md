@@ -164,12 +164,16 @@ Date
     "type": "date",
     "name": "date-test",
     "required": false,
-    "date_less_than_today": true
+    "past_date_invalid": true,
+    "current_date_invalid": true
   }
 }
 ```
-Date can only use `type`, `name`, `required`, `help_text`, `error_message`, and `date_less_than`.
-- `date_less_than_today` makes sure the entered date is less than the current date
+Date can only use `type`, `name`, `required`, `help_text`, `error_message`, `past_date_invalid`,
+`current_date_invalid`, `future_date_invalid`.
+- `past_date_invalid`, if set to true, checks that the entered date is not before the current date.
+- `current_date_invalid`, if set to true, checks that the entered date is not equal to the current date.
+- `future_date_invalid`, if set to true, checks that the entered date is not after the current date.
 
 
 Time
