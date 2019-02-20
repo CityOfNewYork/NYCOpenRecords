@@ -32,7 +32,6 @@ from app.models import CommunicationMethods, Requests, Responses, Events
 from app.permissions.utils import get_permissions_as_list
 from app.request.api import request_api_blueprint
 from app.request.api.utils import create_request_info_event
-from app.search.constants import DT_DATE_RANGE_FORMAT
 
 
 @request_api_blueprint.route('/edit_privacy', methods=['GET', 'POST'])

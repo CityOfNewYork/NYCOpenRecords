@@ -397,7 +397,12 @@ function updateCustomRequestFormDropdowns() {
                 if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
                     var originalText = originalFormNames[this.value]; // get the actual form name
                     if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
-                        $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                        if (showMultipleRequestTypes) {
+                            $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                        }
+                        else {
+                            $(this).text(originalText);
+                        }
                     }
                     else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
                         if (showMultipleRequestTypes) {
@@ -418,7 +423,12 @@ function updateCustomRequestFormDropdowns() {
                 if (this.text !== "" && this.text !== categoryDividerText) {
                     // if we see a dropdown with no value selected then we will use the original instance counter number to prepare for when an option is actually selected
                     var originalText = originalFormNames[this.value];
-                    $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    if (showMultipleRequestTypes) {
+                        $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    }
+                    else {
+                        $(this).text(originalText);
+                    }
                 }
             });
         }
