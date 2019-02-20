@@ -327,16 +327,3 @@ def get_request_responses():
         response_jsons.append(json)
 
     return jsonify(responses=response_jsons)
-
-
-@request_api_blueprint.route('/validate_date', methods=['GET'])
-def validate_date():
-    """
-    API endpoint to validate a date string that is passed in using ajax. Check against a MM/DD/YYYY format.
-    :return: True if the date is valid, False otherwise
-    """
-    try:
-        datetime.strptime(flask_request.args['date'], DT_DATE_RANGE_FORMAT)
-        return jsonify(True)
-    except ValueError:
-        return jsonify(False)

@@ -16,27 +16,14 @@ window.Parsley.addValidator("maxFileSize", {
     }
 });
 
-// Custom parsley validator to check if a date is valid. The function makes a ajax call to the backend
-// and uses python's datetime library to validate the date.
+// Custom parsley validator to check if a date is valid using the Moment.js library
 window.Parsley.addValidator("validDate", {
     validateString: function (value) {
         if (value.length < 10) {
             return false;
         }
-        var valid = false;
-        $.ajax({
-            url: "/request/api/v1.0/validate_date",
-            type: "GET",
-            async: false,
-            data: {
-                "date": value
-            },
-            success: function (data) {
-                valid = data;
-            },
-            timeout: 5000
-        });
-        return valid;
+        var enteredDate = moment(value, 'MM/DD/YYYY', true);
+        return enteredDate._isValid;
     },
     messages: {
         en: "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
