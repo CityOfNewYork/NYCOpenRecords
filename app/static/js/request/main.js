@@ -488,22 +488,19 @@ function renderCustomRequestForm(target) {
                     // render datepicker plugins
                     $(".custom-request-form-datepicker").datepicker({
                         dateFormat: "mm/dd/yy"
-                    });
-                    $(".custom-request-form-datepicker").mask("99/99/9999");
+                    }).mask("99/99/9999");
 
                     // render datepicker plugins where past date is allowed
                     $(".datepicker-past-only").datepicker({
                         dateFormat: "mm/dd/yy",
                         maxDate: 0
-                    });
-                    $(".datepicker-past-only").mask("99/99/9999");
+                    }).mask("99/99/9999");
 
                     // render datepicker plugins where future date is allowed
                     $(".datepicker-future-only").datepicker({
                         dateFormat: "mm/dd/yy",
                         minDate: 0
-                    });
-                    $(".datepicker-future-only").mask("99/99/9999");
+                    }).mask("99/99/9999");
                 }
                 catch (err) {
                     // if one of the forms doesn't have a date field it will throw an error when you try to render it
