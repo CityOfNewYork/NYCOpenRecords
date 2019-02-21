@@ -167,6 +167,8 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
+    if (agencyEin === "") return;
+
     customRequestFormsEnabled = false;
     repeatableCounter = {};
     categorized = false;
@@ -395,7 +397,12 @@ function updateCustomRequestFormDropdowns() {
                 if (this.text !== "" && this.text !== categoryDividerText) { // only update options that actually have text
                     var originalText = originalFormNames[this.value]; // get the actual form name
                     if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
-                        $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                        if (showMultipleRequestTypes) {
+                            $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                        }
+                        else {
+                            $(this).text(originalText);
+                        }
                     }
                     else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
                         if (showMultipleRequestTypes) {
@@ -416,7 +423,12 @@ function updateCustomRequestFormDropdowns() {
                 if (this.text !== "" && this.text !== categoryDividerText) {
                     // if we see a dropdown with no value selected then we will use the original instance counter number to prepare for when an option is actually selected
                     var originalText = originalFormNames[this.value];
-                    $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    if (showMultipleRequestTypes) {
+                        $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
+                    }
+                    else {
+                        $(this).text(originalText);
+                    }
                 }
             });
         }
@@ -475,28 +487,20 @@ function renderCustomRequestForm(target) {
                 try {
                     // render datepicker plugins
                     $(".custom-request-form-datepicker").datepicker({
+                        dateFormat: "mm/dd/yy"
+                    }).mask("99/99/9999");
+
+                    // render datepicker plugins where past date is allowed
+                    $(".datepicker-past-only").datepicker({
                         dateFormat: "mm/dd/yy",
                         maxDate: 0
-                    }).keydown(function (e) {
-                        // prevent keyboard input except for allowed keys
-                        if (e.keyCode !== 8 && // backspace
-                            e.keyCode !== 9 && // tab
-                            e.keyCode !== 37 && // left-arrow
-                            e.keyCode !== 39 && // right-arrow
-                            e.keyCode !== 48 && // 0
-                            e.keyCode !== 49 && // 1
-                            e.keyCode !== 50 && // 2
-                            e.keyCode !== 51 && // 3
-                            e.keyCode !== 52 && // 4
-                            e.keyCode !== 53 && // 5
-                            e.keyCode !== 54 && // 6
-                            e.keyCode !== 55 && // 7
-                            e.keyCode !== 56 && // 8
-                            e.keyCode !== 57 && // 9
-                            e.keyCode !== 191) { // forward slash
-                            e.preventDefault();
-                        }
-                    });
+                    }).mask("99/99/9999");
+
+                    // render datepicker plugins where future date is allowed
+                    $(".datepicker-future-only").datepicker({
+                        dateFormat: "mm/dd/yy",
+                        minDate: 0
+                    }).mask("99/99/9999");
                 }
                 catch (err) {
                     // if one of the forms doesn't have a date field it will throw an error when you try to render it
@@ -530,6 +534,16 @@ function renderCustomRequestForm(target) {
                             e.keyCode !== 55 && // 7
                             e.keyCode !== 56 && // 8
                             e.keyCode !== 57 && // 9
+                            e.keyCode !== 96 && // num pad 0
+                            e.keyCode !== 97 && // num pad 1
+                            e.keyCode !== 98 && // num pad 2
+                            e.keyCode !== 99 && // num pad 3
+                            e.keyCode !== 100 && // num pad 4
+                            e.keyCode !== 101 && // num pad 5
+                            e.keyCode !== 102 && // num pad 6
+                            e.keyCode !== 103 && // num pad 7
+                            e.keyCode !== 104 && // num pad 8
+                            e.keyCode !== 105 && // num pad 9
                             e.keyCode !== 16 && // Shift
                             e.keyCode !== 65 && // a
                             e.keyCode !== 77 && // m

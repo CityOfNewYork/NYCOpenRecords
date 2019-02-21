@@ -163,11 +163,17 @@ Date
   "Date Test": {
     "type": "date",
     "name": "date-test",
-    "required": false
+    "required": false,
+    "past_date_invalid": true,
+    "current_date_invalid": true
   }
 }
 ```
-Date can only use `type`, `name`, `required`, `help_text`, and `error_message`.
+Date can only use `type`, `name`, `required`, `help_text`, `error_message`, `past_date_invalid`,
+`current_date_invalid`, `future_date_invalid`.
+- `past_date_invalid`, if set to true, checks that the entered date is not before the current date.
+- `current_date_invalid`, if set to true, checks that the entered date is not equal to the current date.
+- `future_date_invalid`, if set to true, checks that the entered date is not after the current date.
 
 
 Time
