@@ -22,7 +22,7 @@ window.Parsley.addValidator("validDate", {
         if (value.length < 10) {
             return false;
         }
-        var enteredDate = moment(value, 'MM/DD/YYYY', true);
+        var enteredDate = moment(value, "MM/DD/YYYY", true);
         return enteredDate._isValid;
     },
     messages: {
