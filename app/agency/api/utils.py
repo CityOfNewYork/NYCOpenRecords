@@ -49,14 +49,14 @@ def get_reasons(agency_ein: str, reason_type: str = None) -> Dict:
             Reasons.query.with_entities(Reasons.id, Reasons.title, Reasons.type)
                 .filter(
                 Reasons.type == reason_type,
-                or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None),
+                or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None),  # lgtm [py/test-equals-none]
             )
                 .all()
         )
     else:
         reasons = (
             Reasons.query.with_entities(Reasons.id, Reasons.title, Reasons.type)
-                .filter(or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None))
+                .filter(or_(Reasons.agency_ein == agency_ein, Reasons.agency_ein == None))  # lgtm [py/test-equals-none]
                 .all()
         )
     grouped_reasons = list(_group_items(reasons, 2))

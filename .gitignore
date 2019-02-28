@@ -1,5 +1,4 @@
 # Project Specific
-saml/
 redis-stable/
 python-sudo.sh
 quarantine/
@@ -13,8 +12,11 @@ Vagrantfile.aws
 .vagrant*
 *.pem
 *.crt
+*.cert
 *.key
 *.htpasswd
+instance/saml/*.json
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -55,7 +57,6 @@ coverage.xml
 .pytest_cache/
 
 # Flask stuff:
-instance/
 .webassets-cache
 
 # dotenv

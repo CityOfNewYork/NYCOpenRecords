@@ -34,7 +34,6 @@ from app.constants import (
     response_privacy,
     request_status,
     determination_type,
-    user_type_auth,
     UPDATED_FILE_DIRNAME,
     DELETED_FILE_DIRNAME,
     DEFAULT_RESPONSE_TOKEN_EXPIRY_DAYS,
@@ -181,7 +180,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
     :param date: date of request completion
     :param tz_name: client's timezone name
     :param content: body text associated with the acknowledgment
-    :param method: the communication method of the acknowledgement ('letter' or 'email')
+    :param method: the communication method of the acknowledgement (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -213,7 +212,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
             previous_value={'status': previous_status},
             new_value={'status': request.status}
         )
-        if method == 'letter':
+        if method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content,
                                     event_type.ACKNOWLEDGMENT_LETTER_CREATED)
@@ -251,7 +250,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
     :param request_id: FOIL request ID
     :param reason_ids: reason for denial
     :param content: body text associated with the denial
-    :param method: the communication method of the denial ('letter' or 'email')
+    :param method: the communication method of the denial (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -309,12 +308,12 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
                 determination_type.DENIAL,
                 format_determination_reasons(reason_ids)
             )
-        if method == 'letter':
+        if method == response_type.LETTER:
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_DENIED, response)
         request.es_update()
-        if method == 'letter':
+        if method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.DENIAL_LETTER_CREATED)
             _create_communication_method(response.id, letter_id, response_type.LETTER)
@@ -354,7 +353,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
     :param request_id: FOIL request ID
     :param reason_ids: reason(s) for closing
     :param content: body text associated with the closing
-    :param method: the communication method of the closing ('letter' or 'email')
+    :param method: the communication method of the closing (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -413,12 +412,12 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                 determination_type.CLOSING,
                 format_determination_reasons(reason_ids)
             )
-        if method == 'letter':
+        if method == response_type.LETTER:
             response.reason = 'A letter will be mailed to the requester.'
         create_object(response)
         create_response_event(event_type.REQ_CLOSED, response)
         request.es_update()
-        if method == 'letter':
+        if method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
             letter_id = _add_letter(request_id, letter_template.title, content, event_type.CLOSING_LETTER_CREATED)
             _create_communication_method(response.id, letter_id, response_type.LETTER)
@@ -495,7 +494,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
             new_value={'status': request.status}
         )
 
-        if method == 'emails':
+        if method == response_type.EMAIL:
             email_id = _send_response_email(request_id,
                                             privacy,
                                             content,
@@ -504,7 +503,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
                                          email_id,
                                          response_type.EMAIL)
 
-        elif method == 'letters':
+        elif method == response_type.LETTER:
             letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
 
             letter_id = _add_letter(request_id, letter_template.title, content,
@@ -546,7 +545,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
     :param custom_due_date: if custom_due_date is inputted from the frontend, the new extended date of the request
     :param tz_name: client's timezone name
     :param content: body text associated with the extension
-    :param method: the communication method of the extension ('letter' or 'email')
+    :param method: the communication method of the extension (response_type.LETTER or response_type.EMAIL)
     :param letter_template_id: id of the letter template
 
     """
@@ -575,11 +574,11 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
         reason,
         new_due_date
     )
-    if method == 'letter':
+    if method == response_type.LETTER:
         response.reason = 'A letter will be mailed to the requester.'
     create_object(response)
     create_response_event(event_type.REQ_EXTENDED, response, previous_value=previous_due_date)
-    if method == 'letter':
+    if method == response_type.LETTER:
         letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
         letter_id = _add_letter(request_id, letter_template.title, content, event_type.EXTENSION_LETTER_CREATED)
         _create_communication_method(response.id, letter_id, response_type.LETTER)
@@ -935,24 +934,7 @@ def assign_point_of_contact(point_of_contact):
     :return: A User object to be designated as the point of contact for a request
     """
     if point_of_contact:
-        return Users.query.filter(Users.guid == point_of_contact,
-                                  Users.auth_user_type.in_(
-                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
-    else:
-        return current_user
-
-
-def assign_point_of_contact(point_of_contact):
-    """
-    Assign a user to be the point of contact in emails/letters
-
-    :param point_of_contact: A string containing the user_guid if point of contact has been set for a request
-    :return: A User object to be designated as the point of contact for a request
-    """
-    if point_of_contact:
-        return Users.query.filter(Users.guid == point_of_contact,
-                                  Users.auth_user_type.in_(
-                                      user_type_auth.AGENCY_USER_TYPES)).one_or_none()
+        return Users.query.filter(Users.guid == point_of_contact).one_or_none()
     else:
         return current_user
 
@@ -1012,12 +994,18 @@ def _acknowledgment_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Acknowledgment is only provided when getting default letter template.
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
         contents = LetterTemplates.query.filter_by(id=acknowledgment['letter_template']).first()
+
+        if acknowledgment.get('days') == '-1':
+            acknowledgment['days'] = None
+            acknowledgment['date'] = local_to_utc(datetime.strptime(acknowledgment['date'], '%m/%d/%Y'), data.get('tz_name'))
+        else:
+            acknowledgment['date'] = None
 
         now = datetime.utcnow()
         date = now if now.date() > request.date_submitted.date() else request.date_submitted
@@ -1028,6 +1016,7 @@ def _acknowledgment_letter_handler(request_id, data):
 
         template = render_template_string(contents.content,
                                           days=acknowledgment['days'],
+                                          response_due_date=acknowledgment['date'],
                                           date=request.date_submitted,
                                           user=point_of_contact_user)
 
@@ -1071,7 +1060,7 @@ def _extension_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Extension is only provided when getting default letter template.
     if extension is not None:
@@ -1136,7 +1125,7 @@ def _closing_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Closing is only provided when getting default letter template.
     if closing is not None:
@@ -1195,7 +1184,7 @@ def _denial_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Denial is only provided when getting default letter template.
     if denial is not None:
@@ -1305,7 +1294,7 @@ def _reopening_letter_handler(request_id, data):
 
     request = Requests.query.filter_by(id=request_id).first()
     agency = request.agency
-    agency_letter_data = agency.agency_features['letters']
+    agency_letter_data = agency.agency_features[response_type.LETTER]
 
     # Reopening is only provided when getting default letter template.
     if data is not None:
@@ -1386,7 +1375,7 @@ def _response_letter_handler(request_id, data):
     if not eval_request_bool(data.get('confirmation', None)):
         request = Requests.query.filter_by(id=request_id).first()
         agency = request.agency
-        agency_letter_data = agency.agency_features['letters']
+        agency_letter_data = agency.agency_features[response_type.LETTER]
 
         contents = LetterTemplates.query.filter_by(id=data['letter_template_id']).first()
 
@@ -1785,8 +1774,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 page=page,
                                                 agency_name=agency_name,
                                                 agency_default_email=request.agency.default_email,
-                                                public_requester=request.requester.auth_user_type in
-                                                                 user_type_auth.PUBLIC_USER_TYPES,
+                                                public_requester=request.requester.has_nyc_account,
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
@@ -2315,7 +2303,6 @@ def create_response_event(events_type, response, previous_value=None, user=curre
     """
     event = Events(request_id=response.request_id,
                    user_guid=response.request.requester.guid if user.is_anonymous else user.guid,
-                   auth_user_type=user_type_auth.ANONYMOUS_USER if user.is_anonymous else user.auth_user_type,
                    type_=events_type,
                    timestamp=datetime.utcnow(),
                    response_id=response.id,
@@ -2331,7 +2318,7 @@ def _create_communication_method(response_id, method_id, method_type):
 
     :param response_id: response ID
     :param method_id: response ID of the method
-    :param method_type: 'letters' or 'emails'
+    :param method_type: response_type.LETTER or response_type.EMAIL
     """
     communication_method = CommunicationMethods(response_id,
                                                 method_id,
@@ -2423,12 +2410,13 @@ class ResponseEditor(metaclass=ABCMeta):
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
 
-    def _bool_check(self, value):
+    @staticmethod
+    def _bool_check(value):
         if isinstance(value, str) and value.lower() in ("true", "false"):
             return eval_request_bool(value)
         return value
 
-    def validate_deleted(self):
+    def validate_deleted(self) -> object:
         """
         Removes the 'deleted' key-value pair from the data containers
         if the confirmation string (see response PATCH) is not valid.
@@ -2450,7 +2438,6 @@ class ResponseEditor(metaclass=ABCMeta):
             request_id=self.response.request_id,
             response_id=self.response.id,
             user_guid=self.user.guid,
-            auth_user_type=self.user.auth_user_type,
             timestamp=timestamp,
             previous_value=self.data_old,
             new_value=self.data_new)

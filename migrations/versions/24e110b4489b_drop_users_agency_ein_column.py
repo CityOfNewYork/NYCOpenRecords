@@ -1,10 +1,8 @@
 """Drop the Users.agency_ein column.
-
-Revision ID: 24e110b4489b
+ Revision ID: 24e110b4489b
 Revises: 9908a9bf1dbd
 Create Date: 2017-07-06 22:16:44.862690
-
-"""
+ """
 
 # revision identifiers, used by Alembic.
 revision = '24e110b4489b'

@@ -1,13 +1,14 @@
-import os
 from datetime import timedelta
 
+import os
 from dotenv import load_dotenv
+
+from app.constants import OPENRECORDS_DL_EMAIL
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
-
 
 class Config:
     NYC_GOV_BASE = 'www1.nyc.gov'
@@ -55,26 +56,33 @@ class Config:
 
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
-    SAML_PATH = (os.environ.get('SAML_PATH') or
-                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+    USE_SAML = os.environ.get('USE_SAML') == "True"
 
-    USE_OAUTH = os.environ.get('USE_OAUTH') == "True"
-    WEB_SERVICES_URL = os.environ.get('WEB_SERVICES_URL')
-    LOGOUT_URL = os.environ.get("LOGOUT_URL")
-    VERIFY_WEB_SERVICES = os.environ.get('VERIFY_WEB_SERVICES') == "True"
-    NYC_ID_USERNAME = os.environ.get('NYC_ID_USERNAME')
-    NYC_ID_PASSWORD = os.environ.get('NYC_ID_PASSWORD')
+    AUTH_TYPE = 'None'
+
+    if USE_SAML:
+        SAML_PATH = (os.environ.get('SAML_PATH') or
+                     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'saml'))
+        WEB_SERVICES_URL = os.environ.get('SAML_WEB_SERVICES_URL')
+        VERIFY_WEB_SERVICES = os.environ.get('SAML_VERIFY_WEB_SERVICES') == "True"
+        NYC_ID_USERNAME = os.environ.get('SAML_NYC_ID_USERNAME')
+        NYC_ID_PASSWORD = os.environ.get('SAML_NYC_ID_PASSWORD')
+        AUTH_TYPE = 'saml'
 
     USE_LDAP = os.environ.get('USE_LDAP') == "True"
-    LDAP_SERVER = os.environ.get('LDAP_SERVER') or None
-    LDAP_PORT = os.environ.get('LDAP_PORT') or None
-    LDAP_USE_TLS = os.environ.get('LDAP_USE_TLS') == "True"
-    LDAP_KEY_PATH = os.environ.get('LDAP_KEY_PATH') or None
-    LDAP_SA_BIND_DN = os.environ.get('LDAP_SA_BIND_DN') or None
-    LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
-    LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
+    if USE_LDAP:
+        LDAP_SERVER = os.environ.get('LDAP_SERVER') or None
+        LDAP_PORT = os.environ.get('LDAP_PORT') or None
+        LDAP_USE_TLS = os.environ.get('LDAP_USE_TLS') == "True"
+        LDAP_KEY_PATH = os.environ.get('LDAP_KEY_PATH') or None
+        LDAP_SA_BIND_DN = os.environ.get('LDAP_SA_BIND_DN') or None
+        LDAP_SA_PASSWORD = os.environ.get('LDAP_SA_PASSWORD') or None
+        LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN') or None
+        AUTH_TYPE = 'ldap'
 
     USE_LOCAL_AUTH = os.environ.get('USE_LOCAL_AUTH') == "True"
+    if USE_LOCAL_AUTH:
+        AUTH_TYPE = 'local_auth'
 
     # Redis Settings
     REDIS_HOST = os.environ.get('REDIS_HOST') or 'localhost'
@@ -104,6 +112,8 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
+
+    ERROR_RECIPIENTS = os.environ.get('ERROR_RECIPIENTS', '').split(',') or OPENRECORDS_DL_EMAIL
 
     # TODO: should be a constant
     EMAIL_TEMPLATE_DIR = 'email_templates/'
@@ -142,6 +152,7 @@ class Config:
                                               ELASTICSEARCH_PASSWORD)
                                if ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD
                                else None)
+    ELASTICSEARCH_CHUNK_SIZE = int(os.environ.get('ELASTICSEARCH_CHUNK_SIZE', 100))
 
     # https://www.elastic.co/blog/index-vs-type
 

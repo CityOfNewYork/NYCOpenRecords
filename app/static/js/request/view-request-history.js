@@ -9,7 +9,15 @@ $(function() {
     var navButtons = $("#history-nav-buttons");
     var prevButton = navButtons.find(".prev");
     var nextButton = navButtons.find(".next");
+    var requestHistory = $("#request-history");
 
+    $.blockUI.defaults.css.border = "";
+    $.blockUI.defaults.css.backgroundColor = "";
+    $.blockUI.defaults.overlayCSS.backgroundColor = "gray";
+    requestHistory.block({
+        message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+        "<span class=\"sr-only\">Loading history...</span></div></div>"
+    });
     $.ajax({
         url: "/request/api/v1.0/events",
         data: {
@@ -23,6 +31,7 @@ $(function() {
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
+            requestHistory.unblock();
             showHistory();
         },
         error: function(error) {

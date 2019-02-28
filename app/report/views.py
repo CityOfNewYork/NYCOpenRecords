@@ -16,8 +16,7 @@ from app.models import (
     UserRequests
 )
 from app.constants import (
-    request_status,
-    user_type_auth
+    request_status
 )
 from app.report.forms import ReportFilterForm
 
@@ -82,8 +81,7 @@ def get():
                         current_user.is_agency_admin(agency_ein) or
                         current_user.is_super):
         is_visible = True
-        ureqs = UserRequests.query.filter(UserRequests.user_guid == user_guid,
-                                          UserRequests.auth_user_type.in_(user_type_auth.AGENCY_USER_TYPES)
+        ureqs = UserRequests.query.filter(UserRequests.user_guid == user_guid
                                           ).all()
 
         requests_closed = len([u for u in ureqs if u.request.status == request_status.CLOSED])

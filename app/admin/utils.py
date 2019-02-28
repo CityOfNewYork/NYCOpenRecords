@@ -1,5 +1,4 @@
 from app.models import AgencyUsers, Users
-from app.constants import user_type_auth
 
 
 def get_agency_active_users(agency_ein):
@@ -15,7 +14,6 @@ def get_agency_active_users(agency_ein):
     active_users = []
     for user in active_users_guids:
         active_users.append(
-            Users.query.filter(Users.guid == user[0], Users.auth_user_type.in_(
-                user_type_auth.AGENCY_USER_TYPES)).one())
+            Users.query.filter(Users.guid == user[0]).one())
 
     return active_users

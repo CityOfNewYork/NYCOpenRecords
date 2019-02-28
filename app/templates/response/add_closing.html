@@ -20,13 +20,13 @@
                         <label for="closing-method">Closing Method</label>
                         <select id="closing-method" name="method" class="disable-enter-submit form-control">
                             <option value="" selected="selected" disabled="disabled">None selected</option>
-                            <option value="email">Email</option>
-                            <option value="letter">Letter</option>
+                            <option value="emails">Email</option>
+                            <option value="letters">Letter</option>
                         </select>
                     </div>
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
                 {% else %}
-                    <input type="hidden" id="closing-method" name="method" value="email"/>
+                    <input type="hidden" id="closing-method" name="method" value="emails"/>
                 {% endif %}
             </div>
 

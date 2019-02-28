@@ -11,7 +11,15 @@ $(function () {
     var navButtons = $('#responses-nav-buttons');
     var prevButton = navButtons.find(".prev");
     var nextButton = navButtons.find(".next");
+    var requestResponses = $("#request-responses");
 
+    $.blockUI.defaults.css.border = "";
+    $.blockUI.defaults.css.backgroundColor = "";
+    $.blockUI.defaults.overlayCSS.backgroundColor = "gray";
+    requestResponses.block({
+        message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+        "<span class=\"sr-only\">Loading responses...</span></div></div>"
+    });
     // get first set of responses on page load
     $.ajax({
         url: '/request/api/v1.0/responses',
@@ -26,6 +34,7 @@ $(function () {
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
+            requestResponses.unblock();
             showResponses();
         },
         error: function (error) {
@@ -61,7 +70,8 @@ $(function () {
             flask_moment_render_all();
         }
         else {
-            response_list.text("");
+            response_list.html("<div class=\"center-text\">" +
+                "<br/><br/>There are no responses available for this request.</div>");
         }
     }
 

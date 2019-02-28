@@ -3,6 +3,7 @@ from datetime import datetime
 
 from flask import (current_app, render_template)
 import celery
+from psycopg2 import OperationalError
 
 from app import calendar, sentry, db
 from app.constants import OPENRECORDS_DL_EMAIL, request_status
@@ -19,12 +20,11 @@ STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
 
 
-@celery.task()
+@celery.task(autoretry_for=(OperationalError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def update_request_statuses():
     try:
         _update_request_statuses()
     except Exception:
-        sentry.captureException()
         send_email(
             subject="Update Request Statuses Failure",
             to=[OPENRECORDS_DL_EMAIL],
@@ -43,7 +43,6 @@ def _update_request_statuses():
     ).replace(hour=23, minute=59, second=59)  # the entire day
 
     agencies = Agencies.query.with_entities(Agencies.ein).filter_by(is_active=True).all()
-    print(agencies)
     for agency_ein, in agencies:
         requests_overdue = Requests.query.filter(
             Requests.due_date < now,
@@ -83,7 +82,6 @@ def _update_request_statuses():
                     Events(
                         request.id,
                         user_guid=None,
-                        auth_user_type=None,
                         type_=REQ_STATUS_CHANGED,
                         previous_value={"status": request.status},
                         new_value={"status": request_status.OVERDUE},
@@ -108,7 +106,6 @@ def _update_request_statuses():
                     Events(
                         request.id,
                         user_guid=None,
-                        auth_user_type=None,
                         type_=REQ_STATUS_CHANGED,
                         previous_value={"status": request.status},
                         new_value={"status": request_status.DUE_SOON},
@@ -153,7 +150,6 @@ def _update_request_statuses():
             Events(
                 request.id,
                 user_guid=None,
-                auth_user_type=None,
                 type_=EMAIL_NOTIFICATION_SENT,
                 previous_value=None,
                 new_value=email.val_for_events,

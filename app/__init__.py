@@ -16,7 +16,6 @@ from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
-from flask_recaptcha import ReCaptcha
 from flask_sqlalchemy import SQLAlchemy
 from flask_tracy import Tracy
 from flask_wtf import CsrfProtect
@@ -29,7 +28,6 @@ from app.constants import OPENRECORDS_DL_EMAIL
 from app.lib import NYCHolidays, jinja_filters
 from config import Config, config
 
-recaptcha = ReCaptcha()
 bootstrap = Bootstrap()
 es = FlaskElasticsearch()
 db = SQLAlchemy()
@@ -57,7 +55,7 @@ calendar = Calendar(
 )
 
 
-def create_app(config_name='default', jobs_enabled=True):
+def create_app(config_name='default'):
     """
     Set up the Flask Application context.
 
@@ -73,7 +71,7 @@ def create_app(config_name='default', jobs_enabled=True):
     # TODO: handler_info, handler_debug, handler_warn
     mail_handler = SMTPHandler(mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
                                fromaddr=app.config['MAIL_SENDER'],
-                               toaddrs=OPENRECORDS_DL_EMAIL, subject='OpenRecords Error')
+                               toaddrs=app.config['ERROR_RECIPIENTS'], subject='OpenRecords Error')
     mail_handler.setLevel(logging.ERROR)
     mail_handler.setFormatter(Formatter('''
     Message Type:       %(levelname)s
@@ -104,7 +102,6 @@ def create_app(config_name='default', jobs_enabled=True):
     app.jinja_env.filters['format_response_privacy'] = jinja_filters.format_response_privacy
     app.jinja_env.filters['format_ultimate_determination_reason'] = jinja_filters.format_ultimate_determination_reason
 
-    recaptcha.init_app(app)
     bootstrap.init_app(app)
     es.init_app(app,
                 use_ssl=app.config['ELASTICSEARCH_USE_SSL'],
@@ -122,6 +119,9 @@ def create_app(config_name='default', jobs_enabled=True):
         from app.models import Anonymous
         login_manager.login_view = 'auth.login'
         login_manager.anonymous_user = Anonymous
+        if app.config['USE_SAML']:
+            login_manager.login_message = None
+            login_manager.login_message_category = None
         KVSessionExtension(session_redis, app)
 
     # Error Handlers

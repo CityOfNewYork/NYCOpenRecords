@@ -22,8 +22,7 @@ from app import upload_redis, sentry
 from app.constants import (
     event_type,
     role_name as role,
-    ACKNOWLEDGMENT_DAYS_DUE,
-    REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
+    ACKNOWLEDGMENT_PERIOD_LENGTH,
     user_type_request,
     response_type
 )
@@ -32,7 +31,6 @@ from app.constants.response_privacy import (
     PRIVATE
 )
 from app.constants.submission_methods import DIRECT_INPUT
-from app.constants.user_type_auth import ANONYMOUS_USER
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import (
     get_agency_emails,
@@ -45,6 +43,7 @@ from app.lib.date_utils import (
     get_due_date,
     local_to_utc,
     utc_to_local,
+    is_business_day,
 )
 from app.models import (
     Requests,
@@ -79,7 +78,7 @@ def create_request(title,
                    first_name=None,
                    last_name=None,
                    submission=DIRECT_INPUT,
-                   agency_date_submitted=None,
+                   agency_date_submitted_local=None,
                    email=None,
                    user_title=None,
                    organization=None,
@@ -98,7 +97,7 @@ def create_request(title,
     :param first_name: first name of the requester
     :param last_name: last name of the requester
     :param submission: request submission method
-    :param agency_date_submitted: submission date chosen by agency
+    :param agency_date_submitted_local: submission date chosen by agency
     :param email: requester's email address
     :param user_title: requester's organizational title
     :param organization: requester's organization
@@ -120,14 +119,15 @@ def create_request(title,
 
     # 4a. Calculate Request Submitted Date (Round to next business day)
     date_created_local = utc_to_local(datetime.utcnow(), tz_name)
-    date_submitted_local = (agency_date_submitted
-                            if current_user.is_agency
-                            else get_following_date(date_created_local))
+    if current_user.is_agency:
+        date_submitted_local = agency_date_submitted_local
+    else:
+        date_submitted_local = date_created_local
 
     # 4b. Calculate Request Due Date (month day year but time is always 5PM, 5 Days after submitted date)
     due_date = get_due_date(
         date_submitted_local,
-        ACKNOWLEDGMENT_DAYS_DUE if current_user.is_agency else REQUESTER_ACKNOWLEDGMENT_DAYS_DUE,
+        ACKNOWLEDGMENT_PERIOD_LENGTH,
         tz_name)
 
     date_created = local_to_utc(date_created_local, tz_name)
@@ -149,7 +149,6 @@ def create_request(title,
     create_object(request)
 
     guid_for_event = current_user.guid if not current_user.is_anonymous else None
-    auth_type_for_event = current_user.auth_user_type if not current_user.is_anonymous else None
 
     # 6. Get or Create User
     if current_user.is_public:
@@ -157,7 +156,6 @@ def create_request(title,
     else:
         user = Users(
             guid=generate_guid(),
-            auth_user_type=ANONYMOUS_USER,
             email=email,
             first_name=first_name,
             last_name=last_name,
@@ -167,14 +165,14 @@ def create_request(title,
             terms_of_use_accepted=False,
             phone_number=phone,
             fax_number=fax,
-            mailing_address=address
+            mailing_address=address,
+            is_anonymous_requester=True
         )
         create_object(user)
         # user created event
         create_object(Events(
             request_id,
             guid_for_event,
-            auth_type_for_event,
             event_type.USER_CREATED,
             previous_value=None,
             new_value=user.val_for_events,
@@ -199,7 +197,6 @@ def create_request(title,
 
         # 8. Create upload Event
         upload_event = Events(user_guid=user.guid,
-                              auth_user_type=user.auth_user_type,
                               response_id=response.id,
                               request_id=request_id,
                               type_=event_type.FILE_ADDED,
@@ -221,7 +218,6 @@ def create_request(title,
     # 9. Create Event
     timestamp = datetime.utcnow()
     event = Events(user_guid=user.guid if current_user.is_anonymous else current_user.guid,
-                   auth_user_type=user.auth_user_type if current_user.is_anonymous else current_user.auth_user_type,
                    request_id=request_id,
                    type_=event_type.REQ_CREATED,
                    timestamp=timestamp,
@@ -229,7 +225,6 @@ def create_request(title,
     create_object(event)
     if current_user.is_agency:
         agency_event = Events(user_guid=current_user.guid,
-                              auth_user_type=current_user.auth_user_type,
                               request_id=request.id,
                               type_=event_type.AGENCY_REQ_CREATED,
                               timestamp=timestamp)
@@ -237,7 +232,6 @@ def create_request(title,
 
     # 10. Create UserRequest for requester
     user_request = UserRequests(user_guid=user.guid,
-                                auth_user_type=user.auth_user_type,
                                 request_user_type=user_type_request.REQUESTER,
                                 request_id=request_id,
                                 permissions=Roles.query.filter_by(
@@ -246,7 +240,6 @@ def create_request(title,
     create_object(Events(
         request_id,
         guid_for_event,
-        auth_type_for_event,
         event_type.USER_ADDED,
         previous_value=None,
         new_value=user_request.val_for_events,
@@ -263,21 +256,19 @@ def create_request(title,
         # privileges
         _create_agency_user_requests(request_id=request_id,
                                      agency_admins=agency.administrators,
-                                     guid_for_event=guid_for_event,
-                                     auth_type_for_event=auth_type_for_event)
+                                     guid_for_event=guid_for_event)
 
     # 13. Add all parent agency administrators to the request.
     if agency != agency.parent:
         if (
-            agency.parent.agency_features is not None and
-            agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
-            agency.parent.is_active and
-            agency.parent.administrators
+                agency.parent.agency_features is not None and
+                agency_ein in agency.parent.agency_features.get('monitor_agency_requests', []) and
+                agency.parent.is_active and
+                agency.parent.administrators
         ):
             _create_agency_user_requests(request_id=request_id,
                                          agency_admins=agency.parent.administrators,
-                                         guid_for_event=guid_for_event,
-                                         auth_type_for_event=auth_type_for_event)
+                                         guid_for_event=guid_for_event)
 
     # (Now that we can associate the request with its requester AND agency users.)
     if current_app.config['ELASTICSEARCH_ENABLED'] and agency.is_active:
@@ -408,7 +399,6 @@ def generate_request_id(agency_ein):
     return None
 
 
-
 def generate_email_template(template_name, **kwargs):
     """
     Generate HTML for rich-text emails.
@@ -518,19 +508,17 @@ def send_confirmation_email(request, agency, user):
         print("Error:", e)
 
 
-def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth_type_for_event):
+def _create_agency_user_requests(request_id, agency_admins, guid_for_event):
     """
     Creates user_requests entries for agency administrators.
     :param request_id: Request being created
     :param agency_users: List of Users
     :param guid_for_event: guid used to create request events
-    :param auth_type_for_event: user_auth_type from constants
     :return:
     """
 
     for admin in agency_admins:
         user_request = UserRequests(user_guid=admin.guid,
-                                    auth_user_type=admin.auth_user_type,
                                     request_user_type=user_type_request.AGENCY,
                                     request_id=request_id,
                                     permissions=Roles.query.filter_by(
@@ -539,7 +527,6 @@ def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth
         create_object(Events(
             request_id,
             guid_for_event,
-            auth_type_for_event,
             event_type.USER_ADDED,
             previous_value=None,
             new_value=user_request.val_for_events,
@@ -551,8 +538,8 @@ def _create_agency_user_requests(request_id, agency_admins, guid_for_event, auth
 def create_contact_record(request, first_name, last_name, email, subject, message):
     """
     Creates Users, Emails, and Events entries for a contact submission for a request.
-    Sends email with message to all agency users associated with
-    
+    Sends email with message to all agency users associated with the request.
+
     :param request: request object
     :param first_name: sender's first name
     :param last_name: sender's last name
@@ -565,19 +552,18 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
     else:
         user = Users(
             guid=generate_guid(),
-            auth_user_type=ANONYMOUS_USER,
             email=email,
             first_name=first_name,
             last_name=last_name,
             email_validated=False,
             terms_of_use_accepted=False,
+            is_anonymous_requester=True
         )
         create_object(user)
 
         create_object(Events(
             request_id=request.id,
             user_guid=None,
-            auth_user_type=None,
             type_=event_type.USER_CREATED,
             new_value=user.val_for_events
         ))
@@ -602,7 +588,6 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
     create_object(Events(
         request_id=request.id,
         user_guid=user.guid,
-        auth_user_type=user.auth_user_type,
         type_=event_type.CONTACT_EMAIL_SENT,
         response_id=email_obj.id,
         new_value=email_obj.val_for_events

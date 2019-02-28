@@ -41,7 +41,6 @@ def update_agency_active_status(agency_ein, is_active):
                 Events(
                     request_id=None,
                     user_guid=current_user.guid,
-                    auth_user_type=current_user.auth_user_type,
                     type_=AGENCY_ACTIVATED,
                     previous_value={"ein": agency_ein, "is_active": "False"},
                     new_value={"ein": agency_ein, "is_active": "True"},
@@ -58,7 +57,6 @@ def update_agency_active_status(agency_ein, is_active):
                 Events(
                     request_id=None,
                     user_guid=current_user.guid,
-                    auth_user_type=current_user.auth_user_type,
                     type_=AGENCY_DEACTIVATED,
                     previous_value={"ein": agency_ein, "is_active": "True"},
                     new_value={"ein": agency_ein, "is_active": "False"},
@@ -74,20 +72,17 @@ def update_agency_active_status(agency_ein, is_active):
                     {"is_agency_active": "False",
                      "is_agency_admin": "False"},
                     AgencyUsers,
-                    (user.guid, user.auth_user_type, agency_ein)
+                    (user.guid, agency_ein)
                 )
                 create_object(
                     Events(
                         request_id=None,
                         user_guid=current_user.guid,
-                        auth_user_type=current_user.auth_user_type,
                         type_=AGENCY_USER_DEACTIVATED,
                         previous_value={"user_guid": user.guid,
-                                        "auth_user_type": user.auth_user_type,
                                         "ein": agency_ein,
                                         "is_active": "True"},
                         new_value={"user_guid": user.guid,
-                                   "auth_user_type": user.auth_user_type,
                                    "ein": agency_ein,
                                    "is_active": "False"},
                         timestamp=datetime.utcnow()

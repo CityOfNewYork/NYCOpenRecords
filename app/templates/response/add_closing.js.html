@@ -70,7 +70,7 @@
                 e.preventDefault();
                 return false;
             }
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 letter_div.hide();
                 email_div.show();
             } else {
@@ -82,22 +82,22 @@
         });
 
         next2.click(function (e) {
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 reason_ids.parsley().validate();
             }
-            if (method.val() === 'letter') {
+            if (method.val() === 'letters') {
                 letter_info.parsley().validate();
             }
 
-            if (method.val() === 'email' && !reason_ids.parsley().isValid()) {
+            if (method.val() === 'emails' && !reason_ids.parsley().isValid()) {
                 e.preventDefault();
                 return false;
-            } else if (method.val() === 'letter' && !letter_info.parsley().isValid()) {
+            } else if (method.val() === 'letters' && !letter_info.parsley().isValid()) {
                 e.preventDefault();
                 return false;
             }
             else {
-                if (method.val() === 'email') {
+                if (method.val() === 'emails') {
                     $.ajax({
                         url: "/response/email",
                         type: "POST",
@@ -147,7 +147,7 @@
 
         next3.click(function () {
             tinyMCE.triggerSave();
-            if (method.val() === 'email') {
+            if (method.val() === 'emails') {
                 $.ajax({
                     url: "/response/email",
                     type: "POST",

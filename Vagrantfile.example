@@ -46,10 +46,12 @@ Vagrant.configure("2") do |config|
     default.vm.network "forwarded_port", guest: 8200, host: 8200
     default.vm.network "private_network", ip: "10.0.0.2"
     default.vm.provision "shell", path: "build_scripts/web_setup/web_setup.sh", args: 'single_server'
-    default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
-    default.vm.provision "shell", path: "build_scripts/filebeat_setup/app_nginx/install.sh"
+    # default.vm.provision "shell", path: "build_scripts/filebeat_setup/app_nginx/install.sh"
     default.vm.provision "shell", path: "build_scripts/es_setup/es_setup.sh", args: 'single_server'
     default.vm.provision "shell", path: "build_scripts/db_setup/db_setup.sh", args: 'single_server'
+    default.vm.provision "shell", path: "build_scripts/app_setup/app_setup.sh"
+    default.vm.provision "shell", path: "build_scripts/app_setup/setup_virtualenv.sh", privileged: false
+
   end
 
   # VM for Sentry

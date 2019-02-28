@@ -90,3 +90,16 @@ def get_holidays_date_list(year_start, year_end=None):
 def get_release_date(initial_date, days_until_release, tz_name):
     release_date = calendar.addbusdays(initial_date, days_until_release)
     return utc_to_local(release_date, tz_name)
+
+
+def is_business_day(date):
+    """
+    Determine if the provided date is a business day.
+    Args:
+        date: local date.
+
+    Returns:
+        bool: True if date is a business day.
+
+    """
+    return calendar.isbusday(date)
