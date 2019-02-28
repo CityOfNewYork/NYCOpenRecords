@@ -1266,6 +1266,7 @@ class Reasons(db.Model):
                     type=row['type'],
                     title=row['title'],
                     content=row['content'],
+                    has_appeals_language=row['has_appeals_language'],
                     agency_ein=agency_ein
                 )
                 if not Reasons.query.filter_by(title=row['title'], content=row['content'],
