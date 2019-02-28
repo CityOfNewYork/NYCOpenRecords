@@ -1253,6 +1253,7 @@ class Reasons(db.Model):
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
+    has_appeals_language = db.Column(db.Boolean, default=True)
 
     @classmethod
     def populate(cls):
