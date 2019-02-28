@@ -20,6 +20,7 @@ $(function () {
         message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
         "<span class=\"sr-only\">Loading responses...</span></div></div>"
     });
+
     // get first set of responses on page load
     $.ajax({
         url: '/request/api/v1.0/responses',
@@ -34,7 +35,7 @@ $(function () {
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
-            requestResponses.unblock();
+            $("#request-responses-section").unblock();
             showResponses();
         },
         error: function (error) {
@@ -68,6 +69,7 @@ $(function () {
                 }
             }
             flask_moment_render_all();
+            $("#request-responses-section").unblock();
         }
         else {
             response_list.html("<div class=\"center-text\">" +
@@ -77,6 +79,11 @@ $(function () {
 
 
     function loadMoreResponses() {
+        $("#request-responses").html("<div class='loading'></div>");
+        $("#request-responses-section").block({
+            message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+            "<span class=\"sr-only\">Loading responses...</span></div></div>"
+        });
         $.ajax({
             url: '/request/api/v1.0/responses',
             data: {
@@ -86,13 +93,14 @@ $(function () {
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
-                if (responses.length - index_increment == index) {
+                if (index + index_increment > responses.length) {
                     nextButton.attr("disabled", true);
                 }
             },
             error: function (error) {
                 console.log(error);
-            }
+            },
+            complete: showResponses
         })
     }
 
@@ -118,16 +126,16 @@ $(function () {
     nextButton.click(function () {
         prevButton.attr("disabled", false);
         index += index_increment;
-        if (index == responses.length - index_increment) {
+        if (index === responses.length) {
             loadMoreResponses();
         }
-        if (responses.length < index + index_increment) {
+        else if (responses.length <= index + index_increment) {
             nextButton.attr("disabled", true);
+            showResponses();
         }
-        if (responses.length < index) {
-            index -= index_increment;
+        else if (responses.length >= index) {
+            showResponses();
         }
-        showResponses();
     });
 
     // TODO: DELETE 'updated' on modal close and reset / refresh page (wait until all responses ready)

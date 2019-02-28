@@ -219,7 +219,7 @@ def get_request_responses():
             Responses.deleted == False
         ).order_by(
             desc(Responses.date_modified)
-        ).all()[start: start + RESPONSES_INCREMENT]
+        ).slice(start, start + RESPONSES_INCREMENT).all()
     elif current_user == current_request.requester:
         # If the user is the requester, then only responses that are "Release and Private" or "Release and Public"
         # can be retrieved.
@@ -231,7 +231,7 @@ def get_request_responses():
             Responses.privacy.in_([response_privacy.RELEASE_AND_PRIVATE, response_privacy.RELEASE_AND_PUBLIC])
         ).order_by(
             desc(Responses.date_modified)
-        ).all()[start: start + RESPONSES_INCREMENT]
+        ).slice(start, start + RESPONSES_INCREMENT).all()
 
     else:
         # If the user is not an agency user assigned to the request or the requester, then only responses that are
@@ -246,7 +246,7 @@ def get_request_responses():
             Responses.release_date < datetime.utcnow()
         ).order_by(
             desc(Responses.date_modified)
-        ).all()[start: start + RESPONSES_INCREMENT]
+        ).slice(start, start + RESPONSES_INCREMENT).all()
 
     template_path = 'request/responses/'
     response_jsons = []
