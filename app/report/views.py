@@ -18,7 +18,7 @@ from app.models import (
 from app.constants import (
     request_status
 )
-from app.report.forms import ReportFilterForm
+from app.report.forms import AcknowledgmentForm, ReportFilterForm
 
 
 @report.route('/show', methods=['GET'])
@@ -29,6 +29,7 @@ def show_report():
     :return: redirect to reports page
     """
     return render_template('report/reports.html',
+                           acknowledgment_form=AcknowledgmentForm(),
                            report_filter_form=ReportFilterForm())
 
 

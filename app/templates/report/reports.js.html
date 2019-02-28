@@ -11,6 +11,9 @@
     var ctx = document.getElementById("reportChart");
     var reportChart;
 
+    var ack_date_from = $("#date_from");
+    var ack_date_to = $("#date_to");
+
     function drawChart(labels, values) {
         reportChart = new Chart(ctx, {
             type: 'bar',
@@ -240,4 +243,26 @@
             }
         });
     });
+
+    ack_date_from.attr('data-parsley-valid-date', '');
+    ack_date_to.attr('data-parsley-valid-date', '');
+    ack_date_from.attr("data-parsley-required-message",
+        '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
+        '<strong>Error, date from is required.</strong> Please select a template from the drop-down menu.');
+    ack_date_to.attr("data-parsley-required-message",
+        '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
+        '<strong>Error, date to is required.</strong> Please select a template from the drop-down menu.');
+
+
+    ack_date_from.datepicker({
+        dateFormat: "mm/dd/yy",
+        minDate: "-1M",
+        maxDate: 0
+    }).mask("99/99/9999");
+
+    ack_date_to.datepicker({
+        dateFormat: "mm/dd/yy",
+        minDate: "-1M",
+        maxDate: 0
+    }).mask("99/99/9999");
 </script>
