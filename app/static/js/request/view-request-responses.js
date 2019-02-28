@@ -5,6 +5,7 @@ $(function () {
     var responses = null;
     var index = 0;
     var index_increment = 5;
+    var total = 0;
     var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var request_id = $.trim($('#request-id').text());
@@ -31,6 +32,7 @@ $(function () {
         },
         success: function (data) {
             responses = data.responses;
+            total = data.total;
             if (responses.length > index_increment) {
                 navButtons.show();
                 prevButton.attr("disabled", true);
@@ -93,7 +95,7 @@ $(function () {
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
-                if (index + index_increment > responses.length) {
+                if (index + index_increment >= responses.length) {
                     nextButton.attr("disabled", true);
                 }
             },
@@ -129,11 +131,11 @@ $(function () {
         if (index === responses.length) {
             loadMoreResponses();
         }
-        else if (responses.length <= index + index_increment) {
+        else if (index + index_increment >= total) {
             nextButton.attr("disabled", true);
             showResponses();
         }
-        else if (responses.length >= index) {
+        else {
             showResponses();
         }
     });

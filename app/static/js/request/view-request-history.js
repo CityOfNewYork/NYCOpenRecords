@@ -5,6 +5,7 @@ $(function() {
     var events = null;
     var index = 0;
     var index_increment = 5;
+    var total = 0;
     var request_id = $.trim($("#request-id").text());
     var navButtons = $("#history-nav-buttons");
     var prevButton = navButtons.find(".prev");
@@ -18,6 +19,7 @@ $(function() {
         message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
         "<span class=\"sr-only\">Loading history...</span></div></div>"
     });
+
     $.ajax({
         url: "/request/api/v1.0/events",
         data: {
@@ -27,11 +29,12 @@ $(function() {
         },
         success: function (data) {
             events = data.events;
+            total = data.total;
             if (events.length > index_increment) {  // if there are enough events to merit pagination
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
-            requestHistory.unblock();
+            $("#request-history-section").unblock();
             showHistory();
         },
         error: function(error) {
@@ -53,6 +56,7 @@ $(function() {
                 history.append(events[i].template);
             }
             flask_moment_render_all();
+            $("#request-history-section").unblock();
         }
         else {
             // no events, history section remains empty
@@ -61,6 +65,11 @@ $(function() {
     }
 
     function loadMore() {
+        $("#request-history").html("<div class='loading'></div>");
+        $("#request-history-section").block({
+            message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+            "<span class=\"sr-only\">Loading history...</span></div></div>"
+        });
         $.ajax({
             url: "/request/api/v1.0/events",
             data: {
@@ -71,13 +80,14 @@ $(function() {
             success: function(data) {
                 // append to events
                 events = events.concat(data.events);
-                if (events.length - index_increment == index) {
+                if (index + index_increment >= total) {
                     nextButton.attr("disabled", true);
                 }
             },
             error: function(error) {
                 console.log(error);
-            }
+            },
+            complete: showHistory
         })
     }
 
@@ -97,15 +107,15 @@ $(function() {
     nextButton.click(function () {
         prevButton.attr("disabled", false);
         index += index_increment;
-        if (index == events.length - index_increment) {
+        if (index === events.length) {
             loadMore();
         }
-        if (events.length < index + index_increment) {
+        else if (index + index_increment >= total) {
             nextButton.attr("disabled", true);
+            showHistory();
         }
-        if (events.length < index) {
-            index -= index_increment;
+        else {
+            showHistory();
         }
-        showHistory();
     })
 });
