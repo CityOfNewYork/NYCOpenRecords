@@ -1003,7 +1003,8 @@ def _acknowledgment_letter_handler(request_id, data):
 
         if acknowledgment.get('days') == '-1':
             acknowledgment['days'] = None
-            acknowledgment['date'] = local_to_utc(datetime.strptime(acknowledgment['date'], '%m/%d/%Y'), data.get('tz_name'))
+            acknowledgment['date'] = local_to_utc(datetime.strptime(acknowledgment['date'], '%m/%d/%Y'),
+                                                  data.get('tz_name'))
         else:
             acknowledgment['date'] = None
 
@@ -1445,30 +1446,26 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     else:
         description_hidden_by_default = False
 
-    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
+    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language).filter_by(
+        id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
 
+    has_appeals_language = False
+    custom_reasons = False
+
+    reasons_text = []
     # Render the jinja for the reasons content
-    for index, reason in enumerate(_reasons):
-        reason_list = list(reason)
-        reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
-        _reasons[index] = reason_list
-
-    # Determine if a custom reason is used
-    # TODO(joelbcastillo) Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features - Should be completed by v2.4
-    custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
-
-    # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
-    # "custom_reasons" to the template so that the code is generated correctly.
-    if custom_reasons:
-        for reason in _reasons:
-            if reason[0] == 'Denied - Reason Below':
-                _reasons.remove(reason)
-                break
+    for reason in _reasons:
+        if reason.title == 'Denied - Reason Below':
+            custom_reasons = True
+            continue
+        if reason.has_appeals_language:
+            has_appeals_language = True
+        reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
 
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
-        reasons=_reasons,
+        reasons=reasons_text,
         custom_reasons=custom_reasons
     )
 
@@ -1490,7 +1487,8 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         reasons=Markup(reasons),
         page=page,
         custom_request_forms_enabled=custom_request_forms_enabled,
-        description_hidden_by_default=description_hidden_by_default),
+        description_hidden_by_default=description_hidden_by_default,
+        has_appeals_language=has_appeals_language),
         "header": header
     }), 200
 
@@ -1522,6 +1520,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     else:
         description_hidden_by_default = False
 
+    has_appeals_language = False
+
     if eval_request_bool(data['confirmation']):
         header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
         reasons = None
@@ -1536,32 +1536,27 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     else:
         point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
 
-        _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content).filter_by(id=reason_id).one()
+        _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language).filter_by(id=reason_id).one()
                     for reason_id in data.getlist('reason_ids[]')]
 
+        custom_reasons = False
+
+        reasons_text = []
         # Render the jinja for the reasons content
-        for index, reason in enumerate(_reasons):
-            reason_list = list(reason)
-            reason_list[1] = render_template_string(reason_list[1], user=point_of_contact_user)
-            _reasons[index] = reason_list
-
-        # Determine if a custom reason is used
-        # TODO: Hardcoded values; Need to figure out a better way to do this; Might be part of Agency Features at a later date.
-        custom_reasons = any('Denied - Reason Below' in x[0] for x in _reasons)
-
-        # In order to handle the custom logic for an empty denial reason, remove the reason from the list and pass in
-        # "custom_reasons" to the template so that the code is generated correctly.
-        if custom_reasons:
-            for reason in _reasons:
-                if reason[0] == 'Denied - Reason Below':
-                    _reasons.remove(reason)
-                    break
+        for reason in _reasons:
+            if reason.title == 'Denied - Reason Below':
+                custom_reasons = True
+                continue
+            if reason.has_appeals_language:
+                has_appeals_language = True
+            reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
 
         reasons = render_template(
             os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
-            reasons=_reasons,
+            reasons=reasons_text,
             custom_reasons=custom_reasons
         )
+
         default_content = True
         content = None
         header = None
@@ -1577,7 +1572,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         page=page,
         denied=denied,
         custom_request_forms_enabled=custom_request_forms_enabled,
-        description_hidden_by_default=description_hidden_by_default),
+        description_hidden_by_default=description_hidden_by_default,
+        has_appeals_language=has_appeals_language),
         "header": header
     }), 200
 
@@ -2187,9 +2183,9 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                                      page=page
                                                                      ))
         safely_send_and_add_email(request_id,
-                                        email_content_agency,
-                                        subject,
-                                        bcc=bcc)
+                                  email_content_agency,
+                                  subject,
+                                  bcc=bcc)
 
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
@@ -2212,9 +2208,9 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
     safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
         safely_send_and_add_email(request_id,
-                                        email_content_requester,
-                                        subject,
-                                        to=[requester_email])
+                                  email_content_requester,
+                                  subject,
+                                  to=[requester_email])
 
 
 def _send_response_email(request_id, privacy, email_content, subject):
