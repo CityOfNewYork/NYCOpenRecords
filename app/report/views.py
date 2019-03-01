@@ -9,7 +9,7 @@ from flask import (
     jsonify,
     request
 )
-from flask_login import current_user
+from flask_login import current_user, login_required
 from app.models import (
     Agencies,
     Requests,
@@ -96,8 +96,9 @@ def get():
                     }), 200
 
 
-@report.route('/fdny', methods=['GET'])
-def fdny():
+@report.route('/acknowledgment', methods=['POST'])
+@login_required
+def acknowledgment():
     from datetime import datetime
     from app.lib.date_utils import local_to_utc, utc_to_local
     from flask import current_app
@@ -107,64 +108,73 @@ def fdny():
     from flask.helpers import send_file
     from sqlalchemy import asc
 
-    agency_ein = '0057'
-    start_date = local_to_utc(datetime(2019, 2, 19, 23, 59, 59, 0), current_app.config['APP_TIMEZONE'])
-    end_date = local_to_utc(datetime(2019, 2, 27), current_app.config['APP_TIMEZONE'])
+    if AcknowledgmentForm().validate_on_submit():
 
-    request_list = Requests.query.filter(Requests.agency_ein == agency_ein,
-                                         Requests.date_created.between(start_date, end_date),
-                                         Requests.status != 'Closed').order_by(asc(Requests.id)).all()
+    # Only agency administrators can access endpoint
+        if not current_user.is_agency_admin:
+            return jsonify({
+                'error': 'Only Agency Administratos can access this endpoint.'
+            }), 403
 
-    buffer = StringIO()
-    writer = csv.writer(buffer)
-    writer.writerow(['Request ID',
-                     'Acknowledged',
-                     'Acknowledged By',
-                     'Date Created',
-                     'Date Received',
-                     'Date Due',
-                     'Status',
-                     'Title',
-                     'Description',
-                     'Requester Name',
-                     'Email',
-                     'Phone Number',
-                     'Address 1',
-                     'Address 2',
-                     'City',
-                     'State',
-                     'Zipcode'])
+        agency_ein = current_user.default_agency_ein
+        start_date = local_to_utc(datetime(2019, 2, 19, 23, 59, 59, 0), current_app.config['APP_TIMEZONE'])
+        end_date = local_to_utc(datetime(2019, 2, 27), current_app.config['APP_TIMEZONE'])
 
-    for r in request_list:
-        ack_user = ''
-        if r.was_acknowledged:
-            ack_user = Events.query.filter(Events.request_id == r.id,
-                                           Events.type == 'request_acknowledged').one().user.name
+        request_list = Requests.query.filter(Requests.agency_ein == agency_ein,
+                                             Requests.date_created.between(start_date, end_date),
+                                             Requests.status != 'Closed').order_by(asc(Requests.id)).all()
 
-        writer.writerow([
-            r.id,
-            r.was_acknowledged,
-            ack_user,
-            r.date_created,
-            r.date_submitted,
-            r.due_date,
-            r.status,
-            r.title,
-            r.description,
-            r.requester.name,
-            r.requester.email,
-            r.requester.phone_number,
-            r.requester.mailing_address.get('address_one'),
-            r.requester.mailing_address.get('address_two'),
-            r.requester.mailing_address.get('city'),
-            r.requester.mailing_address.get('state'),
-            r.requester.mailing_address.get('zip'),
-        ])
-    dt = datetime.utcnow()
-    timestamp = utc_to_local(dt, current_app.config['APP_TIMEZONE'])
-    return send_file(
-        BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
-        attachment_filename="FOIL_acknowledgment_{}.csv".format(
-            timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
-        as_attachment=True
-    )
+        buffer = StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(['Request ID',
+                         'Acknowledged',
+                         'Acknowledged By',
+                         'Date Created',
+                         'Date Received',
+                         'Date Due',
+                         'Status',
+                         'Title',
+                         'Description',
+                         'Requester Name',
+                         'Email',
+                         'Phone Number',
+                         'Address 1',
+                         'Address 2',
+                         'City',
+                         'State',
+                         'Zipcode'])
+
+        for r in request_list:
+            ack_user = ''
+            if r.was_acknowledged:
+                ack_user = Events.query.filter(Events.request_id == r.id,
+                                               Events.type == 'request_acknowledged').one().user.name
+
+            writer.writerow([
+                r.id,
+                r.was_acknowledged,
+                ack_user,
+                r.date_created,
+                r.date_submitted,
+                r.due_date,
+                r.status,
+                r.title,
+                r.description,
+                r.requester.name,
+                r.requester.email,
+                r.requester.phone_number,
+                r.requester.mailing_address.get('address_one'),
+                r.requester.mailing_address.get('address_two'),
+                r.requester.mailing_address.get('city'),
+                r.requester.mailing_address.get('state'),
+                r.requester.mailing_address.get('zip'),
+            ])
+            break
+        dt = datetime.utcnow()
+        timestamp = utc_to_local(dt, current_app.config['APP_TIMEZONE'])
+        return send_file(
+            BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
+            attachment_filename="FOIL_acknowledgment_{}.csv".format(
+                timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
+            as_attachment=True
+        )

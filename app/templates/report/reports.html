@@ -34,13 +34,14 @@
             <button id="submit-button" class="btn btn-success">Submit</button>
             <button id="clear-filter-button" class="btn btn-primary">Clear Filter</button>
         </div>
-    <br>
-    <hr>
-        {#        {% if current_user.is_agency_admin %}#}
-        <div class="container">
+        <br>
+        <hr>
+        {% if current_user.is_agency_admin %}
+            <div class="container">
             <h2 class="text-center">Agency Reports</h2>
             <h3>FOIL Request Acknowledgement Status</h3>
-            <form data-parsley-validate>
+            <form id="acknowledgment-report-form" action="/report/acknowledgment" method="POST" data-parsley-validate>
+                {{ acknowledgment_form.csrf_token }}
                 <div class="form-row">
                     <div class="form-group col-auto">
                         {{ acknowledgment_form.date_from.label }}
@@ -53,7 +54,7 @@
                 </div>
                 {{ acknowledgment_form.submit_field(class="btn btn-success") }}
             </form>
-            {#        {% endif %}#}
+        {% endif %}
         </div>
     </div>
 {% endblock %}

@@ -258,11 +258,21 @@
         dateFormat: "mm/dd/yy",
         minDate: "-1M",
         maxDate: 0
-    }).mask("99/99/9999");
+    })
+        .mask("99/99/9999")
+        .keydown(function (e) {
+            // prevent keyboard input
+            e.preventDefault();
+        });
 
     ack_date_to.datepicker({
         dateFormat: "mm/dd/yy",
         minDate: "-1M",
         maxDate: 0
-    }).mask("99/99/9999");
+    })
+        .mask("99/99/9999")
+        .keydown(function (e) {
+            // prevent keyboard input
+            e.preventDefault();
+        });
 </script>
