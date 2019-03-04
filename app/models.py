@@ -418,6 +418,14 @@ class Users(UserMixin, db.Model):
         return self.is_nyc_employee
 
     @property
+    def get_agencies(self):
+        """
+        Returns a list of the agency ein's the user belongs to.
+        """
+        agencies = AgencyUsers.query.filter_by(user_guid=self.guid).all()
+        return [agency.agency_ein for agency in agencies]
+
+    @property
     def default_agency_ein(self):
         """
         Return the Users default agency ein.
