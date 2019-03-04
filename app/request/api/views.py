@@ -124,7 +124,9 @@ def get_request_events():
         Events.type.in_(event_type.FOR_REQUEST_HISTORY)
     ).order_by(
         desc(Events.timestamp)
-    ).all()[start: start + EVENTS_INCREMENT]
+    ).all()
+    total = len(events)
+    events = events[start: start + EVENTS_INCREMENT]
 
     template_path = 'request/events/'
     event_jsons = []
@@ -193,7 +195,7 @@ def get_request_events():
 
         event_jsons.append(json)
 
-    return jsonify(events=event_jsons)
+    return jsonify(events=event_jsons, total=total)
 
 
 @request_api_blueprint.route('/responses', methods=['GET'])
@@ -219,7 +221,7 @@ def get_request_responses():
             Responses.deleted == False
         ).order_by(
             desc(Responses.date_modified)
-        ).all()[start: start + RESPONSES_INCREMENT]
+        ).all()
     elif current_user == current_request.requester:
         # If the user is the requester, then only responses that are "Release and Private" or "Release and Public"
         # can be retrieved.
@@ -231,7 +233,7 @@ def get_request_responses():
             Responses.privacy.in_([response_privacy.RELEASE_AND_PRIVATE, response_privacy.RELEASE_AND_PUBLIC])
         ).order_by(
             desc(Responses.date_modified)
-        ).all()[start: start + RESPONSES_INCREMENT]
+        ).all()
 
     else:
         # If the user is not an agency user assigned to the request or the requester, then only responses that are
@@ -246,8 +248,10 @@ def get_request_responses():
             Responses.release_date < datetime.utcnow()
         ).order_by(
             desc(Responses.date_modified)
-        ).all()[start: start + RESPONSES_INCREMENT]
+        ).all()
 
+    total = len(responses)
+    responses = responses[start: start + RESPONSES_INCREMENT]
     template_path = 'request/responses/'
     response_jsons = []
     row_count = 0
@@ -325,4 +329,4 @@ def get_request_responses():
 
         response_jsons.append(json)
 
-    return jsonify(responses=response_jsons)
+    return jsonify(responses=response_jsons, total=total)
