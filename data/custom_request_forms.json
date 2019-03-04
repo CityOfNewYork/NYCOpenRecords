@@ -63,7 +63,174 @@
           }
         }
       ],
-      "repeatable": "1",
+      "repeatable": "0",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Ambulance Call Report/Prehospital Care Report",
+      "form_description": "Some general information about a ACR/PCR request can go here.",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true
+          }
+        },
+        {
+          "Description": {
+            "type": "textarea",
+            "name": "2",
+            "required": false,
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Some help text can go here if you'd like.",
+            "placeholder": "Some placeholder can be in here."
+          }
+        },
+        {
+          "Name": {
+            "type": "input",
+            "name": "3",
+            "required": false
+          }
+        },
+        {
+          "Telephone Number": {
+            "type": "input",
+            "name": "4",
+            "max_length": "10",
+            "required": false
+          }
+        },
+        {
+          "Address": {
+            "type": "input",
+            "name": "5",
+            "required": false
+          }
+        },
+        {
+          "State": {
+            "type": "state",
+            "name": "6",
+            "required": false
+          }
+        },
+        {
+          "Zip Code": {
+            "type": "input",
+            "name": "7",
+            "max_length": "5",
+            "required": false
+          }
+        },
+        {
+          "Name of Patient": {
+            "type": "input",
+            "name": "8",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "9",
+            "future_date_invalid": true,
+            "required": false
+          }
+        },
+        {
+          "Incident Time": {
+            "type": "time",
+            "name": "10",
+            "required": false
+          }
+        },
+        {
+          "Incident Location": {
+            "type": "input",
+            "name": "11",
+            "required": false
+          }
+        },
+        {
+          "Incident Borough": {
+            "type": "input",
+            "name": "12",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Hospital Taken To": {
+            "type": "input",
+            "name": "13",
+            "required": false
+          }
+        },
+        {
+          "Is the patient a minor?": {
+            "type": "radio",
+            "name": "14",
+            "help_text": "Please select an option.",
+            "values": [
+              "Yes",
+              "No"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Date of Birth": {
+            "type": "date",
+            "name": "15",
+            "future_date_invalid": true,
+            "required": false
+          }
+        },
+        {
+          "Last 4 Digits of Social Security Number": {
+            "type": "input",
+            "name": "16",
+            "max_length": "4",
+            "required": false
+          }
+        },
+        {
+          "If you have the ACR/PCR, please provide ACR/PCR number": {
+            "type": "input",
+            "name": "17",
+            "required": false
+          }
+        },
+        {
+          "What is the requester’s relationship to the patient?": {
+            "type": "radio",
+            "name": "18",
+            "values": [
+              "Self/Patient",
+              "Parent/Guardian",
+              "Executor/Administrator of Estate"
+            ],
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "0",
       "category": "1",
       "minimum_required": "0"
     }
