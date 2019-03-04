@@ -3,7 +3,6 @@
 
    :synopsis: Handles the report URL endpoints for the OpenRecords application
 """
-import csv
 from datetime import datetime
 
 from flask import (
@@ -12,23 +11,20 @@ from flask import (
     jsonify,
     request
 )
-from flask.helpers import send_file
 from flask_login import current_user, login_required
-from io import StringIO, BytesIO
-from sqlalchemy import asc
 
 from app.constants import (
     request_status
 )
-from app.lib.date_utils import local_to_utc, utc_to_local
+from app.lib.date_utils import local_to_utc
 from app.models import (
     Agencies,
-    Events,
     Requests,
     UserRequests
 )
 from app.report import report
 from app.report.forms import AcknowledgmentForm, ReportFilterForm
+from app.report.utils import generate_acknowledgment_report
 
 
 @report.route('/show', methods=['GET'])
@@ -111,73 +107,21 @@ def get():
 def acknowledgment():
     form = AcknowledgmentForm()
     if form.validate_on_submit():
-
         # Only agency administrators can access endpoint
         if not current_user.is_agency_admin:
             return jsonify({
                 'error': 'Only Agency Administrators can access this endpoint.'
             }), 403
 
-        agency_ein = current_user.default_agency_ein
         date_from = local_to_utc(datetime.strptime(request.form['date_from'], '%m/%d/%Y'),
                                  current_app.config['APP_TIMEZONE'])
         date_to = local_to_utc(datetime.strptime(request.form['date_to'], '%m/%d/%Y'),
                                current_app.config['APP_TIMEZONE'])
 
-        request_list = Requests.query.filter(Requests.agency_ein == agency_ein,
-                                             Requests.date_created.between(date_from, date_to),
-                                             Requests.status != 'Closed').order_by(asc(Requests.id)).all()
+        redis_key = "{current_user_guid}-{report_type}-{agency_ein}-{timestamp}".format(
+            current_user_guid=current_user.guid, report_type='acknowledgment',
+            agency_ein=current_user.default_agency_ein,
+            timestamp=datetime.now())
+        generate_acknowledgment_report.apply_async(args=(current_user.guid, date_from, date_to), task_id=redis_key)
 
-        buffer = StringIO()
-        writer = csv.writer(buffer)
-        writer.writerow(['Request ID',
-                         'Acknowledged',
-                         'Acknowledged By',
-                         'Date Created',
-                         'Date Received',
-                         'Date Due',
-                         'Status',
-                         'Title',
-                         'Description',
-                         'Requester Name',
-                         'Email',
-                         'Phone Number',
-                         'Address 1',
-                         'Address 2',
-                         'City',
-                         'State',
-                         'Zipcode'])
-
-        for r in request_list:
-            ack_user = ''
-            if r.was_acknowledged:
-                ack_user = Events.query.filter(Events.request_id == r.id,
-                                               Events.type == 'request_acknowledged').one().user.name
-
-            writer.writerow([
-                r.id,
-                r.was_acknowledged,
-                ack_user,
-                r.date_created,
-                r.date_submitted,
-                r.due_date,
-                r.status,
-                r.title,
-                r.description,
-                r.requester.name,
-                r.requester.email,
-                r.requester.phone_number,
-                r.requester.mailing_address.get('address_one'),
-                r.requester.mailing_address.get('address_two'),
-                r.requester.mailing_address.get('city'),
-                r.requester.mailing_address.get('state'),
-                r.requester.mailing_address.get('zip'),
-            ])
-        dt = datetime.utcnow()
-        timestamp = utc_to_local(dt, current_app.config['APP_TIMEZONE'])
-        return send_file(
-            BytesIO(buffer.getvalue().encode('UTF-8')),  # convert to bytes
-            attachment_filename="FOIL_acknowledgment_{}.csv".format(
-                timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")),
-            as_attachment=True
-        )
+        return jsonify(), 200
