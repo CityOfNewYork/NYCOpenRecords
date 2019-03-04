@@ -4,7 +4,7 @@ $(function() {
 
     var events = null;
     var index = 0;
-    var index_increment = 5;
+    var indexIncrement = 5;
     var total = 0;
     var request_id = $.trim($("#request-id").text());
     var navButtons = $("#history-nav-buttons");
@@ -30,7 +30,7 @@ $(function() {
         success: function (data) {
             events = data.events;
             total = data.total;
-            if (events.length > index_increment) {  // if there are enough events to merit pagination
+            if (events.length > indexIncrement) {  // if there are enough events to merit pagination
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
@@ -49,8 +49,8 @@ $(function() {
 
         if (events.length !== 0) {
             // advance index
-            var index_incremented = index + index_increment;
-            var end = events.length < index_incremented ? events.length : index_incremented;
+            var indexIncremented = index + indexIncrement;
+            var end = events.length < indexIncremented ? events.length : indexIncremented;
             for (var i = index; i < end; i++) {
                 // add events html
                 history.append(events[i].template);
@@ -80,7 +80,7 @@ $(function() {
             success: function(data) {
                 // append to events
                 events = events.concat(data.events);
-                if (index + index_increment >= total) {
+                if (index + indexIncrement >= total) {
                     nextButton.attr("disabled", true);
                 }
             },
@@ -95,7 +95,7 @@ $(function() {
     prevButton.click(function () {
         nextButton.attr("disabled", false);
         if (index !== 0) {
-            index -= index_increment;
+            index -= indexIncrement;
             if (index == 0) {
                 $(this).attr("disabled", true);
             }
@@ -106,11 +106,11 @@ $(function() {
     // replace currently displayed events with next set
     nextButton.click(function () {
         prevButton.attr("disabled", false);
-        index += index_increment;
+        index += indexIncrement;
         if (index === events.length) {
             loadMore();
         }
-        else if (index + index_increment >= total) {
+        else if (index + indexIncrement >= total) {
             nextButton.attr("disabled", true);
             showHistory();
         }

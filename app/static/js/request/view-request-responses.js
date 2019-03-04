@@ -4,7 +4,7 @@ $(function () {
 
     var responses = null;
     var index = 0;
-    var index_increment = 5;
+    var indexIncrement = 5;
     var total = 0;
     var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -33,7 +33,7 @@ $(function () {
         success: function (data) {
             responses = data.responses;
             total = data.total;
-            if (responses.length > index_increment) {
+            if (responses.length > indexIncrement) {
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
@@ -50,8 +50,8 @@ $(function () {
         response_list.empty();
 
         if (responses.length !== 0) {
-            var index_incremented = index + index_increment;
-            var end = responses.length < index_incremented ? responses.length : index_incremented;
+            var indexIncremented = index + indexIncrement;
+            var end = responses.length < indexIncremented ? responses.length : indexIncremented;
             for (var i = index; i < end; i++) {
                 response_list.append(responses[i].template);
                 setEditResponseWorkflow(responses[i].id, responses[i].type);
@@ -95,7 +95,7 @@ $(function () {
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
-                if (index + index_increment >= responses.length) {
+                if (index + indexIncrement >= responses.length) {
                     nextButton.attr("disabled", true);
                 }
             },
@@ -116,7 +116,7 @@ $(function () {
     prevButton.click(function () {
         nextButton.attr("disabled", false);
         if (index !== 0) {
-            index -= index_increment;
+            index -= indexIncrement;
             if (index === 0) {
                 $(this).attr("disabled", true);
             }
@@ -127,11 +127,11 @@ $(function () {
     // replaces currently displayed responses with next 10 responses
     nextButton.click(function () {
         prevButton.attr("disabled", false);
-        index += index_increment;
+        index += indexIncrement;
         if (index === responses.length) {
             loadMoreResponses();
         }
-        else if (index + index_increment >= total) {
+        else if (index + indexIncrement >= total) {
             nextButton.attr("disabled", true);
             showResponses();
         }
