@@ -42,15 +42,13 @@
             <h3>FOIL Request Acknowledgement Status</h3>
             <form id="acknowledgment-report-form" action="/report/acknowledgment" method="POST" data-parsley-validate>
                 {{ acknowledgment_form.csrf_token }}
-                <div class="form-row">
-                    <div class="form-group col-auto">
-                        {{ acknowledgment_form.date_from.label }}
-                        {{ acknowledgment_form.date_from }}
-                    </div>
-                    <div class="form-group col-auto">
-                        {{ acknowledgment_form.date_to.label }}
-                        {{ acknowledgment_form.date_to }}
-                    </div>
+                <div class="form-group">
+                    {{ acknowledgment_form.date_from.label }}
+                    {{ acknowledgment_form.date_from }}
+                </div>
+                <div class="form-group">
+                    {{ acknowledgment_form.date_to.label }}
+                    {{ acknowledgment_form.date_to }}
                 </div>
                 {{ acknowledgment_form.submit_field(class="btn btn-success") }}
             </form>

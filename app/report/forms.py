@@ -38,5 +38,5 @@ class AcknowledgmentForm(Form):
     """
     """
     date_from = DateField('Date From (required)', format='%m/%d/%Y', validators=[DataRequired()])
-    date_to = DateField('Date To (required)', validators=[DataRequired()])
+    date_to = DateField('Date To (required)', format='%m/%d/%Y', validators=[DataRequired()])
     submit_field = SubmitField('Generate Report')

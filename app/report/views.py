@@ -3,21 +3,31 @@
 
    :synopsis: Handles the report URL endpoints for the OpenRecords application
 """
-from app.report import report
+import csv
+from datetime import datetime
+
 from flask import (
+    current_app,
     render_template,
     jsonify,
     request
 )
+from flask.helpers import send_file
 from flask_login import current_user, login_required
-from app.models import (
-    Agencies,
-    Requests,
-    UserRequests
-)
+from io import StringIO, BytesIO
+from sqlalchemy import asc
+
 from app.constants import (
     request_status
 )
+from app.lib.date_utils import local_to_utc, utc_to_local
+from app.models import (
+    Agencies,
+    Events,
+    Requests,
+    UserRequests
+)
+from app.report import report
 from app.report.forms import AcknowledgmentForm, ReportFilterForm
 
 
@@ -99,29 +109,23 @@ def get():
 @report.route('/acknowledgment', methods=['POST'])
 @login_required
 def acknowledgment():
-    from datetime import datetime
-    from app.lib.date_utils import local_to_utc, utc_to_local
-    from flask import current_app
-    from app.models import Events
-    from io import StringIO, BytesIO
-    import csv
-    from flask.helpers import send_file
-    from sqlalchemy import asc
+    form = AcknowledgmentForm()
+    if form.validate_on_submit():
 
-    if AcknowledgmentForm().validate_on_submit():
-
-    # Only agency administrators can access endpoint
+        # Only agency administrators can access endpoint
         if not current_user.is_agency_admin:
             return jsonify({
-                'error': 'Only Agency Administratos can access this endpoint.'
+                'error': 'Only Agency Administrators can access this endpoint.'
             }), 403
 
         agency_ein = current_user.default_agency_ein
-        start_date = local_to_utc(datetime(2019, 2, 19, 23, 59, 59, 0), current_app.config['APP_TIMEZONE'])
-        end_date = local_to_utc(datetime(2019, 2, 27), current_app.config['APP_TIMEZONE'])
+        date_from = local_to_utc(datetime.strptime(request.form['date_from'], '%m/%d/%Y'),
+                                 current_app.config['APP_TIMEZONE'])
+        date_to = local_to_utc(datetime.strptime(request.form['date_to'], '%m/%d/%Y'),
+                               current_app.config['APP_TIMEZONE'])
 
         request_list = Requests.query.filter(Requests.agency_ein == agency_ein,
-                                             Requests.date_created.between(start_date, end_date),
+                                             Requests.date_created.between(date_from, date_to),
                                              Requests.status != 'Closed').order_by(asc(Requests.id)).all()
 
         buffer = StringIO()
@@ -169,7 +173,6 @@ def acknowledgment():
                 r.requester.mailing_address.get('state'),
                 r.requester.mailing_address.get('zip'),
             ])
-            break
         dt = datetime.utcnow()
         timestamp = utc_to_local(dt, current_app.config['APP_TIMEZONE'])
         return send_file(
