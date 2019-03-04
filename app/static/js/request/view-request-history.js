@@ -4,7 +4,8 @@ $(function() {
 
     var events = null;
     var index = 0;
-    var index_increment = 5;
+    var indexIncrement = 5;
+    var total = 0;
     var request_id = $.trim($("#request-id").text());
     var navButtons = $("#history-nav-buttons");
     var prevButton = navButtons.find(".prev");
@@ -18,6 +19,7 @@ $(function() {
         message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
         "<span class=\"sr-only\">Loading history...</span></div></div>"
     });
+
     $.ajax({
         url: "/request/api/v1.0/events",
         data: {
@@ -27,11 +29,12 @@ $(function() {
         },
         success: function (data) {
             events = data.events;
-            if (events.length > index_increment) {  // if there are enough events to merit pagination
+            total = data.total;
+            if (events.length > indexIncrement) {  // if there are enough events to merit pagination
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
-            requestHistory.unblock();
+            $("#request-history-section").unblock();
             showHistory();
         },
         error: function(error) {
@@ -46,13 +49,14 @@ $(function() {
 
         if (events.length !== 0) {
             // advance index
-            var index_incremented = index + index_increment;
-            var end = events.length < index_incremented ? events.length : index_incremented;
+            var indexIncremented = index + indexIncrement;
+            var end = events.length < indexIncremented ? events.length : indexIncremented;
             for (var i = index; i < end; i++) {
                 // add events html
                 history.append(events[i].template);
             }
             flask_moment_render_all();
+            $("#request-history-section").unblock();
         }
         else {
             // no events, history section remains empty
@@ -61,6 +65,11 @@ $(function() {
     }
 
     function loadMore() {
+        $("#request-history").html("<div class='loading'></div>");
+        $("#request-history-section").block({
+            message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+            "<span class=\"sr-only\">Loading history...</span></div></div>"
+        });
         $.ajax({
             url: "/request/api/v1.0/events",
             data: {
@@ -71,13 +80,14 @@ $(function() {
             success: function(data) {
                 // append to events
                 events = events.concat(data.events);
-                if (events.length - index_increment == index) {
+                if (index + indexIncrement >= total) {
                     nextButton.attr("disabled", true);
                 }
             },
             error: function(error) {
                 console.log(error);
-            }
+            },
+            complete: showHistory
         })
     }
 
@@ -85,7 +95,7 @@ $(function() {
     prevButton.click(function () {
         nextButton.attr("disabled", false);
         if (index !== 0) {
-            index -= index_increment;
+            index -= indexIncrement;
             if (index == 0) {
                 $(this).attr("disabled", true);
             }
@@ -96,16 +106,16 @@ $(function() {
     // replace currently displayed events with next set
     nextButton.click(function () {
         prevButton.attr("disabled", false);
-        index += index_increment;
-        if (index == events.length - index_increment) {
+        index += indexIncrement;
+        if (index === events.length) {
             loadMore();
         }
-        if (events.length < index + index_increment) {
+        else if (index + indexIncrement >= total) {
             nextButton.attr("disabled", true);
+            showHistory();
         }
-        if (events.length < index) {
-            index -= index_increment;
+        else {
+            showHistory();
         }
-        showHistory();
     })
 });
