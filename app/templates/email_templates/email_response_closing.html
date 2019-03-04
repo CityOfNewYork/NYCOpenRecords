@@ -1,4 +1,4 @@
-{% if default_content %}
+{% if not content %}
     <span class="mceNonEditable">
         The {{ agency_name }} has <strong>closed</strong> your FOIL request <a href='{{ page }}'>{{ request.id }}</a>
         for the following reason{% if reasons|length > 1 %}s{% endif %}:
@@ -6,7 +6,6 @@
     {{ reasons | safe }}
     <span class="mceEditable editable-span"><br></span>
     <span class="mceNonEditable editable-span"><br></span>
-
     {% if has_appeals_language %}
         <span class="mceNonEditable">You may appeal the decision to deny access to material that was redacted in part or withheld in entirety
         by contacting the agency's FOIL Appeals Officer: <a
@@ -16,36 +15,35 @@
     {% endif %}
 {% else %}
     {{ content | safe }}
-    {% if denied %}
+    <p>
+        <strong>Request Information:</strong><br/>
+        Request Title: {{ request.title }}
+    </p>
+    {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
         <p>
-            <strong>Request Information:</strong><br/>
-            Request Title: {{ request.title }}
+            Request Description: {{ request.description }}
         </p>
-        {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
-            <p>
-                Request Description: {{ request.description }}
-            </p>
-        {% endif %}
-        {% if request.custom_metadata %}
-            {% for form_number,form_values in request.custom_metadata|dictsort %}
-                <u>{{ form_values['form_name'] }}</u>
-                <br/>
-                {% for field_number,field_values in form_values['form_fields']|dictsort %}
-                    {{ field_values['field_name'] }}:
-                    {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
-                        {% for value in field_values['field_value'] %}
-                            {{ value }}
-                            {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
-                                , {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        {{ field_values['field_value'] }}
-                    {% endif %}
-                    <br/>
-                {% endfor %}
+    {% endif %}
+    {% if request.custom_metadata %}
+        {% for form_number,form_values in request.custom_metadata|dictsort %}
+            <u>{{ form_values['form_name'] }}</u>
+            <br/>
+            {% for field_number,field_values in form_values['form_fields']|dictsort %}
+                {{ field_values['field_name'] }}:
+                {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
+                    {% for value in field_values['field_value'] %}
+                        {{ value }}
+                        {% if field_values['field_value']|length > 1 and loop.index != field_values['field_value']|length %}
+                            , {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {{ field_values['field_value'] }}
+                {% endif %}
                 <br/>
             {% endfor %}
-        {% endif %}
+            <br/>
+        {% endfor %}
     {% endif %}
+
     {% include "email_templates/email_footer.html" %}
 {% endif %}

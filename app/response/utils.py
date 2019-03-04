@@ -1506,6 +1506,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a closing
     """
     req = Requests.query.filter_by(id=request_id).one()
+    point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
 
     # Determine if custom request forms are enabled
     if 'enabled' in req.agency.agency_features['custom_request_forms']:
@@ -1520,50 +1521,39 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
     else:
         description_hidden_by_default = False
 
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language,
+                                            Reasons.type).filter_by(
+        id=reason_id).one()
+                for reason_id in data.getlist('reason_ids[]')]
+
     has_appeals_language = False
+    custom_reasons = False
+    denied = False
 
-    if eval_request_bool(data['confirmation']):
-        header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
-        reasons = None
-        default_content = False
-        content = data['email_content']
-        denied = False
-        if determination_type.DENIAL in [r.type for r in
-                                         Reasons.query.filter(Reasons.id.in_(data.getlist('reason_ids[]')))]:
+    reasons_text = []
+    # Render the jinja for the reasons content
+    for reason in _reasons:
+        if reason.title == 'Denied - Reason Below':
+            custom_reasons = True
+            continue
+        if reason.has_appeals_language:
+            has_appeals_language = True
+        if reason.type == determination_type.DENIAL:
             denied = True
-        if content.endswith(TINYMCE_EDITABLE_P_TAG):
-            content = content[:-len(TINYMCE_EDITABLE_P_TAG)]
-    else:
-        point_of_contact_user = assign_point_of_contact(data.get('point_of_contact', None))
 
-        _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language).filter_by(id=reason_id).one()
-                    for reason_id in data.getlist('reason_ids[]')]
+        reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
 
-        custom_reasons = False
+    reasons = render_template(
+        os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
+        reasons=reasons_text,
+        custom_reasons=custom_reasons
+    )
 
-        reasons_text = []
-        # Render the jinja for the reasons content
-        for reason in _reasons:
-            if reason.title == 'Denied - Reason Below':
-                custom_reasons = True
-                continue
-            if reason.has_appeals_language:
-                has_appeals_language = True
-            reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
+    content = data['email_content'] if eval_request_bool(data['confirmation']) else None
 
-        reasons = render_template(
-            os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
-            reasons=reasons_text,
-            custom_reasons=custom_reasons
-        )
-
-        default_content = True
-        content = None
-        header = None
-        denied = None
     return jsonify({"template": render_template(
         email_template,
-        default_content=default_content,
         content=content,
         request=req,
         agency_appeals_email=req.agency.appeals_email,
