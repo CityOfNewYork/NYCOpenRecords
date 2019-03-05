@@ -47,7 +47,7 @@
         {% if current_user.is_agency %}
             {% if request._source.agency_ein in current_user.get_agencies %}
                 <td>
-                    {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else '' }}
+                    {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else 'N/A' }}
                 </td>
                 <td>
                     {{ request._source.requester_name }}
