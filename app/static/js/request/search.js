@@ -24,6 +24,12 @@ $(function() {
         resultsHeader = "resultsHeading",
         isAgencyUser = ($("#is-agency-user").val() === "true"),
         resultcol = [];
+
+    if (isAgencyUser) {
+        var userAgencies = $("#user-agencies").val();
+        userAgencies = userAgencies.replace(/'/g, '"');
+        userAgencies = JSON.parse(userAgencies);
+    }
     
     // Table head values
     if (isAgencyUser) {
@@ -346,6 +352,7 @@ $(function() {
     // search on load
     $(document).ready(function(){
         search();
+
     });
 
     // disable other filters if searching by FOIL-ID
@@ -506,4 +513,14 @@ $(function() {
             scrollTop: $("#" + theId).offset().top
         }, 500);
     }
+
+    agencySelect.change(function () {
+        var selectedAgency = agencySelect.val();
+        if (!(userAgencies.includes(selectedAgency)) || selectedAgency === '') {
+            $('#redact-results-alert').show();
+        }
+        else {
+            $('#redact-results-alert').hide();
+        }
+    });
 });

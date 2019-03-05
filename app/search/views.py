@@ -204,8 +204,9 @@ def requests_doc(doc_type):
         all_requests = Requests.query.filter(Requests.id.in_(ids)).options(
             joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).options(
             joinedload(Requests.agency)).all()
+        user_agencies = current_user.get_agencies
         for req in all_requests:
-            if req.agency_ein in current_user.get_agencies:
+            if req.agency_ein in user_agencies:
                 writer.writerow([
                     req.id,
                     req.agency.name,

@@ -186,13 +186,15 @@ def new():
 
 @request.route('/view_all', methods=['GET'])
 def view_all():
+    user_agencies = current_user.get_agencies if current_user.is_agency else ''
     return render_template(
         'request/all.html',
         form=SearchRequestsForm(),
         holidays=sorted(get_holidays_date_list(
             datetime.utcnow().year,
             (datetime.utcnow() + rd(years=DEFAULT_YEARS_HOLIDAY_LIST)).year)
-        )
+        ),
+        user_agencies=user_agencies
     )
 
 

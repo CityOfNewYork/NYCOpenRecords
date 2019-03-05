@@ -11,6 +11,7 @@
 {% block content %}
     {% if current_user.is_agency %}
         <input type="hidden" id="is-agency-user" value="true">
+        <input type="hidden" id="user-agencies" value="{{ user_agencies }}">
     {% else %}
         <input type="hidden" id="is-agency-user" value="false">
     {% endif %}
@@ -41,6 +42,10 @@
                 </div>
                 <br>
             {% endif %}
+            <div class="alert alert-warning" id="redact-results-alert" hidden>
+                Please note that some requests in the results as well as the CSV export will be redacted if they belong
+                to an agency other than your own. This is to protect the confidential information of those requesters.
+            </div>
         </div>
         <!-- hidden inputs with out-of-form counterparts must have identical values -->
         <input type="hidden" name="tz_name" value="America/New_York">
