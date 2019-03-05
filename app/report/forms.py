@@ -3,6 +3,8 @@
 
     :synopsis: Defines forms used for report statistics.
 """
+from datetime import date
+
 from flask_login import current_user
 from flask_wtf import Form
 from wtforms import SelectField, DateField, SubmitField
@@ -40,3 +42,11 @@ class AcknowledgmentForm(Form):
     date_from = DateField('Date From (required)', format='%m/%d/%Y', validators=[DataRequired()])
     date_to = DateField('Date To (required)', format='%m/%d/%Y', validators=[DataRequired()])
     submit_field = SubmitField('Generate Report')
+
+    def validate(self):
+        if not super().validate():
+            return False
+        for field in [self.date_from, self.date_to]:
+            if field.data > date.today():
+                field.errors.append('The date cannot be greater than today.')
+            if field.data <

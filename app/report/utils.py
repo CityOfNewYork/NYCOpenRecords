@@ -1,7 +1,9 @@
 import tablib
 from sqlalchemy import asc
+from flask import current_app
 
 from app import celery
+from app.lib.date_utils import utc_to_local
 from app.lib.email_utils import send_email
 from app.models import Events, Requests, Users
 
@@ -19,8 +21,7 @@ def generate_acknowledgment_report(self, current_user_guid, date_from, date_to):
                'Acknowledged',
                'Acknowledged By',
                'Date Created',
-               'Date Received',
-               'Date Due',
+               'Due Date',
                'Status',
                'Title',
                'Description',
@@ -43,9 +44,8 @@ def generate_acknowledgment_report(self, current_user_guid, date_from, date_to):
             r.id,
             r.was_acknowledged,
             ack_user,
-            r.date_created,
-            r.date_submitted,
-            r.due_date,
+            utc_to_local(r.date_created, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
+            utc_to_local(r.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
             r.status,
             r.title,
             r.description,
@@ -64,5 +64,5 @@ def generate_acknowledgment_report(self, current_user_guid, date_from, date_to):
                to=[current_user.email],
                email_content='Report Done.',
                attachment=data.export('xls'),
-               filename='test.xls',
+               filename='FOIL_acknowledgments_{}_{}.xls'.format(date_from, date_to),
                mimetype='application/octect-stream')

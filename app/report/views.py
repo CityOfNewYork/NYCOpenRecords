@@ -122,6 +122,6 @@ def acknowledgment():
             current_user_guid=current_user.guid, report_type='acknowledgment',
             agency_ein=current_user.default_agency_ein,
             timestamp=datetime.now())
-        generate_acknowledgment_report.apply_async(args=(current_user.guid, date_from, date_to), task_id=redis_key)
+        # generate_acknowledgment_report.apply_async(args=(current_user.guid, date_from, date_to), task_id=redis_key)
 
         return jsonify(), 200
