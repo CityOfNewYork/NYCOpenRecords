@@ -1261,6 +1261,7 @@ class Reasons(db.Model):
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
+    has_appeals_language = db.Column(db.Boolean, default=True)
 
     @classmethod
     def populate(cls):
@@ -1273,6 +1274,7 @@ class Reasons(db.Model):
                     type=row['type'],
                     title=row['title'],
                     content=row['content'],
+                    has_appeals_language=eval_request_bool(row['has_appeals_language']),
                     agency_ein=agency_ein
                 )
                 if not Reasons.query.filter_by(title=row['title'], content=row['content'],
