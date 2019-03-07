@@ -63,14 +63,14 @@
           }
         }
       ],
-      "repeatable": "0",
+      "repeatable": "1",
       "category": "1",
       "minimum_required": "0"
     },
     {
       "agency_ein": "0057",
-      "form_name": "Ambulance Call Report/Prehospital Care Report",
-      "form_description": "Some general information about a ACR/PCR request can go here.",
+      "form_name": "911 Call",
+      "form_description": "Some general information about 911 call requests can go here.",
       "field_definitions": [
         {
           "Submission Method": {
@@ -81,11 +81,12 @@
               "Online/At Home"
             ],
             "help_text": "Please select an option.",
-            "required": true
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
           }
         },
         {
-          "Description": {
+          "Description of Incident": {
             "type": "textarea",
             "name": "2",
             "required": false,
@@ -96,53 +97,9 @@
           }
         },
         {
-          "Name": {
-            "type": "input",
-            "name": "3",
-            "required": false
-          }
-        },
-        {
-          "Telephone Number": {
-            "type": "input",
-            "name": "4",
-            "max_length": "10",
-            "required": false
-          }
-        },
-        {
-          "Address": {
-            "type": "input",
-            "name": "5",
-            "required": false
-          }
-        },
-        {
-          "State": {
-            "type": "state",
-            "name": "6",
-            "required": false
-          }
-        },
-        {
-          "Zip Code": {
-            "type": "input",
-            "name": "7",
-            "max_length": "5",
-            "required": false
-          }
-        },
-        {
-          "Name of Patient": {
-            "type": "input",
-            "name": "8",
-            "required": false
-          }
-        },
-        {
           "Incident Date": {
             "type": "date",
-            "name": "9",
+            "name": "3",
             "future_date_invalid": true,
             "required": false
           }
@@ -150,21 +107,21 @@
         {
           "Incident Time": {
             "type": "time",
-            "name": "10",
+            "name": "4",
             "required": false
           }
         },
         {
           "Incident Location": {
             "type": "input",
-            "name": "11",
+            "name": "5",
             "required": false
           }
         },
         {
           "Incident Borough": {
-            "type": "input",
-            "name": "12",
+            "type": "select_dropdown",
+            "name": "6",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -178,59 +135,117 @@
         {
           "Hospital Taken To": {
             "type": "input",
-            "name": "13",
+            "name": "7",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Fire Incident Report",
+      "form_description": "Please note that fire incident reports are only available for cases where the cause of the fire was determined at the scene of the incident. For all cases where a further investigation was needed to determine the cause of incident, please select Fire Marshall Report from the dropdown above.",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Incident Address": {
+            "type": "input",
+            "name": "address",
+            "help_text": "Please include the street name and house number.",
             "required": false
           }
         },
         {
-          "Is the patient a minor?": {
-            "type": "radio",
-            "name": "14",
-            "help_text": "Please select an option.",
+          "Floor(s)": {
+            "type": "input",
+            "name": "floor",
+            "required": false
+          }
+        },
+        {
+          "Apt(s)": {
+            "type": "input",
+            "name": "apt",
+            "required": false
+          }
+        },
+        {
+          "Borough": {
+            "type": "select_dropdown",
+            "name": "borough",
             "values": [
-              "Yes",
-              "No"
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
             ],
             "required": false
           }
         },
         {
-          "Date of Birth": {
+          "Box #": {
+            "type": "input",
+            "name": "box",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
             "type": "date",
-            "name": "15",
+            "name": "3",
             "future_date_invalid": true,
             "required": false
           }
         },
         {
-          "Last 4 Digits of Social Security Number": {
+          "Incident Report Number (if available)": {
             "type": "input",
-            "name": "16",
-            "max_length": "4",
+            "name": "number",
             "required": false
           }
         },
         {
-          "If you have the ACR/PCR, please provide ACR/PCR number": {
-            "type": "input",
-            "name": "17",
-            "required": false
-          }
-        },
-        {
-          "What is the requester’s relationship to the patient?": {
+          "Incident Type": {
             "type": "radio",
-            "name": "18",
+            "name": "1",
             "values": [
-              "Self/Patient",
-              "Parent/Guardian",
-              "Executor/Administrator of Estate"
+              "Building",
+              "Transportation",
+              "Outdoors",
+              "Non-Fire Emergency"
             ],
+            "help_text": "If transportation if selected, please provide the type, make, and plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
             "required": false
+          }
+        },
+        {
+          "Description of Incident": {
+            "type": "textarea",
+            "name": "desc",
+            "required": false,
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
           }
         }
       ],
-      "repeatable": "0",
+      "repeatable": "1",
       "category": "1",
       "minimum_required": "0"
     }
