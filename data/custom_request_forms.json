@@ -69,7 +69,7 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "911 Call",
+      "form_name": "911 Call Report",
       "form_description": "Some general information about 911 call requests can go here.",
       "field_definitions": [
         {
@@ -242,6 +242,115 @@
             "max_length": 5000,
             "character_counter": true,
             "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Fire Marshall Report",
+      "form_description": "Please note that fire marshall reports are only available for cases where the cause could not be determined at the scene of the incident. As a result, a further investigation was needed. For incidents where the cause was determined at the scene, please select Fire Incident Report from the dropdown above.",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Date of Fire": {
+            "type": "date",
+            "name": "date",
+            "future_date_invalid": true,
+            "required": false
+          }
+        },
+        {
+          "Street Address": {
+            "type": "input",
+            "name": "address",
+            "required": false
+          }
+        },
+        {
+          "Borough": {
+            "type": "select_dropdown",
+            "name": "borough",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Name of Applicant": {
+            "type": "input",
+            "name": "name",
+            "required": false
+          }
+        },
+        {
+          "Firm Name": {
+            "type": "input",
+            "name": "firm",
+            "required": false
+          }
+        },
+        {
+          "Applicant Notes": {
+            "type": "textarea",
+            "name": "desc",
+            "required": false,
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide any notes that you have regarding the incident."
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "General Request",
+      "form_description": "Please fill this form out for any requests that do not fall under 911 Call Report, Fire Incident Report, or Fire Marshall Report.",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Records": {
+            "type": "textarea",
+            "name": "desc",
+            "required": false,
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
           }
         }
       ],
