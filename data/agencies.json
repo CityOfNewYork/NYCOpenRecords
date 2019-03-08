@@ -578,17 +578,17 @@
           "generate_letters": false
         },
         "custom_request_forms": {
-          "enabled": false,
+          "enabled": true,
           "categorized": false,
-          "expand_by_default": false,
+          "expand_by_default": true,
           "category_info_text": "",
           "category_warning_text": "",
           "multiple_request_types": false,
-          "description_hidden_by_default": true
+          "description_hidden_by_default": false
         },
         "monitor_agency_requests": [],
         "specific_request_instructions": {
-          "text": ""
+          "text": "<p>For all requests relating to <strong>Ambulance Call Reports</strong> or <strong>Pre-Hospital Care Reports</strong>, please download and fill out the following form:<br><br><a href='https://www1.nyc.gov/assets/fdny/downloads/pdf/about/public-record-ambulance-call-report.pdf'>Ambulance Call Report/Pre-Hospital Care Report</a><br><br>Mail the completed form to the following address along with a check or money order payable to the New York City Fire Department:<br><br>New York City Fire Department<br>Public Records Unit<br>9 MetroTech Center<br>Brooklyn, New York, 11201-3857</p>"
         }
       },
       "acronym": "FDNY"
