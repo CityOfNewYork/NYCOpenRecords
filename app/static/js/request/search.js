@@ -25,12 +25,6 @@ $(function() {
         isAgencyUser = ($("#is-agency-user").val() === "true"),
         resultcol = [];
 
-    if (isAgencyUser) {
-        var userAgencies = $("#user-agencies").val();
-        userAgencies = userAgencies.replace(/'/g, '"');
-        userAgencies = JSON.parse(userAgencies);
-    }
-    
     // Table head values
     if (isAgencyUser) {
         resultcol = [
@@ -43,6 +37,11 @@ $(function() {
             ["Date Closed", ""],
             ["Requester Name", ""]
         ];
+
+        var userAgencies = [];
+        $("#user-agencies option").each(function () {
+            userAgencies.push($(this).val());
+        });
     }
     else {
         resultcol = [

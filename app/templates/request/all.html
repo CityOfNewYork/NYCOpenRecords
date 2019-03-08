@@ -11,7 +11,11 @@
 {% block content %}
     {% if current_user.is_agency %}
         <input type="hidden" id="is-agency-user" value="true">
-        <input type="hidden" id="user-agencies" value="{{ user_agencies }}">
+        <select class="hidden" id="user-agencies">
+            {% for agency in user_agencies %}
+                <option value="{{ agency }}">{{ agency }}</option>
+            {% endfor %}
+        </select>
     {% else %}
         <input type="hidden" id="is-agency-user" value="false">
     {% endif %}
@@ -42,7 +46,7 @@
                 </div>
                 <br>
             {% endif %}
-            <div class="alert alert-warning" id="redact-results-alert" hidden>
+            <div class="alert alert-warning" id="redact-results-alert" aria-live="polite" tabindex="0" hidden>
                 Please note that some requests in the results as well as the CSV export will be redacted if they belong
                 to an agency other than your own. This is to protect the confidential information of those requesters.
             </div>
