@@ -351,7 +351,6 @@ $(function() {
     // search on load
     $(document).ready(function(){
         search();
-
     });
 
     // disable other filters if searching by FOIL-ID
