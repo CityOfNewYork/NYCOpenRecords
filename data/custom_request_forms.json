@@ -347,7 +347,7 @@
           "Description of Records": {
             "type": "textarea",
             "name": "fdny-form4-field2",
-            "required": false,
+            "required": true,
             "max_length": 5000,
             "character_counter": true,
             "help_text": "Please provide a short description of the records you are requesting."
