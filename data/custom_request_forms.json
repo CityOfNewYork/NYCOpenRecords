@@ -75,7 +75,7 @@
         {
           "Submission Method": {
             "type": "radio",
-            "name": "1",
+            "name": "fdny-form1-field1",
             "values": [
               "In Person/At FDNY",
               "Online/At Home"
@@ -88,7 +88,7 @@
         {
           "Description of Incident": {
             "type": "textarea",
-            "name": "2",
+            "name": "fdny-form1-field2",
             "required": false,
             "max_length": 5000,
             "character_counter": true,
@@ -99,7 +99,7 @@
         {
           "Incident Date": {
             "type": "date",
-            "name": "3",
+            "name": "fdny-form1-field3",
             "future_date_invalid": true,
             "required": false
           }
@@ -107,21 +107,21 @@
         {
           "Incident Time": {
             "type": "time",
-            "name": "4",
+            "name": "fdny-form1-field4",
             "required": false
           }
         },
         {
           "Incident Location": {
             "type": "input",
-            "name": "5",
+            "name": "fdny-form1-field5",
             "required": false
           }
         },
         {
           "Incident Borough": {
             "type": "select_dropdown",
-            "name": "6",
+            "name": "fdny-form1-field6",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -135,7 +135,7 @@
         {
           "Hospital Taken To": {
             "type": "input",
-            "name": "7",
+            "name": "fdny-form1-field7",
             "required": false
           }
         }
@@ -152,7 +152,7 @@
         {
           "Submission Method": {
             "type": "radio",
-            "name": "1",
+            "name": "fdny-form2-field1",
             "values": [
               "In Person/At FDNY",
               "Online/At Home"
@@ -165,7 +165,7 @@
         {
           "Incident Address": {
             "type": "input",
-            "name": "address",
+            "name": "fdny-form2-field2",
             "help_text": "Please include the street name and house number.",
             "required": false
           }
@@ -173,7 +173,7 @@
         {
           "Floor(s)": {
             "type": "input",
-            "name": "floor",
+            "name": "fdny-form2-field3",
             "required": false
           }
         },
@@ -187,7 +187,7 @@
         {
           "Borough": {
             "type": "select_dropdown",
-            "name": "borough",
+            "name": "fdny-form2-field4",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -201,7 +201,7 @@
         {
           "Box #": {
             "type": "input",
-            "name": "box",
+            "name": "fdny-form2-field5",
             "required": false
           }
         },
@@ -216,14 +216,14 @@
         {
           "Incident Report Number (if available)": {
             "type": "input",
-            "name": "number",
+            "name": "fdny-form2-field6",
             "required": false
           }
         },
         {
           "Incident Type": {
             "type": "radio",
-            "name": "1",
+            "name": "fdny-form2-field7",
             "values": [
               "Building",
               "Transportation",
@@ -237,7 +237,7 @@
         {
           "Description of Incident": {
             "type": "textarea",
-            "name": "desc",
+            "name": "fdny-form2-field8",
             "required": false,
             "max_length": 5000,
             "character_counter": true,
@@ -257,7 +257,7 @@
         {
           "Submission Method": {
             "type": "radio",
-            "name": "1",
+            "name": "fdny-form3-field1",
             "values": [
               "In Person/At FDNY",
               "Online/At Home"
@@ -270,7 +270,7 @@
         {
           "Date of Fire": {
             "type": "date",
-            "name": "date",
+            "name": "fdny-form3-field2",
             "future_date_invalid": true,
             "required": false
           }
@@ -285,7 +285,7 @@
         {
           "Borough": {
             "type": "select_dropdown",
-            "name": "borough",
+            "name": "fdny-form3-field3",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -299,21 +299,21 @@
         {
           "Name of Applicant": {
             "type": "input",
-            "name": "name",
+            "name": "fdny-form3-field4",
             "required": false
           }
         },
         {
           "Firm Name": {
             "type": "input",
-            "name": "firm",
+            "name": "fdny-form3-field5",
             "required": false
           }
         },
         {
           "Applicant Notes": {
             "type": "textarea",
-            "name": "desc",
+            "name": "fdny-form3-field6",
             "required": false,
             "max_length": 5000,
             "character_counter": true,
@@ -333,7 +333,7 @@
         {
           "Submission Method": {
             "type": "radio",
-            "name": "1",
+            "name": "fdny-form4-field1",
             "values": [
               "In Person/At FDNY",
               "Online/At Home"
@@ -346,7 +346,7 @@
         {
           "Description of Records": {
             "type": "textarea",
-            "name": "desc",
+            "name": "fdny-form4-field2",
             "required": false,
             "max_length": 5000,
             "character_counter": true,
