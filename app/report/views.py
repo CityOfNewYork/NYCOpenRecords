@@ -7,6 +7,7 @@ from datetime import datetime
 
 from flask import (
     current_app,
+    flash,
     render_template,
     jsonify,
     request
@@ -105,23 +106,39 @@ def get():
 @report.route('/acknowledgment', methods=['POST'])
 @login_required
 def acknowledgment():
-    form = AcknowledgmentForm()
-    if form.validate_on_submit():
+    """Generates the acknowledgment report.
+
+    Returns:
+        Template with context.
+
+    """
+    acknowledgment_form = AcknowledgmentForm()
+    if acknowledgment_form.validate_on_submit():
         # Only agency administrators can access endpoint
         if not current_user.is_agency_admin:
             return jsonify({
                 'error': 'Only Agency Administrators can access this endpoint.'
             }), 403
-
         date_from = local_to_utc(datetime.strptime(request.form['date_from'], '%m/%d/%Y'),
                                  current_app.config['APP_TIMEZONE'])
         date_to = local_to_utc(datetime.strptime(request.form['date_to'], '%m/%d/%Y'),
                                current_app.config['APP_TIMEZONE'])
-
-        redis_key = "{current_user_guid}-{report_type}-{agency_ein}-{timestamp}".format(
-            current_user_guid=current_user.guid, report_type='acknowledgment',
+        redis_key = '{current_user_guid}-{report_type}-{agency_ein}-{timestamp}'.format(
+            current_user_guid=current_user.guid,
+            report_type='acknowledgment',
             agency_ein=current_user.default_agency_ein,
-            timestamp=datetime.now())
-        # generate_acknowledgment_report.apply_async(args=(current_user.guid, date_from, date_to), task_id=redis_key)
-
-        return jsonify(), 200
+            timestamp=datetime.now(),
+        )
+        generate_acknowledgment_report.apply_async(args=[current_user.guid,
+                                                         date_from,
+                                                         date_to],
+                                                   serializer='pickle',
+                                                   task_id=redis_key)
+        flash('Your report is being generated. You will receive an email with the report attached once its complete.',
+              category='success')
+    else:
+        for field, error in acknowledgment_form.errors.items():
+            flash(acknowledgment_form.errors[field][0], category='danger')
+    return render_template('report/reports.html',
+                           acknowledgment_form=acknowledgment_form,
+                           report_filter_form=ReportFilterForm())
