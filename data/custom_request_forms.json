@@ -357,6 +357,62 @@
       "repeatable": "1",
       "category": "1",
       "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Walk In For Public Records Unit",
+      "form_description": "Please note this Request Type is only for requesters who are physically at the FDNY Public Records Unit. All requests submitted from outside the FDNY building are subject to being denied.",
+      "field_definitions": [
+        {
+          "Description of Records": {
+            "type": "textarea",
+            "name": "fdny-form5-field1",
+            "required": true,
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
+          }
+        },
+        {
+          "Building Address": {
+            "type": "input",
+            "name": "fdny-form5-field2",
+            "required": true
+          }
+        },
+        {
+          "Borough": {
+            "type": "select_dropdown",
+            "name": "fdny-form5-field3",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": false
+          }
+        },
+        {
+          "Account Info": {
+            "type": "input",
+            "name": "fdny-form5-field4",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "fdny-form5-field5",
+            "required": false,
+            "help_text": "Please only enter Incident Date if you are requesting a Fire Response report."
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
     }
   ]
 }
