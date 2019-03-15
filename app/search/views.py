@@ -131,6 +131,7 @@ def requests_doc(doc_type):
     file of the specified document type.
     - Filtering on set size is ignored; all results are returned.
     - Currently only supports CSVs.
+    - CSV only includes requests belonging to that user's agency
 
     Document name format: "FOIL_requests_results_<timestamp:MM_DD_YYYY_at_HH_mm_pp>"
 
@@ -203,30 +204,32 @@ def requests_doc(doc_type):
         all_requests = Requests.query.filter(Requests.id.in_(ids)).options(
             joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).options(
             joinedload(Requests.agency)).all()
+        user_agencies = current_user.get_agencies
         for req in all_requests:
-            writer.writerow([
-                req.id,
-                req.agency.name,
-                req.title,
-                req.description,
-                req.agency_request_summary,
-                req.status,
-                req.date_created,
-                req.date_submitted,
-                req.due_date,
-                req.date_closed,
-                req.requester.name,
-                req.requester.email,
-                req.requester.title,
-                req.requester.organization,
-                req.requester.phone_number,
-                req.requester.fax_number,
-                req.requester.mailing_address.get('address_one'),
-                req.requester.mailing_address.get('address_two'),
-                req.requester.mailing_address.get('city'),
-                req.requester.mailing_address.get('state'),
-                req.requester.mailing_address.get('zip'),
-                ", ".join(u.email for u in req.agency_users)])
+            if req.agency_ein in user_agencies:
+                writer.writerow([
+                    req.id,
+                    req.agency.name,
+                    req.title,
+                    req.description,
+                    req.agency_request_summary,
+                    req.status,
+                    req.date_created,
+                    req.date_submitted,
+                    req.due_date,
+                    req.date_closed,
+                    req.requester.name,
+                    req.requester.email,
+                    req.requester.title,
+                    req.requester.organization,
+                    req.requester.phone_number,
+                    req.requester.fax_number,
+                    req.requester.mailing_address.get('address_one'),
+                    req.requester.mailing_address.get('address_two'),
+                    req.requester.mailing_address.get('city'),
+                    req.requester.mailing_address.get('state'),
+                    req.requester.mailing_address.get('zip'),
+                    ", ".join(u.email for u in req.agency_users)])
         dt = datetime.utcnow()
         timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
         return send_file(

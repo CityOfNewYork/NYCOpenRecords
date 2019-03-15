@@ -4,7 +4,8 @@ $(function () {
 
     var responses = null;
     var index = 0;
-    var index_increment = 5;
+    var indexIncrement = 5;
+    var total = 0;
     var alphaNumericChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     var request_id = $.trim($('#request-id').text());
@@ -20,6 +21,7 @@ $(function () {
         message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
         "<span class=\"sr-only\">Loading responses...</span></div></div>"
     });
+
     // get first set of responses on page load
     $.ajax({
         url: '/request/api/v1.0/responses',
@@ -30,11 +32,12 @@ $(function () {
         },
         success: function (data) {
             responses = data.responses;
-            if (responses.length > index_increment) {
+            total = data.total;
+            if (responses.length > indexIncrement) {
                 navButtons.show();
                 prevButton.attr("disabled", true);
             }
-            requestResponses.unblock();
+            $("#request-responses-section").unblock();
             showResponses();
         },
         error: function (error) {
@@ -47,8 +50,8 @@ $(function () {
         response_list.empty();
 
         if (responses.length !== 0) {
-            var index_incremented = index + index_increment;
-            var end = responses.length < index_incremented ? responses.length : index_incremented;
+            var indexIncremented = index + indexIncrement;
+            var end = responses.length < indexIncremented ? responses.length : indexIncremented;
             for (var i = index; i < end; i++) {
                 response_list.append(responses[i].template);
                 setEditResponseWorkflow(responses[i].id, responses[i].type);
@@ -68,6 +71,7 @@ $(function () {
                 }
             }
             flask_moment_render_all();
+            $("#request-responses-section").unblock();
         }
         else {
             response_list.html("<div class=\"center-text\">" +
@@ -77,6 +81,11 @@ $(function () {
 
 
     function loadMoreResponses() {
+        $("#request-responses").html("<div class='loading'></div>");
+        $("#request-responses-section").block({
+            message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+            "<span class=\"sr-only\">Loading responses...</span></div></div>"
+        });
         $.ajax({
             url: '/request/api/v1.0/responses',
             data: {
@@ -86,13 +95,14 @@ $(function () {
             },
             success: function (data) {
                 responses = responses.concat(data.responses);
-                if (responses.length - index_increment == index) {
+                if (index + indexIncrement >= responses.length) {
                     nextButton.attr("disabled", true);
                 }
             },
             error: function (error) {
                 console.log(error);
-            }
+            },
+            complete: showResponses
         })
     }
 
@@ -106,7 +116,7 @@ $(function () {
     prevButton.click(function () {
         nextButton.attr("disabled", false);
         if (index !== 0) {
-            index -= index_increment;
+            index -= indexIncrement;
             if (index === 0) {
                 $(this).attr("disabled", true);
             }
@@ -117,17 +127,17 @@ $(function () {
     // replaces currently displayed responses with next 10 responses
     nextButton.click(function () {
         prevButton.attr("disabled", false);
-        index += index_increment;
-        if (index == responses.length - index_increment) {
+        index += indexIncrement;
+        if (index === responses.length) {
             loadMoreResponses();
         }
-        if (responses.length < index + index_increment) {
+        else if (index + indexIncrement >= total) {
             nextButton.attr("disabled", true);
+            showResponses();
         }
-        if (responses.length < index) {
-            index -= index_increment;
+        else {
+            showResponses();
         }
-        showResponses();
     });
 
     // TODO: DELETE 'updated' on modal close and reset / refresh page (wait until all responses ready)

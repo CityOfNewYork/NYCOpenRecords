@@ -418,6 +418,14 @@ class Users(UserMixin, db.Model):
         return self.is_nyc_employee
 
     @property
+    def get_agencies(self):
+        """
+        Returns a list of the agency ein's the user belongs to.
+        """
+        agencies = AgencyUsers.query.filter_by(user_guid=self.guid).all()
+        return [agency.agency_ein for agency in agencies]
+
+    @property
     def default_agency_ein(self):
         """
         Return the Users default agency ein.
@@ -1253,6 +1261,7 @@ class Reasons(db.Model):
     agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
+    has_appeals_language = db.Column(db.Boolean, default=True)
 
     @classmethod
     def populate(cls):
@@ -1265,6 +1274,7 @@ class Reasons(db.Model):
                     type=row['type'],
                     title=row['title'],
                     content=row['content'],
+                    has_appeals_language=eval_request_bool(row['has_appeals_language']),
                     agency_ein=agency_ein
                 )
                 if not Reasons.query.filter_by(title=row['title'], content=row['content'],

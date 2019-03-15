@@ -45,12 +45,17 @@
             {{ moment(request._source.date_due).format('MM/DD/YYYY') }}
         </td>
         {% if current_user.is_agency %}
-            <td>
-                {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else '' }}
-            </td>
-            <td>
-                {{ request._source.requester_name }}
-            </td>
+            {% if request._source.agency_ein in current_user.get_agencies %}
+                <td>
+                    {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else 'N/A' }}
+                </td>
+                <td>
+                    {{ request._source.requester_name }}
+                </td>
+            {% else %}
+                <td><strong>Redacted</strong></td>
+                <td><strong>Redacted</strong></td>
+            {% endif %}
         {% endif %}
  </tr>
 {% endfor %}
