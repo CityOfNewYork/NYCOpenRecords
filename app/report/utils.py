@@ -2,14 +2,12 @@ from datetime import datetime
 
 import tablib
 from flask import current_app
-from sqlalchemy import asc, or_, and_
+from sqlalchemy import asc
 
 from sqlalchemy.orm import joinedload
 
-from app import celery, db
-from app.constants.event_type import REQ_ACKNOWLEDGED
+from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED
 from app.constants.request_status import CLOSED
-from app.constants.user_type_request import AGENCY, REQUESTER
 from app.lib.date_utils import utc_to_local
 from app.lib.email_utils import send_email
 from app.models import Events, Requests, Users, Agencies
@@ -42,7 +40,8 @@ def generate_acknowledgment_report(current_user_guid: str, date_from: datetime, 
     ).filter(
         Requests.agency_ein == agency_ein,
         Requests.status != CLOSED,
-        Events.request_id == Requests.id
+        Events.request_id == Requests.id,
+        Events.type.in_((REQ_ACKNOWLEDGED, REQ_CREATED))
     ).order_by(asc(Requests.id)).all()
 
     headers = ('Request ID',
@@ -64,53 +63,60 @@ def generate_acknowledgment_report(current_user_guid: str, date_from: datetime, 
     data_from_dates = []
     all_data = []
 
-    acknowledged_requests = list(filter(lambda x: x.type == REQ_ACKNOWLEDGED, request_list))
+    acknowledged_requests = {res.Requests.id: {"request": res.Requests, "user_guid": res.user_guid} for res in
+                             filter(lambda x: x.type == REQ_ACKNOWLEDGED, request_list)}
 
-    for result in request_list:
+    unacknowledged_requests = {res.Requests.id: {"request": res.Requests} for res in
+                        filter(lambda x: x.type == REQ_CREATED and x.Requests.id not in acknowledged_requests.keys(),
+                               request_list)}
+
+    for request_id in list(acknowledged_requests.keys()) + list(unacknowledged_requests.keys()):
         ack_user = ''
         was_acknowledged = False
-        if result in acknowledged_requests:
-            ack_user = [user for user in agency_users if user.guid == result.user_guid]
+        if acknowledged_requests.get(request_id, None):
+            ack_user = [user for user in agency_users if user.guid == acknowledged_requests[request_id]["user_guid"]]
             ack_user = ack_user[0].name if ack_user else ''
             was_acknowledged = True
-        r = result.Requests
-        req_date_created_local = utc_to_local(r.date_created, current_app.config['APP_TIMEZONE'])
+            request = acknowledged_requests.get(request_id)['request']
+        else:
+            request = unacknowledged_requests.get(request_id)['request']
+        req_date_created_local = utc_to_local(request.date_created, current_app.config['APP_TIMEZONE'])
         if date_from < req_date_created_local < date_to:
             data_from_dates.append((
-                r.id,
+                request.id,
                 was_acknowledged,
                 ack_user,
                 req_date_created_local.strftime('%m/%d/%Y'),
-                utc_to_local(r.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
-                r.status,
-                r.title,
-                r.description,
-                r.requester.name,
-                r.requester.email,
-                r.requester.phone_number,
-                r.requester.mailing_address.get('address_one'),
-                r.requester.mailing_address.get('address_two'),
-                r.requester.mailing_address.get('city'),
-                r.requester.mailing_address.get('state'),
-                r.requester.mailing_address.get('zip'),
+                utc_to_local(request.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
+                request.status,
+                request.title,
+                request.description,
+                request.requester.name,
+                request.requester.email,
+                request.requester.phone_number,
+                request.requester.mailing_address.get('address_one'),
+                request.requester.mailing_address.get('address_two'),
+                request.requester.mailing_address.get('city'),
+                request.requester.mailing_address.get('state'),
+                request.requester.mailing_address.get('zip'),
             ))
         all_data.append((
-            r.id,
+            request.id,
             was_acknowledged,
             ack_user,
             req_date_created_local.strftime('%m/%d/%Y'),
-            utc_to_local(r.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
-            r.status,
-            r.title,
-            r.description,
-            r.requester.name,
-            r.requester.email,
-            r.requester.phone_number,
-            r.requester.mailing_address.get('address_one'),
-            r.requester.mailing_address.get('address_two'),
-            r.requester.mailing_address.get('city'),
-            r.requester.mailing_address.get('state'),
-            r.requester.mailing_address.get('zip'),
+            utc_to_local(request.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
+            request.status,
+            request.title,
+            request.description,
+            request.requester.name,
+            request.requester.email,
+            request.requester.phone_number,
+            request.requester.mailing_address.get('address_one'),
+            request.requester.mailing_address.get('address_two'),
+            request.requester.mailing_address.get('city'),
+            request.requester.mailing_address.get('state'),
+            request.requester.mailing_address.get('zip'),
         ))
     date_from_string = date_from.strftime('%Y%m%d')
     date_to_string = date_to.strftime('%Y%m%d')

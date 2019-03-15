@@ -99,8 +99,7 @@
                         sel.append(opt);
                     }
                     userFilterDiv.show();
-                }
-                else {
+                } else {
                     userFilterDiv.hide();
                 }
             }
@@ -136,14 +135,13 @@
                                 (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
                                 data.values[0].toLocaleString() + " requests open. " + data.values[1].toLocaleString() +
                                 " requests closed.");
-                            chartDescription.html("This chart represents the aggregate data of all requests opened for "
-                                + $("#agency-filter option:selected").text() +
+                            chartDescription.html("This chart represents the aggregate data of all requests opened for " +
+                                $("#agency-filter option:selected").text() +
                                 ", along with the status of those requests. <strong>" +
                                 (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
                                 data.values[0].toLocaleString() + " requests open. " +
                                 data.values[1].toLocaleString() + " requests closed.</strong>");
-                        }
-                        else {
+                        } else {
                             $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests assigned to " +
                                 $("#agency-user-filter option:selected").text() + ". " +
                                 (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
@@ -188,8 +186,7 @@
                             sel.append(opt);
                         }
                         userFilterDiv.show();
-                    }
-                    else {
+                    } else {
                         userFilterDiv.hide();
                     }
                     if ($("#agency-filter option:selected").text() === "All") {
@@ -201,8 +198,7 @@
                             (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
                             data.values[0].toLocaleString() + " requests open. " +
                             data.values[1].toLocaleString() + " requests closed.</strong>");
-                    }
-                    else {
+                    } else {
                         $("#reportChart").attr("aria-label", "Bar graph of all FOIL requests for " +
                             $("#agency-filter option:selected").text() + ". " +
                             (data.values[0] + data.values[1]).toLocaleString() + " requests total. " +
@@ -256,8 +252,7 @@
 
     ack_date_from.datepicker({
         dateFormat: "mm/dd/yy",
-        minDate: "-1W",
-        maxDate: 0
+        maxDate: "-1W"
     })
         .mask("99/99/9999")
         .keydown(function (e) {
@@ -266,13 +261,22 @@
         });
 
     ack_date_to.datepicker({
-        dateFormat: "mm/dd/yy",
-        minDate: "-1W",
-        maxDate: 0
+        dateFormat: "mm/dd/yy"
     })
         .mask("99/99/9999")
         .keydown(function (e) {
             // prevent keyboard input
             e.preventDefault();
         });
+
+    ack_date_from.change(function () {
+        var new_date = new Date(ack_date_from.val());
+        console.log(new_date);
+        new_date.setDate(new_date.getDate() + 7);
+        console.log(new_date);
+
+        ack_date_to.datepicker("option", "minDate", new_date);
+        ack_date_to.datepicker("option", "maxDate", new_date);
+        ack_date_to.val(new_date.toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "numeric"}));
+    });
 </script>

@@ -51,9 +51,6 @@ class AcknowledgmentForm(Form):
             if field.data > date.today():
                 field.errors.append('The {} cannot be greater than today.'.format(field.label.text))
                 is_valid = False
-            if field.data < date.today() - relativedelta(weeks=1):
-                field.errors.append('The {} cannot be more than 1 week ago.'.format(field.label.text))
-                is_valid = False
         if self.date_to.data < self.date_from.data:
             field.errors.append('Date To cannot be before Date From.')
             is_valid = False

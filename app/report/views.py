@@ -129,11 +129,12 @@ def acknowledgment():
             agency_ein=current_user.default_agency_ein,
             timestamp=datetime.now(),
         )
-        generate_acknowledgment_report.apply_async(args=[current_user.guid,
-                                                         date_from,
-                                                         date_to],
-                                                   serializer='pickle',
-                                                   task_id=redis_key)
+        generate_acknowledgment_report(current_user.guid, date_from, date_to)
+        # generate_acknowledgment_report.apply_async(args=[current_user.guid,
+        #                                                  date_from,
+        #                                                  date_to],
+        #                                            serializer='pickle',
+        #                                            task_id=redis_key)
         flash('Your report is being generated. You will receive an email with the report attached once its complete.',
               category='success')
     else:
