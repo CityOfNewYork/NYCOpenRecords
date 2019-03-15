@@ -2,18 +2,21 @@ from datetime import datetime
 
 import tablib
 from flask import current_app
-from sqlalchemy import asc
+from sqlalchemy import asc, or_, and_
 
-from app import celery
+from sqlalchemy.orm import joinedload
+
+from app import celery, db
 from app.constants.event_type import REQ_ACKNOWLEDGED
 from app.constants.request_status import CLOSED
+from app.constants.user_type_request import AGENCY, REQUESTER
 from app.lib.date_utils import utc_to_local
 from app.lib.email_utils import send_email
-from app.models import Events, Requests, Users
+from app.models import Events, Requests, Users, Agencies
 
 
-@celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
-def generate_acknowledgment_report(self, current_user_guid: str, date_from: datetime, date_to: datetime):
+# @celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
+def generate_acknowledgment_report(current_user_guid: str, date_from: datetime, date_to: datetime):
     """Celery task that generates the acknowledgment report for the user's agency with the specified date range.
 
     Args:
@@ -23,8 +26,25 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
     """
     current_user = Users.query.filter_by(guid=current_user_guid).one()
     agency_ein = current_user.default_agency_ein
-    request_list = Requests.query.filter(Requests.agency_ein == agency_ein,
-                                         Requests.status != CLOSED).order_by(asc(Requests.id)).all()
+    agency = Agencies.query.options(joinedload(Agencies.active_users)).options(
+        joinedload(Agencies.inactive_users)).filter(Agencies.ein == agency_ein).one()
+
+    agency_users = agency.active_users + agency.inactive_users
+    request_list = Requests.query.join(
+        Events, Events.request_id == Requests.id
+    ).options(
+        joinedload(
+            Requests.requester
+        )
+    ).add_columns(
+        Events.user_guid,
+        Events.type
+    ).filter(
+        Requests.agency_ein == agency_ein,
+        Requests.status != CLOSED,
+        Events.request_id == Requests.id
+    ).order_by(asc(Requests.id)).all()
+
     headers = ('Request ID',
                'Acknowledged',
                'Acknowledged By',
@@ -43,16 +63,22 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                'Zipcode')
     data_from_dates = []
     all_data = []
-    for r in request_list:
+
+    acknowledged_requests = list(filter(lambda x: x.type == REQ_ACKNOWLEDGED, request_list))
+
+    for result in request_list:
         ack_user = ''
-        if r.was_acknowledged:
-            ack_user = Events.query.filter(Events.request_id == r.id,
-                                           Events.type == REQ_ACKNOWLEDGED).one().user.name
+        was_acknowledged = False
+        if result in acknowledged_requests:
+            ack_user = [user for user in agency_users if user.guid == result.user_guid]
+            ack_user = ack_user[0].name if ack_user else ''
+            was_acknowledged = True
+        r = result.Requests
         req_date_created_local = utc_to_local(r.date_created, current_app.config['APP_TIMEZONE'])
         if date_from < req_date_created_local < date_to:
             data_from_dates.append((
                 r.id,
-                r.was_acknowledged,
+                was_acknowledged,
                 ack_user,
                 req_date_created_local.strftime('%m/%d/%Y'),
                 utc_to_local(r.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
@@ -70,7 +96,7 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
             ))
         all_data.append((
             r.id,
-            r.was_acknowledged,
+            was_acknowledged,
             ack_user,
             req_date_created_local.strftime('%m/%d/%Y'),
             utc_to_local(r.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
