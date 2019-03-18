@@ -37,12 +37,13 @@
 
 """
 
-import os
 from datetime import datetime
 
 import click
-from flask_migrate import Migrate
+import os
 import pytest
+from flask.cli import main
+from flask_migrate import Migrate
 
 from app import create_app, db
 from app.models import (
@@ -51,11 +52,11 @@ from app.models import (
     CustomRequestForms,
     Determinations,
     Emails,
-    Envelopes,
     EnvelopeTemplates,
+    Envelopes,
     Events,
-    Letters,
     LetterTemplates,
+    Letters,
     Reasons,
     Requests,
     Responses,
@@ -303,3 +304,7 @@ def deploy():
     )
 
     es_recreate()
+
+
+if __name__ == "__main__":
+    main(as_module=False)

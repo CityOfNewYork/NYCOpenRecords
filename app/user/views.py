@@ -338,5 +338,5 @@ def patch(user_id):
                     **event_kwargs
                 ))
             return jsonify({'status': 'success', 'message': 'Agency user successfully updated'}), 200
-
-    return jsonify({'status': "success", 'message': 'No changes detected'}), 200
+    # Always returns 200 so that we can use the data from the response in the client side javascript
+    return jsonify({'status': 'Not Modified', 'message': 'No changes detected'}), 200
