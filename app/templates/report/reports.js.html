@@ -271,9 +271,7 @@
 
     ack_date_from.change(function () {
         var new_date = new Date(ack_date_from.val());
-        console.log(new_date);
         new_date.setDate(new_date.getDate() + 7);
-        console.log(new_date);
 
         ack_date_to.datepicker("option", "minDate", new_date);
         ack_date_to.datepicker("option", "maxDate", new_date);

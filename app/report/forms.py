@@ -3,12 +3,11 @@
 
     :synopsis: Defines forms used for report statistics.
 """
-from datetime import date, timedelta
-from dateutil.relativedelta import relativedelta
+from datetime import date
 
 from flask_login import current_user
 from flask_wtf import Form
-from wtforms import SelectField, DateField, SubmitField
+from wtforms import DateField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 
 from app.lib.db_utils import get_agency_choices

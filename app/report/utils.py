@@ -3,18 +3,18 @@ from datetime import datetime
 import tablib
 from flask import current_app
 from sqlalchemy import asc
-
 from sqlalchemy.orm import joinedload
 
+from app import celery
 from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED
 from app.constants.request_status import CLOSED
 from app.lib.date_utils import utc_to_local
 from app.lib.email_utils import send_email
-from app.models import Events, Requests, Users, Agencies
+from app.models import Agencies, Events, Requests, Users
 
 
-# @celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
-def generate_acknowledgment_report(current_user_guid: str, date_from: datetime, date_to: datetime):
+@celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
+def generate_acknowledgment_report(self, current_user_guid: str, date_from: datetime, date_to: datetime):
     """Celery task that generates the acknowledgment report for the user's agency with the specified date range.
 
     Args:

@@ -130,15 +130,15 @@ def acknowledgment():
             timestamp=datetime.now(),
         )
         generate_acknowledgment_report(current_user.guid, date_from, date_to)
-        # generate_acknowledgment_report.apply_async(args=[current_user.guid,
-        #                                                  date_from,
-        #                                                  date_to],
-        #                                            serializer='pickle',
-        #                                            task_id=redis_key)
+        generate_acknowledgment_report.apply_async(args=[current_user.guid,
+                                                         date_from,
+                                                         date_to],
+                                                   serializer='pickle',
+                                                   task_id=redis_key)
         flash('Your report is being generated. You will receive an email with the report attached once its complete.',
               category='success')
     else:
-        for field, error in acknowledgment_form.errors.items():
+        for field, _ in acknowledgment_form.errors.items():
             flash(acknowledgment_form.errors[field][0], category='danger')
     return render_template('report/reports.html',
                            acknowledgment_form=acknowledgment_form,
