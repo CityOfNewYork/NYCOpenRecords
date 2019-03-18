@@ -199,8 +199,8 @@ def saml():
     elif "slo" in request.args:
         return redirect(saml_slo(onelogin_saml_auth))
     elif "sls" in request.args:
-        user_guid = current_user.guid if not current_user.is_anonymous else ''
-        return saml_sls(onelogin_saml_auth, current_user.guid)
+        user_guid = current_user.guid if not current_user.is_anonymous else None
+        return saml_sls(onelogin_saml_auth, user_guid)
     else:
         flash(
             "Oops! Something went wrong. Please try to perform your action again later.",
