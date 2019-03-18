@@ -334,19 +334,6 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
-    # from app.constants import user_type_auth
-    # auth_user_type = db.Column(
-    #     db.Enum(user_type_auth.AGENCY_USER,
-    #             user_type_auth.AGENCY_LDAP_USER,
-    #             user_type_auth.PUBLIC_USER_FACEBOOK,
-    #             user_type_auth.PUBLIC_USER_MICROSOFT,
-    #             user_type_auth.PUBLIC_USER_YAHOO,
-    #             user_type_auth.PUBLIC_USER_LINKEDIN,
-    #             user_type_auth.PUBLIC_USER_GOOGLE,
-    #             user_type_auth.PUBLIC_USER_NYC_ID,
-    #             user_type_auth.ANONYMOUS_USER,
-    #             name='auth_user_type'),
-    #     primary_key=True)
     guid = db.Column(db.String(64), unique=True, primary_key=True)
     is_nyc_employee = db.Column(db.Boolean, default=False)
     has_nyc_account = db.Column(db.Boolean, default=False)

@@ -113,7 +113,7 @@ class Config:
     MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
 
-    ERROR_RECIPIENTS = os.environ.get('ERROR_RECIPIENTS', '').split(',') or OPENRECORDS_DL_EMAIL
+    ERROR_RECIPIENTS = (os.environ.get('ERROR_RECIPIENTS', None) or OPENRECORDS_DL_EMAIL).split(',')
 
     # TODO: should be a constant
     EMAIL_TEMPLATE_DIR = 'email_templates/'
