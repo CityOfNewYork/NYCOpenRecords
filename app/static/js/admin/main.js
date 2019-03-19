@@ -87,7 +87,7 @@ $(function () {
             },
             success: function (data) {
                 // Always returns a 200 response so that we can access the data
-                var alertText = '';
+                var alertText = "";
                 if (data["status"] === "Not Modified") {
                     alertText = "The user was not modified. No actions will be performed.";
                 }
