@@ -31,9 +31,7 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
     request_list = Requests.query.join(
         Events, Events.request_id == Requests.id
     ).options(
-        joinedload(
-            Requests.requester
-        )
+        joinedload(Requests.requester)
     ).add_columns(
         Events.user_guid,
         Events.type
@@ -67,10 +65,11 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                              filter(lambda x: x.type == REQ_ACKNOWLEDGED, request_list)}
 
     unacknowledged_requests = {res.Requests.id: {"request": res.Requests} for res in
-                        filter(lambda x: x.type == REQ_CREATED and x.Requests.id not in acknowledged_requests.keys(),
-                               request_list)}
-
-    for request_id in list(acknowledged_requests.keys()) + list(unacknowledged_requests.keys()):
+                               filter(lambda
+                                          x: x.type == REQ_CREATED and x.Requests.id not in acknowledged_requests.keys(),
+                                      request_list)}
+    request_id_list = list(acknowledged_requests.keys()) + list(unacknowledged_requests.keys())
+    for request_id in sorted(request_id_list):
         ack_user = ''
         was_acknowledged = False
         if acknowledged_requests.get(request_id, None):

@@ -10,7 +10,9 @@ from flask import (
     flash,
     render_template,
     jsonify,
-    request
+    redirect,
+    request,
+    url_for,
 )
 from flask_login import current_user, login_required
 
@@ -129,7 +131,6 @@ def acknowledgment():
             agency_ein=current_user.default_agency_ein,
             timestamp=datetime.now(),
         )
-        generate_acknowledgment_report(current_user.guid, date_from, date_to)
         generate_acknowledgment_report.apply_async(args=[current_user.guid,
                                                          date_from,
                                                          date_to],
@@ -140,6 +141,4 @@ def acknowledgment():
     else:
         for field, _ in acknowledgment_form.errors.items():
             flash(acknowledgment_form.errors[field][0], category='danger')
-    return render_template('report/reports.html',
-                           acknowledgment_form=acknowledgment_form,
-                           report_filter_form=ReportFilterForm())
+    return redirect(url_for("report.show_report"))

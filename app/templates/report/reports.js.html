@@ -249,19 +249,9 @@
         '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
         '<strong>Error, date to is required.</strong> Please select a template from the drop-down menu.');
 
-
     ack_date_from.datepicker({
         dateFormat: "mm/dd/yy",
         maxDate: "-1W"
-    })
-        .mask("99/99/9999")
-        .keydown(function (e) {
-            // prevent keyboard input
-            e.preventDefault();
-        });
-
-    ack_date_to.datepicker({
-        dateFormat: "mm/dd/yy"
     })
         .mask("99/99/9999")
         .keydown(function (e) {
