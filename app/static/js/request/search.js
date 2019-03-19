@@ -24,7 +24,7 @@ $(function() {
         resultsHeader = "resultsHeading",
         isAgencyUser = ($("#is-agency-user").val() === "true"),
         resultcol = [];
-    
+
     // Table head values
     if (isAgencyUser) {
         resultcol = [
@@ -37,6 +37,11 @@ $(function() {
             ["Date Closed", ""],
             ["Requester Name", ""]
         ];
+
+        var userAgencies = [];
+        $("#user-agencies option").each(function () {
+            userAgencies.push($(this).val());
+        });
     }
     else {
         resultcol = [
@@ -506,4 +511,14 @@ $(function() {
             scrollTop: $("#" + theId).offset().top
         }, 500);
     }
+
+    agencySelect.change(function () {
+        var selectedAgency = agencySelect.val();
+        if (!(userAgencies.includes(selectedAgency)) || selectedAgency === '') {
+            $('#redact-results-alert').show();
+        }
+        else {
+            $('#redact-results-alert').hide();
+        }
+    });
 });
