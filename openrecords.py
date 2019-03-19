@@ -71,11 +71,6 @@ app = create_app(os.getenv("FLASK_CONFIG") or "default")
 
 migrate = Migrate(app, db)
 
-import ptvsd
-
-address = ("0.0.0.0", 3000)
-ptvsd.enable_attach(address)
-
 COV = None
 if os.environ.get("FLASK_COVERAGE"):
     import coverage
@@ -227,9 +222,7 @@ def routes():
 )
 @click.option("--verbose", is_flag=True, default=False, help="Py.Test verbose mode")
 def test(test_name: str = None, coverage: bool = False, verbose: bool = False):
-    """
-  Run the unit tests.  
-  """
+    """Run the unit tests."""
 
     if coverage and not os.environ.get("FLASK_COVERAGE"):
         os.environ["FLASK_COVERAGE"] = "1"

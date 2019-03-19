@@ -65,7 +65,6 @@ $(function () {
                 agency_ein: agencyEin
             },
             success: function () {
-                debugger;
                 if (!alert("You will receive an email when the changes you requested have been completed.")) {
                     window.location.reload();
                 }
@@ -88,14 +87,14 @@ $(function () {
             },
             success: function (data) {
                 // Always returns a 200 response so that we can access the data
-                var alert_text = '';
-                if (data['status'] === 'Not Modified'){
-                    alert_text = 'The user was not modified. No actions will be performed.'
+                var alertText = '';
+                if (data["status"] === "Not Modified") {
+                    alertText = "The user was not modified. No actions will be performed.";
                 }
-                else if (data['status'] === 'success') {
-                    alert_text = 'You will receive an email when the changes you requested have been completed.'
+                else if (data["status"] === "success") {
+                    alertText = "You will receive an email when the changes you requested have been completed.";
                 }
-                if (!alert(alert_text)) {
+                if (!alert(alertText)) {
                     window.location.reload();
                 }
             }
