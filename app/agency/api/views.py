@@ -16,7 +16,6 @@ from app.agency.api.utils import (
 from app.models import CustomRequestForms
 import json
 from sqlalchemy import asc
-from app.constants import STATES
 
 
 @login_required
@@ -155,7 +154,7 @@ def get_custom_request_form_fields():
                 min_length=min_length, max_length=max_length, instance_id=instance_id, placeholder=placeholder,
                 character_counter=character_counter, tooltip=tooltip, help_text=help_text,
                 past_date_invalid=past_date_invalid, current_date_invalid=current_date_invalid,
-                future_date_invalid=future_date_invalid, states=STATES) + '\n'
+                future_date_invalid=future_date_invalid) + '\n'
     data['form_template'] = form_template
     data['character_counters'] = character_counters
     data['popovers'] = popovers
