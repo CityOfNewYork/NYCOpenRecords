@@ -21,6 +21,7 @@ class Config:
     APP_TIMEZONE = os.environ.get('APP_TIMEZONE') or 'US/Eastern'
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE') == 'True'
     PREFERRED_URL_SCHEME = 'https'
+    OPENRECORDS_AGENCY_SUPPORT_DL = os.environ.get('OPENRECORDS_AGENCY_SUPPORT_DL') or OPENRECORDS_DL_EMAIL
 
     # Note: BASE_URL and VIEW_REQUEST_ENDPOINT used for the automatic status update job (jobs.py)
     BASE_URL = os.environ.get('BASE_URL')
