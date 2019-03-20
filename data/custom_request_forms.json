@@ -69,8 +69,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "911 Call Report",
-      "form_description": "Some general information about 911 call requests can go here.",
+      "form_name": "Public Records Unit",
+      "form_description": "<p>Please note this Request Type should be used for those who are physically at the FDNY Public Records Unit or requesting online. <strong>Please complete all the required fields below.</strong><p>This Request Type will allow you to request the following records:<ul><li>Fire Incident Report<li>Fuel Tank Special Report<li>Violation Special Report<li>Copy of a Violation</ul>",
       "field_definitions": [
         {
           "Submission Method": {
@@ -86,42 +86,42 @@
           }
         },
         {
-          "Description of Incident": {
-            "type": "textarea",
+          "Report Type": {
+            "type": "select_dropdown",
             "name": "fdny-form1-field2",
-            "required": false,
+            "values": [
+              "Fire Incident Report",
+              "Fuel Tank Special Report",
+              "Violation Special Report",
+              "Copy of a Violation"
+            ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Report Type is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Records": {
+            "type": "textarea",
+            "name": "fdny-form1-field3",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
             "max_length": 5000,
             "character_counter": true,
-            "help_text": "Some help text can go here if you'd like.",
-            "placeholder": "Some placeholder can be in here."
+            "help_text": "Please provide a short description of the records you are requesting."
           }
         },
         {
-          "Incident Date": {
-            "type": "date",
-            "name": "fdny-form1-field3",
-            "future_date_invalid": true,
-            "required": false
-          }
-        },
-        {
-          "Incident Time": {
-            "type": "time",
-            "name": "fdny-form1-field4",
-            "required": false
-          }
-        },
-        {
-          "Incident Location": {
+          "Building Address": {
             "type": "input",
-            "name": "fdny-form1-field5",
-            "required": false
+            "name": "fdny-form1-field4",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Address is required.</strong> Please provide an address."
           }
         },
         {
-          "Incident Borough": {
+          "Borough": {
             "type": "select_dropdown",
-            "name": "fdny-form1-field6",
+            "name": "fdny-form1-field5",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -129,12 +129,20 @@
               "Queens",
               "Staten Island"
             ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
+          }
+        },
+        {
+          "Account Info": {
+            "type": "input",
+            "name": "fdny-form1-field6",
             "required": false
           }
         },
         {
-          "Hospital Taken To": {
-            "type": "input",
+          "Incident Date": {
+            "type": "date",
             "name": "fdny-form1-field7",
             "required": false
           }
@@ -146,8 +154,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "Fire Incident Report",
-      "form_description": "Please note that fire incident reports are only available for cases where the cause of the fire was determined at the scene of the incident. For all cases where a further investigation was needed to determine the cause of incident, please select Fire Marshall Report from the dropdown above.",
+      "form_name": "911 Call Report (CAD)",
+      "form_description": "<p>Please note this Request Type should be used for those requesting 911 Call Report not Ambulance Reports. Instructions for obtaining Ambulance Call Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
       "field_definitions": [
         {
           "Submission Method": {
@@ -163,31 +171,52 @@
           }
         },
         {
-          "Incident Address": {
-            "type": "input",
+          "Description of Incident": {
+            "type": "textarea",
             "name": "fdny-form2-field2",
-            "help_text": "Please include the street name and house number.",
-            "required": false
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true
           }
         },
         {
-          "Floor(s)": {
-            "type": "input",
+          "Incident Date": {
+            "type": "date",
             "name": "fdny-form2-field3",
-            "required": false
+            "future_date_invalid": true,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
           }
         },
         {
-          "Apt(s)": {
-            "type": "input",
-            "name": "apt",
-            "required": false
-          }
-        },
-        {
-          "Borough": {
-            "type": "select_dropdown",
+          "Incident Time (From)": {
+            "type": "time",
             "name": "fdny-form2-field4",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Time (From) is required.</strong> Please select a time."
+          }
+        },
+        {
+          "Incident Time (To)": {
+            "type": "time",
+            "name": "fdny-form2-field5",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Time (To) is required.</strong> Please select a time."
+          }
+        },
+        {
+          "Incident Location": {
+            "type": "input",
+            "name": "fdny-form2-field6",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Location is required.</strong> Please provide a location."
+          }
+        },
+        {
+          "Incident Borough": {
+            "type": "select_dropdown",
+            "name": "fdny-form2-field7",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -195,53 +224,15 @@
               "Queens",
               "Staten Island"
             ],
-            "required": false
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
           }
         },
         {
-          "Box #": {
+          "Hospital Taken To": {
             "type": "input",
-            "name": "fdny-form2-field5",
-            "required": false
-          }
-        },
-        {
-          "Incident Date": {
-            "type": "date",
-            "name": "3",
-            "future_date_invalid": true,
-            "required": false
-          }
-        },
-        {
-          "Incident Report Number (if available)": {
-            "type": "input",
-            "name": "fdny-form2-field6",
-            "required": false
-          }
-        },
-        {
-          "Incident Type": {
-            "type": "radio",
-            "name": "fdny-form2-field7",
-            "values": [
-              "Building",
-              "Transportation",
-              "Outdoors",
-              "Non-Fire Emergency"
-            ],
-            "help_text": "If transportation if selected, please provide the type, make, and plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
-            "required": false
-          }
-        },
-        {
-          "Description of Incident": {
-            "type": "textarea",
             "name": "fdny-form2-field8",
-            "required": false,
-            "max_length": 5000,
-            "character_counter": true,
-            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
+            "required": false
           }
         }
       ],
@@ -251,8 +242,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "Fire Marshall Report",
-      "form_description": "Please note that fire marshall reports are only available for cases where the cause could not be determined at the scene of the incident. As a result, a further investigation was needed. For incidents where the cause was determined at the scene, please select Fire Incident Report from the dropdown above.",
+      "form_name": "Fire Incident Report",
+      "form_description": "<p>Please note this Request Type is for Fire Incident Reports only, unrelated to the Fire Marshal Investigation Reports. Instructions for obtaining Fire Marshal Investigation Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
       "field_definitions": [
         {
           "Submission Method": {
@@ -268,24 +259,32 @@
           }
         },
         {
-          "Date of Fire": {
-            "type": "date",
+          "Incident Address": {
+            "type": "input",
             "name": "fdny-form3-field2",
-            "future_date_invalid": true,
+            "help_text": "Please include the street name and house number.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Address is required.</strong> Please provide an address."
+          }
+        },
+        {
+          "Floor(s)": {
+            "type": "input",
+            "name": "fdny-form3-field3",
             "required": false
           }
         },
         {
-          "Street Address": {
+          "Apt(s)": {
             "type": "input",
-            "name": "address",
+            "name": "apt",
             "required": false
           }
         },
         {
           "Borough": {
             "type": "select_dropdown",
-            "name": "fdny-form3-field3",
+            "name": "fdny-form3-field4",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -293,31 +292,57 @@
               "Queens",
               "Staten Island"
             ],
-            "required": false
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
           }
         },
         {
-          "Name of Applicant": {
-            "type": "input",
-            "name": "fdny-form3-field4",
-            "required": false
-          }
-        },
-        {
-          "Firm Name": {
+          "Box #": {
             "type": "input",
             "name": "fdny-form3-field5",
             "required": false
           }
         },
         {
-          "Applicant Notes": {
-            "type": "textarea",
+          "Incident Date": {
+            "type": "date",
+            "name": "3",
+            "future_date_invalid": true,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
+          }
+        },
+        {
+          "Incident Report Number": {
+            "type": "input",
             "name": "fdny-form3-field6",
-            "required": false,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Report Number is required.</strong> Please provide the number."
+          }
+        },
+        {
+          "Incident Type": {
+            "type": "radio",
+            "name": "fdny-form3-field7",
+            "values": [
+              "Building",
+              "Transportation",
+              "Outdoors",
+              "Non-Fire Emergency"
+            ],
+            "help_text": "If transportation if selected, please provide the type, make, and plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
+            "required": false
+          }
+        },
+        {
+          "Description of Incident": {
+            "type": "textarea",
+            "name": "fdny-form3-field8",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
             "max_length": 5000,
             "character_counter": true,
-            "help_text": "Please provide any notes that you have regarding the incident."
+            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
           }
         }
       ],
@@ -327,8 +352,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "General Request",
-      "form_description": "Please fill this form out for any requests that do not fall under 911 Call Report, Fire Incident Report, or Fire Marshall Report.",
+      "form_name": "FOIL Request",
+      "form_description": "Please note that this Request Type is for all other requests that are not referenced above. <strong>Please provide as much information as possible.</strong>",
       "field_definitions": [
         {
           "Submission Method": {
@@ -348,65 +373,10 @@
             "type": "textarea",
             "name": "fdny-form4-field2",
             "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
             "max_length": 5000,
             "character_counter": true,
             "help_text": "Please provide a short description of the records you are requesting."
-          }
-        }
-      ],
-      "repeatable": "1",
-      "category": "1",
-      "minimum_required": "0"
-    },
-    {
-      "agency_ein": "0057",
-      "form_name": "Walk In For Public Records Unit",
-      "form_description": "Please note this Request Type is only for requesters who are physically at the FDNY Public Records Unit. All requests submitted from outside the FDNY building are subject to being denied.",
-      "field_definitions": [
-        {
-          "Description of Records": {
-            "type": "textarea",
-            "name": "fdny-form5-field1",
-            "required": true,
-            "max_length": 5000,
-            "character_counter": true,
-            "help_text": "Please provide a short description of the records you are requesting."
-          }
-        },
-        {
-          "Building Address": {
-            "type": "input",
-            "name": "fdny-form5-field2",
-            "required": true
-          }
-        },
-        {
-          "Borough": {
-            "type": "select_dropdown",
-            "name": "fdny-form5-field3",
-            "values": [
-              "Brooklyn",
-              "Bronx",
-              "Manhattan",
-              "Queens",
-              "Staten Island"
-            ],
-            "required": false
-          }
-        },
-        {
-          "Account Info": {
-            "type": "input",
-            "name": "fdny-form5-field4",
-            "required": false
-          }
-        },
-        {
-          "Incident Date": {
-            "type": "date",
-            "name": "fdny-form5-field5",
-            "required": false,
-            "help_text": "Please only enter Incident Date if you are requesting a Fire Response report."
           }
         }
       ],
