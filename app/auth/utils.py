@@ -489,7 +489,6 @@ def saml_acs(saml_sp, onelogin_request):
     user_data = {k: v[0] if len(v) else None for (k, v) in session['samlUserdata'].items()}
 
     if len(errors) == 0:
-        session.permanent = True
         nycid_user_data = get_nycid_user_data(user_data['GUID'])
 
         if not nycid_user_data.get('validated', False):
@@ -511,6 +510,7 @@ def saml_acs(saml_sp, onelogin_request):
             is_anonymous_requester=False
         )
         login_user(user)
+        session.permanent = True
         create_auth_event(
             auth_event_type=event_type.USER_LOGIN,
             user_guid=user.guid,
