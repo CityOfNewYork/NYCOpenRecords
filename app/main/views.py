@@ -3,20 +3,22 @@
 
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
-from . import main
 from flask import (
     current_app,
     render_template,
     flash,
+    render_template,
     request,
     session
 )
 from flask_login import current_user
-from app.lib.email_utils import send_contact_email
-from app.lib.db_utils import create_object, update_object
-from app.models import Emails, Users
+
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
+from app.lib.db_utils import create_object, update_object
+from app.lib.email_utils import send_contact_email
+from app.models import Emails, Users
+from . import main
 
 
 @main.route('/', methods=['GET', 'POST'])
