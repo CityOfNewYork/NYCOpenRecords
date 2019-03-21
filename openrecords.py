@@ -38,12 +38,16 @@
 """
 
 from datetime import datetime
+from urllib.parse import unquote
+import sys
 
 import click
 import os
 import pytest
+from flask import url_for
 from flask.cli import main
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
+from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from app import create_app, db
 from app.models import (
@@ -65,6 +69,7 @@ from app.models import (
     Users,
 )
 from app.request.utils import generate_guid
+from app.search.utils import recreate
 from app.user.utils import make_user_admin
 
 app = create_app(os.getenv("FLASK_CONFIG") or "default")
@@ -150,7 +155,7 @@ def add_user(
 
     agency_user = AgencyUsers(
         user_guid=user.guid,
-        agency_ein=ein,
+        agency_ein=agency_ein,
         is_agency_active=is_active,
         is_agency_admin=is_admin,
         is_primary_agency=True,
@@ -161,12 +166,12 @@ def add_user(
     if is_admin:
         redis_key = "{current_user_guid}-{update_user_guid}-{agency_ein}-{timestamp}".format(
             current_user_guid="openrecords_support",
-            pdate_user_guid=user.guid,
-            agency_ein=ein,
+            update_user_guid=user.guid,
+            agency_ein=agency_ein,
             timestamp=datetime.now(),
         )
         make_user_admin.apply_async(
-            args=(user.guid, "openrecords_support", ein), task_id=redis_key
+            args=(user.guid, "openrecords_support", agency_ein), task_id=redis_key
         )
 
     print(user)
@@ -177,7 +182,6 @@ def es_recreate():
     """
     Recreate elasticsearch index and request docs.
     """
-    from app.search.utils import recreate
 
     recreate()
 
@@ -187,15 +191,12 @@ def routes():
     """
     Generate a list of HTTP routes for the application.
     """
-    from flask import url_for
-    from urllib.parse import unquote
 
     output = []
     for rule in app.url_map.iter_rules():
         options = {}
         for arg in rule.arguments:
             if arg == "year":
-                from datetime import datetime
 
                 options[arg] = "{}".format(datetime.now().year)
                 continue
@@ -203,7 +204,6 @@ def routes():
 
         methods = ",".join(rule.methods)
         url = url_for(rule.endpoint, **options)
-        from datetime import datetime
 
         if str(datetime.now().year) in url:
             url = url.replace(str(datetime.now().year), "[year]")
@@ -218,13 +218,13 @@ def routes():
 @app.cli.command()
 @click.option("--test-name", help="Specify tests (file, class, or specific test)")
 @click.option(
-    "--coverage/--no-coverage", default=False, help="Run tests under code coverage."
+    "--coverage/--no-coverage", "use_coverage", default=False, help="Run tests under code coverage."
 )
 @click.option("--verbose", is_flag=True, default=False, help="Py.Test verbose mode")
-def test(test_name: str = None, coverage: bool = False, verbose: bool = False):
+def test(test_name: str = None, use_coverage: bool = False, verbose: bool = False):
     """Run the unit tests."""
 
-    if coverage and not os.environ.get("FLASK_COVERAGE"):
+    if use_coverage and not os.environ.get("FLASK_COVERAGE"):
         os.environ["FLASK_COVERAGE"] = "1"
         os.execvp(sys.executable, [sys.executable] + sys.argv)
 
@@ -262,7 +262,6 @@ def profile(length, profile_dir):
     """
     Start the application under the code profiler.
     """
-    from werkzeug.contrib.profiler import ProfilerMiddleware
 
     app.wsgi_app = ProfilerMiddleware(
         app.wsgi_app, restrictions=[length], profile_dir=profile_dir
@@ -275,7 +274,6 @@ def deploy():
     """
     Run deployment tasks.
     """
-    from flask_migrate import upgrade
 
     # migrate database to latest revision
     upgrade()
