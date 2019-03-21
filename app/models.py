@@ -290,14 +290,14 @@ class Agencies(db.Model):
 
             for agency in data['agencies']:
                 if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
-                    warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
+                    warn("Duplicate EIN ({ein}); Row not imported".format(ein=agency['ein']), category=UserWarning)
                     continue
                 a = cls(
                     ein=agency['ein'],
                     parent_ein=agency['parent_ein'],
                     categories=agency['categories'],
                     name=agency['name'],
-                    acronym=agency['acronym'],
+                    acronym=agency.get('acronym', None),
                     next_request_number=agency['next_request_number'],
                     default_email=agency['default_email'],
                     appeals_email=agency['appeals_email'],
