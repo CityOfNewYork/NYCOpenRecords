@@ -205,7 +205,6 @@
           "ein",
           "parent_ein",
           "name",
-          "acronym",
           "default_email",
           "appeals_email"
         ],
@@ -265,7 +264,7 @@
           },
           "acronym": {
             "$id": "/properties/agencies/items/properties/acronym",
-            "type": "string",
+            "type": ["string", "null"],
             "title": "Acronym",
             "description": "Acronym for the agency.",
             "default": "",
@@ -278,7 +277,7 @@
           },
           "next_request_number": {
             "$id": "/properties/agencies/items/properties/next_request_number",
-            "type": "string",
+            "type": "integer",
             "title": "Next Request Number",
             "description": "The next request number available for the agency. 5 digit number represented as a String",
             "default": "00001",

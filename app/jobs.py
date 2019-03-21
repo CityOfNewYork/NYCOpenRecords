@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import (current_app, render_template)
 import celery
 from psycopg2 import OperationalError
+from sqlalchemy.exc import SQLAlchemyError
 
 from app import calendar, sentry, db
 from app.constants import OPENRECORDS_DL_EMAIL, request_status
@@ -20,11 +21,12 @@ STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
 
 
-@celery.task(autoretry_for=(OperationalError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
+@celery.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def update_request_statuses():
     try:
         _update_request_statuses()
     except Exception:
+        db.session.rollback()
         send_email(
             subject="Update Request Statuses Failure",
             to=[OPENRECORDS_DL_EMAIL],
@@ -159,13 +161,16 @@ def _update_request_statuses():
         )
 
 
-@celery.task()
+@celery.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def update_next_request_number():
     """
     Celery task to automatically update the next request number of each agency to 1
     :return:
     """
-    for agency in Agencies.query.all():
-        agency.next_request_number = 1
-        db.session.add(agency)
-    db.session.commit()
+    try:
+        for agency in Agencies.query.all():
+            agency.next_request_number = 1
+            db.session.add(agency)
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()

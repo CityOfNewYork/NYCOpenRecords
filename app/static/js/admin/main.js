@@ -85,8 +85,16 @@ $(function () {
                 is_agency_admin: isAgencyAdmin,
                 agency_ein: agencyEin
             },
-            success: function () {
-                if (!alert("You will receive an email when the changes you requested have been completed.")) {
+            success: function (data) {
+                // Always returns a 200 response so that we can access the data
+                var alertText = "";
+                if (data["status"] === "Not Modified") {
+                    alertText = "The user was not modified. No actions will be performed.";
+                }
+                else if (data["status"] === "success") {
+                    alertText = "You will receive an email when the changes you requested have been completed.";
+                }
+                if (!alert(alertText)) {
                     window.location.reload();
                 }
             }

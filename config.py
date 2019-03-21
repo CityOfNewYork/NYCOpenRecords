@@ -21,6 +21,7 @@ class Config:
     APP_TIMEZONE = os.environ.get('APP_TIMEZONE') or 'US/Eastern'
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE') == 'True'
     PREFERRED_URL_SCHEME = 'https'
+    OPENRECORDS_AGENCY_SUPPORT_DL = os.environ.get('OPENRECORDS_AGENCY_SUPPORT_DL') or OPENRECORDS_DL_EMAIL
 
     # Note: BASE_URL and VIEW_REQUEST_ENDPOINT used for the automatic status update job (jobs.py)
     BASE_URL = os.environ.get('BASE_URL')
@@ -113,7 +114,7 @@ class Config:
     MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
 
-    ERROR_RECIPIENTS = os.environ.get('ERROR_RECIPIENTS', '').split(',') or OPENRECORDS_DL_EMAIL
+    ERROR_RECIPIENTS = (os.environ.get('ERROR_RECIPIENTS', None) or OPENRECORDS_DL_EMAIL).split(',')
 
     # TODO: should be a constant
     EMAIL_TEMPLATE_DIR = 'email_templates/'

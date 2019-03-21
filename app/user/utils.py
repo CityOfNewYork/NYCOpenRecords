@@ -4,6 +4,7 @@ from elasticsearch.helpers import bulk
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
+from psycopg2 import OperationalError
 
 from app import (
     celery,
@@ -15,7 +16,8 @@ from app.lib.email_utils import send_email
 from app.models import (Agencies, Events, Requests, Roles, UserRequests, Users)
 
 
-@celery.task(bind=True, name='app.user.utils.make_user_admin')
+@celery.task(bind=True, name='app.user.utils.make_user_admin', autoretry_for=(OperationalError, SQLAlchemyError,),
+             retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agency_ein: str):
     """
     Make the specified user an admin for the agency.
@@ -124,7 +126,8 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
         db.session.rollback()
 
 
-@celery.task(bind=True, name='app.user.utils.remove_user_permissions')
+@celery.task(bind=True, name='app.user.utils.remove_user_permissions',
+             autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def remove_user_permissions(self, modified_user_guid: str, current_user_guid: str, agency_ein: str, action: str = None):
     """
     Remove the specified users permissions for the agency identified by agency_ein
@@ -196,21 +199,25 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
         db.session.rollback()
 
 
-@celery.task(bind=True, name='app.user.utils.es_update_assigned_users')
+@celery.task(bind=True, name='app.user.utils.es_update_assigned_users',
+             autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def es_update_assigned_users(self, request_ids: list):
     """
     Update the ElasticSearch index assigned_users for the provided request IDs
     Args:
         request_ids (list): List of Request IDs
     """
-    actions = [{
-        '_op_type': 'update',
-        '_id': request.id,
-        'doc': {
-            'assigned_users': [user.get_id() for user in request.agency_users]
-        }
-    } for request in
-        Requests.query.filter(Requests.id.in_(request_ids)).options(joinedload(Requests.agency_users)).all()]
+    try:
+        actions = [{
+            '_op_type': 'update',
+            '_id': request.id,
+            'doc': {
+                'assigned_users': [user.get_id() for user in request.agency_users]
+            }
+        } for request in
+            Requests.query.filter(Requests.id.in_(request_ids)).options(joinedload(Requests.agency_users)).all()]
+    except SQLAlchemyError:
+        db.session.rollback()
 
     bulk(
         es,

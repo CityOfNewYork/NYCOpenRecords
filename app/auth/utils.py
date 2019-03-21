@@ -531,7 +531,7 @@ def saml_acs(saml_sp, onelogin_request):
     current_app.logger.exception(error_message)
     create_auth_event(
         auth_event_type=event_type.USER_FAILED_LOG_IN,
-        user_guid=user_data['GUID'] if user_data['GUID'] is not None else '',
+        user_guid=user_data.get('GUID', None),
         new_value={
             'success': False,
             'type': current_app.config['AUTH_TYPE'],
