@@ -3,19 +3,22 @@
 
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
-from . import main
 from flask import (
+    current_app,
     render_template,
     flash,
+    render_template,
     request,
     session
 )
 from flask_login import current_user
-from app.lib.email_utils import send_contact_email
-from app.lib.db_utils import create_object, update_object
-from app.models import Emails, Users
+
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
+from app.lib.db_utils import create_object, update_object
+from app.lib.email_utils import send_contact_email
+from app.models import Emails, Users
+from . import main
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -63,7 +66,10 @@ def technical_support():
                     body=body,
                 )
             )
-            send_contact_email(subject, [OPENRECORDS_DL_EMAIL], body, email)
+            if current_user.is_agency:
+                send_contact_email(subject, [current_app.config['OPENRECORDS_AGENCY_SUPPORT_DL']], body, email)
+            else:
+                send_contact_email(subject, [OPENRECORDS_DL_EMAIL], body, email)
             flash('Your message has been sent. We will get back to you.', category='success')
         else:
             flash('Cannot send email.', category='danger')

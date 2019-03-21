@@ -125,9 +125,12 @@ function getRequestAgencyInstructions() {
                 }
             },
             error: function () {
-                requestInstructionsDiv.hide();
+                requestInstructionsDiv.fadeOut();
             }
         });
+    }
+    else {
+        requestInstructionsDiv.fadeOut();
     }
 }
 
@@ -167,7 +170,12 @@ function getCustomRequestForms(agencyEin) {
      *
      * function to determine if custom request forms need to be shown on category or agency change
      */
-    if (agencyEin === "") return;
+    if (agencyEin === "") {
+        $("#custom-request-panel-1").fadeOut();
+        $("#request-description").val("");
+        $("#request-description-section").fadeIn();
+        return;
+    }
 
     customRequestFormsEnabled = false;
     repeatableCounter = {};
@@ -243,11 +251,11 @@ function getCustomRequestForms(agencyEin) {
                             requestType.append(new Option(data[0][1], data[0][0]));
                             previousValues[0] = "";
                             currentValues[0] = "";
-                            customRequestPanelDiv.show();
-                            customRequestFormsDiv.show();
+                            customRequestPanelDiv.fadeIn();
+                            customRequestFormsDiv.fadeIn();
                             renderCustomRequestForm("1"); // render the form to the first custom request form content div
                             if (moreOptions()) {
-                                customRequestFormAdditionalContent.show();
+                                customRequestFormAdditionalContent.fadeIn();
                             }
                         }
                         else {
@@ -272,8 +280,8 @@ function getCustomRequestForms(agencyEin) {
                             previousValues[0] = "";
                             currentValues[0] = "";
 
-                            customRequestPanelDiv.show();
-                            customRequestFormsDiv.show();
+                            customRequestPanelDiv.fadeIn();
+                            customRequestFormsDiv.fadeIn();
                         }
                         updateCustomRequestFormDropdowns();
                     }

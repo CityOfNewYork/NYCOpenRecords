@@ -3,22 +3,31 @@
 
    :synopsis: Handles the report URL endpoints for the OpenRecords application
 """
-from app.report import report
+from datetime import datetime
+
 from flask import (
+    current_app,
+    flash,
     render_template,
     jsonify,
-    request
+    redirect,
+    request,
+    url_for,
 )
-from flask_login import current_user
+from flask_login import current_user, login_required
+
+from app.constants import (
+    request_status
+)
+from app.lib.date_utils import local_to_utc
 from app.models import (
     Agencies,
     Requests,
     UserRequests
 )
-from app.constants import (
-    request_status
-)
-from app.report.forms import ReportFilterForm
+from app.report import report
+from app.report.forms import AcknowledgmentForm, ReportFilterForm
+from app.report.utils import generate_acknowledgment_report
 
 
 @report.route('/show', methods=['GET'])
@@ -29,6 +38,7 @@ def show_report():
     :return: redirect to reports page
     """
     return render_template('report/reports.html',
+                           acknowledgment_form=AcknowledgmentForm(),
                            report_filter_form=ReportFilterForm())
 
 
@@ -93,3 +103,42 @@ def get():
                     "is_visible": is_visible,
                     "results": results
                     }), 200
+
+
+@report.route('/acknowledgment', methods=['POST'])
+@login_required
+def acknowledgment():
+    """Generates the acknowledgment report.
+
+    Returns:
+        Template with context.
+
+    """
+    acknowledgment_form = AcknowledgmentForm()
+    if acknowledgment_form.validate_on_submit():
+        # Only agency administrators can access endpoint
+        if not current_user.is_agency_admin:
+            return jsonify({
+                'error': 'Only Agency Administrators can access this endpoint.'
+            }), 403
+        date_from = local_to_utc(datetime.strptime(request.form['date_from'], '%m/%d/%Y'),
+                                 current_app.config['APP_TIMEZONE'])
+        date_to = local_to_utc(datetime.strptime(request.form['date_to'], '%m/%d/%Y'),
+                               current_app.config['APP_TIMEZONE'])
+        redis_key = '{current_user_guid}-{report_type}-{agency_ein}-{timestamp}'.format(
+            current_user_guid=current_user.guid,
+            report_type='acknowledgment',
+            agency_ein=current_user.default_agency_ein,
+            timestamp=datetime.now(),
+        )
+        generate_acknowledgment_report.apply_async(args=[current_user.guid,
+                                                         date_from,
+                                                         date_to],
+                                                   serializer='pickle',
+                                                   task_id=redis_key)
+        flash('Your report is being generated. You will receive an email with the report attached once its complete.',
+              category='success')
+    else:
+        for field, _ in acknowledgment_form.errors.items():
+            flash(acknowledgment_form.errors[field][0], category='danger')
+    return redirect(url_for("report.show_report"))

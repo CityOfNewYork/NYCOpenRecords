@@ -578,17 +578,17 @@
           "generate_letters": false
         },
         "custom_request_forms": {
-          "enabled": false,
+          "enabled": true,
           "categorized": false,
-          "expand_by_default": false,
+          "expand_by_default": true,
           "category_info_text": "",
           "category_warning_text": "",
           "multiple_request_types": false,
-          "description_hidden_by_default": true
+          "description_hidden_by_default": false
         },
         "monitor_agency_requests": [],
         "specific_request_instructions": {
-          "text": ""
+          "text": "<div><p>The Fire Department of the City of New York commonly issues records to the public. Below are instructions for obtaining common documents by mail or in-person or through OpenRecords, along with forms that are needed to complete the process. Note, all mail requests must include a check or money order for applicable fees payable to \"<strong>NYC Fire Department</strong>\" (no cash accepted). Include a stamped, self-addressed envelope. FDNY does not process record requests online. For in-person record requests go to:<p><strong>FDNY Public Records Unit</strong><br>9 MetroTech Center- First Floor<br>Brooklyn, N.Y. 11201<br>Use the FLATBUSH AVENUE ENTRANCE<br>Hours of Operation:<br>Monday - Friday 9:00am to 4:00pm (except Holidays)<p>Please note that all records provided through OpenRecords/FOIL will be redacted. If you require records with no redactions, then you must serve a “So Ordered” subpoena. For further instructions please refer to <a href=https://www1.nyc.gov/site/fdny/about/resources/record-requests/records-request.page rel=\"noopener noreferrer\"target=_blank>https://www1.nyc.gov/site/fdny/about/resources/record-requests/records-request.page</a>.<hr><h2>Mail Only Record Requests</h2><p>The following record request can only be handled by mail.<p><strong>Fire Marshal Investigation Report</strong><ul><li><u><a href=https://www1.nyc.gov/assets/fdny/downloads/pdf/about/fire-marshal-incident-report.pdf rel=\"noopener noreferrer\"target=_blank>Get Record Request Form</a></u> (PDF)</ul><hr><h2>Ambulance Call Report/ Pre-Hospital Care Report</h2><p>These records can be obtained by Mail, In Person or through Online through <a href=https://fdny.mypatientencounters.com/myrecord rel=\"noopener noreferrer\"target=_blank>https://https://fdny.mypatientencounters.com/myrecord</a><ul><li><u><a href=https://www1.nyc.gov/assets/fdny/downloads/pdf/about/public-record-ambulance-call-report.pdf rel=\"noopener noreferrer\"target=_blank>Get Record Request Form</a></u> (PDF)</ul><hr><h2>Public Records Requests</h2><p>These records can be obtained by Mail, In Person or through OpenRecords (see dropdown below for instructions)<p><strong>Fire Incident Report</strong><ul><li><u><a href=https://www1.nyc.gov/assets/fdny/downloads/pdf/about/public-record-fire-incident-report.pdf rel=\"noopener noreferrer\"target=_blank>Get Record Request Form</a></u> (PDF)</ul><p><strong>Fuel Tank Special Report</strong><ul><li><u><a href=https://www1.nyc.gov/assets/fdny/downloads/pdf/about/public-record-fuel-tank-special-report.pdf rel=\"noopener noreferrer\"target=_blank>Get Record Request Form</a></u> (PDF)</ul><p><strong>Violation Special Report</strong><ul><li><u><a href=https://www1.nyc.gov/assets/fdny/downloads/pdf/about/public-record-violation-special-report.pdf rel=\"noopener noreferrer\"target=_blank>Get Record Request Form</a></u> (PDF)</ul><p><strong>Copy of a Violation</strong><ul><li><u><a href=https://www1.nyc.gov/assets/fdny/downloads/pdf/about/public-record-copy-of-violation.pdf rel=\"noopener noreferrer\"target=_blank>Get Record Request Form</a></u> (PDF)</ul></div>"
         }
       },
       "acronym": "FDNY"

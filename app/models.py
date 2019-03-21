@@ -290,14 +290,14 @@ class Agencies(db.Model):
 
             for agency in data['agencies']:
                 if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
-                    warn("Duplicate EIN ({ein}); Row not imported", category=UserWarning)
+                    warn("Duplicate EIN ({ein}); Row not imported".format(ein=agency['ein']), category=UserWarning)
                     continue
                 a = cls(
                     ein=agency['ein'],
                     parent_ein=agency['parent_ein'],
                     categories=agency['categories'],
                     name=agency['name'],
-                    acronym=agency['acronym'],
+                    acronym=agency.get('acronym', None),
                     next_request_number=agency['next_request_number'],
                     default_email=agency['default_email'],
                     appeals_email=agency['appeals_email'],
@@ -334,19 +334,6 @@ class Users(UserMixin, db.Model):
     mailing_address - a JSON object containing the user's address
     """
     __tablename__ = 'users'
-    # from app.constants import user_type_auth
-    # auth_user_type = db.Column(
-    #     db.Enum(user_type_auth.AGENCY_USER,
-    #             user_type_auth.AGENCY_LDAP_USER,
-    #             user_type_auth.PUBLIC_USER_FACEBOOK,
-    #             user_type_auth.PUBLIC_USER_MICROSOFT,
-    #             user_type_auth.PUBLIC_USER_YAHOO,
-    #             user_type_auth.PUBLIC_USER_LINKEDIN,
-    #             user_type_auth.PUBLIC_USER_GOOGLE,
-    #             user_type_auth.PUBLIC_USER_NYC_ID,
-    #             user_type_auth.ANONYMOUS_USER,
-    #             name='auth_user_type'),
-    #     primary_key=True)
     guid = db.Column(db.String(64), unique=True, primary_key=True)
     is_nyc_employee = db.Column(db.Boolean, default=False)
     has_nyc_account = db.Column(db.Boolean, default=False)
