@@ -407,16 +407,16 @@ def saml_sls(saml_sp, user_guid):
         Response Object: Redirect the user to the Home Page.
 
     """
-    dscb = session.clear()
+    dscb = session.destroy()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
-    update_object(
-        {
-            'session_id': None
-        },
-        Users,
-        user_guid
-    )
+    # update_object(
+    #     {
+    #         'session_id': None
+    #     },
+    #     Users,
+    #     user_guid
+    # )
     logout_user()
     if not errors:
         create_auth_event(
@@ -460,6 +460,14 @@ def saml_slo(saml_sp):
     if 'samlSessionIndex' in session:
         session_index = session['samlSessionIndex']
 
+    update_object(
+        {
+            'session_id': None
+        },
+        Users,
+        current_user.guid
+    )
+
     return saml_sp.logout(name_id=name_id, session_index=session_index)
 
 
@@ -488,6 +496,7 @@ def saml_acs(saml_sp, onelogin_request):
     user_data = {k: v[0] if len(v) else None for (k, v) in session['samlUserdata'].items()}
 
     if len(errors) == 0:
+        session.permanent = True
         nycid_user_data = get_nycid_user_data(user_data['GUID'])
 
         if not nycid_user_data.get('validated', False):
