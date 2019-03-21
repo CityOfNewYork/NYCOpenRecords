@@ -410,13 +410,6 @@ def saml_sls(saml_sp, user_guid):
     dscb = session.destroy()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
-    # update_object(
-    #     {
-    #         'session_id': None
-    #     },
-    #     Users,
-    #     user_guid
-    # )
     logout_user()
     if not errors:
         create_auth_event(
