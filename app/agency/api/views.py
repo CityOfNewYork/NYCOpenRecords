@@ -118,7 +118,7 @@ def get_custom_request_form_fields():
             field_name = value['name']
             field_type = value['type']
             field_values = value.get('values', None)
-            field_required = value['required']
+            field_required = value.get('required', False)
             min_length = value.get('min_length', None)
             max_length = value.get('max_length', None)
             character_counter = value.get('character_counter', None)
