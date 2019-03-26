@@ -37,13 +37,20 @@
 
 """
 
+import os
+from dotenv import load_dotenv
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+dotenv_path = os.path.join(basedir, '.env')
+load_dotenv(dotenv_path)
+
 from datetime import datetime
 from urllib.parse import unquote
 import sys
 
 import click
-import os
-import pytest
+
 from flask import url_for
 from flask.cli import main
 from flask_migrate import Migrate, upgrade
@@ -71,6 +78,9 @@ from app.models import (
 from app.request.utils import generate_guid
 from app.search.utils import recreate
 from app.user.utils import make_user_admin
+
+if os.getenv('FLASK_ENV') != 'production':
+    import pytest
 
 app = create_app(os.getenv("FLASK_CONFIG") or "default")
 
@@ -123,13 +133,13 @@ def make_shell_context():
     "--is_active", default=False, prompt="Should user be activated immediately?"
 )
 def add_user(
-    first_name: str,
-    last_name: str,
-    email: str,
-    agency_ein: str,
-    middle_initial: str = None,
-    is_admin: bool = False,
-    is_active: bool = False,
+        first_name: str,
+        last_name: str,
+        email: str,
+        agency_ein: str,
+        middle_initial: str = None,
+        is_admin: bool = False,
+        is_active: bool = False,
 ):
     """
     Add an agency user into the database.
@@ -197,7 +207,6 @@ def routes():
         options = {}
         for arg in rule.arguments:
             if arg == "year":
-
                 options[arg] = "{}".format(datetime.now().year)
                 continue
             options[arg] = "[{}]".format(arg)
