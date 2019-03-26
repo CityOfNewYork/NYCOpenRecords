@@ -20,6 +20,7 @@ from flask import (
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
+from werkzeug.utils import escape
 
 from app.constants import (
     request_status,
@@ -33,7 +34,7 @@ from app.lib.date_utils import (
 from app.lib.permission_utils import (
     is_allowed
 )
-from app.lib.utils import InvalidUserException
+from app.lib.utils import InvalidUserException, eval_request_bool
 from app.models import (
     Requests,
     Agencies,
@@ -74,7 +75,7 @@ from app import sentry
 import json
 
 
-@request.route('/new', methods=['GET', 'POST'])
+@request.route("/new", methods=["GET", "POST"])
 def new():
     """
     Create a new FOIL request
@@ -88,23 +89,28 @@ def new():
     :return: redirect to homepage on successful form validation
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-    site_key = current_app.config['RECAPTCHA_SITE_KEY']
+    site_key = current_app.config["RECAPTCHA_SITE_KEY"]
+
+    kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
+    category = str(escape(flask_request.args.get("category", None)))
+    agency = str(escape(flask_request.args.get("agency", None)))
+    title = str(escape(flask_request.args.get("title", None)))
 
     if current_user.is_public:
         form = PublicUserRequestForm()
-        template_suffix = 'user.html'
+        template_suffix = "user.html"
     elif current_user.is_anonymous:
         form = AnonymousRequestForm()
-        template_suffix = 'anon.html'
+        template_suffix = "anon.html"
     elif current_user.is_agency:
         form = AgencyUserRequestForm()
-        template_suffix = 'agency.html'
+        template_suffix = "agency.html"
     else:
         raise InvalidUserException(current_user)
 
-    new_request_template = 'request/new_request_' + template_suffix
+    new_request_template = "request/new_request_" + template_suffix
 
-    if flask_request.method == 'POST':
+    if flask_request.method == "POST":
         # validate upload with no request id available
         upload_path = None
         if form.request_file.data:
@@ -113,53 +119,58 @@ def new():
             if form.request_file.errors:
                 return render_template(new_request_template, form=form, site_key=site_key)
 
-        custom_metadata = json.loads(flask_request.form.get('custom-request-forms-data', {}))
-        tz_name = flask_request.form['tz-name'] if flask_request.form['tz-name'] else current_app.config['APP_TIMEZONE']
+        custom_metadata = json.loads(flask_request.form.get("custom-request-forms-data", {}))
+        tz_name = flask_request.form["tz-name"] if flask_request.form["tz-name"] else current_app.config["APP_TIMEZONE"]
         if current_user.is_public:
-            request_id = create_request(form.request_title.data,
-                                        form.request_description.data,
-                                        form.request_category.data,
-                                        agency_ein=form.request_agency.data,
-                                        upload_path=upload_path,
-                                        tz_name=tz_name,
-                                        custom_metadata=custom_metadata)
+            request_id = create_request(
+                form.request_title.data,
+                form.request_description.data,
+                form.request_category.data,
+                agency_ein=form.request_agency.data,
+                upload_path=upload_path,
+                tz_name=tz_name,
+                custom_metadata=custom_metadata,
+            )
         elif current_user.is_agency:
-            request_id = create_request(form.request_title.data,
-                                        form.request_description.data,
-                                        category=None,
-                                        agency_ein=(
-                                            form.request_agency.data
-                                            if form.request_agency.data != 'None'
-                                            else current_user.default_agency_ein),
-                                        submission=form.method_received.data,
-                                        agency_date_submitted_local=form.request_date.data,
-                                        email=form.email.data,
-                                        first_name=form.first_name.data,
-                                        last_name=form.last_name.data,
-                                        user_title=form.user_title.data,
-                                        organization=form.user_organization.data,
-                                        phone=form.phone.data,
-                                        fax=form.fax.data,
-                                        address=get_address(form),
-                                        upload_path=upload_path,
-                                        tz_name=tz_name,
-                                        custom_metadata=custom_metadata)
+            request_id = create_request(
+                form.request_title.data,
+                form.request_description.data,
+                category=None,
+                agency_ein=(
+                    form.request_agency.data if form.request_agency.data != "None" else current_user.default_agency_ein
+                ),
+                submission=form.method_received.data,
+                agency_date_submitted_local=form.request_date.data,
+                email=form.email.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                user_title=form.user_title.data,
+                organization=form.user_organization.data,
+                phone=form.phone.data,
+                fax=form.fax.data,
+                address=get_address(form),
+                upload_path=upload_path,
+                tz_name=tz_name,
+                custom_metadata=custom_metadata,
+            )
         else:  # Anonymous User
-            request_id = create_request(form.request_title.data,
-                                        form.request_description.data,
-                                        form.request_category.data,
-                                        agency_ein=form.request_agency.data,
-                                        email=form.email.data,
-                                        first_name=form.first_name.data,
-                                        last_name=form.last_name.data,
-                                        user_title=form.user_title.data,
-                                        organization=form.user_organization.data,
-                                        phone=form.phone.data,
-                                        fax=form.fax.data,
-                                        address=get_address(form),
-                                        upload_path=upload_path,
-                                        tz_name=tz_name,
-                                        custom_metadata=custom_metadata)
+            request_id = create_request(
+                form.request_title.data,
+                form.request_description.data,
+                form.request_category.data,
+                agency_ein=form.request_agency.data,
+                email=form.email.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                user_title=form.user_title.data,
+                organization=form.user_organization.data,
+                phone=form.phone.data,
+                fax=form.fax.data,
+                address=get_address(form),
+                upload_path=upload_path,
+                tz_name=tz_name,
+                custom_metadata=custom_metadata,
+            )
 
         current_request = Requests.query.filter_by(id=request_id).first()
         requester = current_request.requester
@@ -168,20 +179,23 @@ def new():
 
         if current_request.agency.is_active:
             if requester.email:
-                flashed_message_html = render_template('request/confirmation_email.html')
-                flash(Markup(flashed_message_html), category='success')
+                flashed_message_html = render_template("request/confirmation_email.html")
+                flash(Markup(flashed_message_html), category="success")
             else:
-                flashed_message_html = render_template('request/confirmation_non_email.html')
-                flash(Markup(flashed_message_html), category='warning')
+                flashed_message_html = render_template("request/confirmation_non_email.html")
+                flash(Markup(flashed_message_html), category="warning")
 
-            return redirect(url_for('request.view', request_id=request_id))
+            return redirect(url_for("request.view", request_id=request_id))
         else:
-            flashed_message_html = render_template('request/non_portal_agency_message.html',
-                                                   agency=current_request.agency)
-            flash(Markup(flashed_message_html), category='warning')
-            return redirect(url_for('request.non_portal_agency', agency_name=current_request.agency.name))
+            flashed_message_html = render_template(
+                "request/non_portal_agency_message.html", agency=current_request.agency
+            )
+            flash(Markup(flashed_message_html), category="warning")
+            return redirect(url_for("request.non_portal_agency", agency_name=current_request.agency.name))
 
-    return render_template(new_request_template, form=form, site_key=site_key)
+    return render_template(
+        new_request_template, form=form, site_key=site_key, kiosk_mode=kiosk_mode, category=category, agency=agency, title=title
+    )
 
 
 @request.route('/view_all', methods=['GET'])

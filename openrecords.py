@@ -192,7 +192,6 @@ def es_recreate():
     """
     Recreate elasticsearch index and request docs.
     """
-
     recreate()
 
 
@@ -302,9 +301,7 @@ def deploy():
             ),
         )
     )
-
-    es_recreate()
-
+    recreate()
 
 if __name__ == "__main__":
     main()
