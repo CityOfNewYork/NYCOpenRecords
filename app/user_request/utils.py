@@ -204,7 +204,7 @@ def remove_user_request(request_id, user_guid):
     old_permissions = user_request.permissions
     old_point_of_contact = user_request.point_of_contact
 
-    create_user_request_event(event_type.USER_REMOVED, old_permissions, old_point_of_contact)
+    create_user_request_event(event_type.USER_REMOVED, user_request, old_permissions, old_point_of_contact)
     delete_object(user_request)
 
     request.es_update()
