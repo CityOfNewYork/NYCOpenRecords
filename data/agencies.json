@@ -1222,8 +1222,8 @@
       ],
       "name": "Board of Elections",
       "next_request_number": 1,
-      "default_email": "foil@boe.ny.us",
-      "appeals_email": "foil@boe.ny.us",
+      "default_email": "FOIL@boe.nyc",
+      "appeals_email": "FOIL@boe.nyc",
       "is_active": false,
       "agency_features": {
         "letters": {
