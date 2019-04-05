@@ -451,11 +451,11 @@
           }
         },
         {
-          "Department Of Buildings Account #": {
+          "Department Of Buildings Account/PW1 #": {
             "type": "input",
             "name": "fdny-form5-field6",
             "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Department Of Buildings Account # is required.</strong> Please provide a number."
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Department Of Buildings Account/PW1 # is required.</strong> Please provide a number."
           }
         },
         {
