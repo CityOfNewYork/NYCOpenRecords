@@ -620,6 +620,8 @@ class Users(UserMixin, db.Model):
                             is_primary_agency=eval_request_bool(is_primary_agency)
                         )
                         db.session.add(agency_user)
+                    if agency_eins:
+                        user.is_nyc_employee = True
                     db.session.add(user)
             db.session.commit()
 
