@@ -33,6 +33,7 @@
 "denial","Refer to OpenData","Your request is for data that is available through the City's OpenData site. You may visit http://nyc.gov/opendata to find this information","","True"
 "denial","Refer to Other Agency","Your request under the Freedom of Information Law (FOIL) is being closed because this agency does not have the records requested. You should direct your request to a different agency.","","True"
 "denial","Refer to Web Link","Your request under the Freedom of Information Law (FOIL) is being closed because the document or information you requested is publicly available.","","True"
+"denial","Request Withdrawn","Your request under the Freedom of Information Law (FOIL) is closed because you voluntarily withdrew your request.","","False"
 "denial","Denied - Reason Below","","","True"
 "denial","Denied - Unrelated Collision Records","The case folder contained records that did not directly pertain to the collision. Such records have not been provided to you.","0056","True"
 "denial","Denied - Refer to Court","In regard to the document(s) which you requested, I am unable to provide access to these records, for these records are not in the possession, custody, or control of this Department. It appears the information you seek may be available from the Court of original jurisdiction.","0056","True"
