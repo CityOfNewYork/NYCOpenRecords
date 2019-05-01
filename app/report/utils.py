@@ -2,11 +2,11 @@ from datetime import datetime
 
 import tablib
 from flask import current_app
-from sqlalchemy import asc
+from sqlalchemy import asc, func, Date
 from sqlalchemy.orm import joinedload
 
 from app import celery
-from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED
+from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED, REQ_CLOSED, REQ_DENIED
 from app.constants.request_status import CLOSED
 from app.lib.date_utils import utc_to_local
 from app.lib.email_utils import send_email
@@ -131,3 +131,98 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                attachment=excel_spreadsheet.export('xls'),
                filename='FOIL_acknowledgments_{}_{}.xls'.format(date_from_string, date_to_string),
                mimetype='application/octect-stream')
+
+
+def generate_request_closing_user_report(date_from, date_to):
+    total_opened = Requests.query.with_entities(Requests.id,
+                                                Requests.status,
+                                                Requests.date_created,
+                                                Requests.due_date).filter(
+        Requests.date_created.between(date_from, date_to),
+        Requests.agency_ein == ''
+    ).order_by(asc(Requests.date_created)).all()
+    total_opened_headers = ('Request ID',
+                            'Status',
+                            'Date Created',
+                            'Due Date')
+    total_opened_dataset = tablib.Dataset(*total_opened,
+                                          headers=total_opened_headers,
+                                          title='opened in month Raw Data')
+
+    total_closed = Requests.query.with_entities(Requests.id,
+                                                Requests.status,
+                                                Requests.date_created,
+                                                Requests.date_closed,
+                                                Requests.due_date).filter(
+        Requests.date_closed.between(date_from, date_to),
+        Requests.agency_ein == '',
+        Requests.status == CLOSED
+    ).all()
+    total_closed_headers = ('Request ID',
+                            'Status',
+                            'Date Created',
+                            'Date Closed',
+                            'Due Date')
+    total_closed_dataset = tablib.Dataset(*total_closed,
+                                          headers=total_closed_headers,
+                                          title='closed in month Raw Data')
+
+    person_month = Requests.query.with_entities(Requests.id,
+                                                Requests.status,
+                                                Requests.date_created,
+                                                Requests.due_date,
+                                                Events.timestamp,
+                                                Users.first_name + ' ' + Users.last_name).distinct().join(
+        Events, Users
+    ).filter(
+        Events.timestamp.between(date_from, date_to),
+        Requests.agency_ein == '',
+        Events.type.in_((REQ_CLOSED, REQ_DENIED)),
+        Requests.status == CLOSED,
+        Requests.id == Events.request_id,
+        Events.user_guid == Users.guid
+    ).order_by(asc(Requests.id)).all()
+    person_month_headers = ('Request ID',
+                            'Status',
+                            'Date Created',
+                            'Due Date',
+                            'Timestamp',
+                            'Closed By')
+    person_month_dataset = tablib.Dataset(*person_month,
+                                          headers=person_month_headers,
+                                          title='month closed by person Raw Data')
+
+    person_day = Requests.query.with_entities(
+        Events.timestamp.cast(Date),
+        Users.fullname,
+        func.count('*')
+    ).join(
+        Users
+    ).filter(
+        Events.timestamp.between(date_from, date_to),
+        Requests.agency_ein == '',
+        Events.type.in_((REQ_CLOSED, REQ_DENIED)),
+        Requests.status == CLOSED,
+        Requests.id == Events.request_id,
+        Events.user_guid == Users.guid
+    ).group_by(
+        Events.timestamp.cast(Date),
+        Users.fullname
+    ).order_by(Events.timestamp.cast(Date)).all()
+    person_day_headers = ('Date',
+                          'Closed By',
+                          'Count')
+    person_day_dataset = tablib.Dataset(*person_day,
+                                        headers=person_day_headers,
+                                        title='day closed by person Raw Data')
+
+    excel_spreadsheet = tablib.Databook((total_opened_dataset,
+                                         total_closed_dataset,
+                                         person_month_dataset,
+                                         person_day_dataset))
+    send_email(subject='OpenRecords User Closing Report',
+               to=['gzhou@records.nyc.gov'],
+               email_content='Report attached',
+               attachment=excel_spreadsheet.export('xls'),
+               filename='FOIL_user_closing_{}_{}.xls'.format(date_from, date_to),
+               mimetype='application/octet-stream')
