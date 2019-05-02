@@ -55,17 +55,19 @@
 
                 <!-- second div of the add-note form containing email content -->
                 {% if current_user.is_agency %}
-                    <div class="note-divs form-group" id="note-second">
+                    <div class="note-divs" id="note-second">
                         <h4>Edit Email Body</h4>
-                        <div class="email-note-content-hidden" hidden></div>
-                        <textarea class="tinymce-area" name="email-note-content"></textarea>
+                        <div id="note-editor" class="form-group">
+                            <div class="email-note-content-hidden" hidden></div>
+                            <textarea class="tinymce-area" name="email-note-content"></textarea>
+                        </div>
                         <button type="button" class="prev-btn btn btn-default" id="note-prev-1">Prev</button>
                         <button type="button" class="next-btn btn btn-primary" id="note-next-2">Next</button>
                     </div>
                     <!-- last div of the add-note form containing confirmation and submit -->
                     <div class="note-divs form-group" id="note-third">
                         <h4 class="note-confirmation-header"></h4>
-                        <div class="wrap-text" id="email-note-summary"></div>
+                        <div class="wrap-text summary" id="email-note-summary"></div>
                         <!-- hidden input to send email summary to backend -->
                         <input type="hidden" name="email-note-summary" id="email-note-summary-hidden">
                         <button type="button" class="prev-btn btn btn-default" id="note-prev-2">Prev</button>

@@ -112,8 +112,8 @@ def response_note(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if note_data.get(field) is None:
-            flash('Uh Oh, it looks like the instruction {} is missing! '
+        if not note_data.get(field, ''):
+            flash('Uh Oh, it looks like the note {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
