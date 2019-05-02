@@ -256,7 +256,7 @@ def response_closing(request_id):
                            'method',
                            'summary']
     for field in required_fields:
-        if flask_request.form.get(field) is None:
+        if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the closing {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))

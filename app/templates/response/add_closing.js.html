@@ -27,6 +27,9 @@
 
         var edit_body_header = third.find("#edit-body-header");
 
+        var editor = $("#editor");
+        var confirmation = $("#confirmation");
+
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
             first.show();
@@ -112,6 +115,8 @@
                             var emailContent = third.find(".email-content-hidden");
                             emailContent.html(data.template);
                             tinyMCE.get("closing-body").setContent(emailContent.html());
+                            editor.unblock();
+                            next3.prop('disabled', false);
                         }
                     });
                     edit_body_header.html("Edit Email Body");
@@ -135,6 +140,8 @@
                             emailContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("closing-body").setContent(emailContent.html());
+                            editor.unblock();
+                            next3.prop('disabled', false);
                         }
                     });
                     edit_body_header.html("Edit Letter Body");
@@ -142,6 +149,12 @@
                     second.hide();
                     third.show();
                 }
+                // Block tinymce until content is fully loaded by ajax
+                editor.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                });
+                next3.prop('disabled', true);
             }
         });
 
@@ -158,6 +171,8 @@
                         email_content: third.find("#closing-body").val()
                     },
                     success: function (data) {
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                         fourth.find(".summary").html(data.template);
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
@@ -178,6 +193,8 @@
                         letter_content: third.find("#closing-body").val()
                     },
                     success: function (data) {
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                         fourth.find(".summary").html(data.template);
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
@@ -187,6 +204,12 @@
             }
             third.hide();
             fourth.show();
+            // Block confirmation until content is fully loaded by ajax
+            confirmation.block({
+                message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                "<span class=\"sr-only\">Loading responses...</span></div></div>"
+            });
+            submit.prop('disabled', true);
         });
 
         prev2.click(function() {
