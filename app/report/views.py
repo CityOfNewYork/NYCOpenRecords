@@ -151,5 +151,7 @@ def closing_user():
                              current_app.config['APP_TIMEZONE'])
     date_to = local_to_utc(datetime.strptime('04/18/2019', '%m/%d/%Y'),
                            current_app.config['APP_TIMEZONE'])
-    generate_request_closing_user_report(date_from, date_to)
+    generate_request_closing_user_report(current_user.guid,
+                                         date_from,
+                                         date_to)
     return jsonify(), 200

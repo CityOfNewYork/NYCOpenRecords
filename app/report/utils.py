@@ -133,13 +133,20 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                mimetype='application/octect-stream')
 
 
-def generate_request_closing_user_report(date_from, date_to):
-    total_opened = Requests.query.with_entities(Requests.id,
-                                                Requests.status,
-                                                Requests.date_created,
-                                                Requests.due_date).filter(
+def generate_request_closing_user_report(current_user_guid: str, date_from: datetime, date_to: datetime):
+    """
+    """
+    current_user = Users.query.filter_by(guid=current_user_guid).one()
+    agency_ein = current_user.default_agency_ein
+
+    total_opened = Requests.query.with_entities(
+        Requests.id,
+        Requests.status,
+        Requests.date_created,
+        Requests.due_date,
+    ).filter(
         Requests.date_created.between(date_from, date_to),
-        Requests.agency_ein == ''
+        Requests.agency_ein == agency_ein,
     ).order_by(asc(Requests.date_created)).all()
     total_opened_headers = ('Request ID',
                             'Status',
@@ -149,15 +156,17 @@ def generate_request_closing_user_report(date_from, date_to):
                                           headers=total_opened_headers,
                                           title='opened in month Raw Data')
 
-    total_closed = Requests.query.with_entities(Requests.id,
-                                                Requests.status,
-                                                Requests.date_created,
-                                                Requests.date_closed,
-                                                Requests.due_date).filter(
+    total_closed = Requests.query.with_entities(
+        Requests.id,
+        Requests.status,
+        Requests.date_created,
+        Requests.date_closed,
+        Requests.due_date,
+    ).filter(
         Requests.date_closed.between(date_from, date_to),
-        Requests.agency_ein == '',
-        Requests.status == CLOSED
-    ).all()
+        Requests.agency_ein == agency_ein,
+        Requests.status == CLOSED,
+    ).order_by(asc(Requests.date_created)).all()
     total_closed_headers = ('Request ID',
                             'Status',
                             'Date Created',
@@ -167,20 +176,23 @@ def generate_request_closing_user_report(date_from, date_to):
                                           headers=total_closed_headers,
                                           title='closed in month Raw Data')
 
-    person_month = Requests.query.with_entities(Requests.id,
-                                                Requests.status,
-                                                Requests.date_created,
-                                                Requests.due_date,
-                                                Events.timestamp,
-                                                Users.first_name + ' ' + Users.last_name).distinct().join(
-        Events, Users
+    person_month = Requests.query.with_entities(
+        Requests.id,
+        Requests.status,
+        Requests.date_created,
+        Requests.due_date,
+        Events.timestamp,
+        Users.first_name + ' ' + Users.last_name,
+    ).distinct().join(
+        Events,
+        Users,
     ).filter(
         Events.timestamp.between(date_from, date_to),
-        Requests.agency_ein == '',
+        Requests.agency_ein == agency_ein,
         Events.type.in_((REQ_CLOSED, REQ_DENIED)),
         Requests.status == CLOSED,
         Requests.id == Events.request_id,
-        Events.user_guid == Users.guid
+        Events.user_guid == Users.guid,
     ).order_by(asc(Requests.id)).all()
     person_month_headers = ('Request ID',
                             'Status',
@@ -200,14 +212,14 @@ def generate_request_closing_user_report(date_from, date_to):
         Users
     ).filter(
         Events.timestamp.between(date_from, date_to),
-        Requests.agency_ein == '',
+        Requests.agency_ein == agency_ein,
         Events.type.in_((REQ_CLOSED, REQ_DENIED)),
         Requests.status == CLOSED,
         Requests.id == Events.request_id,
-        Events.user_guid == Users.guid
+        Events.user_guid == Users.guid,
     ).group_by(
         Events.timestamp.cast(Date),
-        Users.fullname
+        Users.fullname,
     ).order_by(Events.timestamp.cast(Date)).all()
     person_day_headers = ('Date',
                           'Closed By',
