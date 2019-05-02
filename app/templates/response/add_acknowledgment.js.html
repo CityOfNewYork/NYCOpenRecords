@@ -33,6 +33,9 @@
 
         var edit_body_header = third.find('#edit-body-header');
 
+        var editor = $("#acknowledgment-editor");
+        var confirmation = $("#acknowledgment-confirmation");
+
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
             first.show();
@@ -192,6 +195,8 @@
                             emailContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
+                            editor.unblock();
+                            next3.prop('disabled', false);
                         }
                     });
 
@@ -219,6 +224,8 @@
                             emailContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("acknowledgment-body").setContent(emailContent.html());
+                            editor.unblock();
+                            next3.prop('disabled', false);
                         }
                     });
 
@@ -227,6 +234,11 @@
                     second.hide();
                     third.show();
                 }
+                // Block tinymce until content is fully loaded by ajax
+                editor.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                });
             }
         });
 
@@ -248,6 +260,8 @@
                         fourth.find("input[name='tz-name']").val(jstz.determine().name());
                         fourth.find(".confirmation-header").text(data.header);
                         fourth.find(".method").val(method.val());
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 });
             } else {
@@ -265,11 +279,19 @@
                         fourth.find("input[name='tz-name']").val(jstz.determine().name());
                         fourth.find(".confirmation-header").text(data.header);
                         fourth.find(".method").val(method.val());
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 })
             }
             third.hide();
             fourth.show();
+            // Block confirmation until content is fully loaded by ajax
+            confirmation.block({
+                message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                "<span class=\"sr-only\">Loading responses...</span></div></div>"
+            });
+            submit.prop('disabled', true);
         });
 
         prev2.click(function () {

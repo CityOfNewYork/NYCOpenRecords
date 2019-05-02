@@ -222,7 +222,7 @@ def response_denial(request_id):
                            'method',
                            'summary']
     for field in required_fields:
-        if flask_request.form.get(field) is None:
+        if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the denial {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -510,6 +510,8 @@ def response_email():
         "error": "No changes detected."
     }
     """
+    import time
+    time.sleep(2)
     data = flask_request.form
     request_id = data['request_id']
 

@@ -171,8 +171,6 @@
                         email_content: third.find("#closing-body").val()
                     },
                     success: function (data) {
-                        confirmation.unblock();
-                        submit.prop('disabled', false);
                         fourth.find(".summary").html(data.template);
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
@@ -180,6 +178,8 @@
                         if ($(".editable-span").text() === "") {
                             $(".editable-span").hide();
                         }
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 });
             } else {
@@ -193,12 +193,12 @@
                         letter_content: third.find("#closing-body").val()
                     },
                     success: function (data) {
-                        confirmation.unblock();
-                        submit.prop('disabled', false);
                         fourth.find(".summary").html(data.template);
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
                         fourth.find(".method").val(method.val());
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 });
             }
