@@ -20,6 +20,8 @@
         var point_of_contact = $("#edit_point_of_contact");
         var point_of_contact_state;
 
+        var confirmation = $('#edit-user-confirmation');
+
         function setPermissions(perms) {
             permission.children().each(function () {
                 if (perms.indexOf(Number($(this).val())) !== -1) {
@@ -112,11 +114,18 @@
                     },
                     success: function (data) {
                         $(".email-summary").html(data.template);
-                        first.hide();
-                        second.show();
                         $("#user_name").text(data.name);
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 });
+                first.hide();
+                second.show();
+                confirmation.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                });
+                submit.prop('disabled', true);
             }
             else {
                 $('#no-permissions-changed-error').css({"color": "red", "display": ""});

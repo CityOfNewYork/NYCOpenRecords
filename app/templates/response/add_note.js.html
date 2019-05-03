@@ -2,8 +2,8 @@
     "use strict";
 
     $(document).ready(function () {
-        var editor = $("#note-editor");
-        var confirmation = $("#email-note-summary");
+        var editor = $('#note-editor');
+        var confirmation = $('#email-note-summary');
 
         // Hides all other divs except for the first
         $(".note-control .note-divs").each(function (e) {
@@ -40,7 +40,7 @@
                         tinyMCE.get('email-note-content').setContent(emailContent.html());
                         $(".note-confirmation-header").text(data.header);
                         editor.unblock();
-                        $("#note-next-2").prop('disabled', false);
+                        $('#note-next-2').prop('disabled', false);
                     }
                 });
                 document.getElementById("note-first").style.display = "none";
@@ -51,7 +51,7 @@
                 message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
                 "<span class=\"sr-only\">Loading responses...</span></div></div>"
             });
-            $("#note-next-2").prop('disabled', true);
+            $('#note-next-2').prop('disabled', true);
         });
 
         // Handles click events on the second next button
@@ -69,7 +69,7 @@
                     $("#email-note-summary").html(data.template);
                     $("#email-note-summary-hidden").val(data.template);
                     confirmation.unblock();
-                    $("#note-submit").prop('disabled', false);
+                    $('#note-submit').prop('disabled', false);
                 }
             });
             document.getElementById("note-second").style.display = "none";
@@ -79,7 +79,7 @@
                 message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
                 "<span class=\"sr-only\">Loading responses...</span></div></div>"
             });
-            $("#note-submit").prop('disabled', true);
+            $('#note-submit').prop('disabled', true);
         });
 
         // Handles click events on the first previous button

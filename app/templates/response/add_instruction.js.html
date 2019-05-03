@@ -2,6 +2,9 @@
     "use strict";
 
     $(document).ready(function () {
+        var editor = $('#instruction-editor');
+        var confirmation = $('#email-instruction-summary');
+
         // Hides all other divs except for the first
         $(".instruction-control .instruction-divs").each(function (e) {
             if (e != 0)
@@ -36,10 +39,17 @@
                         flask_moment_render_all();
                         tinyMCE.get('email-instruction-content').setContent(emailContent.html());
                         $(".instruction-confirmation-header").text(data.header);
+                        editor.unblock();
+                        $('#instruction-next-2').prop('disabled', false);
                     }
                 });
                 document.getElementById("instruction-first").style.display = "none";
                 document.getElementById("instruction-second").style.display = "block";
+                editor.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                });
+                $('#instruction-next-2').prop('disabled', true);
             }
         });
 
@@ -57,10 +67,17 @@
                 success: function (data) {
                     $("#email-instruction-summary").html(data.template);
                     $("#email-instruction-summary-hidden").val(data.template);
+                    confirmation.unblock();
+                    $('#instruction-submit').prop('disabled', true);
                 }
             });
             document.getElementById("instruction-second").style.display = "none";
             document.getElementById("instruction-third").style.display = "block";
+            confirmation.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+            });
+            $('#instruction-submit').prop('disabled', true);
         });
 
         // Handles click events on the first previous button

@@ -2,6 +2,9 @@
     "use strict";
 
     $(document).ready(function () {
+        var editor = $('#link-editor');
+        var confirmation = $('#email-link-summary');
+
         // Hides all other divs except for the first
         $(".link-control .link-divs").each(function (e) {
             if (e != 0)
@@ -34,10 +37,17 @@
                         flask_moment_render_all();
                         tinyMCE.get('email-link-content').setContent(emailContent.html());
                         $(".link-confirmation-header").text(data.header);
+                        editor.unblock();
+                        $('#link-next-2').prop('disabled', false);
                     }
                 });
                 document.getElementById("link-first").style.display = "none";
                 document.getElementById("link-second").style.display = "block";
+                editor.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                });
+                $('#link-next-2').prop('disabled', true);
             }
         });
 
@@ -56,10 +66,17 @@
                     // Data should be html template page.
                     $("#email-link-summary").html(data.template);
                     $("#email-link-summary-hidden").val(data.template);
+                    confirmation.unblock();
+                    $('#link-submit').prop('disabled', false);
                 }
             });
             document.getElementById("link-second").style.display = "none";
             document.getElementById("link-third").style.display = "block";
+            confirmation.block({
+                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+            });
+            $('#link-submit').prop('disabled', true);
         });
 
         // Handles click events on the first previous button

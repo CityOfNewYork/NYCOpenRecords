@@ -86,9 +86,10 @@
             <!-- third div of the add-extension form -->
             <div class="extension-divs hide-div form-group" id="extension-third" hidden>
                 <h4 id="edit-body-header">Edit Email Body</h4>
-                <div class="extension-body-hidden" hidden></div>
-                <textarea class="tinymce-area" name="extension-body"></textarea>
-                <br>
+                <div id="extension-editor" class="form-group">
+                    <div class="extension-body-hidden" hidden></div>
+                    <textarea class="tinymce-area" name="extension-body"></textarea>
+                </div>
                 <button type="button" class="prev-btn btn btn-default" id="extension-prev-3">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="extension-next-3">Next</button>
             </div>
@@ -96,8 +97,8 @@
             <!-- last div of the add-extension form containing confirmation and submit -->
             <div class="extension-divs hide-div form-group" id="extension-fourth" hidden>
                 <h4 class="extension-confirmation-header"></h4>
-                <div class="wrap-text" id="summary"></div>
-                <input type="hidden" name="summary" id="summary-hidden">
+                <div class="wrap-text summary" id="extension-summary"></div>
+                <input type="hidden" name="summary" id="extension-summary-hidden">
                 <input type="hidden" name="tz-name" id="extension-tz-name">
                 <button type="button" class="prev-btn btn btn-default" id="extension-prev-4">Prev</button>
                 <button type="submit" class="submit-btn btn btn-success" id="extension-submit">Submit</button>

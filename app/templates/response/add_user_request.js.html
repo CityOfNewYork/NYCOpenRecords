@@ -15,6 +15,8 @@
         var user = first.find("#user");
         var permission = first.find("#permission");
 
+        var confirmation = $('#add-user-confirmation');
+
         permission.find("option").mousedown(function (e) {
             e.preventDefault();
             permission.focus();
@@ -49,11 +51,18 @@
                 },
                 success: function (data) {
                     $(".email-summary").html(data.template);
-                    first.hide();
-                    second.show();
                     $("#user_name").text(data.name);
+                    confirmation.unblock();
+                    submit.prop('disabled', false);
                 }
             });
+            first.hide();
+            second.show();
+            confirmation.block({
+                message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
+                "<span class=\"sr-only\">Loading responses...</span></div></div>"
+            });
+            submit.prop('disabled', true);
         });
 
         prev.click(function () {

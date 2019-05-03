@@ -347,7 +347,7 @@ def response_extension(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if extension_data.get(field) is None:
+        if not extension_data.get(field, ''):
             flash('Uh Oh, it looks like the extension {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -387,7 +387,7 @@ def response_link(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if link_data.get(field) is None:
+        if not link_data.get(field, ''):
             flash('Uh Oh, it looks like the link {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -423,7 +423,7 @@ def response_instructions(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if instruction_data.get(field) is None:
+        if not instruction_data.get(field, ''):
             flash('Uh Oh, it looks like the instruction {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -510,8 +510,6 @@ def response_email():
         "error": "No changes detected."
     }
     """
-    import time
-    time.sleep(2)
     data = flask_request.form
     request_id = data['request_id']
 
