@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from app import celery
 from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED, REQ_CLOSED, REQ_DENIED
-from app.constants.request_status import CLOSED
+from app.constants.request_status import OPEN, CLOSED
 from app.lib.date_utils import utc_to_local
 from app.lib.email_utils import send_email
 from app.models import Agencies, Events, Requests, Users
@@ -142,8 +142,8 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
     total_opened = Requests.query.with_entities(
         Requests.id,
         Requests.status,
-        Requests.date_created,
-        Requests.due_date,
+        func.to_char(Requests.date_created, 'MM/DD/YYYY'),
+        func.to_char(Requests.due_date, 'MM/DD/YYYY'),
     ).filter(
         Requests.date_created.between(date_from, date_to),
         Requests.agency_ein == agency_ein,
@@ -159,9 +159,9 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
     total_closed = Requests.query.with_entities(
         Requests.id,
         Requests.status,
-        Requests.date_created,
-        Requests.date_closed,
-        Requests.due_date,
+        func.to_char(Requests.date_created, 'MM/DD/YYYY'),
+        func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
+        func.to_char(Requests.due_date, 'MM/DD/YYYY'),
     ).filter(
         Requests.date_closed.between(date_from, date_to),
         Requests.agency_ein == agency_ein,
@@ -176,13 +176,24 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
                                           headers=total_closed_headers,
                                           title='closed in month Raw Data')
 
+    monthly_totals = [
+        [OPEN, len(total_opened)],
+        [CLOSED, len(total_closed)],
+        ['Total', len(total_opened) + len(total_closed)]
+    ]
+    monthly_totals_headers = ('Status',
+                              'Count')
+    monthly_totals_dataset = tablib.Dataset(*monthly_totals,
+                                            headers=monthly_totals_headers,
+                                            title='Monthly Totals')
+
     person_month = Requests.query.with_entities(
         Requests.id,
         Requests.status,
-        Requests.date_created,
-        Requests.due_date,
-        Events.timestamp,
-        Users.first_name + ' ' + Users.last_name,
+        func.to_char(Requests.date_created, 'MM/DD/YYYY'),
+        func.to_char(Requests.due_date, 'MM/DD/YYYY'),
+        func.to_char(Events.timestamp, 'MM/DD/YYYY HH:MI:SS.MS'),
+        Users.fullname,
     ).distinct().join(
         Events,
         Users,
@@ -194,18 +205,47 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
         Requests.id == Events.request_id,
         Events.user_guid == Users.guid,
     ).order_by(asc(Requests.id)).all()
+    person_month_list = [list(r) for r in person_month]
+    for person_month_item in person_month_list:
+        person_month_item[4] = person_month_item[4].split(' ', 1)[0]
     person_month_headers = ('Request ID',
                             'Status',
                             'Date Created',
                             'Due Date',
                             'Timestamp',
                             'Closed By')
-    person_month_dataset = tablib.Dataset(*person_month,
+    person_month_dataset = tablib.Dataset(*person_month_list,
                                           headers=person_month_headers,
                                           title='month closed by person Raw Data')
 
+    person_month_count = Users.query.with_entities(
+        Users.fullname,
+        func.count('*'),
+    ).distinct().join(
+        Events,
+        Requests
+    ).filter(
+        Events.timestamp.between(date_from, date_to),
+        Requests.agency_ein == agency_ein,
+        Events.type.in_((REQ_CLOSED, REQ_DENIED)),
+        Requests.status == CLOSED,
+        Requests.id == Events.request_id,
+        Events.user_guid == Users.guid,
+    ).group_by(
+        Users.fullname
+    ).all()
+    person_month_count_list = [list(r) for r in person_month_count]
+    for person_month_count_item in person_month_count_list:
+        person_month_count_item.append("{:.0%}".format(person_month_count_item[1] / len(person_month)))
+    person_month_percent_headers = ('Closed By',
+                                    'Count',
+                                    'Percent')
+    person_month_closing_percent_dataset = tablib.Dataset(*person_month_count_list,
+                                                          headers=person_month_percent_headers,
+                                                          title='Monthly Closing by Person')
+
     person_day = Requests.query.with_entities(
-        Events.timestamp.cast(Date),
+        func.to_char(Events.timestamp.cast(Date), 'MM/DD/YYYY'),
         Users.fullname,
         func.count('*')
     ).join(
@@ -228,12 +268,14 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
                                         headers=person_day_headers,
                                         title='day closed by person Raw Data')
 
-    excel_spreadsheet = tablib.Databook((total_opened_dataset,
+    excel_spreadsheet = tablib.Databook((monthly_totals_dataset,
+                                         person_month_closing_percent_dataset,
+                                         person_day_dataset,
+                                         total_opened_dataset,
                                          total_closed_dataset,
-                                         person_month_dataset,
-                                         person_day_dataset))
+                                         person_month_dataset))
     send_email(subject='OpenRecords User Closing Report',
-               to=['gzhou@records.nyc.gov'],
+               to=[current_user.email],
                email_content='Report attached',
                attachment=excel_spreadsheet.export('xls'),
                filename='FOIL_user_closing_{}_{}.xls'.format(date_from, date_to),

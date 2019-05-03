@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import (
     ARRAY,
     JSONB
 )
+from sqlalchemy.orm import column_property
 from sqlalchemy.orm.exc import MultipleResultsFound
 from warnings import warn
 
@@ -355,7 +356,6 @@ class Users(UserMixin, db.Model):
                                  name='mailing_address')  # TODO: define validation for minimum acceptable mailing address
     session_id = db.Column(db.String(254), nullable=True, default=None)
     signature = db.Column(db.String(), nullable=True, default=None)
-    from sqlalchemy.orm import column_property
     fullname = column_property(first_name + " " + last_name)
 
     # Relationships
