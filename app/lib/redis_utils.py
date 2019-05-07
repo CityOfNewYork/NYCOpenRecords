@@ -69,7 +69,7 @@ def redis_get_user_session(session_id):
         s = session_class(serialization_method.loads(
             current_app.kvsession_store.get(session_id)
         ))
-        s.sid_s = session_id
+        s.sid = session_id
 
         return s
 

@@ -9,7 +9,7 @@ from app.admin.forms import (
     SelectAgencyForm,
     ActivateAgencyUserForm
 )
-from flask import render_template, abort
+from flask import render_template, abort, redirect, url_for
 from flask_login import current_user
 from app.admin.utils import get_agency_active_users
 
@@ -52,4 +52,4 @@ def main(agency_ein=None):
                                    agency_ein=agency_ein,
                                    user_form=form)
 
-    return abort(404)
+    return redirect(url_for('main.index'))

@@ -59,6 +59,9 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     USE_SAML = os.environ.get('USE_SAML') == "True"
 
+    # Flask-Session
+    SESSION_TYPE = 'redis'
+
     AUTH_TYPE = 'None'
 
     if USE_SAML:
