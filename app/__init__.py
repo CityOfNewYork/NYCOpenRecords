@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from datetime import date
+from datetime import date, datetime
 from logging import Formatter
 from logging.handlers import SMTPHandler, TimedRotatingFileHandler
 
@@ -9,10 +9,10 @@ import os
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import (Flask, abort, render_template, request as flask_request)
+from flask import (Flask, abort, render_template, request as flask_request, redirect, url_for, session as flask_session)
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
-from flask_kvsession import KVSessionExtension
+from flask_session import Session
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
@@ -36,6 +36,7 @@ moment = Moment()
 mail = Mail()
 tracy = Tracy()
 login_manager = LoginManager()
+session = Session()
 store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB,
                                      host=Config.REDIS_HOST, port=Config.REDIS_PORT))
 session_redis = PrefixDecorator('session_', store)
@@ -114,6 +115,7 @@ def create_app(config_name='default'):
     celery.conf.update(app.config)
     celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
+    session.init_app(app)
 
     with app.app_context():
         from app.models import Anonymous
@@ -122,7 +124,6 @@ def create_app(config_name='default'):
         if app.config['USE_SAML']:
             login_manager.login_message = None
             login_manager.login_message_category = None
-        KVSessionExtension(session_redis, app)
 
     # Error Handlers
     @app.errorhandler(400)

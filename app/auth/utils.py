@@ -407,10 +407,19 @@ def saml_sls(saml_sp, user_guid):
         Response Object: Redirect the user to the Home Page.
 
     """
-    dscb = session.destroy()
+    dscb = lambda: session.clear()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
     logout_user()
+
+    update_object(
+        {
+            'session_id': None
+        },
+        Users,
+        user_guid
+    )
+
     if not errors:
         create_auth_event(
             auth_event_type=event_type.USER_LOGGED_OUT,
@@ -452,14 +461,6 @@ def saml_slo(saml_sp):
         name_id = session['samlNameId']
     if 'samlSessionIndex' in session:
         session_index = session['samlSessionIndex']
-
-    update_object(
-        {
-            'session_id': None
-        },
-        Users,
-        current_user.guid
-    )
 
     return saml_sp.logout(name_id=name_id, session_index=session_index)
 
