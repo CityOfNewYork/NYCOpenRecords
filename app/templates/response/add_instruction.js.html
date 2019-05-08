@@ -46,8 +46,8 @@
                 document.getElementById("instruction-first").style.display = "none";
                 document.getElementById("instruction-second").style.display = "block";
                 editor.block({
-                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
-                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                    message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                    '<span class=\"sr-only\">Loading content...</span></div></div>'
                 });
                 $('#instruction-next-2').prop('disabled', true);
             }
@@ -74,8 +74,8 @@
             document.getElementById("instruction-second").style.display = "none";
             document.getElementById("instruction-third").style.display = "block";
             confirmation.block({
-                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
-                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                '<span class=\"sr-only\">Loading content...</span></div></div>'
             });
             $('#instruction-submit').prop('disabled', true);
         });

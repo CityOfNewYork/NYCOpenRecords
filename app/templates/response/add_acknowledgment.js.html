@@ -236,8 +236,8 @@
                 }
                 // Block tinymce until content is fully loaded by ajax
                 editor.block({
-                    message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
-                    "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                    message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                    '<span class=\"sr-only\">Loading content...</span></div></div>'
                 });
                 next3.prop('disabled', true);
             }
@@ -289,8 +289,8 @@
             fourth.show();
             // Block confirmation until content is fully loaded by ajax
             confirmation.block({
-                message: "<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">" +
-                "<span class=\"sr-only\">Loading responses...</span></div></div>"
+                message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                '<span class=\"sr-only\">Loading content...</span></div></div>'
             });
             submit.prop('disabled', true);
         });
