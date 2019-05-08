@@ -36,22 +36,27 @@ def send_contact_email(subject, recipients, body, sender):
     send_async_email.delay(msg)
 
 
-def send_email(subject, to=list(), cc=list(), bcc=list(), template=None, email_content=None, **kwargs):
-    """
-    Function that sends asynchronous emails for the application.
+def send_email(subject, to=list(), cc=list(), bcc=list(), reply_to='', template=None, email_content=None, **kwargs):
+    """Function that sends asynchronous emails for the application.
     Takes in arguments from the frontend.
 
-    :param to: Person(s) email is being sent to
-    :param cc: Person(s) being CC'ed on the email
-    :param bcc: Person(s) being BCC'ed on the email
-    :param subject: Subject of the email
-    :param template: HTML and TXT template of the email content
-    :param email_content: string of HTML email content that can be used as a message template
-    :param kwargs: Additional arguments the function may take in (ie: Message content)
+    Args:
+        to: Person(s) email is being sent to
+        cc: Person(s) being CC'ed on the email
+        bcc: Person(s) being BCC'ed on the email
+        reply_to: reply-to address
+        subject: Subject of the email
+        template: HTML and TXT template of the email content
+        email_content: string of HTML email content that can be used as a message template
+        kwargs: Additional arguments the function may take in (ie: Message content)
     """
     assert to or cc or bcc
     msg = Message(current_app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject,
-                  sender=current_app.config['MAIL_SENDER'], recipients=to, cc=cc, bcc=bcc)
+                  sender=current_app.config['MAIL_SENDER'],
+                  recipients=to,
+                  cc=cc,
+                  bcc=bcc,
+                  reply_to=reply_to)
     # Renders email template from .txt file commented out and not currently used in development
     # msg.body = render_template(template + '.txt', **kwargs)
     if email_content:
