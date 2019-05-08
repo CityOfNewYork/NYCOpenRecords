@@ -1,7 +1,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% extends "base.html" %}
 
-{% block title %}Request a Record{% endblock title %}
+{% block title %}Add a Request{% endblock title %}
 
 {% block custom_css %}
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/new_request/new-request.css') }}"/>
@@ -18,7 +18,7 @@
                   data-parsley-validate data-parsley-focus="first">
                 {{ form.csrf_token }}
 
-                <h1>Request a Record</h1>
+                <h1>Add a Request</h1>
 
                 <p>Please make your request specific so you receive the fastest service. After you submit a FOIL request
                     you
