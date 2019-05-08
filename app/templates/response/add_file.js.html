@@ -27,6 +27,9 @@
 
         var is_private;
 
+        var editor = $('#file-editor');
+        var confirmation = $('#email-file-summary');
+
         // Handles click events on the first next button
         next1.click(function (e) {
             var templateDownload = first.find(".template-download");
@@ -117,10 +120,17 @@
                         flask_moment_render_all();
                         tinyMCE.get('email-file-content').setContent(emailContent.html());
                         $(".file-confirmation-header").text(data.header);
+                        editor.unblock();
+                        next2.prop('disabled', false);
                     }
                 });
                 first.hide();
                 second.show();
+                editor.block({
+                    message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                    '<span class=\"sr-only\">Loading content...</span></div></div>'
+                });
+                next2.prop('disabled', true);
             }
         });
 
@@ -144,10 +154,17 @@
                         return this.innerHTML == '&nbsp;';
                     }).remove();
                     hiddenEmailDiv.html(emailSummary.html());
+                    confirmation.unblock();
+                    submit.prop('disabled', false)
                 }
             });
             second.hide();
             third.show();
+            confirmation.block({
+                message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                '<span class=\"sr-only\">Loading content...</span></div></div>'
+            });
+            submit.prop('disabled', true);
         });
 
         // Handles click events on the first previous button

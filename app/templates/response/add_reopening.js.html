@@ -23,6 +23,9 @@
         var reason = first.find("#reopening-reason-id");
         var date = first.find("#reopening-date");
 
+        var editor = $('#reopening-editor');
+        var confirmation = $('#reopening-confirmation');
+
         // Parsley
         method.attr("data-parsley-required", "");
         date.attr("data-parsley-required", "");
@@ -123,7 +126,8 @@
                             emailContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("reopening-body").setContent(emailContent.html());
-
+                            editor.unblock();
+                            next2.prop('disabled', false);
                         }
                     });
                     edit_body_header.html("Edit Email Body");
@@ -145,12 +149,19 @@
                             letterContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("reopening-body").setContent(letterContent.html());
+                            editor.unblock();
+                            next2.prop('disabled', false);
                         }
                     });
                     edit_body_header.html("Edit Letter Body");
                 }
                 first.hide();
                 second.show();
+                editor.block({
+                    message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                    '<span class=\"sr-only\">Loading content...</span></div></div>'
+                });
+                next2.prop('disabled', true);
             }
         });
 
@@ -173,6 +184,8 @@
                         third.find(".confirmation-header").text(data.header);
                         third.find(".method").val(method.val());
                         third.find("#header").html(data.header)
+                        confirmation.unblock();
+                        submit.prop('disabled', false)
                     }
                 })
             } else {
@@ -192,12 +205,18 @@
                         third.find(".confirmation-header").text(data.header);
                         third.find(".method").val(method.val());
                         third.find("#header").html(data.header)
+                        confirmation.unblock();
+                        submit.prop('disabled', false)
                     }
                 });
             }
-
             second.hide();
             third.show();
+            confirmation.block({
+                message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                '<span class=\"sr-only\">Loading content...</span></div></div>'
+            });
+            submit.prop('disabled', true);
         });
 
 
