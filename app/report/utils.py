@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from app import celery
 from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED, REQ_CLOSED, REQ_DENIED
 from app.constants.request_status import OPEN, CLOSED
-from app.lib.date_utils import utc_to_local
+from app.lib.date_utils import local_to_utc, utc_to_local
 from app.lib.email_utils import send_email
 from app.models import Agencies, Events, Requests, Users
 
@@ -133,11 +133,13 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                mimetype='application/octect-stream')
 
 
-def generate_request_closing_user_report(current_user_guid: str, date_from: datetime, date_to: datetime):
+def generate_request_closing_user_report(agency_ein: str, date_from: str, date_to: str, email_to: list):
     """
     """
-    current_user = Users.query.filter_by(guid=current_user_guid).one()
-    agency_ein = current_user.default_agency_ein
+    date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
+                                 current_app.config['APP_TIMEZONE'])
+    date_to_utc = local_to_utc(datetime.strptime(date_to, '%Y-%m-%d'),
+                               current_app.config['APP_TIMEZONE'])
 
     total_opened = Requests.query.with_entities(
         Requests.id,
@@ -145,7 +147,7 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
         func.to_char(Requests.date_created, 'MM/DD/YYYY'),
         func.to_char(Requests.due_date, 'MM/DD/YYYY'),
     ).filter(
-        Requests.date_created.between(date_from, date_to),
+        Requests.date_created.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
     ).order_by(asc(Requests.date_created)).all()
     total_opened_headers = ('Request ID',
@@ -163,7 +165,7 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
         func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
         func.to_char(Requests.due_date, 'MM/DD/YYYY'),
     ).filter(
-        Requests.date_closed.between(date_from, date_to),
+        Requests.date_closed.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
         Requests.status == CLOSED,
     ).order_by(asc(Requests.date_created)).all()
@@ -198,7 +200,7 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
         Events,
         Users,
     ).filter(
-        Events.timestamp.between(date_from, date_to),
+        Events.timestamp.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
         Events.type.in_((REQ_CLOSED, REQ_DENIED)),
         Requests.status == CLOSED,
@@ -225,7 +227,7 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
         Events,
         Requests
     ).filter(
-        Events.timestamp.between(date_from, date_to),
+        Events.timestamp.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
         Events.type.in_((REQ_CLOSED, REQ_DENIED)),
         Requests.status == CLOSED,
@@ -251,7 +253,7 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
     ).join(
         Users
     ).filter(
-        Events.timestamp.between(date_from, date_to),
+        Events.timestamp.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
         Events.type.in_((REQ_CLOSED, REQ_DENIED)),
         Requests.status == CLOSED,
@@ -275,7 +277,7 @@ def generate_request_closing_user_report(current_user_guid: str, date_from: date
                                          total_closed_dataset,
                                          person_month_dataset))
     send_email(subject='OpenRecords User Closing Report',
-               to=[current_user.email],
+               to=email_to,
                email_content='Report attached',
                attachment=excel_spreadsheet.export('xls'),
                filename='FOIL_user_closing_{}_{}.xls'.format(date_from, date_to),
