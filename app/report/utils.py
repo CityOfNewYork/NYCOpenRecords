@@ -134,13 +134,29 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
 
 
 def generate_request_closing_user_report(agency_ein: str, date_from: str, date_to: str, email_to: list):
+    """Generates a report of requests that were closed in a time frame.
+
+    Generates a report of requests in a time frame with the following tabs:
+    1) Total number of opened and closed requests.
+    2) Total number of closed requests and percentage closed by user.
+    3) Total number of requests closed by user per day.
+    4) All of the requests created.
+    5) All of the requests closed.
+    6) All of the requests closed and the user who closed it.
+
+    Args:
+        agency_ein: Agency EIN
+        date_from: Date to filter from
+        date_to: Date to filter to
+        email_to: List of recipient emails
     """
-    """
+    # Convert string dates
     date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
                                  current_app.config['APP_TIMEZONE'])
     date_to_utc = local_to_utc(datetime.strptime(date_to, '%Y-%m-%d'),
                                current_app.config['APP_TIMEZONE'])
 
+    # Query for all requests opened and create Dataset
     total_opened = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -158,6 +174,7 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                           headers=total_opened_headers,
                                           title='opened in month Raw Data')
 
+    # Query for all requests closed and create Dataset
     total_closed = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -178,6 +195,7 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                           headers=total_closed_headers,
                                           title='closed in month Raw Data')
 
+    # Get total number of opened and closed requests and create Dataset
     monthly_totals = [
         [OPEN, len(total_opened)],
         [CLOSED, len(total_closed)],
@@ -189,6 +207,7 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                             headers=monthly_totals_headers,
                                             title='Monthly Totals')
 
+    # Query for all requests closed with user who closed and create Dataset
     person_month = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -220,6 +239,7 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                           headers=person_month_headers,
                                           title='month closed by person Raw Data')
 
+    # Query for count of requests closed by user
     person_month_count = Users.query.with_entities(
         Users.fullname,
         func.count('*'),
@@ -236,7 +256,9 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
     ).group_by(
         Users.fullname
     ).all()
+    # Convert query result (tuple) into list
     person_month_count_list = [list(r) for r in person_month_count]
+    # Calculate percentage of requests closed by user over total
     for person_month_count_item in person_month_count_list:
         person_month_count_item.append("{:.0%}".format(person_month_count_item[1] / len(person_month)))
     person_month_percent_headers = ('Closed By',
@@ -246,6 +268,7 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                                           headers=person_month_percent_headers,
                                                           title='Monthly Closing by Person')
 
+    # Query for count of requests closed per day by user and create Dataset
     person_day = Requests.query.with_entities(
         func.to_char(Events.timestamp.cast(Date), 'MM/DD/YYYY'),
         Users.fullname,
@@ -270,12 +293,15 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                                         headers=person_day_headers,
                                         title='day closed by person Raw Data')
 
+    # Create Databook from Datasets
     excel_spreadsheet = tablib.Databook((monthly_totals_dataset,
                                          person_month_closing_percent_dataset,
                                          person_day_dataset,
                                          total_opened_dataset,
                                          total_closed_dataset,
                                          person_month_dataset))
+
+    # Email report
     send_email(subject='OpenRecords User Closing Report',
                to=email_to,
                email_content='Report attached',
