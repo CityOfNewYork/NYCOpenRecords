@@ -1,22 +1,25 @@
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 from urllib.parse import urljoin
+
 from flask import (
     request as flask_request,
     render_template,
     url_for
 )
 from flask_login import current_user
-from app.response.utils import safely_send_and_add_email
+
+from app.constants import event_type, permission, user_type_request
 from app.lib.db_utils import delete_object, create_object, update_object
+from app.lib.email_utils import get_agency_emails
+from app.lib.utils import UserRequestException
 from app.models import (
     Users,
     UserRequests,
     Requests,
     Events,
 )
-from app.lib.utils import UserRequestException
-from app.lib.email_utils import get_agency_emails
-from app.constants import event_type, permission, user_type_request
+from app.response.utils import safely_send_and_add_email
 
 
 def add_user_request(request_id, user_guid, permissions, point_of_contact):
@@ -104,8 +107,12 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
     :param permissions: Updated permissions values {'permission': true}
     :param point_of_contact: boolean value to set user as point of contact or not
     """
-    user_request = UserRequests.query.filter_by(user_guid=user_guid,
-                                                request_id=request_id).one()
+    user_request = UserRequests.query.options(
+        joinedload(UserRequests.user)
+    ).filter_by(
+        user_guid=user_guid,
+        request_id=request_id
+    ).one()
 
     agency_admin_emails = get_agency_emails(request_id, admins_only=True)
 
@@ -170,8 +177,11 @@ def remove_user_request(request_id, user_guid):
     :param user_guid: string guid of user being removed
 
     """
-    user_request = UserRequests.query.filter_by(user_guid=user_guid,
-                                                request_id=request_id).first()
+    user_request = UserRequests.query.options(
+        joinedload(UserRequests.user)
+    ).filter_by(
+        user_guid=user_guid, request_id=request_id
+    ).one()
     agency_admin_emails = get_agency_emails(request_id, admins_only=True)
 
     request = Requests.query.filter_by(id=request_id).one()

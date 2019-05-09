@@ -23,6 +23,7 @@ from flask import (
     Markup
 )
 from flask_login import current_user
+from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
 import app.lib.file_utils as fu
@@ -661,15 +662,14 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
 
 
 def add_response_letter(request_id, content, letter_template_id):
-    """
-    Generate and email a PDF of the response letter.
-    Create and store the response_letters and communication_methods objects.
+    """Generates a PDF response letter and emails it to the agency users.
 
-    :param request_id: FOIL request ID
-    :param content: (string) HTML of the response letter
-    :param letter_template_id: id of the letter template
+    Args:
+        request_id: Request ID
+        content: HTML of the response letter
+        letter_template_id: LetterTemplate ID
     """
-    request = Requests.query.filter_by(id=request_id).one()
+    request = Requests.query.options(joinedload(Requests.agency)).filter_by(id=request_id).one()
     letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
     letter_title = letter_template.title
     letter = generate_pdf(content)
@@ -754,7 +754,7 @@ def add_envelope(request_id, template_id, envelope_data):
     :param envelope_data: Dictionary of data to fill in the envelope. (EnvelopeDict)
     :return: PDF File object
     """
-    request = Requests.query.filter_by(id=request_id).one()
+    request = Requests.query.options(joinedload(Requests.agency)).filter_by(id=request_id).one()
 
     template = '{agency_ein}/{template_name}'.format(agency_ein=request.agency.ein,
                                                      template_name=EnvelopeTemplates.query.filter_by(
@@ -2135,7 +2135,11 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
 
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
-    request = Requests.query.filter_by(id=request_id).one()
+    request = Requests.query.options(
+        joinedload(Requests.requester)
+    ).options(
+        joinedload(Requests.agency)
+    ).filter_by(id=request_id).one()
     subject = 'Response Added to {} - File'.format(request_id)
     bcc = get_agency_emails(request_id)
     if release_public_links or release_private_links:
@@ -2178,32 +2182,35 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
 
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
-    """
-    Send email detailing a response has been edited.
+    """Sends email detailing a response has been edited.
+
     Always sends email to agency users on the request.
-    Requester is emailed only if email_content_requester is provided.
+    Email is sent to requester if email_content_requester is provided.
 
-    :param request_id: FOIL request ID
-    :param email_content_agency: body of email being sent to agency users
-    :param email_content_requester: body of email being sent to requester
-
-    :type email_content_agency: str
-    :type email_content_requester: str
-
+    Args:
+        request_id: Request ID
+        email_content_agency: body of email being sent to agency users
+        email_content_requester: body of email being sent to requester
     """
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
-    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
+    request = Requests.query.options(
+        joinedload(Requests.requester)
+    ).options(
+        joinedload(Requests.agency)
+    ).filter_by(
+        id=request_id).one()
     safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
         safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   subject,
-                                  to=[requester_email])
+                                  to=[request.requester.email],
+                                  reply_to=request.agency.default_email)
 
 
 def _send_response_email(request_id, privacy, email_content, subject):
-    """Sends  an email detailing a specific response has been added to a request.
+    """Sends an email detailing a specific response has been added to a request.
 
     If the response privacy is private, only agency users are emailed.
     If the response privacy is release public/private, the requester is emailed and the agency users are bcc'ed.
@@ -2218,14 +2225,17 @@ def _send_response_email(request_id, privacy, email_content, subject):
         request.
     """
     bcc = get_agency_emails(request_id)
-    request = Requests.query.filter_by(id=request_id).one()
-    # Send email with link to requester and bcc agency_ein users as privacy option is release
+    request = Requests.query.options(
+        joinedload(Requests.requester)
+    ).options(
+        joinedload(Requests.agency)
+    ).filter_by(id=request_id).one()
     kwargs = {
         'bcc': bcc,
     }
     if privacy != PRIVATE:
         kwargs['to'] = [request.requester.email]
-        kwargs['reply_to'] = [request.agency.default_email]
+        kwargs['reply_to'] = request.agency.default_email
     return safely_send_and_add_email(request_id,
                                      email_content,
                                      subject,
