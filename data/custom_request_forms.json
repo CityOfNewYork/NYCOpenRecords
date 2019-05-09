@@ -687,7 +687,7 @@
           }
         },
         {
-          "Victim First Name": {
+          "Arrested/Accused Person's First Name": {
             "type": "input",
             "name": "nypd-form2-field2",
             "required": false,
@@ -695,7 +695,7 @@
           }
         },
         {
-          "Victim Last Name": {
+          "Arrested/Accused Person's Last Name": {
             "type": "input",
             "name": "nypd-form2-field3",
             "required": false,
@@ -703,7 +703,7 @@
           }
         },
         {
-          "Victim D.O.B": {
+          "Arrested/Accused Person's D.O.B": {
             "type": "date",
             "name": "nypd-form2-field4",
             "required": false,
