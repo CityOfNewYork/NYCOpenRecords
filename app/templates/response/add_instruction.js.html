@@ -68,7 +68,7 @@
                     $("#email-instruction-summary").html(data.template);
                     $("#email-instruction-summary-hidden").val(data.template);
                     confirmation.unblock();
-                    $('#instruction-submit').prop('disabled', true);
+                    $('#instruction-submit').prop('disabled', false);
                 }
             });
             document.getElementById("instruction-second").style.display = "none";
