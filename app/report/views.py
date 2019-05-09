@@ -27,7 +27,7 @@ from app.models import (
 )
 from app.report import report
 from app.report.forms import AcknowledgmentForm, ReportFilterForm
-from app.report.utils import generate_acknowledgment_report
+from app.report.utils import generate_acknowledgment_report, generate_request_closing_user_report
 
 
 @report.route('/show', methods=['GET'])

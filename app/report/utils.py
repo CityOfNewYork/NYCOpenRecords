@@ -2,13 +2,13 @@ from datetime import datetime
 
 import tablib
 from flask import current_app
-from sqlalchemy import asc
+from sqlalchemy import asc, func, Date
 from sqlalchemy.orm import joinedload
 
 from app import celery
-from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED
-from app.constants.request_status import CLOSED
-from app.lib.date_utils import utc_to_local
+from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED, REQ_CLOSED, REQ_DENIED
+from app.constants.request_status import OPEN, CLOSED
+from app.lib.date_utils import local_to_utc, utc_to_local
 from app.lib.email_utils import send_email
 from app.models import Agencies, Events, Requests, Users
 
@@ -131,3 +131,180 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                attachment=excel_spreadsheet.export('xls'),
                filename='FOIL_acknowledgments_{}_{}.xls'.format(date_from_string, date_to_string),
                mimetype='application/octect-stream')
+
+
+def generate_request_closing_user_report(agency_ein: str, date_from: str, date_to: str, email_to: list):
+    """Generates a report of requests that were closed in a time frame.
+
+    Generates a report of requests in a time frame with the following tabs:
+    1) Total number of opened and closed requests.
+    2) Total number of closed requests and percentage closed by user.
+    3) Total number of requests closed by user per day.
+    4) All of the requests created.
+    5) All of the requests closed.
+    6) All of the requests closed and the user who closed it.
+
+    Args:
+        agency_ein: Agency EIN
+        date_from: Date to filter from
+        date_to: Date to filter to
+        email_to: List of recipient emails
+    """
+    # Convert string dates
+    date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
+                                 current_app.config['APP_TIMEZONE'])
+    date_to_utc = local_to_utc(datetime.strptime(date_to, '%Y-%m-%d'),
+                               current_app.config['APP_TIMEZONE'])
+
+    # Query for all requests opened and create Dataset
+    total_opened = Requests.query.with_entities(
+        Requests.id,
+        Requests.status,
+        func.to_char(Requests.date_created, 'MM/DD/YYYY'),
+        func.to_char(Requests.due_date, 'MM/DD/YYYY'),
+    ).filter(
+        Requests.date_created.between(date_from_utc, date_to_utc),
+        Requests.agency_ein == agency_ein,
+    ).order_by(asc(Requests.date_created)).all()
+    total_opened_headers = ('Request ID',
+                            'Status',
+                            'Date Created',
+                            'Due Date')
+    total_opened_dataset = tablib.Dataset(*total_opened,
+                                          headers=total_opened_headers,
+                                          title='opened in month Raw Data')
+
+    # Query for all requests closed and create Dataset
+    total_closed = Requests.query.with_entities(
+        Requests.id,
+        Requests.status,
+        func.to_char(Requests.date_created, 'MM/DD/YYYY'),
+        func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
+        func.to_char(Requests.due_date, 'MM/DD/YYYY'),
+    ).filter(
+        Requests.date_closed.between(date_from_utc, date_to_utc),
+        Requests.agency_ein == agency_ein,
+        Requests.status == CLOSED,
+    ).order_by(asc(Requests.date_created)).all()
+    total_closed_headers = ('Request ID',
+                            'Status',
+                            'Date Created',
+                            'Date Closed',
+                            'Due Date')
+    total_closed_dataset = tablib.Dataset(*total_closed,
+                                          headers=total_closed_headers,
+                                          title='closed in month Raw Data')
+
+    # Get total number of opened and closed requests and create Dataset
+    monthly_totals = [
+        [OPEN, len(total_opened)],
+        [CLOSED, len(total_closed)],
+        ['Total', len(total_opened) + len(total_closed)]
+    ]
+    monthly_totals_headers = ('Status',
+                              'Count')
+    monthly_totals_dataset = tablib.Dataset(*monthly_totals,
+                                            headers=monthly_totals_headers,
+                                            title='Monthly Totals')
+
+    # Query for all requests closed with user who closed and create Dataset
+    person_month = Requests.query.with_entities(
+        Requests.id,
+        Requests.status,
+        func.to_char(Requests.date_created, 'MM/DD/YYYY'),
+        func.to_char(Requests.due_date, 'MM/DD/YYYY'),
+        func.to_char(Events.timestamp, 'MM/DD/YYYY HH:MI:SS.MS'),
+        Users.fullname,
+    ).distinct().join(
+        Events,
+        Users,
+    ).filter(
+        Events.timestamp.between(date_from_utc, date_to_utc),
+        Requests.agency_ein == agency_ein,
+        Events.type.in_((REQ_CLOSED, REQ_DENIED)),
+        Requests.status == CLOSED,
+        Requests.id == Events.request_id,
+        Events.user_guid == Users.guid,
+    ).order_by(asc(Requests.id)).all()
+    person_month_list = [list(r) for r in person_month]
+    for person_month_item in person_month_list:
+        person_month_item[4] = person_month_item[4].split(' ', 1)[0]
+    person_month_headers = ('Request ID',
+                            'Status',
+                            'Date Created',
+                            'Due Date',
+                            'Timestamp',
+                            'Closed By')
+    person_month_dataset = tablib.Dataset(*person_month_list,
+                                          headers=person_month_headers,
+                                          title='month closed by person Raw Data')
+
+    # Query for count of requests closed by user
+    person_month_count = Users.query.with_entities(
+        Users.fullname,
+        func.count('*'),
+    ).distinct().join(
+        Events,
+        Requests
+    ).filter(
+        Events.timestamp.between(date_from_utc, date_to_utc),
+        Requests.agency_ein == agency_ein,
+        Events.type.in_((REQ_CLOSED, REQ_DENIED)),
+        Requests.status == CLOSED,
+        Requests.id == Events.request_id,
+        Events.user_guid == Users.guid,
+    ).group_by(
+        Users.fullname
+    ).all()
+    # Convert query result (tuple) into list
+    person_month_count_list = [list(r) for r in person_month_count]
+    # Calculate percentage of requests closed by user over total
+    for person_month_count_item in person_month_count_list:
+        person_month_count_item.append("{:.0%}".format(person_month_count_item[1] / len(person_month)))
+    person_month_percent_headers = ('Closed By',
+                                    'Count',
+                                    'Percent')
+    person_month_closing_percent_dataset = tablib.Dataset(*person_month_count_list,
+                                                          headers=person_month_percent_headers,
+                                                          title='Monthly Closing by Person')
+
+    # Query for count of requests closed per day by user and create Dataset
+    person_day = Requests.query.with_entities(
+        func.to_char(Events.timestamp.cast(Date), 'MM/DD/YYYY'),
+        Users.fullname,
+        func.count('*')
+    ).join(
+        Users
+    ).filter(
+        Events.timestamp.between(date_from_utc, date_to_utc),
+        Requests.agency_ein == agency_ein,
+        Events.type.in_((REQ_CLOSED, REQ_DENIED)),
+        Requests.status == CLOSED,
+        Requests.id == Events.request_id,
+        Events.user_guid == Users.guid,
+    ).group_by(
+        Events.timestamp.cast(Date),
+        Users.fullname,
+    ).order_by(Events.timestamp.cast(Date)).all()
+    person_day_headers = ('Date',
+                          'Closed By',
+                          'Count')
+    person_day_dataset = tablib.Dataset(*person_day,
+                                        headers=person_day_headers,
+                                        title='day closed by person Raw Data')
+
+    # Create Databook from Datasets
+    excel_spreadsheet = tablib.Databook((monthly_totals_dataset,
+                                         person_month_closing_percent_dataset,
+                                         person_day_dataset,
+                                         total_opened_dataset,
+                                         total_closed_dataset,
+                                         person_month_dataset))
+
+    # Email report
+    send_email(subject='OpenRecords User Closing Report',
+               to=email_to,
+               email_content='Report attached',
+               attachment=excel_spreadsheet.export('xls'),
+               filename='FOIL_user_closing_{}_{}.xls'.format(date_from, date_to),
+               mimetype='application/octet-stream')
