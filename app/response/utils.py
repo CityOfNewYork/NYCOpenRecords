@@ -230,7 +230,6 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
                                                  email_content,
                                                  'Request {} Acknowledged - Letter'.format(request_id),
                                                  to=get_agency_emails(request_id),
-                                                 reply_to=request.agency.default_email,
                                                  attachment=letter,
                                                  filename=secure_filename(
                                                      '{}_acknowledgment_letter.pdf'.format(request_id)),
