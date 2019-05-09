@@ -229,6 +229,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
                                                  email_content,
                                                  'Request {} Acknowledged - Letter'.format(request_id),
                                                  to=get_agency_emails(request_id),
+                                                 reply_to=request.agency.default_email,
                                                  attachment=letter,
                                                  filename=secure_filename(
                                                      '{}_acknowledgment_letter.pdf'.format(request_id)),
@@ -2116,8 +2117,7 @@ def get_file_links(response, release_public_links, release_private_links, privat
 
 def send_file_email(request_id, release_public_links, release_private_links, private_links, email_content,
                     replace_string, tz_name):
-    """
-    Send email with file links detailing a file response has been added to the request.
+    """Send email with file links detailing a file response has been added to the request.
     Requester receives email only if release_public_links and release_private_links list is not empty.
     Agency users are BCCed on the email the requester receives.
     Agency users receive a separate email if only private files were uploaded.
@@ -2135,30 +2135,29 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
 
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
-    is_anon = Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester
+    request = Requests.query.filter_by(id=request_id).one()
     subject = 'Response Added to {} - File'.format(request_id)
     bcc = get_agency_emails(request_id)
-    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
         release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
         email_content_requester = email_content.replace(replace_string,
                                                         render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,
                                                                         release_private_links=release_private_links,
-                                                                        is_anon=is_anon,
+                                                                        is_anon=request.requester.is_anonymous_requester,
                                                                         release_date=release_date
                                                                         ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   'Response Added to {} - File'.format(request_id),
-                                  to=[requester_email],
-                                  bcc=bcc)
+                                  to=[request.requester.email],
+                                  bcc=bcc,
+                                  reply_to=request.agency.default_email)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
                                                    default_content=True,
-                                                   agency_name=agency_name,
+                                                   agency_name=request.agency.name,
                                                    private_links=private_links,
                                                    page=page)
             safely_send_and_add_email(request_id,
@@ -2170,8 +2169,8 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                      render_template('email_templates/response_file_links.html',
                                                                      request_id=request_id,
                                                                      private_links=private_links,
-                                                                     page=page
-                                                                     ))
+                                                                     page=page)
+                                                     )
         safely_send_and_add_email(request_id,
                                   email_content_agency,
                                   subject,
@@ -2204,26 +2203,29 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
 
 
 def _send_response_email(request_id, privacy, email_content, subject):
-    """
-    Function that sends email detailing a specific response has been added to a request.
-    If the file privacy is private, only agency_ein users are emailed.
-    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
-    Call safely_send_and_add_email to send email notification detailing a specific response has been added to the
-    request.
+    """Sends  an email detailing a specific response has been added to a request.
 
-    :param request_id: FOIL request ID for the specific link
-    :param email_content: content body of the email notification being sent
-    :param privacy: privacy option of link
+    If the response privacy is private, only agency users are emailed.
+    If the response privacy is release public/private, the requester is emailed and the agency users are bcc'ed.
 
+    Args:
+        request_id: Request ID
+        email_content: body of the email
+        privacy: privacy of response
+
+    Returns:
+        Call safely_send_and_add_email to send email notification detailing a specific response has been added to the
+        request.
     """
     bcc = get_agency_emails(request_id)
-    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
+    request = Requests.query.filter_by(id=request_id).one()
     # Send email with link to requester and bcc agency_ein users as privacy option is release
     kwargs = {
         'bcc': bcc,
     }
     if privacy != PRIVATE:
-        kwargs['to'] = [requester_email]
+        kwargs['to'] = [request.requester.email]
+        kwargs['reply_to'] = [request.agency.default_email]
     return safely_send_and_add_email(request_id,
                                      email_content,
                                      subject,
@@ -2253,22 +2255,22 @@ def safely_send_and_add_email(request_id,
                               template=None,
                               to=None,
                               bcc=None,
+                              reply_to=None,
                               **kwargs):
-    """
-    Send email based on given arguments and create and store email object into the Emails table.
+    """Send email based on given arguments and create and store email object into the Emails table.
     Print error messages if there is Assertion or Exception error occurs.
 
-    :param request_id: FOIL request ID
-    :param email_content: string of HTML email content that can be used as a message template
-    :param subject: subject of the email (current is for TESTING purposes)
-    :param template: path of the HTML template to be passed into and rendered in send_email
-    :param to: list of person(s) email is being sent to
-    :param bcc: list of person(s) email is being bcc'ed
-
+    Args:
+        request_id: FOIL request ID
+        email_content: string of HTML email content that can be used as a message template
+        subject: subject of the email (current is for TESTING purposes)
+        template: path of the HTML template to be passed into and rendered in send_email
+        to: list of person(s) email is being sent to
+        bcc: list of person(s) email is being bcc'ed
+        reply_to: reply-to address
     """
-
     try:
-        send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
+        send_email(subject, to=to, bcc=bcc, reply_to=reply_to, template=template, email_content=email_content, **kwargs)
         return _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         sentry.captureException()

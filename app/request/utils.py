@@ -491,6 +491,7 @@ def send_confirmation_email(request, agency, user):
                 subject,
                 to=[requester_email],
                 bcc=bcc,
+                reply_to=agency.default_email,
             )
         # otherwise send the email directly to the agency
         else:
