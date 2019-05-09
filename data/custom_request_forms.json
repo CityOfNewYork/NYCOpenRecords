@@ -608,21 +608,24 @@
           "Complaint Report #": {
             "type": "input",
             "name": "nypd-form1-field1",
-            "required": false
+            "required": false,
+            "max_length": "20"
           }
         },
         {
           "Victim/Complainant First Name": {
             "type": "input",
             "name": "nypd-form1-field2",
-            "required": false
+            "required": false,
+            "max_length": "32"
           }
         },
         {
           "Victim/Complainant Last Name": {
             "type": "input",
             "name": "nypd-form1-field3",
-            "required": false
+            "required": false,
+            "max_length": "64"
           }
         },
         {
@@ -637,14 +640,16 @@
           "Address/Location of Incident": {
             "type": "input",
             "name": "nypd-form1-field5",
-            "required": false
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "Offense (Type of Incident)": {
             "type": "input",
             "name": "nypd-form1-field6",
-            "required": false
+            "required": false,
+            "max_length": "200"
           }
         },
         {
@@ -659,7 +664,8 @@
           "Precinct": {
             "type": "input",
             "name": "nypd-form1-field8",
-            "required": false
+            "required": false,
+            "max_length": "50"
           }
         }
       ],
@@ -676,21 +682,24 @@
           "Arrest Report #": {
             "type": "input",
             "name": "nypd-form2-field1",
-            "required": false
+            "required": false,
+            "max_length": "20"
           }
         },
         {
           "Victim First Name": {
             "type": "input",
             "name": "nypd-form2-field2",
-            "required": false
+            "required": false,
+            "max_length": "32"
           }
         },
         {
           "Victim Last Name": {
             "type": "input",
             "name": "nypd-form2-field3",
-            "required": false
+            "required": false,
+            "max_length": "64"
           }
         },
         {
@@ -713,7 +722,8 @@
           "Precinct": {
             "type": "input",
             "name": "nypd-form2-field6",
-            "required": false
+            "required": false,
+            "max_length": "50"
           }
         },
         {
@@ -727,14 +737,164 @@
           "Offense (Type of Incident)": {
             "type": "input",
             "name": "nypd-form2-field8",
-            "required": false
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "NYSID #": {
             "type": "input",
             "name": "nypd-form2-field9",
-            "required": false
+            "required": false,
+            "max_length": "20"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Aided Card",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Aided Card #": {
+            "type": "input",
+            "name": "nypd-form3-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Victim First Name": {
+            "type": "input",
+            "name": "nypd-form3-field2",
+            "required": false,
+            "max_length": "32"
+          }
+        },
+        {
+          "Victim Last Name": {
+            "type": "input",
+            "name": "nypd-form3-field3",
+            "required": false,
+            "max_length": "64"
+          }
+        },
+        {
+          "Victim D.O.B": {
+            "type": "date",
+            "name": "nypd-form3-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Address/Location of Incident": {
+            "type": "input",
+            "name": "nypd-form3-field5",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Type of Incident": {
+            "type": "input",
+            "name": "nypd-form3-field6",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Date of Incident": {
+            "type": "date",
+            "name": "nypd-form3-field7",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form3-field8",
+            "required": false,
+            "max_length": "50"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Domestic Incident Report",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Domestic Incident Report #": {
+            "type": "input",
+            "name": "nypd-form4-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Victim First Name": {
+            "type": "input",
+            "name": "nypd-form4-field2",
+            "required": false,
+            "max_length": "32"
+          }
+        },
+        {
+          "Victim Last Name": {
+            "type": "input",
+            "name": "nypd-form4-field3",
+            "required": false,
+            "max_length": "64"
+          }
+        },
+        {
+          "Victim D.O.B": {
+            "type": "date",
+            "name": "nypd-form4-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Address/Location of Incident": {
+            "type": "input",
+            "name": "nypd-form4-field5",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Offense (Type of Incident)": {
+            "type": "input",
+            "name": "nypd-form4-field6",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Date of Incident": {
+            "type": "date",
+            "name": "nypd-form4-field7",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form4-field8",
+            "required": false,
+            "max_length": "50"
           }
         }
       ],
@@ -750,28 +910,31 @@
         {
           "911 Sprint Report #": {
             "type": "input",
-            "name": "nypd-form3-field1",
-            "required": false
+            "name": "nypd-form5-field1",
+            "required": false,
+            "max_length": "20"
           }
         },
         {
           "Name of Caller": {
             "type": "input",
-            "name": "nypd-form3-field2",
-            "required": false
+            "name": "nypd-form5-field2",
+            "required": false,
+            "max_length": "100"
           }
         },
         {
           "Caller Phone #": {
             "type": "input",
-            "name": "nypd-form3-field3",
-            "required": false
+            "name": "nypd-form5-field3",
+            "required": false,
+            "max_length": "11"
           }
         },
         {
           "Date of Call": {
             "type": "date",
-            "name": "nypd-form3-field4",
+            "name": "nypd-form5-field4",
             "required": false,
             "future_date_invalid": true
           }
@@ -779,29 +942,32 @@
         {
           "Time of Call": {
             "type": "time",
-            "name": "nypd-form3-field5",
+            "name": "nypd-form5-field5",
             "required": false
           }
         },
         {
           "Precinct": {
             "type": "input",
-            "name": "nypd-form3-field6",
-            "required": false
+            "name": "nypd-form5-field6",
+            "required": false,
+            "max_length": "50"
           }
         },
         {
           "Location of Call": {
             "type": "input",
-            "name": "nypd-form3-field7",
-            "required": false
+            "name": "nypd-form5-field7",
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "Reason for Call": {
             "type": "input",
-            "name": "nypd-form3-field8",
-            "required": false
+            "name": "nypd-form5-field8",
+            "required": false,
+            "max_length": "200"
           }
         }
       ],
@@ -817,28 +983,31 @@
         {
           "911 Audio CD #": {
             "type": "input",
-            "name": "nypd-form4-field1",
-            "required": false
+            "name": "nypd-form6-field1",
+            "required": false,
+            "max_length": "20"
           }
         },
         {
           "Name of Caller": {
             "type": "input",
-            "name": "nypd-form4-field2",
-            "required": false
+            "name": "nypd-form6-field2",
+            "required": false,
+            "max_length": "100"
           }
         },
         {
           "Caller Phone #": {
             "type": "input",
-            "name": "nypd-form4-field3",
-            "required": false
+            "name": "nypd-form6-field3",
+            "required": false,
+            "max_length": "11"
           }
         },
         {
           "Date of Call": {
             "type": "date",
-            "name": "nypd-form4-field4",
+            "name": "nypd-form6-field4",
             "required": false,
             "future_date_invalid": true
           }
@@ -846,29 +1015,32 @@
         {
           "Time of Call": {
             "type": "time",
-            "name": "nypd-form4-field5",
+            "name": "nypd-form6-field5",
             "required": false
           }
         },
         {
           "Precinct": {
             "type": "input",
-            "name": "nypd-form4-field6",
-            "required": false
+            "name": "nypd-form6-field6",
+            "required": false,
+            "max_length": "50"
           }
         },
         {
           "Location of Call": {
             "type": "input",
-            "name": "nypd-form4-field7",
-            "required": false
+            "name": "nypd-form6-field7",
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "Reason for Call": {
             "type": "input",
-            "name": "nypd-form4-field8",
-            "required": false
+            "name": "nypd-form6-field8",
+            "required": false,
+            "max_length": "200"
           }
         }
       ],
@@ -884,7 +1056,7 @@
         {
           "Date of Incident": {
             "type": "date",
-            "name": "nypd-form5-field1",
+            "name": "nypd-form7-field1",
             "required": false,
             "future_date_invalid": true
           }
@@ -892,36 +1064,40 @@
         {
           "Time of Incident": {
             "type": "time",
-            "name": "nypd-form5-field2",
+            "name": "nypd-form7-field2",
             "required": false
           }
         },
         {
           "Precinct": {
             "type": "input",
-            "name": "nypd-form5-field3",
-            "required": false
+            "name": "nypd-form7-field3",
+            "required": false,
+            "max_length": "50"
           }
         },
         {
           "Type of Incident": {
             "type": "input",
-            "name": "nypd-form5-field4",
-            "required": false
+            "name": "nypd-form7-field4",
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "Location of Incident": {
             "type": "input",
-            "name": "nypd-form5-field5",
-            "required": false
+            "name": "nypd-form7-field5",
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "Complaint/Arrest/Case #": {
             "type": "input",
-            "name": "nypd-form5-field6",
-            "required": false
+            "name": "nypd-form7-field6",
+            "required": false,
+            "max_length": "20"
           }
         }
       ],
@@ -937,50 +1113,55 @@
         {
           "Type of Request": {
             "type": "input",
-            "name": "nypd-form6-field1",
+            "name": "nypd-form8-field1",
             "required": false
           }
         },
         {
           "Report #": {
             "type": "input",
-            "name": "nypd-form6-field2",
-            "required": false
+            "name": "nypd-form8-field2",
+            "required": false,
+            "max_length": "20"
           }
         },
         {
           "Date": {
             "type": "date",
-            "name": "nypd-form6-field3",
+            "name": "nypd-form8-field3",
             "required": false
           }
         },
         {
           "Time": {
             "type": "time",
-            "name": "nypd-form6-field4",
+            "name": "nypd-form8-field4",
             "required": false
           }
         },
         {
           "Precinct": {
             "type": "input",
-            "name": "nypd-form6-field5",
-            "required": false
+            "name": "nypd-form8-field5",
+            "required": false,
+            "max_length": "50"
           }
         },
         {
           "Location": {
             "type": "input",
-            "name": "nypd-form6-field6",
-            "required": false
+            "name": "nypd-form8-field6",
+            "required": false,
+            "max_length": "200"
           }
         },
         {
           "Description": {
-            "type": "input",
-            "name": "nypd-form6-field7",
-            "required": false
+            "type": "textarea",
+            "name": "nypd-form8-field7",
+            "required": false,
+            "max_length": "5000",
+            "character_counter": "true"
           }
         }
       ],
