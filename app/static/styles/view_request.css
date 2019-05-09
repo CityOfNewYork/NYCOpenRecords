@@ -117,3 +117,10 @@
         transform: rotate(360deg);
     }
 }
+
+.summary {
+    overflow-y: auto;
+    padding-bottom: 5px;
+    min-height: 100px;
+    margin-bottom: 10px;
+}
