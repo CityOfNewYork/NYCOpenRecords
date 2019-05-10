@@ -16,7 +16,6 @@
                 and take any necessary action.
             </span>
         </p>
-        {% include "email_templates/email_footer.html" %}
 
     {% elif privacy == response_privacy.RELEASE_AND_PRIVATE %}
         <p>
@@ -30,7 +29,6 @@
                 necessary action.
             </span>
         </p>
-        {% include "email_templates/email_footer.html" %}
 
     {% elif privacy == response_privacy.PRIVATE %}
         <p>Attention {{ agency_name }} Users,</p>
@@ -41,7 +39,6 @@
                 &nbsp;&nbsp;&nbsp;&nbsp;{{ title }}: <a href="{{ url }}">{{ url }}</a><br />
             </span>
         </p>
-        {% include "email_templates/email_footer.html" %}
     {% endif %}
 {% else %}
     {{ content | safe }}
