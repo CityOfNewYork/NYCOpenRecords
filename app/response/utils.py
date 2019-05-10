@@ -1268,15 +1268,16 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
         ), 200
     else:  # If the reason is None, we are only rendering the final confirmation dialog.
         # TODO (@joelbcastillo): We should probably add a step parameter instead of relying on the value of the reason.
-        default_content = False
-        content = data['email_content']
+        request = Requests.query.filter_by(id=request_id).one()
         return jsonify(
             {
                 "template": render_template(
                     email_template,
-                    default_content=default_content,
-                    content=content,
-                    page=page),
+                    content=data['email_content'],
+                    default_content=False,
+                    page=page,
+                    request=request,
+                ),
                 "header": header
             }
         ), 200
@@ -1764,6 +1765,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
+                                                request=request,
                                                 private_links=private_links),
                     "header": header}), 200
 
@@ -1963,8 +1965,9 @@ def _get_edit_response_template(editor):
     """
     header = None
     data = editor.flask_request.form
-    agency_name = Requests.query.filter_by(id=editor.response.request.id).first().agency.name
-    page = urljoin(flask_request.host_url, url_for('request.view', request_id=editor.response.request.id))
+    request = Requests.query.filter_by(id=editor.response.request.id).one()
+    agency_name = request.agency.name
+    page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], "email_edit_file.html") \
         if editor.response.type == response_type.FILE \
         else os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
@@ -2004,8 +2007,9 @@ def _get_edit_response_template(editor):
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
                                                       content=requester_content,
-                                                      request_id=editor.response.request.id,
+                                                      request_id=request.id,
                                                       agency_name=agency_name,
+                                                      request=request,
                                                       response=editor.response,
                                                       response_data=editor,
                                                       page=page,
@@ -2017,7 +2021,7 @@ def _get_edit_response_template(editor):
         email_summary_edited = render_template(email_template,
                                                default_content=default_content,
                                                content=agency_content,
-                                               request_id=editor.response.request.id,
+                                               request_id=request.id,
                                                agency_name=agency_name,
                                                response=editor.response,
                                                response_data=editor,
@@ -2037,7 +2041,7 @@ def _get_edit_response_template(editor):
             email_summary_edited = render_template(email_template,
                                                    default_content=default_content,
                                                    content=agency_content,
-                                                   request_id=editor.response.request.id,
+                                                   request_id=request.id,
                                                    agency_name=agency_name,
                                                    response=editor.response,
                                                    response_data=editor,
