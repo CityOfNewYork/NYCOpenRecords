@@ -2018,12 +2018,12 @@
         },
         "custom_request_forms": {
           "enabled": true,
-          "multiple_request_types": true,
-          "categorized": true,
+          "multiple_request_types": false,
+          "categorized": false,
           "category_info_text": "",
           "category_warning_text": "",
-          "expand_by_default": false,
-          "description_hidden_by_default": true
+          "expand_by_default": true,
+          "description_hidden_by_default": false
         }
       }
     },
