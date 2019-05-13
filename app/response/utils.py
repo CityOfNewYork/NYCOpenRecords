@@ -953,6 +953,20 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     """
     acknowledgment = data.get('acknowledgment')
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
@@ -970,8 +984,11 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
         date = None
         info = None
     return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
                                                 content=content,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 date=date,
@@ -1673,6 +1690,21 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     """
     extension = data.get('extension')
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
@@ -1692,8 +1724,11 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         reason = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
                                                 content=content,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 new_due_date=new_due_date,
@@ -1723,6 +1758,19 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
 
     release_date = None
     request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     files = data.get('files')
     # if data['files'] exists, use email_content as template with specific file email template
@@ -1755,7 +1803,9 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
     # iterate through files dictionary to create and append links of files with privacy option of not private
     return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
                                                 content=content,
                                                 request_id=request_id,
                                                 page=page,
@@ -1785,6 +1835,21 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a file response
     """
     release_date = None
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     link = data.get('link')
     # if data['link'] exists get instruction content and privacy, and render template accordingly
     if link is not None:
@@ -1810,6 +1875,9 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 content=content,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 url=url,
@@ -1836,6 +1904,21 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a note response
     """
     release_date = None
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     note = data.get('note')
     if note is not None:
         note = json.loads(note)
@@ -1858,6 +1941,9 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 content=content,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 note_content=note_content,
@@ -1883,6 +1969,21 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
     :return: the HTML of the rendered template of an instruction response
     """
     release_date = None
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     instruction = data.get('instruction')
     # if data['instructions'] exists get instruction content and privacy, and render template accordingly
     if instruction is not None:
@@ -1906,6 +2007,9 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 content=content,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 instruction_content=instruction_content,
