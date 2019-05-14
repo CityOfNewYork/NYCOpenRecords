@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from app import celery
 from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED, REQ_CLOSED, REQ_DENIED
-from app.constants.request_status import OPEN, CLOSED
+from app.constants.request_status import OPEN, IN_PROGRESS, DUE_SOON, OVERDUE, CLOSED
 from app.lib.date_utils import local_to_utc, utc_to_local
 from app.lib.email_utils import send_email
 from app.models import Agencies, Emails, Events, Requests, Responses, Users
@@ -311,12 +311,37 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
 
 
 def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_to: str, email_to: list):
+    """Generates a report of monthly metrics about opened and closed requests.
+
+    Generates a report of requests in a time frame with the following tabs:
+    1) Metrics:
+        - Received for the current month
+        - Total remaining open for current month
+        - Closed in the current month that were received in the current month
+        - Total closed in current month no matter when received
+        - Total closed since portal started
+        - Total remaining Open/Pending
+        - Inquiries for current month
+    2) All requests that have been opened in the given month.
+    3) All requests that are still open or pending. Excludes all closed requests.
+    4) All requests that have been closed in the given month.
+    5) All requests that have been closed, since the portal started.
+    6) All requests that have been opened and closed in the same given month.
+    7) all emails received using the "Contact the Agency" button in the given month.
+
+    Args:
+        agency_ein: Agency EIN
+        date_from: Date to filter from
+        date_to: Date to filter to
+        email_to: List of recipient emails
+    """
+    # Convert string dates
     date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
                                  current_app.config['APP_TIMEZONE'])
     date_to_utc = local_to_utc(datetime.strptime(date_to, '%Y-%m-%d'),
                                current_app.config['APP_TIMEZONE'])
 
-    # QUERY FOR ALL REQUESTS OPENED IN THE MONTH
+    # Query for all requests that have been opened in the given month
     opened_in_month = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -332,26 +357,29 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
                             'Due Date')
     opened_in_month_dataset = tablib.Dataset(*opened_in_month,
                                           headers=opened_in_month_headers,
-                                          title='opened in month Raw Data')
+                                          title='Opened in month')
 
-    # QUERY FOR ALL REQUESTS OPENED EVER
-    total_opened = Requests.query.with_entities(
+    # Query for all requests that are still open or pending. Excludes all closed requests.
+    remaining_open_or_pending = Requests.query.with_entities(
         Requests.id,
         Requests.status,
         func.to_char(Requests.date_created, 'MM/DD/YYYY'),
         func.to_char(Requests.due_date, 'MM/DD/YYYY'),
     ).filter(
         Requests.agency_ein == agency_ein,
+        Requests.status.in_(
+            [OPEN, IN_PROGRESS, DUE_SOON, OVERDUE]
+        )
     ).order_by(asc(Requests.date_created)).all()
-    total_opened_headers = ('Request ID',
+    remaining_open_or_pending_headers = ('Request ID',
                             'Status',
                             'Date Created',
                             'Due Date')
-    total_opened_dataset = tablib.Dataset(*total_opened,
-                                          headers=total_opened_headers,
-                                          title='total opened Raw Data')
+    remaining_open_or_pending_dataset = tablib.Dataset(*remaining_open_or_pending,
+                                          headers=remaining_open_or_pending_headers,
+                                          title='All remaining Open or Pending')
 
-    # QUERY FOR CLOSED IN MONTH
+    # Query for all requests that have been closed in the given month.
     closed_in_month = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -370,9 +398,9 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
                             'Due Date')
     closed_in_month_dataset = tablib.Dataset(*closed_in_month,
                                           headers=closed_in_month_headers,
-                                          title='closed in month Raw Data')
+                                          title='Closed in month')
 
-    # QUERY FOR ALL REQUESTS CLOSED EVER
+    # Query for all requests that have been closed, since the portal started.
     total_closed = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -390,9 +418,9 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
                             'Due Date')
     total_closed_dataset = tablib.Dataset(*total_closed,
                                           headers=total_closed_headers,
-                                          title='total closed Raw Data')
+                                          title='All Closed requests')
 
-    # QUERY FOR ALL REQUESTS OPENED AND CLOSED IN SAME MONTH
+    # Query for all requests that have been opened and closed in the same given month.
     opened_closed_in_month = Requests.query.with_entities(
         Requests.id,
         Requests.status,
@@ -409,9 +437,9 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
                             'Due Date')
     opened_closed_in_month_dataset = tablib.Dataset(*opened_closed_in_month,
                                           headers=opened_closed_in_month_headers,
-                                          title='opened closed in month Raw Data')
+                                          title='Opened then Closed in month')
 
-    # QUERY FOR CONTACT THE AGENCY EMAILS
+    # Query for all emails received using the "Contact the Agency" button in the given month.
     contact_agency_emails = Requests.query.with_entities(
         Requests.id,
         func.to_char(Requests.date_created, 'MM/DD/YYYY'),
@@ -420,7 +448,7 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
     ).join(Responses, Responses.request_id == Requests.id).join(Emails, Emails.id == Responses.id).filter(
         Responses.date_modified.between(date_from_utc, date_to_utc),
         Requests.agency_ein == agency_ein,
-        Emails.subject.ilike('%Inquiry about FOIL%')
+        Emails.subject.ilike('Inquiry about FOIL%')
     ).order_by(asc(Responses.date_modified)).all()
     contact_agency_emails_headers = ('Request ID',
                                      'Date Created',
@@ -428,12 +456,32 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
                                      'Subject')
     contact_agency_emails_dataset = tablib.Dataset(*contact_agency_emails,
                                           headers=contact_agency_emails_headers,
-                                          title='contact agency emails Raw Data')
+                                          title='Contact agency emails received')
+
+    # Metrics tab
+    received_current_month = len(opened_in_month)
+    total_opened_closed_in_month = len(opened_closed_in_month)
+    remaining_open_current_month = received_current_month - total_opened_closed_in_month
+    metrics = [
+        ('Received for the current month', received_current_month),
+        ('Total remaining open for current month', remaining_open_current_month),
+        ('Closed in the current month that were received in the current month', total_opened_closed_in_month),
+        ('Total closed in current month no matter when received', len(closed_in_month)),
+        ('Total closed since portal started', len(total_closed)),
+        ('Total remaining Open/Pending', len(remaining_open_or_pending)),
+        ('Inquiries for current month', len(contact_agency_emails))
+    ]
+    metrics_headers = ['Metric', 'Count']
+    metrics_dataset = tablib.Dataset(*metrics,
+        headers=metrics_headers,
+        title='Metrics',
+    )
 
     # Create Databook from Datasets
     excel_spreadsheet = tablib.Databook((
+        metrics_dataset,
         opened_in_month_dataset,
-        total_opened_dataset,
+        remaining_open_or_pending_dataset,
         closed_in_month_dataset,
         total_closed_dataset,
         opened_closed_in_month_dataset,
