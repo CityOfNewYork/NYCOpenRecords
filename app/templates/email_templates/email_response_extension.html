@@ -13,4 +13,5 @@
     </p>
 {% else %}
     {{ content | safe }}
+    {% include "email_templates/email_request_info.html" %}
 {% endif %}
