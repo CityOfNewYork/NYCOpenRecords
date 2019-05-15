@@ -310,7 +310,8 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                mimetype='application/octet-stream')
 
 
-def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_to: str, email_to: list):
+@celery.task(bind=True, name='app.report.utils.generate_monthly_opened_closed_report')
+def generate_monthly_opened_closed_report(self, agency_ein: str, date_from: str, date_to: str, email_to: list):
     """Generates a report of monthly metrics about opened and closed requests.
 
     Generates a report of requests in a time frame with the following tabs:
@@ -464,7 +465,7 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
     remaining_open_current_month = received_current_month - total_opened_closed_in_month
     metrics = [
         ('Received for the current month', received_current_month),
-        ('Total remaining open for current month', remaining_open_current_month),
+        ('Total remaining open from current month', remaining_open_current_month),
         ('Closed in the current month that were received in the current month', total_opened_closed_in_month),
         ('Total closed in current month no matter when received', len(closed_in_month)),
         ('Total closed since portal started', len(total_closed)),

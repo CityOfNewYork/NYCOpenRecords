@@ -207,6 +207,9 @@ def generate_closing_report(agency_ein: str, date_from: str, date_to: str, email
 @click.option("--emails", prompt="Emails (e.g. test@mailinator.com,test2@mailinator.com)")
 def generate_monthly_report(agency_ein: str, date_from: str, date_to: str, emails: str):
     """Generate monthly opened and closed report.
+
+    CLI command to generate monthly metrics report.
+    Purposely leaving a full date range option instead of a monthly limit in order to provide more granularity for devs.
     """
     email_list = emails.split(',')
     generate_monthly_opened_closed_report(agency_ein, date_from, date_to, email_list)
