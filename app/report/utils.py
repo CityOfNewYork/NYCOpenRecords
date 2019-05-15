@@ -310,8 +310,8 @@ def generate_request_closing_user_report(agency_ein: str, date_from: str, date_t
                mimetype='application/octet-stream')
 
 
-@celery.task(bind=True, name='app.report.utils.generate_monthly_opened_closed_report')
-def generate_monthly_opened_closed_report(self, agency_ein: str, date_from: str, date_to: str, email_to: list):
+@celery.task(bind=True, name='app.report.utils.generate_monthly_metrics_report')
+def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_to: str, email_to: list):
     """Generates a report of monthly metrics about opened and closed requests.
 
     Generates a report of requests in a time frame with the following tabs:
@@ -490,9 +490,9 @@ def generate_monthly_opened_closed_report(self, agency_ein: str, date_from: str,
     ))
 
     # Email report
-    send_email(subject='OpenRecords Monthly Opened and Closed Report',
+    send_email(subject='OpenRecords Monthly Metrics Report',
                to=email_to,
                email_content='Report attached',
                attachment=excel_spreadsheet.export('xls'),
-               filename='FOIL_monthly_opened_closed_report_{}_{}.xls'.format(date_from, date_to),
+               filename='FOIL_monthly_metrics_report_{}_{}.xls'.format(date_from, date_to),
                mimetype='application/octet-stream')

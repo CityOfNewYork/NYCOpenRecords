@@ -60,14 +60,14 @@ class AcknowledgmentForm(Form):
         return is_valid
 
 
-class MonthlyOpenedClosedForm(Form):
+class MonthlyMetricsReportForm(Form):
     """Form to generate a monthly metrics report."""
     year = SelectField('Year (required)', choices=None, validators=[DataRequired()])
     month = SelectField('Month (required)', choices=MONTHS, validators=[DataRequired()])
     submit_field = SubmitField('Generate Report')
 
     def __init__(self):
-        super(MonthlyOpenedClosedForm, self).__init__()
+        super(MonthlyMetricsReportForm, self).__init__()
         # Calculate years portal has been active
         years_active = []
         for year in range (date.today().year, PORTAL_START_YEAR-1, -1):

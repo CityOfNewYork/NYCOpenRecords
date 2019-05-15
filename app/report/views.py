@@ -27,8 +27,8 @@ from app.models import (
     UserRequests
 )
 from app.report import report
-from app.report.forms import AcknowledgmentForm, ReportFilterForm, MonthlyOpenedClosedForm
-from app.report.utils import generate_acknowledgment_report, generate_monthly_opened_closed_report
+from app.report.forms import AcknowledgmentForm, ReportFilterForm, MonthlyMetricsReportForm
+from app.report.utils import generate_acknowledgment_report, generate_monthly_metrics_report
 
 
 @report.route('/show', methods=['GET'])
@@ -40,7 +40,7 @@ def show_report():
     """
     return render_template('report/reports.html',
                            acknowledgment_form=AcknowledgmentForm(),
-                           month_report_form=MonthlyOpenedClosedForm(),
+                           monthly_report_form=MonthlyMetricsReportForm(),
                            report_filter_form=ReportFilterForm())
 
 
@@ -146,9 +146,9 @@ def acknowledgment():
     return redirect(url_for("report.show_report"))
 
 
-@report.route('/monthly-opened-closed-report', methods=['POST'])
+@report.route('/monthly-metrics-report', methods=['POST'])
 @login_required
-def monthly_opened_closed_report():
+def monthly_metrics_report():
     """Generates the monthly metrics report.
 
     Returns:
@@ -156,7 +156,7 @@ def monthly_opened_closed_report():
 
     """
 
-    monthly_report_form = MonthlyOpenedClosedForm()
+    monthly_report_form = MonthlyMetricsReportForm()
     if monthly_report_form.validate_on_submit():
         # Only agency administrators can access endpoint
         if not current_user.is_agency_admin:
@@ -175,7 +175,7 @@ def monthly_opened_closed_report():
             agency_ein=current_user.default_agency_ein,
             timestamp=datetime.now()
         )
-        generate_monthly_opened_closed_report.apply_async(args=[current_user.default_agency_ein,
+        generate_monthly_metrics_report.apply_async(args=[current_user.default_agency_ein,
                                                                 date_from,
                                                                 date_to,
                                                                 [current_user.email]],

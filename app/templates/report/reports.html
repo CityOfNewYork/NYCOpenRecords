@@ -65,17 +65,17 @@
                 <li>Total requests that remain Open/Pending</li>
                 <li>Number of inquiries received in the given month regarding requests</li>
             </ul>
-            <form id="monthly-metrics-report-form" action="/report/monthly-opened-closed-report" method="POST" data-parsley-validate>
-                {{ month_report_form.csrf_token }}
+            <form id="monthly-metrics-report-form" action="/report/monthly-metrics-report" method="POST" data-parsley-validate>
+                {{ monthly_report_form.csrf_token }}
                 <div class="form-group">
-                    {{ month_report_form.year.label(for="monthly-report-year") }}
-                    {{ month_report_form.year(id="monthly-report-year", class="input-block-level") }}
+                    {{ monthly_report_form.year.label(for="monthly-report-year") }}
+                    {{ monthly_report_form.year(id="monthly-report-year", class="input-block-level") }}
                 </div>
                 <div class="form-group">
-                    {{ month_report_form.month.label(for="monthly-report-month") }}
-                    {{ month_report_form.month(id="monthly-report-month", class="input-block-level") }}
+                    {{ monthly_report_form.month.label(for="monthly-report-month") }}
+                    {{ monthly_report_form.month(id="monthly-report-month", class="input-block-level") }}
                 </div>
-                {{ month_report_form.submit_field(class="btn btn-success") }}
+                {{ monthly_report_form.submit_field(class="btn btn-success") }}
             </form>
         {% endif %}
         </div>
