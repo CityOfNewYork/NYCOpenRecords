@@ -84,7 +84,7 @@ class UserAddressDict(dict):
         self['address_two'] = kwargs.get('address_two')
         self['city'] = kwargs.get('city')
         self['state'] = kwargs.get('state')
-        self['zip'] = kwargs.get('zipcode')
+        self['zip'] = kwargs.get('zip')
 
     def __setitem__(self, key, value):
         if key not in UserAddressDict._keys:
