@@ -155,7 +155,7 @@ def add_user(
         raise click.UsageError("Agency EIN is required")
 
     user = Users(
-        guid=generate_guid,
+        guid=generate_guid(),
         email=email,
         first_name=first_name,
         middle_initial=middle_initial,
