@@ -510,8 +510,13 @@ def saml_acs(saml_sp, onelogin_request):
             terms_of_use_accepted=nycid_user_data.get('termsOfUse', False),
             is_anonymous_requester=False
         )
-        login_user(user)
+        login_user(user, remember=False)
         session.permanent = True
+        update_object(
+            {'session_id': session.sid},
+            Users,
+            user.guid
+        )
         create_auth_event(
             auth_event_type=event_type.USER_LOGIN,
             user_guid=user.guid,
@@ -520,10 +525,6 @@ def saml_acs(saml_sp, onelogin_request):
                 'type': current_app.config['AUTH_TYPE']
             }
         )
-        self_url = OneLogin_Saml2_Utils.get_self_url(onelogin_request)
-
-        if 'RelayState' in request.form and self_url != request.form['RelayState']:
-            return redirect(saml_sp.redirect_to(request.form['RelayState'], {'fresh_login': 'true'}))
 
         return redirect(url_for('main.index', fresh_login=True))
 

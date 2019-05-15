@@ -24,16 +24,9 @@ from . import main
 @main.route('/', methods=['GET', 'POST'])
 def index():
     fresh_login = request.args.get('fresh_login', False)
-    if current_user.is_authenticated and fresh_login:
-        if current_user.session_id is not None:
+    if fresh_login and current_user.is_authenticated:
+        if current_user.session_id != session.sid:
             return render_template('main/home.html', duplicate_session=True)
-        update_object(
-            {
-                'session_id': session.sid_s
-            },
-            Users,
-            current_user.guid
-        )
     return render_template('main/home.html')
 
 
