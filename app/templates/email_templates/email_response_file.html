@@ -66,8 +66,8 @@
             necessary action.
         </span>
     </p>
-    {% include "email_templates/email_footer.html" %}
     <p><br></p>
 {% else %}
     {{ content | safe }}
+    {% include "email_templates/email_request_info.html" %}
 {% endif %}

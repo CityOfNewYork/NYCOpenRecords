@@ -76,15 +76,17 @@
                 <!-- second div of the add-file form containing email content -->
                 <div class="second" hidden>
                     <h4>Edit Email Body</h4>
-                    <div class="email-file-content-hidden" hidden></div>
-                    <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
+                    <div id="file-editor" class="form-group">
+                        <div class="email-file-content-hidden" hidden></div>
+                        <textarea class="tinymce-area" name="email-file-content" title="email-content"></textarea>
+                    </div>
                     <button type="button" class="prev prev-btn btn btn-default">Prev</button>
                     <button type="button" class="next next-btn btn btn-primary">Next</button>
                 </div>
                 <!-- last div of the add-file form containing confirmation and submit -->
                 <div class="third" hidden>
                     <h4 class="file-confirmation-header"></h4>
-                    <div class="wrap-text" id="email-file-summary"></div>
+                    <div class="wrap-text summary" id="email-file-summary"></div>
                     <!-- hidden input to send email summary to backend -->
                     <div class="email-hidden-div" hidden></div>
                     <input type="hidden" name="email-file-summary" id="email-file-summary-hidden">

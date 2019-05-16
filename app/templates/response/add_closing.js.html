@@ -27,6 +27,9 @@
 
         var edit_body_header = third.find("#edit-body-header");
 
+        var editor = $('#closing-editor');
+        var confirmation = $('#closing-confirmation');
+
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
             first.show();
@@ -112,6 +115,8 @@
                             var emailContent = third.find(".email-content-hidden");
                             emailContent.html(data.template);
                             tinyMCE.get("closing-body").setContent(emailContent.html());
+                            editor.unblock();
+                            next3.prop('disabled', false);
                         }
                     });
                     edit_body_header.html("Edit Email Body");
@@ -135,6 +140,8 @@
                             emailContent.html(data.template);
                             flask_moment_render_all();
                             tinyMCE.get("closing-body").setContent(emailContent.html());
+                            editor.unblock();
+                            next3.prop('disabled', false);
                         }
                     });
                     edit_body_header.html("Edit Letter Body");
@@ -142,6 +149,12 @@
                     second.hide();
                     third.show();
                 }
+                // Block tinymce until content is fully loaded by ajax
+                editor.block({
+                    message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                    '<span class=\"sr-only\">Loading content...</span></div></div>'
+                });
+                next3.prop('disabled', true);
             }
         });
 
@@ -165,6 +178,8 @@
                         if ($(".editable-span").text() === "") {
                             $(".editable-span").hide();
                         }
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 });
             } else {
@@ -182,11 +197,19 @@
                         fourth.find("input[name='summary']").val(data.template);
                         fourth.find(".confirmation-header").text(data.header);
                         fourth.find(".method").val(method.val());
+                        confirmation.unblock();
+                        submit.prop('disabled', false);
                     }
                 });
             }
             third.hide();
             fourth.show();
+            // Block confirmation until content is fully loaded by ajax
+            confirmation.block({
+                message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                '<span class=\"sr-only\">Loading content...</span></div></div>'
+            });
+            submit.prop('disabled', true);
         });
 
         prev2.click(function() {

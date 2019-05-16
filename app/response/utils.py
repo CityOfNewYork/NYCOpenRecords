@@ -23,6 +23,7 @@ from flask import (
     Markup
 )
 from flask_login import current_user
+from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 
 import app.lib.file_utils as fu
@@ -660,15 +661,14 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
 
 
 def add_response_letter(request_id, content, letter_template_id):
-    """
-    Generate and email a PDF of the response letter.
-    Create and store the response_letters and communication_methods objects.
+    """Generates a PDF response letter and emails it to the agency users.
 
-    :param request_id: FOIL request ID
-    :param content: (string) HTML of the response letter
-    :param letter_template_id: id of the letter template
+    Args:
+        request_id: Request ID
+        content: HTML of the response letter
+        letter_template_id: LetterTemplate ID
     """
-    request = Requests.query.filter_by(id=request_id).one()
+    request = Requests.query.options(joinedload(Requests.agency)).filter_by(id=request_id).one()
     letter_template = LetterTemplates.query.filter_by(id=letter_template_id).one()
     letter_title = letter_template.title
     letter = generate_pdf(content)
@@ -753,7 +753,7 @@ def add_envelope(request_id, template_id, envelope_data):
     :param envelope_data: Dictionary of data to fill in the envelope. (EnvelopeDict)
     :return: PDF File object
     """
-    request = Requests.query.filter_by(id=request_id).one()
+    request = Requests.query.options(joinedload(Requests.agency)).filter_by(id=request_id).one()
 
     template = '{agency_ein}/{template_name}'.format(agency_ein=request.agency.ein,
                                                      template_name=EnvelopeTemplates.query.filter_by(
@@ -953,6 +953,20 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
     """
     acknowledgment = data.get('acknowledgment')
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     if acknowledgment is not None:
         acknowledgment = json.loads(acknowledgment)
@@ -970,8 +984,11 @@ def _acknowledgment_email_handler(request_id, data, page, agency_name, email_tem
         date = None
         info = None
     return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
                                                 content=content,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 date=date,
@@ -1268,15 +1285,16 @@ def _reopening_email_handler(request_id, data, page, agency_name, email_template
         ), 200
     else:  # If the reason is None, we are only rendering the final confirmation dialog.
         # TODO (@joelbcastillo): We should probably add a step parameter instead of relying on the value of the reason.
-        default_content = False
-        content = data['email_content']
+        request = Requests.query.filter_by(id=request_id).one()
         return jsonify(
             {
                 "template": render_template(
                     email_template,
-                    default_content=default_content,
-                    content=content,
-                    page=page),
+                    content=data['email_content'],
+                    default_content=False,
+                    page=page,
+                    request=request,
+                ),
                 "header": header
             }
         ), 200
@@ -1672,6 +1690,21 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
     """
     extension = data.get('extension')
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     # if data['extension'] exists, use email_content as template with specific extension email template
     if extension is not None:
         extension = json.loads(extension)
@@ -1691,8 +1724,11 @@ def _extension_email_handler(request_id, data, page, agency_name, email_template
         reason = None
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
                                                 content=content,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 new_due_date=new_due_date,
@@ -1722,6 +1758,19 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
 
     release_date = None
     request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
 
     files = data.get('files')
     # if data['files'] exists, use email_content as template with specific file email template
@@ -1754,7 +1803,9 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
     # iterate through files dictionary to create and append links of files with privacy option of not private
     return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
                                                 content=content,
                                                 request_id=request_id,
                                                 page=page,
@@ -1764,6 +1815,7 @@ def _file_email_handler(request_id, data, page, agency_name, email_template):
                                                 release_date=release_date,
                                                 release_public_links=release_public_links,
                                                 release_private_links=release_private_links,
+                                                request=request,
                                                 private_links=private_links),
                     "header": header}), 200
 
@@ -1783,6 +1835,21 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a file response
     """
     release_date = None
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     link = data.get('link')
     # if data['link'] exists get instruction content and privacy, and render template accordingly
     if link is not None:
@@ -1808,6 +1875,9 @@ def _link_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 content=content,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 url=url,
@@ -1834,6 +1904,21 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
     :return: the HTML of the rendered template of a note response
     """
     release_date = None
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     note = data.get('note')
     if note is not None:
         note = json.loads(note)
@@ -1856,6 +1941,9 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 content=content,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 note_content=note_content,
@@ -1881,6 +1969,21 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
     :return: the HTML of the rendered template of an instruction response
     """
     release_date = None
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
     instruction = data.get('instruction')
     # if data['instructions'] exists get instruction content and privacy, and render template accordingly
     if instruction is not None:
@@ -1904,6 +2007,9 @@ def _instruction_email_handler(request_id, data, page, agency_name, email_templa
         content = data['email_content']
     return jsonify({"template": render_template(email_template,
                                                 content=content,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                request=request,
                                                 request_id=request_id,
                                                 agency_name=agency_name,
                                                 instruction_content=instruction_content,
@@ -1963,8 +2069,9 @@ def _get_edit_response_template(editor):
     """
     header = None
     data = editor.flask_request.form
-    agency_name = Requests.query.filter_by(id=editor.response.request.id).first().agency.name
-    page = urljoin(flask_request.host_url, url_for('request.view', request_id=editor.response.request.id))
+    request = Requests.query.filter_by(id=editor.response.request.id).one()
+    agency_name = request.agency.name
+    page = urljoin(flask_request.host_url, url_for('request.view', request_id=request.id))
     email_template = os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], "email_edit_file.html") \
         if editor.response.type == response_type.FILE \
         else os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], data['template_name'])
@@ -2004,8 +2111,9 @@ def _get_edit_response_template(editor):
             email_summary_requester = render_template(email_template,
                                                       default_content=default_content,
                                                       content=requester_content,
-                                                      request_id=editor.response.request.id,
+                                                      request_id=request.id,
                                                       agency_name=agency_name,
+                                                      request=request,
                                                       response=editor.response,
                                                       response_data=editor,
                                                       page=page,
@@ -2017,7 +2125,7 @@ def _get_edit_response_template(editor):
         email_summary_edited = render_template(email_template,
                                                default_content=default_content,
                                                content=agency_content,
-                                               request_id=editor.response.request.id,
+                                               request_id=request.id,
                                                agency_name=agency_name,
                                                response=editor.response,
                                                response_data=editor,
@@ -2037,7 +2145,7 @@ def _get_edit_response_template(editor):
             email_summary_edited = render_template(email_template,
                                                    default_content=default_content,
                                                    content=agency_content,
-                                                   request_id=editor.response.request.id,
+                                                   request_id=request.id,
                                                    agency_name=agency_name,
                                                    response=editor.response,
                                                    response_data=editor,
@@ -2116,8 +2224,7 @@ def get_file_links(response, release_public_links, release_private_links, privat
 
 def send_file_email(request_id, release_public_links, release_private_links, private_links, email_content,
                     replace_string, tz_name):
-    """
-    Send email with file links detailing a file response has been added to the request.
+    """Send email with file links detailing a file response has been added to the request.
     Requester receives email only if release_public_links and release_private_links list is not empty.
     Agency users are BCCed on the email the requester receives.
     Agency users receive a separate email if only private files were uploaded.
@@ -2135,30 +2242,33 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
 
     """
     page = urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))
-    is_anon = Requests.query.filter_by(id=request_id).one().requester.is_anonymous_requester
+    request = Requests.query.options(
+        joinedload(Requests.requester)
+    ).options(
+        joinedload(Requests.agency)
+    ).filter_by(id=request_id).one()
     subject = 'Response Added to {} - File'.format(request_id)
     bcc = get_agency_emails(request_id)
-    agency_name = Requests.query.filter_by(id=request_id).first().agency.name
-    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
     if release_public_links or release_private_links:
         release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
         email_content_requester = email_content.replace(replace_string,
                                                         render_template('email_templates/response_file_links.html',
                                                                         release_public_links=release_public_links,
                                                                         release_private_links=release_private_links,
-                                                                        is_anon=is_anon,
+                                                                        is_anon=request.requester.is_anonymous_requester,
                                                                         release_date=release_date
                                                                         ))
         safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   'Response Added to {} - File'.format(request_id),
-                                  to=[requester_email],
-                                  bcc=bcc)
+                                  to=[request.requester.email],
+                                  bcc=bcc,
+                                  reply_to=request.agency.default_email)
         if private_links:
             email_content_agency = render_template('email_templates/email_private_file_upload.html',
                                                    request_id=request_id,
                                                    default_content=True,
-                                                   agency_name=agency_name,
+                                                   agency_name=request.agency.name,
                                                    private_links=private_links,
                                                    page=page)
             safely_send_and_add_email(request_id,
@@ -2170,8 +2280,8 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
                                                      render_template('email_templates/response_file_links.html',
                                                                      request_id=request_id,
                                                                      private_links=private_links,
-                                                                     page=page
-                                                                     ))
+                                                                     page=page)
+                                                     )
         safely_send_and_add_email(request_id,
                                   email_content_agency,
                                   subject,
@@ -2179,51 +2289,60 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
 
 
 def _send_edit_response_email(request_id, email_content_agency, email_content_requester=None):
-    """
-    Send email detailing a response has been edited.
+    """Sends email detailing a response has been edited.
+
     Always sends email to agency users on the request.
-    Requester is emailed only if email_content_requester is provided.
+    Email is sent to requester if email_content_requester is provided.
 
-    :param request_id: FOIL request ID
-    :param email_content_agency: body of email being sent to agency users
-    :param email_content_requester: body of email being sent to requester
-
-    :type email_content_agency: str
-    :type email_content_requester: str
-
+    Args:
+        request_id: Request ID
+        email_content_agency: body of email being sent to agency users
+        email_content_requester: body of email being sent to requester
     """
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
     bcc = get_agency_emails(request_id)
-    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
+    request = Requests.query.options(
+        joinedload(Requests.requester)
+    ).options(
+        joinedload(Requests.agency)
+    ).filter_by(
+        id=request_id).one()
     safely_send_and_add_email(request_id, email_content_agency, subject, bcc=bcc)
     if email_content_requester is not None:
         safely_send_and_add_email(request_id,
                                   email_content_requester,
                                   subject,
-                                  to=[requester_email])
+                                  to=[request.requester.email],
+                                  reply_to=request.agency.default_email)
 
 
 def _send_response_email(request_id, privacy, email_content, subject):
-    """
-    Function that sends email detailing a specific response has been added to a request.
-    If the file privacy is private, only agency_ein users are emailed.
-    If the file privacy is release, the requester is emailed and the agency_ein users are bcced.
-    Call safely_send_and_add_email to send email notification detailing a specific response has been added to the
-    request.
+    """Sends an email detailing a specific response has been added to a request.
 
-    :param request_id: FOIL request ID for the specific link
-    :param email_content: content body of the email notification being sent
-    :param privacy: privacy option of link
+    If the response privacy is private, only agency users are emailed.
+    If the response privacy is release public/private, the requester is emailed and the agency users are bcc'ed.
 
+    Args:
+        request_id: Request ID
+        email_content: body of the email
+        privacy: privacy of response
+
+    Returns:
+        Call safely_send_and_add_email to send email notification detailing a specific response has been added to the
+        request.
     """
     bcc = get_agency_emails(request_id)
-    requester_email = Requests.query.filter_by(id=request_id).one().requester.email
-    # Send email with link to requester and bcc agency_ein users as privacy option is release
+    request = Requests.query.options(
+        joinedload(Requests.requester)
+    ).options(
+        joinedload(Requests.agency)
+    ).filter_by(id=request_id).one()
     kwargs = {
         'bcc': bcc,
     }
     if privacy != PRIVATE:
-        kwargs['to'] = [requester_email]
+        kwargs['to'] = [request.requester.email]
+        kwargs['reply_to'] = request.agency.default_email
     return safely_send_and_add_email(request_id,
                                      email_content,
                                      subject,
@@ -2253,22 +2372,22 @@ def safely_send_and_add_email(request_id,
                               template=None,
                               to=None,
                               bcc=None,
+                              reply_to=None,
                               **kwargs):
-    """
-    Send email based on given arguments and create and store email object into the Emails table.
+    """Send email based on given arguments and create and store email object into the Emails table.
     Print error messages if there is Assertion or Exception error occurs.
 
-    :param request_id: FOIL request ID
-    :param email_content: string of HTML email content that can be used as a message template
-    :param subject: subject of the email (current is for TESTING purposes)
-    :param template: path of the HTML template to be passed into and rendered in send_email
-    :param to: list of person(s) email is being sent to
-    :param bcc: list of person(s) email is being bcc'ed
-
+    Args:
+        request_id: FOIL request ID
+        email_content: string of HTML email content that can be used as a message template
+        subject: subject of the email (current is for TESTING purposes)
+        template: path of the HTML template to be passed into and rendered in send_email
+        to: list of person(s) email is being sent to
+        bcc: list of person(s) email is being bcc'ed
+        reply_to: reply-to address
     """
-
     try:
-        send_email(subject, to=to, bcc=bcc, template=template, email_content=email_content, **kwargs)
+        send_email(subject, to=to, bcc=bcc, reply_to=reply_to, template=template, email_content=email_content, **kwargs)
         return _add_email(request_id, subject, email_content, to=to, bcc=bcc)
     except AssertionError:
         sentry.captureException()

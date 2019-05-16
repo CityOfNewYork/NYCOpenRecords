@@ -41,15 +41,17 @@
             <!-- second div of the add-instruction form containing email content -->
             <div class="instruction-divs form-group" id="instruction-second">
                 <h4>Edit Email Body</h4>
-                <div class="email-instruction-content-hidden" hidden></div>
-                <textarea class="tinymce-area" name="email-instruction-content"></textarea>
+                <div id="instruction-editor" class="form-group">
+                    <div class="email-instruction-content-hidden" hidden></div>
+                    <textarea class="tinymce-area" name="email-instruction-content"></textarea>
+                </div>
                 <button type="button" class="prev-btn btn btn-default" id="instruction-prev-1">Prev</button>
                 <button type="button" class="next-btn btn btn-primary" id="instruction-next-2">Next</button>
             </div>
             <!-- last div of the add-instruction form containing confirmation and submit -->
             <div class="instruction-divs form-group" id="instruction-third">
                 <h4 class="instruction-confirmation-header"></h4>
-                <div class="wrap-text" id="email-instruction-summary"></div>
+                <div class="wrap-text summary" id="email-instruction-summary"></div>
                 <!-- hidden input to send email summary to backend -->
                 <input type="hidden" name="email-instruction-summary" id="email-instruction-summary-hidden">
                 <button type="button" class="prev-btn btn btn-default" id="instruction-prev-2">Prev</button>

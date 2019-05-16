@@ -28,12 +28,13 @@
                     </div>
                     {{ add_user_request_form.permission.label }}<br>
                     {{ add_user_request_form.permission(id="permission", class="form-control", size=permissions_length) }}
+                    <br>
                     <button type="button" class="next pull-right btn btn-primary">Next</button>
                 </div>
             </div>
             <div class="second" hidden>
                 <h4>The following will be emailed to&nbsp;<span id="user_name"></span>:</h4>
-                <div class="wrap-text email-summary"></div>
+                <div id="add-user-confirmation" class="wrap-text email-summary summary"></div>
                 <input type="hidden" name="email-summary">
                 <button type="button" class="prev pull-left btn btn-default">Prev</button>
                 <button type="submit" class="submit pull-right btn btn-success">Submit</button>

@@ -75,6 +75,7 @@ from app.models import (
     UserRequests,
     Users,
 )
+from app.report.utils import generate_request_closing_user_report
 from app.request.utils import generate_guid
 from app.search.utils import recreate
 from app.user.utils import make_user_admin
@@ -187,12 +188,23 @@ def add_user(
     print(user)
 
 
+@app.cli.command()
+@click.option("--agency_ein", prompt="Agency EIN (e.g. 0002)")
+@click.option("--date_from", prompt="Date From (e.g. 2000-01-01")
+@click.option("--date_to", prompt="Date To (e.g. 2000-02-01)")
+@click.option("--emails", prompt="Emails (e.g. test@mailinator.com,test2@mailinator.com)")
+def generate_closing_report(agency_ein: str, date_from: str, date_to: str, emails: str):
+    """Generate request closing report.
+    """
+    email_list = emails.split(',')
+    generate_request_closing_user_report(agency_ein, date_from, date_to, email_list)
+
+
 @app.cli.command
 def es_recreate():
     """
     Recreate elasticsearch index and request docs.
     """
-
     recreate()
 
 
@@ -302,8 +314,7 @@ def deploy():
             ),
         )
     )
-
-    es_recreate()
+    recreate()
 
 
 if __name__ == "__main__":

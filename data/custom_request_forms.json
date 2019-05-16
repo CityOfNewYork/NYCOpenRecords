@@ -69,8 +69,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "Public Records Unit",
-      "form_description": "<p>Please note this Request Type should be used for those who are physically at the FDNY Public Records Unit or requesting online. <strong>Please complete all the required fields below.</strong><p>This Request Type will allow you to request the following records:<ul><li>Fire Incident Report<li>Fuel Tank Special Report<li>Violation Special Report<li>Copy of a Violation</ul>",
+      "form_name": "Fire Incident Report (NOT Fire Marshal Investigation Report)",
+      "form_description": "<p>Please note this Request Type is for Fire Incident Reports only, unrelated to the Fire Marshal Investigation Reports. Instructions for obtaining Fire Marshal Investigation Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
       "field_definitions": [
         {
           "Submission Method": {
@@ -86,36 +86,26 @@
           }
         },
         {
-          "Report Type": {
-            "type": "select_dropdown",
+          "Incident Address": {
+            "type": "input",
             "name": "fdny-form1-field2",
-            "values": [
-              "Fire Incident Report",
-              "Fuel Tank Special Report",
-              "Violation Special Report",
-              "Copy of a Violation"
-            ],
+            "help_text": "Please include the street name and house number.",
             "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Report Type is required.</strong> Please select an option."
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Address is required.</strong> Please provide an address."
           }
         },
         {
-          "Description of Records": {
-            "type": "textarea",
+          "Floor(s)": {
+            "type": "input",
             "name": "fdny-form1-field3",
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
-            "max_length": 5000,
-            "character_counter": true,
-            "help_text": "Please provide a short description of the records you are requesting."
+            "required": false
           }
         },
         {
-          "Building Address": {
+          "Apt(s)": {
             "type": "input",
             "name": "fdny-form1-field4",
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Address is required.</strong> Please provide an address."
+            "required": false
           }
         },
         {
@@ -134,7 +124,7 @@
           }
         },
         {
-          "Account Info": {
+          "Box #": {
             "type": "input",
             "name": "fdny-form1-field6",
             "required": false
@@ -144,7 +134,42 @@
           "Incident Date": {
             "type": "date",
             "name": "fdny-form1-field7",
+            "future_date_invalid": true,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
+          }
+        },
+        {
+          "Incident Report Number": {
+            "type": "input",
+            "name": "fdny-form1-field8",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Report Number is required.</strong> Please provide the number."
+          }
+        },
+        {
+          "Incident Type": {
+            "type": "radio",
+            "name": "fdny-form1-field9",
+            "values": [
+              "Building",
+              "Transportation",
+              "Outdoors",
+              "Non-Fire Emergency"
+            ],
+            "help_text": "If transportation if selected, please provide the type, make, and plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
             "required": false
+          }
+        },
+        {
+          "Description of Incident": {
+            "type": "textarea",
+            "name": "fdny-form1-field8",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
           }
         }
       ],
@@ -154,8 +179,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "911 Call Report (CAD)",
-      "form_description": "<p>Please note this Request Type should be used for those requesting 911 Call Report not Ambulance Reports. Instructions for obtaining Ambulance Call Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
+      "form_name": "Fuel Tank Special Report (Environmental Assessment Report)",
+      "form_description": "",
       "field_definitions": [
         {
           "Submission Method": {
@@ -171,52 +196,28 @@
           }
         },
         {
-          "Description of Incident": {
+          "Description of Records": {
             "type": "textarea",
             "name": "fdny-form2-field2",
             "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
             "max_length": 5000,
-            "character_counter": true
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
           }
         },
         {
-          "Incident Date": {
-            "type": "date",
-            "name": "fdny-form2-field3",
-            "future_date_invalid": true,
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
-          }
-        },
-        {
-          "Incident Time (From)": {
-            "type": "time",
-            "name": "fdny-form2-field4",
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Time (From) is required.</strong> Please select a time."
-          }
-        },
-        {
-          "Incident Time (To)": {
-            "type": "time",
-            "name": "fdny-form2-field5",
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Time (To) is required.</strong> Please select a time."
-          }
-        },
-        {
-          "Incident Location": {
+          "Building Address": {
             "type": "input",
-            "name": "fdny-form2-field6",
+            "name": "fdny-form2-field3",
             "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Location is required.</strong> Please provide a location."
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Address is required.</strong> Please provide an address."
           }
         },
         {
-          "Incident Borough": {
+          "Borough": {
             "type": "select_dropdown",
-            "name": "fdny-form2-field7",
+            "name": "fdny-form2-field4",
             "values": [
               "Brooklyn",
               "Bronx",
@@ -229,9 +230,16 @@
           }
         },
         {
-          "Hospital Taken To": {
+          "Account Info": {
             "type": "input",
-            "name": "fdny-form2-field8",
+            "name": "fdny-form2-field5",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "fdny-form2-field6",
             "required": false
           }
         }
@@ -242,8 +250,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "Fire Incident Report",
-      "form_description": "<p>Please note this Request Type is for Fire Incident Reports only, unrelated to the Fire Marshal Investigation Reports. Instructions for obtaining Fire Marshal Investigation Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
+      "form_name": "Violation Special Report",
+      "form_description": "",
       "field_definitions": [
         {
           "Submission Method": {
@@ -259,26 +267,22 @@
           }
         },
         {
-          "Incident Address": {
-            "type": "input",
+          "Description of Records": {
+            "type": "textarea",
             "name": "fdny-form3-field2",
-            "help_text": "Please include the street name and house number.",
             "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Address is required.</strong> Please provide an address."
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
           }
         },
         {
-          "Floor(s)": {
+          "Building Address": {
             "type": "input",
             "name": "fdny-form3-field3",
-            "required": false
-          }
-        },
-        {
-          "Apt(s)": {
-            "type": "input",
-            "name": "apt",
-            "required": false
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Address is required.</strong> Please provide an address."
           }
         },
         {
@@ -297,7 +301,7 @@
           }
         },
         {
-          "Box #": {
+          "Account Info": {
             "type": "input",
             "name": "fdny-form3-field5",
             "required": false
@@ -306,43 +310,8 @@
         {
           "Incident Date": {
             "type": "date",
-            "name": "3",
-            "future_date_invalid": true,
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
-          }
-        },
-        {
-          "Incident Report Number": {
-            "type": "input",
             "name": "fdny-form3-field6",
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Report Number is required.</strong> Please provide the number."
-          }
-        },
-        {
-          "Incident Type": {
-            "type": "radio",
-            "name": "fdny-form3-field7",
-            "values": [
-              "Building",
-              "Transportation",
-              "Outdoors",
-              "Non-Fire Emergency"
-            ],
-            "help_text": "If transportation if selected, please provide the type, make, and plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
             "required": false
-          }
-        },
-        {
-          "Description of Incident": {
-            "type": "textarea",
-            "name": "fdny-form3-field8",
-            "required": true,
-            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
-            "max_length": 5000,
-            "character_counter": true,
-            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
           }
         }
       ],
@@ -352,8 +321,8 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "FOIL Request",
-      "form_description": "Please note that this Request Type is for all other requests that are not referenced above. <strong>Please provide as much information as possible.</strong>",
+      "form_name": "Copy of a Violation (Summons, Notice of Violation, & Violation Order)",
+      "form_description": "",
       "field_definitions": [
         {
           "Submission Method": {
@@ -377,6 +346,822 @@
             "max_length": 5000,
             "character_counter": true,
             "help_text": "Please provide a short description of the records you are requesting."
+          }
+        },
+        {
+          "Building Address": {
+            "type": "input",
+            "name": "fdny-form4-field3",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Address is required.</strong> Please provide an address."
+          }
+        },
+        {
+          "Borough": {
+            "type": "select_dropdown",
+            "name": "fdny-form4-field4",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
+          }
+        },
+        {
+          "Account Info": {
+            "type": "input",
+            "name": "fdny-form4-field5",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "fdny-form4-field6",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Letter of Approval",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "fdny-form5-field1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Records": {
+            "type": "textarea",
+            "name": "fdny-form5-field2",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
+          }
+        },
+        {
+          "Building Address": {
+            "type": "input",
+            "name": "fdny-form5-field3",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Address is required.</strong> Please provide an address."
+          }
+        },
+        {
+          "Borough": {
+            "type": "select_dropdown",
+            "name": "fdny-form5-field4",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
+          }
+        },
+        {
+          "FDNY Account #": {
+            "type": "input",
+            "name": "fdny-form5-field5",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, FDNY Account # is required.</strong> Please provide a number."
+          }
+        },
+        {
+          "Department Of Buildings Account/PW1 #": {
+            "type": "input",
+            "name": "fdny-form5-field6",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Department Of Buildings Account/PW1 # is required.</strong> Please provide a number."
+          }
+        },
+        {
+          "Account Info": {
+            "type": "input",
+            "name": "fdny-form5-field7",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "fdny-form5-field8",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "911 Call Report (CAD) (NOT Ambulance Call Report/ Pre-Hospital Care Report)",
+      "form_description": "<p>Please note this Request Type should be used for those requesting 911 Call Report not Ambulance Reports. Instructions for obtaining Ambulance Call Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "fdny-form6-field1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Incident": {
+            "type": "textarea",
+            "name": "fdny-form6-field2",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "fdny-form6-field3",
+            "future_date_invalid": true,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
+          }
+        },
+        {
+          "Incident Time (From)": {
+            "type": "time",
+            "name": "fdny-form6-field4",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Time (From) is required.</strong> Please select a time."
+          }
+        },
+        {
+          "Incident Time (To)": {
+            "type": "time",
+            "name": "fdny-form6-field5",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Time (To) is required.</strong> Please select a time."
+          }
+        },
+        {
+          "Incident Location": {
+            "type": "input",
+            "name": "fdny-form6-field6",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Location is required.</strong> Please provide a location."
+          }
+        },
+        {
+          "Incident Borough": {
+            "type": "select_dropdown",
+            "name": "fdny-form6-field7",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
+          }
+        },
+        {
+          "Hospital Taken To": {
+            "type": "input",
+            "name": "fdny-form6-field8",
+            "required": false
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Other Request",
+      "form_description": "Please note that this Request Type is for all other requests that are not referenced above. <strong>Please provide as much information as possible.</strong>",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "fdny-form7-field1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Records": {
+            "type": "textarea",
+            "name": "fdny-form7-field2",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Complaint Report",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Complaint Report #": {
+            "type": "input",
+            "name": "nypd-form1-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Victim/Complainant First Name": {
+            "type": "input",
+            "name": "nypd-form1-field2",
+            "required": false,
+            "max_length": "32"
+          }
+        },
+        {
+          "Victim/Complainant Last Name": {
+            "type": "input",
+            "name": "nypd-form1-field3",
+            "required": false,
+            "max_length": "64"
+          }
+        },
+        {
+          "Victim/Complainant D.O.B": {
+            "type": "date",
+            "name": "nypd-form1-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Address/Location of Incident": {
+            "type": "input",
+            "name": "nypd-form1-field5",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Offense (Type of Incident)": {
+            "type": "input",
+            "name": "nypd-form1-field6",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Date of Complaint": {
+            "type": "date",
+            "name": "nypd-form1-field7",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form1-field8",
+            "required": false,
+            "max_length": "50"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Arrest Report",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Arrest Report #": {
+            "type": "input",
+            "name": "nypd-form2-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Arrested/Accused Person's First Name": {
+            "type": "input",
+            "name": "nypd-form2-field2",
+            "required": false,
+            "max_length": "32"
+          }
+        },
+        {
+          "Arrested/Accused Person's Last Name": {
+            "type": "input",
+            "name": "nypd-form2-field3",
+            "required": false,
+            "max_length": "64"
+          }
+        },
+        {
+          "Arrested/Accused Person's D.O.B": {
+            "type": "date",
+            "name": "nypd-form2-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Date of Arrest": {
+            "type": "date",
+            "name": "nypd-form2-field5",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form2-field6",
+            "required": false,
+            "max_length": "50"
+          }
+        },
+        {
+          "Time of Arrest": {
+            "type": "time",
+            "name": "nypd-form2-field7",
+            "required": false
+          }
+        },
+        {
+          "Offense (Type of Incident)": {
+            "type": "input",
+            "name": "nypd-form2-field8",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "NYSID #": {
+            "type": "input",
+            "name": "nypd-form2-field9",
+            "required": false,
+            "max_length": "20"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Aided Card",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Aided Card #": {
+            "type": "input",
+            "name": "nypd-form3-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Victim First Name": {
+            "type": "input",
+            "name": "nypd-form3-field2",
+            "required": false,
+            "max_length": "32"
+          }
+        },
+        {
+          "Victim Last Name": {
+            "type": "input",
+            "name": "nypd-form3-field3",
+            "required": false,
+            "max_length": "64"
+          }
+        },
+        {
+          "Victim D.O.B": {
+            "type": "date",
+            "name": "nypd-form3-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Address/Location of Incident": {
+            "type": "input",
+            "name": "nypd-form3-field5",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Type of Incident": {
+            "type": "input",
+            "name": "nypd-form3-field6",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Date of Incident": {
+            "type": "date",
+            "name": "nypd-form3-field7",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form3-field8",
+            "required": false,
+            "max_length": "50"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Domestic Incident Report",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Domestic Incident Report #": {
+            "type": "input",
+            "name": "nypd-form4-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Victim First Name": {
+            "type": "input",
+            "name": "nypd-form4-field2",
+            "required": false,
+            "max_length": "32"
+          }
+        },
+        {
+          "Victim Last Name": {
+            "type": "input",
+            "name": "nypd-form4-field3",
+            "required": false,
+            "max_length": "64"
+          }
+        },
+        {
+          "Victim D.O.B": {
+            "type": "date",
+            "name": "nypd-form4-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Address/Location of Incident": {
+            "type": "input",
+            "name": "nypd-form4-field5",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Offense (Type of Incident)": {
+            "type": "input",
+            "name": "nypd-form4-field6",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Date of Incident": {
+            "type": "date",
+            "name": "nypd-form4-field7",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form4-field8",
+            "required": false,
+            "max_length": "50"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "911 Sprint Report",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "911 Sprint Report #": {
+            "type": "input",
+            "name": "nypd-form5-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Name of Caller": {
+            "type": "input",
+            "name": "nypd-form5-field2",
+            "required": false,
+            "max_length": "100"
+          }
+        },
+        {
+          "Caller Phone #": {
+            "type": "input",
+            "name": "nypd-form5-field3",
+            "required": false,
+            "max_length": "11"
+          }
+        },
+        {
+          "Date of Call": {
+            "type": "date",
+            "name": "nypd-form5-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Time of Call": {
+            "type": "time",
+            "name": "nypd-form5-field5",
+            "required": false
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form5-field6",
+            "required": false,
+            "max_length": "50"
+          }
+        },
+        {
+          "Location of Call": {
+            "type": "input",
+            "name": "nypd-form5-field7",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Reason for Call": {
+            "type": "input",
+            "name": "nypd-form5-field8",
+            "required": false,
+            "max_length": "200"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "911 Audio CD",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "911 Audio CD #": {
+            "type": "input",
+            "name": "nypd-form6-field1",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Name of Caller": {
+            "type": "input",
+            "name": "nypd-form6-field2",
+            "required": false,
+            "max_length": "100"
+          }
+        },
+        {
+          "Caller Phone #": {
+            "type": "input",
+            "name": "nypd-form6-field3",
+            "required": false,
+            "max_length": "11"
+          }
+        },
+        {
+          "Date of Call": {
+            "type": "date",
+            "name": "nypd-form6-field4",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Time of Call": {
+            "type": "time",
+            "name": "nypd-form6-field5",
+            "required": false
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form6-field6",
+            "required": false,
+            "max_length": "50"
+          }
+        },
+        {
+          "Location of Call": {
+            "type": "input",
+            "name": "nypd-form6-field7",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Reason for Call": {
+            "type": "input",
+            "name": "nypd-form6-field8",
+            "required": false,
+            "max_length": "200"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Body Worn Camera",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Date of Incident": {
+            "type": "date",
+            "name": "nypd-form7-field1",
+            "required": false,
+            "future_date_invalid": true
+          }
+        },
+        {
+          "Time of Incident": {
+            "type": "time",
+            "name": "nypd-form7-field2",
+            "required": false
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form7-field3",
+            "required": false,
+            "max_length": "50"
+          }
+        },
+        {
+          "Type of Incident": {
+            "type": "input",
+            "name": "nypd-form7-field4",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Location of Incident": {
+            "type": "input",
+            "name": "nypd-form7-field5",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Complaint/Arrest/Case #": {
+            "type": "input",
+            "name": "nypd-form7-field6",
+            "required": false,
+            "max_length": "20"
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0056",
+      "form_name": "Other Request",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Type of Request": {
+            "type": "input",
+            "name": "nypd-form8-field1",
+            "required": false
+          }
+        },
+        {
+          "Report #": {
+            "type": "input",
+            "name": "nypd-form8-field2",
+            "required": false,
+            "max_length": "20"
+          }
+        },
+        {
+          "Date": {
+            "type": "date",
+            "name": "nypd-form8-field3",
+            "required": false
+          }
+        },
+        {
+          "Time": {
+            "type": "time",
+            "name": "nypd-form8-field4",
+            "required": false
+          }
+        },
+        {
+          "Precinct": {
+            "type": "input",
+            "name": "nypd-form8-field5",
+            "required": false,
+            "max_length": "50"
+          }
+        },
+        {
+          "Location": {
+            "type": "input",
+            "name": "nypd-form8-field6",
+            "required": false,
+            "max_length": "200"
+          }
+        },
+        {
+          "Description": {
+            "type": "textarea",
+            "name": "nypd-form8-field7",
+            "required": false,
+            "max_length": "5000",
+            "character_counter": "true"
           }
         }
       ],

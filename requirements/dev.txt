@@ -1,4 +1,3 @@
--r common.txt
 pipdeptree==0.9.0
 decorator==4.0.11
 Faker==0.7.9

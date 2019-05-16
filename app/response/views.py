@@ -112,8 +112,8 @@ def response_note(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if note_data.get(field) is None:
-            flash('Uh Oh, it looks like the instruction {} is missing! '
+        if not note_data.get(field, ''):
+            flash('Uh Oh, it looks like the note {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
 
@@ -222,7 +222,7 @@ def response_denial(request_id):
                            'method',
                            'summary']
     for field in required_fields:
-        if flask_request.form.get(field) is None:
+        if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the denial {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -256,7 +256,7 @@ def response_closing(request_id):
                            'method',
                            'summary']
     for field in required_fields:
-        if flask_request.form.get(field) is None:
+        if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the closing {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -347,7 +347,7 @@ def response_extension(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if extension_data.get(field) is None:
+        if not extension_data.get(field, ''):
             flash('Uh Oh, it looks like the extension {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -387,7 +387,7 @@ def response_link(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if link_data.get(field) is None:
+        if not link_data.get(field, ''):
             flash('Uh Oh, it looks like the link {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))
@@ -423,7 +423,7 @@ def response_instructions(request_id):
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
     for field in required_fields:
-        if instruction_data.get(field) is None:
+        if not instruction_data.get(field, ''):
             flash('Uh Oh, it looks like the instruction {} is missing! '
                   'This is probably NOT your fault.'.format(field), category='danger')
             return redirect(url_for('request.view', request_id=request_id))

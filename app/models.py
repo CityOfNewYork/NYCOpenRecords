@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import (
     ARRAY,
     JSONB
 )
+from sqlalchemy.orm import column_property
 from sqlalchemy.orm.exc import MultipleResultsFound
 from warnings import warn
 
@@ -355,6 +356,7 @@ class Users(UserMixin, db.Model):
                                  name='mailing_address')  # TODO: define validation for minimum acceptable mailing address
     session_id = db.Column(db.String(254), nullable=True, default=None)
     signature = db.Column(db.String(), nullable=True, default=None)
+    fullname = column_property(first_name + " " + last_name)
 
     # Relationships
     user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
@@ -620,6 +622,8 @@ class Users(UserMixin, db.Model):
                             is_primary_agency=eval_request_bool(is_primary_agency)
                         )
                         db.session.add(agency_user)
+                    if agency_eins:
+                        user.is_nyc_employee = True
                     db.session.add(user)
             db.session.commit()
 
