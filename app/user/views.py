@@ -151,6 +151,7 @@ def patch(user_id):
         address_two=request.form.get('address_two'),
         zip=request.form.get('zipcode'),
         city=request.form.get('city'),
+        state=request.form.get('state')
     )
     status_field_val = user_attrs.UserStatusDict(
         is_agency_admin=request.form.get('is_agency_admin'),

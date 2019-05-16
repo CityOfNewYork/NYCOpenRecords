@@ -17,6 +17,7 @@ $(function () {
     var zipCode = $("#inputZip");
     var email = $("#inputEmail");
     var state = $("#inputState");
+    var selected_state_value = $("#inputState option:selected").val();
     var city = $("#inputCity");
     var addressOne = $("#inputAddressOne");
 
@@ -125,6 +126,7 @@ $(function () {
         for (i = 0; i < all.length; i++) {
             all[i].val(all[i].attr("value"));
         }
+        state.val(selected_state_value);
         for (i = 0; i < required.length; i++) {
             $("#user-info").parsley().reset();
         }
