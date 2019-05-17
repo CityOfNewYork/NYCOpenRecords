@@ -327,12 +327,12 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
         Requests.agency_ein == agency_ein,
     ).order_by(asc(Requests.date_created)).all()
     opened_in_month_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Due Date')
+                               'Status',
+                               'Date Created',
+                               'Due Date')
     opened_in_month_dataset = tablib.Dataset(*opened_in_month,
-                                          headers=opened_in_month_headers,
-                                          title='opened in month Raw Data')
+                                             headers=opened_in_month_headers,
+                                             title='opened in month Raw Data')
 
     # QUERY FOR ALL REQUESTS OPENED EVER
     total_opened = Requests.query.with_entities(
@@ -364,13 +364,13 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
         Requests.status == CLOSED,
     ).order_by(asc(Requests.date_created)).all()
     closed_in_month_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Date Closed',
-                            'Due Date')
+                               'Status',
+                               'Date Created',
+                               'Date Closed',
+                               'Due Date')
     closed_in_month_dataset = tablib.Dataset(*closed_in_month,
-                                          headers=closed_in_month_headers,
-                                          title='closed in month Raw Data')
+                                             headers=closed_in_month_headers,
+                                             title='closed in month Raw Data')
 
     # QUERY FOR ALL REQUESTS CLOSED EVER
     total_closed = Requests.query.with_entities(
@@ -404,12 +404,12 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
         Requests.status == CLOSED,
     ).order_by(asc(Requests.date_created)).all()
     opened_closed_in_month_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Due Date')
+                                      'Status',
+                                      'Date Created',
+                                      'Due Date')
     opened_closed_in_month_dataset = tablib.Dataset(*opened_closed_in_month,
-                                          headers=opened_closed_in_month_headers,
-                                          title='opened closed in month Raw Data')
+                                                    headers=opened_closed_in_month_headers,
+                                                    title='opened closed in month Raw Data')
 
     # QUERY FOR CONTACT THE AGENCY EMAILS
     contact_agency_emails = Requests.query.with_entities(
@@ -427,8 +427,8 @@ def generate_monthly_opened_closed_report(agency_ein: str, date_from: str, date_
                                      'Date Sent',
                                      'Subject')
     contact_agency_emails_dataset = tablib.Dataset(*contact_agency_emails,
-                                          headers=contact_agency_emails_headers,
-                                          title='contact agency emails Raw Data')
+                                                   headers=contact_agency_emails_headers,
+                                                   title='contact agency emails Raw Data')
 
     # Create Databook from Datasets
     excel_spreadsheet = tablib.Databook((
