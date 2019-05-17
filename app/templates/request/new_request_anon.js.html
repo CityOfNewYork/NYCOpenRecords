@@ -357,6 +357,15 @@
         $("#request-form").on("submit", function (e) {
             $(".remove-on-resubmit").remove();
             if ($("#request-form").parsley().isValid()) {
+                // Check if an SSN may be present in the Title or Description
+                var ssnInTitle = checkSSN($("#request-title").val());
+                var ssn_in_description = checkSSN($("#request-description").val());
+
+                if (ssnInTitle === true) {
+
+                }
+
+
                 // section to check if at least one request type has been selected
                 var emptyRequestDropdown = checkRequestTypeDropdowns();
                 if (customRequestFormsEnabled === true && emptyRequestDropdown === true) {
