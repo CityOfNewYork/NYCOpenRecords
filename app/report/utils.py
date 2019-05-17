@@ -353,12 +353,12 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
         Requests.agency_ein == agency_ein,
     ).order_by(asc(Requests.date_created)).all()
     opened_in_month_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Due Date')
+                               'Status',
+                               'Date Created',
+                               'Due Date')
     opened_in_month_dataset = tablib.Dataset(*opened_in_month,
-                                          headers=opened_in_month_headers,
-                                          title='Opened in month')
+                                             headers=opened_in_month_headers,
+                                             title='Opened in month')
 
     # Query for all requests that are still open or pending. Excludes all closed requests.
     remaining_open_or_pending = Requests.query.with_entities(
@@ -373,12 +373,12 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
         )
     ).order_by(asc(Requests.date_created)).all()
     remaining_open_or_pending_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Due Date')
+                                         'Status',
+                                         'Date Created',
+                                         'Due Date')
     remaining_open_or_pending_dataset = tablib.Dataset(*remaining_open_or_pending,
-                                          headers=remaining_open_or_pending_headers,
-                                          title='All remaining Open or Pending')
+                                                       headers=remaining_open_or_pending_headers,
+                                                       title='All remaining Open or Pending')
 
     # Query for all requests that have been closed in the given month.
     closed_in_month = Requests.query.with_entities(
@@ -393,13 +393,13 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
         Requests.status == CLOSED,
     ).order_by(asc(Requests.date_created)).all()
     closed_in_month_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Date Closed',
-                            'Due Date')
+                               'Status',
+                               'Date Created',
+                               'Date Closed',
+                               'Due Date')
     closed_in_month_dataset = tablib.Dataset(*closed_in_month,
-                                          headers=closed_in_month_headers,
-                                          title='Closed in month')
+                                             headers=closed_in_month_headers,
+                                             title='Closed in month')
 
     # Query for all requests that have been closed, since the portal started.
     total_closed = Requests.query.with_entities(
@@ -433,12 +433,12 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
         Requests.status == CLOSED,
     ).order_by(asc(Requests.date_created)).all()
     opened_closed_in_month_headers = ('Request ID',
-                            'Status',
-                            'Date Created',
-                            'Due Date')
+                                      'Status',
+                                      'Date Created',
+                                      'Due Date')
     opened_closed_in_month_dataset = tablib.Dataset(*opened_closed_in_month,
-                                          headers=opened_closed_in_month_headers,
-                                          title='Opened then Closed in month')
+                                                    headers=opened_closed_in_month_headers,
+                                                    title='Opened then Closed in month')
 
     # Query for all emails received using the "Contact the Agency" button in the given month.
     contact_agency_emails = Requests.query.with_entities(
@@ -456,8 +456,8 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
                                      'Date Sent',
                                      'Subject')
     contact_agency_emails_dataset = tablib.Dataset(*contact_agency_emails,
-                                          headers=contact_agency_emails_headers,
-                                          title='Contact agency emails received')
+                                                   headers=contact_agency_emails_headers,
+                                                   title='Contact agency emails received')
 
     # Metrics tab
     received_current_month = len(opened_in_month)
@@ -474,9 +474,8 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
     ]
     metrics_headers = ['Metric', 'Count']
     metrics_dataset = tablib.Dataset(*metrics,
-        headers=metrics_headers,
-        title='Metrics',
-    )
+                                     headers=metrics_headers,
+                                     title='Metrics')
 
     # Create Databook from Datasets
     excel_spreadsheet = tablib.Databook((
