@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import tablib
 from flask import current_app
@@ -340,7 +340,7 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
     date_from_utc = local_to_utc(datetime.strptime(date_from, '%Y-%m-%d'),
                                  current_app.config['APP_TIMEZONE'])
     date_to_utc = local_to_utc(datetime.strptime(date_to, '%Y-%m-%d'),
-                               current_app.config['APP_TIMEZONE'])
+                               current_app.config['APP_TIMEZONE']) + timedelta(days=1)
 
     # Query for all requests that have been opened in the given month
     opened_in_month = Requests.query.with_entities(
