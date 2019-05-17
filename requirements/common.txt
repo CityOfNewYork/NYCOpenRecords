@@ -40,7 +40,7 @@ html5lib==1.0.1
 idna==2.8
 isodate==0.6.0
 itsdangerous==1.1.0
-Jinja2==2.10
+Jinja2==2.10.1
 jsonschema==2.6.0
 kombu==4.2.2.post1
 ldap3==2.5.2
@@ -75,7 +75,7 @@ SQLAlchemy==1.2.17
 tablib==0.13.0
 tinycss2==0.6.1
 tzlocal==1.5.1
-urllib3==1.24.1
+urllib3==1.24.2
 vine==1.2.0
 virtualenv==13.1.2
 visitor==0.1.3
