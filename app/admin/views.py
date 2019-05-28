@@ -3,15 +3,18 @@
 
     :synopsis: Endpoints for Agency Adminstrator Interface
 """
-from app.admin import admin
-from app.models import Users, Agencies, AgencyUsers
-from app.admin.forms import (
-    SelectAgencyForm,
-    ActivateAgencyUserForm
-)
 from flask import render_template, abort
 from flask_login import current_user
+
+from app.admin import admin
+from app.admin.forms import (
+    AddAgencyUserForm,
+    ActivateAgencyUserForm,
+    SelectAgencyForm,
+)
 from app.admin.utils import get_agency_active_users
+from app.lib.permission_utils import has_super
+from app.models import Agencies
 
 
 # TODO: View function to handle updates to agency wide settings (see models.py:183)
@@ -53,3 +56,13 @@ def main(agency_ein=None):
                                    user_form=form)
 
     return abort(404)
+
+
+@admin.route('/add-user', methods=['GET', 'POST'])
+@has_super()
+def add_user():
+    form = AddAgencyUserForm()
+    if form.validate_on_submit():
+        pass
+    return render_template("admin/add_user.html",
+                           form=form)
