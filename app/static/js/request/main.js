@@ -830,3 +830,13 @@ function checkSSN(text) {
     var ssnPattern = /[0-9]{3}[\-\.\s]?[0-9]{2}[\-\.\s]?[0-9]{4}/;
     return ssnPattern.test(text);
 }
+
+/**
+ * Cancel form submission if user chooses to review Title and / or Description.
+ */
+function handlePIIModalReview(){
+    $("#processing-submission").hide();
+    $("#submit").show();
+    $(window).scrollTop($("#request-title").offset().top - 50);
+    return;
+}

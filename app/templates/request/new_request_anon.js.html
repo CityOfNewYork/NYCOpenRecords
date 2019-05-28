@@ -357,14 +357,6 @@
         $("#request-form").on("submit", function (e) {
             $(".remove-on-resubmit").remove();
             if ($("#request-form").parsley().isValid()) {
-                // Check if an SSN may be present in the Title or Description
-                var ssnInTitle = checkSSN($("#request-title").val());
-                var ssn_in_description = checkSSN($("#request-description").val());
-
-                if (ssnInTitle === true) {
-
-                }
-
 
                 // section to check if at least one request type has been selected
                 var emptyRequestDropdown = checkRequestTypeDropdowns();
@@ -383,6 +375,16 @@
                     $("#submit").show();
                     $(window).scrollTop($(invalidForms[0]).offset().top);
                     return;
+                }
+
+                var ssnInTitle = checkSSN($("#request-title").val());
+                var ssnInDescription = checkSSN($("#request-description").val());
+                var ssnInCustomRequestForms = checkSSN($("#custom-request-forms-data").val());
+
+                if (ssnInTitle || ssnInDescription || ssnInCustomRequestForms) {
+                    e.preventDefault();
+                    $("#pii-warning-modal").modal('show');
+
                 }
             }
 
@@ -409,7 +411,7 @@
 
         $("#last-name").keyup(function () {
             characterCounter("#last-name-character-count", 64, $(this).val().length);
-        });
+       o });
 
         $("#user-title").keyup(function () {
             characterCounter("#user-title-character-count", 64, $(this).val().length);

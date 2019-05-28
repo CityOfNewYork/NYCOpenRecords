@@ -245,12 +245,12 @@
                                 </div>
                                 <div class="modal-body" id="pii-warning-text">
                                     <p>It looks like you may have entered a social security number in the title or description of your request.
-                                    <p>If you would like to go back and double check, please click "Cancel".</p>
+                                    <p>If you would like to go back and double check, please click "Review Submission".</p>
                                     <p>If you are sure you didn't include a social security number in the title or description of your request, please click "Submit".</p>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                    <button type="button" onclick="handlePanelDismiss()" data-dismiss="modal"
+                                    <button type="button" class="btn btn-default" onclick="handlePIIModalReview()" data-dismiss="modal">Review Submission</button>
+                                    <button type="button" onclick="$('#request-form').submit()" data-dismiss="modal"
                                             class="btn btn-success">Submit
                                     </button>
                                 </div>
