@@ -52,6 +52,31 @@
                 </div>
                 {{ acknowledgment_form.submit_field(class="btn btn-success") }}
             </form>
+            <br>
+            <hr>
+            <h3>Monthly FOIL Metrics</h3>
+            <p>This report contains metrics and raw data for:</p>
+            <ul>
+                <li>Requests received for the given month</li>
+                <li>Total requests remaining from the given month</li>
+                <li>Requests that were received and closed in the same given month</li>
+                <li>Total requests closed in the given month</li>
+                <li>Total requests closed since the creation of the portal</li>
+                <li>Total requests that remain Open/Pending</li>
+                <li>Number of inquiries received in the given month regarding requests</li>
+            </ul>
+            <form id="monthly-metrics-report-form" action="/report/monthly-metrics-report" method="POST" data-parsley-validate>
+                {{ monthly_report_form.csrf_token }}
+                <div class="form-group">
+                    {{ monthly_report_form.year.label(for="monthly-report-year") }}
+                    {{ monthly_report_form.year(id="monthly-report-year", class="input-block-level") }}
+                </div>
+                <div class="form-group">
+                    {{ monthly_report_form.month.label(for="monthly-report-month") }}
+                    {{ monthly_report_form.month(id="monthly-report-month", class="input-block-level") }}
+                </div>
+                {{ monthly_report_form.submit_field(class="btn btn-success") }}
+            </form>
         {% endif %}
         </div>
     </div>

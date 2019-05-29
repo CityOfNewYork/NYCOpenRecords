@@ -14,6 +14,9 @@
     var ack_date_from = $("#date_from");
     var ack_date_to = $("#date_to");
 
+    var monthly_report_month = $("#monthly-report-month");
+    var monthly_report_year = $("#monthly-report-year");
+
     function drawChart(labels, values) {
         reportChart = new Chart(ctx, {
             type: 'bar',
@@ -244,10 +247,10 @@
     ack_date_to.attr('data-parsley-valid-date', '');
     ack_date_from.attr("data-parsley-required-message",
         '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
-        '<strong>Error, date from is required.</strong> Please select a template from the drop-down menu.');
+        '<strong>Error, date from is required.</strong> Please select a date from the datepicker.');
     ack_date_to.attr("data-parsley-required-message",
         '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
-        '<strong>Error, date to is required.</strong> Please select a template from the drop-down menu.');
+        '<strong>Error, date to is required.</strong> Please select a date from the datepicker.');
 
     ack_date_from.datepicker({
         dateFormat: "mm/dd/yy",
@@ -267,4 +270,13 @@
         ack_date_to.datepicker("option", "maxDate", new_date);
         ack_date_to.val(new_date.toLocaleDateString("en-US", {month: "2-digit", day: "2-digit", year: "numeric"}));
     });
+
+    monthly_report_month.attr('data-parsley-required', '');
+    monthly_report_year.attr('data-parsley-required', '');
+    monthly_report_month.attr('data-parsley-required-message',
+    '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
+    '<strong>Error, Month is required.</strong> Please select a month from the drop-down menu.');
+    monthly_report_year.attr('data-parsley-required-message',
+    '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
+    '<strong>Error, Year is required.</strong> Please select a year from the drop-down menu.');
 </script>
