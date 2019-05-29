@@ -70,7 +70,7 @@ class MonthlyMetricsReportForm(Form):
         super(MonthlyMetricsReportForm, self).__init__()
         # Calculate years portal has been active
         years_active = []
-        for year in range (date.today().year, PORTAL_START_YEAR-1, -1):
+        for year in range(date.today().year, PORTAL_START_YEAR-1, -1):
             years_active.append((str(year), str(year)))
         self.year.choices = years_active
         self.year.choices.insert(0, ('', ''))

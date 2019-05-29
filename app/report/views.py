@@ -176,11 +176,11 @@ def monthly_metrics_report():
             timestamp=datetime.now()
         )
         generate_monthly_metrics_report.apply_async(args=[current_user.default_agency_ein,
-                                                                date_from,
-                                                                date_to,
-                                                                [current_user.email]],
-                                                          serializer='pickle',
-                                                          task_id=redis_key)
+                                                          date_from,
+                                                          date_to,
+                                                          [current_user.email]],
+                                                    serializer='pickle',
+                                                    task_id=redis_key)
         flash('Your report is being generated. You will receive an email with the report attached once its complete.',
               category='success')
     else:
