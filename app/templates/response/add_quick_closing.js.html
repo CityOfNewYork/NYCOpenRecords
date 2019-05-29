@@ -12,8 +12,10 @@
         var prev2 = second.find(".prev");
         var submit = second.find(".submit");
 
-        var editor = $('#closing-editor');
-        var confirmation = $('#closing-confirmation');
+        var editor = $('#quick-closing-editor');
+        var confirmation = $('#quick-closing-confirmation');
+
+        var default_quick_closing_days = '20';
 
         // Initial AJAX call
         $.ajax({
@@ -23,7 +25,7 @@
                 request_id: "{{ request.id }}",
                 type: "quick_closing",
                 acknowledgment: JSON.stringify({
-                    days: '20',
+                    days: default_quick_closing_days,
                     date: email_date.val(),
                     info: ''
                 }),
@@ -31,7 +33,6 @@
                 confirmation: false
             },
             success: function (data) {
-
                 var emailContent = first.find(".email-content-hidden");
                 emailContent.html(data.template);
                 flask_moment_render_all();
@@ -39,14 +40,40 @@
             }
         });
 
-
-        next1.click(function (e) {
-
-
-
-
+        next1.click(function () {
+            tinyMCE.triggerSave();
+            $.ajax({
+                url: "/response/email",
+                type: "POST",
+                data: {
+                    request_id: "{{ request.id }}",
+                    type: "quick_closing",
+                    email_content: first.find("#quick-closing-body").val()
+                },
+                success: function (data) {
+                    second.find(".summary").html(data.template);
+                    second.find("input[name='summary']").val(data.template);
+                    second.find("input[name='tz-name']").val(jstz.determine().name());
+                    second.find(".confirmation-header").text(data.header);
+                    submit.prop('disabled', false);
+                }
+            });
+            first.hide();
+            second.show();
+            confirmation.block({
+                message: '<div class=\"col-sm-12 loading-container\"><div class=\"loading-spinner\">' +
+                '<span class=\"sr-only\">Loading content...</span></div></div>'
+            });
+            submit.prop('disabled', true);
         });
 
+        prev2.click(function () {
+            second.hide();
+            first.show();
+        });
 
+        form.submit(function () {
+            submit.attr("disabled", true);
+        });
     })
 </script>
