@@ -13,8 +13,14 @@ from app.admin.forms import (
     SelectAgencyForm,
 )
 from app.admin.utils import get_agency_active_users
+from app.lib.db_utils import create_object
 from app.lib.permission_utils import has_super
-from app.models import Agencies
+from app.models import (
+    Agencies,
+    AgencyUsers,
+    Users,
+)
+from app.request.utils import generate_guid
 
 
 # TODO: View function to handle updates to agency wide settings (see models.py:183)
@@ -63,6 +69,29 @@ def main(agency_ein=None):
 def add_user():
     form = AddAgencyUserForm()
     if form.validate_on_submit():
-        pass
+        agency_ein = form.agency.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+        email = form.email.data
+
+        user = Users(
+            guid=generate_guid(),
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            is_nyc_employee=True,
+            is_anonymous_requester=False,
+        )
+        create_object(user)
+
+        agency_user = AgencyUsers(
+            user_guid=user.guid,
+            agency_ein=agency_ein,
+            is_agency_active=False,
+            is_agency_admin=False,
+            is_primary_agency=True
+        )
+        create_object(agency_user)
+
     return render_template("admin/add_user.html",
                            form=form)

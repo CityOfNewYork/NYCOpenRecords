@@ -77,10 +77,6 @@ class AddAgencyUserForm(Form):
     first_name = StringField('First Name', validators=[Length(max=32), DataRequired()])
     last_name = StringField('Last Name', validators=[Length(max=64), DataRequired()])
     email = StringField('Email', validators=[Email(), Length(max=254), DataRequired()])
-    role = SelectField('Role', choices=[('', ''),
-                                        ('user', 'User'),
-                                        ('admin', 'Admin')],
-                       validators=[DataRequired()])
     submit = SubmitField('Add User')
 
     def __init__(self):

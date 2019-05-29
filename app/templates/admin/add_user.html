@@ -4,7 +4,8 @@
 
 {% block content %}
     <h1 class="text-center">Add User</h1>
-    <form method="post">
+    <form action="{{ url_for('admin.add_user') }}" method="post">
+        {{ form.csrf_token }}
         <div class="form-group">
             {{ form.agency.label }}
             {{ form.agency(class="input-block-level") }}
@@ -20,10 +21,6 @@
         <div class="form-group">
             {{ form.email.label }}
             {{ form.email }}
-        </div>
-        <div class="form-group">
-            {{ form.role.label }}
-            {{ form.role(class="input-block-level") }}
         </div>
         {{ form.submit(class="btn btn-success") }}
     </form>
