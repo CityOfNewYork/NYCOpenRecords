@@ -11,7 +11,7 @@ from flask_login import current_user
 
 from app.constants import event_type, permission, user_type_request
 from app.lib.db_utils import delete_object, create_object, update_object
-from app.lib.email_utils import get_agency_emails
+from app.lib.email_utils import get_agency_admin_emails
 from app.lib.utils import UserRequestException
 from app.models import (
     Users,
@@ -35,14 +35,14 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
     user_request = UserRequests.query.filter_by(user_guid=user_guid,
                                                 request_id=request_id).first()
 
-    agency_name = Requests.query.filter_by(id=request_id).one().agency.name
+    agency = Requests.query.filter_by(id=request_id).one().agency
 
     if user_request:
         raise UserRequestException(action="create", request_id=request_id, reason="UserRequest entry already exists.")
 
     user = Users.query.filter_by(guid=user_guid).one()
 
-    agency_admin_emails = get_agency_emails(request_id, admins_only=True)
+    agency_admin_emails = get_agency_admin_emails(agency)
 
     added_permissions = []
     for i, val in enumerate(permission.ALL):
@@ -56,7 +56,7 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
             'email_templates/email_user_request_added.html',
             request_id=request_id,
             name=user.name,
-            agency_name=agency_name,
+            agency_name=agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             added_permissions=[capability.label for capability in added_permissions],
             admin=True),
@@ -70,7 +70,7 @@ def add_user_request(request_id, user_guid, permissions, point_of_contact):
             'email_templates/email_user_request_added.html',
             request_id=request_id,
             name=user.name,
-            agency_name=agency_name,
+            agency_name=agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             added_permissions=[capability.label for capability in added_permissions],
         ),
@@ -114,9 +114,8 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
         request_id=request_id
     ).one()
 
-    agency_admin_emails = get_agency_emails(request_id, admins_only=True)
-
-    agency_name = Requests.query.filter_by(id=request_id).one().agency.name
+    agency = Requests.query.filter_by(id=request_id).one().agency
+    agency_admin_emails = get_agency_admin_emails(agency)
 
     added_permissions = []
     removed_permissions = []
@@ -133,7 +132,7 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
             'email_templates/email_user_request_edited.html',
             request_id=request_id,
             name=user_request.user.name,
-            agency_name=agency_name,
+            agency_name=agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             added_permissions=[capability.label for capability in added_permissions],
             removed_permissions=[capability.label for capability in removed_permissions],
@@ -148,7 +147,7 @@ def edit_user_request(request_id, user_guid, permissions, point_of_contact):
             'email_templates/email_user_request_edited.html',
             request_id=request_id,
             name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=agency_name,
+            agency_name=agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             added_permissions=[capability.label for capability in added_permissions],
             removed_permissions=[capability.label for capability in removed_permissions],
@@ -182,10 +181,9 @@ def remove_user_request(request_id, user_guid):
     ).filter_by(
         user_guid=user_guid, request_id=request_id
     ).one()
-    agency_admin_emails = get_agency_emails(request_id, admins_only=True)
-
     request = Requests.query.filter_by(id=request_id).one()
-    agency_name = request.agency.name
+    agency = request.agency
+    agency_admin_emails = get_agency_admin_emails(agency)
 
     # send email to agency administrators
     tmp = safely_send_and_add_email(
@@ -194,7 +192,7 @@ def remove_user_request(request_id, user_guid):
             'email_templates/email_user_request_removed.html',
             request_id=request_id,
             name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=agency_name,
+            agency_name=agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id)),
             admin=True),
         'User Removed from Request {}'.format(request_id),
@@ -207,7 +205,7 @@ def remove_user_request(request_id, user_guid):
             'email_templates/email_user_request_removed.html',
             request_id=request_id,
             name=' '.join([user_request.user.first_name, user_request.user.last_name]),
-            agency_name=agency_name,
+            agency_name=agency.name,
             page=urljoin(flask_request.host_url, url_for('request.view', request_id=request_id))),
         'User Removed from Request {}'.format(request_id),
         to=[user_request.user.email])

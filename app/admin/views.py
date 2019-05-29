@@ -14,6 +14,7 @@ from app.admin.forms import (
 )
 from app.admin.utils import get_agency_active_users
 from app.lib.db_utils import create_object
+from app.lib.email_utils import send_email
 from app.lib.permission_utils import has_super
 from app.models import (
     Agencies,
@@ -79,6 +80,7 @@ def add_user():
             first_name=first_name,
             last_name=last_name,
             email=email,
+            email_validated=False,
             is_nyc_employee=True,
             is_anonymous_requester=False,
         )

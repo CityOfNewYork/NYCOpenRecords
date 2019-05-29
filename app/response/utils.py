@@ -59,7 +59,7 @@ from app.lib.date_utils import (
     utc_to_local,
 )
 from app.lib.db_utils import create_object, update_object, delete_object
-from app.lib.email_utils import send_email, get_agency_emails
+from app.lib.email_utils import send_email, get_assigned_users_emails
 from app.lib.pdf import (
     generate_pdf,
     generate_envelope,
@@ -229,7 +229,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
             email_id = safely_send_and_add_email(request_id,
                                                  email_content,
                                                  'Request {} Acknowledged - Letter'.format(request_id),
-                                                 to=get_agency_emails(request_id),
+                                                 to=get_assigned_users_emails(request_id),
                                                  attachment=letter,
                                                  filename=secure_filename(
                                                      '{}_acknowledgment_letter.pdf'.format(request_id)),
@@ -329,7 +329,7 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
             email_id = safely_send_and_add_email(request_id,
                                                  email_content,
                                                  'Request {} Closed'.format(request_id),
-                                                 to=get_agency_emails(request_id),
+                                                 to=get_assigned_users_emails(request_id),
                                                  attachment=letter,
                                                  filename=secure_filename('{}_denial_letter.pdf'.format(request_id)),
                                                  mimetype='application/pdf')
@@ -433,7 +433,7 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
             email_id = safely_send_and_add_email(request_id,
                                                  email_content,
                                                  'Request {} Closed'.format(request_id),
-                                                 to=get_agency_emails(request_id),
+                                                 to=get_assigned_users_emails(request_id),
                                                  attachment=letter,
                                                  filename=secure_filename('{}_closing_letter.pdf'.format(request_id)),
                                                  mimetype='application/pdf')
@@ -525,7 +525,7 @@ def add_reopening(request_id, date, tz_name, content, reason, method, letter_tem
             email_id = safely_send_and_add_email(request_id,
                                                  email_content,
                                                  'Request {} Reopened - Letter'.format(request_id),
-                                                 to=get_agency_emails(request_id),
+                                                 to=get_assigned_users_emails(request_id),
                                                  attachment=letter,
                                                  filename=secure_filename(
                                                      '{}_reopening_letter.pdf'.format(request_id)),
@@ -594,7 +594,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
         email_id = safely_send_and_add_email(request_id,
                                              email_content,
                                              'Request {} Extended - Letter'.format(request_id),
-                                             to=get_agency_emails(request_id),
+                                             to=get_assigned_users_emails(request_id),
                                              attachment=letter,
                                              filename=secure_filename('{}_extension_letter.pdf'.format(request_id)),
                                              mimetype='application/pdf')
@@ -682,7 +682,7 @@ def add_response_letter(request_id, content, letter_template_id):
     email_id = safely_send_and_add_email(request_id,
                                          email_content,
                                          "{} Letter Added to {}".format(letter_title, request_id),
-                                         to=get_agency_emails(request_id),
+                                         to=get_assigned_users_emails(request_id),
                                          attachment=letter,
                                          filename=secure_filename('{}_{}_letter.pdf'.format(letter_title, request_id)),
                                          mimetype='application/pdf')
@@ -779,7 +779,7 @@ def add_envelope(request_id, template_id, envelope_data):
     email_id = safely_send_and_add_email(request_id,
                                          email_content,
                                          'Request {} Envelope Generated'.format(request_id),
-                                         to=get_agency_emails(request_id),
+                                         to=get_assigned_users_emails(request_id),
                                          attachment=envelope,
                                          filename=secure_filename('{}_envelope.pdf'.format(request_id)),
                                          mimetype='application/pdf')
@@ -2248,7 +2248,7 @@ def send_file_email(request_id, release_public_links, release_private_links, pri
         joinedload(Requests.agency)
     ).filter_by(id=request_id).one()
     subject = 'Response Added to {} - File'.format(request_id)
-    bcc = get_agency_emails(request_id)
+    bcc = get_assigned_users_emails(request_id)
     if release_public_links or release_private_links:
         release_date = get_release_date(datetime.utcnow(), RELEASE_PUBLIC_DAYS, tz_name).strftime("%A, %B %d, %Y")
         email_content_requester = email_content.replace(replace_string,
@@ -2300,7 +2300,7 @@ def _send_edit_response_email(request_id, email_content_agency, email_content_re
         email_content_requester: body of email being sent to requester
     """
     subject = '{request_id}: Response Edited'.format(request_id=request_id)
-    bcc = get_agency_emails(request_id)
+    bcc = get_assigned_users_emails(request_id)
     request = Requests.query.options(
         joinedload(Requests.requester)
     ).options(
@@ -2331,7 +2331,7 @@ def _send_response_email(request_id, privacy, email_content, subject):
         Call safely_send_and_add_email to send email notification detailing a specific response has been added to the
         request.
     """
-    bcc = get_agency_emails(request_id)
+    bcc = get_assigned_users_emails(request_id)
     request = Requests.query.options(
         joinedload(Requests.requester)
     ).options(
@@ -2363,7 +2363,7 @@ def _send_delete_response_email(request_id, response):
             response=response,
             response_type=response_type),
         '{request_id}: Response Deleted'.format(request_id=request_id),
-        to=get_agency_emails(request_id))
+        to=get_assigned_users_emails(request_id))
 
 
 def safely_send_and_add_email(request_id,

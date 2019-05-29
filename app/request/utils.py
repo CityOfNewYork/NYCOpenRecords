@@ -33,7 +33,7 @@ from app.constants.response_privacy import (
 from app.constants.submission_methods import DIRECT_INPUT
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import (
-    get_agency_emails,
+    get_assigned_users_emails,
     send_contact_email
 )
 from app.lib.user_information import create_mailing_address
@@ -572,7 +572,7 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
     body = "Name: {} {}\n\nEmail: {}\n\nSubject: {}\n\nMessage:\n{}".format(
         first_name, last_name, email, subject, message)
 
-    agency_emails = get_agency_emails(request.id)
+    agency_emails = get_assigned_users_emails(request.id)
 
     email_obj = Emails(
         request.id,
