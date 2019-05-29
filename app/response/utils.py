@@ -906,6 +906,7 @@ def process_email_template_request(request_id, data):
             determination_type.ACKNOWLEDGMENT: _acknowledgment_email_handler,
             determination_type.DENIAL: _denial_email_handler,
             determination_type.CLOSING: _closing_email_handler,
+            determination_type.QUICK_CLOSING: _quick_closing_email_handler,
             determination_type.REOPENING: _reopening_email_handler
         }
     else:
@@ -1544,7 +1545,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
                                             Reasons.type).filter_by(
         id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
-
+    print(_reasons)
     has_appeals_language = False
     custom_reasons = False
     denied = False
@@ -1561,12 +1562,13 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
             denied = True
 
         reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
-
+    print(reasons_text)
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
         reasons=reasons_text,
         custom_reasons=custom_reasons
     )
+    print(reasons)
 
     content = data['email_content'] if eval_request_bool(data['confirmation']) else None
 
@@ -1584,6 +1586,66 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         has_appeals_language=has_appeals_language),
         "header": header
     }), 200
+
+
+def _quick_closing_email_handler(request_id, data, page, agency_name, email_template):
+    acknowledgment = data.get('acknowledgment')
+    header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
+    request = Requests.query.filter_by(id=request_id).one()
+
+    # Determine if custom request forms are enabled
+    if 'enabled' in request.agency.agency_features['custom_request_forms']:
+        custom_request_forms_enabled = request.agency.agency_features['custom_request_forms']['enabled']
+    else:
+        custom_request_forms_enabled = False
+
+    # Determine if request description should be hidden when custom forms are enabled
+    if 'description_hidden_by_default' in request.agency.agency_features['custom_request_forms']:
+        description_hidden_by_default = request.agency.agency_features['custom_request_forms'][
+            'description_hidden_by_default']
+    else:
+        description_hidden_by_default = False
+
+    if acknowledgment is not None:
+        acknowledgment = json.loads(acknowledgment)
+        default_content = True
+        content = None
+        date = _get_new_due_date(
+            request_id,
+            acknowledgment['days'],
+            acknowledgment['date'],
+            data['tz_name'])
+        info = acknowledgment['info'].strip() or None
+    else:
+        default_content = False
+        content = data['email_content']
+        date = None
+        info = None
+
+    # get reasons
+    _reasons = Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language,
+                                            Reasons.type).filter_by(title='Fulfilled via Walk In').one()
+
+    reasons_text = [_reasons.content]
+
+    reasons = render_template(
+        os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
+        reasons=reasons_text
+    )
+
+    return jsonify({"template": render_template(email_template,
+                                                custom_request_forms_enabled=custom_request_forms_enabled,
+                                                default_content=default_content,
+                                                description_hidden_by_default=description_hidden_by_default,
+                                                content=content,
+                                                request=request,
+                                                request_id=request_id,
+                                                agency_name=agency_name,
+                                                date=date,
+                                                info=info,
+                                                page=page,
+                                                reasons=reasons),
+                    "header": header}), 200
 
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):

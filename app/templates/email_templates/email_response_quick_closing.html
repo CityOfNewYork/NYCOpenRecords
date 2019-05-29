@@ -1,0 +1,23 @@
+{% if default_content %}
+    {{ date.format }}
+    <p>
+        The {{ agency_name }} has <strong>acknowledged and closed</strong> your FOIL request <a
+            href="{{ page }}">{{ request_id }}</a> for the following reason:
+    </p>
+    {{ reasons | safe }}
+{#    <p>#}
+{#        <span class="mceNonEditable">#}
+{#            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.<br/><br/>#}
+{#            {% if info is not none %}#}
+{#                Additional Information:<br/>#}
+{#                {{ info }}#}
+{#                <br/><br/>#}
+{#            {% endif %}#}
+{#            Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.#}
+{#        </span>#}
+{#    </p>#}
+    <p>Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.</p>
+{% else %}
+    {{ content | safe }}
+    {% include "email_templates/email_request_info.html" %}
+{% endif %}

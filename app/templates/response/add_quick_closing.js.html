@@ -1,0 +1,52 @@
+<script type="text/javascript">
+    "use strict";
+
+    $(function() {
+        var form = $("#add-quick-closing");
+        var first = form.find(".first");
+        var second = form.find(".second");
+
+        var email_date = first.find("#acknowledgment-email-date");
+
+        var next1 = first.find(".next");
+        var prev2 = second.find(".prev");
+        var submit = second.find(".submit");
+
+        var editor = $('#closing-editor');
+        var confirmation = $('#closing-confirmation');
+
+        // Initial AJAX call
+        $.ajax({
+            url: "/response/email",
+            type: "POST",
+            data: {
+                request_id: "{{ request.id }}",
+                type: "quick_closing",
+                acknowledgment: JSON.stringify({
+                    days: '20',
+                    date: email_date.val(),
+                    info: ''
+                }),
+                tz_name: jstz.determine().name(),
+                confirmation: false
+            },
+            success: function (data) {
+
+                var emailContent = first.find(".email-content-hidden");
+                emailContent.html(data.template);
+                flask_moment_render_all();
+                tinyMCE.get("quick-closing-body").setContent(emailContent.html());
+            }
+        });
+
+
+        next1.click(function (e) {
+
+
+
+
+        });
+
+
+    })
+</script>
