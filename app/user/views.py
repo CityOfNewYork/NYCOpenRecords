@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 
 from flask import jsonify, request
@@ -150,6 +151,7 @@ def patch(user_id):
         address_two=request.form.get('address_two'),
         zip=request.form.get('zipcode'),
         city=request.form.get('city'),
+        state=request.form.get('state')
     )
     status_field_val = user_attrs.UserStatusDict(
         is_agency_admin=request.form.get('is_agency_admin'),
@@ -168,8 +170,8 @@ def patch(user_id):
     new_status = {}
 
     # User Attributes for Events
-    old_user_attrs = {'_mailing_address': {}}
-    new_user_attrs = {'_mailing_address': {}}
+    old_user_attrs = defaultdict(dict)
+    new_user_attrs = defaultdict(dict)
 
     for key, value in status_field_val.items():
         if value is not None:
@@ -203,7 +205,7 @@ def patch(user_id):
                 new_user_attrs[key] = new_val
 
     # Update the Users object if new_user_attrs is not None (empty dict)
-    if new_user_attrs and new_user_attrs.get('_mailing_address') and old_user_attrs:
+    if new_user_attrs and old_user_attrs:
         update_object(
             new_user_attrs,
             Users,
