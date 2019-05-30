@@ -186,6 +186,7 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
 
     """
     request = Requests.query.filter_by(id=request_id).one()
+
     if not request.was_acknowledged:
         previous_due_date = {"due_date": request.due_date.isoformat()}
         previous_status = request.status
@@ -240,113 +241,6 @@ def add_acknowledgment(request_id, info, days, date, tz_name, content, method, l
                                             content,
                                             'Request {} Acknowledged'.format(request_id))
             _create_communication_method(response.id, email_id, response_type.EMAIL)
-
-
-def add_quick_closing(request_id, days, date, tz_name, content):
-    # Acknowledgement actions
-    request = Requests.query.filter_by(id=request_id).one()
-    if not request.was_acknowledged:
-        previous_due_date = {"due_date": request.due_date.isoformat()}
-        previous_status = request.status
-        new_due_date = _get_new_due_date(request_id, days, date, tz_name)
-        update_object(
-            {'due_date': new_due_date,
-             'status': request_status.IN_PROGRESS},
-            Requests,
-            request_id
-        )
-        privacy = RELEASE_AND_PUBLIC
-        response = Determinations(
-            request_id,
-            privacy,
-            determination_type.ACKNOWLEDGMENT,
-            None,
-            new_due_date,
-        )
-        create_object(response)
-        create_response_event(event_type.REQ_ACKNOWLEDGED, response, previous_value=previous_due_date)
-        create_request_info_event(
-            request_id,
-            type_=event_type.REQ_STATUS_CHANGED,
-            previous_value={'status': previous_status},
-            new_value={'status': request.status}
-        )
-        acknowledgement_response = response
-    else:
-        raise UserRequestException(action="acknowledge",
-                                   request_id=request_id,
-                                   reason="Request has already been acknowledged")
-
-    # Closing actions
-    if request.status != request_status.CLOSED and (
-            request.was_acknowledged or request.was_reopened):
-        previous_status = request.status
-        previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
-        update_vals = {'status': request_status.CLOSED}
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-            update_vals['date_closed'] = get_next_business_day()
-        else:
-            update_vals['date_closed'] = datetime.utcnow()
-        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
-            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
-                                                                                     RELEASE_PUBLIC_DAYS)
-            update_object(
-                update_vals,
-                Requests,
-                request_id,
-                es_update=False
-            )
-        else:
-            update_vals = {'status': request_status.CLOSED}
-            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-                update_vals['date_closed'] = get_next_business_day()
-            else:
-                update_vals['date_closed'] = datetime.utcnow()
-            update_object(
-                update_vals,
-                Requests,
-                request_id,
-                es_update=False
-            )
-        create_request_info_event(
-            request_id,
-            type_=event_type.REQ_STATUS_CHANGED,
-            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
-            new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
-        )
-        reason = Reasons.query.filter_by(title='Fulfilled via Walk In').one()
-        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-            # push the closing date to the next business day if it is a weekend/holiday
-            # or if it is before the date submitted
-            response = Determinations(
-                request_id,
-                RELEASE_AND_PUBLIC,
-                determination_type.CLOSING,
-                format_determination_reasons([reason.id]),
-                date_modified=get_next_business_day()
-            )
-        else:
-            response = Determinations(
-                request_id,
-                RELEASE_AND_PUBLIC,
-                determination_type.CLOSING,
-                format_determination_reasons([reason.id])
-            )
-        create_object(response)
-        create_response_event(event_type.REQ_CLOSED, response)
-        request.es_update()
-        closing_response = response
-    else:
-        raise UserRequestException(action="close",
-                                   request_id=request_id,
-                                   reason="Request is already closed or has not been acknowledged")
-
-    email_id = _send_response_email(request_id,
-                                    privacy,
-                                    content,
-                                    'Request {} Acknowledged and Closed'.format(request_id))
-    _create_communication_method(acknowledgement_response.id, email_id, response_type.EMAIL)
-    _create_communication_method(closing_response.id, email_id, response_type.EMAIL)
 
 
 def add_denial(request_id, reason_ids, content, method, letter_template_id):
@@ -555,6 +449,123 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
         raise UserRequestException(action="close",
                                    request_id=request_id,
                                    reason="Request is already closed or has not been acknowledged")
+
+
+def add_quick_closing(request_id, days, date, tz_name, content):
+    """
+    Create and store an acknowledgement-determination response followed by a closing-determination response for
+    the specified request and update the request accordingly.
+
+    :param request_id: FOIL request ID
+    :param days: days until request completion
+    :param date: date of request completion
+    :param tz_name: client's timezone name
+    :param content: body text associated with the acknowledgment/closing
+
+    """
+    # Acknowledgement actions
+    request = Requests.query.filter_by(id=request_id).one()
+    if not request.was_acknowledged:
+        previous_due_date = {"due_date": request.due_date.isoformat()}
+        previous_status = request.status
+        new_due_date = _get_new_due_date(request_id, days, date, tz_name)
+        update_object(
+            {'due_date': new_due_date,
+             'status': request_status.IN_PROGRESS},
+            Requests,
+            request_id
+        )
+        privacy = RELEASE_AND_PUBLIC
+        acknowledgement_response = Determinations(
+            request_id,
+            privacy,
+            determination_type.ACKNOWLEDGMENT,
+            None,
+            new_due_date,
+        )
+        create_object(acknowledgement_response)
+        create_response_event(event_type.REQ_ACKNOWLEDGED, acknowledgement_response, previous_value=previous_due_date)
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status},
+            new_value={'status': request.status}
+        )
+    else:
+        raise UserRequestException(action="acknowledge",
+                                   request_id=request_id,
+                                   reason="Request has already been acknowledged")
+
+    # Closing actions
+    if request.status != request_status.CLOSED and (
+            request.was_acknowledged or request.was_reopened):
+        previous_status = request.status
+        previous_date_closed = request.date_closed.isoformat() if request.date_closed else None
+        update_vals = {'status': request_status.CLOSED}
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            update_vals['date_closed'] = get_next_business_day()
+        else:
+            update_vals['date_closed'] = datetime.utcnow()
+        if not request.privacy['agency_request_summary'] and request.agency_request_summary is not None:
+            update_vals['agency_request_summary_release_date'] = calendar.addbusdays(datetime.utcnow(),
+                                                                                     RELEASE_PUBLIC_DAYS)
+            update_object(
+                update_vals,
+                Requests,
+                request_id,
+                es_update=False
+            )
+        else:
+            update_vals = {'status': request_status.CLOSED}
+            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+                update_vals['date_closed'] = get_next_business_day()
+            else:
+                update_vals['date_closed'] = datetime.utcnow()
+            update_object(
+                update_vals,
+                Requests,
+                request_id,
+                es_update=False
+            )
+        create_request_info_event(
+            request_id,
+            type_=event_type.REQ_STATUS_CHANGED,
+            previous_value={'status': previous_status, 'date_closed': previous_date_closed},
+            new_value={'status': request.status, 'date_closed': request.date_closed.isoformat()}
+        )
+        reason = Reasons.query.filter_by(title='Fulfilled via Walk In').one()
+        if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
+            # push the closing date to the next business day if it is a weekend/holiday
+            # or if it is before the date submitted
+            closing_response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                format_determination_reasons([reason.id]),
+                date_modified=get_next_business_day()
+            )
+        else:
+            closing_response = Determinations(
+                request_id,
+                RELEASE_AND_PUBLIC,
+                determination_type.CLOSING,
+                format_determination_reasons([reason.id])
+            )
+        create_object(closing_response)
+        create_response_event(event_type.REQ_CLOSED, closing_response)
+        request.es_update()
+    else:
+        raise UserRequestException(action="close",
+                                   request_id=request_id,
+                                   reason="Request is already closed or has not been acknowledged")
+
+    email_id = _send_response_email(request_id,
+                                    privacy,
+                                    content,
+                                    'Request {} Acknowledged and Closed'.format(request_id))
+    # Create 2 CommunicationMethod objects, one for each determination
+    _create_communication_method(acknowledgement_response.id, email_id, response_type.EMAIL)
+    _create_communication_method(closing_response.id, email_id, response_type.EMAIL)
 
 
 def add_reopening(request_id, date, tz_name, content, reason, method, letter_template_id=None):
@@ -1651,7 +1662,7 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
                                             Reasons.type).filter_by(
         id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
-    print(_reasons)
+
     has_appeals_language = False
     custom_reasons = False
     denied = False
@@ -1668,13 +1679,12 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
             denied = True
 
         reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
-    print(reasons_text)
+
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
         reasons=reasons_text,
         custom_reasons=custom_reasons
     )
-    print(reasons)
 
     content = data['email_content'] if eval_request_bool(data['confirmation']) else None
 
@@ -1695,6 +1705,17 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
 
 def _quick_closing_email_handler(request_id, data, page, agency_name, email_template):
+    """
+    Process email template for quick closing a request.
+
+    :param request_id: FOIL request ID
+    :param data: data from frontend AJAX call
+    :param page: string url link of the request
+    :param agency_name: string name of the agency of the request
+    :param email_template: raw HTML email template of a response
+
+    :return: the HTML of the rendered template of a quick closing
+    """
     acknowledgment = data.get('acknowledgment')
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
     request = Requests.query.filter_by(id=request_id).one()
@@ -1728,12 +1749,10 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
         date = None
         info = None
 
-    # get reasons
+    # Get reason text for Fulfilled via Walk In
     _reasons = Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language,
                                             Reasons.type).filter_by(title='Fulfilled via Walk In').one()
-
     reasons_text = [_reasons.content]
-
     reasons = render_template(
         os.path.join(current_app.config['EMAIL_TEMPLATE_DIR'], '_email_response_determinations_list.html'),
         reasons=reasons_text

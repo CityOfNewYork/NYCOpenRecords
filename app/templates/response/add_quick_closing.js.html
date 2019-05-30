@@ -2,28 +2,27 @@
     "use strict";
 
     $(function() {
-        var form = $("#add-quick-closing");
-        var first = form.find(".first");
-        var second = form.find(".second");
+        var form = $('#add-quick-closing');
+        var first = form.find('.first');
+        var second = form.find('.second');
 
-        var email_date = first.find("#acknowledgment-email-date");
+        var email_date = first.find('#acknowledgment-email-date');
 
-        var next1 = first.find(".next");
-        var prev2 = second.find(".prev");
-        var submit = second.find(".submit");
+        var next1 = first.find('.next');
+        var prev2 = second.find('.prev');
+        var submit = second.find('.submit');
 
-        var editor = $('#quick-closing-editor');
         var confirmation = $('#quick-closing-confirmation');
 
         var default_quick_closing_days = '20';
 
         // Initial AJAX call
         $.ajax({
-            url: "/response/email",
-            type: "POST",
+            url: '/response/email',
+            type: 'POST',
             data: {
                 request_id: "{{ request.id }}",
-                type: "quick_closing",
+                type: 'quick_closing',
                 acknowledgment: JSON.stringify({
                     days: default_quick_closing_days,
                     date: email_date.val(),
@@ -33,28 +32,28 @@
                 confirmation: false
             },
             success: function (data) {
-                var emailContent = first.find(".email-content-hidden");
+                var emailContent = first.find('.email-content-hidden');
                 emailContent.html(data.template);
                 flask_moment_render_all();
-                tinyMCE.get("quick-closing-body").setContent(emailContent.html());
+                tinyMCE.get('quick-closing-body').setContent(emailContent.html());
             }
         });
 
         next1.click(function () {
             tinyMCE.triggerSave();
             $.ajax({
-                url: "/response/email",
-                type: "POST",
+                url: '/response/email',
+                type: 'POST',
                 data: {
-                    request_id: "{{ request.id }}",
-                    type: "quick_closing",
-                    email_content: first.find("#quick-closing-body").val()
+                    request_id: '{{ request.id }}',
+                    type: 'quick_closing',
+                    email_content: first.find('#quick-closing-body').val()
                 },
                 success: function (data) {
-                    second.find(".summary").html(data.template);
-                    second.find("input[name='summary']").val(data.template);
-                    second.find("input[name='tz-name']").val(jstz.determine().name());
-                    second.find(".confirmation-header").text(data.header);
+                    second.find('.summary').html(data.template);
+                    second.find('input[name="summary"]').val(data.template);
+                    second.find('input[name="tz-name"]').val(jstz.determine().name());
+                    second.find('.confirmation-header').text(data.header);
                     submit.prop('disabled', false);
                 }
             });
@@ -73,7 +72,7 @@
         });
 
         form.submit(function () {
-            submit.attr("disabled", true);
+            submit.attr('disabled', true);
         });
     })
 </script>
