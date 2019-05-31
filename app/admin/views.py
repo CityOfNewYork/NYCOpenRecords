@@ -3,7 +3,6 @@
 
     :synopsis: Endpoints for Agency Adminstrator Interface
 """
-# from config import LOGIN_IMAGE_PATH
 from flask import (
     abort,
     current_app,
@@ -13,6 +12,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user
+from sqlalchemy import func
 
 from app.admin import admin
 from app.admin.forms import (
@@ -93,58 +93,66 @@ def add_user():
         last_name = form.last_name.data
         email = form.email.data
 
-        user = Users(
-            guid=generate_guid(),
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            email_validated=False,
-            is_nyc_employee=True,
-            is_anonymous_requester=False,
-        )
-        create_object(user)
+        user = Users.query.filter(
+            func.lower(Users.email) == email.lower(),
+            Users.is_nyc_employee == True
+        ).first()
 
-        agency_user = AgencyUsers(
-            user_guid=user.guid,
-            agency_ein=agency_ein,
-            is_agency_active=False,
-            is_agency_admin=False,
-            is_primary_agency=True
-        )
-        create_object(agency_user)
+        if user is not None:
+            flash('{} {} has already been added.'.format(first_name, last_name), category='warning')
+        else:
+            new_user = Users(
+                guid=generate_guid(),
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                email_validated=False,
+                is_nyc_employee=True,
+                is_anonymous_requester=False,
+            )
+            create_object(new_user)
 
-        agency = Agencies.query.filter_by(ein=agency_ein).one()
-        admin_emails = get_agency_admin_emails(agency)
-        send_email(
-            subject='User {} Added'.format(user.fullname),
-            to=admin_emails,
-            template='email_templates/email_agency_user_added',
-            agency_name=agency.name,
-            name=user.fullname,
-        )
+            agency_user = AgencyUsers(
+                user_guid=new_user.guid,
+                agency_ein=agency_ein,
+                is_agency_active=False,
+                is_agency_admin=False,
+                is_primary_agency=True
+            )
+            create_object(agency_user)
 
-        content_id = 'login_screenshot'
-        image = {'path': current_app.config['LOGIN_IMAGE_PATH'],
-                 'content_id': content_id}
-        send_email(
-            subject='OpenRecords Portal',
-            to=[user.email],
-            email_content=render_template('email_templates/email_user_added.html',
-                                          agency_name=agency.name,
-                                          content_id=content_id,
-                                          domain=user.email.split('@')[1],
-                                          name=user.fullname),
-            image=image
-        )
+            agency = Agencies.query.filter_by(ein=agency_ein).one()
+            admin_emails = get_agency_admin_emails(agency)
+            send_email(
+                subject='User {} Added'.format(new_user.fullname),
+                to=admin_emails,
+                template='email_templates/email_agency_user_added',
+                agency_name=agency.name,
+                name=new_user.fullname,
+            )
 
-        send_email(
-            subject='User {} Added'.format(user.fullname),
-            to=[OPENRECORDS_DL_EMAIL],
-            email_content='{name} has been added to OpenRecords. Add {email} to the service desk.'.format(
-                name=user.fullname, email=user.email)
-        )
+            content_id = 'login_screenshot'
+            image = {'path': current_app.config['LOGIN_IMAGE_PATH'],
+                     'content_id': content_id}
+            send_email(
+                subject='OpenRecords Portal',
+                to=[new_user.email],
+                email_content=render_template('email_templates/email_user_added.html',
+                                              agency_name=agency.name,
+                                              content_id=content_id,
+                                              domain=new_user.email.split('@')[1],
+                                              name=new_user.fullname),
+                image=image
+            )
 
-        flash('{} has been added.'.format(user.fullname), category='success')
+            send_email(
+                subject='User {} Added'.format(new_user.fullname),
+                to=[OPENRECORDS_DL_EMAIL],
+                email_content='{} has been added to OpenRecords. Add {} to the service desk.'.format(
+                    new_user.fullname, new_user.email)
+            )
+
+            flash('{} has been added.'.format(new_user.fullname), category='success')
         return redirect(url_for('admin.add_user'))
 
     return render_template('admin/add_user.html',
