@@ -21,7 +21,7 @@
             url: '/response/email',
             type: 'POST',
             data: {
-                request_id: "{{ request.id }}",
+                request_id: '{{ request.id }}',
                 type: 'quick_closing',
                 acknowledgment: JSON.stringify({
                     days: default_quick_closing_days,

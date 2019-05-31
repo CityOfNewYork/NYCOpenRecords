@@ -466,7 +466,7 @@ def add_quick_closing(request_id, days, date, tz_name, content):
     # Acknowledgement actions
     request = Requests.query.filter_by(id=request_id).one()
     if not request.was_acknowledged:
-        previous_due_date = {"due_date": request.due_date.isoformat()}
+        previous_due_date = {'due_date': request.due_date.isoformat()}
         previous_status = request.status
         new_due_date = _get_new_due_date(request_id, days, date, tz_name)
         update_object(
@@ -492,9 +492,9 @@ def add_quick_closing(request_id, days, date, tz_name, content):
             new_value={'status': request.status}
         )
     else:
-        raise UserRequestException(action="acknowledge",
+        raise UserRequestException(action='acknowledge',
                                    request_id=request_id,
-                                   reason="Request has already been acknowledged")
+                                   reason='Request has already been acknowledged')
 
     # Closing actions
     if request.status != request_status.CLOSED and (
@@ -555,9 +555,9 @@ def add_quick_closing(request_id, days, date, tz_name, content):
         create_response_event(event_type.REQ_CLOSED, closing_response)
         request.es_update()
     else:
-        raise UserRequestException(action="close",
+        raise UserRequestException(action='close',
                                    request_id=request_id,
-                                   reason="Request is already closed or has not been acknowledged")
+                                   reason='Request is already closed or has not been acknowledged')
 
     email_id = _send_response_email(request_id,
                                     privacy,
@@ -1758,7 +1758,7 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
         reasons=reasons_text
     )
 
-    return jsonify({"template": render_template(email_template,
+    return jsonify({'template': render_template(email_template,
                                                 custom_request_forms_enabled=custom_request_forms_enabled,
                                                 default_content=default_content,
                                                 description_hidden_by_default=description_hidden_by_default,
@@ -1770,7 +1770,7 @@ def _quick_closing_email_handler(request_id, data, page, agency_name, email_temp
                                                 info=info,
                                                 page=page,
                                                 reasons=reasons),
-                    "header": header}), 200
+                    'header': header}), 200
 
 
 def _user_request_added_email_handler(request_id, data, page, agency_name, email_template):
