@@ -201,7 +201,8 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
              autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def es_update_assigned_users(self, request_ids: list):
     """
-    Update the ElasticSearch index assigned_users for the provided request IDs
+    Update the ElasticSearch index assigned_users for the provided request IDs.
+
     Args:
         request_ids (list): List of Request IDs
     """

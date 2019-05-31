@@ -3,7 +3,15 @@
 
     :synopsis: Endpoints for Agency Adminstrator Interface
 """
-from flask import render_template, abort
+# from config import LOGIN_IMAGE_PATH
+from flask import (
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    url_for,
+)
 from flask_login import current_user
 
 from app.admin import admin
@@ -13,8 +21,12 @@ from app.admin.forms import (
     SelectAgencyForm,
 )
 from app.admin.utils import get_agency_active_users
+from app.constants import OPENRECORDS_DL_EMAIL
 from app.lib.db_utils import create_object
-from app.lib.email_utils import send_email
+from app.lib.email_utils import (
+    get_agency_admin_emails,
+    send_email,
+)
 from app.lib.permission_utils import has_super
 from app.models import (
     Agencies,
@@ -39,7 +51,7 @@ def main(agency_ein=None):
             user_form = ActivateAgencyUserForm(agency_ein)
             active_users = get_agency_active_users(agency_ein)
             agency_is_active = Agencies.query.filter_by(ein=agency_ein).one().is_active
-            return render_template("admin/main.html",
+            return render_template('admin/main.html',
                                    agency_ein=agency_ein,
                                    users=active_users,
                                    user_form=user_form,
@@ -51,13 +63,13 @@ def main(agency_ein=None):
             del active_users[active_users.index(current_user)]
             if len(current_user.agencies.all()) > 1:
                 agency_form = SelectAgencyForm(agency_ein)
-                return render_template("admin/main.html",
+                return render_template('admin/main.html',
                                        agency_ein=agency_ein,
                                        users=active_users,
                                        agency_form=agency_form,
                                        user_form=form,
                                        multi_agency_admin=True)
-            return render_template("admin/main.html",
+            return render_template('admin/main.html',
                                    users=active_users,
                                    agency_ein=agency_ein,
                                    user_form=form)
@@ -68,7 +80,13 @@ def main(agency_ein=None):
 @admin.route('/add-user', methods=['GET', 'POST'])
 @has_super()
 def add_user():
+    """Adds a user to the users and agency_users tables.
+
+    Returns:
+        Template with context.
+    """
     form = AddAgencyUserForm()
+
     if form.validate_on_submit():
         agency_ein = form.agency.data
         first_name = form.first_name.data
@@ -95,5 +113,39 @@ def add_user():
         )
         create_object(agency_user)
 
-    return render_template("admin/add_user.html",
+        agency = Agencies.query.filter_by(ein=agency_ein).one()
+        admin_emails = get_agency_admin_emails(agency)
+        send_email(
+            subject='User {} Added'.format(user.fullname),
+            to=admin_emails,
+            template='email_templates/email_agency_user_added',
+            agency_name=agency.name,
+            name=user.fullname,
+        )
+
+        content_id = 'login_screenshot'
+        image = {'path': current_app.config['LOGIN_IMAGE_PATH'],
+                 'content_id': content_id}
+        send_email(
+            subject='OpenRecords Portal',
+            to=[user.email],
+            email_content=render_template('email_templates/email_user_added.html',
+                                          agency_name=agency.name,
+                                          content_id=content_id,
+                                          domain=user.email.split('@')[1],
+                                          name=user.fullname),
+            image=image
+        )
+
+        send_email(
+            subject='User {} Added'.format(user.fullname),
+            to=[OPENRECORDS_DL_EMAIL],
+            email_content='{name} has been added to OpenRecords. Add {email} to the service desk.'.format(
+                name=user.fullname, email=user.email)
+        )
+
+        flash('{} has been added.'.format(user.fullname), category='success')
+        return redirect(url_for('admin.add_user'))
+
+    return render_template('admin/add_user.html',
                            form=form)

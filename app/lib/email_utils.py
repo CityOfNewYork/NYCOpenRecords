@@ -14,11 +14,12 @@
         DEFAULT_MAIL_SENDER: 'Records Admin <openrecords@records.nyc.gov>'
 
 """
-
+import os
 from flask import current_app, render_template
 from flask_mail import Message
 
 from app import mail, celery, sentry
+from app.lib.file_utils import os_get_mime_type
 from app.models import (
     Agencies,
     Requests,
@@ -72,6 +73,14 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), reply_to='', template=
         filename = kwargs.get('filename')
         mimetype = kwargs.get('mimetype', 'application/pdf')
         msg.attach(filename, mimetype, attachment)
+    image = kwargs.get('image', None)
+    if image:
+        image_path = image['path']
+        mimetype = os_get_mime_type(image_path)
+        filename = os.path.basename(image_path)
+        content_id = image['content_id']
+        msg.attach(filename, mimetype, open(image_path, 'rb').read(),
+                   'inline', headers=[['Content-ID', '<{}>'.format(content_id)], ])
     send_async_email.delay(msg)
 
 

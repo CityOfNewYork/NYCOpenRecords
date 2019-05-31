@@ -43,6 +43,7 @@ class Config:
                                 os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'templates', 'latex'))
     JSON_SCHEMA_DIRECTORY = (os.environ.get('JSON_SCHEMA_DIRECTORY') or
                              os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'constants', 'schemas'))
+    LOGIN_IMAGE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app', 'static', 'img', 'login.png')
 
     DUE_SOON_DAYS_THRESHOLD = os.environ.get('DUE_SOON_DAYS_THRESHOLD') or 2
 
