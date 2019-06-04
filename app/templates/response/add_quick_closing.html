@@ -1,0 +1,40 @@
+<form id="add-quick-closing" action="/response/quick-closing/{{ request.id }}" method="POST">
+
+    {{ close_request_form.csrf_token }}
+
+    <div class="col-sm-9">
+        <fieldset>
+            <legend>
+                Quick Close Request
+                <small data-toggle="popover" data-placement="right" data-trigger="hover" title="Quick Closing a Request"
+                       data-content="This function acknowledges and closes the request in one step. The default closing
+                        reason will be 'Fulfilled via Walk In'">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </small>
+            </legend>
+
+            <div class="first">
+                <div hidden>
+                    <input type="text" id="acknowledgment-email-date" name="email-date"
+                           class="disable-enter-submit" title="date" value={{ request.due_date.strftime('%m/%d/%Y') }}>
+                </div>
+                <h4 id="edit-body-header">Edit Email Body</h4>
+                <div id="quick-closing-editor" class="form-group">
+                    <div class="email-content-hidden" hidden></div>
+                    <textarea title="quick-closing-body" name="quick-closing-body"
+                              class="tinymce-area"></textarea>
+                </div>
+                <button type="button" class="next pull-right btn btn-primary">Next</button>
+            </div>
+
+            <div class="second" hidden>
+                <h4 class="confirmation-header"></h4>
+                <div id="quick-closing-confirmation" class="wrap-text summary"></div>
+                <input type="hidden" name="summary">
+                <input type="hidden" name="tz-name">
+                <button type="button" class="prev pull-left btn btn-default">Prev</button>
+                <button type="submit" class="submit pull-right btn btn-success">Submit</button>
+            </div>
+        </fieldset>
+    </div>
+</form>

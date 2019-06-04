@@ -2,6 +2,7 @@ DENIAL = 'denial'
 ACKNOWLEDGMENT = 'acknowledgment'
 EXTENSION = 'extension'
 CLOSING = 'closing'
+QUICK_CLOSING = 'quick_closing'
 REOPENING = 're-opening'
 
 ALL = frozenset((
@@ -9,5 +10,6 @@ ALL = frozenset((
     ACKNOWLEDGMENT,
     EXTENSION,
     CLOSING,
+    QUICK_CLOSING,
     REOPENING
 ))
