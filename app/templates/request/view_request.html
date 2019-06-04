@@ -336,7 +336,7 @@
     {% if permissions['close'] %}
         {% include 'response/add_closing.js.html' %}
     {% endif %}
-    {% if permissions['acknowledge'] and permissions['close'] and (request.status == status.OPEN or not (request.was_acknowledged or request.was_reopened)) %}
+    {% if request.status != status.CLOSED and permissions['acknowledge'] and permissions['close'] and (request.status == status.OPEN or not (request.was_acknowledged or request.was_reopened)) %}
         {% include 'response/add_quick_closing.js.html' %}
     {% endif %}
     {% if permissions['re_open'] %}
