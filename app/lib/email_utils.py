@@ -73,6 +73,7 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), reply_to='', template=
         filename = kwargs.get('filename')
         mimetype = kwargs.get('mimetype', 'application/pdf')
         msg.attach(filename, mimetype, attachment)
+
     image = kwargs.get('image', None)
     if image:
         image_path = image['path']

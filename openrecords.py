@@ -162,6 +162,7 @@ def add_user(
         email=email,
         email_validated=False,
         is_nyc_employee=True,
+        is_anonymous_requester=False,
     )
     db.session.add(user)
 
