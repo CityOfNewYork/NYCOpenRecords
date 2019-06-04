@@ -277,8 +277,20 @@ def response_closing(request_id):
 @has_permission(permission.ACKNOWLEDGE)
 @has_permission(permission.CLOSE)
 def response_quick_closing(request_id):
-    required_fields = ['summary',
-                       'email-date']
+    """Endpoint for quick closing a request that takes in form data from the front end.
+
+    Required form data include:
+        email-date: the number of days the acknowledgement will take. Defaults to 20 for quick closings
+        summary: string email body from the confirmation page
+
+    Args:
+        request_id: FOIL request ID
+
+    Returns:
+        Redirect to view request page
+    """
+    required_fields = ['email-date',
+                       'summary']
     for field in required_fields:
         if not flask_request.form.get(field, ''):
             flash('Uh Oh, it looks like the acknowledgement/closing {} is missing! '

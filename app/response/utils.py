@@ -274,11 +274,6 @@ def add_denial(request_id, reason_ids, content, method, letter_template_id):
                 es_update=False
             )
         else:
-            update_vals = {'status': request_status.CLOSED}
-            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-                update_vals['date_closed'] = get_next_business_day()
-            else:
-                update_vals['date_closed'] = datetime.utcnow()
             update_object(
                 update_vals,
                 Requests,
@@ -378,11 +373,6 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
                 es_update=False
             )
         else:
-            update_vals = {'status': request_status.CLOSED}
-            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-                update_vals['date_closed'] = get_next_business_day()
-            else:
-                update_vals['date_closed'] = datetime.utcnow()
             update_object(
                 update_vals,
                 Requests,
@@ -452,16 +442,15 @@ def add_closing(request_id, reason_ids, content, method, letter_template_id):
 
 
 def add_quick_closing(request_id, days, date, tz_name, content):
-    """
-    Create and store an acknowledgement-determination response followed by a closing-determination response for
+    """Create and store an acknowledgement-determination response followed by a closing-determination response for
     the specified request and update the request accordingly.
 
-    :param request_id: FOIL request ID
-    :param days: days until request completion
-    :param date: date of request completion
-    :param tz_name: client's timezone name
-    :param content: body text associated with the acknowledgment/closing
-
+    Args:
+        request_id: FOIL request ID
+        days: days until request completion
+        date: date of request completion
+        tz_name: client's timezone name
+        content: body text associated with the acknowledgment/closing
     """
     # Acknowledgement actions
     request = Requests.query.filter_by(id=request_id).one()
@@ -516,11 +505,6 @@ def add_quick_closing(request_id, days, date, tz_name, content):
                 es_update=False
             )
         else:
-            update_vals = {'status': request_status.CLOSED}
-            if not calendar.isbusday(datetime.utcnow()) or datetime.utcnow().date() < request.date_submitted.date():
-                update_vals['date_closed'] = get_next_business_day()
-            else:
-                update_vals['date_closed'] = datetime.utcnow()
             update_object(
                 update_vals,
                 Requests,
@@ -1705,16 +1689,17 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
 
 
 def _quick_closing_email_handler(request_id, data, page, agency_name, email_template):
-    """
-    Process email template for quick closing a request.
+    """Process email template for quick closing a request.
 
-    :param request_id: FOIL request ID
-    :param data: data from frontend AJAX call
-    :param page: string url link of the request
-    :param agency_name: string name of the agency of the request
-    :param email_template: raw HTML email template of a response
+    Args:
+        request_id: FOIL request ID
+        data: data from frontend AJAX call
+        page: string url link of the request
+        agency_name: string name of the agency of the request
+        email_template: raw HTML email template of a response
 
-    :return: the HTML of the rendered template of a quick closing
+    Returns:
+        The HTML of the rendered template of a quick closing
     """
     acknowledgment = data.get('acknowledgment')
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
