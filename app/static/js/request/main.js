@@ -835,8 +835,8 @@ function checkSSN(text) {
  * Cancel form submission if user chooses to review Title and / or Description.
  */
 function handlePIIModalReview(){
-    $("#processing-submission").hide();
-    $("#submit").show();
-    $(window).scrollTop($("#request-title").offset().top - 50);
+    $('#processing-submission').hide();
+    $('#submit').show();
+    $(window).scrollTop($('#request-title').offset().top - 50);
     return;
 }

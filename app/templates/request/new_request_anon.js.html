@@ -358,7 +358,6 @@
         $("#request-form").on("submit", function (e) {
             $(".remove-on-resubmit").remove();
             if ($("#request-form").parsley().isValid()) {
-
                 // section to check if at least one request type has been selected
                 var emptyRequestDropdown = checkRequestTypeDropdowns();
                 if (customRequestFormsEnabled === true && emptyRequestDropdown === true) {
@@ -378,14 +377,14 @@
                     return;
                 }
 
-                var ssnInTitle = checkSSN($("#request-title").val());
-                var ssnInDescription = checkSSN($("#request-description").val());
-                var ssnInCustomRequestForms = checkSSN($("#custom-request-forms-data").val());
+                var ssnInTitle = checkSSN($('#request-title').val());
+                var ssnInDescription = checkSSN($('#request-description').val());
+                var ssnInCustomRequestForms = checkSSN($('#custom-request-forms-data').val());
 
                 if ((ssnInTitle || ssnInDescription || ssnInCustomRequestForms) && showSsnWarning) {
                     e.preventDefault();
-                    $("#submit").show();
-                    $("#pii-warning-modal").modal('show');
+                    $('#submit').show();
+                    $('#pii-warning-modal').modal('show');
                     showSsnWarning = false;
                     return;
                 }

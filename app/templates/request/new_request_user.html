@@ -162,6 +162,26 @@
                 <br><br>
                 <input type="hidden" name="tz-name">
                 {{ form.submit(id="submit", class="btn-primary") }}
+                <div class="modal fade" id="pii-warning-modal" tabindex="-1" role="dialog">
+                    <div class="vertical-alignment-helper">
+                        <div class="modal-dialog vertical-align-center">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title">Confirm Private Information</strong>
+                                </div>
+                                <div class="modal-body" id="pii-warning-text">
+                                    <p>It looks like you may have entered a social security number in the title or description of your request.
+                                    <p>If you would like to go back and double check, please click "Review Submission".</p>
+                                    <p>If you are sure you didn't include a social security number in the title or description of your request, please click "Submit".</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" onclick="handlePIIModalReview()" data-dismiss="modal">Review Submission</button>
+                                    <button type="submit" class="btn btn-success" id="submit" name="submit">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <span id="processing-submission" hidden>
                     <img src="{{ url_for("static", filename="img/loading.gif") }}"
                          alt="Processing" height="40" width="40">

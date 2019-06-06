@@ -209,8 +209,9 @@ $(document).ready(function () {
         $(".upload-error").remove();
     });
 
+    var showSsnWarning = true; // variable to determine is the SSN warning modal should be shown
     // Disable submit button on form submission
-    $("#request-form").submit(function () {
+    $("#request-form").submit(function (e) {
         $(".remove-on-resubmit").remove();
         if ($("#request-form").parsley().isValid()) {
             // section to check if at least one request type has been selected
@@ -229,6 +230,17 @@ $(document).ready(function () {
                 $("#processing-submission").hide();
                 $("#submit").show();
                 $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+
+            var ssnInTitle = checkSSN($('#request-title').val());
+            var ssnInDescription = checkSSN($('#request-description').val());
+            var ssnInCustomRequestForms = checkSSN($('#custom-request-forms-data').val());
+             if ((ssnInTitle || ssnInDescription || ssnInCustomRequestForms) && showSsnWarning) {
+                e.preventDefault();
+                $('#submit').show();
+                $('#pii-warning-modal').modal('show');
+                showSsnWarning = false;
                 return;
             }
         }
