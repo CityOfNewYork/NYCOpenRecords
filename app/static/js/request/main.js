@@ -42,8 +42,7 @@ function characterCounter(target, maxLength, currentLength, minLength) {
         $(target).css("color", "red");
     } else if (currentLength < minLength) {
         $(target).css("color", "red");
-    }
-    else {
+    } else {
         $(target).css("color", "black");
     }
 }
@@ -85,7 +84,7 @@ function notHolidayOrWeekend(date, forPicker) {
      * --------
      * 'holiday_dates' must be set globally before calling this function.
      */
-    if (typeof(forPicker) === "undefined") {
+    if (typeof (forPicker) === "undefined") {
         forPicker = true;
     }
     var formattedDate = $.datepicker.formatDate("mm/dd/yy", date);
@@ -113,14 +112,12 @@ function getRequestAgencyInstructions() {
                     requestInstructionsContentDiv.html("<p>" + data["specific_request_instructions"]["text"] + "</p>");
                     requestInstructionsDiv.fadeIn();
                     // if the form is for agency users then collapse the panel by default, else expand the panel
-                    if ($(".new-request-agency").length === 1 ) {
+                    if ($(".new-request-agency").length === 1) {
                         $("#collapse-agency-instructions").collapse("hide");
-                    }
-                    else {
+                    } else {
                         $("#collapse-agency-instructions").collapse("show");
                     }
-                }
-                else {
+                } else {
                     requestInstructionsDiv.fadeOut();
                 }
             },
@@ -128,8 +125,7 @@ function getRequestAgencyInstructions() {
                 requestInstructionsDiv.fadeOut();
             }
         });
-    }
-    else {
+    } else {
         requestInstructionsDiv.fadeOut();
     }
 }
@@ -217,19 +213,16 @@ function getCustomRequestForms(agencyEin) {
                     // set custom text is agency has provided it otherwise use the default text
                     if (data["custom_request_forms"]["category_info_text"]) {
                         $("#request-info-text").html(defaultInfoText.bold() + " " + data["custom_request_forms"]["category_info_text"].bold());
-                    }
-                    else {
+                    } else {
                         $("#request-info-text").html(defaultInfoText.bold() + " " + defaultCateogryInfoText.bold());
                     }
                     if (data["custom_request_forms"]["category_warning_text"]) {
                         $("#category-warning-text").html(data["custom_request_forms"]["category_warning_text"]);
-                    }
-                    else {
+                    } else {
                         $("#category-warning-text").html(defaultCategoryWarningText);
                     }
                     $("#category-info").show();
-                }
-                else {
+                } else {
                     categorized = false;
                     $("#category-info").hide();
                 }
@@ -257,8 +250,7 @@ function getCustomRequestForms(agencyEin) {
                             if (moreOptions()) {
                                 customRequestFormAdditionalContent.fadeIn();
                             }
-                        }
-                        else {
+                        } else {
                             var categoryCounter = 1;
                             requestType.append(new Option("", ""));
                             for (var i = 0; i < data.length; i++) {
@@ -289,12 +281,10 @@ function getCustomRequestForms(agencyEin) {
                 // check if custom forms are repeatable
                 if (data["custom_request_forms"]["multiple_request_types"] === true) {
                     showMultipleRequestTypes = true;
-                }
-                else {
+                } else {
                     showMultipleRequestTypes = false;
                 }
-            }
-            else {
+            } else {
                 customRequestPanelDiv.hide();
                 customRequestFormsDiv.hide();
                 $("#category-info").hide();
@@ -336,17 +326,16 @@ function populateDropdown(agencyEin) {
                         if (moreOptions()) {
                             customRequestFormAdditionalContent.show();
                         }
-                    }
-                    else {
+                    } else {
                         var categoryCounter = 1;
                         requestType.append(new Option("", ""));
                         for (var i = 0; i < data.length; i++) {
                             var option = new Option(data[i][1], data[i][0]);
                             if (data[i][3] !== categoryCounter && categorized) {
-                                    var optionDivider = new Option(categoryDividerText);
-                                    optionDivider.disabled = true;
-                                    requestType.append(optionDivider);
-                                    categoryCounter++;
+                                var optionDivider = new Option(categoryDividerText);
+                                optionDivider.disabled = true;
+                                requestType.append(optionDivider);
+                                categoryCounter++;
                             }
                             if (repeatableCounter[data[i][0]] === 0) {
                                 // if all possible instances of the form have been rendered then disable the option
@@ -373,8 +362,7 @@ function updateCustomRequestFormDropdowns() {
         $(requestTypeOptions).each(function () {
             if (repeatableCounter[this.value] === 0 || this.value === categoryDividerText) {
                 $(this).attr("disabled", "disabled");
-            }
-            else {
+            } else {
                 $(this).removeAttr("disabled");
             }
         });
@@ -406,17 +394,14 @@ function updateCustomRequestFormDropdowns() {
                     var originalText = originalFormNames[this.value]; // get the actual form name
                     if (backwards[this.value] === 0) { // if there are no instances of the form keep the text at 0
                         if (showMultipleRequestTypes) {
-                            $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
-                        }
-                        else {
+                            $(this).text(originalText + " (" + (backwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() + ")");
+                        } else {
                             $(this).text(originalText);
                         }
-                    }
-                    else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
+                    } else { // use the following formula, maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1 to calculate what instance number is currently being processed
                         if (showMultipleRequestTypes) {
-                            $(this).text(originalText + " (" + (maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
-                        }
-                        else { // use original text if only one custom form can display
+                            $(this).text(originalText + " (" + (maxRepeatable[this.value] - backwards[this.value] - repeatableCounter[this.value] + 1).toString() + " of " + maxRepeatable[this.value].toString() + ")");
+                        } else { // use original text if only one custom form can display
                             $(this).text(originalText);
                         }
                     }
@@ -425,16 +410,14 @@ function updateCustomRequestFormDropdowns() {
                     }
                 }
             });
-        }
-        else { // if the dropdown is empty execute this block because we have to skip this when counting backwards
+        } else { // if the dropdown is empty execute this block because we have to skip this when counting backwards
             $(requestTypeOptions).each(function () {
                 if (this.text !== "" && this.text !== categoryDividerText) {
                     // if we see a dropdown with no value selected then we will use the original instance counter number to prepare for when an option is actually selected
                     var originalText = originalFormNames[this.value];
                     if (showMultipleRequestTypes) {
-                        $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() +  ")");
-                    }
-                    else {
+                        $(this).text(originalText + " (" + (originalBackwards[this.value]).toString() + " of " + maxRepeatable[this.value].toString() + ")");
+                    } else {
                         $(this).text(originalText);
                     }
                 }
@@ -509,8 +492,7 @@ function renderCustomRequestForm(target) {
                         dateFormat: "mm/dd/yy",
                         minDate: 0
                     }).mask("99/99/9999");
-                }
-                catch (err) {
+                } catch (err) {
                     // if one of the forms doesn't have a date field it will throw an error when you try to render it
                     // TODO: find a better way to handle this error
                 }
@@ -561,8 +543,7 @@ function renderCustomRequestForm(target) {
                         }
                     });
 
-                }
-                catch (err) {
+                } catch (err) {
                     // if one of the forms doesn't have a time field it will throw an error when you try to render it
                     // TODO: find a better way to handle this error
                 }
@@ -618,18 +599,15 @@ function renderCustomRequestForm(target) {
                     // check if repeatable counter still has options
                     if (moreOptions()) {
                         customRequestFormAdditionalContent.show();
-                    }
-                    else {
+                    } else {
                         customRequestFormAdditionalContent.hide();
                     }
-                }
-                else {
+                } else {
                     customRequestFormAdditionalContent.hide();
                 }
             }
         });
-    }
-    else {
+    } else {
         customRequestFormContent.html("");
         customRequestFormContent.hide();
         customRequestFormAdditionalContent.hide();
@@ -766,8 +744,7 @@ function processCustomRequestFormData() {
             // add leading zero to forms less than 10 so they can be properly sorted
             if (formNumber < 10) {
                 formKey = formKey + "0" + formNumber;
-            }
-            else {
+            } else {
                 formKey = formKey + formNumber;
             }
 
@@ -785,8 +762,7 @@ function processCustomRequestFormData() {
                 // add leading zero to fields less than 10 so they can be properly sorted
                 if (fieldNumber < 10) {
                     fieldKey = fieldKey + "0" + fieldNumber;
-                }
-                else {
+                } else {
                     fieldKey = fieldKey + fieldNumber;
                 }
                 customRequestFormData[formKey]["form_fields"][fieldKey] = {};
@@ -799,8 +775,7 @@ function processCustomRequestFormData() {
                         completedFields++;
                     }
 
-                }
-                else if ($("#" + this.id).is(":radio") === true) {
+                } else if ($("#" + this.id).is(":radio") === true) {
                     // since all radio inputs have the same id only take the value of the first one to avoid duplicates
                     var radioValue = $("input[name='" + this.id + "']:checked").val();
                     if (this.id !== previousRadioId) {
@@ -808,13 +783,11 @@ function processCustomRequestFormData() {
                         if (radioValue != null) {
                             completedFields++;
                         }
-                    }
-                    else {
+                    } else {
                         fieldNumber--;
                     }
                     previousRadioId = this.id;
-                }
-                else {
+                } else {
                     customRequestFormData[formKey]["form_fields"][fieldKey]["field_value"] = this.value;
                     if (this.value !== "") {
                         completedFields++;
@@ -846,4 +819,24 @@ function processCustomRequestFormData() {
         $("#request-description").val(requestDescriptionText);
     }
     return invalidForms;
+}
+
+/**
+ * Check for the presence of a SSN in a string.
+ * @param {string} text
+ * @returns {boolean} Whether the string contains an SSN
+ */
+function checkSSN(text) {
+    var ssnPattern = /[0-9]{3}[\-\.\s]?[0-9]{2}[\-\.\s]?[0-9]{4}/;
+    return ssnPattern.test(text);
+}
+
+/**
+ * Cancel form submission if user chooses to review Title and / or Description.
+ */
+function handlePIIModalReview(){
+    $('#processing-submission').hide();
+    $('#submit').show();
+    $(window).scrollTop($('#request-title').offset().top - 50);
+    return;
 }
