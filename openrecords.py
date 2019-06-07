@@ -215,7 +215,7 @@ def generate_monthly_report(agency_ein: str, date_from: str, date_to: str, email
     generate_monthly_metrics_report(agency_ein, date_from, date_to, email_list)
 
 
-@app.cli.command
+@app.cli.command()
 def es_recreate():
     """
     Recreate elasticsearch index and request docs.
