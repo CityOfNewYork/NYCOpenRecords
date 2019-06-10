@@ -14,12 +14,16 @@
         DEFAULT_MAIL_SENDER: 'Records Admin <openrecords@records.nyc.gov>'
 
 """
-
+import os
 from flask import current_app, render_template
 from flask_mail import Message
 
 from app import mail, celery, sentry
-from app.models import Requests
+from app.lib.file_utils import os_get_mime_type
+from app.models import (
+    Agencies,
+    Requests,
+)
 
 
 @celery.task(serializer='pickle')
@@ -69,22 +73,41 @@ def send_email(subject, to=list(), cc=list(), bcc=list(), reply_to='', template=
         filename = kwargs.get('filename')
         mimetype = kwargs.get('mimetype', 'application/pdf')
         msg.attach(filename, mimetype, attachment)
+
+    image = kwargs.get('image', None)
+    if image:
+        image_path = image['path']
+        mimetype = os_get_mime_type(image_path)
+        filename = os.path.basename(image_path)
+        content_id = image['content_id']
+        msg.attach(filename, mimetype, open(image_path, 'rb').read(),
+                   'inline', headers=[['Content-ID', '<{}>'.format(content_id)], ])
     send_async_email.delay(msg)
 
 
-def get_agency_emails(request_id, admins_only=False):
-    """
-    Gets a list of the agency emails (assigned users and default email)
+def get_assigned_users_emails(request_id: str):
+    """Gets a list of all the assigned users' emails on a request and the agency's default email.
 
-    :param request_id: FOIL request ID to query UserRequests
-    :param admins_only: return list of agency admin emails only
-    :return: list of agency emails or ['agency@email.com'] (for testing)
+    Args:
+        request_id: Request ID
+
+    Returns:
+        A unique list of all the  assigned users' emails on a request and the agency's default email.
     """
     request = Requests.query.filter_by(id=request_id).one()
-
-    if admins_only:
-        return list(set(user.notification_email if user.notification_email is not None else user.email for user in
-                        request.agency.administrators))
-
     return list(set([user.notification_email if user.notification_email is not None else user.email for user in
                      request.agency_users] + [request.agency.default_email]))
+
+
+def get_agency_admin_emails(agency: Agencies):
+    """Gets a list of all the agency administrators' emails in an agency.
+
+    Args:
+        agency: An Agencies instance
+
+    Returns:
+        A unique list of all the agency administrators' emails in an agency.
+    """
+    return list(
+        set(user.notification_email if user.notification_email is not None else user.email for user in
+            agency.administrators))

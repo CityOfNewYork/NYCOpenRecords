@@ -2,9 +2,9 @@ from datetime import datetime
 
 from elasticsearch.helpers import bulk
 from flask import current_app
+from psycopg2 import OperationalError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from psycopg2 import OperationalError
 
 from app import (
     celery,
@@ -12,7 +12,10 @@ from app import (
     es
 )
 from app.constants import (bulk_updates, event_type, role_name, user_type_request)
-from app.lib.email_utils import send_email
+from app.lib.email_utils import (
+    get_agency_admin_emails,
+    send_email,
+)
 from app.models import (Agencies, Events, Requests, Roles, UserRequests, Users)
 
 
@@ -108,9 +111,7 @@ def make_user_admin(self, modified_user_guid: str, current_user_guid: str, agenc
 
         agency = Agencies.query.filter_by(ein=agency_ein).one()
 
-        admin_users = list(
-            set(user.notification_email if user.notification_email is not None else user.email for user in
-                agency.administrators))
+        admin_users = get_agency_admin_emails(agency)
 
         es_update_assigned_users.apply_async(args=[requests])
 
@@ -173,11 +174,8 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
         es_update_assigned_users.apply_async(args=[request_ids])
 
         agency = Agencies.query.filter_by(ein=agency_ein).one()
+        admin_users = get_agency_admin_emails(agency)
 
-        admin_users = list(
-            set(user.notification_email if user.notification_email is not None else user.email for user in
-                agency.administrators)
-        )
         if action == event_type.AGENCY_USER_DEACTIVATED:
             send_email(
                 subject='User {name} Deactivated'.format(name=user.name),
@@ -203,7 +201,8 @@ def remove_user_permissions(self, modified_user_guid: str, current_user_guid: st
              autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def es_update_assigned_users(self, request_ids: list):
     """
-    Update the ElasticSearch index assigned_users for the provided request IDs
+    Update the ElasticSearch index assigned_users for the provided request IDs.
+
     Args:
         request_ids (list): List of Request IDs
     """

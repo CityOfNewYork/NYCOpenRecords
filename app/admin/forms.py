@@ -1,7 +1,18 @@
-from app.models import Agencies
-from flask_wtf import Form
-from wtforms import SelectField
 from flask_login import current_user
+from flask_wtf import Form
+from wtforms import (
+    SelectField,
+    StringField,
+    SubmitField,
+)
+from wtforms.validators import (
+    Length,
+    Email,
+    DataRequired
+)
+
+from app.lib.db_utils import get_agency_choices
+from app.models import Agencies
 
 
 class ActivateAgencyUserForm(Form):
@@ -57,4 +68,18 @@ class SelectAgencyForm(Form):
                     self.agencies.choices.insert(0, self.agencies.choices.pop(self.agencies.choices.index(agency)))
         self.process()
 
+
 # TODO: Add forms to modify agency_features (see models.py:183)
+
+
+class AddAgencyUserForm(Form):
+    agency = SelectField('Agency', choices=None, validators=[DataRequired()])
+    first_name = StringField('First Name', validators=[Length(max=32), DataRequired()])
+    last_name = StringField('Last Name', validators=[Length(max=64), DataRequired()])
+    email = StringField('Email', validators=[Email(), Length(max=254), DataRequired()])
+    submit = SubmitField('Add User')
+
+    def __init__(self):
+        super(AddAgencyUserForm, self).__init__()
+        self.agency.choices = get_agency_choices()
+        self.agency.choices.insert(0, ('', ''))

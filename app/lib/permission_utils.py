@@ -52,7 +52,7 @@ def has_super():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if not current_user.is_super:
+            if not getattr(current_user, 'is_super', False):
                 return abort(403)
             return f(*args, **kwargs)
 

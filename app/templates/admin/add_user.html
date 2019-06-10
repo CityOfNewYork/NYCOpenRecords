@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Add User{% endblock %}
+
+{% block content %}
+    <h1 class="text-center">Add User</h1>
+    <form action="{{ url_for('admin.add_user') }}" method="post">
+        {{ form.csrf_token }}
+        <div class="form-group">
+            {{ form.agency.label }}
+            {{ form.agency(class="input-block-level") }}
+        </div>
+        <div class="form-group">
+            {{ form.first_name.label }}
+            {{ form.first_name }}
+        </div>
+        <div class="form-group">
+            {{ form.last_name.label }}
+            {{ form.last_name }}
+        </div>
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email }}
+        </div>
+        {{ form.submit(class="btn btn-success") }}
+    </form>
+{% endblock %}

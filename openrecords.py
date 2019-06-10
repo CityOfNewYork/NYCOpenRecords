@@ -155,12 +155,14 @@ def add_user(
         raise click.UsageError("Agency EIN is required")
 
     user = Users(
-        guid=generate_guid,
-        email=email,
+        guid=generate_guid(),
         first_name=first_name,
         middle_initial=middle_initial,
         last_name=last_name,
+        email=email,
+        email_validated=False,
         is_nyc_employee=True,
+        is_anonymous_requester=False,
     )
     db.session.add(user)
 
