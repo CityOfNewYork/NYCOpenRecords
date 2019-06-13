@@ -15,8 +15,11 @@
                 Manage Agency Users
             {% endif %}
         </h2>
-
         <hr>
+        {% if current_user.is_super %}
+            <a href="{{ url_for("admin.add_user") }}" class="btn btn-primary">Add User</a>
+            <hr>
+        {% endif %}
         {% if current_user.is_super or multi_agency_admin %}
             <div class="row">
                 {{ agency_form.agencies.label }}

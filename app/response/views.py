@@ -25,7 +25,7 @@ from flask import (
 from flask_login import current_user, login_url
 
 from app import login_manager, sentry
-from app.constants import permission
+from app.constants import permission, request_date
 from app.constants.pdf import EnvelopeDict
 from app.constants.response_type import FILE, LETTER, EMAIL
 from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE
@@ -63,6 +63,7 @@ from app.response.utils import (
     add_acknowledgment,
     add_denial,
     add_closing,
+    add_quick_closing,
     add_reopening,
     add_response_letter,
     add_instruction,
@@ -266,6 +267,42 @@ def response_closing(request_id):
                     flask_request.form['summary'],
                     flask_request.form['method'],
                     flask_request.form.get('letter_templates'))
+    except UserRequestException as e:
+        sentry.captureException()
+        flash(str(e), category='danger')
+    return redirect(url_for('request.view', request_id=request_id))
+
+
+@response.route('/quick-closing/<request_id>', methods=['POST'])
+@has_permission(permission.ACKNOWLEDGE)
+@has_permission(permission.CLOSE)
+def response_quick_closing(request_id):
+    """Endpoint for quick closing a request that takes in form data from the front end.
+
+    Required form data include:
+        email-date: the number of days the acknowledgement will take. Defaults to 20 for quick closings
+        summary: string email body from the confirmation page
+
+    Args:
+        request_id: FOIL request ID
+
+    Returns:
+        Redirect to view request page
+    """
+    required_fields = ['email-date',
+                       'summary']
+    for field in required_fields:
+        if not flask_request.form.get(field, ''):
+            flash('Uh Oh, it looks like the acknowledgement/closing {} is missing! '
+                  'This is probably NOT your fault.'.format(field), category='danger')
+            return redirect(url_for('request.view', request_id=request_id))
+    try:
+        add_quick_closing(request_id=request_id,
+                          days=request_date.DEFAULT_QUICK_CLOSING_DAYS,
+                          date=flask_request.form['email-date'],
+                          tz_name=flask_request.form['tz-name'] if flask_request.form['tz-name'] else
+                          current_app.config['APP_TIMEZONE'],
+                          content=flask_request.form['summary'])
     except UserRequestException as e:
         sentry.captureException()
         flash(str(e), category='danger')

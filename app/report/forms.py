@@ -11,6 +11,7 @@ from wtforms import DateField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 
 from app.lib.db_utils import get_agency_choices
+from app.constants.dates import MONTHS, PORTAL_START_YEAR
 
 
 class ReportFilterForm(Form):
@@ -57,3 +58,19 @@ class AcknowledgmentForm(Form):
             field.errors.append('The dates cannot be the same.')
             is_valid = False
         return is_valid
+
+
+class MonthlyMetricsReportForm(Form):
+    """Form to generate a monthly metrics report."""
+    year = SelectField('Year (required)', choices=None, validators=[DataRequired()])
+    month = SelectField('Month (required)', choices=MONTHS, validators=[DataRequired()])
+    submit_field = SubmitField('Generate Report')
+
+    def __init__(self):
+        super(MonthlyMetricsReportForm, self).__init__()
+        # Calculate years portal has been active
+        years_active = []
+        for year in range(date.today().year, PORTAL_START_YEAR-1, -1):
+            years_active.append((str(year), str(year)))
+        self.year.choices = years_active
+        self.year.choices.insert(0, ('', ''))

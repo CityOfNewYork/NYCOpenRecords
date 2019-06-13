@@ -75,7 +75,7 @@ from app.models import (
     UserRequests,
     Users,
 )
-from app.report.utils import generate_request_closing_user_report
+from app.report.utils import generate_request_closing_user_report, generate_monthly_metrics_report
 from app.request.utils import generate_guid
 from app.search.utils import recreate
 from app.user.utils import make_user_admin
@@ -155,12 +155,14 @@ def add_user(
         raise click.UsageError("Agency EIN is required")
 
     user = Users(
-        guid=generate_guid,
-        email=email,
+        guid=generate_guid(),
         first_name=first_name,
         middle_initial=middle_initial,
         last_name=last_name,
+        email=email,
+        email_validated=False,
         is_nyc_employee=True,
+        is_anonymous_requester=False,
     )
     db.session.add(user)
 
@@ -200,7 +202,22 @@ def generate_closing_report(agency_ein: str, date_from: str, date_to: str, email
     generate_request_closing_user_report(agency_ein, date_from, date_to, email_list)
 
 
-@app.cli.command
+@app.cli.command()
+@click.option("--agency_ein", prompt="Agency EIN (e.g. 0002)")
+@click.option("--date_from", prompt="Date From (e.g. 2000-01-01")
+@click.option("--date_to", prompt="Date To (e.g. 2000-02-01)")
+@click.option("--emails", prompt="Emails (e.g. test@mailinator.com,test2@mailinator.com)")
+def generate_monthly_report(agency_ein: str, date_from: str, date_to: str, emails: str):
+    """Generate monthly metrics report.
+
+    CLI command to generate monthly metrics report.
+    Purposely leaving a full date range option instead of a monthly limit in order to provide more granularity for devs.
+    """
+    email_list = emails.split(',')
+    generate_monthly_metrics_report(agency_ein, date_from, date_to, email_list)
+
+
+@app.cli.command()
 def es_recreate():
     """
     Recreate elasticsearch index and request docs.

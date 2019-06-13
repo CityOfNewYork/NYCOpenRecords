@@ -4,6 +4,7 @@
    :synopsis: Handles the report URL endpoints for the OpenRecords application
 """
 from datetime import datetime
+from calendar import monthrange
 
 from flask import (
     current_app,
@@ -26,8 +27,8 @@ from app.models import (
     UserRequests
 )
 from app.report import report
-from app.report.forms import AcknowledgmentForm, ReportFilterForm
-from app.report.utils import generate_acknowledgment_report, generate_request_closing_user_report
+from app.report.forms import AcknowledgmentForm, ReportFilterForm, MonthlyMetricsReportForm
+from app.report.utils import generate_acknowledgment_report, generate_monthly_metrics_report
 
 
 @report.route('/show', methods=['GET'])
@@ -39,6 +40,7 @@ def show_report():
     """
     return render_template('report/reports.html',
                            acknowledgment_form=AcknowledgmentForm(),
+                           monthly_report_form=MonthlyMetricsReportForm(),
                            report_filter_form=ReportFilterForm())
 
 
@@ -141,4 +143,47 @@ def acknowledgment():
     else:
         for field, _ in acknowledgment_form.errors.items():
             flash(acknowledgment_form.errors[field][0], category='danger')
+    return redirect(url_for("report.show_report"))
+
+
+@report.route('/monthly-metrics-report', methods=['POST'])
+@login_required
+def monthly_metrics_report():
+    """Generates the monthly metrics report.
+
+    Returns:
+        Template with context.
+
+    """
+
+    monthly_report_form = MonthlyMetricsReportForm()
+    if monthly_report_form.validate_on_submit():
+        # Only agency administrators can access endpoint
+        if not current_user.is_agency_admin:
+            return jsonify({
+                'error': 'Only Agency Administrators can access this endpoint.'
+            }), 403
+
+        # Date conversions
+        date_from = request.form['year'] + '-' + request.form['month'] + '-' + '01'
+        end_of_month = monthrange(int(request.form['year']), int(request.form['month']))[1]
+        date_to = request.form['year'] + '-' + request.form['month'] + '-' + str(end_of_month)
+
+        redis_key = '{current_user_guid}-{report_type}-{agency_ein}-{timestamp}'.format(
+            current_user_guid=current_user.guid,
+            report_type='metrics',
+            agency_ein=current_user.default_agency_ein,
+            timestamp=datetime.now()
+        )
+        generate_monthly_metrics_report.apply_async(args=[current_user.default_agency_ein,
+                                                          date_from,
+                                                          date_to,
+                                                          [current_user.email]],
+                                                    serializer='pickle',
+                                                    task_id=redis_key)
+        flash('Your report is being generated. You will receive an email with the report attached once its complete.',
+              category='success')
+    else:
+        for field, _ in monthly_report_form.errors.items():
+            flash(monthly_report_form.errors[field][0], category='danger')
     return redirect(url_for("report.show_report"))
