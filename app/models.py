@@ -9,27 +9,16 @@ from uuid import uuid4
 
 from elasticsearch.helpers import bulk
 from flask import current_app, session
-from flask_login import (
-    UserMixin,
-    AnonymousUserMixin
-)
+from flask_login import UserMixin, AnonymousUserMixin, current_user
 from functools import reduce
 from operator import ior
 from sqlalchemy import desc
-from sqlalchemy.dialects.postgresql import (
-    ARRAY,
-    JSONB
-)
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import column_property
 from sqlalchemy.orm.exc import MultipleResultsFound
 from warnings import warn
 
-from app import (
-    db,
-    es,
-    calendar,
-    sentry
-)
+from app import db, es, calendar, sentry
 from app.constants import (
     ES_DATETIME_FORMAT,
     permission,
@@ -40,7 +29,7 @@ from app.constants import (
     determination_type,
     response_privacy,
     submission_methods,
-    event_type
+    event_type,
 )
 from app.constants.request_date import RELEASE_PUBLIC_DAYS
 from app.constants.schemas import AGENCIES_SCHEMA
@@ -48,7 +37,7 @@ from app.lib.json_schema import validate_schema
 from app.lib.utils import (
     eval_request_bool,
     DuplicateFileException,
-    InvalidDeterminationException
+    InvalidDeterminationException,
 )
 
 
@@ -64,7 +53,8 @@ class Roles(db.Model):
     permissions -- Column: Integer
     users -- Relationship: 'User', 'role'
     """
-    __tablename__ = 'roles'
+
+    __tablename__ = "roles"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     permissions = db.Column(db.BigInteger)
@@ -75,85 +65,81 @@ class Roles(db.Model):
         Insert permissions for each role.
         """
         roles = {
-            role_name.ANONYMOUS: (
-                permission.NONE
-            ),
-            role_name.PUBLIC_REQUESTER: (
-                permission.ADD_NOTE
-            ),
+            role_name.ANONYMOUS: (permission.NONE),
+            role_name.PUBLIC_REQUESTER: (permission.ADD_NOTE),
             role_name.AGENCY_HELPER: (
-                    permission.ADD_NOTE |
-                    permission.ADD_FILE |
-                    permission.ADD_LINK |
-                    permission.ADD_OFFLINE_INSTRUCTIONS
+                permission.ADD_NOTE
+                | permission.ADD_FILE
+                | permission.ADD_LINK
+                | permission.ADD_OFFLINE_INSTRUCTIONS
             ),
             role_name.AGENCY_OFFICER: (
-                    permission.ACKNOWLEDGE |
-                    permission.DENY |
-                    permission.EXTEND |
-                    permission.CLOSE |
-                    permission.RE_OPEN |
-                    permission.ADD_NOTE |
-                    permission.ADD_FILE |
-                    permission.ADD_LINK |
-                    permission.ADD_OFFLINE_INSTRUCTIONS |
-                    permission.GENERATE_LETTER |
-                    permission.EDIT_NOTE |
-                    permission.EDIT_NOTE_PRIVACY |
-                    permission.EDIT_FILE |
-                    permission.EDIT_FILE_PRIVACY |
-                    permission.EDIT_LINK |
-                    permission.EDIT_LINK_PRIVACY |
-                    permission.EDIT_OFFLINE_INSTRUCTIONS |
-                    permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
-                    permission.EDIT_OFFLINE_INSTRUCTIONS |
-                    permission.EDIT_FILE_PRIVACY |
-                    permission.DELETE_NOTE |
-                    permission.DELETE_FILE |
-                    permission.DELETE_LINK |
-                    permission.DELETE_OFFLINE_INSTRUCTIONS |
-                    permission.EDIT_TITLE |
-                    permission.CHANGE_PRIVACY_TITLE |
-                    permission.EDIT_AGENCY_REQUEST_SUMMARY |
-                    permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
-                    permission.EDIT_REQUESTER_INFO
+                permission.ACKNOWLEDGE
+                | permission.DENY
+                | permission.EXTEND
+                | permission.CLOSE
+                | permission.RE_OPEN
+                | permission.ADD_NOTE
+                | permission.ADD_FILE
+                | permission.ADD_LINK
+                | permission.ADD_OFFLINE_INSTRUCTIONS
+                | permission.GENERATE_LETTER
+                | permission.EDIT_NOTE
+                | permission.EDIT_NOTE_PRIVACY
+                | permission.EDIT_FILE
+                | permission.EDIT_FILE_PRIVACY
+                | permission.EDIT_LINK
+                | permission.EDIT_LINK_PRIVACY
+                | permission.EDIT_OFFLINE_INSTRUCTIONS
+                | permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY
+                | permission.EDIT_OFFLINE_INSTRUCTIONS
+                | permission.EDIT_FILE_PRIVACY
+                | permission.DELETE_NOTE
+                | permission.DELETE_FILE
+                | permission.DELETE_LINK
+                | permission.DELETE_OFFLINE_INSTRUCTIONS
+                | permission.EDIT_TITLE
+                | permission.CHANGE_PRIVACY_TITLE
+                | permission.EDIT_AGENCY_REQUEST_SUMMARY
+                | permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY
+                | permission.EDIT_REQUESTER_INFO
             ),
             role_name.AGENCY_ADMIN: (
-                    permission.ACKNOWLEDGE |
-                    permission.DENY |
-                    permission.EXTEND |
-                    permission.CLOSE |
-                    permission.RE_OPEN |
-                    permission.ADD_NOTE |
-                    permission.ADD_FILE |
-                    permission.ADD_LINK |
-                    permission.ADD_OFFLINE_INSTRUCTIONS |
-                    permission.GENERATE_LETTER |
-                    permission.EDIT_NOTE |
-                    permission.EDIT_NOTE_PRIVACY |
-                    permission.EDIT_FILE |
-                    permission.EDIT_FILE_PRIVACY |
-                    permission.EDIT_LINK |
-                    permission.EDIT_LINK_PRIVACY |
-                    permission.EDIT_OFFLINE_INSTRUCTIONS |
-                    permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY |
-                    permission.EDIT_FILE_PRIVACY |
-                    permission.EDIT_TITLE |
-                    permission.DELETE_NOTE |
-                    permission.DELETE_FILE |
-                    permission.DELETE_LINK |
-                    permission.DELETE_OFFLINE_INSTRUCTIONS |
-                    permission.CHANGE_PRIVACY_TITLE |
-                    permission.EDIT_AGENCY_REQUEST_SUMMARY |
-                    permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY |
-                    permission.ADD_USER_TO_REQUEST |
-                    permission.REMOVE_USER_FROM_REQUEST |
-                    permission.EDIT_USER_REQUEST_PERMISSIONS |
-                    permission.ADD_USER_TO_AGENCY |
-                    permission.REMOVE_USER_FROM_AGENCY |
-                    permission.CHANGE_USER_ADMIN_PRIVILEGE |
-                    permission.EDIT_REQUESTER_INFO
-            )
+                permission.ACKNOWLEDGE
+                | permission.DENY
+                | permission.EXTEND
+                | permission.CLOSE
+                | permission.RE_OPEN
+                | permission.ADD_NOTE
+                | permission.ADD_FILE
+                | permission.ADD_LINK
+                | permission.ADD_OFFLINE_INSTRUCTIONS
+                | permission.GENERATE_LETTER
+                | permission.EDIT_NOTE
+                | permission.EDIT_NOTE_PRIVACY
+                | permission.EDIT_FILE
+                | permission.EDIT_FILE_PRIVACY
+                | permission.EDIT_LINK
+                | permission.EDIT_LINK_PRIVACY
+                | permission.EDIT_OFFLINE_INSTRUCTIONS
+                | permission.EDIT_OFFLINE_INSTRUCTIONS_PRIVACY
+                | permission.EDIT_FILE_PRIVACY
+                | permission.EDIT_TITLE
+                | permission.DELETE_NOTE
+                | permission.DELETE_FILE
+                | permission.DELETE_LINK
+                | permission.DELETE_OFFLINE_INSTRUCTIONS
+                | permission.CHANGE_PRIVACY_TITLE
+                | permission.EDIT_AGENCY_REQUEST_SUMMARY
+                | permission.CHANGE_PRIVACY_AGENCY_REQUEST_SUMMARY
+                | permission.ADD_USER_TO_REQUEST
+                | permission.REMOVE_USER_FROM_REQUEST
+                | permission.EDIT_USER_REQUEST_PERMISSIONS
+                | permission.ADD_USER_TO_AGENCY
+                | permission.REMOVE_USER_FROM_AGENCY
+                | permission.CHANGE_USER_ADMIN_PRIVILEGE
+                | permission.EDIT_REQUESTER_INFO
+            ),
         }
 
         for name, value in roles.items():
@@ -165,7 +151,7 @@ class Roles(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return '<Roles %r>' % self.name
+        return "<Roles %r>" % self.name
 
 
 class Agencies(db.Model):
@@ -193,13 +179,16 @@ class Agencies(db.Model):
                      OpenRecords
 
     """
-    __tablename__ = 'agencies'
+
+    __tablename__ = "agencies"
     ein = db.Column(db.String(4), primary_key=True)
     parent_ein = db.Column(db.String(3))
     categories = db.Column(ARRAY(db.String(256)))
-    _name = db.Column(db.String(256), nullable=False, name='name')
+    _name = db.Column(db.String(256), nullable=False, name="name")
     acronym = db.Column(db.String(64), nullable=True)
-    _next_request_number = db.Column(db.Integer(), db.Sequence('request_seq'), name='next_request_number')
+    _next_request_number = db.Column(
+        db.Integer(), db.Sequence("request_seq"), name="next_request_number"
+    )
     default_email = db.Column(db.String(254))
     appeals_email = db.Column(db.String(254))
     is_active = db.Column(db.Boolean(), default=False)
@@ -208,34 +197,34 @@ class Agencies(db.Model):
     # TODO: Use validation on agency_features column
 
     administrators = db.relationship(
-        'Users',
+        "Users",
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
-                    "AgencyUsers.is_agency_active == True, "
-                    "AgencyUsers.is_agency_admin == True)",
-        secondaryjoin="AgencyUsers.user_guid == Users.guid"
+        "AgencyUsers.is_agency_active == True, "
+        "AgencyUsers.is_agency_admin == True)",
+        secondaryjoin="AgencyUsers.user_guid == Users.guid",
     )
     standard_users = db.relationship(
-        'Users',
+        "Users",
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
-                    "AgencyUsers.is_agency_active == True, "
-                    "AgencyUsers.is_agency_admin == False)",
-        secondaryjoin="AgencyUsers.user_guid == Users.guid"
+        "AgencyUsers.is_agency_active == True, "
+        "AgencyUsers.is_agency_admin == False)",
+        secondaryjoin="AgencyUsers.user_guid == Users.guid",
     )
     active_users = db.relationship(
-        'Users',
+        "Users",
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
-                    "AgencyUsers.is_agency_active == True)",
-        secondaryjoin="AgencyUsers.user_guid == Users.guid"
+        "AgencyUsers.is_agency_active == True)",
+        secondaryjoin="AgencyUsers.user_guid == Users.guid",
     )
     inactive_users = db.relationship(
-        'Users',
+        "Users",
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
-                    "AgencyUsers.is_agency_active == False)",
-        secondaryjoin="AgencyUsers.user_guid == Users.guid"
+        "AgencyUsers.is_agency_active == False)",
+        secondaryjoin="AgencyUsers.user_guid == Users.guid",
     )
 
     @property
@@ -255,11 +244,12 @@ class Agencies(db.Model):
     @property
     def next_request_number(self):
         from app.lib.db_utils import update_object
+
         num = self._next_request_number
         update_object(
-            {'_next_request_number': self._next_request_number + 1},
+            {"_next_request_number": self._next_request_number + 1},
             Agencies,
-            self.formatted_parent_ein
+            self.formatted_parent_ein,
         )
         return num
 
@@ -269,8 +259,11 @@ class Agencies(db.Model):
 
     @property
     def name(self):
-        return '{name} ({acronym})'.format(name=self._name, acronym=self.acronym) if self.acronym else '{name}'.format(
-            name=self._name)
+        return (
+            "{name} ({acronym})".format(name=self._name, acronym=self.acronym)
+            if self.acronym
+            else "{name}".format(name=self._name)
+        )
 
     @name.setter
     def name(self, value):
@@ -281,35 +274,43 @@ class Agencies(db.Model):
         """
         Automatically populate the agencies table for the OpenRecords application.
         """
-        filename = json_name or current_app.config['AGENCY_DATA']
-        with open(filename, 'r') as data:
+        filename = json_name or current_app.config["AGENCY_DATA"]
+        with open(filename, "r") as data:
             data = json.load(data)
 
             if not validate_schema(data, AGENCIES_SCHEMA):
-                warn("Invalid JSON Data. Not importing any agencies.", category=UserWarning)
+                warn(
+                    "Invalid JSON Data. Not importing any agencies.",
+                    category=UserWarning,
+                )
                 return False
 
-            for agency in data['agencies']:
-                if Agencies.query.filter_by(ein=agency['ein']).first() is not None:
-                    warn("Duplicate EIN ({ein}); Row not imported".format(ein=agency['ein']), category=UserWarning)
+            for agency in data["agencies"]:
+                if Agencies.query.filter_by(ein=agency["ein"]).first() is not None:
+                    warn(
+                        "Duplicate EIN ({ein}); Row not imported".format(
+                            ein=agency["ein"]
+                        ),
+                        category=UserWarning,
+                    )
                     continue
                 a = cls(
-                    ein=agency['ein'],
-                    parent_ein=agency['parent_ein'],
-                    categories=agency['categories'],
-                    name=agency['name'],
-                    acronym=agency.get('acronym', None),
-                    next_request_number=agency['next_request_number'],
-                    default_email=agency['default_email'],
-                    appeals_email=agency['appeals_email'],
-                    is_active=agency['is_active'],
-                    agency_features=agency['agency_features']
+                    ein=agency["ein"],
+                    parent_ein=agency["parent_ein"],
+                    categories=agency["categories"],
+                    name=agency["name"],
+                    acronym=agency.get("acronym", None),
+                    next_request_number=agency["next_request_number"],
+                    default_email=agency["default_email"],
+                    appeals_email=agency["appeals_email"],
+                    is_active=agency["is_active"],
+                    agency_features=agency["agency_features"],
                 )
                 db.session.add(a)
             db.session.commit()
 
     def __repr__(self):
-        return '<Agencies %r>' % self.name
+        return "<Agencies %r>" % self.name
 
 
 class Users(UserMixin, db.Model):
@@ -334,7 +335,8 @@ class Users(UserMixin, db.Model):
     fax_number - string containing the user's fax number
     mailing_address - a JSON object containing the user's address
     """
-    __tablename__ = 'users'
+
+    __tablename__ = "users"
     guid = db.Column(db.String(64), unique=True, primary_key=True)
     is_nyc_employee = db.Column(db.Boolean, default=False)
     has_nyc_account = db.Column(db.Boolean, default=False)
@@ -352,23 +354,24 @@ class Users(UserMixin, db.Model):
     organization = db.Column(db.String(128))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
-    _mailing_address = db.Column(JSONB,
-                                 name='mailing_address')  # TODO: define validation for minimum acceptable mailing address
+    _mailing_address = db.Column(
+        JSONB, name="mailing_address"
+    )  # TODO: define validation for minimum acceptable mailing address
     session_id = db.Column(db.String(254), nullable=True, default=None)
     signature = db.Column(db.String(), nullable=True, default=None)
     fullname = column_property(first_name + " " + last_name)
 
     # Relationships
-    user_requests = db.relationship("UserRequests", backref="user", lazy='dynamic')
+    user_requests = db.relationship("UserRequests", backref="user", lazy="dynamic")
     agencies = db.relationship(
-        'Agencies',
+        "Agencies",
         secondary="agency_users",
         primaryjoin="AgencyUsers.user_guid == Users.guid",
         secondaryjoin="and_(AgencyUsers.agency_ein == Agencies.ein, "
-                      "AgencyUsers.is_agency_active == True)",
-        lazy='dynamic'
+        "AgencyUsers.is_agency_active == True)",
+        lazy="dynamic",
     )
-    agency_users = db.relationship("AgencyUsers", backref="user", lazy='dynamic')
+    agency_users = db.relationship("AgencyUsers", backref="user", lazy="dynamic")
 
     @property
     def is_authenticated(self):
@@ -376,12 +379,12 @@ class Users(UserMixin, db.Model):
         Verifies the access token currently stored in the user's session
         by invoking the OAuth User Web Service and checking the response.
         """
-        if current_app.config['USE_LDAP']:
+        if current_app.config["USE_LDAP"]:
             return True
-        if current_app.config['USE_SAML']:
-            if session.get('samlUserdata', None):
+        if current_app.config["USE_SAML"]:
+            if session.get("samlUserdata", None):
                 return True
-        if current_app.config['USE_LOCAL_AUTH']:
+        if current_app.config["USE_LOCAL_AUTH"]:
             return True
         return False
 
@@ -420,8 +423,14 @@ class Users(UserMixin, db.Model):
         Return the Users default agency ein.
         :return: String
         """
-        agency = AgencyUsers.query.join(Users).filter(AgencyUsers.is_primary_agency == True,
-                                                      AgencyUsers.user_guid == self.guid).one_or_none()
+        agency = (
+            AgencyUsers.query.join(Users)
+            .filter(
+                AgencyUsers.is_primary_agency == True,
+                AgencyUsers.user_guid == self.guid,
+            )
+            .one_or_none()
+        )
         if agency is not None:
             return agency.agency_ein
         return None
@@ -462,7 +471,9 @@ class Users(UserMixin, db.Model):
         if this user is an anonymous requester.
         """
         if self.is_anonymous_requester:
-            return Requests.query.filter_by(id=self.user_requests.one().request_id).one()
+            return Requests.query.filter_by(
+                id=self.user_requests.one().request_id
+            ).one()
         return None
 
     @property
@@ -515,12 +526,17 @@ class Users(UserMixin, db.Model):
 
     def agencies_for_forms(self):
         agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
-        agencies.insert(0, agencies.pop(agencies.index((self.default_agency.ein, self.default_agency._name))))
+        agencies.insert(
+            0,
+            agencies.pop(
+                agencies.index((self.default_agency.ein, self.default_agency._name))
+            ),
+        )
         return agencies
 
     @property
     def name(self):
-        return ' '.join((self.first_name.title(), self.last_name.title()))
+        return " ".join((self.first_name.title(), self.last_name.title()))
 
     @property
     def mailing_address(self):
@@ -534,8 +550,8 @@ class Users(UserMixin, db.Model):
     def formatted_point_of_contact_number(self):
         if self.phone_number:
             formatted_phone_number = self.phone_number
-            formatted_phone_number = formatted_phone_number.strip('(')
-            formatted_phone_number = formatted_phone_number.replace(') ', '-')
+            formatted_phone_number = formatted_phone_number.strip("(")
+            formatted_phone_number = formatted_phone_number.replace(") ", "-")
             return formatted_phone_number
 
     def get_id(self):
@@ -546,23 +562,23 @@ class Users(UserMixin, db.Model):
         Call es_update for any request where this user is the requester
         since the request es doc relies on the requester's name.
         """
-        if current_app.config['ELASTICSEARCH_ENABLED']:
+        if current_app.config["ELASTICSEARCH_ENABLED"]:
             requests = [request.id for request in self.requests]
-            actions = [{
-                '_op_type': 'update',
-                '_id': request_id,
-                'doc': {
-                    'requester_id': self.guid,
-                    'requester_name': self.name
+            actions = [
+                {
+                    "_op_type": "update",
+                    "_id": request_id,
+                    "doc": {"requester_id": self.guid, "requester_name": self.name},
                 }
-            } for request_id in requests]
+                for request_id in requests
+            ]
 
             bulk(
                 es,
                 actions,
-                index=current_app.config['ELASTICSEARCH_INDEX'],
-                doc_type='request',
-                chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE']
+                index=current_app.config["ELASTICSEARCH_INDEX"],
+                doc_type="request",
+                chunk_size=current_app.config["ELASTICSEARCH_CHUNK_SIZE"],
             )
 
     @property
@@ -591,35 +607,35 @@ class Users(UserMixin, db.Model):
 
     @classmethod
     def populate(cls, csv_name=None):
-        filename = csv_name or current_app.config['STAFF_DATA']
-        with open(filename, 'r') as data:
+        filename = csv_name or current_app.config["STAFF_DATA"]
+        with open(filename, "r") as data:
             dictreader = csv.DictReader(data)
             for row in dictreader:
-                if Users.query.filter_by(email=row['email']).first() is None:
+                if Users.query.filter_by(email=row["email"]).first() is None:
                     user = cls(
                         guid=str(uuid4()),
-                        is_super=eval(row['is_super']),
-                        first_name=row['first_name'],
-                        middle_initial=row['middle_initial'],
-                        last_name=row['last_name'],
-                        email=row['email'],
-                        email_validated=eval(row['email_validated']),
-                        terms_of_use_accepted=eval(row['terms_of_use_accepted']),
-                        phone_number=row['phone_number'],
-                        fax_number=row['fax_number']
+                        is_super=eval(row["is_super"]),
+                        first_name=row["first_name"],
+                        middle_initial=row["middle_initial"],
+                        last_name=row["last_name"],
+                        email=row["email"],
+                        email_validated=eval(row["email_validated"]),
+                        terms_of_use_accepted=eval(row["terms_of_use_accepted"]),
+                        phone_number=row["phone_number"],
+                        fax_number=row["fax_number"],
                     )
                     db.session.add(user)
                     db.session.commit()
 
-                    agency_eins = row['agencies'].split('|')
+                    agency_eins = row["agencies"].split("|")
                     for agency in agency_eins:
-                        ein, is_active, is_admin, is_primary_agency = agency.split('#')
+                        ein, is_active, is_admin, is_primary_agency = agency.split("#")
                         agency_user = AgencyUsers(
                             user_guid=user.guid,
                             agency_ein=ein,
                             is_agency_active=eval_request_bool(is_active),
                             is_agency_admin=eval_request_bool(is_admin),
-                            is_primary_agency=eval_request_bool(is_primary_agency)
+                            is_primary_agency=eval_request_bool(is_primary_agency),
                         )
                         db.session.add(agency_user)
                     if agency_eins:
@@ -631,7 +647,7 @@ class Users(UserMixin, db.Model):
         super(Users, self).__init__(**kwargs)
 
     def __repr__(self):
-        return '<Users {}>'.format(self.get_id())
+        return "<Users {}>".format(self.get_id())
 
 
 class Anonymous(AnonymousUserMixin):
@@ -669,7 +685,7 @@ class Anonymous(AnonymousUserMixin):
         return False
 
     def __repr__(self):
-        return '<Anonymous User>'
+        return "<Anonymous User>"
 
 
 class AgencyUsers(db.Model):
@@ -685,19 +701,18 @@ class AgencyUsers(db.Model):
     primary_agency - a boolean value that determines whether the agency identified by agency_ein is the users default
         agency
     """
-    __tablename__ = 'agency_users'
+
+    __tablename__ = "agency_users"
     user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"), primary_key=True)
-    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"), primary_key=True)
+    agency_ein = db.Column(
+        db.String(4), db.ForeignKey("agencies.ein"), primary_key=True
+    )
     is_agency_active = db.Column(db.Boolean, default=False, nullable=False)
     is_agency_admin = db.Column(db.Boolean, default=False, nullable=False)
     is_primary_agency = db.Column(db.Boolean, default=False, nullable=False)
 
     __table_args__ = (
-        db.ForeignKeyConstraint(
-            [user_guid],
-            [Users.guid],
-            onupdate="CASCADE"
-        ),
+        db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
     )
 
 
@@ -723,79 +738,92 @@ class Requests(db.Model):
     agency_request_summary_release_date - a datetime of when the agency_request_summary will be made public
     custom_metadata - a JSON that contains the metadata from an agency's custom request forms
     """
-    __tablename__ = 'requests'
+
+    __tablename__ = "requests"
     id = db.Column(db.String(19), primary_key=True)
-    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
-    category = db.Column(db.String, default='All',
-                         nullable=False)  # FIXME: should be nullable, 'All' shouldn't be used
+    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"))
+    category = db.Column(
+        db.String, default="All", nullable=False
+    )  # FIXME: should be nullable, 'All' shouldn't be used
     title = db.Column(db.String(90))
     description = db.Column(db.String(5000))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
-    date_submitted = db.Column(db.DateTime)  # used to calculate due date, rounded off to next business day
+    date_submitted = db.Column(
+        db.DateTime
+    )  # used to calculate due date, rounded off to next business day
     date_closed = db.Column(db.DateTime, default=None, nullable=True)
     due_date = db.Column(db.DateTime)
     submission = db.Column(
-        db.Enum(submission_methods.DIRECT_INPUT,
-                submission_methods.FAX,
-                submission_methods.PHONE,
-                submission_methods.EMAIL,
-                submission_methods.MAIL,
-                submission_methods.IN_PERSON,
-                submission_methods.THREE_ONE_ONE,
-                name='submission'))
+        db.Enum(
+            submission_methods.DIRECT_INPUT,
+            submission_methods.FAX,
+            submission_methods.PHONE,
+            submission_methods.EMAIL,
+            submission_methods.MAIL,
+            submission_methods.IN_PERSON,
+            submission_methods.THREE_ONE_ONE,
+            name="submission",
+        )
+    )
     status = db.Column(
-        db.Enum(request_status.OPEN,
-                request_status.IN_PROGRESS,
-                request_status.DUE_SOON,  # within the next 5 business days
-                request_status.OVERDUE,
-                request_status.CLOSED,
-                name='status'),
-        nullable=False
+        db.Enum(
+            request_status.OPEN,
+            request_status.IN_PROGRESS,
+            request_status.DUE_SOON,  # within the next 5 business days
+            request_status.OVERDUE,
+            request_status.CLOSED,
+            name="status",
+        ),
+        nullable=False,
     )
     privacy = db.Column(JSONB)
     agency_request_summary = db.Column(db.String(5000))
     agency_request_summary_release_date = db.Column(db.DateTime)
     custom_metadata = db.Column(JSONB)
 
-    user_requests = db.relationship('UserRequests', backref=db.backref('request', uselist=False), lazy='dynamic')
-    agency = db.relationship('Agencies', backref='requests', uselist=False)
-    responses = db.relationship('Responses', backref=db.backref('request', uselist=False), lazy='dynamic')
+    user_requests = db.relationship(
+        "UserRequests", backref=db.backref("request", uselist=False), lazy="dynamic"
+    )
+    agency = db.relationship("Agencies", backref="requests", uselist=False)
+    responses = db.relationship(
+        "Responses", backref=db.backref("request", uselist=False), lazy="dynamic"
+    )
     requester = db.relationship(
-        'Users',
-        secondary='user_requests',  # expects table name
+        "Users",
+        secondary="user_requests",  # expects table name
         primaryjoin=lambda: Requests.id == UserRequests.request_id,
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
-                      "UserRequests.request_user_type == '{}')".format(user_type_request.REQUESTER),
+        "UserRequests.request_user_type == '{}')".format(user_type_request.REQUESTER),
         backref="requests",
         viewonly=True,
-        uselist=False
+        uselist=False,
     )
     # any agency user associated with a request is considered an assigned user
     agency_users = db.relationship(
-        'Users',
-        secondary='user_requests',
+        "Users",
+        secondary="user_requests",
         primaryjoin=lambda: Requests.id == UserRequests.request_id,
         secondaryjoin="and_(Users.guid == UserRequests.user_guid, "
-                      "UserRequests.request_user_type == '{}')".format(user_type_request.AGENCY),
-        viewonly=True
+        "UserRequests.request_user_type == '{}')".format(user_type_request.AGENCY),
+        viewonly=True,
     )
 
-    PRIVACY_DEFAULT = {'title': False, 'agency_request_summary': True}
+    PRIVACY_DEFAULT = {"title": False, "agency_request_summary": True}
 
     def __init__(
-            self,
-            id,
-            title,
-            description,
-            agency_ein,
-            date_created,
-            category=None,
-            privacy=None,
-            date_submitted=None,  # FIXME: are some of these really nullable?
-            due_date=None,
-            submission=None,
-            status=request_status.OPEN,
-            custom_metadata=None
+        self,
+        id,
+        title,
+        description,
+        agency_ein,
+        date_created,
+        category=None,
+        privacy=None,
+        date_submitted=None,  # FIXME: are some of these really nullable?
+        due_date=None,
+        submission=None,
+        status=request_status.OPEN,
+        custom_metadata=None,
     ):
         self.id = id
         self.title = title
@@ -819,34 +847,81 @@ class Requests(db.Model):
         be the same on Request creation are not included.
         """
         return {
-            'title': self.title,
-            'description': self.description,
-            'due_date': self.due_date.isoformat(),
+            "title": self.title,
+            "description": self.description,
+            "due_date": self.due_date.isoformat(),
         }
 
     @property
     def was_acknowledged(self):
-        if self.responses.join(Determinations).filter(
-                Determinations.dtype == determination_type.ACKNOWLEDGMENT).one_or_none() is not None:
+        if (
+            self.responses.join(Determinations)
+            .filter(Determinations.dtype == determination_type.ACKNOWLEDGMENT)
+            .one_or_none()
+            is not None
+        ):
             return True
         return False
 
     @property
     def was_reopened(self):
-        return self.responses.join(Determinations).filter(
-            Determinations.dtype == determination_type.REOPENING).first() is not None
+        return (
+            self.responses.join(Determinations)
+            .filter(Determinations.dtype == determination_type.REOPENING)
+            .first()
+            is not None
+        )
 
     @property
     def last_date_closed(self):
         if self.status == request_status.CLOSED:
-            return self.responses.join(Determinations).filter(
-                Determinations.dtype.in_([determination_type.CLOSING, determination_type.DENIAL])
-            ).order_by(desc(Determinations.date_modified)).limit(1).one().date_modified
+            return (
+                self.responses.join(Determinations)
+                .filter(
+                    Determinations.dtype.in_(
+                        [determination_type.CLOSING, determination_type.DENIAL]
+                    )
+                )
+                .order_by(desc(Determinations.date_modified))
+                .limit(1)
+                .one()
+                .date_modified
+            )
         return None
 
     @property
     def days_until_due(self):
-        return calendar.busdaycount(datetime.utcnow(), self.due_date.replace(hour=23, minute=59, second=59))
+        return calendar.busdaycount(
+            datetime.utcnow(), self.due_date.replace(hour=23, minute=59, second=59)
+        )
+
+    @property
+    def show_title(self) -> bool:
+        """Determine whether the title should be displayed on the front-end.
+
+        The title may be displayed in the following circumstances:
+            - The currently logged in user is in the requests assigned agency users OR
+            - The current User is the requester OR
+            - The title is not private AND
+                - The request was acknowledged OR
+                - The request was denied OR
+                - The request is overdue for an acknowledgment
+
+        Returns:
+            bool: True if the title should be shown, False otherwise.
+        """
+        return (
+            current_user in self.agency_users
+            or current_user == self.requester
+            or (
+                not self.privacy["title"]
+                and (
+                    self.was_acknowledged
+                    or self.last_date_closed is not None
+                    or self.days_until_due < 0
+                )
+            )
+        )
 
     @property
     def url(self):
@@ -856,42 +931,53 @@ class Requests(db.Model):
         Since we cannot use SERVER_NAME in config (and, by extension, 'url_for'),
         BASE_URL and VIEW_REQUEST_ENDPOINT will have to do.
         """
-        return urljoin(current_app.config['BASE_URL'],
-                       "{view_request_endpoint}/{request_id}".format(
-                           view_request_endpoint=current_app.config['VIEW_REQUEST_ENDPOINT'],
-                           request_id=self.id
-                       ))
+        return urljoin(
+            current_app.config["BASE_URL"],
+            "{view_request_endpoint}/{request_id}".format(
+                view_request_endpoint=current_app.config["VIEW_REQUEST_ENDPOINT"],
+                request_id=self.id,
+            ),
+        )
 
     @property
     def agency_request_summary_released(self):
         """
         Determine whether the agency_request_summary has been made public and has passed its release date
         """
-        return self.status == request_status.CLOSED and not self.privacy['agency_request_summary'] and \
-               self.agency_request_summary and self.agency_request_summary_release_date is not None and \
-               self.agency_request_summary_release_date < datetime.utcnow()
+        return (
+            self.status == request_status.CLOSED
+            and not self.privacy["agency_request_summary"]
+            and self.agency_request_summary
+            and self.agency_request_summary_release_date is not None
+            and self.agency_request_summary_release_date < datetime.utcnow()
+        )
 
     def es_update(self):
-        if current_app.config['ELASTICSEARCH_ENABLED']:
+        if current_app.config["ELASTICSEARCH_ENABLED"]:
             if self.agency.is_active:
                 es.update(
                     index=current_app.config["ELASTICSEARCH_INDEX"],
-                    doc_type='request',
+                    doc_type="request",
                     id=self.id,
                     body={
-                        'doc': {
-                            'title': self.title,
-                            'description': self.description,
-                            'agency_request_summary': self.agency_request_summary,
-                            'assigned_users': [user.get_id() for user in self.agency_users],
-                            'title_private': self.privacy['title'],
-                            'agency_request_summary_private': not self.agency_request_summary_released,
-                            'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                            'date_closed': self.date_closed.strftime(
-                                ES_DATETIME_FORMAT) if self.date_closed is not None else [],
-                            'status': self.status,
-                            'requester_name': self.requester.name,
-                            'public_title': 'Private' if self.privacy['title'] else self.title
+                        "doc": {
+                            "title": self.title,
+                            "description": self.description,
+                            "agency_request_summary": self.agency_request_summary,
+                            "assigned_users": [
+                                user.get_id() for user in self.agency_users
+                            ],
+                            "title_private": self.privacy["title"],
+                            "agency_request_summary_private": not self.agency_request_summary_released,
+                            "date_due": self.due_date.strftime(ES_DATETIME_FORMAT),
+                            "date_closed": self.date_closed.strftime(ES_DATETIME_FORMAT)
+                            if self.date_closed is not None
+                            else [],
+                            "status": self.status,
+                            "requester_name": self.requester.name,
+                            "public_title": "Private"
+                            if self.privacy["title"]
+                            else self.title,
                         }
                     },
                     # refresh='wait_for'
@@ -899,48 +985,51 @@ class Requests(db.Model):
 
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
-        if current_app.config['ELASTICSEARCH_ENABLED']:
+        if current_app.config["ELASTICSEARCH_ENABLED"]:
+            print("Private" if not self.show_title else self.title)
             es.create(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type='request',
+                doc_type="request",
                 id=self.id,
                 body={
-                    'title': self.title,
-                    'description': self.description,
-                    'agency_request_summary': self.agency_request_summary,
-                    'agency_ein': self.agency_ein,
-                    'agency_name': self.agency.name,
-                    'assigned_users': [user.get_id() for user in self.agency_users],
-                    'agency_acronym': self.agency.acronym,
-                    'title_private': self.privacy['title'],
-                    'agency_request_summary_private': not self.agency_request_summary_released,
-                    'date_created': self.date_created.strftime(ES_DATETIME_FORMAT),
-                    'date_submitted': self.date_submitted.strftime(ES_DATETIME_FORMAT),
-                    'date_received': self.date_created.strftime(
-                        ES_DATETIME_FORMAT) if self.date_created < self.date_submitted else self.date_submitted.strftime(
-                        ES_DATETIME_FORMAT),
-                    'date_due': self.due_date.strftime(ES_DATETIME_FORMAT),
-                    'submission': self.submission,
-                    'status': self.status,
-                    'requester_id': (self.requester.get_id()
-                                     if not self.requester.is_anonymous_requester
-                                     else ''),
-                    'requester_name': self.requester.name,
-                    'public_title': 'Private' if self.privacy['title'] else self.title,
-                }
+                    "title": self.title,
+                    "description": self.description,
+                    "agency_request_summary": self.agency_request_summary,
+                    "agency_ein": self.agency_ein,
+                    "agency_name": self.agency.name,
+                    "assigned_users": [user.get_id() for user in self.agency_users],
+                    "agency_acronym": self.agency.acronym,
+                    "title_private": self.privacy["title"],
+                    "agency_request_summary_private": not self.agency_request_summary_released,
+                    "date_created": self.date_created.strftime(ES_DATETIME_FORMAT),
+                    "date_submitted": self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                    "date_received": self.date_created.strftime(ES_DATETIME_FORMAT)
+                    if self.date_created < self.date_submitted
+                    else self.date_submitted.strftime(ES_DATETIME_FORMAT),
+                    "date_due": self.due_date.strftime(ES_DATETIME_FORMAT),
+                    "submission": self.submission,
+                    "status": self.status,
+                    "requester_id": (
+                        self.requester.get_id()
+                        if not self.requester.is_anonymous_requester
+                        else ""
+                    ),
+                    "requester_name": self.requester.name,
+                    "public_title": "Private" if not self.show_title else self.title,
+                },
             )
 
     def es_delete(self):
         """ Delete a document from the elastic search index """
-        if current_app.config['ELASTICSEARCH_ENABLED']:
+        if current_app.config["ELASTICSEARCH_ENABLED"]:
             es.delete(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type='request',
-                id=self.id
+                doc_type="request",
+                id=self.id,
             )
 
     def __repr__(self):
-        return '<Requests %r>' % self.id
+        return "<Requests %r>" % self.id
 
 
 class Events(db.Model):
@@ -957,40 +1046,37 @@ class Events(db.Model):
     previous_value - a string containing the old value of the event
     new_value - a string containing the new value of the event
     """
-    __tablename__ = 'events'
+
+    __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
     user_guid = db.Column(db.String(64))
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'))
+    response_id = db.Column(db.Integer, db.ForeignKey("responses.id"))
     type = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow())
     previous_value = db.Column(JSONB)
     new_value = db.Column(JSONB)
 
     __table_args__ = (
-        db.ForeignKeyConstraint(
-            [user_guid],
-            [Users.guid],
-            onupdate="CASCADE"
-        ),
+        db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
     )
 
     response = db.relationship("Responses", backref="events")
     request = db.relationship("Requests", backref="events")
     user = db.relationship(
-        "Users",
-        primaryjoin="Events.user_guid == Users.guid",
-        backref="events"
+        "Users", primaryjoin="Events.user_guid == Users.guid", backref="events"
     )
 
-    def __init__(self,
-                 request_id,
-                 user_guid,
-                 type_,
-                 previous_value=None,
-                 new_value=None,
-                 response_id=None,
-                 timestamp=None):
+    def __init__(
+        self,
+        request_id,
+        user_guid,
+        type_,
+        previous_value=None,
+        new_value=None,
+        response_id=None,
+        timestamp=None,
+    ):
         self.request_id = request_id
         self.user_guid = user_guid
         self.response_id = response_id
@@ -1000,18 +1086,17 @@ class Events(db.Model):
         self.timestamp = timestamp or datetime.utcnow()
 
     def __repr__(self):
-        return '<Events %r>' % self.id
+        return "<Events %r>" % self.id
 
     @property
     def affected_user(self):
         if self.new_value is not None and "user_guid" in self.new_value:
-            return Users.query.filter_by(
-                guid=self.new_value["user_guid"]
-            ).one()
+            return Users.query.filter_by(guid=self.new_value["user_guid"]).one()
 
     class RowContent(object):
-
-        def __init__(self, event, verb, string, affected_user=None, no_user_string=None):
+        def __init__(
+            self, event, verb, string, affected_user=None, no_user_string=None
+        ):
             """
             :param verb: action describing event
             :param string: format()-ready string where first field is verb and
@@ -1032,7 +1117,7 @@ class Events(db.Model):
             if self.no_user_string is not None and self.event.user is None:
                 string = self.no_user_string
             else:
-                string = ' '.join((self.event.user.name, self.string))
+                string = " ".join((self.event.user.name, self.string))
             return string.format(*format_args)
 
         @staticmethod
@@ -1047,67 +1132,96 @@ class Events(db.Model):
         """
         if self.type == event_type.REQ_STATUS_CHANGED:
             return "This request's status was <strong>changed</strong> to:<br>{}".format(
-                self.new_value['status'])
+                self.new_value["status"]
+            )
 
         valid_types = {
-            event_type.USER_ADDED:
-                self.RowContent(self, "added", "{} user: {}.", self.affected_user, "User {}: {}."),
-            event_type.USER_REMOVED:
-                self.RowContent(self, "removed", "{} user: {}.", self.affected_user),
-            event_type.USER_PERM_CHANGED:
-                self.RowContent(self, "changed", "{} permssions for user: {}.", self.affected_user),
-            event_type.REQUESTER_INFO_EDITED:
-                self.RowContent(self, "changed", "{} the requester's information."),
-            event_type.REQ_CREATED:
-                self.RowContent(self, "created", "{} this request."),
-            event_type.AGENCY_REQ_CREATED:
-                self.RowContent(self, "created", "{} this request on behalf of {}.", self.request.requester),
-            event_type.REQ_ACKNOWLEDGED:
-                self.RowContent(self, "acknowledged", "{} this request."),
-            event_type.REQ_EXTENDED:
-                self.RowContent(self, "extended", "{} this request."),
-            event_type.REQ_CLOSED:
-                self.RowContent(self, "closed", "{} this request."),
-            event_type.REQ_DENIED:
-                self.RowContent(self, "denied", "{} this request."),
-            event_type.REQ_REOPENED:
-                self.RowContent(self, "re-opened", "{} this request."),
-            event_type.REQ_TITLE_EDITED:
-                self.RowContent(self, "changed", "{} the title."),
-            event_type.REQ_AGENCY_REQ_SUM_EDITED:
-                self.RowContent(self, "changed", "{} the agency request summary."),
-            event_type.REQ_TITLE_PRIVACY_EDITED:
-                self.RowContent(self, "changed", "{} the title privacy."),
-            event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED:
-                self.RowContent(self, "changed", "{} the agency request summary privacy."),
-            event_type.FILE_ADDED:
-                self.RowContent(self, "added", "{} a file response."),
-            event_type.FILE_EDITED:
-                self.RowContent(self, "changed", "{} a file response."),
-            event_type.FILE_REMOVED:
-                self.RowContent(self, "deleted", "{} a file response."),
-            event_type.LINK_ADDED:
-                self.RowContent(self, "added", "{} a link response."),
-            event_type.LINK_EDITED:
-                self.RowContent(self, "changed", "{} a link response."),
-            event_type.LINK_REMOVED:
-                self.RowContent(self, "deleted", "{} a link response."),
-            event_type.INSTRUCTIONS_ADDED:
-                self.RowContent(self, "added", "{} an offline instructions response."),
-            event_type.INSTRUCTIONS_EDITED:
-                self.RowContent(self, "changed", "{} an offline instructions response."),
-            event_type.INSTRUCTIONS_REMOVED:
-                self.RowContent(self, "deleted", "{} an offline instructions response."),
-            event_type.NOTE_ADDED:
-                self.RowContent(self, "added", "{} a note response."),
-            event_type.NOTE_EDITED:
-                self.RowContent(self, "changed", "{} a note response."),
-            event_type.NOTE_REMOVED:
-                self.RowContent(self, "deleted", "{} a note response."),
-            event_type.ENVELOPE_CREATED:
-                self.RowContent(self, "created", "{} an envelope."),
-            event_type.RESPONSE_LETTER_CREATED:
-                self.RowContent(self, "added", "{} a letter.")
+            event_type.USER_ADDED: self.RowContent(
+                self, "added", "{} user: {}.", self.affected_user, "User {}: {}."
+            ),
+            event_type.USER_REMOVED: self.RowContent(
+                self, "removed", "{} user: {}.", self.affected_user
+            ),
+            event_type.USER_PERM_CHANGED: self.RowContent(
+                self, "changed", "{} permssions for user: {}.", self.affected_user
+            ),
+            event_type.REQUESTER_INFO_EDITED: self.RowContent(
+                self, "changed", "{} the requester's information."
+            ),
+            event_type.REQ_CREATED: self.RowContent(
+                self, "created", "{} this request."
+            ),
+            event_type.AGENCY_REQ_CREATED: self.RowContent(
+                self,
+                "created",
+                "{} this request on behalf of {}.",
+                self.request.requester,
+            ),
+            event_type.REQ_ACKNOWLEDGED: self.RowContent(
+                self, "acknowledged", "{} this request."
+            ),
+            event_type.REQ_EXTENDED: self.RowContent(
+                self, "extended", "{} this request."
+            ),
+            event_type.REQ_CLOSED: self.RowContent(self, "closed", "{} this request."),
+            event_type.REQ_DENIED: self.RowContent(self, "denied", "{} this request."),
+            event_type.REQ_REOPENED: self.RowContent(
+                self, "re-opened", "{} this request."
+            ),
+            event_type.REQ_TITLE_EDITED: self.RowContent(
+                self, "changed", "{} the title."
+            ),
+            event_type.REQ_AGENCY_REQ_SUM_EDITED: self.RowContent(
+                self, "changed", "{} the agency request summary."
+            ),
+            event_type.REQ_TITLE_PRIVACY_EDITED: self.RowContent(
+                self, "changed", "{} the title privacy."
+            ),
+            event_type.REQ_AGENCY_REQ_SUM_PRIVACY_EDITED: self.RowContent(
+                self, "changed", "{} the agency request summary privacy."
+            ),
+            event_type.FILE_ADDED: self.RowContent(
+                self, "added", "{} a file response."
+            ),
+            event_type.FILE_EDITED: self.RowContent(
+                self, "changed", "{} a file response."
+            ),
+            event_type.FILE_REMOVED: self.RowContent(
+                self, "deleted", "{} a file response."
+            ),
+            event_type.LINK_ADDED: self.RowContent(
+                self, "added", "{} a link response."
+            ),
+            event_type.LINK_EDITED: self.RowContent(
+                self, "changed", "{} a link response."
+            ),
+            event_type.LINK_REMOVED: self.RowContent(
+                self, "deleted", "{} a link response."
+            ),
+            event_type.INSTRUCTIONS_ADDED: self.RowContent(
+                self, "added", "{} an offline instructions response."
+            ),
+            event_type.INSTRUCTIONS_EDITED: self.RowContent(
+                self, "changed", "{} an offline instructions response."
+            ),
+            event_type.INSTRUCTIONS_REMOVED: self.RowContent(
+                self, "deleted", "{} an offline instructions response."
+            ),
+            event_type.NOTE_ADDED: self.RowContent(
+                self, "added", "{} a note response."
+            ),
+            event_type.NOTE_EDITED: self.RowContent(
+                self, "changed", "{} a note response."
+            ),
+            event_type.NOTE_REMOVED: self.RowContent(
+                self, "deleted", "{} a note response."
+            ),
+            event_type.ENVELOPE_CREATED: self.RowContent(
+                self, "created", "{} an envelope."
+            ),
+            event_type.RESPONSE_LETTER_CREATED: self.RowContent(
+                self, "added", "{} a letter."
+            ),
         }
 
         if self.type in valid_types:
@@ -1125,45 +1239,49 @@ class Responses(db.Model):
     content - a JSON object that contains the content for all the possible responses a request can have
     privacy - an Enum containing the privacy options for a response
     """
-    __tablename__ = 'responses'
+
+    __tablename__ = "responses"
     id = db.Column(db.Integer, primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey('requests.id'))
-    privacy = db.Column(db.Enum(
-        response_privacy.PRIVATE,
-        response_privacy.RELEASE_AND_PRIVATE,
-        response_privacy.RELEASE_AND_PUBLIC,
-        name="privacy"))
+    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"))
+    privacy = db.Column(
+        db.Enum(
+            response_privacy.PRIVATE,
+            response_privacy.RELEASE_AND_PRIVATE,
+            response_privacy.RELEASE_AND_PUBLIC,
+            name="privacy",
+        )
+    )
     date_modified = db.Column(db.DateTime)
     release_date = db.Column(db.DateTime)
     deleted = db.Column(db.Boolean, default=False, nullable=False)
     is_editable = db.Column(db.Boolean, default=False, nullable=False)
-    type = db.Column(db.Enum(
-        response_type.NOTE,
-        response_type.LINK,
-        response_type.FILE,
-        response_type.INSTRUCTIONS,
-        response_type.DETERMINATION,
-        response_type.EMAIL,
-        response_type.LETTER,
-        response_type.ENVELOPE,
-        name='type'
-    ))
+    type = db.Column(
+        db.Enum(
+            response_type.NOTE,
+            response_type.LINK,
+            response_type.FILE,
+            response_type.INSTRUCTIONS,
+            response_type.DETERMINATION,
+            response_type.EMAIL,
+            response_type.LETTER,
+            response_type.ENVELOPE,
+            name="type",
+        )
+    )
 
-    __mapper_args__ = {'polymorphic_on': type}
+    __mapper_args__ = {"polymorphic_on": type}
 
     # TODO: overwrite filter to automatically check if deleted=False
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 date_modified=None,
-                 is_editable=False):
+    def __init__(self, request_id, privacy, date_modified=None, is_editable=False):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
-        self.release_date = (calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
-                             if privacy == response_privacy.RELEASE_AND_PUBLIC
-                             else None)
+        self.release_date = (
+            calendar.addbusdays(datetime.utcnow(), RELEASE_PUBLIC_DAYS)
+            if privacy == response_privacy.RELEASE_AND_PUBLIC
+            else None
+        )
         self.is_editable = is_editable
 
     # NOTE: If you can find a way to make this class work with abc,
@@ -1176,24 +1294,29 @@ class Responses(db.Model):
     @property
     def val_for_events(self):
         """ JSON to store in Events 'new_value' field. """
-        val = {
-            c.name: getattr(self, c.name)
-            for c in self.__table__.columns
-        }
-        val.pop('id')
-        val['privacy'] = self.privacy
+        val = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        val.pop("id")
+        val["privacy"] = self.privacy
         return val
 
     @property
     def is_public(self):
-        return (self.privacy == response_privacy.RELEASE_AND_PUBLIC and
-                self.release_date is not None and
-                datetime.utcnow() > self.release_date)
+        return (
+            self.privacy == response_privacy.RELEASE_AND_PUBLIC
+            and self.release_date is not None
+            and datetime.utcnow() > self.release_date
+        )
 
     @property
     def creator(self):
-        return Events.query.filter(Events.response_id == self.id,
-                                   Events.type.in_(event_type.RESPONSE_ADDED_TYPES)).one().user
+        return (
+            Events.query.filter(
+                Events.response_id == self.id,
+                Events.type.in_(event_type.RESPONSE_ADDED_TYPES),
+            )
+            .one()
+            .user
+        )
 
     @property
     def communication_method_type(self):
@@ -1203,9 +1326,14 @@ class Responses(db.Model):
         :return: response_type.LETTER or response_type.EMAIL
         :rtype: str
         """
-        communication_methods = CommunicationMethods.query.filter_by(response_id=self.id).all()
-        return response_type.LETTER if response_type.LETTER in [cm.method_type for cm in
-                                                                communication_methods] else response_type.EMAIL
+        communication_methods = CommunicationMethods.query.filter_by(
+            response_id=self.id
+        ).all()
+        return (
+            response_type.LETTER
+            if response_type.LETTER in [cm.method_type for cm in communication_methods]
+            else response_type.EMAIL
+        )
 
     @property
     def event_timestamp(self):
@@ -1214,7 +1342,11 @@ class Responses(db.Model):
         the newest timestamp of the newest event which will be displayed on the frontend.
         :return: timestamp of the newest event row associated with a response
         """
-        timestamps = Events.query.filter_by(response_id=self.id).order_by(desc(Events.timestamp)).all()
+        timestamps = (
+            Events.query.filter_by(response_id=self.id)
+            .order_by(desc(Events.timestamp))
+            .all()
+        )
         if timestamps:
             return timestamps[0].timestamp
         return self.date_modified
@@ -1225,7 +1357,7 @@ class Responses(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return '<Responses %r>' % self.id
+        return "<Responses %r>" % self.id
 
 
 class Reasons(db.Model):
@@ -1241,35 +1373,40 @@ class Reasons(db.Model):
     Reason are based off the Law Department's responses.
 
     """
-    __tablename__ = 'reasons'
+
+    __tablename__ = "reasons"
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.Enum(
-        determination_type.CLOSING,
-        determination_type.DENIAL,
-        determination_type.REOPENING,
-        name="reason_type"
-    ), nullable=False)
-    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    type = db.Column(
+        db.Enum(
+            determination_type.CLOSING,
+            determination_type.DENIAL,
+            determination_type.REOPENING,
+            name="reason_type",
+        ),
+        nullable=False,
+    )
+    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
     has_appeals_language = db.Column(db.Boolean, default=True)
 
     @classmethod
     def populate(cls):
-        with open(current_app.config['REASON_DATA'], 'r') as data:
+        with open(current_app.config["REASON_DATA"], "r") as data:
             dictreader = csv.DictReader(data)
 
             for row in dictreader:
-                agency_ein = row['agency_ein'] if row['agency_ein'] else None
+                agency_ein = row["agency_ein"] if row["agency_ein"] else None
                 reason = cls(
-                    type=row['type'],
-                    title=row['title'],
-                    content=row['content'],
-                    has_appeals_language=eval_request_bool(row['has_appeals_language']),
-                    agency_ein=agency_ein
+                    type=row["type"],
+                    title=row["title"],
+                    content=row["content"],
+                    has_appeals_language=eval_request_bool(row["has_appeals_language"]),
+                    agency_ein=agency_ein,
                 )
-                if not Reasons.query.filter_by(title=row['title'], content=row['content'],
-                                               agency_ein=agency_ein).first():
+                if not Reasons.query.filter_by(
+                    title=row["title"], content=row["content"], agency_ein=agency_ein
+                ).first():
                     db.session.add(reason)
             db.session.commit()
 
@@ -1289,13 +1426,19 @@ class UserRequests(db.Model):
             for public information.
     point_of_contact = a boolean to determine the point of contact of a request
     """
-    __tablename__ = 'user_requests'
+
+    __tablename__ = "user_requests"
     user_guid = db.Column(db.String(64), primary_key=True)
-    request_id = db.Column(db.String(19), db.ForeignKey("requests.id"), primary_key=True)
+    request_id = db.Column(
+        db.String(19), db.ForeignKey("requests.id"), primary_key=True
+    )
     request_user_type = db.Column(
-        db.Enum(user_type_request.REQUESTER,
-                user_type_request.AGENCY,
-                name='request_user_type'))
+        db.Enum(
+            user_type_request.REQUESTER,
+            user_type_request.AGENCY,
+            name="request_user_type",
+        )
+    )
     permissions = db.Column(db.BigInteger)
     point_of_contact = db.Column(db.Boolean, default=False)
     # Note: If an anonymous user creates a request, they will be listed in the UserRequests table, but will have the
@@ -1303,11 +1446,7 @@ class UserRequests(db.Model):
     # current anonymous user is in fact the requester.
 
     __table_args__ = (
-        db.ForeignKeyConstraint(
-            [user_guid],
-            [Users.guid],
-            onupdate="CASCADE"
-        ),
+        db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
     )
 
     @property
@@ -1319,7 +1458,7 @@ class UserRequests(db.Model):
             "user_guid": self.user_guid,
             "request_user_type": self.request_user_type,
             "permissions": self.permissions,
-            "point_of_contact": self.point_of_contact
+            "point_of_contact": self.point_of_contact,
         }
 
     def has_permission(self, perm):
@@ -1355,7 +1494,9 @@ class UserRequests(db.Model):
         db.session.commit()
 
     def get_permission_choice_indices(self):
-        return [i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)]
+        return [
+            i for i, p in enumerate(permission.ALL) if bool(self.permissions & p.value)
+        ]
 
 
 class ResponseTokens(db.Model):
@@ -1367,15 +1508,15 @@ class ResponseTokens(db.Model):
     response_id - a foreign key that links to a response's primary key
     expiration_date - a datetime object containing the date at which this token becomes invalid
     """
-    __tablename__ = 'response_tokens'
+
+    __tablename__ = "response_tokens"
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String, nullable=False)
     response_id = db.Column(db.Integer, db.ForeignKey("responses.id"), nullable=False)
 
     response = db.relationship("Responses", backref=db.backref("token", uselist=False))
 
-    def __init__(self,
-                 response_id):
+    def __init__(self, response_id):
         self.token = self.generate_token()
         self.response_id = response_id
 
@@ -1391,21 +1532,16 @@ class Notes(Responses):
     id - an integer that is the primary key of Notes
     content - a string that contains the content of a note
     """
+
     __tablename__ = response_type.NOTE
-    __mapper_args__ = {'polymorphic_identity': response_type.NOTE}
+    __mapper_args__ = {"polymorphic_identity": response_type.NOTE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String(5000))
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 content,
-                 date_modified=None,
-                 is_editable=False):
-        super(Notes, self).__init__(request_id,
-                                    privacy,
-                                    date_modified,
-                                    is_editable)
+    def __init__(
+        self, request_id, privacy, content, date_modified=None, is_editable=False
+    ):
+        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable)
         self.content = content
 
     @property
@@ -1424,8 +1560,9 @@ class Files(Responses):
     size - a string containing the size of a file
     hash - a string containing the sha1 hash of a file
     """
+
     __tablename__ = response_type.FILE
-    __mapper_args__ = {'polymorphic_identity': response_type.FILE}
+    __mapper_args__ = {"polymorphic_identity": response_type.FILE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String(250))
     name = db.Column(db.String)
@@ -1433,41 +1570,31 @@ class Files(Responses):
     size = db.Column(db.Integer)
     hash = db.Column(db.String)
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 title,
-                 name,
-                 mime_type,
-                 size,
-                 hash_,
-                 date_modified=None,
-                 is_editable=False):
+    def __init__(
+        self,
+        request_id,
+        privacy,
+        title,
+        name,
+        mime_type,
+        size,
+        hash_,
+        date_modified=None,
+        is_editable=False,
+    ):
         try:
             file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).all()
             for file in file_exists:
                 if not file.deleted:
-                    raise DuplicateFileException(
-                        file_name=name,
-                        request_id=request_id
-                    )
+                    raise DuplicateFileException(file_name=name, request_id=request_id)
         except DuplicateFileException:
             sentry.captureException()
-            raise DuplicateFileException(
-                file_name=name,
-                request_id=request_id
-            )
+            raise DuplicateFileException(file_name=name, request_id=request_id)
         except MultipleResultsFound:
             sentry.captureException()
-            raise DuplicateFileException(
-                file_name=name,
-                request_id=request_id
-            )
+            raise DuplicateFileException(file_name=name, request_id=request_id)
 
-        super(Files, self).__init__(request_id,
-                                    privacy,
-                                    date_modified,
-                                    is_editable)
+        super(Files, self).__init__(request_id, privacy, date_modified, is_editable)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -1487,23 +1614,17 @@ class Links(Responses):
     title - a string containing the title of a link
     url - a string containing the url link
     """
+
     __tablename__ = response_type.LINK
-    __mapper_args__ = {'polymorphic_identity': response_type.LINK}
+    __mapper_args__ = {"polymorphic_identity": response_type.LINK}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String)
     url = db.Column(db.String)
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 title,
-                 url,
-                 date_modified=None,
-                 is_editable=False):
-        super(Links, self).__init__(request_id,
-                                    privacy,
-                                    date_modified,
-                                    is_editable)
+    def __init__(
+        self, request_id, privacy, title, url, date_modified=None, is_editable=False
+    ):
+        super(Links, self).__init__(request_id, privacy, date_modified, is_editable)
         self.title = title
         self.url = url
 
@@ -1519,21 +1640,18 @@ class Instructions(Responses):
     id - an integer that is the primary key of Instructions
     content - a string containing the content of an instruction
     """
+
     __tablename__ = response_type.INSTRUCTIONS
-    __mapper_args__ = {'polymorphic_identity': response_type.INSTRUCTIONS}
+    __mapper_args__ = {"polymorphic_identity": response_type.INSTRUCTIONS}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     content = db.Column(db.String)
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 content,
-                 date_modified=None,
-                 is_editable=False):
-        super(Instructions, self).__init__(request_id,
-                                           privacy,
-                                           date_modified,
-                                           is_editable)
+    def __init__(
+        self, request_id, privacy, content, date_modified=None, is_editable=False
+    ):
+        super(Instructions, self).__init__(
+            request_id, privacy, date_modified, is_editable
+        )
         self.content = content
 
     @property
@@ -1552,8 +1670,9 @@ class Emails(Responses):
     subject - a string containing the subject of an email
     email_content - a string containing the content of an email
     """
+
     __tablename__ = response_type.EMAIL
-    __mapper_args__ = {'polymorphic_identity': response_type.EMAIL}
+    __mapper_args__ = {"polymorphic_identity": response_type.EMAIL}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     to = db.Column(db.String)
     cc = db.Column(db.String)
@@ -1561,20 +1680,19 @@ class Emails(Responses):
     subject = db.Column(db.String(5000))
     body = db.Column(db.String)
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 to,
-                 cc,
-                 bcc,
-                 subject,
-                 body,
-                 date_modified=None,
-                 is_editable=False):
-        super(Emails, self).__init__(request_id,
-                                     privacy,
-                                     date_modified,
-                                     is_editable)
+    def __init__(
+        self,
+        request_id,
+        privacy,
+        to,
+        cc,
+        bcc,
+        subject,
+        body,
+        date_modified=None,
+        is_editable=False,
+    ):
+        super(Emails, self).__init__(request_id, privacy, date_modified, is_editable)
         self.to = to
         self.cc = cc
         self.bcc = bcc
@@ -1587,10 +1705,7 @@ class Emails(Responses):
 
     @property
     def val_for_events(self):
-        return {
-            'privacy': self.privacy,
-            'body': self.body,
-        }
+        return {"privacy": self.privacy, "body": self.body}
 
 
 class Envelopes(Responses):
@@ -1600,23 +1715,16 @@ class Envelopes(Responses):
     id - an integer that is the primary key of Envelopes (FK to Responses)
     latex - the latex used to generate the envelope PDF
     """
+
     __tablename__ = response_type.ENVELOPE
-    __mapper_args__ = {'polymorphic_identity': response_type.ENVELOPE}
+    __mapper_args__ = {"polymorphic_identity": response_type.ENVELOPE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     latex = db.Column(db.String)
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 latex,
-                 date_modified=None,
-                 is_editable=False):
-        super(Envelopes, self).__init__(
-            request_id,
-            privacy,
-            date_modified,
-            is_editable
-        )
+    def __init__(
+        self, request_id, privacy, latex, date_modified=None, is_editable=False
+    ):
+        super(Envelopes, self).__init__(request_id, privacy, date_modified, is_editable)
         self.latex = latex
 
     @property
@@ -1634,26 +1742,32 @@ class EnvelopeTemplates(db.Model):
     title - a short descriptor for the envelope template
     template_name - the name of the template to be loaded from the filesystem
     """
-    __tablename__ = 'envelope_templates'
+
+    __tablename__ = "envelope_templates"
     id = db.Column(db.Integer, primary_key=True)
-    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"))
     title = db.Column(db.String, nullable=False)
     template_name = db.Column(db.String, nullable=False)
 
     @classmethod
     def populate(cls, csv_name=None):
-        filename = csv_name or current_app.config['ENVELOPE_TEMPLATES_DATA']
+        filename = csv_name or current_app.config["ENVELOPE_TEMPLATES_DATA"]
         print(filename)
-        with open(filename, 'r') as data:
+        with open(filename, "r") as data:
             dictreader = csv.DictReader(data)
             for row in dictreader:
-                if EnvelopeTemplates.query.filter_by(agency_ein=row['agency_ein'],
-                                                     title=row['title'],
-                                                     template_name=row['template_name']).one_or_none() is None:
+                if (
+                    EnvelopeTemplates.query.filter_by(
+                        agency_ein=row["agency_ein"],
+                        title=row["title"],
+                        template_name=row["template_name"],
+                    ).one_or_none()
+                    is None
+                ):
                     template = EnvelopeTemplates(
-                        agency_ein=row['agency_ein'],
-                        title=row['title'],
-                        template_name=row['template_name']
+                        agency_ein=row["agency_ein"],
+                        title=row["title"],
+                        template_name=row["template_name"],
                     )
                     db.session.add(template)
 
@@ -1667,23 +1781,17 @@ class Letters(Responses):
     id - an integer that is the primary key of Letters (FK to Responses)
     content - A string containing the content of a letter (HTML Formatted)
     """
+
     __tablename__ = response_type.LETTER
-    __mapper_args__ = {'polymorphic_identity': response_type.LETTER}
+    __mapper_args__ = {"polymorphic_identity": response_type.LETTER}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String)
 
-    def __init__(self,
-                 request_id,
-                 privacy,
-                 title,
-                 content,
-                 date_modified=None,
-                 is_editable=False):
-        super(Letters, self).__init__(request_id,
-                                      privacy,
-                                      date_modified,
-                                      is_editable)
+    def __init__(
+        self, request_id, privacy, title, content, date_modified=None, is_editable=False
+    ):
+        super(Letters, self).__init__(request_id, privacy, date_modified, is_editable)
         self.title = title
         self.content = content
 
@@ -1705,36 +1813,46 @@ class LetterTemplates(db.Model):
     Reason are based off the Law Department's responses.
 
     """
-    __tablename__ = 'letter_templates'
+
+    __tablename__ = "letter_templates"
     id = db.Column(db.Integer, primary_key=True)
-    type_ = db.Column(db.Enum(
-        determination_type.ACKNOWLEDGMENT,
-        determination_type.EXTENSION,
-        determination_type.CLOSING,
-        determination_type.DENIAL,
-        determination_type.REOPENING,
-        response_type.LETTER,
-        name="letter_type"
-    ), nullable=False, name='type')
-    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'))
+    type_ = db.Column(
+        db.Enum(
+            determination_type.ACKNOWLEDGMENT,
+            determination_type.EXTENSION,
+            determination_type.CLOSING,
+            determination_type.DENIAL,
+            determination_type.REOPENING,
+            response_type.LETTER,
+            name="letter_type",
+        ),
+        nullable=False,
+        name="type",
+    )
+    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"))
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
 
     @classmethod
     def populate(cls, csv_name=None):
-        filename = csv_name or current_app.config['LETTER_TEMPLATES_DATA']
-        with open(filename, 'r') as data:
+        filename = csv_name or current_app.config["LETTER_TEMPLATES_DATA"]
+        with open(filename, "r") as data:
             dictreader = csv.DictReader(data)
             for row in dictreader:
-                if LetterTemplates.query.filter_by(type_=row['type'],
-                                                   agency_ein=row['agency_ein'],
-                                                   title=row['title'],
-                                                   content=row['content']).one_or_none() is None:
+                if (
+                    LetterTemplates.query.filter_by(
+                        type_=row["type"],
+                        agency_ein=row["agency_ein"],
+                        title=row["title"],
+                        content=row["content"],
+                    ).one_or_none()
+                    is None
+                ):
                     template = LetterTemplates(
-                        type_=row['type'],
-                        agency_ein=row['agency_ein'],
-                        title=row['title'],
-                        content=row['content']
+                        type_=row["type"],
+                        agency_ein=row["agency_ein"],
+                        title=row["title"],
+                        content=row["content"],
                     )
                     db.session.add(template)
 
@@ -1759,42 +1877,56 @@ class Determinations(Responses):
     reopening      | new estimated date of completion | N/A
 
     """
+
     __tablename__ = response_type.DETERMINATION
-    __mapper_args__ = {'polymorphic_identity': response_type.DETERMINATION}
+    __mapper_args__ = {"polymorphic_identity": response_type.DETERMINATION}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    dtype = db.Column(db.Enum(
-        determination_type.DENIAL,
-        determination_type.ACKNOWLEDGMENT,
-        determination_type.EXTENSION,
-        determination_type.CLOSING,
-        determination_type.REOPENING,
-        name="determination_type"
-    ), nullable=False)
+    dtype = db.Column(
+        db.Enum(
+            determination_type.DENIAL,
+            determination_type.ACKNOWLEDGMENT,
+            determination_type.EXTENSION,
+            determination_type.CLOSING,
+            determination_type.REOPENING,
+            name="determination_type",
+        ),
+        nullable=False,
+    )
     reason = db.Column(db.String)  # nullable only for acknowledge and re-opening
     date = db.Column(db.DateTime)  # nullable only for denial, closing
 
-    def __init__(self,
-                 request_id,
-                 privacy,  # TODO: always RELEASE_AND_PUBLIC?
-                 dtype,
-                 reason,
-                 date=None,
-                 date_modified=None,
-                 is_editable=False):
-        super(Determinations, self).__init__(request_id,
-                                             privacy,
-                                             date_modified,
-                                             is_editable)
+    def __init__(
+        self,
+        request_id,
+        privacy,  # TODO: always RELEASE_AND_PUBLIC?
+        dtype,
+        reason,
+        date=None,
+        date_modified=None,
+        is_editable=False,
+    ):
+        super(Determinations, self).__init__(
+            request_id, privacy, date_modified, is_editable
+        )
         self.dtype = dtype
 
-        if dtype not in (determination_type.ACKNOWLEDGMENT,
-                         determination_type.REOPENING) and reason is None:
-            raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='reason')
+        if (
+            dtype
+            not in (determination_type.ACKNOWLEDGMENT, determination_type.REOPENING)
+            and reason is None
+        ):
+            raise InvalidDeterminationException(
+                request_id=request_id, dtype=dtype, missing_field="reason"
+            )
         self.reason = reason
 
-        if dtype not in (determination_type.DENIAL,
-                         determination_type.CLOSING) and date is None:
-            raise InvalidDeterminationException(request_id=request_id, dtype=dtype, missing_field='date')
+        if (
+            dtype not in (determination_type.DENIAL, determination_type.CLOSING)
+            and date is None
+        ):
+            raise InvalidDeterminationException(
+                request_id=request_id, dtype=dtype, missing_field="date"
+            )
         self.date = date
 
     @property
@@ -1803,13 +1935,13 @@ class Determinations(Responses):
 
     @property
     def val_for_events(self):
-        val = {
-            'reason': self.reason
-        }
-        if self.dtype in (determination_type.ACKNOWLEDGMENT,
-                          determination_type.EXTENSION,
-                          determination_type.REOPENING):
-            val['due_date'] = self.date.isoformat()
+        val = {"reason": self.reason}
+        if self.dtype in (
+            determination_type.ACKNOWLEDGMENT,
+            determination_type.EXTENSION,
+            determination_type.REOPENING,
+        ):
+            val["due_date"] = self.date.isoformat()
         return val
 
 
@@ -1825,19 +1957,18 @@ class CommunicationMethods(db.Model):
     method_id - an integer that is a primary key of CommunicationMethods (FK to Responses)
     method_type - enum ('letters', 'emails') method associated with the response
     """
-    __tablename__ = 'communication_methods'
+
+    __tablename__ = "communication_methods"
     response_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
     method_id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    method_type = db.Column(db.Enum(
-        response_type.LETTER,
-        response_type.EMAIL,
-        name='communication_method_type'
-    ), nullable=True)
+    method_type = db.Column(
+        db.Enum(
+            response_type.LETTER, response_type.EMAIL, name="communication_method_type"
+        ),
+        nullable=True,
+    )
 
-    def __init__(self,
-                 response_id,
-                 method_id,
-                 method_type):
+    def __init__(self, response_id, method_id, method_type):
         self.response_id = response_id
         self.method_id = method_id
         self.method_type = method_type
@@ -1856,9 +1987,10 @@ class CustomRequestForms(db.Model):
     category - an integer to separate different types of custom forms for an agency
     minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
     """
-    __tablename__ = 'custom_request_forms'
+
+    __tablename__ = "custom_request_forms"
     id = db.Column(db.Integer, primary_key=True)
-    agency_ein = db.Column(db.String(4), db.ForeignKey('agencies.ein'), nullable=False)
+    agency_ein = db.Column(db.String(4), db.ForeignKey("agencies.ein"), nullable=False)
     form_name = db.Column(db.String, nullable=False)
     form_description = db.Column(db.String, nullable=False)
     field_definitions = db.Column(JSONB, nullable=False)
@@ -1871,24 +2003,32 @@ class CustomRequestForms(db.Model):
         """
         Automatically populate the custom_request_forms table for the OpenRecords application.
         """
-        filename = json_name or current_app.config['CUSTOM_REQUEST_FORMS_DATA']
-        with open(filename, 'r') as data:
+        filename = json_name or current_app.config["CUSTOM_REQUEST_FORMS_DATA"]
+        with open(filename, "r") as data:
             data = json.load(data)
 
-            for form in data['custom_request_forms']:
-                if CustomRequestForms.query.filter_by(agency_ein=form['agency_ein'],
-                                                      form_name=form['form_name']).first() is not None:
-                    warn("Duplicate custom_request_form ({}); Row not imported".format(form['agency_ein']),
-                         category=UserWarning)
+            for form in data["custom_request_forms"]:
+                if (
+                    CustomRequestForms.query.filter_by(
+                        agency_ein=form["agency_ein"], form_name=form["form_name"]
+                    ).first()
+                    is not None
+                ):
+                    warn(
+                        "Duplicate custom_request_form ({}); Row not imported".format(
+                            form["agency_ein"]
+                        ),
+                        category=UserWarning,
+                    )
                     continue
                 custom_request_form = cls(
-                    agency_ein=form['agency_ein'],
-                    form_name=form['form_name'],
-                    form_description=form['form_description'],
-                    field_definitions=form['field_definitions'],
-                    repeatable=form['repeatable'],
-                    category=form['category'],
-                    minimum_required=form['minimum_required']
+                    agency_ein=form["agency_ein"],
+                    form_name=form["form_name"],
+                    form_description=form["form_description"],
+                    field_definitions=form["field_definitions"],
+                    repeatable=form["repeatable"],
+                    category=form["category"],
+                    minimum_required=form["minimum_required"],
                 )
                 db.session.add(custom_request_form)
             db.session.commit()
