@@ -1,5 +1,4 @@
-<script type="text/javascript">
-    /* globals characterCounter: true */
+  /* globals characterCounter: true */
 
     /* globals getRequestAgencyInstructions: true */
     /* globals getCustomRequestForms: true */
@@ -47,7 +46,7 @@
                 }
             }
         });
-    
+
         $("#request-category").change(function () {
             $.ajax({
                 url: "/request/agencies",
@@ -353,7 +352,7 @@
             $(".upload-error").remove();
         });
 
-        var showSsnWarning = true; // variable to determine is the SSN warning modal should be shown
+        var showPIIWarning = true; // variable to determine is the SSN warning modal should be shown
         // Disable submit button on form submission
         $("#request-form").on("submit", function (e) {
             $(".remove-on-resubmit").remove();
@@ -377,15 +376,11 @@
                     return;
                 }
 
-                var ssnInTitle = checkSSN($('#request-title').val());
-                var ssnInDescription = checkSSN($('#request-description').val());
-                var ssnInCustomRequestForms = checkSSN($('#custom-request-forms-data').val());
-
-                if ((ssnInTitle || ssnInDescription || ssnInCustomRequestForms) && showSsnWarning) {
+                if (showPIIWarning) {
                     e.preventDefault();
                     $('#submit').show();
                     $('#pii-warning-modal').modal('show');
-                    showSsnWarning = false;
+                    showPIIWarning = false;
                     return;
                 }
             }
@@ -423,4 +418,3 @@
             characterCounter("#organization-character-count", 128, $(this).val().length);
         });
     });
-</script>

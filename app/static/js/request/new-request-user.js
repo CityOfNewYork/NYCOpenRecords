@@ -77,12 +77,10 @@ $(document).ready(function () {
                     $("#cancel-change-category-button").off().click(function () {
                         $(targetId).val(previousValues[target - 1]);
                     });
-                }
-                else{ // otherwise render the form normally
+                } else { // otherwise render the form normally
                     renderCustomRequestForm(target);
                 }
-            }
-            else {
+            } else {
                 renderCustomRequestForm(target);
                 categorySelected = true;
             }
@@ -176,8 +174,7 @@ $(document).ready(function () {
         // TODO: this or combine (see the other new-request-* js files)
         if ($("#request-file").parsley().isValid() === false) {
             $(".file-error").show();
-        }
-        else {
+        } else {
             $(".file-error").hide();
         }
 
@@ -233,14 +230,16 @@ $(document).ready(function () {
                 return;
             }
 
-            var ssnInTitle = checkSSN($('#request-title').val());
-            var ssnInDescription = checkSSN($('#request-description').val());
-            var ssnInCustomRequestForms = checkSSN($('#custom-request-forms-data').val());
-             if ((ssnInTitle || ssnInDescription || ssnInCustomRequestForms) && showSsnWarning) {
+            e.preventDefault();
+            $('#submit').show();
+            $('#pii-warning-modal').modal('show');
+            return;
+
+            if (showPIIWarning) {
                 e.preventDefault();
                 $('#submit').show();
                 $('#pii-warning-modal').modal('show');
-                showSsnWarning = false;
+                showPIIWarning = false;
                 return;
             }
         }

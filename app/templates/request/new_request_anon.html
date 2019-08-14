@@ -274,7 +274,8 @@
             src="{{ url_for('static', filename='js/plugins/jquery.timepicker.min.js') }}"></script>
     <script type="text/javascript"
             src="{{ url_for('static', filename='js/validation/custom_validators.js') }}"></script>
-    {% include 'request/new_request_anon.js.html' %}
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='js/request/new-request-anon.js') }}"></script>
     <script src='https://www.google.com/recaptcha/api.js'></script>
     {#    <script type="text/javascript"#}
     {#            src="{{ url_for('static', filename='js/request/validate-recaptcha.js') }}"></script>#}
