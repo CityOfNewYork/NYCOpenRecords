@@ -917,7 +917,7 @@ class Requests(db.Model):
                 not self.privacy["title"]
                 and (
                     self.was_acknowledged
-                    or self.last_date_closed is not None
+                    or self.status == request_status.CLOSED
                     or self.days_until_due < 0
                 )
             )
