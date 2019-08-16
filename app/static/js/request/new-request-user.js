@@ -230,11 +230,6 @@ $(document).ready(function () {
                 return;
             }
 
-            e.preventDefault();
-            $('#submit').show();
-            $('#pii-warning-modal').modal('show');
-            return;
-
             if (showPIIWarning) {
                 e.preventDefault();
                 $('#submit').show();

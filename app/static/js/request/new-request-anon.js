@@ -355,6 +355,7 @@
         var showPIIWarning = true; // variable to determine is the SSN warning modal should be shown
         // Disable submit button on form submission
         $("#request-form").on("submit", function (e) {
+            debugger;
             $(".remove-on-resubmit").remove();
             if ($("#request-form").parsley().isValid()) {
                 // section to check if at least one request type has been selected
