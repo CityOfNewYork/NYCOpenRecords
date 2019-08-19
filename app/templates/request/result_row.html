@@ -1,24 +1,24 @@
 {% for request in requests %}
-<tr>
-{% if current_user.is_agency %}
-    {% if request._source.status == "Open" %}
-        <td class="open">Open</td>
-    {% elif request._source.status == "In Progress" %}
-        <td class="progress">In Progress</td>
-    {% elif request._source.status == "Due Soon" %}
-        <td class="soon">Due Soon</td>
-    {% elif request._source.status == "Overdue" %}
-        <td class="overdue">Overdue</td>
-    {% elif request._source.status == "Closed" %}
-        <td class="closed">Closed</td>
-    {% endif %}
-{% else %}
-    {% if request._source.status == "Closed" %}
-        <td class="closed">Closed</td>
-    {% else %}
-        <td class="open">Open</td>
-    {% endif %}
-{% endif %}
+    <tr>
+        {% if current_user.is_agency %}
+            {% if request._source.status == "Open" %}
+                <td class="open">Open</td>
+            {% elif request._source.status == "In Progress" %}
+                <td class="progress">In Progress</td>
+            {% elif request._source.status == "Due Soon" %}
+                <td class="soon">Due Soon</td>
+            {% elif request._source.status == "Overdue" %}
+                <td class="overdue">Overdue</td>
+            {% elif request._source.status == "Closed" %}
+                <td class="closed">Closed</td>
+            {% endif %}
+        {% else %}
+            {% if request._source.status == "Closed" %}
+                <td class="closed">Closed</td>
+            {% else %}
+                <td class="open">Open</td>
+            {% endif %}
+        {% endif %}
         <td>
             {{ request._id }}
         </td>
@@ -29,7 +29,11 @@
             {% if current_user.is_agency %}
                 <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
             {% else %}
-                <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title }}</a>
+                {% if request._source.date_due > today %}
+                    <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title }}</a>
+                {% else %}
+                    <a href="{{ url_for("request.view", request_id=request._id) }}">Under Review</a>
+                {% endif %}
             {% endif %}
         </td>
         {% if current_user.is_agency %}
@@ -57,5 +61,5 @@
                 <td><strong>Redacted</strong></td>
             {% endif %}
         {% endif %}
- </tr>
+    </tr>
 {% endfor %}

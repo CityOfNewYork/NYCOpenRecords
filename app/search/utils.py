@@ -154,7 +154,7 @@ def create_docs():
             "agency_ein": r.agency_ein,
             "agency_acronym": agency_eins[r.agency_ein].acronym,
             "agency_name": agency_eins[r.agency_ein].name,
-            "public_title": "Private" if not r.show_title else r.title,
+            "public_title": "Private" if not r.privacy["title"] else r.title,
             "assigned_users": [
                 "{guid}".format(guid=user.guid) for user in r.agency_users
             ]

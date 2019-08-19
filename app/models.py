@@ -976,7 +976,7 @@ class Requests(db.Model):
                             "status": self.status,
                             "requester_name": self.requester.name,
                             "public_title": "Private"
-                            if self.privacy["title"]
+                            if not self.privacy["title"]
                             else self.title,
                         }
                     },
@@ -1015,7 +1015,9 @@ class Requests(db.Model):
                         else ""
                     ),
                     "requester_name": self.requester.name,
-                    "public_title": "Private" if not self.show_title else self.title,
+                    "public_title": "Private"
+                    if not self.privacy["title"]
+                    else self.title,
                 },
             )
 
