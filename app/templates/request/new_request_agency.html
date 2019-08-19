@@ -246,6 +246,7 @@
                 </div>
                 <input type="hidden" name="tz-name">
                 {{ form.submit(id="submit", class="btn-primary") }}
+                {% include "request/_pii_warning_modal.html" %}
                 <span id="processing-submission" hidden>
                     <img src="{{ url_for("static", filename="img/loading.gif") }}"
                          alt="Processing" height="40" width="40">

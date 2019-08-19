@@ -1,5 +1,6 @@
 /* globals requiredFields: true */
 "use strict";
+var showPIIWarning = true;
 
 // Don't cache ajax requests
 $.ajaxSetup({cache: false});
@@ -838,5 +839,6 @@ function handlePIIModalReview(){
     $('#processing-submission').hide();
     $('#submit').show();
     $(window).scrollTop($('#request-title').offset().top - 50);
+    showPIIWarning = true;
     return;
 }
