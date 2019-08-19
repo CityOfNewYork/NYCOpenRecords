@@ -68,12 +68,10 @@ $(document).ready(function () {
                     $("#cancel-change-category-button").off().click(function () {
                         $(targetId).val(previousValues[target - 1]);
                     });
-                }
-                else{ // otherwise render the form normally
+                } else { // otherwise render the form normally
                     renderCustomRequestForm(target);
                 }
-            }
-            else {
+            } else {
                 renderCustomRequestForm(target);
                 categorySelected = true;
             }
@@ -120,7 +118,7 @@ $(document).ready(function () {
 
     // Loop through required fields and apply a data-parsley-required attribute to them
     var requiredFields = ["request-title", "request-description", "first-name", "last-name", "email",
-    "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
+        "phone", "fax", "address-line-1", "method-received", "request-date", "city", "zipcode"];
 
     for (var i = 0; i < requiredFields.length; i++) {
         $("#" + requiredFields[i]).attr("data-parsley-required", "");
@@ -245,8 +243,7 @@ $(document).ready(function () {
             $("#fax").removeAttr("data-parsley-required");
             $("#address-line-1").removeAttr("data-parsley-required");
             $("#email").removeAttr("data-parsley-required");
-        }
-        else {
+        } else {
             // If none of the fields are valid then produce an error message and apply required fields.
             $(".contact-form-error-message").html("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
                 "<strong>Error, contact information is required.</strong>" +
@@ -259,32 +256,25 @@ $(document).ready(function () {
 
         if ($("#request-file").parsley().isValid() === false) {
             $(".file-error").show();
-        }
-        else {
+        } else {
             $(".file-error").hide();
         }
 
         // Scroll to input label if parsley validation fails
         if ($("#request-title").parsley().isValid() === false) {
             $(window).scrollTop($(".title-label").offset().top);
-        }
-        else if ($("#request-description").parsley().isValid() === false) {
+        } else if ($("#request-description").parsley().isValid() === false) {
             $(window).scrollTop($(".description-label").offset().top);
-        }
-        else if ($("#request-file").parsley().isValid() === false) {
+        } else if ($("#request-file").parsley().isValid() === false) {
             $(".file-error").show();
             $(window).scrollTop($("#upload-control").offset().top);
-        }
-        else if ($("#method-received").parsley().isValid() === false) {
+        } else if ($("#method-received").parsley().isValid() === false) {
             $(window).scrollTop($(".format-label").offset().top);
-        }
-        else if ($("#first-name").parsley().isValid() === false) {
+        } else if ($("#first-name").parsley().isValid() === false) {
             $(window).scrollTop($(".first-name-label").offset().top);
-        }
-        else if ($("#last-name").parsley().isValid() === false) {
+        } else if ($("#last-name").parsley().isValid() === false) {
             $(window).scrollTop($(".last-name-label").offset().top);
-        }
-        else if ($("#email").parsley().isValid() === false) {
+        } else if ($("#email").parsley().isValid() === false) {
             $(window).scrollTop($(".email-label").offset().top);
         }
     });
@@ -333,6 +323,14 @@ $(document).ready(function () {
                 $("#processing-submission").hide();
                 $("#submit").show();
                 $(window).scrollTop($(invalidForms[0]).offset().top);
+                return;
+            }
+
+            if (showPIIWarning) {
+                e.preventDefault();
+                $('#submit').show();
+                $('#pii-warning-modal').modal('show');
+                showPIIWarning = false;
                 return;
             }
         }

@@ -6,6 +6,7 @@
     /* globals renderCustomRequestForm: true */
     /* globals processCustomRequestForms: true */
     /* globals requiredFields: true */
+    /* globals showPIIWarning: true */
     "use strict";
 
     $(document).ready(function () {
@@ -353,7 +354,6 @@
             $(".upload-error").remove();
         });
 
-        var showPIIWarning = true; // variable to determine is the SSN warning modal should be shown
         // Disable submit button on form submission
         $("#request-form").on("submit", function (e) {
             $(".remove-on-resubmit").remove();

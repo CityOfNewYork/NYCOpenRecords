@@ -206,7 +206,6 @@ $(document).ready(function () {
         $(".upload-error").remove();
     });
 
-    var showPIIWarning = true; // variable to determine is the SSN warning modal should be shown
     // Disable submit button on form submission
     $("#request-form").submit(function (e) {
         $(".remove-on-resubmit").remove();
