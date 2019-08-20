@@ -39,7 +39,11 @@
                         {% if request.show_title %}
                             {{ request.title }}
                         {% else %}
-                            <i>Under Review</i>
+                            {% if request.was_acknowledged or request.status == "Closed" %}
+                                <p>Private</p>
+                            {% else %}
+                                <i>Under Review</i>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </div>

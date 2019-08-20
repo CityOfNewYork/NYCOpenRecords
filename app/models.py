@@ -1000,7 +1000,6 @@ class Requests(db.Model):
                     "agency_ein": self.agency_ein,
                     "agency_name": self.agency.name,
                     "assigned_users": [user.get_id() for user in self.agency_users],
-                    "title_private": self.privacy["title"],
                     "agency_acronym": self.agency.acronym,
                     "title_private": self.privacy["title"],
                     "agency_request_summary_private": not self.agency_request_summary_released,
@@ -1018,7 +1017,6 @@ class Requests(db.Model):
                         else ""
                     ),
                     "requester_name": self.requester.name,
-                    "public_title": "Private" if self.privacy["title"] else self.title,
                     "public_title": "Private" if self.privacy["title"] else self.title,
                 },
             )
