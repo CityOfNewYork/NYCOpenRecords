@@ -898,7 +898,6 @@ class Requests(db.Model):
     @property
     def show_title(self) -> bool:
         """Determine whether the title should be displayed on the front-end.
-
         The title may be displayed in the following circumstances:
             - The currently logged in user is in the requests assigned agency users OR
             - The current User is the requester OR
@@ -906,7 +905,6 @@ class Requests(db.Model):
                 - The request was acknowledged OR
                 - The request was denied OR
                 - The request is overdue for an acknowledgment
-
         Returns:
             bool: True if the title should be shown, False otherwise.
         """
@@ -975,8 +973,13 @@ class Requests(db.Model):
                             else [],
                             "status": self.status,
                             "requester_name": self.requester.name,
+                            "requester_id": (
+                                self.requester.get_id()
+                                if not self.requester.is_anonymous_requester
+                                else ""
+                            ),
                             "public_title": "Private"
-                            if not self.privacy["title"]
+                            if self.privacy["title"]
                             else self.title,
                         }
                     },
@@ -986,7 +989,6 @@ class Requests(db.Model):
     def es_create(self):
         """ Must be called AFTER UserRequest has been created. """
         if current_app.config["ELASTICSEARCH_ENABLED"]:
-            print("Private" if not self.show_title else self.title)
             es.create(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
                 doc_type="request",
@@ -998,6 +1000,7 @@ class Requests(db.Model):
                     "agency_ein": self.agency_ein,
                     "agency_name": self.agency.name,
                     "assigned_users": [user.get_id() for user in self.agency_users],
+                    "title_private": self.privacy["title"],
                     "agency_acronym": self.agency.acronym,
                     "title_private": self.privacy["title"],
                     "agency_request_summary_private": not self.agency_request_summary_released,
@@ -1015,9 +1018,8 @@ class Requests(db.Model):
                         else ""
                     ),
                     "requester_name": self.requester.name,
-                    "public_title": "Private"
-                    if not self.privacy["title"]
-                    else self.title,
+                    "public_title": "Private" if self.privacy["title"] else self.title,
+                    "public_title": "Private" if self.privacy["title"] else self.title,
                 },
             )
 

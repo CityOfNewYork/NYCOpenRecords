@@ -422,7 +422,7 @@ def view(request_id):
         active_users=active_users,
         permissions=permissions,
         show_agency_request_summary=show_agency_request_summary,
-        show_title=current_request.show_title,
+        show_title=show_title,
         is_requester=(current_request.requester == current_user),
         permissions_length=len(permission.ALL),
         generate_letters_enabled=generate_letters_enabled,

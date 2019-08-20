@@ -26,11 +26,15 @@
             {{ moment(request._source.date_received).format('MM/DD/YYYY') }}
         </td>
         <td>
-            {% if current_user.is_agency %}
-                <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
+            {% if current_user.guid in request._source.agency_users or current_user.guid == request._source.requester_id %}
+                {{ request._source.title }}
             {% else %}
-                {% if request._source.date_due > today %}
-                    <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title }}</a>
+                {% if request._source.status in ["Closed", "In Progress"] or request._source.date_due < today %}
+                    {% if request._source.title_private %}
+                        <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title }}</a>
+                    {% else %}
+                        <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
+                    {% endif %}
                 {% else %}
                     <a href="{{ url_for("request.view", request_id=request._id) }}">Under Review</a>
                 {% endif %}
