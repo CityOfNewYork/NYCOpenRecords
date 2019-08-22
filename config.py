@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import os
 from dotenv import load_dotenv
@@ -17,6 +17,7 @@ class Config:
     LOGFILE_DIRECTORY = (os.environ.get('LOGFILE_DIRECTORY') or
                          os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs/'))
 
+    APP_LAUNCH_DATE = datetime.strptime(os.environ.get('APP_LAUNCH_DATE'), '%Y-%m-%d') or datetime.today()
     APP_VERSION_STRING = os.environ.get('APP_VERSION_STRING')
     APP_TIMEZONE = os.environ.get('APP_TIMEZONE') or 'US/Eastern'
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE') == 'True'
