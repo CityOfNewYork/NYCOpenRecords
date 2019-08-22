@@ -117,7 +117,7 @@ class AgencyUserRequestForm(Form):
     address = StringField('Address Line 1')
     address_two = StringField('Address Line 2')
     city = StringField('City')
-    state = SelectField('State', choices=STATES, default='NY')
+    state = SelectField('State / U.S. Territory', choices=STATES, default='NY')
     zipcode = StringField('Zip')
 
     # Method Received
@@ -176,7 +176,7 @@ class AnonymousRequestForm(Form):
     address = StringField('Address Line 1')
     address_two = StringField('Address Line 2')
     city = StringField('City')
-    state = SelectField('State', choices=STATES, default='NY')
+    state = SelectField('State / U.S. Territory', choices=STATES, default='NY')
     zipcode = StringField('Zip')
 
     # File Upload
@@ -198,7 +198,7 @@ class EditRequesterForm(Form):
     address_one = StringField('Address Line 1')
     address_two = StringField('Address Line 2')
     city = StringField('City')
-    state = SelectField('State', choices=STATES)
+    state = SelectField('State / U.S. Territory', choices=STATES)
     zipcode = StringField('Zip Code')
     title = StringField('Title')
     organization = StringField('Organization')
