@@ -266,7 +266,7 @@ $(function () {
         }
         theTable = theTable + '<div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" alt="Closed status icon"></div>';
         theTable = theTable + '</div>';
-        theTable = theTable + '<div class="alert alert-info col-md-12" tabindex="0"><strong>*</strong> - Requests with a title "Under Review" are currently being reviewed for Identifying Information.</div>';
+        theTable = theTable + '<div class="alert alert-info col-md-12" tabindex="0"><strong>*</strong> - "Under Review" means the request was recently submitted and the agency has 5 business days to review the request for personal identifying information before it becomes publicly viewable.</div>';
         theTable = theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
         theTable = theTable + buildResultsTableHead(resultcol, sortSequence);
         theTable = theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
