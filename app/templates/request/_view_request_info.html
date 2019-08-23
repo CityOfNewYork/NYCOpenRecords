@@ -36,10 +36,14 @@
                         <!-- editable area for request title -->
                         <a href="#" class="xedit" id="title">{{ request.title }}</a>
                     {% else %}
-                        {% if show_title %}
+                        {% if request.show_title %}
                             {{ request.title }}
                         {% else %}
-                            <i>Private</i>
+                            {% if request.was_acknowledged or request.status == "Closed" %}
+                                <p>Private</p>
+                            {% else %}
+                                <i>Under Review</i>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </div>

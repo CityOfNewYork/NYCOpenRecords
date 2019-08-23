@@ -98,3 +98,6 @@ data/FOIL-*
 data_test/*
 executables/*
 openrecords.code-workspace
+celerybeat-schedule
+*.pid
+*.pgdump

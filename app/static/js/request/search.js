@@ -1,6 +1,6 @@
 "use strict";
 
-$(function() {
+$(function () {
 
     // set time zone name
     $("input[name='tz_name']").val(jstz.determine().name());
@@ -28,12 +28,12 @@ $(function() {
     // Table head values
     if (isAgencyUser) {
         resultcol = [
-            ["Status",""],
-            ["ID",""],
-            ["Date Submitted", "sort_date_submitted","desc"],
-            ["Title", "sort_title","none"],
+            ["Status", ""],
+            ["ID", ""],
+            ["Date Submitted", "sort_date_submitted", "desc"],
+            ["Title", "sort_title", "none"],
             ["Assigned Agency", ""],
-            ["Date Due","sort_date_due","none"],
+            ["Date Due", "sort_date_due", "none"],
             ["Date Closed", ""],
             ["Requester Name", ""]
         ];
@@ -42,8 +42,7 @@ $(function() {
         $("#user-agencies option").each(function () {
             userAgencies.push($(this).val());
         });
-    }
-    else {
+    } else {
         resultcol = [
             ["Status", ""],
             ["ID", ""],
@@ -88,8 +87,7 @@ $(function() {
                 if (compDateElem.val().length === 10) {
                     try {
                         compDate = new Date(compDateElem.val());
-                    }
-                    catch (err) {
+                    } catch (err) {
                         compDate = null;
                     }
                 }
@@ -99,25 +97,20 @@ $(function() {
                         (isLessThan ? checkDate <= compDate : checkDate >= compDate) : true;
                     if (!notHolidayOrWeekend(checkDate, false)) {
                         return dateInvalid(checkDateElem, "This date does not fall on a business day.", null, dateError);
-                    }
-                    else if (!validComp) {
+                    } else if (!validComp) {
                         return dateInvalid(checkDateElem, null, true, dateError);
-                    }
-                    else {
+                    } else {
                         return dateValid(checkDateElem);
                     }
-                }
-                catch (err) {
+                } catch (err) {
                     // failure parsing date string
                     return dateInvalid(checkDateElem, "This is not a valid date.", null, dateError);
                 }
-            }
-            else {
+            } else {
                 // missing full date string length
                 return dateInvalid(checkDateElem, "This is not a valid date.", null, dateError);
             }
-        }
-        else {
+        } else {
             // empty value is valid (no filtering)
             return dateValid(checkDateElem);
         }
@@ -135,8 +128,7 @@ $(function() {
             searchBtn.attr("disabled", true);
             searchBtnAdv.attr("disabled", true);
             generateDocBtn.attr("disabled", true);
-        }
-        else {
+        } else {
             canSearch = true;
             searchBtn.attr("disabled", false);
             searchBtnAdv.attr("disabled", false);
@@ -185,13 +177,13 @@ $(function() {
     });
 
     // keypress 'Enter' = click search button
-    $("#search-section").keyup(function(e){
+    $("#search-section").keyup(function (e) {
         if (canSearch && e.keyCode === 13) {
             searchBtn.click();
         }
     });
     // but don't submit form (it is only used to generate results document)
-    $("#search-form").on("keyup, keypress", function(e){
+    $("#search-form").on("keyup, keypress", function (e) {
         var keyCode = e.keyCode || e.which;
         if (keyCode === 13) {
             e.preventDefault();
@@ -200,7 +192,7 @@ $(function() {
     });
 
     // Capture form reset
-    $(clearSearchBtn).on('click', function(event) {
+    $(clearSearchBtn).on('click', function (event) {
         event.preventDefault();
         $("#search-form")[0].reset();
 
@@ -239,35 +231,32 @@ $(function() {
     //     }
     // };
 
-    function buildResultsTableHead (col, sort) {
+    function buildResultsTableHead(col, sort) {
         var tableHead = "";
 
-        for (var i=0; i< col.length; i++) {
-            if (col[i][1] === "")
-                {
+        for (var i = 0; i < col.length; i++) {
+            if (col[i][1] === "") {
                 tableHead = tableHead + "<th>" + col[i][0] + "</th>";
-                }
-            else
-                {
-                tableHead = tableHead + '<th><button type="button" class="sort-field" data-sort-order="' + col[i][2] +'" id="' + col[i][1] +'">' + col[i][0];
-                var CurrentSort = $("input[name="+ col[i][1]+ "]").val();
-                if (CurrentSort !== ""){
+            } else {
+                tableHead = tableHead + '<th><button type="button" class="sort-field" data-sort-order="' + col[i][2] + '" id="' + col[i][1] + '">' + col[i][0];
+                var CurrentSort = $("input[name=" + col[i][1] + "]").val();
+                if (CurrentSort !== "") {
 
                 }
                 tableHead = tableHead + '<span class="glyphicon glyphicon-sort" aria-hidden="true"></span>' +
-                                        '<span class="sr-only unsorted">Unsorted</span>' +
-                                        '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>' +
-                                        '<span class="sr-only sorted-asc">Sorted, Ascending</span>' +
-                                        '<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>' +
-                                        '<span class="sr-only sorted-desc">Sorted, Descending</span> </button></th>';
+                    '<span class="sr-only unsorted">Unsorted</span>' +
+                    '<span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>' +
+                    '<span class="sr-only sorted-asc">Sorted, Ascending</span>' +
+                    '<span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>' +
+                    '<span class="sr-only sorted-desc">Sorted, Descending</span> </button></th>';
             }
         }
         return tableHead;
     }
 
-    function buildResultsTable (theResults, count, total) {
+    function buildResultsTable(theResults, count, total) {
         var theTable = "";
-        theTable = theTable +'<div class="col-sm-12 searchResults-heading">';
+        theTable = theTable + '<div class="col-sm-12 searchResults-heading">';
         theTable = theTable + '<h2 id="resultsHeading" tabindex="0" aria-live="assertive">Displaying&nbsp;' + (start + 1) + " - " + (start + count) + ' of ' + total.toLocaleString() + '&nbsp;Results Found</h2>';
         theTable = theTable + '<div class="table-legend" aria-hidden="true"><div>Request is:</div>&nbsp;<div class="legend legend-open">Open=<img src="/static/img/open.svg" alt="Open status icon"></div>';
         if (isAgencyUser) {
@@ -276,9 +265,10 @@ $(function() {
             theTable = theTable + '<div class="legend legend-overdue">Overdue=<img src="/static/img/overdue.svg" alt="Overdue status icon"></div>';
         }
         theTable = theTable + '<div class="legend legend-closed">Closed=<img src="/static/img/closed.svg" alt="Closed status icon"></div>';
-        theTable = theTable + '</div></div>';
+        theTable = theTable + '</div>';
+        theTable = theTable + '<div class="alert alert-info col-md-12" tabindex="0"><strong>*</strong> - "Under Review" means the request was recently submitted and the agency has 5 business days to review the request for personal identifying information before it becomes publicly viewable.</div>';
         theTable = theTable + '<div class="table table-responsive"><table class="table table-striped"><thead>';
-        theTable = theTable + buildResultsTableHead (resultcol, sortSequence);
+        theTable = theTable + buildResultsTableHead(resultcol, sortSequence);
         theTable = theTable + '</thead><tbody>' + theResults + '</tbody></table></div>';
         return theTable;
     }
@@ -297,7 +287,7 @@ $(function() {
         $.ajax({
             url: "/search/requests",
             data: $("#search-form").serializeArray(),
-            success: function(data) {
+            success: function (data) {
                 if (data.total !== 0) {
                     noResultsFound = false;
                     results.html(buildResultsTable(data.results, data.count, data.total));
@@ -313,16 +303,14 @@ $(function() {
                     if (end === total) {
                         next.attr("aria-disabled", true);
                         next.addClass("disabled")
-                    }
-                    else {
+                    } else {
                         next.attr("aria-disabled", false);
                         next.removeClass("disabled")
                     }
                     if (start === 0) {
                         prev.attr("aria-disabled", true);
                         prev.addClass("disabled")
-                    }
-                    else {
+                    } else {
                         prev.attr("aria-disabled", false);
                         prev.removeClass("disabled")
                     }
@@ -332,15 +320,14 @@ $(function() {
                         scrollToElement(resultsHeader);
                         toFocus = false;
                     }
-                }
-                else {
+                } else {
                     noResultsFound = true;
                     results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
-                          "<p class='text-center' aria-live='polite'>No results found.</p></div></div>");
+                        "<p class='text-center' aria-live='polite'>No results found.</p></div></div>");
                     generateDocBtn.attr("disabled", true);
                 }
             },
-            error: function(e) {
+            error: function (e) {
                 results.html("<div class='row'><div class='col-sm-12 errorResults'>" +
                     "<p class='text-center' aria-live='assertive'>Hmmmm.... Looks like something's gone wrong.</p></div></div>");
                 generateDocBtn.attr("disabled", true);
@@ -349,12 +336,12 @@ $(function() {
     }
 
     // search on load
-    $(document).ready(function(){
+    $(document).ready(function () {
         search();
     });
 
     // disable other filters if searching by FOIL-ID
-    $("input[name='foil_id']").click(function() {
+    $("input[name='foil_id']").click(function () {
         var query = $("#query");
         var names = ["title", "description", "agency_request_summary", "requester_name"];
         var i;
@@ -364,8 +351,7 @@ $(function() {
                 $("input[name='" + names[i] + "']").prop("disabled", true);
                 $("input[name='" + names[i] + "']").addClass("disabled");
             }
-        }
-        else {
+        } else {
             query.attr("placeholder", "Enter keywords");
             for (i = 0; i < names.length; i++) {
                 $("input[name='" + names[i] + "']").prop("disabled", false);
@@ -380,11 +366,11 @@ $(function() {
     }
 
     // Sorting
-    function updateSorting(theHeadingId,sequence){
+    function updateSorting(theHeadingId, sequence) {
 
-        for (var i=0; i< resultcol.length; i++){
+        for (var i = 0; i < resultcol.length; i++) {
 
-            if (resultcol[i][1] === theHeadingId){
+            if (resultcol[i][1] === theHeadingId) {
                 resultcol[i][2] = sequence;
             }
         }
@@ -399,8 +385,8 @@ $(function() {
         elem.attr(
             "data-sort-order",
             sortSequence[
-                (sortSequence.indexOf(elem.attr("data-sort-order")) + 1 + sortSequence.length)
-                % sortSequence.length]);
+            (sortSequence.indexOf(elem.attr("data-sort-order")) + 1 + sortSequence.length)
+            % sortSequence.length]);
 
     }
 
@@ -444,7 +430,7 @@ $(function() {
                 },
                 success: function (data) {
                     // Populate users
-                    $.each(data.active_users ,function() {
+                    $.each(data.active_users, function () {
                         agencyUserSelect.append($("<option />").val(this[0]).text(this[1]));
                     });
 
@@ -460,8 +446,7 @@ $(function() {
                     resetAndSearch();
                 }
             });
-        }
-        else {
+        } else {
             agencyUserDiv.is(":visible") && agencyUserDiv.hide();
             resetAndSearch();
         }
@@ -490,7 +475,7 @@ $(function() {
         }
     });
 
-    $('body').on('click', '.sort-field', function() {
+    $('body').on('click', '.sort-field', function () {
         if (canSearch) {
             setStart(0);
             cycleSort($(this));
@@ -499,13 +484,13 @@ $(function() {
             $("input[name='" + $(this).attr("id") + "']").val($(this).attr("data-sort-order"));
 
             //Update Array to reflect column status
-            updateSorting($(this).attr("id"),$(this).attr("data-sort-order"));
+            updateSorting($(this).attr("id"), $(this).attr("data-sort-order"));
 
-           search();
+            search();
         }
     });
 
-    function scrollToElement(theId){
+    function scrollToElement(theId) {
         $("#" + theId).focus();
         $('html, body').animate({
             scrollTop: $("#" + theId).offset().top
@@ -516,8 +501,7 @@ $(function() {
         var selectedAgency = agencySelect.val();
         if (!(userAgencies.includes(selectedAgency)) || selectedAgency === '') {
             $('#redact-results-alert').show();
-        }
-        else {
+        } else {
             $('#redact-results-alert').hide();
         }
     });

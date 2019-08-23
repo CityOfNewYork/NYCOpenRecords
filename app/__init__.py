@@ -47,8 +47,7 @@ upload_redis = redis.StrictRedis(
 email_redis = redis.StrictRedis(
     db=Config.EMAIL_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 
-holidays = NYCHolidays(years=[year for year in range(
-    date.today().year, date.today().year + 5)])
+holidays = NYCHolidays(years=[year for year in range(Config.APP_LAUNCH_DATE.year, date.today().year + 5)])
 calendar = Calendar(
     workdays=[MO, TU, WE, TH, FR],
     holidays=[str(key) for key in holidays.keys()]

@@ -6,10 +6,7 @@ from flask_login import current_user
 from sqlalchemy.orm import joinedload
 
 from app import es
-from app.constants import (
-    ES_DATETIME_FORMAT,
-    request_status
-)
+from app.constants import ES_DATETIME_FORMAT, request_status
 from app.lib.date_utils import utc_to_local, local_to_utc
 from app.lib.utils import InvalidUserException
 from app.models import Requests, Agencies
@@ -17,7 +14,7 @@ from app.search.constants import (
     MAX_RESULT_SIZE,
     ES_DATE_RANGE_FORMAT,
     DT_DATE_RANGE_FORMAT,
-    MOCK_EMPTY_ELASTICSEARCH_RESULT
+    MOCK_EMPTY_ELASTICSEARCH_RESULT,
 )
 
 
@@ -41,19 +38,14 @@ def delete_index():
     """
     Delete all elasticsearch indices, ignoring errors.
     """
-    es.indices.delete(
-        current_app.config["ELASTICSEARCH_INDEX"],
-        ignore=[400, 404]
-    )
+    es.indices.delete(current_app.config["ELASTICSEARCH_INDEX"], ignore=[400, 404])
 
 
 def delete_docs():
     """
     Delete all elasticsearch request docs.
     """
-    es.indices.refresh(
-        index=current_app.config["ELASTICSEARCH_INDEX"],
-    )
+    es.indices.refresh(index=current_app.config["ELASTICSEARCH_INDEX"])
     es.delete_by_query(
         index=current_app.config["ELASTICSEARCH_INDEX"],
         doc_type="request",
@@ -79,40 +71,21 @@ def create_index():
                             "analyzer": "english",
                             "fields": {
                                 # for sorting by title
-                                "keyword": {
-                                    "type": "keyword",
-                                }
-                            }
+                                "keyword": {"type": "keyword"}
+                            },
                         },
-                        "description": {
-                            "type": "text",
-                            "analyzer": "english"
-                        },
+                        "description": {"type": "text", "analyzer": "english"},
                         "agency_request_summary": {
                             "type": "text",
-                            "analyzer": "english"
+                            "analyzer": "english",
                         },
-                        "requester_id": {
-                            "type": "keyword",
-                        },
-                        "title_private": {
-                            "type": "boolean",
-                        },
-                        "agency_request_summary_private": {
-                            "type": "boolean",
-                        },
-                        "agency_ein": {
-                            "type": "keyword",
-                        },
-                        "agency_name": {
-                            "type": "keyword",
-                        },
-                        "agency_acronym": {
-                            "type": "keyword"
-                        },
-                        "status": {
-                            "type": "keyword",
-                        },
+                        "requester_id": {"type": "keyword"},
+                        "title_private": {"type": "boolean"},
+                        "agency_request_summary_private": {"type": "boolean"},
+                        "agency_ein": {"type": "keyword"},
+                        "agency_name": {"type": "keyword"},
+                        "agency_acronym": {"type": "keyword"},
+                        "status": {"type": "keyword"},
                         "date_submitted": {
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
@@ -133,13 +106,11 @@ def create_index():
                             "type": "date",
                             "format": "strict_date_hour_minute_second",
                         },
-                        "assigned_users": {
-                            "type": "keyword"
-                        }
+                        "assigned_users": {"type": "keyword"},
                     }
                 }
             }
-        }
+        },
     )
 
 
@@ -151,82 +122,94 @@ def create_docs():
     agency_eins = {a.ein: a for a in Agencies.query.filter_by(is_active=True).all()}
 
     #: :type: collections.Iterable[app.models.Requests]
-    requests = Requests.query.filter(Requests.agency_ein.in_(agency_eins.keys())).options(
-        joinedload(Requests.agency_users)).options(joinedload(Requests.requester)).all()
+    requests = (
+        Requests.query.filter(Requests.agency_ein.in_(agency_eins.keys()))
+        .options(joinedload(Requests.agency_users))
+        .options(joinedload(Requests.requester))
+        .all()
+    )
     operations = []
     for r in requests:
-        date_received = r.date_created.strftime(
-            ES_DATETIME_FORMAT) if r.date_created < r.date_submitted else r.date_submitted.strftime(
-            ES_DATETIME_FORMAT)
+        date_received = (
+            r.date_created.strftime(ES_DATETIME_FORMAT)
+            if r.date_created < r.date_submitted
+            else r.date_submitted.strftime(ES_DATETIME_FORMAT)
+        )
         operation = {
-            '_op_type': 'create',
-            '_id': r.id,
-            'title': r.title,
-            'description': r.description,
-            'agency_request_summary': r.agency_request_summary,
-            'requester_name': r.requester.name,
-            'requester_id': "{guid}".format(guid=r.requester.guid),
-            'title_private': r.privacy['title'],
-            'agency_request_summary_private': not r.agency_request_summary_released,
-            'date_created': r.date_created.strftime(ES_DATETIME_FORMAT),
-            'date_submitted': r.date_submitted.strftime(ES_DATETIME_FORMAT),
-            'date_received': date_received,
-            'date_due': r.due_date.strftime(ES_DATETIME_FORMAT),
-            'submission': r.submission,
-            'status': r.status,
-            'agency_ein': r.agency_ein,
-            'agency_acronym': agency_eins[r.agency_ein].acronym,
-            'agency_name': agency_eins[r.agency_ein].name,
-            'public_title': 'Private' if r.privacy['title'] else r.title,
-            'assigned_users': ["{guid}".format(guid=user.guid) for user
-                               in r.agency_users]
+            "_op_type": "create",
+            "_id": r.id,
+            "title": r.title,
+            "description": r.description,
+            "agency_request_summary": r.agency_request_summary,
+            "requester_name": r.requester.name,
+            "requester_id": "{guid}".format(guid=r.requester.guid),
+            "title_private": r.privacy["title"],
+            "agency_request_summary_private": not r.agency_request_summary_released,
+            "date_created": r.date_created.strftime(ES_DATETIME_FORMAT),
+            "date_submitted": r.date_submitted.strftime(ES_DATETIME_FORMAT),
+            "date_received": date_received,
+            "date_due": r.due_date.strftime(ES_DATETIME_FORMAT),
+            "submission": r.submission,
+            "status": r.status,
+            "agency_ein": r.agency_ein,
+            "agency_acronym": agency_eins[r.agency_ein].acronym,
+            "agency_name": agency_eins[r.agency_ein].name,
+            "public_title": "Private" if not r.privacy["title"] else r.title,
+            "assigned_users": [
+                "{guid}".format(guid=user.guid) for user in r.agency_users
+            ]
             # public_agency_request_summary
         }
 
         if r.date_closed is not None:
-            operation['date_closed'] = r.date_closed.strftime(ES_DATETIME_FORMAT)
+            operation["date_closed"] = r.date_closed.strftime(ES_DATETIME_FORMAT)
 
         operations.append(operation)
     num_success, _ = bulk(
         es,
         operations,
         index=current_app.config["ELASTICSEARCH_INDEX"],
-        doc_type='request',
-        chunk_size=current_app.config['ELASTICSEARCH_CHUNK_SIZE'],
-        raise_on_error=True
+        doc_type="request",
+        chunk_size=current_app.config["ELASTICSEARCH_CHUNK_SIZE"],
+        raise_on_error=True,
     )
-    current_app.logger.info("Successfully created {num_success} of {total_num} docs.".format(num_success=num_success,
-                                                                                             total_num=len(requests)))
+    current_app.logger.info(
+        "Successfully created {num_success} of {total_num} docs.".format(
+            num_success=num_success, total_num=len(requests)
+        )
+    )
 
 
-def search_requests(query,
-                    foil_id,
-                    title,
-                    agency_request_summary,
-                    description,
-                    requester_name,
-                    date_rec_from,
-                    date_rec_to,
-                    date_due_from,
-                    date_due_to,
-                    date_closed_from,
-                    date_closed_to,
-                    agency_ein,
-                    agency_user_guid,
-                    open_,
-                    closed,
-                    in_progress,
-                    due_soon,
-                    overdue,
-                    start,
-                    sort_date_received,
-                    sort_date_due,
-                    sort_title,
-                    tz_name,
-                    size=None,
-                    by_phrase=False,
-                    highlight=False,
-                    for_csv=False):
+def search_requests(
+    query,
+    foil_id,
+    title,
+    agency_request_summary,
+    description,
+    requester_name,
+    date_rec_from,
+    date_rec_to,
+    date_due_from,
+    date_due_to,
+    date_closed_from,
+    date_closed_to,
+    agency_ein,
+    agency_user_guid,
+    open_,
+    closed,
+    in_progress,
+    due_soon,
+    overdue,
+    start,
+    sort_date_received,
+    sort_date_due,
+    sort_title,
+    tz_name,
+    size=None,
+    by_phrase=False,
+    highlight=False,
+    for_csv=False,
+):
     """
     The arguments of this function match the request parameters
     of the '/search/requests' endpoints.
@@ -274,24 +257,29 @@ def search_requests(query,
         query = query.strip()
 
     # return no results if there is nothing to query by
-    if query and not any((foil_id, title, agency_request_summary,
-                          description, requester_name)):
+    if query and not any(
+        (foil_id, title, agency_request_summary, description, requester_name)
+    ):
         return MOCK_EMPTY_ELASTICSEARCH_RESULT
 
     # if searching by foil-id, strip "FOIL-"
     if foil_id:
-        query = query.lstrip("FOIL-").lstrip('foil-')
+        query = query.lstrip("FOIL-").lstrip("foil-")
 
     # set sort (list of "field:direction" pairs)
     sort = [
-        ':'.join((field, direction)) for field, direction in {
-            'date_received': sort_date_received,
-            'date_due': sort_date_due,
-            'title.keyword': sort_title}.items() if direction in ("desc", "asc")]
+        ":".join((field, direction))
+        for field, direction in {
+            "date_received": sort_date_received,
+            "date_due": sort_date_due,
+            "title.keyword": sort_title,
+        }.items()
+        if direction in ("desc", "asc")
+    ]
 
     # if no sort options are selected use date_received desc by default
     if len(sort) == 0:
-        sort = ['date_received:desc']
+        sort = ["date_received:desc"]
 
     # set statuses (list of request statuses)
     if current_user.is_agency:
@@ -300,24 +288,26 @@ def search_requests(query,
             request_status.CLOSED: closed,
             request_status.IN_PROGRESS: in_progress,
             request_status.DUE_SOON: due_soon,
-            request_status.OVERDUE: overdue
+            request_status.OVERDUE: overdue,
         }
         statuses = [s for s, b in statuses.items() if b]
     else:
         statuses = []
         if open_:
             # Any request that isn't closed is considered open
-            statuses.extend([
-                request_status.OPEN,
-                request_status.IN_PROGRESS,
-                request_status.DUE_SOON,
-                request_status.OVERDUE
-            ])
+            statuses.extend(
+                [
+                    request_status.OPEN,
+                    request_status.IN_PROGRESS,
+                    request_status.DUE_SOON,
+                    request_status.OVERDUE,
+                ]
+            )
         if closed:
             statuses.append(request_status.CLOSED)
 
     # set matching type (full-text or phrase matching)
-    match_type = 'match_phrase' if by_phrase else 'match'
+    match_type = "match_phrase" if by_phrase else "match"
 
     # set date ranges
     def datestr_local_to_utc(datestr):
@@ -326,41 +316,60 @@ def search_requests(query,
         ).strftime(DT_DATE_RANGE_FORMAT)
 
     date_ranges = []
-    if any((date_rec_from, date_rec_to, date_due_from, date_due_to, date_closed_from, date_closed_to)):
+    if any(
+        (
+            date_rec_from,
+            date_rec_to,
+            date_due_from,
+            date_due_to,
+            date_closed_from,
+            date_closed_to,
+        )
+    ):
         range_filters = {}
         if date_rec_from or date_rec_to:
-            range_filters['date_received'] = {'format': ES_DATE_RANGE_FORMAT}
+            range_filters["date_received"] = {"format": ES_DATE_RANGE_FORMAT}
         if date_due_from or date_due_to:
-            range_filters['date_due'] = {'format': ES_DATE_RANGE_FORMAT}
+            range_filters["date_due"] = {"format": ES_DATE_RANGE_FORMAT}
         if date_closed_from or date_closed_to:
-            range_filters['date_closed'] = {'format': ES_DATE_RANGE_FORMAT}
+            range_filters["date_closed"] = {"format": ES_DATE_RANGE_FORMAT}
         if date_rec_from:
-            range_filters['date_received']['gte'] = datestr_local_to_utc(date_rec_from)
+            range_filters["date_received"]["gte"] = datestr_local_to_utc(date_rec_from)
         if date_rec_to:
-            range_filters['date_received']['lt'] = datestr_local_to_utc(date_rec_to)
+            range_filters["date_received"]["lt"] = datestr_local_to_utc(date_rec_to)
         if date_due_from:
-            range_filters['date_due']['gte'] = datestr_local_to_utc(date_due_from)
+            range_filters["date_due"]["gte"] = datestr_local_to_utc(date_due_from)
         if date_due_to:
-            range_filters['date_due']['lt'] = datestr_local_to_utc(date_due_to)
+            range_filters["date_due"]["lt"] = datestr_local_to_utc(date_due_to)
         if date_closed_from:
-            range_filters['date_closed']['gte'] = datestr_local_to_utc(date_closed_from)
+            range_filters["date_closed"]["gte"] = datestr_local_to_utc(date_closed_from)
         if date_closed_to:
-            range_filters['date_closed']['lte'] = datestr_local_to_utc(date_closed_to)
+            range_filters["date_closed"]["lte"] = datestr_local_to_utc(date_closed_to)
         if date_rec_from or date_rec_to:
-            date_ranges.append({'range': {'date_received': range_filters['date_received']}})
+            date_ranges.append(
+                {"range": {"date_received": range_filters["date_received"]}}
+            )
         if date_due_from or date_due_to:
-            date_ranges.append({'range': {'date_due': range_filters['date_due']}})
+            date_ranges.append({"range": {"date_due": range_filters["date_due"]}})
         if date_closed_from or date_closed_to:
-            date_ranges.append({'range': {'date_closed': range_filters['date_closed']}})
+            date_ranges.append({"range": {"date_closed": range_filters["date_closed"]}})
 
     # generate query dsl body
     query_fields = {
-        'title': title,
-        'description': description,
-        'agency_request_summary': agency_request_summary,
-        'requester_name': requester_name
+        "title": title,
+        "description": description,
+        "agency_request_summary": agency_request_summary,
+        "requester_name": requester_name,
     }
-    dsl_gen = RequestsDSLGenerator(query, query_fields, statuses, date_ranges, agency_ein, agency_user_guid, match_type)
+    dsl_gen = RequestsDSLGenerator(
+        query,
+        query_fields,
+        statuses,
+        date_ranges,
+        agency_ein,
+        agency_user_guid,
+        match_type,
+    )
     if foil_id:
         dsl = dsl_gen.foil_id()
     else:
@@ -384,10 +393,10 @@ def search_requests(query,
                 highlight_fields[name] = {}
         dsl.update(
             {
-                'highlight': {
-                    'pre_tags': ['<span class="highlight">'],
-                    'post_tags': ['</span>'],
-                    'fields': highlight_fields
+                "highlight": {
+                    "pre_tags": ['<span class="highlight">'],
+                    "post_tags": ["</span>"],
+                    "fields": highlight_fields,
                 }
             }
         )
@@ -399,26 +408,28 @@ def search_requests(query,
     if not for_csv:
         results = es.search(
             index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
+            doc_type="request",
             body=dsl,
-            _source=['requester_id',
-                     'date_submitted',
-                     'date_due',
-                     'date_received',
-                     'date_created',
-                     'date_closed',
-                     'status',
-                     'agency_ein',
-                     'agency_name',
-                     'agency_acronym',
-                     'requester_name',
-                     'title_private',
-                     'agency_request_summary_private',
-                     'public_title',
-                     'title',
-                     'agency_request_summary',
-                     'description',
-                     'assigned_users'],
+            _source=[
+                "requester_id",
+                "date_submitted",
+                "date_due",
+                "date_received",
+                "date_created",
+                "date_closed",
+                "status",
+                "agency_ein",
+                "agency_name",
+                "agency_acronym",
+                "requester_name",
+                "title_private",
+                "agency_request_summary_private",
+                "public_title",
+                "title",
+                "agency_request_summary",
+                "description",
+                "assigned_users",
+            ],
             size=result_set_size,
             from_=start,
             sort=sort,
@@ -427,42 +438,44 @@ def search_requests(query,
     else:
         results = es.search(
             index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type='request',
-            scroll='1m',
+            doc_type="request",
+            scroll="1m",
             body=dsl,
-            _source=['requester_id',
-                     'date_submitted',
-                     'date_due',
-                     'date_received',
-                     'date_created',
-                     'date_closed',
-                     'status',
-                     'agency_ein',
-                     'agency_name',
-                     'agency_acronym',
-                     'requester_name',
-                     'title_private',
-                     'agency_request_summary_private',
-                     'public_title',
-                     'title',
-                     'agency_request_summary',
-                     'description',
-                     'assigned_users'],
+            _source=[
+                "requester_id",
+                "date_submitted",
+                "date_due",
+                "date_received",
+                "date_created",
+                "date_closed",
+                "status",
+                "agency_ein",
+                "agency_name",
+                "agency_acronym",
+                "requester_name",
+                "title_private",
+                "agency_request_summary_private",
+                "public_title",
+                "title",
+                "agency_request_summary",
+                "description",
+                "assigned_users",
+            ],
             size=result_set_size,
             from_=start,
             sort=sort,
         )
-        sid = results['_scroll_id']
-        scroll_size = results['hits']['total']
+        sid = results["_scroll_id"]
+        scroll_size = results["hits"]["total"]
 
-        scroll_results = results['hits']['hits']
+        scroll_results = results["hits"]["hits"]
 
         while scroll_size > 0:
-            results = es.scroll(scroll='1m', body={"scroll": "1m", "scroll_id": sid})
+            results = es.scroll(scroll="1m", body={"scroll": "1m", "scroll_id": sid})
 
-            scroll_size = len(results['hits']['hits'])
+            scroll_size = len(results["hits"]["hits"])
 
-            scroll_results += results['hits']['hits']
+            scroll_results += results["hits"]["hits"]
 
         return scroll_results
     # process highlights
@@ -475,117 +488,108 @@ def search_requests(query,
 class RequestsDSLGenerator(object):
     """ Class for generating dicts representing query dsl bodies for searching request docs. """
 
-    def __init__(self, query, query_fields, statuses, date_ranges, agency_ein, agency_user_guid, match_type):
+    def __init__(
+        self,
+        query,
+        query_fields,
+        statuses,
+        date_ranges,
+        agency_ein,
+        agency_user_guid,
+        match_type,
+    ):
         self.__query = query
         self.__query_fields = query_fields
         self.__statuses = statuses
         self.__agency_ein = agency_ein
         self.__match_type = match_type
 
-        self.__default_filters = [{'terms': {'status': statuses}}]
+        self.__default_filters = [{"terms": {"status": statuses}}]
         if date_ranges:
             self.__default_filters += date_ranges
         if agency_ein:
-            self.__default_filters.append({
-                'term': {'agency_ein': agency_ein}
-            })
+            self.__default_filters.append({"term": {"agency_ein": agency_ein}})
         if agency_user_guid:
-            self.__default_filters.append({
-                'term': {'assigned_users': agency_user_guid}
-            })
+            self.__default_filters.append(
+                {"term": {"assigned_users": agency_user_guid}}
+            )
 
         self.__filters = []
         self.__conditions = []
         self.requester_id = None
 
     def foil_id(self):
-        self.__filters = [{
-            'wildcard': {
-                '_uid': 'request#FOIL-*{}*'.format(self.__query)
-            }
-        }]
+        self.__filters = [
+            {"wildcard": {"_uid": "request#FOIL-*{}*".format(self.__query)}}
+        ]
         return self.__must_query
 
     def agency_user(self):
         for name, use in self.__query_fields.items():
             if use:
-                self.__filters = [
-                    {self.__match_type: {name: self.__query}}
-                ]
+                self.__filters = [{self.__match_type: {name: self.__query}}]
                 self.__conditions.append(self.__must)
         return self.__should
 
     def anonymous_user(self):
-        if self.__query_fields['title']:
+        if self.__query_fields["title"]:
             self.__filters = [
-                {self.__match_type: {'title': self.__query}},
-                {'term': {'title_private': False}}
+                {self.__match_type: {"title": self.__query}},
+                {"term": {"title_private": False}},
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['agency_request_summary']:
+        if self.__query_fields["agency_request_summary"]:
             self.__filters = [
-                {self.__match_type: {'agency_request_summary': self.__query}},
-                {'term': {'agency_request_summary_private': False}}
+                {self.__match_type: {"agency_request_summary": self.__query}},
+                {"term": {"agency_request_summary_private": False}},
             ]
             self.__conditions.append(self.__must)
         return self.__should
 
     def public_user(self):
         self.requester_id = current_user.get_id()
-        if self.__query_fields['title']:
+        if self.__query_fields["title"]:
             self.__filters = [
-                {self.__match_type: {'title': self.__query}},
-                {'bool': {
-                    'should': [
-                        {'term': {'requester_id': self.requester_id}},
-                        {'term': {'title_private': False}}
-                    ]
-                }}
+                {self.__match_type: {"title": self.__query}},
+                {
+                    "bool": {
+                        "should": [
+                            {"term": {"requester_id": self.requester_id}},
+                            {"term": {"title_private": False}},
+                        ]
+                    }
+                },
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['agency_request_summary']:
+        if self.__query_fields["agency_request_summary"]:
             self.__filters = [
-                {self.__match_type: {'agency_request_summary': self.__query}},
-                {'term': {'agency_request_summary_private': False}}
+                {self.__match_type: {"agency_request_summary": self.__query}},
+                {"term": {"agency_request_summary_private": False}},
             ]
             self.__conditions.append(self.__must)
-        if self.__query_fields['description']:
+        if self.__query_fields["description"]:
             self.__filters = [
-                {self.__match_type: {'description': self.__query}},
-                {'term': {'requester_id': self.requester_id}},
+                {self.__match_type: {"description": self.__query}},
+                {"term": {"requester_id": self.requester_id}},
             ]
             self.__conditions.append(self.__must)
         return self.__should
 
     def queryless(self):
-        self.__filters = [
-            {'match_all': {}},
-        ]
+        self.__filters = [{"match_all": {}}]
         return self.__must_query
 
     @property
     def __must_query(self):
-        return {
-            'query': self.__must
-        }
+        return {"query": self.__must}
 
     @property
     def __must(self):
-        return {
-            'bool': {
-                'must': self.__get_filters()
-            }
-        }
+        return {"bool": {"must": self.__get_filters()}}
 
     @property
     def __should(self):
-        return {
-            'query': {
-                'bool': {
-                    'should': self.__conditions
-                }
-            }
-        }
+        return {"query": {"bool": {"should": self.__conditions}}}
 
     def __get_filters(self):
         return self.__filters + self.__default_filters
@@ -610,7 +614,9 @@ def convert_dates(results, dt_format=None, tz_name=None):
                 continue
             if tz_name:
                 dt = utc_to_local(dt, tz_name)
-            hit["_source"][field] = dt.strftime(dt_format) if dt_format is not None else dt
+            hit["_source"][field] = (
+                dt.strftime(dt_format) if dt_format is not None else dt
+            )
 
 
 def _process_highlights(results, requester_id=None):
@@ -625,17 +631,22 @@ def _process_highlights(results, requester_id=None):
     :param requester_id: id of requester as it is exists in results
     """
     if not current_user.is_agency:
-        for hit in results['hits']['hits']:
-            is_requester = (requester_id == hit['_source']['requester_id']
-                            if requester_id
-                            else False)
-            if ('title' in hit['highlight']
-                    and hit['_source']['title_private']
-                    and (current_user.is_anonymous or not is_requester)):
-                hit['highlight'].pop('title')
-            if ('agency_request_summary' in hit['highlight']
-                    and hit['_source']['agency_request_summary_private']):
-                hit['highlight'].pop('agency_request_summary')
-            if ('description' in hit['highlight']
-                    and not is_requester):
-                hit['highlight'].pop('description')
+        for hit in results["hits"]["hits"]:
+            is_requester = (
+                requester_id == hit["_source"]["requester_id"]
+                if requester_id
+                else False
+            )
+            if (
+                "title" in hit["highlight"]
+                and hit["_source"]["title_private"]
+                and (current_user.is_anonymous or not is_requester)
+            ):
+                hit["highlight"].pop("title")
+            if (
+                "agency_request_summary" in hit["highlight"]
+                and hit["_source"]["agency_request_summary_private"]
+            ):
+                hit["highlight"].pop("agency_request_summary")
+            if "description" in hit["highlight"] and not is_requester:
+                hit["highlight"].pop("description")
