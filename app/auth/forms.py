@@ -6,18 +6,8 @@
 """
 
 from flask_wtf import Form
-from wtforms import (
-    StringField,
-    SelectField,
-    PasswordField,
-    SubmitField,
-)
-from wtforms.validators import (
-    Length,
-    Email,
-    Optional,
-    DataRequired
-)
+from wtforms import StringField, SelectField, PasswordField, SubmitField
+from wtforms.validators import Length, Email, Optional, DataRequired
 
 from app.constants import STATES
 from app.models import Agencies
@@ -31,13 +21,13 @@ class StripFieldsForm(Form):
 
     class Meta:
         def bind_field(self, form, unbound_field, options):
-            filters = unbound_field.kwargs.get('filters', [])
+            filters = unbound_field.kwargs.get("filters", [])
             filters.append(strip_filter)
             return unbound_field.bind(form=form, filters=filters, **options)
 
 
 def strip_filter(value):
-    if value is not None and hasattr(value, 'strip'):
+    if value is not None and hasattr(value, "strip"):
         return value.strip()
     return value
 
@@ -53,18 +43,25 @@ class ManageUserAccountForm(StripFieldsForm):
         Mailing Address: The user's mailing address; Optional;
             Format: Address One, Address Two, City, State, Zip (5 Digits)
     """
-    title = StringField('Title', validators=[Length(max=64), Optional()])
-    organization = StringField('Organization', validators=[Length(max=254), Optional()])
-    notification_email = StringField('Notification Email', validators=[Email(), Length(max=254), Optional()])
-    phone_number = StringField('Phone', validators=[Length(min=10, max=25), Optional()])
-    fax_number = StringField('Fax', validators=[Length(min=10, max=25), Optional()])
-    address_one = StringField('Line 1', validators=[Optional()])
-    address_two = StringField('Line 2', validators=[Optional()])
-    city = StringField('City', validators=[Optional()])
-    state = SelectField('State', choices=STATES, default='NY', validators=[Optional()])
-    zipcode = StringField('Zip Code (5 Digits)', validators=[Length(min=5, max=5), Optional()])
 
-    submit = SubmitField('Update OpenRecords Account')
+    title = StringField("Title", validators=[Length(max=64), Optional()])
+    organization = StringField("Organization", validators=[Length(max=254), Optional()])
+    notification_email = StringField(
+        "Notification Email", validators=[Email(), Length(max=254), Optional()]
+    )
+    phone_number = StringField("Phone", validators=[Length(min=10, max=25), Optional()])
+    fax_number = StringField("Fax", validators=[Length(min=10, max=25), Optional()])
+    address_one = StringField("Line 1", validators=[Optional()])
+    address_two = StringField("Line 2", validators=[Optional()])
+    city = StringField("City", validators=[Optional()])
+    state = SelectField(
+        "State / U.S. Territory", choices=STATES, default="NY", validators=[Optional()]
+    )
+    zipcode = StringField(
+        "Zip Code (5 Digits)", validators=[Length(min=5, max=5), Optional()]
+    )
+
+    submit = SubmitField("Update OpenRecords Account")
 
     def __init__(self, user=None):
         """
@@ -77,29 +74,32 @@ class ManageUserAccountForm(StripFieldsForm):
         if self.user is not None:
             self.title.data = self.user.title
             self.organization.data = self.user.organization
-            self.notification_email.data = self.user.notification_email or self.user.email
+            self.notification_email.data = (
+                self.user.notification_email or self.user.email
+            )
             self.phone_number.data = self.user.phone_number
             self.fax_number.data = self.user.fax_number
             if self.user.mailing_address is not None:
-                self.address_one.data = self.user.mailing_address.get('address_one')
-                self.address_two.data = self.user.mailing_address.get('address_two')
-                self.city.data = self.user.mailing_address.get('city')
-                self.state.data = self.user.mailing_address.get('state')
-                self.zipcode.data = self.user.mailing_address.get('zip')
+                self.address_one.data = self.user.mailing_address.get("address_one")
+                self.address_two.data = self.user.mailing_address.get("address_two")
+                self.city.data = self.user.mailing_address.get("city")
+                self.state.data = self.user.mailing_address.get("state")
+                self.zipcode.data = self.user.mailing_address.get("zip")
 
     def validate(self):
         """ One mthod of contact must be provided. """
         base_is_valid = super(ManageUserAccountForm, self).validate()
         return base_is_valid and bool(
-            self.notification_email.data or
-            self.phone_number.data or
-            self.fax_number.data or
-            (  # mailing address
-                self.address_one.data and
-                self.city.data and
-                self.state.data and
-                self.zipcode.data
-            ))
+            self.notification_email.data
+            or self.phone_number.data
+            or self.fax_number.data
+            or (  # mailing address
+                self.address_one.data
+                and self.city.data
+                and self.state.data
+                and self.zipcode.data
+            )
+        )
 
 
 class ManageAgencyUserAccountForm(StripFieldsForm):
@@ -113,19 +113,26 @@ class ManageAgencyUserAccountForm(StripFieldsForm):
         Mailing Address: The user's mailing address; Optional;
             Format: Address One, Address Two, City, State, Zip (5 Digits)
     """
-    default_agency = SelectField('Primary Agency', validators=[DataRequired()])
-    title = StringField('Title', validators=[Length(max=64), Optional()])
-    organization = StringField('Organization', validators=[Length(max=254), Optional()])
-    notification_email = StringField('Notification Email', validators=[Email(), Length(max=254), Optional()])
-    phone_number = StringField('Phone', validators=[Length(min=10, max=25), Optional()])
-    fax_number = StringField('Fax', validators=[Length(min=10, max=25), Optional()])
-    address_one = StringField('Line 1', validators=[Optional()])
-    address_two = StringField('Line 2', validators=[Optional()])
-    city = StringField('City', validators=[Optional()])
-    state = SelectField('State', choices=STATES, default='NY', validators=[Optional()])
-    zipcode = StringField('Zip Code (5 Digits)', validators=[Length(min=5, max=5), Optional()])
 
-    submit = SubmitField('Update OpenRecords Account')
+    default_agency = SelectField("Primary Agency", validators=[DataRequired()])
+    title = StringField("Title", validators=[Length(max=64), Optional()])
+    organization = StringField("Organization", validators=[Length(max=254), Optional()])
+    notification_email = StringField(
+        "Notification Email", validators=[Email(), Length(max=254), Optional()]
+    )
+    phone_number = StringField("Phone", validators=[Length(min=10, max=25), Optional()])
+    fax_number = StringField("Fax", validators=[Length(min=10, max=25), Optional()])
+    address_one = StringField("Line 1", validators=[Optional()])
+    address_two = StringField("Line 2", validators=[Optional()])
+    city = StringField("City", validators=[Optional()])
+    state = SelectField(
+        "State / U.S. Territory", choices=STATES, default="NY", validators=[Optional()]
+    )
+    zipcode = StringField(
+        "Zip Code (5 Digits)", validators=[Length(min=5, max=5), Optional()]
+    )
+
+    submit = SubmitField("Update OpenRecords Account")
 
     def __init__(self, user=None):
         """
@@ -139,33 +146,36 @@ class ManageAgencyUserAccountForm(StripFieldsForm):
         if self.user is not None:
             self.title.data = self.user.title
             self.organization.data = self.user.organization
-            self.notification_email.data = self.user.notification_email or self.user.email
+            self.notification_email.data = (
+                self.user.notification_email or self.user.email
+            )
             self.phone_number.data = self.user.phone_number
             self.fax_number.data = self.user.fax_number
             if self.user.mailing_address is not None:
-                self.address_one.data = self.user.mailing_address.get('address_one')
-                self.address_two.data = self.user.mailing_address.get('address_two')
-                self.city.data = self.user.mailing_address.get('city')
-                self.state.data = self.user.mailing_address.get('state')
-                self.zipcode.data = self.user.mailing_address.get('zip')
+                self.address_one.data = self.user.mailing_address.get("address_one")
+                self.address_two.data = self.user.mailing_address.get("address_two")
+                self.city.data = self.user.mailing_address.get("city")
+                self.state.data = self.user.mailing_address.get("state")
+                self.zipcode.data = self.user.mailing_address.get("zip")
 
     def validate(self):
         """ One mthod of contact must be provided. """
         base_is_valid = super(ManageAgencyUserAccountForm, self).validate()
         return base_is_valid and bool(
-            self.notification_email.data or
-            self.phone_number.data or
-            self.fax_number.data or
-            (  # mailing address
-                self.address_one.data and
-                self.city.data and
-                self.state.data and
-                self.zipcode.data
-            ))
+            self.notification_email.data
+            or self.phone_number.data
+            or self.fax_number.data
+            or (  # mailing address
+                self.address_one.data
+                and self.city.data
+                and self.state.data
+                and self.zipcode.data
+            )
+        )
 
 
 class BasicLoginForm(Form):
-    email = StringField('Email')
-    password = PasswordField('Password')
+    email = StringField("Email")
+    password = PasswordField("Password")
 
-    login = SubmitField('Login')
+    login = SubmitField("Login")
