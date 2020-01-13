@@ -57,7 +57,7 @@ Your should fill out the fields in the following way:
 4. Store you servie account password in your .env (`SAML_NYC_ID_PASSWORD`)
 
 
-# Create self-signed certs
+# Create Self-Signed Certs
 1. Create self-signed certs using the command:
  ```markdown
  openssl req -new -x509 -days 3652 -nodes -out saml.crt -keyout saml.key
