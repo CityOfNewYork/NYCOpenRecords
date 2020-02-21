@@ -12,9 +12,6 @@
                             </p>
                             <!-- Contact and Request Information -->
                             <p>
-                                Request Title: {{ current_request.title }}
-                                <br/>
-                                <br/>
                                 {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
                                     Request Description: {{ current_request.description }}
                                     <br/>

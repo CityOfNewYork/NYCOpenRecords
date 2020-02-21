@@ -7,7 +7,6 @@
             <li>
                 <a href="{{ request.url }}">{{ request.id }}</a>
                 <ul>
-                    <li>Request Title: {{ request.title }}</li>
                     <li>Request Description: {{ request.description }}</li>
                     {% if request.custom_metadata %}
                         {% for form_number,form_values in request.custom_metadata|dictsort %}
@@ -46,7 +45,6 @@
                 <li>
                     <a href="{{ request.url }}">{{ request.id }}</a>
                     <ul>
-                        <li>Request Title: {{ request.title }}</li>
                         <li>Request Description: {{ request.description }}</li>
                         {% if request.custom_metadata %}
                             {% for form_number,form_values in request.custom_metadata|dictsort %}
@@ -92,7 +90,6 @@
                     {% endif %}
                 </strong>
                 <ul>
-                    <li>Request Title: {{ request.title }}</li>
                     <li>Request Description: {{ request.description }}</li>
                     {% if request.custom_metadata %}
                         {% for form_number,form_values in request.custom_metadata|dictsort %}
@@ -138,7 +135,6 @@
                         {% endif %}
                     </strong>
                     <ul>
-                        <li>Request Title: {{ request.title }}</li>
                         <li>Request Description: {{ request.description }}</li>
                         {% if request.custom_metadata %}
                             {% for form_number,form_values in request.custom_metadata|dictsort %}
