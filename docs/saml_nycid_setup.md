@@ -56,6 +56,13 @@ Your should fill out the fields in the following way:
 3. Store your service account name in your .env (`SAML_NYC_ID_USERNAME`)
 4. Store you servie account password in your .env (`SAML_NYC_ID_PASSWORD`)
 
+
+# Create Self-Signed Certs
+1. Create self-signed certs using the command:
+ ```markdown
+ openssl req -new -x509 -days 3652 -nodes -out saml.crt -keyout saml.key
+ ```
+
 # Setup your NYC.ID Service Provider
 1. Login to the NYC.ID Console
 2. Create a new SAML Service Provider
@@ -78,9 +85,9 @@ DORIS uses a lightly customized [OneLogin python3-saml](https://github.com/onelo
 2. `cp  /vagrant/instance/saml/advanced_settings.json.example /vagrant/instance/saml/advanced_settings.json`
 
 ### Edit `/vagrant/instance/saml/settings.json`
-1. Copy the contents of `/vagrant/instance/saml/certs/sp.key` into `sp['privateKey']`  
+1. Copy the contents of `/vagrant/instance/saml/certs/saml.key` into `sp['privateKey']`  
    Note: You may need to open the file in another editor and remove all linebreaks.
-2. Copy the contents of `/vagrant/instance/saml/certs/sp.cert` into `sp['x509cert']`  
+2. Copy the contents of `/vagrant/instance/saml/certs/saml.cert` into `sp['x509cert']`  
    Note: You may need to open the file in another editor and remove all linebreaks.
 3. Replace all occurrences of `<sp_domain>` with the URL you added to the DNS server earlier.
 4. Open the IdP metadata and copy the `x509cert` from the metadata into `idp[x509cert]`.  

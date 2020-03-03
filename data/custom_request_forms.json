@@ -143,7 +143,7 @@
           "Incident Report Number": {
             "type": "input",
             "name": "fdny-form1-field8",
-            "required": true,
+            "required": false,
             "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Report Number is required.</strong> Please provide the number."
           }
         },
@@ -157,7 +157,7 @@
               "Outdoors",
               "Non-Fire Emergency"
             ],
-            "help_text": "If transportation if selected, please provide the type, make, and plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
+            "help_text": "If transportation is selected, please provide the model, make, and license plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
             "required": false
           }
         },
@@ -592,6 +592,116 @@
             "max_length": 5000,
             "character_counter": true,
             "help_text": "Please provide a short description of the records you are requesting."
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Fire Marshal Face Sheet (Cause of Fire ONLY)",
+      "form_description": "",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "fdny-form8-field1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Incident Address": {
+            "type": "input",
+            "name": "fdny-form8-field2",
+            "help_text": "Please include the street name and house number.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Address is required.</strong> Please provide an address."
+          }
+        },
+        {
+          "Floor(s)": {
+            "type": "input",
+            "name": "fdny-form8-field3",
+            "required": false
+          }
+        },
+        {
+          "Apt(s)": {
+            "type": "input",
+            "name": "fdny-form8-field4",
+            "required": false
+          }
+        },
+        {
+          "Borough": {
+            "type": "select_dropdown",
+            "name": "fdny-form8-field5",
+            "values": [
+              "Brooklyn",
+              "Bronx",
+              "Manhattan",
+              "Queens",
+              "Staten Island"
+            ],
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Borough is required.</strong> Please select a borough."
+          }
+        },
+        {
+          "Box #": {
+            "type": "input",
+            "name": "fdny-form8-field6",
+            "required": false
+          }
+        },
+        {
+          "Incident Date": {
+            "type": "date",
+            "name": "fdny-form8-field7",
+            "future_date_invalid": true,
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Date is required.</strong> Please select a date."
+          }
+        },
+        {
+          "Incident Report Number": {
+            "type": "input",
+            "name": "fdny-form8-field8",
+            "required": false,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Incident Report Number is required.</strong> Please provide the number."
+          }
+        },
+        {
+          "Incident Type": {
+            "type": "radio",
+            "name": "fdny-form8-field9",
+            "values": [
+              "Building",
+              "Transportation",
+              "Outdoors",
+              "Non-Fire Emergency"
+            ],
+            "help_text": "If transportation is selected, please provide the model, make, and license plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
+            "required": false
+          }
+        },
+        {
+          "Description of Incident": {
+            "type": "textarea",
+            "name": "fdny-form8-field8",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
           }
         }
       ],
