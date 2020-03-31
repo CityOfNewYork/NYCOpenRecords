@@ -12,6 +12,9 @@
                             </p>
                             <!-- Contact and Request Information -->
                             <p>
+                                {% if current_request.custom_metadata %}
+                                    Request Type: {{ current_request.description }}
+                                {% endif %}
                                 {% if file_link %}
                                     Attached File: {{ file_link['title'] }}:
                                     <a href="{{ file_link['link'] }}">{{ file_link['filename'] }}</a>
