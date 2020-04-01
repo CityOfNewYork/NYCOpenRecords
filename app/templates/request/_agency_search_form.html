@@ -223,6 +223,12 @@
                 {% endif %}
                 <div class="fieldset">
                     <div class="form-group">
+                        <label for="request_type" class-="h4"><strong>Request Type</strong></label>
+                        {{ form.request_type(class="input-block-level") }}
+                    </div>
+                </div>
+                <div class="fieldset">
+                    <div class="form-group">
                         <label for="size" class="h4"><strong>Results Per Page</strong></label>
                         <select name="size" id="size" title="size" class="form-control">
                             <option value="10">10</option>

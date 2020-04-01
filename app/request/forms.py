@@ -28,7 +28,7 @@ from app.constants import (
     response_type,
 )
 from app.lib.db_utils import get_agency_choices
-from app.models import Reasons, LetterTemplates, EnvelopeTemplates
+from app.models import Reasons, LetterTemplates, EnvelopeTemplates, CustomRequestForms
 
 
 class PublicUserRequestForm(Form):
@@ -437,6 +437,7 @@ class SearchRequestsForm(Form):
     # TODO: Add class docstring
     agency_ein = SelectField("Agency")
     agency_user = SelectField("User")
+    request_type = SelectField("Request Type", choices=[])
 
     # category = SelectField('Category', get_categories())
 
@@ -486,6 +487,15 @@ class SearchRequestsForm(Form):
                     (current_user.get_id(), "My Requests"),
                 ]
                 self.agency_user.default = current_user.get_id()
+
+            if default_agency.agency_features["custom_request_forms"]["enabled"]:
+                self.request_type.choices = [
+                    (custom_request_form.form_name, custom_request_form.form_name)
+                    for custom_request_form in CustomRequestForms.query.filter_by(
+                        agency_ein=default_agency.ein
+                    ).all()
+                ]
+                self.request_type.choices.insert(0, ("", "All"))
 
             # process form for default values
             self.process()
