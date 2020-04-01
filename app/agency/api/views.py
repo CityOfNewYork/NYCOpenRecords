@@ -161,3 +161,15 @@ def get_custom_request_form_fields():
     data['tooltips'] = tooltips
     data['error_messages'] = error_messages
     return jsonify(data), 200
+
+
+@agency_api_blueprint.route('/request_types', methods=['GET'])
+def get_request_types(agency_ein):
+    """
+    Retrieve the request types (custom request form names) for the specified agency.
+
+    :param agency_ein: Agency EIN (String)
+
+    :return: JSON Object({"request_type": [('', 'All'), ('Form Name', 'Form Name')]}), 200
+    """
+    pass
