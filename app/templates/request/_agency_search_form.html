@@ -221,12 +221,14 @@
                         </div>
                     </div>
                 {% endif %}
-                <div class="fieldset">
-                    <div class="form-group">
-                        <label for="request_type" class-="h4"><strong>Request Type</strong></label>
-                        {{ form.request_type(class="input-block-level") }}
+                {% if current_user.is_agency_active() %}
+                    <div class="fieldset">
+                        <div class="form-group">
+                            <label for="request_type" class="h4"><strong>Request Type</strong></label>
+                            {{ form.request_type(class="input-block-level") }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
                 <div class="fieldset">
                     <div class="form-group">
                         <label for="size" class="h4"><strong>Results Per Page</strong></label>

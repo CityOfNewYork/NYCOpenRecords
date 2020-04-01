@@ -21,6 +21,7 @@ $(function () {
         agencySelect = $("#agency_ein"),
         agencyUserDiv = $("#agency-user-div"),
         agencyUserSelect = $("#agency_user"),
+        requestType = $("#request_type"),
         resultsHeader = "resultsHeading",
         isAgencyUser = ($("#is-agency-user").val() === "true"),
         resultcol = [];
@@ -419,6 +420,7 @@ $(function () {
 
     agencySelect.change(function () {
         agencyUserSelect.empty();
+        requestType.empty();
 
         if (agencySelect.val()) {
             $.ajax({
@@ -452,6 +454,10 @@ $(function () {
         }
     });
     agencyUserSelect.change(function () {
+        resetAndSearch();
+    });
+
+    requestType.change(function () {
         resetAndSearch();
     });
 

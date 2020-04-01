@@ -1018,6 +1018,7 @@ class Requests(db.Model):
                     ),
                     "requester_name": self.requester.name,
                     "public_title": "Private" if self.privacy["title"] else self.title,
+                    "request_type": [metadata["form_name"] for metadata in self.custom_metadata.values()],
                 },
             )
 
