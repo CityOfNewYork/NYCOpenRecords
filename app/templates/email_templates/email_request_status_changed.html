@@ -7,6 +7,9 @@
             <li>
                 <a href="{{ request.url }}">{{ request.id }}</a>
                 <ul>
+                    {% if request.custom_metadata %}
+                        <li>Request Type: {{ request.description }}</li>
+                    {% endif %}
                     <li>Requester Last Name: {{ request.requester.last_name }}</li>
                     <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
@@ -23,6 +26,9 @@
                 <li>
                     <a href="{{ request.url }}">{{ request.id }}</a>
                     <ul>
+                        {% if request.custom_metadata %}
+                            <li>Request Type: {{ request.description }}</li>
+                        {% endif %}
                         <li>Requester Last Name: {{ request.requester.last_name }}</li>
                         <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>
@@ -46,6 +52,9 @@
                     {% endif %}
                 </strong>
                 <ul>
+                    {% if request.custom_metadata %}
+                        <li>Request Type: {{ request.description }}</li>
+                    {% endif %}
                     <li>Requester Last Name: {{ request.requester.last_name }}</li>
                     <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                 </ul>
@@ -69,6 +78,9 @@
                         {% endif %}
                     </strong>
                     <ul>
+                        {% if request.custom_metadata %}
+                            <li>Request Type: {{ request.description }}</li>
+                        {% endif %}
                         <li>Requester Last Name: {{ request.requester.last_name }}</li>
                         <li>Request Opened: {{ request.date_submitted.strftime('%m/%d/%y') }}</li>
                     </ul>

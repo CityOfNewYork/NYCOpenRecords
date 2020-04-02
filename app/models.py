@@ -390,7 +390,7 @@ class Users(UserMixin, db.Model):
 
     @property
     def is_active(self):
-        return self.email_validated and self.terms_of_use_accepted
+        return self.email_validated
 
     @property
     def is_public(self):
