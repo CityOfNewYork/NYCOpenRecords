@@ -442,12 +442,21 @@ $(function () {
                     }
 
                     agencyUserDiv.show();
-                },
-                // search after ajax call is complete so default value for standard user is selected
-                complete: function () {
-                    resetAndSearch();
                 }
             });
+
+            $.ajax({
+                url: "/agency/api/v1.0/request_types/" + agencySelect.val(),
+                success: function (data) {
+                    // Populate request types
+                    $.each(data.request_types, function() {
+                        requestType.append($("<option />").val(this[0]).text(this[1]));
+                    });
+                }
+            });
+
+            // search after ajax calls are complete so default values are selected
+            resetAndSearch();
         } else {
             agencyUserDiv.is(":visible") && agencyUserDiv.hide();
             resetAndSearch();
