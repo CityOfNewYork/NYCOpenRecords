@@ -107,6 +107,7 @@ def create_index():
                             "format": "strict_date_hour_minute_second",
                         },
                         "assigned_users": {"type": "keyword"},
+                        "request_type": {"type": "keyword"},
                     }
                 }
             }
@@ -135,6 +136,9 @@ def create_docs():
             if r.date_created < r.date_submitted
             else r.date_submitted.strftime(ES_DATETIME_FORMAT)
         )
+        request_type = []
+        if r.custom_metadata is not None:
+            request_type = [metadata["form_name"] for metadata in r.custom_metadata.values()]
         operation = {
             "_op_type": "create",
             "_id": r.id,
@@ -157,7 +161,8 @@ def create_docs():
             "public_title": "Private" if not r.privacy["title"] else r.title,
             "assigned_users": [
                 "{guid}".format(guid=user.guid) for user in r.agency_users
-            ]
+            ],
+            "request_type": request_type
             # public_agency_request_summary
         }
 
@@ -195,6 +200,7 @@ def search_requests(
     date_closed_to,
     agency_ein,
     agency_user_guid,
+    request_type,
     open_,
     closed,
     in_progress,
@@ -231,6 +237,7 @@ def search_requests(
     :param date_closed_to: date closed to
     :param agency_ein: agency ein to filter by
     :param agency_user_guid: user (agency) guid to filter by
+    :param request_type: request type to filter by
     :param open_: filter by opened requests?
     :param closed: filter by closed requests?
     :param in_progress: filter by in-progress requests?
@@ -368,6 +375,7 @@ def search_requests(
         date_ranges,
         agency_ein,
         agency_user_guid,
+        request_type,
         match_type,
     )
     if foil_id:
@@ -429,6 +437,7 @@ def search_requests(
                 "agency_request_summary",
                 "description",
                 "assigned_users",
+                "request_type",
             ],
             size=result_set_size,
             from_=start,
@@ -460,6 +469,7 @@ def search_requests(
                 "agency_request_summary",
                 "description",
                 "assigned_users",
+                "request_type"
             ],
             size=result_set_size,
             from_=start,
@@ -496,6 +506,7 @@ class RequestsDSLGenerator(object):
         date_ranges,
         agency_ein,
         agency_user_guid,
+        request_type,
         match_type,
     ):
         self.__query = query
@@ -512,6 +523,10 @@ class RequestsDSLGenerator(object):
         if agency_user_guid:
             self.__default_filters.append(
                 {"term": {"assigned_users": agency_user_guid}}
+            )
+        if request_type:
+            self.__default_filters.append(
+                {"term": {"request_type": request_type}}
             )
 
         self.__filters = []
