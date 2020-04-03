@@ -136,6 +136,9 @@ def create_docs():
             if r.date_created < r.date_submitted
             else r.date_submitted.strftime(ES_DATETIME_FORMAT)
         )
+        request_type = []
+        if r.custom_metadata is not None:
+            request_type = [metadata["form_name"] for metadata in r.custom_metadata.values()]
         operation = {
             "_op_type": "create",
             "_id": r.id,
@@ -159,9 +162,7 @@ def create_docs():
             "assigned_users": [
                 "{guid}".format(guid=user.guid) for user in r.agency_users
             ],
-            "request_type": [
-                metadata["form_name"] for metadata in r.custom_metadata.values()
-            ]
+            "request_type": request_type
             # public_agency_request_summary
         }
 

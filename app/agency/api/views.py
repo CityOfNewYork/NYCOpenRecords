@@ -179,7 +179,7 @@ def get_request_types(agency_ein):
                 (custom_request_form.form_name, custom_request_form.form_name)
                 for custom_request_form in CustomRequestForms.query.filter_by(
                     agency_ein=agency_ein
-                ).all()
+                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
             ]
             request_types.insert(0, ("", "All"))
             return jsonify({"request_types": request_types}), 200

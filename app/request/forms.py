@@ -493,7 +493,7 @@ class SearchRequestsForm(Form):
                     (custom_request_form.form_name, custom_request_form.form_name)
                     for custom_request_form in CustomRequestForms.query.filter_by(
                         agency_ein=default_agency.ein
-                    ).all()
+                    ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
                 ]
                 self.request_type.choices.insert(0, ("", "All"))
 
