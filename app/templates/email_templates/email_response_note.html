@@ -3,7 +3,7 @@
         <p>Attention {{ agency_name }} Users,</p>
         <p>
             The following note was added to <a href="{{ page }}">{{ request_id }}</a> by the requester: <br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;{{ note_content }}
+            {{ note_content | safe }}
         </p>
     {% else %}
         {% if privacy == response_privacy.RELEASE_AND_PUBLIC %}
@@ -14,9 +14,11 @@
             <p>
                 This information will not be accessible to the public for 20 work days.
             </p>
+            <div class="mceNonEditable">
+                {{ note_content | safe }}
+            </div>
             <p>
                 <span class="mceNonEditable">
-                    &nbsp;&nbsp;&nbsp;&nbsp;{{ note_content }}<br/><br/>
                     On {{ moment(release_date).format('dddd, MMMM D, YYYY') }} this note will be publicly available on the
                     OpenRecords Portal.<br/><br/>
                     Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any
@@ -29,9 +31,11 @@
                 The {{ agency_name }} has responded to your FOIL request
                 <a href="{{ page }}" target="_blank">{{ request_id }}</a> with the following note.
             </p>
+            <div class="mceNonEditable">
+                {{ note_content | safe }}
+            </div>
             <p>
                 <span class="mceNonEditable">
-                    &nbsp;&nbsp;&nbsp;&nbsp;{{ note_content }}<br/><br/>
                     Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
                 </span>
             </p>
@@ -41,9 +45,11 @@
             <p>
                 <span class="mceNonEditable">
                     The following note was added to <a href="{{ page }}">{{ request_id }}</a> and is private: <br/><br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;{{ note_content }}<br/>
                 </span>
             </p>
+            <div class="mceNonEditable">
+                {{ note_content | safe }}
+            </div>
         {% endif %}
     {% endif %}
 {% else %}

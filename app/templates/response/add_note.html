@@ -17,8 +17,11 @@
                 <!-- first div of the add-note form -->
                 <div class="note-divs form-group" id="note-first">
                     <label class="note-label">Note Content</label>
-                    <textarea class="input-block-level form-group" id="note-content" name="content"
-                              maxlength="5000"></textarea>
+                    <div id="note-content-maxlength-error" style="color: #df0000;" hidden>
+                        <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, note content must be less than 5000 characters</strong>
+                    </div>
+                    <textarea class="input-block-level form-group tinymce-note-content" id="note-content"
+                              name="content"></textarea>
                     <p id="note-content-character-count" class="character-counter">5000 characters remaining</p>
                     {% if current_user.is_agency %}
                         {% if permissions['edit_note_privacy'] and request.status != status.CLOSED %}
