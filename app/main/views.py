@@ -1,5 +1,6 @@
 """
 .. module:: main.views.
+
    :synopsis: Handles all core URL endpoints for the timeclock application
 """
 from flask import (
@@ -93,4 +94,4 @@ def active():
     :return:
     """
     session.modified = True
-    return 'OK'
+    return

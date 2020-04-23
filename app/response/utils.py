@@ -2095,8 +2095,6 @@ def _note_email_handler(request_id, data, page, agency_name, email_template):
     if note is not None:
         note = json.loads(note)
         note_content = note['content']
-        # note_content = note_content.replace('\n', '<br>')
-        # print(note_content)
         content = None
         privacy = note.get('privacy')
         # use private email template for note if privacy is private
