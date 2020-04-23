@@ -94,4 +94,4 @@ def active():
     :return:
     """
     session.modified = True
-    return
+    return 'OK'
