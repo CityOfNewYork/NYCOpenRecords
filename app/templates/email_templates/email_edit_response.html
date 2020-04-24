@@ -45,9 +45,9 @@
                     <p> to: </p>
                     <p style="padding-left: 30px;"> {{ response_data.data_new[key] | format_response_privacy }} </p>
                 {% else %}
-                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] }} </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_old[key] | safe }} </p>
                     <p> to: </p>
-                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] }} </p>
+                    <p style="padding-left: 30px;"> {{ response_data.data_new[key] | safe }} </p>
                 {% endif %}
             {% endfor %}
         {% endif %}

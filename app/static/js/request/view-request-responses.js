@@ -161,13 +161,22 @@ $(function () {
         tinymce.init({
             menubar: false,
             // sets tinymce to enable only on specific textareas classes
-            mode: "specific_textareas",
+            mode: 'specific_textareas',
             // selector for tinymce textarea classes is set to 'tinymce-area'
-            editor_selector: "tinymce-area",
+            editor_selector: 'tinymce-area',
             elementpath: false,
             convert_urls: false,
-            height: 180,
-            plugins: ["noneditable", "preventdelete"]
+            height: 250,
+            plugins: ['noneditable', 'preventdelete', 'lists'],
+            toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
+            setup: function (editor) {
+                editor.ui.registry.addButton('add_check', {
+                    text: 'Add  ✔',
+                    onAction: function () {
+                        editor.insertContent('&nbsp;&#10004;&nbsp;');
+                    }
+                });
+            }
         });
 
         switch (response_type) {
@@ -300,6 +309,8 @@ $(function () {
 
             case "notes":
                 next1.click(function () {
+                    tinyMCE.triggerSave();
+
                     first.find(".note-form").parsley().validate();
 
                     if (first.find(".note-form").parsley().isValid()) {
@@ -381,6 +392,40 @@ $(function () {
                     });
                 });
 
+                tinymce.init({
+                    menubar: false,
+                    // sets tinymce to enable only on specific textareas classes
+                    mode: "specific_textareas",
+                    // selector for tinymce textarea classes is set to 'tinymce-area'
+                    editor_selector: "tinymce-edit-note-content",
+                    elementpath: false,
+                    convert_urls: false,
+                    height: 250,
+                    plugins: ["noneditable", "preventdelete", "lists"],
+                    toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
+                    forced_root_block: '',
+                    setup: function (editor) {
+                        editor.ui.registry.addButton('add_check', {
+                            text: 'Add  ✔',
+                            onAction: function () {
+                                editor.insertContent('&nbsp;&#10004;&nbsp;');
+                            }
+                        });
+
+                        editor.on('keyup', function () {
+                            let currentLength = tinyMCE.get(editor.id).getContent({format: 'text'}).trim().length;
+                            characterCounter("#character-counter-" + editor.id, 5000, currentLength);
+                            if (currentLength > 5000) {
+                                $('#' + response_id + '-next-1').prop('disabled', true);
+                                $('#' + editor.id + '-maxlength-error').show();
+                            } else {
+                                $('#' + response_id + '-next-1').prop('disabled', false);
+                                $('#' + editor.id + '-maxlength-error').hide();
+                            }
+                        });
+                    }
+                });
+
                 // Apply parsley data required validation to note content
                 first.find('.note-content').attr("data-parsley-required", "");
 
@@ -393,9 +438,7 @@ $(function () {
                 first.find('.note-content').attr("data-parsley-maxlength-message",
                     "Note content must be less than 5000 characters");
 
-                $(first.find(".note-content")).keyup(function () {
-                    characterCounter(first.find(".note-content-character-count"), 5000, $(this).val().length)
-                });
+                characterCounter("#character-counter-note-" + response_id, 5000, tinyMCE.get("note-" + response_id).getContent({format: 'text'}).trim().length);
 
                 break;
 

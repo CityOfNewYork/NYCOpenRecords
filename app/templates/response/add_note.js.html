@@ -23,8 +23,8 @@
                 });
 
                 editor.on('keyup', function () {
-                    let length = tinyMCE.get('note-content').getContent({format: 'text'}).trim().length;
-                    characterCounter("#note-content-character-count", 5000, tinyMCE.get('note-content').getContent({format: 'text'}).trim().length);
+                    let currentLength = tinyMCE.get('note-content').getContent({format: 'text'}).trim().length;
+                    characterCounter("#note-content-character-count", 5000, currentLength);
                     if (length > 5000) {
                         $('#note-next-1').prop('disabled', true);
                         $('#note-content-maxlength-error').show();
