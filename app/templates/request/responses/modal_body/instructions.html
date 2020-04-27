@@ -7,11 +7,19 @@ and current_request.status != request_status.CLOSED %}
 
         {% if edit_response_permission %}
             <div class="instruction-error-messages alert alert-danger" hidden></div>
-            <textarea class="input-block-level form-group instruction-content"
-                      title="content" name="content" maxlength="500">{{ response.content }}</textarea>
-            <p class="required instruction-content-character-count character-counter">
+            <div id="instruction-{{ response.id }}-maxlength-error" style="color: #df0000;" hidden>
+                <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, note content must be less than 500 characters</strong>
+            </div>
+            <textarea id="instruction-{{ response.id }}" class="input-block-level form-group instruction-content tinymce-edit-instruction-content"
+                      title="content" name="content" maxlength="500" minlength="20">{{ response.content | safe }}</textarea>
+            <p id="character-counter-instruction-{{ response.id }}" class="required instruction-content-character-count character-counter">
                 500 characters remaining
             </p>
+{#            <textarea class="input-block-level form-group instruction-content"#}
+{#                      title="content" name="content" maxlength="500">{{ response.content }}</textarea>#}
+{#            <p class="required instruction-content-character-count character-counter">#}
+{#                500 characters remaining#}
+{#            </p>#}
         {% else %}
             {{ response.content }}
         {% endif %}

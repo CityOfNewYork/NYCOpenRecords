@@ -416,10 +416,10 @@ $(function () {
                             let currentLength = tinyMCE.get(editor.id).getContent({format: 'text'}).trim().length;
                             characterCounter("#character-counter-" + editor.id, 5000, currentLength);
                             if (currentLength > 5000) {
-                                $('#' + response_id + '-next-1').prop('disabled', true);
+                                $('#response-' + response_id + '-next-1').prop('disabled', true);
                                 $('#' + editor.id + '-maxlength-error').show();
                             } else {
-                                $('#' + response_id + '-next-1').prop('disabled', false);
+                                $('#response-' + response_id + '-next-1').prop('disabled', false);
                                 $('#' + editor.id + '-maxlength-error').hide();
                             }
                         });
@@ -445,6 +445,8 @@ $(function () {
             // TODO: call common function, stop copying code
             case "instructions":
                 next1.click(function () {
+                    tinyMCE.triggerSave();
+
                     first.find(".instruction-form").parsley().validate();
 
                     if (first.find(".instruction-form").parsley().isValid()) {
@@ -529,21 +531,48 @@ $(function () {
                     });
                 });
 
+                tinymce.init({
+                    menubar: false,
+                    // sets tinymce to enable only on specific textareas classes
+                    mode: "specific_textareas",
+                    // selector for tinymce textarea classes is set to 'tinymce-area'
+                    editor_selector: "tinymce-edit-instruction-content",
+                    elementpath: false,
+                    convert_urls: false,
+                    height: 250,
+                    plugins: ["noneditable", "preventdelete", "lists"],
+                    toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
+                    forced_root_block: '',
+                    setup: function (editor) {
+                        editor.ui.registry.addButton('add_check', {
+                            text: 'Add  ✔',
+                            onAction: function () {
+                                editor.insertContent('&nbsp;&#10004;&nbsp;');
+                            }
+                        });
+
+                        editor.on('keyup', function () {
+                            let currentLength = tinyMCE.get(editor.id).getContent({format: 'text'}).trim().length;
+                            characterCounter("#character-counter-" + editor.id, 500, currentLength, 20);
+                            if (currentLength > 500) {
+                                $('#response-' + response_id + '-next-1').prop('disabled', true);
+                                $('#' + editor.id + '-maxlength-error').show();
+                            } else {
+                                $('#response-' + response_id + '-next-1').prop('disabled', false);
+                                $('#' + editor.id + '-maxlength-error').hide();
+                            }
+                        });
+                    }
+                });
+
                 // Apply parsley data required validation to instructions content
                 first.find('.instruction-content').attr("data-parsley-required", "");
-
-                // Apply parsley max length validation to instructions content
-                first.find('.instruction-content').attr("data-parsley-maxlength", "500");
 
                 // Apply custom validation messages
                 first.find('.instruction-content').attr("data-parsley-required-message",
                     "Instruction content must be provided");
-                first.find('.instruction-content').attr("data-parsley-maxlength-message",
-                    "Instruction content must be less than 500 characters");
 
-                $(first.find(".instruction-content")).keyup(function () {
-                    characterCounter(first.find(".instruction-content-character-count"), 500, $(this).val().length)
-                });
+                characterCounter("#character-counter-instruction-" + response_id, 500, tinyMCE.get("instruction-" + response_id).getContent({format: 'text'}).trim().length, 20);
 
                 break;
 

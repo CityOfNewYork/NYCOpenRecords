@@ -8,9 +8,11 @@
         <p>
             This information will not be accessible to the public for 20 work days.
         </p>
+        <div class="mceNonEditable">
+            {{ instruction_content | safe }}
+        </div>
         <p>
             <span class="mceNonEditable">
-                &nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br /><br />
                 On {{ moment(release_date).format('dddd, MMMM D, YYYY') }} this note will be publicly available on the
                 OpenRecords Portal.<br /><br /> Please visit <a href="{{ page }}">{{ request_id }}</a> to view
                 additional information and take any necessary action.
@@ -23,9 +25,11 @@
             <a href="{{ page }}" target="_blank">{{ request_id }}</a> with the following instructions for
             offline access.
         </p>
+        <div class="mceNonEditable">
+            {{ instruction_content | safe }}
+        </div>
         <p>
             <span class="mceNonEditable">
-                &nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br /><br />
                 Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
             </span>
         </p>
@@ -35,9 +39,11 @@
         <p>
             <span class="mceNonEditable">
                 The following instructions for offline access were added to <a href="{{ page }}">{{ request_id }}</a> and is private: <br /><br />
-                &nbsp;&nbsp;&nbsp;&nbsp;{{ instruction_content }}<br />
             </span>
         </p>
+        <div class="mceNonEditable">
+            {{ instruction_content | safe }}
+        </div>
     {% endif %}
 {% else %}
     {{ content | safe }}

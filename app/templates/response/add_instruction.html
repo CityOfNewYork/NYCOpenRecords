@@ -14,8 +14,12 @@
             <!-- first div of the add-instruction form -->
             <div class="instruction-divs form-group" id="instruction-first">
                 <label class="instruction-label">Offline Instructions</label>
-                <textarea class="input-block-level form-group" id="instruction-content" name="content"
-                          minlength="20" maxlength="500"></textarea>
+                <div id="instruction-content-maxlength-error" style="color: #df0000;" hidden>
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, note content must be
+                    less than 500 characters</strong>
+                </div>
+                <textarea class="input-block-level form-group tinymce-instruction-content" id="instruction-content"
+                          name="content" minlength="20"></textarea>
                 <p id="instruction-content-character-count" class="character-counter">500 characters remaining</p>
                 {% if permissions['edit_instructions_privacy'] %}
                     <div class="radio">
