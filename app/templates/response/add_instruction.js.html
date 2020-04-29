@@ -2,17 +2,16 @@
     "use strict";
 
     $(document).ready(function () {
-        let instructionsMaxLength = 500;
         tinymce.init({
             menubar: false,
             // sets tinymce to enable only on specific textareas classes
-            mode: "specific_textareas",
+            mode: 'specific_textareas',
             // selector for tinymce textarea classes is set to 'tinymce-area'
-            editor_selector: "tinymce-instruction-content",
+            editor_selector: 'tinymce-instruction-content',
             elementpath: false,
             convert_urls: false,
-            height: 250,
-            plugins: ["noneditable", "preventdelete", "lists"],
+            height: 300,
+            plugins: ['noneditable', 'preventdelete', 'lists'],
             toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
             forced_root_block: '',
             setup: function (editor) {
@@ -25,8 +24,8 @@
 
                 editor.on('keyup', function () {
                     let currentLength = tinyMCE.get('instruction-content').getContent({format: 'text'}).trim().length;
-                    characterCounter("#instruction-content-character-count", instructionsMaxLength, currentLength);
-                    if (length > instructionsMaxLength) {
+                    characterCounter('#instruction-content-character-count', 500, currentLength, 20);
+                    if (currentLength > 500) {
                         $('#instruction-next-1').prop('disabled', true);
                         $('#instruction-content-maxlength-error').show();
                     }
@@ -141,6 +140,10 @@
         // Apply custom validation messages
         $("#instruction-content").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>Error, offline Instructions are required.</strong> Please type in some instructions.");
+            "<strong>Error, Offline Instructions are required.</strong> Please type in some instructions.");
+
+        $("#instruction-content").attr("data-parsley-minlength-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, Offline Instructions must be at least 20 characters.</strong>");
     });
 </script>

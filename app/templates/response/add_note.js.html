@@ -5,13 +5,13 @@
         tinymce.init({
             menubar: false,
             // sets tinymce to enable only on specific textareas classes
-            mode: "specific_textareas",
+            mode: 'specific_textareas',
             // selector for tinymce textarea classes is set to 'tinymce-area'
-            editor_selector: "tinymce-note-content",
+            editor_selector: 'tinymce-note-content',
             elementpath: false,
             convert_urls: false,
-            height: 250,
-            plugins: ["noneditable", "preventdelete", "lists"],
+            height: 300,
+            plugins: ['noneditable', 'preventdelete', 'lists'],
             toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
             forced_root_block: '',
             setup: function (editor) {
@@ -24,7 +24,7 @@
 
                 editor.on('keyup', function () {
                     let currentLength = tinyMCE.get('note-content').getContent({format: 'text'}).trim().length;
-                    characterCounter("#note-content-character-count", 5000, currentLength);
+                    characterCounter('#note-content-character-count', 5000, currentLength);
                     if (currentLength > 5000) {
                         $('#note-next-1').prop('disabled', true);
                         $('#note-content-maxlength-error').show();

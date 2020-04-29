@@ -51,8 +51,8 @@
                                value={{ request.due_date.strftime('%m/%d/%Y') }}>
                     </div>
                     <label class="extension-label">Extension Reason</label>
-                    <div id="extension-content-maxlength-error" style="color: #df0000;" hidden>
-                        <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, extension reason must be less than 5000 characters</strong>
+                    <div id="extension-content-maxlength-error" class="tinymce-maxlength-error" hidden>
+                        <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, extension reason must be less than 5000 characters.</strong>
                     </div>
                     <textarea class="input-block-level form-group tinymce-extension-reason" id="extension-reason"
                               name="reason"></textarea>

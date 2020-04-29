@@ -53,9 +53,14 @@
                     </div>
                     <div class="form-group" id="acknowledgment-email-info">
                         <label for="acknowledgment-email-info-text">Additional Information</label>
-                        <textarea id="acknowledgment-email-info-text" class="gray-solid-border" name="info"
-                                  maxlength="5000" rows="5"></textarea>
-                        <p id="acknowledgment-info-character-count">5000 characters remaining</p>
+                        <div id="acknowledgement-info-maxlength-error" class="tinymce-maxlength-error" hidden>
+                            <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, Additional Info
+                            must be less than 5000 characters.</strong>
+                        </div>
+                        <textarea class="input-block-level form-group tinymce-acknowledgement-info"
+                                  id="acknowledgment-email-info-text" name="info"></textarea>
+                        <p id="acknowledgment-info-character-count" class="character-counter">5000 characters remaining</p>
+
                     </div>
                 </div>
                 <div id="acknowledgment-letter">
