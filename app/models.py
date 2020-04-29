@@ -1538,7 +1538,7 @@ class Notes(Responses):
     __tablename__ = response_type.NOTE
     __mapper_args__ = {"polymorphic_identity": response_type.NOTE}
     id = db.Column(db.Integer, db.ForeignKey(Responses.id), primary_key=True)
-    content = db.Column(db.String(5000))
+    content = db.Column(db.String())
 
     def __init__(
         self, request_id, privacy, content, date_modified=None, is_editable=False

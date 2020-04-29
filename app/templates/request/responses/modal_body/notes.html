@@ -28,7 +28,9 @@ and current_request.status != request_status.CLOSED %}
                 5000 characters remaining
             </p>
         {% else %}
-            {{ response.content | safe }}
+            <div class="request-description-text">
+                {{ response.content | safe }}
+            </div>
         {% endif %}
 
         {% if edit_response_privacy_permission %}
@@ -46,5 +48,7 @@ and current_request.status != request_status.CLOSED %}
         {% endif %}
     </form>
 {% else %}
-    {{ response.content | safe }}
+    <div class="request-description-text">
+        {{ response.content | safe }}
+    </div>
 {% endif %}
