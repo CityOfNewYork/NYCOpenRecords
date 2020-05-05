@@ -74,7 +74,7 @@
                                  class="panel-collapse collapse {% if expand_by_default %}in{% endif %}">
                                 <div class="panel-body lead" style="padding: 15px !important;">
                                     {% for field_number,field_values in form_values['form_fields']|dictsort %}
-                                        {{ field_values['field_name'] }}:
+                                        <div class="request-label lead">{{ field_values['field_name'] }}:</div>
                                         {% if field_values['field_value'] is iterable and field_values['field_value'] is not string %}
                                             {% for value in field_values['field_value'] %}
                                                 {{ value }}
@@ -82,7 +82,7 @@
                                                     , {% endif %}
                                             {% endfor %}
                                         {% else %}
-                                            {{ field_values['field_value'] }}
+                                            <div class="request-description-text">{{ field_values['field_value'] }}</div>
                                         {% endif %}
                                         <br/>
                                     {% endfor %}

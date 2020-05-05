@@ -26,6 +26,8 @@
     border-top: 1px solid lightgray;
     padding-top: 1em;
     padding-bottom: 1em;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 #request-history .event-row:not(.has-modal) {
@@ -123,4 +125,8 @@
     padding-bottom: 5px;
     min-height: 100px;
     margin-bottom: 10px;
+}
+
+.tinymce-maxlength-error {
+    color: #df0000;
 }

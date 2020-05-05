@@ -2,6 +2,41 @@
     "use strict";
 
     $(document).ready(function () {
+        tinymce.init({
+            menubar: false,
+            // sets tinymce to enable only on specific textareas classes
+            mode: 'specific_textareas',
+            // selector for tinymce textarea classes is set to 'tinymce-area'
+            editor_selector: 'tinymce-note-content',
+            elementpath: false,
+            convert_urls: false,
+            height: 300,
+            plugins: ['noneditable', 'preventdelete', 'lists'],
+            toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
+            forced_root_block: '',
+            setup: function (editor) {
+                editor.ui.registry.addButton('add_check', {
+                    text: 'Add  ✔',
+                    onAction: function () {
+                        editor.insertContent('&nbsp;&#10004;&nbsp;');
+                    }
+                });
+
+                editor.on('keyup', function () {
+                    let currentLength = tinyMCE.get('note-content').getContent({format: 'text'}).trim().length;
+                    characterCounter('#note-content-character-count', 5000, currentLength);
+                    if (currentLength > 5000) {
+                        $('#note-next-1').prop('disabled', true);
+                        $('#note-content-maxlength-error').show();
+                    }
+                    else {
+                        $('#note-next-1').prop('disabled', false);
+                        $('#note-content-maxlength-error').hide();
+                    }
+                });
+            }
+        });
+
         var editor = $('#note-editor');
         var confirmation = $('#email-note-summary');
 
@@ -13,6 +48,8 @@
 
         // Handles click events on the first next button
         $("#note-next-1").click(function () {
+            tinyMCE.triggerSave();
+
             // Onclick, changes button text from to Next
             $(this).text("Next");
 
@@ -28,7 +65,7 @@
                         request_id: "{{ request.id }}",
                         type: "notes",
                         note: JSON.stringify({
-                            content: $('#note-content').val(),
+                            content: tinyMCE.get('note-content').getContent(),
                             privacy: $(".note-privacy:checked").val()
                         }),
                         tz_name: jstz.determine().name()
@@ -102,20 +139,9 @@
         // Apply parsley data required validation to note title and url
         $("#note-content").attr("data-parsley-required", "");
 
-        // Apply parsley max length validation to note title and url
-        $("#note-content").attr("data-parsley-maxlength", "5000");
-
         // Apply custom validation messages
         $("#note-content").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
             "<strong>Error, note content is required.</strong> Please type in a message.");
-        $("#note-content").attr("data-parsley-maxlength-message",
-            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>Error, note content must be less than 5000 characters</strong>");
-
-        // Set character counter for note content
-        $("#note-content").keyup(function () {
-            characterCounter("#note-content-character-count", 5000, $(this).val().length)
-        });
     });
 </script>

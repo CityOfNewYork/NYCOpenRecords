@@ -1,4 +1,5 @@
 {% include "request/events/modal_body/base/heading.html" %}
+{{ event.new_value['content'] | safe }}
 <ul>
     {% if event.new_value.get('content') %}
         <li>
@@ -6,13 +7,13 @@
                 The <strong>content</strong> of the note was changed from
             </p>
             <p>
-                "{{ event.previous_value['content'] }}"
+                {{ event.previous_value['content'] | safe }}
             </p>
             <p>
                 to
             </p>
             <p>
-                "{{ event.new_value['content'] }}"
+                {{ event.new_value['content'] | safe }}
             </p>
         </li>
     {% endif %}

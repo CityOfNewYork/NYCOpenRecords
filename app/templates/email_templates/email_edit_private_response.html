@@ -21,11 +21,11 @@
         </p>
     {% else %}
         <p style="padding-left: 30px;">
-            <span class="mceNonEditable"> {{ response_data.data_old[key] }} </span>
+            <span class="mceNonEditable"> {{ response_data.data_old[key] | safe }} </span>
         </p>
         <p><span class="mceNonEditable"> to: </span></p>
         <p style="padding-left: 30px;">
-            <span class="mceNonEditable"> {{ response_data.data_new[key] }} </span>
+            <span class="mceNonEditable"> {{ response_data.data_new[key] | safe }} </span>
         </p>
     {% endif %}
 {% endfor %}

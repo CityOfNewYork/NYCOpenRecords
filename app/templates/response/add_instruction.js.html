@@ -2,6 +2,41 @@
     "use strict";
 
     $(document).ready(function () {
+        tinymce.init({
+            menubar: false,
+            // sets tinymce to enable only on specific textareas classes
+            mode: 'specific_textareas',
+            // selector for tinymce textarea classes is set to 'tinymce-area'
+            editor_selector: 'tinymce-instruction-content',
+            elementpath: false,
+            convert_urls: false,
+            height: 300,
+            plugins: ['noneditable', 'preventdelete', 'lists'],
+            toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
+            forced_root_block: '',
+            setup: function (editor) {
+                editor.ui.registry.addButton('add_check', {
+                    text: 'Add  ✔',
+                    onAction: function () {
+                        editor.insertContent('&nbsp;&#10004;&nbsp;');
+                    }
+                });
+
+                editor.on('keyup', function () {
+                    let currentLength = tinyMCE.get('instruction-content').getContent({format: 'text'}).trim().length;
+                    characterCounter('#instruction-content-character-count', 500, currentLength, 20);
+                    if (currentLength > 500) {
+                        $('#instruction-next-1').prop('disabled', true);
+                        $('#instruction-content-maxlength-error').show();
+                    }
+                    else {
+                        $('#instruction-next-1').prop('disabled', false);
+                        $('#instruction-content-maxlength-error').hide();
+                    }
+                });
+            }
+        });
+
         var editor = $('#instruction-editor');
         var confirmation = $('#email-instruction-summary');
 
@@ -13,6 +48,8 @@
 
         // Handles click events on the first next button
         $("#instruction-next-1").click(function () {
+            tinyMCE.triggerSave();
+
             // Onclick, changes button text from to Next
             $(this).text("Next");
 
@@ -28,7 +65,7 @@
                         request_id: "{{ request.id }}",
                         type: "instructions",
                         instruction: JSON.stringify({
-                            content: $('#instruction-content').val(),
+                            content: tinyMCE.get('instruction-content').getContent(),
                             privacy: $(".instruction-privacy:checked").val()
                         }),
                         tz_name: jstz.determine().name()
@@ -100,20 +137,13 @@
         // Apply parsley data required validation to instruction title and url
         $("#instruction-content").attr("data-parsley-required", "");
 
-        // Apply parsley max length validation to instruction title and url
-        $("#instruction-content").attr("data-parsley-maxlength", "500");
-
         // Apply custom validation messages
         $("#instruction-content").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "<strong>Error, offline Instructions are required.</strong> Please type in some instructions.");
-        $("#instruction-content").attr("data-parsley-maxlength-message",
-            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-            "Error, offline Instructions must be less than 500 characters.");
+            "<strong>Error, Offline Instructions are required.</strong> Please type in some instructions.");
 
-        // Set character counter for instruction content
-        $("#instruction-content").keyup(function () {
-            characterCounter("#instruction-content-character-count", 500, $(this).val().length, 20)
-        });
+        $("#instruction-content").attr("data-parsley-minlength-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, Offline Instructions must be at least 20 characters.</strong>");
     });
 </script>
