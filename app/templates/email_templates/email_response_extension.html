@@ -7,10 +7,13 @@
         <span class="mceNonEditable">
         You can expect a response on or about {{ moment(new_due_date).format('dddd, MMMM D, YYYY') }}.<br /><br />
         Additional Information: <br />
-        {{ reason }}<br /><br />
-        Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
         </span>
     </p>
+    <div class="mceNonEditable">
+        {{ reason | safe }}
+        <br /><br />
+        Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+    </div>
 {% else %}
     {{ content | safe }}
 {% endif %}

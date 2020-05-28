@@ -36,6 +36,41 @@
         var editor = $('#acknowledgment-editor');
         var confirmation = $('#acknowledgment-confirmation');
 
+        tinymce.init({
+            menubar: false,
+            // sets tinymce to enable only on specific textareas classes
+            mode: 'specific_textareas',
+            // selector for tinymce textarea classes is set to 'tinymce-area'
+            editor_selector: 'tinymce-acknowledgement-info',
+            elementpath: false,
+            convert_urls: false,
+            height: 300,
+            plugins: ['noneditable', 'preventdelete', 'lists'],
+            toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
+            forced_root_block: '',
+            setup: function (editor) {
+                editor.ui.registry.addButton('add_check', {
+                    text: 'Add  ✔',
+                    onAction: function () {
+                        editor.insertContent('&nbsp;&#10004;&nbsp;');
+                    }
+                });
+
+                editor.on('keyup', function () {
+                    let currentLength = tinyMCE.get('acknowledgment-email-info-text').getContent({format: 'text'}).trim().length;
+                    characterCounter('#acknowledgment-info-character-count', 5000, currentLength);
+                    if (currentLength > 5000) {
+                        next2.prop('disabled', true);
+                        $('#acknowledgement-info-maxlength-error').show();
+                    }
+                    else {
+                        next2.prop('disabled', false);
+                        $('#acknowledgement-info-maxlength-error').hide();
+                    }
+                });
+            }
+        });
+
         // Reveal / Hide Letter Generation
         if (generate_letters_enabled === "True") {
             first.show();
@@ -53,10 +88,6 @@
             required[i].attr("data-parsley-required", "");
         }
         email_info.attr("data-parsley-maxlength", "5000");
-
-        email_info.keyup(function () {
-            characterCounter("#acknowledgment-info-character-count", 5000, $(this).val().length);
-        });
 
         // Custom Validation Messages
         method.attr("data-parsley-required-message",
@@ -98,16 +129,16 @@
                 email_info.attr("data-parsley-required", "");
                 email_info.attr("data-parsley-required-message",
                     "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-                    "Error, additional information is required when selecting a custom due date.");
-                email_info.attr("data-parsley-minlength", "20");
-                email_info.attr("data-parsley-length-message",
+                    "<strong>Error, additional information is required when selecting a custom due date.</strong>");
+                email_info.attr("data-parsley-minlength", 20);
+                email_info.attr("data-parsley-minlength-message",
                     "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
-                    "Error, additional information must have 20 characters or more.");
+                    "<strong>Error, additional information must have 20 characters or more.<strong>");
 
             } else {
                 email_date.parent().hide();
                 email_info.removeAttr("data-parsley-required", "");
-                email_info.removeAttr("data-parsley-minlength", "20");
+                email_info.removeAttr("data-parsley-minlength", 20);
                 email_info.removeClass("parsley-error");
                 second.find(".parsley-errors-list").children().remove();
             }
@@ -141,6 +172,8 @@
         });
 
         next2.click(function (e) {
+            tinyMCE.triggerSave();
+
             if (email_date.is(":visible")) {
                 // If custom due date is selected, email_info must be validated.
                 email_date.parsley().validate();
@@ -186,7 +219,7 @@
                             acknowledgment: JSON.stringify({
                                 days: email_days.val(),
                                 date: email_date.val(),
-                                info: email_info.val()
+                                info: tinyMCE.get('acknowledgment-email-info-text').getContent()
                             }),
                             tz_name: jstz.determine().name()
                         },

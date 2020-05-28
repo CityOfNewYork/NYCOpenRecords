@@ -5,15 +5,17 @@
     </p>
     <p>
         <span class="mceNonEditable">
-            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.<br/><br/>
-            {% if info is not none %}
-                Additional Information:<br/>
-                {{ info }}
-                <br/><br/>
-            {% endif %}
-            Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+            You can expect a response on or about {{ moment(date).format('dddd, MMMM D, YYYY') }}.
         </span>
     </p>
+    <div class="mceNonEditable">
+        {% if info is not none %}
+            Additional Information:<br/>
+            {{ info | safe }}
+            <br/><br/>
+        {% endif %}
+        Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+    </div>
 {% else %}
     {{ content | safe }}
 {% endif %}

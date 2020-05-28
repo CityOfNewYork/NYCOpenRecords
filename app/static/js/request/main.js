@@ -39,7 +39,8 @@ function characterCounter(target, maxLength, currentLength, minLength) {
     minLength = (typeof minLength !== "undefined") ? minLength : 0;
     var s = length === 1 ? "" : "s";
     $(target).text(length + " character" + s + " remaining");
-    if (length == 0) {
+    if (length <= 0) {
+        $(target).text(0 + " character" + s + " remaining");
         $(target).css("color", "red");
     } else if (currentLength < minLength) {
         $(target).css("color", "red");

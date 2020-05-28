@@ -13,7 +13,7 @@ from app.agency.api.utils import (
     get_letter_templates,
     get_reasons
 )
-from app.models import CustomRequestForms
+from app.models import Agencies, CustomRequestForms
 import json
 from sqlalchemy import asc
 
@@ -161,3 +161,27 @@ def get_custom_request_form_fields():
     data['tooltips'] = tooltips
     data['error_messages'] = error_messages
     return jsonify(data), 200
+
+
+@agency_api_blueprint.route('/request_types/<string:agency_ein>', methods=['GET'])
+def get_request_types(agency_ein):
+    """
+    Retrieve the request types (custom request form names) for the specified agency.
+
+    :param agency_ein: Agency EIN (String)
+
+    :return: JSON Object({"request_type": [('', 'All'), ('Form Name', 'Form Name')]}), 200
+    """
+    if current_user.is_agency_active(agency_ein):
+        agency = Agencies.query.filter_by(ein=agency_ein).one_or_none()
+        if agency is not None and agency.agency_features['custom_request_forms']['enabled']:
+            request_types = [
+                (custom_request_form.form_name, custom_request_form.form_name)
+                for custom_request_form in CustomRequestForms.query.filter_by(
+                    agency_ein=agency_ein
+                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
+            ]
+            request_types.insert(0, ("", "All"))
+            return jsonify({"request_types": request_types}), 200
+
+    return jsonify({}), 404

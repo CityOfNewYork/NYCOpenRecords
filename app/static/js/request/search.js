@@ -21,6 +21,7 @@ $(function () {
         agencySelect = $("#agency_ein"),
         agencyUserDiv = $("#agency-user-div"),
         agencyUserSelect = $("#agency_user"),
+        requestType = $("#request_type"),
         resultsHeader = "resultsHeading",
         isAgencyUser = ($("#is-agency-user").val() === "true"),
         resultcol = [];
@@ -419,6 +420,7 @@ $(function () {
 
     agencySelect.change(function () {
         agencyUserSelect.empty();
+        requestType.empty();
 
         if (agencySelect.val()) {
             $.ajax({
@@ -440,18 +442,31 @@ $(function () {
                     }
 
                     agencyUserDiv.show();
-                },
-                // search after ajax call is complete so default value for standard user is selected
-                complete: function () {
-                    resetAndSearch();
                 }
             });
+
+            $.ajax({
+                url: "/agency/api/v1.0/request_types/" + agencySelect.val(),
+                success: function (data) {
+                    // Populate request types
+                    $.each(data.request_types, function() {
+                        requestType.append($("<option />").val(this[0]).text(this[1]));
+                    });
+                }
+            });
+
+            // search after ajax calls are complete so default values are selected
+            resetAndSearch();
         } else {
             agencyUserDiv.is(":visible") && agencyUserDiv.hide();
             resetAndSearch();
         }
     });
     agencyUserSelect.change(function () {
+        resetAndSearch();
+    });
+
+    requestType.change(function () {
         resetAndSearch();
     });
 

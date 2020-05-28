@@ -99,6 +99,7 @@ def requests():
         date_closed_to=request.args.get("date_closed_to"),
         agency_ein=agency_ein,
         agency_user_guid=request.args.get("agency_user"),
+        request_type=request.args.get("request_type"),
         open_=eval_request_bool(request.args.get("open")),
         closed=eval_request_bool(request.args.get("closed")),
         in_progress=eval_request_bool(request.args.get("in_progress"))
@@ -215,6 +216,7 @@ def requests_doc(doc_type):
             date_closed_to=request.args.get("date_closed_to"),
             agency_ein=agency_ein,
             agency_user_guid=request.args.get("agency_user"),
+            request_type=request.args.get("request_type"),
             open_=eval_request_bool(request.args.get("open")),
             closed=eval_request_bool(request.args.get("closed")),
             in_progress=eval_request_bool(request.args.get("in_progress"))

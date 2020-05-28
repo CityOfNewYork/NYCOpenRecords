@@ -5,20 +5,18 @@
     tinymce.init({
         menubar: false,
         // sets tinymce to enable only on specific textareas classes
-        mode: "specific_textareas",
+        mode: 'specific_textareas',
         // selector for tinymce textarea classes is set to 'tinymce-area'
-        editor_selector: "tinymce-area",
+        editor_selector: 'tinymce-area',
         elementpath: false,
         convert_urls: false,
-        height: 180,
-        plugins: ["noneditable", "preventdelete"],
-        {#toolbar1: 'mybutton',#}
-        toolbar1: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent add_check |',
+        height: 300,
+        plugins: ['noneditable', 'preventdelete', 'lists'],
+        toolbar: ['undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent add_check'],
         setup: function (editor) {
-            editor.addButton('add_check', {
+            editor.ui.registry.addButton('add_check', {
                 text: 'Add  ✔',
-                icon: false,
-                onclick: function () {
+                onAction: function () {
                     editor.insertContent('&nbsp;&#10004;&nbsp;');
                 }
             });
