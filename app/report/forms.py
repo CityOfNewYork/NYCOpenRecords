@@ -3,7 +3,7 @@
 
     :synopsis: Defines forms used for report statistics.
 """
-from datetime import date
+from datetime import date, timedelta
 
 from flask_login import current_user
 from flask_wtf import Form
@@ -95,5 +95,8 @@ class OpenDataReportForm(Form):
             is_valid = False
         if self.date_from.data == self.date_to.data:
             field.errors.append('The dates cannot be the same.')
+            is_valid = False
+        if self.date_from.data + timedelta(days=365) < self.date_to.data:
+            field.errors.append('Date From and Date To must be within one year.')
             is_valid = False
         return is_valid

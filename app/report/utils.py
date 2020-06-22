@@ -526,7 +526,8 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         Requests.custom_metadata,
         func.to_char(Responses.date_modified, 'MM/DD/YYYY'),
         Responses.privacy,
-        func.to_char(Responses.release_date, 'MM/DD/YYYY')).filter(
+        func.to_char(Responses.release_date, 'MM/DD/YYYY'),
+        Responses.id).filter(
         Requests.agency_ein == agency_ein,
         Requests.date_submitted.between(date_from, date_to),
         Responses.privacy != PRIVATE,
@@ -576,8 +577,10 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
             request[4] = custom_metadata_text
             del request[5]
 
-        # Add URL to request
-        request.append(urljoin(flask_request.host_url, url_for('request.view', request_id=request[0])))
+        # Add URL for response
+        response_id = request[8]
+        del request[8]
+        request.append(urljoin(flask_request.host_url, url_for('response.get_response_content', response_id=response_id)))
         possible_data_sets_processed.append(request)
 
     # Create "Possible Data Sets" data set
