@@ -1,16 +1,18 @@
 from datetime import datetime, timedelta
 
 import tablib
-from flask import current_app
-from sqlalchemy import asc, func, Date
+from flask import current_app, url_for, request as flask_request
+from sqlalchemy import asc, func, Date, or_
 from sqlalchemy.orm import joinedload
+from urllib.parse import urljoin
 
-from app import celery
+from app import celery, db
 from app.constants.event_type import REQ_ACKNOWLEDGED, REQ_CREATED, REQ_CLOSED, REQ_DENIED
+from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE, RELEASE_AND_PUBLIC
 from app.constants.request_status import OPEN, IN_PROGRESS, DUE_SOON, OVERDUE, CLOSED
 from app.lib.date_utils import local_to_utc, utc_to_local
 from app.lib.email_utils import send_email
-from app.models import Agencies, Emails, Events, Requests, Responses, Users
+from app.models import Agencies, Emails, Events, Requests, Responses, Users, Files
 
 
 @celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
@@ -495,3 +497,163 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
                attachment=excel_spreadsheet.export('xls'),
                filename='FOIL_monthly_metrics_report_{}_{}.xls'.format(date_from, date_to),
                mimetype='application/octet-stream')
+
+
+def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: datetime):
+    """Generates a report of Open Data compliance.
+
+    Generates a report of requests in a time frame with the following tabs:
+    1) All request responses that could contain possible data sets.
+    2) All requests submitted during that given time frame.
+
+    Args:
+        agency_ein: Agency EIN
+        date_from: Date to filter from
+        date_to: Date to filter to
+    """
+
+    # Query for all responses that are possible data sets in the given date range
+    possible_data_sets = db.session.query(Requests,
+                                          Responses,
+                                          Files).join(Responses,
+                                                      Requests.id == Responses.request_id).join(Files,
+                                                                                                Responses.id == Files.id).with_entities(
+        Requests.id,
+        func.to_char(Requests.date_submitted, 'MM/DD/YYYY'),
+        func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
+        Requests.title,
+        Requests.description,
+        Requests.custom_metadata,
+        func.to_char(Responses.date_modified, 'MM/DD/YYYY'),
+        Responses.privacy,
+        func.to_char(Responses.release_date, 'MM/DD/YYYY')).filter(
+        Requests.agency_ein == agency_ein,
+        Requests.date_submitted.between(date_from, date_to),
+        Responses.privacy != PRIVATE,
+        or_(Files.name.ilike('%xlsx'),
+            Files.name.ilike('%csv'),
+            Files.name.ilike('%txt'),
+            Files.name.ilike('%xls'),
+            Files.name.ilike('%data%'),
+            Files.title.ilike('%data%'))).all()
+
+    # Process requests for the spreadsheet
+    possible_data_sets_processed = []
+    for request in possible_data_sets:
+        request = list(request)
+
+        # Change privacy value text
+        if request[7] == RELEASE_AND_PRIVATE:
+            request[7] = 'Release and Private - Agency and Requester Only'
+        elif request[7] == RELEASE_AND_PUBLIC:
+            request[7] = 'Public'
+
+        # Check if custom_metadata exists
+        if request[5] == {} or request[5] is None:
+            # Remove custom_metadata from normal requests
+            del request[5]
+        else:
+            # Process custom metadata
+            custom_metadata = request[5]
+            custom_metadata_text = ''
+            for form_number, form_values in sorted(custom_metadata.items()):
+                custom_metadata_text = custom_metadata_text + 'Request Type: ' + form_values['form_name'] + '\n\n'
+                for field_number, field_values in sorted(form_values['form_fields'].items()):
+                    # Make sure field_value exists otherwise give it a default value
+                    field_value = field_values.get('field_value', '')
+                    # Truncate field_value to 5000 characters for Excel limitations
+                    field_value = field_value[:5000]
+                    # Set field_value to empty string if None (used for select multiple empty value)
+                    if field_value is None:
+                        field_value = ''
+                    if isinstance(field_value, list):
+                        custom_metadata_text = custom_metadata_text + field_values[
+                            'field_name'] + ':\n' + ', '.join(field_values.get('field_value', '')) + '\n\n'
+                    else:
+                        custom_metadata_text = custom_metadata_text + field_values['field_name'] + ':\n' + field_value + '\n\n'
+                custom_metadata_text = custom_metadata_text + '\n'
+            # Replace normal request description with processed metadata string
+            request[4] = custom_metadata_text
+            del request[5]
+
+        # Add URL to request
+        request.append(urljoin(flask_request.host_url, url_for('request.view', request_id=request[0])))
+        possible_data_sets_processed.append(request)
+
+    # Create "Possible Data Sets" data set
+    possible_data_sets_headers = ('Request ID',
+                                  'Request - Date Submitted',
+                                  'Request - Date Closed',
+                                  'Request - Title',
+                                  'Request - Description',
+                                  'Response - Date Added',
+                                  'Privacy / Visibility',
+                                  'Response - Publish Date',
+                                  'URL')
+    possible_data_sets_dataset = tablib.Dataset(*possible_data_sets_processed,
+                                                headers=possible_data_sets_headers,
+                                                title='Possible Data Sets')
+
+    # Query for all requests submitted in the given date range
+    all_requests = Requests.query.with_entities(
+        Requests.id,
+        func.to_char(Requests.date_submitted, 'MM/DD/YYYY'),
+        func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
+        Requests.title,
+        Requests.description,
+        Requests.custom_metadata
+    ).filter(
+        Requests.date_submitted.between(date_from, date_to),
+        Requests.agency_ein == agency_ein,
+    ).order_by(asc(Requests.date_submitted)).all()
+
+    # Process requests for the spreadsheet
+    all_requests_processed = []
+    for request in all_requests:
+        request = list(request)
+
+        # Check if custom_metadata exists
+        if request[5] == {} or request[5] is None:
+            del request[5]
+        else:
+            # Process custom metadata
+            custom_metadata = request[5]
+            custom_metadata_text = ''
+            for form_number, form_values in sorted(custom_metadata.items()):
+                custom_metadata_text = custom_metadata_text + 'Request Type: ' + form_values['form_name'] + '\n\n'
+                for field_number, field_values in sorted(form_values['form_fields'].items()):
+                    field_value = field_values.get('field_value', '')
+                    field_value = field_value[:5000]
+                    if field_value is None:
+                        field_value = ''
+                    if isinstance(field_value, list):
+                        custom_metadata_text = custom_metadata_text + field_values[
+                            'field_name'] + ':\n' + ', '.join(field_values.get('field_value', '')) + '\n\n'
+                    else:
+                        custom_metadata_text = custom_metadata_text + field_values['field_name'] + ':\n' + field_value + '\n\n'
+                custom_metadata_text = custom_metadata_text + '\n'
+            request[4] = custom_metadata_text
+            del request[5]
+
+        # Add URL to request
+        request.append(urljoin(flask_request.host_url, url_for('request.view', request_id=request[0])))
+        all_requests_processed.append(request)
+
+    # Create "All Requests" data set
+    all_requests_headers = ('Request ID',
+                            'Request - Date Submitted',
+                            'Request - Date Closed',
+                            'Request - Title',
+                            'Request - Description',
+                            'URL')
+    all_requests_dataset = tablib.Dataset(*all_requests_processed,
+                                          headers=all_requests_headers,
+                                          title='All Requests')
+
+    # Create Databook from Datasets
+    excel_spreadsheet = tablib.Databook((
+        possible_data_sets_dataset,
+        all_requests_dataset,
+    ))
+
+    return excel_spreadsheet.export('xls')
