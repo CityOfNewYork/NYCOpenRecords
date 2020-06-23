@@ -5,6 +5,7 @@
 """
 from datetime import datetime
 from calendar import monthrange
+from io import BytesIO
 
 from flask import (
     current_app,
@@ -14,6 +15,7 @@ from flask import (
     redirect,
     request,
     url_for,
+    send_file
 )
 from flask_login import current_user, login_required
 
@@ -27,8 +29,17 @@ from app.models import (
     UserRequests
 )
 from app.report import report
-from app.report.forms import AcknowledgmentForm, ReportFilterForm, MonthlyMetricsReportForm
-from app.report.utils import generate_acknowledgment_report, generate_monthly_metrics_report
+from app.report.forms import (
+    AcknowledgmentForm,
+    ReportFilterForm,
+    MonthlyMetricsReportForm,
+    OpenDataReportForm
+)
+from app.report.utils import (
+    generate_acknowledgment_report,
+    generate_monthly_metrics_report,
+    generate_open_data_report
+)
 
 
 @report.route('/show', methods=['GET'])
@@ -41,7 +52,8 @@ def show_report():
     return render_template('report/reports.html',
                            acknowledgment_form=AcknowledgmentForm(),
                            monthly_report_form=MonthlyMetricsReportForm(),
-                           report_filter_form=ReportFilterForm())
+                           report_filter_form=ReportFilterForm(),
+                           open_data_report_form=OpenDataReportForm())
 
 
 @report.route('/', methods=['GET'])
@@ -187,3 +199,41 @@ def monthly_metrics_report():
         for field, _ in monthly_report_form.errors.items():
             flash(monthly_report_form.errors[field][0], category='danger')
     return redirect(url_for("report.show_report"))
+
+
+@report.route('/open-data-report', methods=['POST'])
+@login_required
+def open_data_report():
+    """Generates the Open Data Compliance report.
+
+    Returns:
+        Template with context.
+
+    """
+    open_data_report_form = OpenDataReportForm()
+    if open_data_report_form.validate_on_submit():
+        # Only agency administrators can access endpoint
+        if not current_user.is_agency_admin:
+            return jsonify({
+                'error': 'Only Agency Administrators can access this endpoint.'
+            }), 403
+
+        date_from = local_to_utc(datetime.strptime(request.form['date_from'], '%m/%d/%Y'),
+                                 current_app.config['APP_TIMEZONE'])
+        date_to = local_to_utc(datetime.strptime(request.form['date_to'], '%m/%d/%Y'),
+                               current_app.config['APP_TIMEZONE'])
+
+        open_data_report_spreadsheet = generate_open_data_report(current_user.default_agency_ein,
+                                                                 date_from,
+                                                                 date_to)
+        date_from_string = date_from.strftime('%Y%m%d')
+        date_to_string = date_to.strftime('%Y%m%d')
+        return send_file(
+            BytesIO(open_data_report_spreadsheet),
+            attachment_filename='open_data_compliance_report_{}_{}.xls'.format(date_from_string, date_to_string),
+            as_attachment=True
+        )
+    else:
+        for field, _ in open_data_report_form.errors.items():
+            flash(open_data_report_form.errors[field][0], category='danger')
+    return redirect(url_for('report.show_report'))

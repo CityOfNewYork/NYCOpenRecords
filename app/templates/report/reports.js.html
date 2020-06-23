@@ -17,6 +17,9 @@
     var monthly_report_month = $("#monthly-report-month");
     var monthly_report_year = $("#monthly-report-year");
 
+    var open_data_date_from = $("#open-data-date-from");
+    var open_data_date_to = $("#open-data-date-to");
+
     function drawChart(labels, values) {
         reportChart = new Chart(ctx, {
             type: 'bar',
@@ -279,4 +282,33 @@
     monthly_report_year.attr('data-parsley-required-message',
     '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
     '<strong>Error, Year is required.</strong> Please select a year from the drop-down menu.');
+
+    open_data_date_from.attr('data-parsley-valid-date', '');
+    open_data_date_to.attr('data-parsley-valid-date', '');
+    open_data_date_from.attr("data-parsley-required-message",
+        '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
+        '<strong>Error, date from is required.</strong> Please select a date from the datepicker.');
+    open_data_date_to.attr("data-parsley-required-message",
+        '<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;' +
+        '<strong>Error, date to is required.</strong> Please select a date from the datepicker.');
+
+    open_data_date_from.datepicker({
+        dateFormat: "mm/dd/yy",
+        maxDate: 0
+    })
+        .mask("99/99/9999")
+        .keydown(function (e) {
+            // prevent keyboard input
+            e.preventDefault();
+        });
+
+    open_data_date_to.datepicker({
+        dateFormat: "mm/dd/yy",
+        maxDate: 0
+    })
+        .mask("99/99/9999")
+        .keydown(function (e) {
+            // prevent keyboard input
+            e.preventDefault();
+        });
 </script>
