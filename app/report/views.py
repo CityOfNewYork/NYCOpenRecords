@@ -3,7 +3,7 @@
 
    :synopsis: Handles the report URL endpoints for the OpenRecords application
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from calendar import monthrange
 from io import BytesIO
 
@@ -221,7 +221,7 @@ def open_data_report():
         date_from = local_to_utc(datetime.strptime(request.form['date_from'], '%m/%d/%Y'),
                                  current_app.config['APP_TIMEZONE'])
         date_to = local_to_utc(datetime.strptime(request.form['date_to'], '%m/%d/%Y'),
-                               current_app.config['APP_TIMEZONE'])
+                               current_app.config['APP_TIMEZONE']) + timedelta(days=1)
 
         open_data_report_spreadsheet = generate_open_data_report(current_user.default_agency_ein,
                                                                  date_from,
