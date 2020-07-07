@@ -34,7 +34,7 @@
             <button id="submit-button" class="btn btn-success">Submit</button>
             <button id="clear-filter-button" class="btn btn-primary">Clear Filter</button>
         </div>
-        {% if current_user.is_agency_admin %}
+        {% if current_user.is_agency_admin() %}
             <br>
             <hr>
             <div class="container">
@@ -76,6 +76,21 @@
                     {{ monthly_report_form.month(id="monthly-report-month", class="input-block-level") }}
                 </div>
                 {{ monthly_report_form.submit_field(class="btn btn-success") }}
+            </form>
+            <br>
+            <hr>
+            <h3>Open Data Compliance Report</h3>
+            <form id="open-data-report-form" action="/report/open-data-report" method="POST" target="_blank" rel="noreferrer" data-parsley-validate>
+                {{ open_data_report_form.csrf_token }}
+                <div class="form-group">
+                    {{ open_data_report_form.date_from.label }}
+                    {{ open_data_report_form.date_from }}
+                </div>
+                <div class="form-group">
+                    {{ open_data_report_form.date_to.label }}
+                    {{ open_data_report_form.date_to }}
+                </div>
+                {{ open_data_report_form.submit_field(class="btn btn-success") }}
             </form>
         {% endif %}
         </div>
