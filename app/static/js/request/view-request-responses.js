@@ -434,7 +434,10 @@ $(function () {
                     "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
                     "<strong>Error, note content is required.</strong> Please type in a message.");
 
-                characterCounter("#character-counter-note-" + response_id, 5000, tinyMCE.get("note-" + response_id).getContent({format: 'text'}).trim().length);
+                // Check the ID to make sure the tinymce field exists before setting the character counter
+                if ($('#note-' + response_id).length) {
+                    characterCounter('#character-counter-note-' + response_id, 5000, tinyMCE.get('note-' + response_id).getContent({format: 'text'}).trim().length);
+                }
 
                 break;
 
@@ -574,7 +577,10 @@ $(function () {
                     "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
                     "<strong>Error, Offline Instructions must be at least 20 characters.</strong>");
 
-                characterCounter("#character-counter-instruction-" + response_id, 500, tinyMCE.get("instruction-" + response_id).getContent({format: 'text'}).trim().length, 20);
+                // Check the ID to make sure the tinymce field exists before setting the character counter
+                if ($('#instruction-' + response_id).length) {
+                    characterCounter('#character-counter-instruction-' + response_id, 500, tinyMCE.get('instruction-' + response_id).getContent({format: 'text'}).trim().length, 20);
+                }
 
                 break;
 
