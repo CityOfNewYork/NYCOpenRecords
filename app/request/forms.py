@@ -29,7 +29,7 @@ from app.constants import (
 )
 from app.lib.db_utils import get_agency_choices
 from app.models import Reasons, LetterTemplates, EnvelopeTemplates, CustomRequestForms
-from app.request.utils import Recaptcha3Field
+from app.lib.recaptcha_utils import Recaptcha3Field
 
 
 class PublicUserRequestForm(Form):
