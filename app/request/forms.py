@@ -29,6 +29,7 @@ from app.constants import (
 )
 from app.lib.db_utils import get_agency_choices
 from app.models import Reasons, LetterTemplates, EnvelopeTemplates, CustomRequestForms
+from app.request.utils import Recaptcha3Field
 
 
 class PublicUserRequestForm(Form):
@@ -52,6 +53,8 @@ class PublicUserRequestForm(Form):
 
     # File Upload
     request_file = FileField("Upload File (optional, must be less than 20 Mb)")
+
+    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)
 
     # Submit Button
     submit = SubmitField("Submit Request")
@@ -119,6 +122,8 @@ class AgencyUserRequestForm(Form):
     # File Upload
     request_file = FileField("Upload File (optional, must be less than 20 Mb)")
 
+    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)
+
     # Submit Button
     submit = SubmitField("Submit Request")
 
@@ -175,6 +180,7 @@ class AnonymousRequestForm(Form):
     # File Upload
     request_file = FileField("Upload File (optional, must be less than 20 Mb)")
 
+    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)
     submit = SubmitField("Submit Request")
 
     def __init__(self):
@@ -523,3 +529,7 @@ class ContactAgencyForm(Form):
                 request.requester.notification_email or request.requester.email
             )
         self.subject.data = "Inquiry about {}".format(request.id)
+
+
+class TechnicalSupportForm(Form):
+    recaptcha = Recaptcha3Field(action="TestAction", execute_on_load=True)

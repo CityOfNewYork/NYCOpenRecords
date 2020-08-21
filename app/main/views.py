@@ -18,6 +18,7 @@ from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_contact_email
 from app.models import Emails, Users
+from app.request.forms import TechnicalSupportForm
 from . import main
 
 
@@ -46,6 +47,8 @@ def status():
 @main.route('/contact', methods=['GET', 'POST'])
 @main.route('/technical-support', methods=['GET', 'POST'])
 def technical_support():
+    form = TechnicalSupportForm()
+
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -74,7 +77,7 @@ def technical_support():
         else:
             flash('Cannot send email.', category='danger')
     error_id = request.args.get('error_id', '')
-    return render_template('main/contact.html', error_id=error_id)
+    return render_template('main/contact.html', error_id=error_id, form=form)
 
 
 @main.route('/faq', methods=['GET'])
