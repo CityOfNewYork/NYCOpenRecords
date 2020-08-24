@@ -76,8 +76,6 @@ def new():
     :return: redirect to homepage on successful form validation
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-    site_key = current_app.config["RECAPTCHA_SITE_KEY"]
-
     kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
     category = str(escape(flask_request.args.get("category", None)))
     agency = str(escape(flask_request.args.get("agency", None)))
@@ -105,7 +103,7 @@ def new():
             upload_path = handle_upload_no_id(form.request_file)
             if form.request_file.errors:
                 return render_template(
-                    new_request_template, form=form, site_key=site_key
+                    new_request_template, form=form
                 )
 
         custom_metadata = json.loads(
@@ -203,7 +201,6 @@ def new():
     return render_template(
         new_request_template,
         form=form,
-        site_key=site_key,
         kiosk_mode=kiosk_mode,
         category=category,
         agency=agency,

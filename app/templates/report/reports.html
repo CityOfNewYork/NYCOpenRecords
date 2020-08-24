@@ -34,7 +34,7 @@
             <button id="submit-button" class="btn btn-success">Submit</button>
             <button id="clear-filter-button" class="btn btn-primary">Clear Filter</button>
         </div>
-        {% if current_user.is_agency_admin() %}
+        {% if not current_user.is_anonymous and current_user.is_agency_admin() %}
             <br>
             <hr>
             <div class="container">
