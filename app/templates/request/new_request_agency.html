@@ -245,6 +245,7 @@
                     placeholder="12345") }}<br>
                 </div>
                 <input type="hidden" name="tz-name">
+                {{ form.recaptcha }}
                 {{ form.submit(id="submit", class="btn-primary") }}
                 {% include "request/_pii_warning_modal.html" %}
                 <span id="processing-submission" hidden>

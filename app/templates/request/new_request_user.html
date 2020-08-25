@@ -161,6 +161,7 @@
                 </div>
                 <br><br>
                 <input type="hidden" name="tz-name">
+                {{ form.recaptcha }}
                 {{ form.submit(id="submit", class="btn-primary") }}
                 {% include "request/_pii_warning_modal.html" %}
                 <span id="processing-submission" hidden>

@@ -140,8 +140,8 @@ class Config:
                   os.path.join(os.path.abspath(os.path.dirname(__file__)), 'magic'))
 
     # ReCaptcha
-    RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
-    RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY')
+    RECAPTCHA3_PUBLIC_KEY = os.environ.get("RECAPTCHA_SITE_KEY_V3", "")
+    RECAPTCHA3_PRIVATE_KEY = os.environ.get("RECAPTCHA_SECRET_KEY_V3", "")
 
     # ElasticSearch settings
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST') or "localhost:9200"
