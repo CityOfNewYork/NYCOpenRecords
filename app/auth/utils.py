@@ -407,7 +407,7 @@ def saml_sls(saml_sp, user_guid):
         Response Object: Redirect the user to the Home Page.
 
     """
-    dscb = session.destroy()
+    dscb = session.clear()
     url = saml_sp.process_slo(delete_session_cb=dscb)
     errors = saml_sp.get_errors()
     logout_user()

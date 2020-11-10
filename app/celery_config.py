@@ -18,5 +18,10 @@ CELERYBEAT_SCHEDULE = {
     'update_next_request_number': {
         'task': 'app.jobs.update_next_request_number',
         'schedule': crontab(minute='0', hour='0', day_of_month='1', month_of_year='1')
+    },
+    # Every 30 minutes
+    'clear_expired_session_ids': {
+        'task': 'app.jobs.clear_expired_session_ids',
+        'schedule': crontab(minute='30')
     }
 }
