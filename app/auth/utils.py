@@ -420,7 +420,9 @@ def saml_sls(saml_sp, user_guid):
                 'type': current_app.config['AUTH_TYPE']
             }
         )
-        return redirect(url) if url else redirect(url_for('main.index'))
+        redir = redirect(url) if url else redirect(url_for('main.index'))
+        redir.headers['Clear-Site-Data'] = '"*"'
+        return redir
     else:
         error_message = "Errors on SAML Logout:\n{errors}".format(errors='\n'.join(errors))
         current_app.logger.exception(error_message)
@@ -433,8 +435,10 @@ def saml_sls(saml_sp, user_guid):
                 'errors': error_message
             }
         )
+        redir = redirect(url_for('main.index'))
+        redir.headers['Clear-Site-Data'] = '"*"'
         flash("Sorry! An unexpected error has occurred. Please try again later.", category='danger')
-        return redirect(url_for('main.index'))
+        return redir
 
 
 def saml_slo(saml_sp):
