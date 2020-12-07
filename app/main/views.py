@@ -10,8 +10,9 @@ from flask import (
     request,
     session
 )
-from flask_login import current_user
+from flask_login import current_user, login_required
 
+import pyotp
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
@@ -19,6 +20,14 @@ from app.lib.email_utils import send_contact_email
 from app.models import Emails, Users
 from app.request.forms import TechnicalSupportForm
 from . import main
+
+
+@main.route('/mfa', methods=['GET', 'POST'])
+@login_required
+def mfa():
+    secret = pyotp.random_base32()
+    qr_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name='OpenRecords')
+    return render_template('main/qr.html', qr_uri=qr_uri)
 
 
 @main.route('/', methods=['GET', 'POST'])
