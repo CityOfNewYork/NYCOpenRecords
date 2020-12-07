@@ -112,6 +112,7 @@ billiard = "*"
 kombu = "*"
 vine = "*"
 amqp = "*"
+pyotp = "*"
 
 [requires]
 python_version = "3.7"

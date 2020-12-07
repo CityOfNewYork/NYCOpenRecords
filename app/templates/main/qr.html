@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}MFA Setup{% endblock %}
+
+{% block content %}
+    <div role="main">
+        <div class="text-center">
+            <h1>Register MFA Device</h1>
+            <canvas id="qr"></canvas>
+        </div>
+        <form id="register-mfa" action="{{ url_for('main.mfa') }}" method="POST" role="form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <label for="device-name">Device Name</label>
+            <input id="device-name" class="form-control" name="device-name" maxlength="32" type="text">
+            <br>
+            <input type="submit" class="btn btn-primary" value="Submit">
+        </form>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/plugins/qrious.min.js') }}"></script>
+    <script>
+        (function () {
+            var qr = new QRious({
+                element: document.getElementById('qr'),
+                size: 200,
+                value: "{{ qr_uri }}"
+            });
+        })();
+    </script>
+{% endblock %}
