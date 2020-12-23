@@ -6,13 +6,14 @@
 from flask import (
     current_app,
     flash,
+    redirect,
     render_template,
     request,
-    session
+    session,
+    url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import current_user
 
-import pyotp
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
@@ -22,27 +23,26 @@ from app.request.forms import TechnicalSupportForm
 from . import main
 
 
-@main.route('/mfa', methods=['GET', 'POST'])
-@login_required
-def mfa():
-    secret = pyotp.random_base32()
-    qr_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name='OpenRecords')
-    return render_template('main/qr.html', qr_uri=qr_uri)
-
-
 @main.route('/', methods=['GET', 'POST'])
 def index():
     fresh_login = request.args.get('fresh_login', False)
-    if current_user.is_authenticated and fresh_login:
-        if current_user.session_id is not None:
-            return render_template('main/home.html', duplicate_session=True)
-        update_object(
-            {
-                'session_id': session.sid
-            },
-            Users,
-            current_user.guid
-        )
+    verify_mfa = request.args.get('verify_mfa', False)
+    if current_user.is_authenticated:
+        if verify_mfa:
+            if not current_user.has_mfa:
+                return redirect(url_for('mfa.register'))
+            else:
+                return redirect(url_for('mfa.verify'))
+        if fresh_login:
+            if current_user.session_id is not None:
+                return render_template('main/home.html', duplicate_session=True)
+            update_object(
+                {
+                    'session_id': session.sid
+                },
+                Users,
+                current_user.guid
+            )
     return render_template('main/home.html')
 
 

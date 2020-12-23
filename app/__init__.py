@@ -9,7 +9,7 @@ import os
 import redis
 from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
-from flask import (Flask, abort, render_template, request as flask_request)
+from flask import (Flask, abort, redirect, render_template, request as flask_request, session, url_for)
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
 from flask_login import LoginManager, current_user
@@ -175,6 +175,12 @@ def create_app(config_name='default'):
             if not flask_request.cookies.get('authorized_maintainer', None):
                 return abort(503)
 
+    @app.before_request
+    def check_valid_login():
+        if current_user.is_authenticated:
+            if not session.get('mfa_verified', False) and flask_request.endpoint not in ['mfa.register', 'mfa.verify', 'static', 'auth.logout']:
+                return redirect(url_for('mfa.verify'))
+
     @app.context_processor
     def add_session_config():
         """Add current_app.permanent_session_lifetime converted to milliseconds
@@ -235,5 +241,8 @@ def create_app(config_name='default'):
 
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
+
+    from .mfa import mfa
+    app.register_blueprint(mfa, url_prefix="/mfa")
 
     return app
