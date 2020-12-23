@@ -384,6 +384,10 @@ class Users(UserMixin, db.Model):
         if current_app.config["USE_SAML"]:
             if session.get("samlUserdata", None):
                 return True
+                # if session.get("verifiedMFA", None):
+                #     return True
+                # from flask import redirect, url_for
+                # return redirect(url_for('mfa.verify'))
         if current_app.config["USE_LOCAL_AUTH"]:
             return True
         return False
@@ -556,6 +560,18 @@ class Users(UserMixin, db.Model):
 
     def get_id(self):
         return self.guid
+
+    @property
+    def has_mfa(self):
+        """
+        Determine if a user has MFA set up.
+        :return: Boolean
+        """
+        mfa = MFA.query.filter_by(user_guid=self.guid,
+                                  is_valid=True).first()
+        if mfa is not None:
+            return True
+        return False
 
     def es_update(self):
         """
@@ -2040,7 +2056,7 @@ class CustomRequestForms(db.Model):
 class MFA(db.Model):
     __tablename__ = "mfa"
     user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"), primary_key=True)
-    secret = db.Column(db.String(32), nullable=False)
+    secret = db.Column(db.String(32), nullable=False)  # TODO: increase length and possibly change to large binary
     device_name = db.Column(db.String(32), nullable=False)
     is_valid = db.Column(db.Boolean(), nullable=False, default=False)
 

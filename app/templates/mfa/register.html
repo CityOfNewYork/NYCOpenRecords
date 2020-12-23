@@ -8,10 +8,10 @@
             <h1>Register MFA Device</h1>
             <canvas id="qr"></canvas>
         </div>
-        <form id="register-mfa" action="{{ url_for('main.mfa') }}" method="POST" role="form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <label for="device-name">Device Name</label>
-            <input id="device-name" class="form-control" name="device-name" maxlength="32" type="text">
+        <form id="register-mfa" action="{{ url_for('mfa.register') }}" method="POST" role="form">
+            {{ form.csrf_token }}
+            {{ form.device_name.label }} {{ form.device_name }}
+            {{ form.mfa_secret }}
             <br>
             <input type="submit" class="btn btn-primary" value="Submit">
         </form>
