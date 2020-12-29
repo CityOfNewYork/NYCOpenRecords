@@ -12,16 +12,14 @@ from celery import Celery
 from flask import (Flask, abort, render_template, request as flask_request)
 from flask_bootstrap import Bootstrap
 from flask_elasticsearch import FlaskElasticsearch
-from flask_kvsession import KVSessionExtension
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_tracy import Tracy
 from flask_wtf import CsrfProtect
+from flask_session import Session
 from raven.contrib.flask import Sentry
-from simplekv.decorator import PrefixDecorator
-from simplekv.memory.redisstore import RedisStore
 
 from app import celery_config
 from app.constants import OPENRECORDS_DL_EMAIL
@@ -36,11 +34,12 @@ moment = Moment()
 mail = Mail()
 tracy = Tracy()
 login_manager = LoginManager()
-store = RedisStore(redis.StrictRedis(db=Config.SESSION_REDIS_DB,
-                                     host=Config.REDIS_HOST, port=Config.REDIS_PORT))
-session_redis = PrefixDecorator('session_', store)
+store = redis.StrictRedis(db=Config.SESSION_REDIS_DB,
+                          host=Config.REDIS_HOST,
+                          port=Config.REDIS_PORT)
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 sentry = Sentry()
+sess = Session()
 
 upload_redis = redis.StrictRedis(
     db=Config.UPLOAD_REDIS_DB, host=Config.REDIS_HOST, port=Config.REDIS_PORT)
@@ -113,6 +112,7 @@ def create_app(config_name='default'):
     celery.conf.update(app.config)
     celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
+    sess.init_app(app)
 
     with app.app_context():
         from app.models import Anonymous
@@ -121,7 +121,6 @@ def create_app(config_name='default'):
         if app.config['USE_SAML']:
             login_manager.login_message = None
             login_manager.login_message_category = None
-        KVSessionExtension(session_redis, app)
 
     # Error Handlers
     @app.errorhandler(400)
