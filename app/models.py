@@ -385,10 +385,6 @@ class Users(UserMixin, db.Model):
         if current_app.config["USE_SAML"]:
             if session.get("samlUserdata", None):
                 return True
-                # if session.get("verifiedMFA", None):
-                #     return True
-                # from flask import redirect, url_for
-                # return redirect(url_for('mfa.verify'))
         if current_app.config["USE_LOCAL_AUTH"]:
             return True
         return False
