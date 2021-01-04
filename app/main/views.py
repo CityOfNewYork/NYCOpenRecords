@@ -29,10 +29,10 @@ def index():
     verify_mfa = request.args.get('verify_mfa', False)
     if current_user.is_authenticated:
         if verify_mfa:
-            if not current_user.has_mfa:
-                return redirect(url_for('mfa.register'))
-            else:
+            if current_user.has_mfa:
                 return redirect(url_for('mfa.verify'))
+            else:
+                return redirect(url_for('mfa.register'))
         if fresh_login:
             if current_user.session_id is not None:
                 return render_template('main/home.html', duplicate_session=True)

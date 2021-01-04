@@ -372,6 +372,7 @@ class Users(UserMixin, db.Model):
         lazy="dynamic",
     )
     agency_users = db.relationship("AgencyUsers", backref="user", lazy="dynamic")
+    mfa = db.relationship("MFA", backref="user", lazy="dynamic")
 
     @property
     def is_authenticated(self):
@@ -2056,7 +2057,7 @@ class CustomRequestForms(db.Model):
 class MFA(db.Model):
     __tablename__ = "mfa"
     user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"), primary_key=True)
-    secret = db.Column(db.String(32), nullable=False)  # TODO: increase length and possibly change to large binary
+    secret = db.Column(db.LargeBinary(), nullable=False)
     device_name = db.Column(db.String(32), nullable=False)
     is_valid = db.Column(db.Boolean(), nullable=False, default=False)
 
