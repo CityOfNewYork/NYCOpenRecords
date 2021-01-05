@@ -1,12 +1,12 @@
 from datetime import datetime
 
 import pyotp
-from cryptography.fernet import Fernet
-from flask import current_app, flash, redirect, request, render_template, session, url_for
+from flask import flash, redirect, request, render_template, session, url_for
 from flask_login import current_user, login_required
 
 from app.constants import event_type
 from app.lib.db_utils import create_object, update_object
+from app.lib.fernet_utils import decrypt_string, encrypt_string
 from app.mfa import mfa
 from app.mfa.forms import RegisterMFAForm, VerifyMFAForm
 from app.models import Events, MFA
@@ -22,12 +22,10 @@ def register():
             device_name = form.device_name.data
             secret = form.mfa_secret.data.encode()
 
-            f = Fernet(current_app.config['MFA_ENCRYPT_KEY'])
-
             create_object(
                 MFA(
                     user_guid=current_user.guid,
-                    secret=f.encrypt(secret),
+                    secret=encrypt_string(secret),
                     device_name=device_name,
                     is_valid=True,
                 )
@@ -63,9 +61,8 @@ def verify():
             mfa = MFA.query.filter_by(user_guid=current_user.guid,
                                       device_name=form.device.data,
                                       is_valid=True).one_or_none()
-            f = Fernet(current_app.config['MFA_ENCRYPT_KEY'])
 
-            secret_str = f.decrypt(mfa.secret).decode('utf-8')
+            secret_str = decrypt_string(mfa.secret)
             pyotp_verify = pyotp.TOTP(secret_str).verify(form.code.data)
             if pyotp_verify:
                 session['mfa_verified'] = True

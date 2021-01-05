@@ -61,7 +61,7 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
     SESSION_TYPE = os.environ.get('SESSION_TYPE', 'redis')
     USE_SAML = os.environ.get('USE_SAML') == "True"
-    MFA_ENCRYPT_KEY = os.environ.get('MFA_ENCRYPT_KEY').encode()  # TODO: Change to using a file
+    MFA_ENCRYPT_FILE = os.environ.get('MFA_ENCRYPT_FILE')
 
     AUTH_TYPE = 'None'
 
