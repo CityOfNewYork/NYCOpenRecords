@@ -105,7 +105,7 @@ WeasyPrint = "*"
 Werkzeug = "*"
 WTForms = {extras = ["email"], version = "*"}
 psycopg2-binary = "*"
-python-magic-bin = "*"
+python-magic-bin = {​​​​version = "*", sys_platform = "=='darwin'"}
 flask-session = "*"
 celery = "*"
 billiard = "*"
