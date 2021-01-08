@@ -25,6 +25,10 @@
             </small>
             </h1>
 
+            <hr>
+            <a href="{{ url_for('mfa.manage') }}" class="btn btn-primary">Manage MFA Devices</a>
+            <hr>
+
             {{ form.csrf_token }}
 
             {% if is_agency %}
