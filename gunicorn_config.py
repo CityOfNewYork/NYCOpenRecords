@@ -1,15 +1,11 @@
 from multiprocessing import cpu_count
-from socket import gethostbyname, gethostname
-import os
-
-# gunicorn -w 16 -b 157.188.77.67:8443 --certfile=/export/local/openrecords/ssl/cert.pem --keyfile=/export/local/openrecords/ssl/key.pem manage:app --preload
 
 #   bind - The socket to bind.
 #
 #       A string of the form: 'HOST', 'HOST:PORT', 'unix:PATH'.
 #       An IP is a valid HOST.
 
-bind = '{ip}:8443'.format(ip=gethostbyname(gethostname()))
+bind = "127.0.0.1:8080"
 
 #
 # Worker processes
@@ -53,11 +49,11 @@ keepalive = 2
 #       A string of "debug", "info", "warning", "error", "critical"
 #
 
-errorlog = '-'
-loglevel = 'info'
-accesslog = '-'
+errorlog = "-"
+loglevel = "info"
+accesslog = "-"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
-logconfig = gunicorn_logging.conf
+# logconfig = gunicorn_logging.conf
 
 #
 #   Server Mechanics
@@ -71,7 +67,8 @@ logconfig = gunicorn_logging.conf
 #        A path string. If not set, no PID file will be written.
 
 preload = True
-pidfile = os.path.join(os.environ.get('HOME'), 'openrecords_gunicorn.pid')
+preload_app = True
+pidfile = "openrecords_gunicorn.pid"
 
 #
 #   SSL
@@ -83,5 +80,5 @@ pidfile = os.path.join(os.environ.get('HOME'), 'openrecords_gunicorn.pid')
 #       A path string.
 #
 
-keyfile = os.path.join(os.environ.get('HOME'), 'ssl', 'key.pem')
-certfile = os.path.join(os.environ.get('HOME'), 'ssl', 'cert.pem')
+# keyfile = os.path.join(os.environ.get('HOME'), 'ssl', 'key.pem')
+# certfile = os.path.join(os.environ.get('HOME'), 'ssl', 'cert.pem')
