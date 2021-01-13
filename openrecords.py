@@ -54,7 +54,7 @@ import click
 from flask import url_for
 from flask.cli import main
 from flask_migrate import Migrate, upgrade
-from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.middleware.profiler import ProfilerMiddleware
 
 from app import create_app, db
 from app.models import (

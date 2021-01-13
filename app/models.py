@@ -372,6 +372,7 @@ class Users(UserMixin, db.Model):
         lazy="dynamic",
     )
     agency_users = db.relationship("AgencyUsers", backref="user", lazy="dynamic")
+    mfa = db.relationship("MFA", backref="user", lazy="dynamic")
 
     @property
     def is_authenticated(self):
@@ -556,6 +557,18 @@ class Users(UserMixin, db.Model):
 
     def get_id(self):
         return self.guid
+
+    @property
+    def has_mfa(self):
+        """
+        Determine if a user has MFA set up.
+        :return: Boolean
+        """
+        mfa = MFA.query.filter_by(user_guid=self.guid,
+                                  is_valid=True).first()
+        if mfa is not None:
+            return True
+        return False
 
     def es_update(self):
         """
@@ -2035,3 +2048,25 @@ class CustomRequestForms(db.Model):
                 )
                 db.session.add(custom_request_form)
             db.session.commit()
+
+
+class MFA(db.Model):
+    __tablename__ = "mfa"
+    user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"), primary_key=True)
+    secret = db.Column(db.LargeBinary(), nullable=False)
+    device_name = db.Column(db.String(32), nullable=False)
+    is_valid = db.Column(db.Boolean(), nullable=False, default=False)
+
+    __table_args__ = (
+        db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
+    )
+
+    def __init__(self,
+                 user_guid,
+                 secret,
+                 device_name,
+                 is_valid):
+        self.user_guid = user_guid
+        self.secret = secret
+        self.device_name = device_name
+        self.is_valid = is_valid
