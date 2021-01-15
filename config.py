@@ -10,6 +10,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
 
+
 class Config:
     NYC_GOV_BASE = 'www1.nyc.gov'
     WTF_CSRF_ENABLED = True
@@ -58,7 +59,7 @@ class Config:
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
     # Authentication Settings
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 20)))
     SESSION_TYPE = os.environ.get('SESSION_TYPE', 'redis')
     USE_SAML = os.environ.get('USE_SAML') == "True"
     MFA_ENCRYPT_FILE = os.environ.get('MFA_ENCRYPT_FILE')
