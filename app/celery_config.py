@@ -11,7 +11,7 @@ load_dotenv(dotenv_path)
 CELERY_IMPORTS = ['app.jobs']
 CELERY_TASK_RESULT_EXPIRES = 30
 CELERY_TIMEZONE = 'EST'
-CELERY_CLEAR_EXPIRED_SESSION_IDS = os.environ.get('CELERY_CLEAR_EXPIRED_SESSION_IDS')
+CELERY_CLEAR_EXPIRED_SESSION_IDS_INTERVAL = os.environ.get('CELERY_CLEAR_EXPIRED_SESSION_IDS_INTERVAL') or '*/1'
 
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
@@ -30,6 +30,6 @@ CELERYBEAT_SCHEDULE = {
     # Every X minutes
     'clear_expired_session_ids': {
         'task': 'app.jobs.clear_expired_session_ids',
-        'schedule': crontab(minute=CELERY_CLEAR_EXPIRED_SESSION_IDS)
+        'schedule': crontab(minute=CELERY_CLEAR_EXPIRED_SESSION_IDS_INTERVAL)
     }
 }
