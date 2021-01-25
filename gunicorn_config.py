@@ -58,16 +58,10 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 #
 #   Server Mechanics
 #
-#   preload - Load application code before the worker processes are forked.
-#
-#       A boolean value. Default value is False.
-#
 #   pidfile - A filename to use for the PID file.
 #
 #        A path string. If not set, no PID file will be written.
 
-preload = True
-preload_app = True
 pidfile = "openrecords_gunicorn.pid"
 
 #

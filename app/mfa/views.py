@@ -20,7 +20,7 @@ def register():
     if request.method == 'POST':
         if form.validate_on_submit():
             device_name = form.device_name.data
-            secret = form.mfa_secret.data.encode()
+            secret = form.mfa_secret.data
 
             create_object(
                 MFA(
@@ -100,7 +100,7 @@ def remove():
         update_object(
             {'is_valid': False},
             MFA,
-            current_user.guid
+            mfa.id
         )
         create_object(
             Events(

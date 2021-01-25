@@ -2052,7 +2052,8 @@ class CustomRequestForms(db.Model):
 
 class MFA(db.Model):
     __tablename__ = "mfa"
-    user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    user_guid = db.Column(db.String(64), db.ForeignKey("users.guid"))
     secret = db.Column(db.LargeBinary(), nullable=False)
     device_name = db.Column(db.String(32), nullable=False)
     is_valid = db.Column(db.Boolean(), nullable=False, default=False)
