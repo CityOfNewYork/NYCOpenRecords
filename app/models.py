@@ -1405,6 +1405,7 @@ class Reasons(db.Model):
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
     has_appeals_language = db.Column(db.Boolean, default=True)
+    need_additional_details = db.Column(db.Boolean, default=False)
 
     @classmethod
     def populate(cls):
