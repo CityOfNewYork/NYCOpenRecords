@@ -1566,21 +1566,28 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
     else:
         description_hidden_by_default = False
 
-    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language).filter_by(
-        id=reason_id).one()
+    _reasons = [Reasons.query.with_entities(Reasons.title,
+                                            Reasons.content,
+                                            Reasons.has_appeals_language,
+                                            Reasons.type,
+                                            Reasons.need_additional_details).filter_by(id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
 
     has_appeals_language = False
+    need_additional_details = False
     custom_reasons = False
 
     reasons_text = []
     # Render the jinja for the reasons content
     for reason in _reasons:
+        if reason.need_additional_details:
+            need_additional_details = True
         if reason.title == 'Denied - Reason Below':
             custom_reasons = True
             continue
         if reason.has_appeals_language:
             has_appeals_language = True
+
         reasons_text.append(render_template_string(reason.content, user=point_of_contact_user))
 
     reasons = render_template(
@@ -1609,7 +1616,8 @@ def _denial_email_handler(request_id, data, page, agency_name, email_template):
         custom_request_forms_enabled=custom_request_forms_enabled,
         description_hidden_by_default=description_hidden_by_default,
         has_appeals_language=has_appeals_language),
-        "header": header
+        "header": header,
+        "showAdditionalDetailsWarning": need_additional_details
     }), 200
 
 
@@ -1642,18 +1650,23 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         description_hidden_by_default = False
 
     header = CONFIRMATION_EMAIL_HEADER_TO_REQUESTER
-    _reasons = [Reasons.query.with_entities(Reasons.title, Reasons.content, Reasons.has_appeals_language,
-                                            Reasons.type).filter_by(
-        id=reason_id).one()
+    _reasons = [Reasons.query.with_entities(Reasons.title,
+                                            Reasons.content,
+                                            Reasons.has_appeals_language,
+                                            Reasons.type,
+                                            Reasons.need_additional_details).filter_by(id=reason_id).one()
                 for reason_id in data.getlist('reason_ids[]')]
 
     has_appeals_language = False
+    need_additional_details = False
     custom_reasons = False
     denied = False
 
     reasons_text = []
     # Render the jinja for the reasons content
     for reason in _reasons:
+        if reason.need_additional_details:
+            need_additional_details = True
         if reason.title == 'Denied - Reason Below':
             custom_reasons = True
             continue
@@ -1684,7 +1697,8 @@ def _closing_email_handler(request_id, data, page, agency_name, email_template):
         custom_request_forms_enabled=custom_request_forms_enabled,
         description_hidden_by_default=description_hidden_by_default,
         has_appeals_language=has_appeals_language),
-        "header": header
+        "header": header,
+        "showAdditionalDetailsWarning": need_additional_details
     }), 200
 
 
