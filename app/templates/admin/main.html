@@ -89,7 +89,8 @@
                 </button>
             </div>
         </div>
-        {% for user in users %}
+        {% for user in users | sort(attribute='name') %}
+            {% if not user.is_agency_read_only(agency_ein) %}
             <div id="{{ user.guid }}" class="row user-info break-word">
                 <input type="hidden" name="user-id" value="{{ user.get_id() }}">
                 <input type="hidden" name="agency-ein" value="{{ agency_ein }}">
@@ -140,6 +141,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         {% endfor %}
     </div>
 {% endblock %}

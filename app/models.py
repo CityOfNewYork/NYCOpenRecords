@@ -216,7 +216,8 @@ class Agencies(db.Model):
         "Users",
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
-        "AgencyUsers.is_agency_active == True)",
+        "AgencyUsers.is_agency_active == True, "
+        "AgencyUsers.is_read_only.isnot(True))",
         secondaryjoin="AgencyUsers.user_guid == Users.guid",
     )
     inactive_users = db.relationship(
@@ -524,6 +525,20 @@ class Users(UserMixin, db.Model):
                 return agency.is_agency_active
         return False
 
+
+    def is_agency_read_only(self, ein=None):
+        """
+        Determine if a user is a read only user for the specified agency.
+        :param ein: Agency EIN (4 Character String)
+        :return: Boolean
+        """
+        if ein is None:
+            ein = self.default_agency_ein
+        for agency in self.agency_users.all():
+            if agency.agency_ein == ein:
+                return agency.is_read_only
+        return False
+
     def agencies_for_forms(self):
         agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
         agencies.insert(
@@ -714,6 +729,7 @@ class AgencyUsers(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
     )
+    is_read_only = db.Column(db.Boolean, default=False, nullable=True)
 
 
 class Requests(db.Model):
