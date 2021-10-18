@@ -729,7 +729,7 @@ class AgencyUsers(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
     )
-    is_read_only = db.Column(db.Boolean, default=False, nullable=True)
+    is_read_only = db.Column(db.Boolean, default=False, server_default="false", nullable=False)
 
 
 class Requests(db.Model):
