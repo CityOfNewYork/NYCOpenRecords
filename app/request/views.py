@@ -257,7 +257,7 @@ def view(request_id):
         for agency_user in current_request.agency.active_users:
             if not agency_user in current_request.agency.administrators and (
                 agency_user != current_user
-            ):
+            ) and not agency_user.is_agency_read_only(current_request.agency_ein):
                 # populate list of assigned users that can be removed from a request
                 if agency_user in current_request.agency_users:
                     assigned_users.append(agency_user)

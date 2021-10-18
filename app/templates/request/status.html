@@ -24,7 +24,8 @@
     <hr>
     <h4 align="center">{{ request.agency.name }} </h4>
 
-    {% if current_user.is_agency and permissions['edit_requester_info'] %}
+    {% if current_user.is_agency and
+          (permissions['edit_requester_info'] or current_user.is_agency_read_only(request.agency.ein)) %}
         {% include 'request/_edit_requester_info.html' %}
     {% endif %}
 

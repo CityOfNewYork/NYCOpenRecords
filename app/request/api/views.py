@@ -212,7 +212,7 @@ def get_request_responses():
 
     current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    if current_user in current_request.agency_users:
+    if current_user in current_request.agency_users or current_user.is_agency_read_only(current_request.agency.ein):
         # If the user is an agency user assigned to the request, all responses can be retrieved.
         responses = Responses.query.filter(
             Responses.request_id == current_request.id,
