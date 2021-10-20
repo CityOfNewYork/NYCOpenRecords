@@ -700,6 +700,7 @@ def get_response_content(response_id):
              400 error if response/file not found
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
+    request = Requests.query.filter_by(id=response_.request_id).one()
 
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(
@@ -751,7 +752,7 @@ def get_response_content(response_id):
                             and UserRequests.query.filter_by(
                                 request_id=response_.request_id,
                                 user_guid=current_user.guid
-                            ).first() is not None):
+                            ).first() is not None or current_user.is_agency_read_only(request.agency_ein)):
                         @after_this_request
                         def remove(resp):
                             os.remove(serving_path)
