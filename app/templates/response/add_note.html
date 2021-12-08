@@ -43,6 +43,29 @@
                                            checked="checked">Private
                                 </label>
                             </div>
+
+                            <br>
+                            <p>Does this response include either:</p>
+                            <ul>
+                                <li>A table or data (Excel, CSV, etc.) exported from an agency system or database.</li>
+                                <li>A PDF or report exported from an agency system or database.</li>
+                            </ul>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" class="note-dataset" name="is_dataset" value="true">Yes
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" class="note-dataset" name="is_dataset" value="false">No
+                                </label>
+                            </div>
+                            <div id="dataset-description-div" style="display: none;">
+                                <label for="dataset-description">What is the name of the source system or database for
+                                    this information?</label>
+                                <textarea id="dataset_description" name="dataset_description"></textarea>
+                            </div>
+                            <br>
                         {% else %}
                             <div class="radio">
                                 <label><input type="radio" class="note-privacy" name="privacy" value="private"

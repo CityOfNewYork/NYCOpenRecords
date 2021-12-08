@@ -1287,12 +1287,14 @@ class Responses(db.Model):
             name="type",
         )
     )
+    is_dataset = db.Column(db.Boolean, default=False, nullable=False)
+    dataset_description = db.Column(db.String(50), nullable=True)
 
     __mapper_args__ = {"polymorphic_on": type}
 
     # TODO: overwrite filter to automatically check if deleted=False
 
-    def __init__(self, request_id, privacy, date_modified=None, is_editable=False):
+    def __init__(self, request_id, privacy, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
@@ -1302,6 +1304,8 @@ class Responses(db.Model):
             else None
         )
         self.is_editable = is_editable
+        self.is_dataset = is_dataset
+        self.dataset_description = dataset_description
 
     # NOTE: If you can find a way to make this class work with abc,
     # you're welcome to make the necessary changes to the following method:
@@ -1559,9 +1563,9 @@ class Notes(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.content = content
 
     @property

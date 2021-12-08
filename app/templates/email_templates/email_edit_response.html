@@ -37,6 +37,7 @@
         {% endif %}
         {% if agency %}
             {% for key, value in response_data.data_old.items() %}
+                {# TODO: use pretty text for dataset related keys #}
                 <p>
                     The <strong>{{ key }}</strong> was changed from:
                 </p>

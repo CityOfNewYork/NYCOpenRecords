@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 
 from app.lib.date_utils import utc_to_local
 from app.lib.utils import eval_request_bool
-from app.models import Requests
+from app.models import Requests, Responses, Determinations, ResponseTokens
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.search.utils import search_requests, convert_dates
@@ -174,25 +174,11 @@ def requests_doc(doc_type):
                 "FOIL ID",
                 "Agency",
                 "Title",
-                "Description",
                 "Agency Request Summary",
                 "Current Status",
-                "Date Created",
                 "Date Received",
                 "Date Due",
-                "Date Closed",
-                "Requester Name",
-                "Requester Email",
-                "Requester Title",
-                "Requester Organization",
-                "Requester Phone Number",
-                "Requester Fax Number",
-                "Requester Address 1",
-                "Requester Address 2",
-                "Requester City",
-                "Requester State",
-                "Requester Zipcode",
-                "Assigned User Emails",
+                "Closing Reason",
             ]
         )
         results = search_requests(
@@ -244,41 +230,39 @@ def requests_doc(doc_type):
             .all()
         )
         user_agencies = current_user.get_agencies
+        count = 1
         for req in all_requests:
+            print(count)
+            count += 1
+            print(req.id)
+            reason = ""
+            if req.status == 'Closed':
+                response = Responses.query.filter(Responses.request_id == req.id,
+                                                  Responses.type == 'determinations').order_by(
+                    Responses.date_modified.desc()).first()
+                determination = Determinations.query.filter(Determinations.id == response.id).one()
+                reason = determination.reason
+                if reason is "":
+                    reason = "N/A"
+
             if req.agency_ein in user_agencies:
                 writer.writerow(
                     [
                         req.id,
                         req.agency.name,
                         req.title,
-                        req.description,
                         req.agency_request_summary,
                         req.status,
-                        req.date_created,
                         req.date_submitted,
                         req.due_date,
-                        req.date_closed,
-                        req.requester.name,
-                        req.requester.email,
-                        req.requester.title,
-                        req.requester.organization,
-                        req.requester.phone_number,
-                        req.requester.fax_number,
-                        req.requester.mailing_address.get("address_one"),
-                        req.requester.mailing_address.get("address_two"),
-                        req.requester.mailing_address.get("city"),
-                        req.requester.mailing_address.get("state"),
-                        req.requester.mailing_address.get("zip"),
-                        ", ".join(u.email for u in req.agency_users),
+                        reason,
                     ]
                 )
         dt = datetime.utcnow()
         timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
         return send_file(
             BytesIO(buffer.getvalue().encode("UTF-8")),  # convert to bytes
-            attachment_filename="FOIL_requests_results_{}.csv".format(
-                timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")
-            ),
+            attachment_filename="nypd_foil_log.csv",
             as_attachment=True,
         )
     return "", 400

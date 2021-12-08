@@ -131,6 +131,16 @@
             document.getElementById("note-second").style.display = "block";
         });
 
+        // Handles display of dataset description
+        $('.note-dataset').change(function () {
+            if (this.value === 'yes') {
+                $("#dataset-description-div").show();
+            }
+            else {
+                $("#dataset-description-div").hide();
+            }
+        });
+
         // Disable button on submit
         $("#add-note-form").submit(function () {
             $("#note-submit").attr("disabled", true);

@@ -133,7 +133,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
         return str(e)
 
 
-def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester):
+def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester, is_dataset, dataset_description):
     """
     Create and store the note object for the specified request.
     Store the note content into the Notes table.
@@ -145,9 +145,16 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param privacy: The privacy option of the note
     :param is_editable: editability of the note
     :param is_requester: requester is creator of the note
+    :param is_dataset:
+    :param dataset_description:
 
     """
-    response = Notes(request_id, privacy, note_content, is_editable=is_editable)
+    response = Notes(request_id,
+                     privacy,
+                     note_content,
+                     is_editable=is_editable,
+                     is_dataset=eval_request_bool(is_dataset),
+                     dataset_description=dataset_description or None)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
     subject = 'Note Added to {}'.format(request_id)
@@ -2227,7 +2234,7 @@ def _edit_email_handler(data):
     }
     editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
     if editor.no_change:
-        return jsonify({"error": "No changes detected."}), 200
+        return jsonify({"error": "No changes detected. 456"}), 200
     else:
         email_summary_requester, email_summary_edited, header = _get_edit_response_template(editor)
 
@@ -2690,6 +2697,8 @@ class ResponseEditor(metaclass=ABCMeta):
         For the editable fields, populates the old and new data containers
         if the field values differ from their database counterparts.
         """
+        print(self.editable_fields)
+        print(flask_request.form)
         for field in self.editable_fields + ['privacy', 'deleted']:
             value_new = self.flask_request.form.get(field)
             if value_new is not None:
@@ -2961,7 +2970,7 @@ class RespFileEditor(ResponseEditor):
 class RespNoteEditor(ResponseEditor):
     @property
     def editable_fields(self):
-        return ['content']
+        return ['content', 'is_dataset', 'dataset_description']
 
 
 class RespLinkEditor(ResponseEditor):

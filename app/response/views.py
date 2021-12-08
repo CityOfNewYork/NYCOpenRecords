@@ -103,7 +103,8 @@ def response_note(request_id):
     if current_user.is_agency:
         required_fields.extend(['content',
                                 'email-note-summary',
-                                'privacy'])
+                                'privacy',
+                                'is_dataset'])
     else:
         required_fields.append('content')
         is_editable = False
@@ -123,7 +124,9 @@ def response_note(request_id):
              note_data.get('email-note-summary'),
              note_data.get('privacy') or privacy,
              is_editable,
-             is_requester)
+             is_requester,
+             note_data['is_dataset'],
+             note_data['dataset_description'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -603,6 +606,7 @@ def patch(response_id):
         return abort(403)
 
     patch_form = dict(flask_request.form)
+    print(patch_form)
 
     privacy = patch_form.pop('privacy', None)
 
