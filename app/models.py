@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 from uuid import uuid4
 
 from elasticsearch.helpers import bulk
-from flask import current_app, session
+from flask import current_app, escape, session
 from flask_login import UserMixin, AnonymousUserMixin, current_user
 from functools import reduce
 from operator import ior
@@ -1566,7 +1566,7 @@ class Notes(Responses):
 
     @property
     def preview(self):
-        return self.content
+        return escape(self.content)
 
 
 class Files(Responses):

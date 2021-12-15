@@ -7,6 +7,7 @@
 from datetime import datetime
 
 from flask import (
+    escape,
     jsonify,
     render_template,
     request as flask_request,
@@ -283,6 +284,7 @@ def get_request_responses():
                         template_path, response.type
                     ),
                     response=response,
+                    response_content=escape(response.content) if response_type == response_type.NOTE else None,
                     privacies=[response_privacy.RELEASE_AND_PUBLIC,
                                response_privacy.RELEASE_AND_PRIVATE,
                                response_privacy.PRIVATE],
