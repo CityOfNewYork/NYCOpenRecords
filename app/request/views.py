@@ -16,11 +16,12 @@ from flask import (
     Markup,
     jsonify,
     abort,
+    escape
 )
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.utils import escape
+from werkzeug.utils import escape as werkzeug_escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list
@@ -76,10 +77,10 @@ def new():
     :return: redirect to homepage on successful form validation
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-    kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
-    category = str(escape(flask_request.args.get("category", None)))
-    agency = str(escape(flask_request.args.get("agency", None)))
-    title = str(escape(flask_request.args.get("title", None)))
+    kiosk_mode = eval_request_bool(werkzeug_escape(flask_request.args.get("kiosk_mode", False)))
+    category = str(werkzeug_escape(flask_request.args.get("category", None)))
+    agency = str(werkzeug_escape(flask_request.args.get("agency", None)))
+    title = str(werkzeug_escape(flask_request.args.get("title", None)))
 
     if current_user.is_public:
         form = PublicUserRequestForm()
@@ -110,39 +111,39 @@ def new():
             flask_request.form.get("custom-request-forms-data", {})
         )
         tz_name = (
-            flask_request.form["tz-name"]
+            escape(flask_request.form["tz-name"])
             if flask_request.form["tz-name"]
             else current_app.config["APP_TIMEZONE"]
         )
         if current_user.is_public:
             request_id = create_request(
-                form.request_title.data,
-                form.request_description.data,
-                form.request_category.data,
-                agency_ein=form.request_agency.data,
+                escape(form.request_title.data),
+                escape(form.request_description.data),
+                escape(form.request_category.data),
+                agency_ein=escape(form.request_agency.data),
                 upload_path=upload_path,
                 tz_name=tz_name,
                 custom_metadata=custom_metadata,
             )
         elif current_user.is_agency:
             request_id = create_request(
-                form.request_title.data,
-                form.request_description.data,
+                escape(form.request_title.data),
+                escape(form.request_description.data),
                 category=None,
                 agency_ein=(
-                    form.request_agency.data
-                    if form.request_agency.data != "None"
+                    escape(form.request_agency.data)
+                    if form.request_agency.data is not None
                     else current_user.default_agency_ein
                 ),
-                submission=form.method_received.data,
+                submission=escape(form.method_received.data),
                 agency_date_submitted_local=form.request_date.data,
-                email=form.email.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                user_title=form.user_title.data,
-                organization=form.user_organization.data,
-                phone=form.phone.data,
-                fax=form.fax.data,
+                email=escape(form.email.data),
+                first_name=escape(form.first_name.data),
+                last_name=escape(form.last_name.data),
+                user_title=escape(form.user_title.data),
+                organization=escape(form.user_organization.data),
+                phone=escape(form.phone.data),
+                fax=escape(form.fax.data),
                 address=get_address(form),
                 upload_path=upload_path,
                 tz_name=tz_name,
@@ -150,17 +151,17 @@ def new():
             )
         else:  # Anonymous User
             request_id = create_request(
-                form.request_title.data,
-                form.request_description.data,
-                form.request_category.data,
-                agency_ein=form.request_agency.data,
-                email=form.email.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                user_title=form.user_title.data,
-                organization=form.user_organization.data,
-                phone=form.phone.data,
-                fax=form.fax.data,
+                escape(form.request_title.data),
+                escape(form.request_description.data),
+                escape(form.request_category.data),
+                agency_ein=escape(form.request_agency.data),
+                email=escape(form.email.data),
+                first_name=escape(form.first_name.data),
+                last_name=escape(form.last_name.data),
+                user_title=escape(form.user_title.data),
+                organization=escape(form.user_organization.data),
+                phone=escape(form.phone.data),
+                fax=escape(form.fax.data),
                 address=get_address(form),
                 upload_path=upload_path,
                 tz_name=tz_name,

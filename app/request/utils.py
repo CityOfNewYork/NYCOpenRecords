@@ -13,7 +13,12 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
 
-from flask import render_template, current_app, url_for, request as flask_request
+from flask import (
+    render_template,
+    current_app,
+    url_for, request as flask_request,
+    escape
+)
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 
@@ -285,11 +290,11 @@ def get_address(form):
                 app.request.forms.AnonymousRequestForm
     """
     return create_mailing_address(
-        form.address.data or None,
-        form.city.data or None,
-        form.state.data or None,
-        form.zipcode.data or None,
-        form.address_two.data or None
+        escape(form.address.data) or None,
+        escape(form.city.data) or None,
+        escape(form.state.data) or None,
+        escape(form.zipcode.data) or None,
+        escape(form.address_two.data) or None
     )
 
 
