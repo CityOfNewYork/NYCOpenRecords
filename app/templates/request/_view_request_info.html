@@ -34,10 +34,10 @@
                 <div class="request-title-text lead">
                     {% if permissions['edit_title'] and request.status != status.CLOSED %}
                         <!-- editable area for request title -->
-                        <a href="#" class="xedit" id="title">{{ request.title }}</a>
+                        <a href="#" class="xedit" id="title">{{ request.title | safe }}</a>
                     {% else %}
                         {% if request.show_title %}
-                            {{ request.title }}
+                            {{ request.title | safe }}
                         {% else %}
                             {% if request.was_acknowledged or request.status == "Closed" %}
                                 <p>Private</p>
@@ -53,7 +53,7 @@
                 {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
                     <div class="row">
                         <div class="request-label lead">Description:</div>
-                        <div class="request-description-text lead">{{ request.description }}</div>
+                        <div class="request-description-text lead">{{ request.description | safe }}</div>
                         <br>
                     </div>
                 {% endif %}
