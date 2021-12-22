@@ -132,7 +132,7 @@ def new():
                 category=None,
                 agency_ein=(
                     escape(form.request_agency.data)
-                    if form.request_agency.data is not None
+                    if form.request_agency.data != "None"
                     else current_user.default_agency_ein
                 ),
                 submission=escape(form.method_received.data),
