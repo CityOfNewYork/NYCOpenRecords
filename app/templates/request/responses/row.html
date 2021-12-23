@@ -23,6 +23,6 @@
 </div>
 <script>
     {% if show_preview and response.preview is not none %}
-        document.getElementById("{{ row_html_id }}").innerHTML = DOMPurify.sanitize(`{{ response.preview | safe }}`)
+        document.getElementById('{{ row_html_id }}').innerHTML = DOMPurify.sanitize('{{ response.preview | safe }}');
     {% endif %}
 </script>

@@ -264,12 +264,11 @@ def get_request_responses():
         }
         if eval_request_bool(flask_request.args.get('with_template')):
             row_count += 1
-            html_id = 'row-' + str(row_count)
             row = render_template(
                 template_path + 'row.html',
                 response=response,
                 row_num=start + row_count,
-                row_html_id="row-" + html_id,
+                row_html_id='response-row-{}'.format(str(row_count)),
                 response_type=response_type,
                 determination_type=determination_type,
                 show_preview=not (response.type == response_type.DETERMINATION and
@@ -285,7 +284,7 @@ def get_request_responses():
                         template_path, response.type
                     ),
                     response=response,
-                    modal_html_id="modal-" + html_id,
+                    modal_html_id="response-modal-body-{}".format(str(row_count)),
                     privacies=[response_privacy.RELEASE_AND_PUBLIC,
                                response_privacy.RELEASE_AND_PRIVATE,
                                response_privacy.PRIVATE],
