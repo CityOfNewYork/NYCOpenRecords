@@ -51,8 +51,8 @@ and current_request.status != request_status.CLOSED %}
 
 <script>
     {% if (edit_response_permission or edit_privacy_response_permission) and is_editable and current_request.status != request_status.CLOSED %}
-        document.getElementById('note-{{ response.id }}').innerHTML = DOMPurify.sanitize('{{ response.content | safe }}');
+        document.getElementById("note-{{ response.id }}").innerHTML = DOMPurify.sanitize(`{{ response.content | safe }}`);
     {% else %}
-        document.getElementById('{{ modal_html_id }}').innerHTML = DOMPurify.sanitize('{{ response.content | safe }}');
+        document.getElementById("{{ modal_html_id }}").innerHTML = DOMPurify.sanitize(`{{ response.content | safe }}`);
     {% endif %}
 </script>
