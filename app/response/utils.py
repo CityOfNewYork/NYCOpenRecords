@@ -147,6 +147,12 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param is_requester: requester is creator of the note
 
     """
+    from flask import escape, Markup
+    from lxml.html.clean import clean_html
+    raw_string = Markup(note_content).unescape()
+    cleaned_string = clean_html(raw_string)
+    note_content = escape(cleaned_string)
+
     response = Notes(request_id, privacy, note_content, is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)

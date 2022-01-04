@@ -268,6 +268,7 @@ def get_request_responses():
                 template_path + 'row.html',
                 response=response,
                 row_num=start + row_count,
+                row_html_id='response-row-{}'.format(str(row_count)),
                 response_type=response_type,
                 determination_type=determination_type,
                 show_preview=not (response.type == response_type.DETERMINATION and
