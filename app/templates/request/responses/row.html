@@ -12,17 +12,20 @@
             {{ moment(response.event_timestamp).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
         <div class="row">
-            <div class="col-md-10 metadata-preview" id="{{ row_html_id }}"></div>
+            <div class="col-md-10 metadata-preview">
+                {% if show_preview and response.preview is not none %}
+                    {{ response.preview | safe }}
+                {% endif %}
+            </div>
         </div>
     {% else %}
-        <div class="col-md-6 metadata-preview" id="{{ row_html_id }}"></div>
+        <div class="col-md-6 metadata-preview">
+            {% if show_preview and response.preview is not none %}
+                {{ response.preview | safe }}
+            {% endif %}
+        </div>
         <div class="col-md-3">
             {{ moment(response.date_modified).format('dddd, MM/DD/YYYY [at] h:mm A') }}
         </div>
     {% endif %}
 </div>
-<script>
-    {% if show_preview and response.preview is not none %}
-        document.getElementById("{{ row_html_id }}").innerHTML = DOMPurify.sanitize(`{{ response.preview | safe }}`);
-    {% endif %}
-</script>

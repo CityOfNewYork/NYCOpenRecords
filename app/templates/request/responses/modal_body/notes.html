@@ -23,12 +23,14 @@ and current_request.status != request_status.CLOSED %}
                         <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Error, note content must be less than 5000 characters.</strong>
             </div>
             <textarea id="note-{{ response.id }}" class="input-block-level form-group note-content tinymce-edit-note-content"
-                      title="content" name="content" maxlength="5000"></textarea>
+                      title="content" name="content" maxlength="5000">{{ response.content | safe }}</textarea>
             <p id="character-counter-note-{{ response.id }}" class="required note-content-character-count character-counter">
                 5000 characters remaining
             </p>
         {% else %}
-            <div class="request-description-text" id="{{ modal_html_id }}"></div>
+            <div class="request-description-text">
+                {{ response.content | safe }}
+            </div>
         {% endif %}
 
         {% if edit_response_privacy_permission %}
@@ -46,13 +48,7 @@ and current_request.status != request_status.CLOSED %}
         {% endif %}
     </form>
 {% else %}
-    <div class="request-description-text" id="{{ modal_html_id }}"></div>
+    <div class="request-description-text">
+        {{ response.content | safe }}
+    </div>
 {% endif %}
-
-<script>
-    {% if (edit_response_permission or edit_privacy_response_permission) and is_editable and current_request.status != request_status.CLOSED %}
-        document.getElementById("note-{{ response.id }}").innerHTML = DOMPurify.sanitize(`{{ response.content | safe }}`);
-    {% else %}
-        document.getElementById("{{ modal_html_id }}").innerHTML = DOMPurify.sanitize(`{{ response.content | safe }}`);
-    {% endif %}
-</script>
