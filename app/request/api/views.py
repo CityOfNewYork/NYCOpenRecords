@@ -284,6 +284,7 @@ def get_request_responses():
                         template_path, response.type
                     ),
                     response=response,
+                    modal_html_id="response-modal-body-{}".format(str(row_count)),
                     privacies=[response_privacy.RELEASE_AND_PUBLIC,
                                response_privacy.RELEASE_AND_PRIVATE,
                                response_privacy.PRIVATE],
