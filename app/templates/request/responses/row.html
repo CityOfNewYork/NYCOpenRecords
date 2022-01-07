@@ -25,7 +25,7 @@
 <script>
     {% if show_preview and response.preview is not none %}
         let responseRow = $('#'+ '{{ row_html_id }}');
-        responseRow.html(`{{ response.preview | safe }}`);
+        responseRow.html({{ response.preview | tojson }});
         responseRow.html(responseRow.text());
     {% endif %}
 </script>
