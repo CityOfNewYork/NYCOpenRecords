@@ -12,16 +12,16 @@
                             </p>
                             <!-- Contact and Request Information -->
                             <p>
-                                Request Title: {{ current_request.title }}
+                                Request Title: {{ current_request.title | safe }}
                                 <br/>
                                 <br/>
                                 {% if (custom_request_forms_enabled and description_hidden_by_default == false) or custom_request_forms_enabled == false %}
-                                    Request Description: {{ current_request.description }}
+                                    Request Description: {{ current_request.description | safe }}
                                     <br/>
                                     <br/>
                                 {% endif %}
                                 {% if current_request.custom_metadata %}
-                                    Request Type: {{ current_request.description }}
+                                    Request Type: {{ current_request.description | safe }}
                                     <br/>
                                     <br/>
                                     {% for form_number,form_values in current_request.custom_metadata|dictsort %}
@@ -55,7 +55,7 @@
                                                 <strong>Name:</strong>
                                             </div>
                                             <div>
-                                                <span class="label">{{ user.name }}</span>
+                                                <span class="label">{{ user.untitled_name | title | safe }}</span>
                                             </div>
                                         </div>
                                         <div class="row-fluid">
@@ -65,7 +65,7 @@
                                             <div>
                                                 {% if user.title %}
                                                     <span class="label">
-                                                        {{ user.title }}
+                                                        {{ user.title | safe }}
                                                     </span>
                                                 {% else %}
                                                     <span class="label">Not provided</span>
@@ -79,7 +79,7 @@
                                             <div>
                                                 {% if user.organization %}
                                                     <span class="label">
-                                                        {{ user.organization }}
+                                                        {{ user.organization | safe }}
                                                     </span>
                                                 {% else %}
                                                     <span class="label">Not provided</span>
@@ -129,7 +129,11 @@
                                                 <strong>Street Address (line 1):</strong>
                                             </div>
                                             <div>
-                                                <span class="label">{{ address['address_one']  or "Not provided" }}</span>
+                                                {% if address['address_one'] %}
+                                                    <span class="label">{{ address['address_one'] | safe }}</span>
+                                                {% else %}
+                                                    <span class="label">Not provided</span>
+                                                {% endif %}
                                             </div>
                                         </div>
                                         <div class="row-fluid">
@@ -137,7 +141,11 @@
                                                 <strong>Street Address (line 2):</strong>
                                             </div>
                                             <div>
-                                                <span class="label">{{ address['address_two']  or "Not provided" }}</span>
+                                                {% if address['address_two'] %}
+                                                    <span class="label">{{ address['address_two'] | safe }}</span>
+                                                {% else %}
+                                                    <span class="label">Not provided</span>
+                                                {% endif %}
                                             </div>
                                         </div>
                                         <div class="row-fluid">
@@ -145,8 +153,11 @@
                                                 <strong>City:</strong>
                                             </div>
                                             <div>
-                                                <span class="label"
-                                                      style="align: left;">{{ address['city']  or "Not provided" }}</span>
+                                                {% if address['city'] %}
+                                                    <span class="label">{{ address['city'] | safe }}</span>
+                                                {% else %}
+                                                    <span class="label">Not provided</span>
+                                                {% endif %}
                                             </div>
                                         </div>
                                         <div class="row-fluid">
