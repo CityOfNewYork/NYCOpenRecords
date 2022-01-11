@@ -344,15 +344,15 @@ class Users(UserMixin, db.Model):
     active = db.Column(db.Boolean, default=False)
     is_anonymous_requester = db.Column(db.Boolean)
     is_super = db.Column(db.Boolean, nullable=False, default=False)
-    first_name = db.Column(db.String(32), nullable=False)
+    first_name = db.Column(db.String(128), nullable=False)
     middle_initial = db.Column(db.String(1))
-    last_name = db.Column(db.String(64), nullable=False)
+    last_name = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(254))
     notification_email = db.Column(db.String(254), nullable=True, default=None)
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean)
-    title = db.Column(db.String(64))
-    organization = db.Column(db.String(128))  # Outside organization
+    title = db.Column(db.String(256))
+    organization = db.Column(db.String(256))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
     _mailing_address = db.Column(
@@ -772,8 +772,8 @@ class Requests(db.Model):
     category = db.Column(
         db.String, default="All", nullable=False
     )  # FIXME: should be nullable, 'All' shouldn't be used
-    title = db.Column(db.String(90))
-    description = db.Column(db.String(5000))
+    title = db.Column(db.String(256))
+    description = db.Column(db.String(10240))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(
         db.DateTime

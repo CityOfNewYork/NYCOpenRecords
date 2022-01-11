@@ -8,6 +8,7 @@
 import json
 from datetime import datetime
 from urllib.parse import urljoin, urlencode
+from lxml.html.clean import clean_html
 
 import os
 import re
@@ -20,7 +21,8 @@ from flask import (
     render_template_string,
     url_for,
     jsonify,
-    Markup
+    Markup,
+    escape
 )
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
@@ -147,6 +149,10 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param is_requester: requester is creator of the note
 
     """
+    raw_string = Markup(note_content).unescape()
+    cleaned_string = clean_html(raw_string)
+    note_content = escape(cleaned_string)
+
     response = Notes(request_id, privacy, note_content, is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
