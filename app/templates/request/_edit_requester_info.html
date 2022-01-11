@@ -30,13 +30,11 @@
                         readonly=is_requester_information_readonly) }}
 
                     {{ edit_requester_form.title.label }}
-                    {{ edit_requester_form.title(id='inputTitle', class='form-control', maxlength="64",
-                        readonly=is_requester_information_readonly) }}
+                    <input name="title" id="inputTitle" class="form-control" maxlength="64" value="{{ request.requester.title | safe }}">
                     <p id="user-title-character-count" class="character-counter">64 characters remaining</p>
 
                     {{ edit_requester_form.organization.label }}
-                    {{ edit_requester_form.organization(id='inputOrganization', class='form-control', maxlength="128",
-                        readonly=is_requester_information_readonly) }}
+                    <input name="organization" id="inputOrganization" class="form-control" maxlength="128" value="{{ request.requester.organization | safe }}">
                     <p id="organization-character-count" class="character-counter">128 characters remaining</p>
 
                     {{ edit_requester_form.phone.label }}
@@ -47,14 +45,13 @@
                     {{ edit_requester_form.fax(id='inputFax', class='form-control', readonly=is_requester_information_readonly) }}
 
                     {{ edit_requester_form.address_one.label }}
-                    {{ edit_requester_form.address_one(id='inputAddressOne', class='form-control',
-                        readonly=is_requester_information_readonly) }}
+                    <input name="address_one" id="inputAddressOne" class="form-control" value="{{ request.requester.mailing_address.get("address_one", "") | safe }}">
 
                     {{ edit_requester_form.address_two.label }}
-                    {{ edit_requester_form.address_two(id='inputAddressTwo', class='form-control',
-                        readonly=is_requester_information_readonly) }}
+                    <input name="address_two" id="inputAddressTwo" class="form-control" value="{{ request.requester.mailing_address.get("address_two", "") | safe }}">
 
                     {{ edit_requester_form.city.label }}
+                    <input name="city" id="inputCity" class="form-control" value="{{ request.requester.mailing_address.get("city", "") | safe }}">
                     {{ edit_requester_form.city(id='inputCity', class='form-control', readonly=is_requester_information_readonly) }}
 
                     {{ edit_requester_form.zipcode.label }}
@@ -74,3 +71,15 @@
         </div>
     </div>
 </div>
+
+<script
+  src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous"></script>
+<script>
+
+    let inputTitle = $("#inputTitle");
+    {#document.getElementById("inputTitle").value = {{ request.requester.title | tojson }}#}
+    inputTitle.html({{ request.requester.title | tojson }});
+    inputTitle.html(inputTitle.text());
+</script>
