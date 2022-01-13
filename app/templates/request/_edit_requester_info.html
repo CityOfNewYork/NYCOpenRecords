@@ -23,7 +23,7 @@
                 <div class="modal-body">
                     {% set is_requester_information_readonly = request.requester.is_public or
                            current_user.is_agency_read_only(request.agency.ein) %}
-                    <div id="requester-name">{{ request.requester.untitled_name | title | safe }}</div>
+                    <div id="requester-name">{{ request.requester.name | title | safe }}</div>
                     <div class="contact-form-error-message" tabindex="0"></div>
                     {{ edit_requester_form.email.label }}
                     {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', maxlength="254",
