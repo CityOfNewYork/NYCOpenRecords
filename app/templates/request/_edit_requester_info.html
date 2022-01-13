@@ -4,7 +4,7 @@
     <h4>
         <a data-target="#requesterModal" data-toggle="modal" class="MainNavText" id="MainNavHelp"
            href="#requesterModal">
-            {{ request.requester.name | safe }}
+            {{ request.requester.name | title | safe }}
         </a>
     </h4>
 </div>
@@ -23,18 +23,18 @@
                 <div class="modal-body">
                     {% set is_requester_information_readonly = request.requester.is_public or
                            current_user.is_agency_read_only(request.agency.ein) %}
-                    <div id="requester-name">{{ request.requester.name | safe }}</div>
+                    <div id="requester-name">{{ request.requester.untitled_name | title | safe }}</div>
                     <div class="contact-form-error-message" tabindex="0"></div>
                     {{ edit_requester_form.email.label }}
                     {{ edit_requester_form.email(id='inputEmail', type='email', class='form-control', maxlength="254",
                         readonly=is_requester_information_readonly) }}
 
                     {{ edit_requester_form.title.label }}
-                    <input name="title" id="inputTitle" class="form-control" maxlength="64" value="{{ request.requester.title | safe }}">
+                    <input name="title" id="inputTitle" class="form-control" maxlength="64" {% if is_requester_information_readonly %}readonly{% endif %} value="{{ request.requester.title | safe }}">
                     <p id="user-title-character-count" class="character-counter">64 characters remaining</p>
 
                     {{ edit_requester_form.organization.label }}
-                    <input name="organization" id="inputOrganization" class="form-control" maxlength="128" value="{{ request.requester.organization | safe }}">
+                    <input name="organization" id="inputOrganization" class="form-control" maxlength="128" {% if is_requester_information_readonly %}readonly{% endif %} {% if request.requester.organization %}value="{{ request.requester.organization | safe }}"{% endif %}>
                     <p id="organization-character-count" class="character-counter">128 characters remaining</p>
 
                     {{ edit_requester_form.phone.label }}
@@ -45,14 +45,13 @@
                     {{ edit_requester_form.fax(id='inputFax', class='form-control', readonly=is_requester_information_readonly) }}
 
                     {{ edit_requester_form.address_one.label }}
-                    <input name="address_one" id="inputAddressOne" class="form-control" value="{{ request.requester.mailing_address.get("address_one", "") | safe }}">
+                    <input name="address_one" id="inputAddressOne" class="form-control" {% if is_requester_information_readonly %}readonly{% endif %} {% if request.requester.mailing_address.get("address_one") is not none %}value="{{ request.requester.mailing_address.get("address_one") | safe }}"{% endif %}>
 
                     {{ edit_requester_form.address_two.label }}
-                    <input name="address_two" id="inputAddressTwo" class="form-control" value="{{ request.requester.mailing_address.get("address_two", "") | safe }}">
+                    <input name="address_two" id="inputAddressTwo" class="form-control" {% if is_requester_information_readonly %}readonly{% endif %} {% if request.requester.mailing_address.get("address_two") is not none %}value="{{ request.requester.mailing_address.get("address_two") | safe }}"{% endif %}>
 
                     {{ edit_requester_form.city.label }}
-                    <input name="city" id="inputCity" class="form-control" value="{{ request.requester.mailing_address.get("city", "") | safe }}">
-                    {{ edit_requester_form.city(id='inputCity', class='form-control', readonly=is_requester_information_readonly) }}
+                    <input name="city" id="inputCity" class="form-control" {% if is_requester_information_readonly %}readonly{% endif %} {% if request.requester.mailing_address.get("city") is not none %}value="{{ request.requester.mailing_address.get("city") | safe }}"{% endif %}>
 
                     {{ edit_requester_form.zipcode.label }}
                     {{ edit_requester_form.zipcode(id='inputZip', class='form-control', readonly=is_requester_information_readonly) }}
@@ -71,15 +70,3 @@
         </div>
     </div>
 </div>
-
-<script
-  src="https://code.jquery.com/jquery-3.6.0.min.js"
-  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-  crossorigin="anonymous"></script>
-<script>
-
-    let inputTitle = $("#inputTitle");
-    {#document.getElementById("inputTitle").value = {{ request.requester.title | tojson }}#}
-    inputTitle.html({{ request.requester.title | tojson }});
-    inputTitle.html(inputTitle.text());
-</script>

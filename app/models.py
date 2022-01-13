@@ -554,17 +554,6 @@ class Users(UserMixin, db.Model):
         return " ".join((self.first_name.title(), self.last_name.title()))
 
     @property
-    def untitled_name(self):
-        """
-        A joined string with first name and last name.
-        Used in templates where it will be combined with the title Jinja filter.
-        Workaround used to properly display escaped values.
-
-        :return: String
-        """
-        return " ".join((self.first_name, self.last_name))
-
-    @property
     def mailing_address(self):
         return self._mailing_address if self._mailing_address is not None else {}
 
