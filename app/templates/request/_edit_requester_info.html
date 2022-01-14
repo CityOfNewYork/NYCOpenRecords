@@ -30,7 +30,7 @@
                         readonly=is_requester_information_readonly) }}
 
                     {{ edit_requester_form.title.label }}
-                    <input name="title" id="inputTitle" class="form-control" maxlength="64" {% if is_requester_information_readonly %}readonly{% endif %} value="{{ request.requester.title | safe }}">
+                    <input name="title" id="inputTitle" class="form-control" maxlength="64" {% if is_requester_information_readonly %}readonly{% endif %} {% if request.requester.title %}value="{{ request.requester.title | safe }}"{% endif %}>
                     <p id="user-title-character-count" class="character-counter">64 characters remaining</p>
 
                     {{ edit_requester_form.organization.label }}

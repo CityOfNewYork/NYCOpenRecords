@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import tablib
-from flask import current_app, url_for, request as flask_request
+from flask import current_app, url_for, request as flask_request, Markup
 from sqlalchemy import asc, func, Date, or_
 from sqlalchemy.orm import joinedload
 from urllib.parse import urljoin
@@ -90,14 +90,14 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
                 req_date_created_local.strftime('%m/%d/%Y'),
                 utc_to_local(request.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
                 request.status,
-                request.title,
-                request.description,
-                request.requester.name,
+                Markup(request.title).unescape(),
+                Markup(request.description).unescape(),
+                Markup(request.requester.fullname).unescape(),
                 request.requester.email,
                 request.requester.phone_number,
-                request.requester.mailing_address.get('address_one'),
-                request.requester.mailing_address.get('address_two'),
-                request.requester.mailing_address.get('city'),
+                Markup(request.requester.mailing_address.get('address_one')).unescape(),
+                Markup(request.requester.mailing_address.get('address_two')).unescape(),
+                Markup(request.requester.mailing_address.get('city')).unescape(),
                 request.requester.mailing_address.get('state'),
                 request.requester.mailing_address.get('zip'),
             ))
@@ -108,14 +108,14 @@ def generate_acknowledgment_report(self, current_user_guid: str, date_from: date
             req_date_created_local.strftime('%m/%d/%Y'),
             utc_to_local(request.due_date, current_app.config['APP_TIMEZONE']).strftime('%m/%d/%Y'),
             request.status,
-            request.title,
-            request.description,
-            request.requester.name,
+            Markup(request.title).unescape(),
+            Markup(request.description).unescape(),
+            Markup(request.requester.fullname).unescape(),
             request.requester.email,
             request.requester.phone_number,
-            request.requester.mailing_address.get('address_one'),
-            request.requester.mailing_address.get('address_two'),
-            request.requester.mailing_address.get('city'),
+            Markup(request.requester.mailing_address.get('address_one')).unescape(),
+            Markup(request.requester.mailing_address.get('address_two')).unescape(),
+            Markup(request.requester.mailing_address.get('city')).unescape(),
             request.requester.mailing_address.get('state'),
             request.requester.mailing_address.get('zip'),
         ))
@@ -543,6 +543,10 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
     for request in possible_data_sets:
         request = list(request)
 
+        # Unescape request title and description
+        request[3] = Markup(request[3]).unescape()
+        request[4] = Markup(request[4]).unescape()
+
         # Change privacy value text
         if request[7] == RELEASE_AND_PRIVATE:
             request[7] = 'Release and Private - Agency and Requester Only'
@@ -614,6 +618,10 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
     all_requests_processed = []
     for request in all_requests:
         request = list(request)
+
+        # Unescape request title and description
+        request[3] = Markup(request[3]).unescape()
+        request[4] = Markup(request[4]).unescape()
 
         # Check if custom_metadata exists
         if request[5] == {} or request[5] is None:
