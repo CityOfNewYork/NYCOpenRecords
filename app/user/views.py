@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 
-from flask import jsonify, request
+from flask import jsonify, request, escape
 from flask_login import current_user
 
 from app.constants import (
@@ -145,12 +145,12 @@ def patch(user_id):
         email=request.form.get('email'),
         phone_number=request.form.get('phone'),
         fax_number=request.form.get('fax'),
-        title=request.form.get('title'),
-        organization=request.form.get('organization'),
-        address_one=request.form.get('address_one'),
-        address_two=request.form.get('address_two'),
+        title=escape(request.form.get('title')),
+        organization=escape(request.form.get('organization')),
+        address_one=escape(request.form.get('address_one')),
+        address_two=escape(request.form.get('address_two')),
         zip=request.form.get('zipcode'),
-        city=request.form.get('city'),
+        city=escape(request.form.get('city')),
         state=request.form.get('state')
     )
     status_field_val = user_attrs.UserStatusDict(

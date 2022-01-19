@@ -122,4 +122,6 @@ def escape_latex_characters(line):
     line = line.replace('}', '\}')
     line = line.replace('~', '\\textasciitilde')
     line = line.replace('^', '\\textasciicircum')
+    line = line.replace('<', '\\textless')
+    line = line.replace('>', '\\textgreater')
     return line
