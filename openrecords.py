@@ -237,8 +237,7 @@ def es_recreate():
 @click.option("--user_guid", prompt="User GUID")
 @click.option("--extension_date", prompt="Extension Date (e.g. 01/01/2022)")
 @click.option("--extension_reason", prompt="Extension Reason")
-@click.option("--url", prompt="URL (eg. https://10.0.0.2/")
-def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension_date: str, extension_reason: str, url:str):
+def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension_date: str, extension_reason: str):
     # Create request context
     ctx = app.test_request_context()
     ctx.push()
@@ -262,7 +261,7 @@ def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension
                                    agency_name=agency_name,
                                    new_due_date=new_due_date.strftime("%A, %B %-d, %Y"),
                                    reason=extension_reason,
-                                   page=urljoin(url, url_for('request.view', request_id=request.id)))
+                                   page=urljoin(app.config['BASE_URL'], url_for('request.view', request_id=request.id)))
             add_extension(request.id,
                           '-1',
                           extension_reason,
