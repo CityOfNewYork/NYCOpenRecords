@@ -1,0 +1,19 @@
+{% if default_content %}
+    <p>
+        The {{ agency_name }} has <strong>extended</strong> the time to respond to your FOIL request
+        <a href="{{ page }}" target="_blank">{{ request_id }}</a> for the following reasons:
+    </p>
+    <p>
+        <span class="mceNonEditable">
+        You can expect a response on or about {{ new_due_date }}.<br /><br />
+        Additional Information: <br />
+        </span>
+    </p>
+    <div class="mceNonEditable">
+        {{ reason | safe }}
+        <br /><br />
+        Please visit <a href="{{ page }}">{{ request_id }}</a> to view additional information and take any necessary action.
+    </div>
+{% else %}
+    {{ content | safe }}
+{% endif %}

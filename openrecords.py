@@ -46,17 +46,22 @@ dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
 
 from datetime import datetime
-from urllib.parse import unquote
+from urllib.parse import unquote, urljoin
 import sys
-
+import traceback
 import click
 
-from flask import url_for
+from flask import url_for, render_template, request as flask_request
 from flask.cli import main
+from flask_login import login_user
 from flask_migrate import Migrate, upgrade
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from app import create_app, db
+from app.constants import OPENRECORDS_DL_EMAIL
+from app.jobs import _update_request_statuses
+from app.lib.date_utils import process_due_date, local_to_utc
+from app.lib.email_utils import send_email
 from app.models import (
     Agencies,
     AgencyUsers,
@@ -77,6 +82,7 @@ from app.models import (
 )
 from app.report.utils import generate_request_closing_user_report, generate_monthly_metrics_report
 from app.request.utils import generate_guid
+from app.response.utils import add_extension
 from app.search.utils import recreate
 from app.user.utils import make_user_admin
 
@@ -223,6 +229,64 @@ def es_recreate():
     Recreate elasticsearch index and request docs.
     """
     recreate()
+
+
+@app.cli.command()
+@click.option("--agency_ein", prompt="Agency EIN (e.g. 0056)")
+@click.option("--agency_name", prompt="Agency Name (e.g. New York City Police Department (NYPD))")
+@click.option("--user_guid", prompt="User GUID")
+@click.option("--extension_date", prompt="Extension Date (e.g. 01/01/2022)")
+@click.option("--extension_reason", prompt="Extension Reason")
+@click.option("--url", prompt="URL (eg. https://10.0.0.2/")
+def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension_date: str, extension_reason: str, url:str):
+    # Create request context
+    ctx = app.test_request_context()
+    ctx.push()
+    app.preprocess_request()
+
+    # Select user to perform the extensions
+    user = Users.query.filter_by(guid=user_guid).first()
+    login_user(user)
+
+    # Extend overdue requests
+    overdue_requests = Requests.query.filter_by(agency_ein=agency_ein, status='Overdue').order_by(Requests.id).all()
+    for request in overdue_requests:
+        try:
+            date = datetime.strptime(extension_date, '%m/%d/%Y')
+            new_due_date = process_due_date(local_to_utc(date, 'America/New_York'))
+            email_template = render_template('email_templates/email_response_extension_cli.html',
+                                   default_content=True,
+                                   content=None,
+                                   request=request,
+                                   request_id=request.id,
+                                   agency_name=agency_name,
+                                   new_due_date=new_due_date.strftime("%A, %B %-d, %Y"),
+                                   reason=extension_reason,
+                                   page=urljoin(url, url_for('request.view', request_id=request.id)))
+            add_extension(request.id,
+                          '-1',
+                          extension_reason,
+                          extension_date,
+                          'America/New_York',
+                          email_template,
+                          'emails',
+                          '')
+            print(request.id, 'extended')
+        except:
+            print(request.id, 'failed')
+
+
+@app.cli.command()
+def update_request_statuses():
+    try:
+        _update_request_statuses()
+    except Exception:
+        db.session.rollback()
+        send_email(
+            subject="Update Request Statuses Failure",
+            to=[OPENRECORDS_DL_EMAIL],
+            email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
+        )
 
 
 @app.cli.command
