@@ -3,14 +3,14 @@ from datetime import datetime
 from io import StringIO, BytesIO
 import re
 
-from flask import current_app, request, render_template, jsonify
+from flask import current_app, request, render_template, jsonify, Markup
 from flask.helpers import send_file
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
 
 from app.lib.date_utils import utc_to_local
 from app.lib.utils import eval_request_bool
-from app.models import Requests, Responses, Determinations, ResponseTokens
+from app.models import Requests
 from app.search import search
 from app.search.constants import DEFAULT_HITS_SIZE, ALL_RESULTS_CHUNKSIZE
 from app.search.utils import search_requests, convert_dates
@@ -21,37 +21,30 @@ from app import sentry
 def requests():
     """
     For request parameters, see app.search.utils.search_requests
-
     All Users can search by:
     - FOIL ID
-
     Anonymous Users can search by:
     - Title (public only)
     - Agency Request Summary (public only)
-
     Public Users can search by:
     - Title (public only OR public and private if user is requester)
     - Agency Request Summary (public only)
     - Description (if user is requester)
-
     Agency Users can search by:
     - Title
     - Agency Request Summary
     - Description
     - Requester Name
-
     All Users can filter by:
     - Status, Open (anything not Closed if not agency user)
     - Status, Closed
     - Date Submitted
     - Agency
-
     Only Agency Users can filter by:
     - Status, In Progress
     - Status, Due Soon
     - Status, Overdue
     - Date Due
-
     """
     try:
         agency_ein = request.args.get("agency_ein", "")
@@ -150,11 +143,8 @@ def requests_doc(doc_type):
     - Filtering on set size is ignored; all results are returned.
     - Currently only supports CSVs.
     - CSV only includes requests belonging to that user's agency
-
     Document name format: "FOIL_requests_results_<timestamp:MM_DD_YYYY_at_HH_mm_pp>"
-
     Request parameters are identical to those of /search/requests.
-
     :param doc_type: document type ('csv' only)
     """
     if current_user.is_agency and doc_type.lower() == "csv":
@@ -174,11 +164,25 @@ def requests_doc(doc_type):
                 "FOIL ID",
                 "Agency",
                 "Title",
+                "Description",
                 "Agency Request Summary",
                 "Current Status",
+                "Date Created",
                 "Date Received",
                 "Date Due",
-                "Closing Reason",
+                "Date Closed",
+                "Requester Name",
+                "Requester Email",
+                "Requester Title",
+                "Requester Organization",
+                "Requester Phone Number",
+                "Requester Fax Number",
+                "Requester Address 1",
+                "Requester Address 2",
+                "Requester City",
+                "Requester State",
+                "Requester Zipcode",
+                "Assigned User Emails",
             ]
         )
         results = search_requests(
@@ -230,39 +234,41 @@ def requests_doc(doc_type):
             .all()
         )
         user_agencies = current_user.get_agencies
-        count = 1
         for req in all_requests:
-            print(count)
-            count += 1
-            print(req.id)
-            reason = ""
-            if req.status == 'Closed':
-                response = Responses.query.filter(Responses.request_id == req.id,
-                                                  Responses.type == 'determinations').order_by(
-                    Responses.date_modified.desc()).first()
-                determination = Determinations.query.filter(Determinations.id == response.id).one()
-                reason = determination.reason
-                if reason is "":
-                    reason = "N/A"
-
             if req.agency_ein in user_agencies:
                 writer.writerow(
                     [
                         req.id,
                         req.agency.name,
-                        req.title,
+                        Markup(req.title).unescape(),
+                        Markup(req.description).unescape(),
                         req.agency_request_summary,
                         req.status,
+                        req.date_created,
                         req.date_submitted,
                         req.due_date,
-                        reason,
+                        req.date_closed,
+                        Markup(req.requester.fullname).unescape(),
+                        req.requester.email,
+                        Markup(req.requester.title).unescape(),
+                        Markup(req.requester.organization).unescape(),
+                        req.requester.phone_number,
+                        req.requester.fax_number,
+                        Markup(req.requester.mailing_address.get("address_one")).unescape(),
+                        Markup(req.requester.mailing_address.get("address_two")).unescape(),
+                        Markup(req.requester.mailing_address.get("city")).unescape(),
+                        req.requester.mailing_address.get("state"),
+                        req.requester.mailing_address.get("zip"),
+                        ", ".join(u.email for u in req.agency_users),
                     ]
                 )
         dt = datetime.utcnow()
         timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
         return send_file(
             BytesIO(buffer.getvalue().encode("UTF-8")),  # convert to bytes
-            attachment_filename="nypd_foil_log.csv",
+            attachment_filename="FOIL_requests_results_{}.csv".format(
+                timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")
+            ),
             as_attachment=True,
         )
     return "", 400

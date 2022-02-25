@@ -21,23 +21,23 @@
             {% endif %}
             <div class="form-group">
                 {{ generate_envelope_form.recipient_name.label }}<br>
-                {{ generate_envelope_form.recipient_name(id="generate-envelope-recipient-name", class="disable-enter-submit form-control") | safe }}
+                <input class="disable-enter-submit form-control" id="generate-envelope-recipient-name" name="recipient_name" type="text" value="{{ request.requester.name | title | safe }}">
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.organization.label }}<br>
-                {{ generate_envelope_form.organization(id="generate-envelope-organization", class="disable-enter-submit form-control") | safe }}
+                <input class="disable-enter-submit form-control" id="generate-envelope-organization" name="organization" type="text" value="{{ request.requester.organization | safe }}">
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.address_one.label }}<br>
-                {{ generate_envelope_form.address_one(id="generate-envelope-address-one", class="disable-enter-submit form-control") | safe }}
+                <input class="disable-enter-submit form-control" id="generate-envelope-address-one" name="address_one" type="text" value="{{ request.requester.mailing_address.get("address_one") | safe }}">
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.address_two.label }}<br>
-                {{ generate_envelope_form.address_two(id="generate-envelope-address-two", class="disable-enter-submit form-control") | safe }}
+                <input class="disable-enter-submit form-control" id="generate-envelope-address-two" name="address_two" type="text" value="{{ request.requester.mailing_address.get("address_two") | safe }}">
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.city.label }}<br>
-                {{ generate_envelope_form.city(id="generate-envelope-city", class="disable-enter-submit form-control") | safe }}
+                <input class="disable-enter-submit form-control" id="generate-envelope-city" name="city" type="text" value="{{ request.requester.mailing_address.get("city") | safe }}">
             </div>
             <div class="form-group">
                 {{ generate_envelope_form.state.label }}<br>

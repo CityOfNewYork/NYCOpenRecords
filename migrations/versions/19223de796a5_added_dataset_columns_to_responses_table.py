@@ -1,14 +1,14 @@
 """Added dataset columns to Responses table
 
 Revision ID: 19223de796a5
-Revises: a9d6b5037034
+Revises: a7635f23e449
 Create Date: 2021-11-29 22:03:33.673290
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '19223de796a5'
-down_revision = 'a9d6b5037034'
+down_revision = 'a7635f23e449'
 
 from alembic import op
 import sqlalchemy as sa

@@ -28,9 +28,7 @@ and current_request.status != request_status.CLOSED %}
                 5000 characters remaining
             </p>
         {% else %}
-            <div class="request-description-text">
-                {{ response.content | safe }}
-            </div>
+            <div class="request-description-text" id="{{ modal_html_id }}"></div>
         {% endif %}
 
         {% if edit_response_privacy_permission %}
@@ -70,7 +68,13 @@ and current_request.status != request_status.CLOSED %}
         </div>
     </form>
 {% else %}
-    <div class="request-description-text">
-        {{ response.content | safe }}
-    </div>
+    <div class="request-description-text" id="{{ modal_html_id }}"></div>
 {% endif %}
+
+<script>
+    {% if not ((edit_response_permission or edit_privacy_response_permission) and is_editable and current_request.status != request_status.CLOSED) or not edit_response_permission %}
+        let responseModalBody = $('#' + '{{ modal_html_id }}');
+        responseModalBody.html({{ response.content | tojson }});
+        responseModalBody.html(responseModalBody.text());
+    {% endif %}
+</script>
