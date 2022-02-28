@@ -104,7 +104,7 @@ def response_note(request_id):
         required_fields.extend(['content',
                                 'email-note-summary',
                                 'privacy',
-                                'is_dataset'])
+                                'note-is-dataset'])
     else:
         required_fields.append('content')
         is_editable = False
@@ -125,8 +125,8 @@ def response_note(request_id):
              note_data.get('privacy') or privacy,
              is_editable,
              is_requester,
-             note_data['is_dataset'],
-             note_data['dataset_description'])
+             note_data['note-is-dataset'],
+             note_data['note-dataset-description'])
     return redirect(url_for('request.view', request_id=request_id))
 
 

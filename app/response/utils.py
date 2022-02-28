@@ -147,8 +147,8 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param privacy: The privacy option of the note
     :param is_editable: editability of the note
     :param is_requester: requester is creator of the note
-    :param is_dataset:
-    :param dataset_description:
+    :param is_dataset: boolean to determine if this note contains a dataset
+    :param dataset_description: description of the dataset
 
     """
     raw_string = Markup(note_content).unescape()
@@ -2976,7 +2976,7 @@ class RespFileEditor(ResponseEditor):
 class RespNoteEditor(ResponseEditor):
     @property
     def editable_fields(self):
-        return ['content', 'is_dataset', 'dataset_description']
+        return ['content']
 
 
 class RespLinkEditor(ResponseEditor):

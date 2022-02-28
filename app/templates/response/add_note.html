@@ -43,7 +43,6 @@
                                            checked="checked">Private
                                 </label>
                             </div>
-
                             <br>
                             <p>Does this response include either:</p>
                             <ul>
@@ -51,20 +50,25 @@
                                 <li>A PDF or report exported from an agency system or database.</li>
                             </ul>
                             <div class="radio">
-                                <label>
-                                    <input type="radio" class="note-dataset" name="is_dataset" value="true">Yes
-                                </label>
+                                <label><input type="radio" class="note-dataset" name="note-is-dataset" value="true"
+                                              data-parsley-required
+                                              data-parsley-errors-container="#note-dataset-errors">Yes</label>
                             </div>
                             <div class="radio">
-                                <label>
-                                    <input type="radio" class="note-dataset" name="is_dataset" value="false">No
-                                </label>
+                                <label><input type="radio" class="note-dataset" name="note-is-dataset" value="false"
+                                              data-parsley-required
+                                              data-parsley-errors-container="#note-dataset-errors">No</label>
                             </div>
-                            <div id="dataset-description-div" style="display: none;">
-                                <label for="dataset-description">What is the name of the source system or database for
+                            <div id="note-dataset-errors"></div>
+                            <div id="note-dataset-description-div" style="display: none;">
+                                <label for="note-dataset-description">What is the name of the source system or database
+                                    for
                                     this information?</label>
-                                <textarea id="dataset_description" name="dataset_description"></textarea>
+                                <textarea id="note-dataset-description" name="note-dataset-description" maxlength="100"
+                                          data-parsley-maxlength="100"></textarea>
                             </div>
+                            <p id="note-dataset-description-character-counter" class="character-counter"
+                               style="display: none;">100 characters remaining</p>
                             <br>
                         {% else %}
                             <div class="radio">
