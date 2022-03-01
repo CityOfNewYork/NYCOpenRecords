@@ -23,6 +23,9 @@
     {% endif %}
 
     {% if response_data is not none %}
+        {{ response_data }}<br>
+        {{ response_data.data_old }}<br>
+        {{ response_data.data_new }}<br>
         {% if response_data.data_old['privacy'] != response_privacy.PRIVATE and not agency %}
             {% for key in response_data.requester_viewable_keys %}
                 <p>
@@ -37,7 +40,6 @@
         {% endif %}
         {% if agency %}
             {% for key, value in response_data.data_old.items() %}
-                {# TODO: use pretty text for dataset related keys #}
                 <p>
                     The <strong>{{ key }}</strong> was changed from:
                 </p>
@@ -57,3 +59,10 @@
         Please visit <a href='{{ page }}'>{{ page }}</a> to view additional information and take any necessary action.
     </p>
 {% endblock %}
+
+<script>
+    alert();
+    let responseModalBody = $('#' + 'test');
+    responseModalBody.html({{  response_data.data_new[key] | tojson }});
+    responseModalBody.html(responseModalBody.text());
+</script>

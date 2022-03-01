@@ -21,30 +21,37 @@ from app import sentry
 def requests():
     """
     For request parameters, see app.search.utils.search_requests
+
     All Users can search by:
     - FOIL ID
+
     Anonymous Users can search by:
     - Title (public only)
     - Agency Request Summary (public only)
+
     Public Users can search by:
     - Title (public only OR public and private if user is requester)
     - Agency Request Summary (public only)
     - Description (if user is requester)
+
     Agency Users can search by:
     - Title
     - Agency Request Summary
     - Description
     - Requester Name
+
     All Users can filter by:
     - Status, Open (anything not Closed if not agency user)
     - Status, Closed
     - Date Submitted
     - Agency
+
     Only Agency Users can filter by:
     - Status, In Progress
     - Status, Due Soon
     - Status, Overdue
     - Date Due
+
     """
     try:
         agency_ein = request.args.get("agency_ein", "")
@@ -143,8 +150,11 @@ def requests_doc(doc_type):
     - Filtering on set size is ignored; all results are returned.
     - Currently only supports CSVs.
     - CSV only includes requests belonging to that user's agency
+
     Document name format: "FOIL_requests_results_<timestamp:MM_DD_YYYY_at_HH_mm_pp>"
+
     Request parameters are identical to those of /search/requests.
+
     :param doc_type: document type ('csv' only)
     """
     if current_user.is_agency and doc_type.lower() == "csv":

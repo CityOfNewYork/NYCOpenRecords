@@ -138,7 +138,7 @@
     {% raw %}
     <script id="template-download" type="text/x-tmpl">
     {% for (var i=0, file; file=o.files[i]; i++) { %}
-        <div class="row template-download fade template-row-spacer" id="{%=file.identifier%}">
+        <div class="row template-download template-row-spacer" id="{%=file.identifier%}">
             <div class="col-sm-8">
                 <span class="original-name hidden">{%=file.original_name%}</span>
                 <p class="name">
@@ -161,6 +161,38 @@
                             <label><input type="radio" class="file-privacy" name="{%=file.name%}::privacy"
                                 value="private" checked>Private</label>
                         </div>
+                        <p>Does this response include either:</p>
+                        <ul>
+                            <li>A table or data (Excel, CSV, etc.) exported from an agency system or database.</li>
+                            <li>A PDF or report exported from an agency system or database.</li>
+                        </ul>
+                        <div class="radio">
+                            <label><input type="radio" class="file-dataset {%=file.identifier%}-dataset-option"
+                                          name="{%=file.name%}::is-dataset"
+                                          value="true"
+                                          data-parsley-required
+                                          data-parsley-errors-container="#{%=file.identifier%}-dataset-errors">Yes</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" class="file-dataset {%=file.identifier%}-dataset-option"
+                                          name="{%=file.name%}::is-dataset"
+                                          value="false"
+                                          data-parsley-required
+                                          data-parsley-errors-container="#{%=file.identifier%}-dataset-errors">No</label>
+                        </div>
+                        <div id="{%=file.identifier%}-dataset-errors"></div>
+                        <div id="{%=file.identifier%}-dataset-description-div" style="display: none;">
+                            <label for="{%=file.identifier%}-dataset-description">
+                                What is the name of the source system or database for this information?</label>
+                            <textarea id="{%=file.identifier%}-dataset-description"
+                                      name="{%=file.name%}::dataset-description"
+                                      class="file-dataset-description"
+                                      maxlength="100"
+                                      data-parsley-maxlength="100"></textarea>
+                        </div>
+                        <p id="{%=file.identifier%}-dataset-description-character-counter" class="character-counter"
+                           style="display: none;">100 characters remaining</p>
+                        <br>
                     </div>
                 {% } %}
 

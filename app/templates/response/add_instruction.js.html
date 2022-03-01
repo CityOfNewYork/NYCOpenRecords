@@ -129,6 +129,27 @@
             document.getElementById("instruction-second").style.display = "block";
         });
 
+        // Handles display of dataset description
+        $('.instruction-dataset').change(function () {
+            if (this.value === 'true') {
+                $("#instruction-dataset-description-div").show();
+                $("#instruction-dataset-description").attr("data-parsley-required", "");
+                $("#instruction-dataset-description-character-counter").show();
+            }
+            else {
+                $("#instruction-dataset-description-div").hide();
+                $("#instruction-dataset-description").removeAttr("data-parsley-required");
+                $("#instruction-dataset-description").val("");
+                $("#instruction-dataset-description-character-counter").hide();
+                $("#instruction-dataset-description-character-counter").text("100 characters remaining");
+            }
+        });
+
+        // Dataset description character counter
+        $("#instruction-dataset-description").keyup(function () {
+            characterCounter("#instruction-dataset-description-character-counter", 100, $(this).val().length);
+        });
+
         // Disable button on submit
         $("#add-instruction-form").submit(function () {
             $("#instruction-submit").attr("disabled", true);
@@ -145,5 +166,11 @@
         $("#instruction-content").attr("data-parsley-minlength-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
             "<strong>Error, Offline Instructions must be at least 20 characters.</strong>");
+        $(".instruction-dataset").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, this value is required.</strong> Please select an option.");
+        $("#instruction-dataset-description").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, dataset description is required.</strong> Please provide a description.");
     });
 </script>

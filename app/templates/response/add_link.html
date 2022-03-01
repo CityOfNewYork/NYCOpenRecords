@@ -36,6 +36,36 @@
                         <label><input type="radio" class="link-privacy" name="privacy" value="private"
                                       checked="checked">Private</label>
                     </div>
+                    <br>
+                    <p>Does this response include either:</p>
+                    <ul>
+                        <li>A table or data (Excel, CSV, etc.) exported from an agency system or database.</li>
+                        <li>A PDF or report exported from an agency system or database.</li>
+                    </ul>
+                    <div class="radio">
+                        <label><input type="radio" class="link-dataset" name="link-is-dataset"
+                                      value="true"
+                                      data-parsley-required
+                                      data-parsley-errors-container="#link-dataset-errors">Yes</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" class="link-dataset" name="link-is-dataset"
+                                      value="false"
+                                      data-parsley-required
+                                      data-parsley-errors-container="#link-dataset-errors">No</label>
+                    </div>
+                    <div id="link-dataset-errors"></div>
+                    <div id="link-dataset-description-div" style="display: none;">
+                        <label for="link-dataset-description">What is the name of the source system or database
+                            for
+                            this information?</label>
+                        <textarea id="link-dataset-description" name="link-dataset-description"
+                                  maxlength="100"
+                                  data-parsley-maxlength="100"></textarea>
+                    </div>
+                    <p id="link-dataset-description-character-counter" class="character-counter"
+                       style="display: none;">100 characters remaining</p>
+                    <br>
                 {% else %}
 
                     <div class="radio">

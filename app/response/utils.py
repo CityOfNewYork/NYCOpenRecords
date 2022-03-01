@@ -93,7 +93,7 @@ from app.request.api.utils import create_request_info_event
 
 # TODO: class ResponseProducer()
 
-def add_file(request_id, filename, title, privacy, is_editable):
+def add_file(request_id, filename, title, privacy, is_dataset, dataset_description, is_editable):
     """
     Create and store the file response object for the specified request.
     Gets the file mimetype and magic file check from a helper function in lib.file_utils
@@ -103,6 +103,8 @@ def add_file(request_id, filename, title, privacy, is_editable):
     :param filename: The secured_filename of the file.
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
+    :param is_dataset: boolean to determine if the file contains a dataset
+    :param dataset_description: description of the dataset
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
     try:
@@ -123,7 +125,9 @@ def add_file(request_id, filename, title, privacy, is_editable):
             mime_type,
             size,
             hash_,
-            is_editable=is_editable
+            is_editable=is_editable,
+            is_dataset=eval_request_bool(is_dataset),
+            dataset_description=dataset_description or None
         )
         create_object(response)
 
@@ -722,7 +726,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
         _create_communication_method(response.id, email_id, response_type.EMAIL)
 
 
-def add_link(request_id, title, url_link, email_content, privacy, is_editable=True):
+def add_link(request_id, title, url_link, email_content, privacy, is_dataset, dataset_description, is_editable=True):
     """
     Create and store the link object for the specified request.
     Store the link content into the Links table.
@@ -733,10 +737,18 @@ def add_link(request_id, title, url_link, email_content, privacy, is_editable=Tr
     :param title: title of the link to be stored in the Links table and as a response value
     :param url_link: link url to be stored in the Links table and as a response value
     :param email_content: string of HTML email content to be created and stored as a email object
+    :param is_dataset: boolean to determine if the link contains a dataset
+    :param dataset_description: description of the dataset
     :param privacy: The privacy option of the link
 
     """
-    response = Links(request_id, privacy, title, url_link, is_editable=is_editable)
+    response = Links(request_id,
+                     privacy,
+                     title,
+                     url_link,
+                     is_editable=is_editable,
+                     is_dataset=eval_request_bool(is_dataset),
+                     dataset_description=dataset_description or None)
     create_object(response)
     create_response_event(event_type.LINK_ADDED, response)
     if privacy != PRIVATE:
@@ -749,7 +761,7 @@ def add_link(request_id, title, url_link, email_content, privacy, is_editable=Tr
                          subject)
 
 
-def add_instruction(request_id, instruction_content, email_content, privacy, is_editable=True):
+def add_instruction(request_id, instruction_content, email_content, privacy, is_dataset, dataset_description, is_editable=True ):
     """
     Creates and stores the instruction object for the specified request.
     Stores the instruction content into the Instructions table.
@@ -758,10 +770,17 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
     :param request_id: FOIL request ID for the instruction
     :param instruction_content: string content of the instruction to be created and stored as a instruction object
     :param email_content: email body content of the email to be created and stored as a email object
+    :param is_dataset: boolean to determine if the instruction contains a dataset
+    :param dataset_description: description of the dataset
     :param privacy: The privacy option of the instruction
 
     """
-    response = Instructions(request_id, privacy, instruction_content, is_editable=is_editable)
+    response = Instructions(request_id,
+                            privacy,
+                            instruction_content,
+                            is_editable=is_editable,
+                            is_dataset=eval_request_bool(is_dataset),
+                            dataset_description=dataset_description or None)
     create_object(response)
     create_response_event(event_type.INSTRUCTIONS_ADDED, response)
     if privacy != PRIVATE:
@@ -2240,7 +2259,7 @@ def _edit_email_handler(data):
     }
     editor = editor_for_type[resp.type](current_user, resp, flask_request, update=False)
     if editor.no_change:
-        return jsonify({"error": "No changes detected. 456"}), 200
+        return jsonify({"error": "No changes detected."}), 200
     else:
         email_summary_requester, email_summary_edited, header = _get_edit_response_template(editor)
 
@@ -2703,8 +2722,6 @@ class ResponseEditor(metaclass=ABCMeta):
         For the editable fields, populates the old and new data containers
         if the field values differ from their database counterparts.
         """
-        print(self.editable_fields)
-        print(flask_request.form)
         for field in self.editable_fields + ['privacy', 'deleted']:
             value_new = self.flask_request.form.get(field)
             if value_new is not None:

@@ -90,6 +90,27 @@
             document.getElementById("link-third").style.display = "none";
             document.getElementById("link-second").style.display = "block";
         });
+        
+        // Handles display of dataset description
+        $('.link-dataset').change(function () {
+            if (this.value === 'true') {
+                $("#link-dataset-description-div").show();
+                $("#link-dataset-description").attr("data-parsley-required", "");
+                $("#link-dataset-description-character-counter").show();
+            }
+            else {
+                $("#link-dataset-description-div").hide();
+                $("#link-dataset-description").removeAttr("data-parsley-required");
+                $("#link-dataset-description").val("");
+                $("#link-dataset-description-character-counter").hide();
+                $("#link-dataset-description-character-counter").text("100 characters remaining");
+            }
+        });
+
+        // Dataset description character counter
+        $("#link-dataset-description").keyup(function () {
+            characterCounter("#link-dataset-description-character-counter", 100, $(this).val().length);
+        });
 
         // Disable button on submit
         $("#add-link-form").submit(function () {
@@ -117,6 +138,12 @@
         $("#link-url").attr("data-parsley-maxlength-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
             "Error, URL link must be less than 254 characters.");
+        $(".link-dataset").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, this value is required.</strong> Please select an option.");
+        $("#link-dataset-description").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, dataset description is required.</strong> Please provide a description.");
 
         // Custom validator to validate strict url using regexUrlChecker
         $("#link-url").attr("data-parsley-urlstrict", "");

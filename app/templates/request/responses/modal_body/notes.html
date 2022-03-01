@@ -44,28 +44,6 @@ and current_request.status != request_status.CLOSED %}
                 {% endfor %}
             </div>
         {% endif %}
-
-        <br>
-        <p>Does this response include either:</p>
-        <ul>
-            <li>A table or data (Excel, CSV, etc.) exported from an agency system or database.</li>
-            <li>A PDF or report exported from an agency system or database.</li>
-        </ul>
-        <div class="radio">
-            <label>
-                <input type="radio" class="note-dataset dataset" name="is_dataset" value="true" {% if response.is_dataset %}checked="checked"{% endif %}>Yes
-            </label>
-        </div>
-        <div class="radio">
-            <label>
-                <input type="radio" class="note-dataset dataset" name="is_dataset" value="false" {% if not response.is_dataset %}checked="checked"{% endif %}>No
-            </label>
-        </div>
-        <div id="dataset-description-div">
-            <label for="dataset-description">What is the name of the source system or database for
-                this information?</label>
-            <textarea id="dataset_description" class="dataset_description" name="dataset_description">{{ response.dataset_description or '' }}</textarea>
-        </div>
     </form>
 {% else %}
     <div class="request-description-text" id="{{ modal_html_id }}"></div>

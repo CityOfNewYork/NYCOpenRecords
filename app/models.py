@@ -1605,6 +1605,8 @@ class Files(Responses):
         hash_,
         date_modified=None,
         is_editable=False,
+        is_dataset=False,
+        dataset_description=None
     ):
         try:
             file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).all()
@@ -1618,7 +1620,7 @@ class Files(Responses):
             sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
 
-        super(Files, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Files, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -1646,9 +1648,9 @@ class Links(Responses):
     url = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, url, date_modified=None, is_editable=False
+        self, request_id, privacy, title, url, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Links, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Links, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.title = title
         self.url = url
 
@@ -1671,10 +1673,10 @@ class Instructions(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
         super(Instructions, self).__init__(
-            request_id, privacy, date_modified, is_editable
+            request_id, privacy, date_modified, is_editable, is_dataset, dataset_description
         )
         self.content = content
 
