@@ -1288,7 +1288,7 @@ class Responses(db.Model):
         )
     )
     is_dataset = db.Column(db.Boolean, default=False, nullable=False)
-    dataset_description = db.Column(db.String(50), nullable=True)
+    dataset_description = db.Column(db.String(200), nullable=True)
 
     __mapper_args__ = {"polymorphic_on": type}
 

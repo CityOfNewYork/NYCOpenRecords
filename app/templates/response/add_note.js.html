@@ -143,13 +143,13 @@
                 $("#note-dataset-description").removeAttr("data-parsley-required");
                 $("#note-dataset-description").val("");
                 $("#note-dataset-description-character-counter").hide();
-                $("#note-dataset-description-character-counter").text("100 characters remaining");
+                $("#note-dataset-description-character-counter").text("200 characters remaining");
             }
         });
 
         // Note dataset description character counter
         $("#note-dataset-description").keyup(function () {
-            characterCounter("#note-dataset-description-character-counter", 100, $(this).val().length);
+            characterCounter("#note-dataset-description-character-counter", 200, $(this).val().length);
         });
 
         // Disable button on submit

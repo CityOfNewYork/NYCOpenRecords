@@ -155,10 +155,7 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param dataset_description: description of the dataset
 
     """
-    raw_string = Markup(note_content).unescape()
-    cleaned_string = clean_html(raw_string)
-    note_content = escape(cleaned_string)
-
+    note_content = escape_value(note_content)
     response = Notes(request_id,
                      privacy,
                      note_content,
@@ -775,6 +772,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
     :param privacy: The privacy option of the instruction
 
     """
+    instruction_content = escape_value(instruction_content)
     response = Instructions(request_id,
                             privacy,
                             instruction_content,
@@ -2300,6 +2298,9 @@ def _get_edit_response_template(editor):
     requester_content = None
     agency_content = None
 
+    if editor.data_old.get('content') is not None:
+        editor.data_old['content'] = Markup(editor.data_old.get('content')).unescape()
+
     if eval_request_bool(data.get('confirmation')) or editor.update:
         default_content = False
         agency_content = data['email_content']
@@ -2723,13 +2724,22 @@ class ResponseEditor(metaclass=ABCMeta):
         if the field values differ from their database counterparts.
         """
         for field in self.editable_fields + ['privacy', 'deleted']:
-            value_new = self.flask_request.form.get(field)
-            if value_new is not None:
+            if field == 'content':
+                raw_value_new = self.flask_request.form.get(field)
+                escaped_value_new = escape_value(raw_value_new)
                 value_orig = str(getattr(self.response, field))
-                if value_new != value_orig:
+                if escaped_value_new != value_orig and raw_value_new != value_orig:
                     value_orig = self._bool_check(value_orig)
-                    value_new = self._bool_check(value_new)
-                    self.set_data_values(field, value_orig, value_new)
+                    value_new = self._bool_check(raw_value_new)
+                    self.set_data_values(field, value_orig, str(value_new))
+            else:
+                value_new = self.flask_request.form.get(field)
+                if value_new is not None:
+                    value_orig = str(getattr(self.response, field))
+                    if value_new != value_orig:
+                        value_orig = self._bool_check(value_orig)
+                        value_new = self._bool_check(value_new)
+                        self.set_data_values(field, value_orig, value_new)
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
 
@@ -2770,6 +2780,8 @@ class ResponseEditor(metaclass=ABCMeta):
         data['date_modified'] = timestamp
         if self.data_new.get('privacy') is not None:
             data['release_date'] = self.get_response_release_date()
+        if data.get('content') is not None:
+            data['content'] = escape_value(data['content'])
         update_object(data,
                       type(self.response),
                       self.response.id)
@@ -2807,6 +2819,18 @@ class ResponseEditor(metaclass=ABCMeta):
             _send_edit_response_email(self.response.request_id,
                                       email_content_agency,
                                       email_content_requester)
+
+
+def escape_value(value):
+    """
+    Helper function to clean and escape values to prevent XSS.
+
+    :param value: value to be escaped, usually the 'content' value of a Response.
+    :return: Escaped version of value.
+    """
+    raw_string = Markup(value).unescape()
+    cleaned_string = clean_html(raw_string)
+    return escape(cleaned_string)
 
 
 class RespFileEditor(ResponseEditor):

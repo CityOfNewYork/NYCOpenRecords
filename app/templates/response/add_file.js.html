@@ -220,10 +220,10 @@
             $("#" + fileIdentifier + "-dataset-description").removeAttr("data-parsley-required");
             $("#" + fileIdentifier + "-dataset-description").val("");
             $("#" + fileIdentifier + "-dataset-description-character-counter").hide();
-            $("#" + fileIdentifier + "-dataset-description-character-counter").text("100 characters remaining");
+            $("#" + fileIdentifier + "-dataset-description-character-counter").text("200 characters remaining");
         }
         $("#" + fileIdentifier + "-dataset-description").keyup(function () {
-            characterCounter("#" + fileIdentifier + "-dataset-description-character-counter", 100, $(this).val().length);
+            characterCounter("#" + fileIdentifier + "-dataset-description-character-counter", 200, $(this).val().length);
         });
     });
 </script>
