@@ -34,6 +34,36 @@
                         <label><input type="radio" class="instruction-privacy" name="privacy" value="private"
                                       checked="checked">Private</label>
                     </div>
+                    <br>
+                    <p>Does this response include either:</p>
+                    <ul>
+                        <li>A table or data (Excel, CSV, etc.) exported from an agency system or database.</li>
+                        <li>A PDF or report exported from an agency system or database.</li>
+                    </ul>
+                    <div class="radio">
+                        <label><input type="radio" class="instruction-dataset" name="instruction-is-dataset"
+                                      value="true"
+                                      data-parsley-required
+                                      data-parsley-errors-container="#instruction-dataset-errors">Yes</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" class="instruction-dataset" name="instruction-is-dataset"
+                                      value="false"
+                                      data-parsley-required
+                                      data-parsley-errors-container="#instruction-dataset-errors">No</label>
+                    </div>
+                    <div id="instruction-dataset-errors"></div>
+                    <div id="instruction-dataset-description-div" style="display: none;">
+                        <label for="instruction-dataset-description">What is the name of the source system or database
+                            for
+                            this information?</label>
+                        <textarea id="instruction-dataset-description" name="instruction-dataset-description"
+                                  maxlength="200"
+                                  data-parsley-maxlength="200"></textarea>
+                    </div>
+                    <p id="instruction-dataset-description-character-counter" class="character-counter"
+                       style="display: none;">200 characters remaining</p>
+                    <br>
                 {% else %}
                     <div class="radio">
                         <label><input type="radio" class="instruction-privacy" name="privacy" value="private"

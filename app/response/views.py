@@ -103,7 +103,8 @@ def response_note(request_id):
     if current_user.is_agency:
         required_fields.extend(['content',
                                 'email-note-summary',
-                                'privacy'])
+                                'privacy',
+                                'note-is-dataset'])
     else:
         required_fields.append('content')
         is_editable = False
@@ -123,7 +124,9 @@ def response_note(request_id):
              note_data.get('email-note-summary'),
              note_data.get('privacy') or privacy,
              is_editable,
-             is_requester)
+             is_requester,
+             note_data['note-is-dataset'],
+             note_data['note-dataset-description'])
     return redirect(url_for('request.view', request_id=request_id))
 
 
@@ -151,6 +154,8 @@ def response_file(request_id):
                                 file_data,
                                 files[file_data]['title'],
                                 files[file_data]['privacy'],
+                                files[file_data]['is-dataset'],
+                                files[file_data]['dataset-description'],
                                 is_editable=True)
         if not isinstance(response_obj, Files):
             flash(message=response_obj, category='danger')
@@ -419,7 +424,8 @@ def response_link(request_id):
     required_fields = ['title',
                        'url',
                        'email-link-summary',
-                       'privacy']
+                       'privacy',
+                       'link-is-dataset']
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -434,6 +440,8 @@ def response_link(request_id):
              link_data['url'],
              link_data['email-link-summary'],
              link_data['privacy'],
+             link_data['link-is-dataset'],
+             link_data['link-dataset-description'],
              is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 
@@ -455,7 +463,8 @@ def response_instructions(request_id):
 
     required_fields = ['content',
                        'email-instruction-summary',
-                       'privacy']
+                       'privacy',
+                       'instruction-is-dataset']
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -470,6 +479,8 @@ def response_instructions(request_id):
                     instruction_data['content'],
                     instruction_data['email-instruction-summary'],
                     instruction_data['privacy'],
+                    instruction_data['instruction-is-dataset'],
+                    instruction_data['instruction-dataset-description'],
                     is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 

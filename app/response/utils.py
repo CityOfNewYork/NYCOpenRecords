@@ -93,7 +93,7 @@ from app.request.api.utils import create_request_info_event
 
 # TODO: class ResponseProducer()
 
-def add_file(request_id, filename, title, privacy, is_editable):
+def add_file(request_id, filename, title, privacy, is_dataset, dataset_description, is_editable):
     """
     Create and store the file response object for the specified request.
     Gets the file mimetype and magic file check from a helper function in lib.file_utils
@@ -103,6 +103,8 @@ def add_file(request_id, filename, title, privacy, is_editable):
     :param filename: The secured_filename of the file.
     :param title: The title of the file which is entered by the uploader.
     :param privacy: The privacy option of the file.
+    :param is_dataset: boolean to determine if the file contains a dataset
+    :param dataset_description: description of the dataset
     """
     path = os.path.join(current_app.config['UPLOAD_DIRECTORY'], request_id, filename)
     try:
@@ -123,7 +125,9 @@ def add_file(request_id, filename, title, privacy, is_editable):
             mime_type,
             size,
             hash_,
-            is_editable=is_editable
+            is_editable=is_editable,
+            is_dataset=eval_request_bool(is_dataset),
+            dataset_description=dataset_description or None
         )
         create_object(response)
 
@@ -135,7 +139,7 @@ def add_file(request_id, filename, title, privacy, is_editable):
         return str(e)
 
 
-def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester):
+def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester, is_dataset, dataset_description):
     """
     Create and store the note object for the specified request.
     Store the note content into the Notes table.
@@ -147,13 +151,17 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param privacy: The privacy option of the note
     :param is_editable: editability of the note
     :param is_requester: requester is creator of the note
+    :param is_dataset: boolean to determine if this note contains a dataset
+    :param dataset_description: description of the dataset
 
     """
-    raw_string = Markup(note_content).unescape()
-    cleaned_string = clean_html(raw_string)
-    note_content = escape(cleaned_string)
-
-    response = Notes(request_id, privacy, note_content, is_editable=is_editable)
+    note_content = escape_value(note_content)
+    response = Notes(request_id,
+                     privacy,
+                     note_content,
+                     is_editable=is_editable,
+                     is_dataset=eval_request_bool(is_dataset),
+                     dataset_description=dataset_description or None)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
     subject = 'Note Added to {}'.format(request_id)
@@ -715,7 +723,7 @@ def add_extension(request_id, length, reason, custom_due_date, tz_name, content,
         _create_communication_method(response.id, email_id, response_type.EMAIL)
 
 
-def add_link(request_id, title, url_link, email_content, privacy, is_editable=True):
+def add_link(request_id, title, url_link, email_content, privacy, is_dataset, dataset_description, is_editable=True):
     """
     Create and store the link object for the specified request.
     Store the link content into the Links table.
@@ -726,10 +734,18 @@ def add_link(request_id, title, url_link, email_content, privacy, is_editable=Tr
     :param title: title of the link to be stored in the Links table and as a response value
     :param url_link: link url to be stored in the Links table and as a response value
     :param email_content: string of HTML email content to be created and stored as a email object
+    :param is_dataset: boolean to determine if the link contains a dataset
+    :param dataset_description: description of the dataset
     :param privacy: The privacy option of the link
 
     """
-    response = Links(request_id, privacy, title, url_link, is_editable=is_editable)
+    response = Links(request_id,
+                     privacy,
+                     title,
+                     url_link,
+                     is_editable=is_editable,
+                     is_dataset=eval_request_bool(is_dataset),
+                     dataset_description=dataset_description or None)
     create_object(response)
     create_response_event(event_type.LINK_ADDED, response)
     if privacy != PRIVATE:
@@ -742,7 +758,7 @@ def add_link(request_id, title, url_link, email_content, privacy, is_editable=Tr
                          subject)
 
 
-def add_instruction(request_id, instruction_content, email_content, privacy, is_editable=True):
+def add_instruction(request_id, instruction_content, email_content, privacy, is_dataset, dataset_description, is_editable=True ):
     """
     Creates and stores the instruction object for the specified request.
     Stores the instruction content into the Instructions table.
@@ -751,10 +767,18 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
     :param request_id: FOIL request ID for the instruction
     :param instruction_content: string content of the instruction to be created and stored as a instruction object
     :param email_content: email body content of the email to be created and stored as a email object
+    :param is_dataset: boolean to determine if the instruction contains a dataset
+    :param dataset_description: description of the dataset
     :param privacy: The privacy option of the instruction
 
     """
-    response = Instructions(request_id, privacy, instruction_content, is_editable=is_editable)
+    instruction_content = escape_value(instruction_content)
+    response = Instructions(request_id,
+                            privacy,
+                            instruction_content,
+                            is_editable=is_editable,
+                            is_dataset=eval_request_bool(is_dataset),
+                            dataset_description=dataset_description or None)
     create_object(response)
     create_response_event(event_type.INSTRUCTIONS_ADDED, response)
     if privacy != PRIVATE:
@@ -2274,6 +2298,10 @@ def _get_edit_response_template(editor):
     requester_content = None
     agency_content = None
 
+    # Unescape content string to render styles in frontend
+    if editor.data_old.get('content') is not None:
+        editor.data_old['content'] = Markup(editor.data_old.get('content')).unescape()
+
     if eval_request_bool(data.get('confirmation')) or editor.update:
         default_content = False
         agency_content = data['email_content']
@@ -2697,13 +2725,29 @@ class ResponseEditor(metaclass=ABCMeta):
         if the field values differ from their database counterparts.
         """
         for field in self.editable_fields + ['privacy', 'deleted']:
-            value_new = self.flask_request.form.get(field)
-            if value_new is not None:
+            if field == 'content':
+                # Unescaped value from form (TinyMCE)
+                raw_value_new = self.flask_request.form.get(field)
+
+                # Escape value from form
+                escaped_value_new = escape_value(raw_value_new)
+
+                # Value from database
                 value_orig = str(getattr(self.response, field))
-                if value_new != value_orig:
+
+                # Check if form value (both escaped and unescaped) matches database value
+                if escaped_value_new != value_orig and raw_value_new != value_orig:
                     value_orig = self._bool_check(value_orig)
-                    value_new = self._bool_check(value_new)
-                    self.set_data_values(field, value_orig, value_new)
+                    value_new = self._bool_check(raw_value_new)
+                    self.set_data_values(field, value_orig, str(value_new))
+            else:
+                value_new = self.flask_request.form.get(field)
+                if value_new is not None:
+                    value_orig = str(getattr(self.response, field))
+                    if value_new != value_orig:
+                        value_orig = self._bool_check(value_orig)
+                        value_new = self._bool_check(value_new)
+                        self.set_data_values(field, value_orig, value_new)
         if self.data_new.get('deleted') is not None:
             self.validate_deleted()
 
@@ -2744,6 +2788,8 @@ class ResponseEditor(metaclass=ABCMeta):
         data['date_modified'] = timestamp
         if self.data_new.get('privacy') is not None:
             data['release_date'] = self.get_response_release_date()
+        if data.get('content') is not None:
+            data['content'] = escape_value(data['content'])
         update_object(data,
                       type(self.response),
                       self.response.id)
@@ -2781,6 +2827,18 @@ class ResponseEditor(metaclass=ABCMeta):
             _send_edit_response_email(self.response.request_id,
                                       email_content_agency,
                                       email_content_requester)
+
+
+def escape_value(value):
+    """
+    Helper function to clean and escape values to prevent XSS.
+
+    :param value: value to be escaped, usually the 'content' value of a Response.
+    :return: Escaped version of value.
+    """
+    raw_string = Markup(value).unescape()
+    cleaned_string = clean_html(raw_string)
+    return escape(cleaned_string)
 
 
 class RespFileEditor(ResponseEditor):

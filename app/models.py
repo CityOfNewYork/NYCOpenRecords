@@ -1287,12 +1287,14 @@ class Responses(db.Model):
             name="type",
         )
     )
+    is_dataset = db.Column(db.Boolean, default=False, nullable=False)
+    dataset_description = db.Column(db.String(200), nullable=True)
 
     __mapper_args__ = {"polymorphic_on": type}
 
     # TODO: overwrite filter to automatically check if deleted=False
 
-    def __init__(self, request_id, privacy, date_modified=None, is_editable=False):
+    def __init__(self, request_id, privacy, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
@@ -1302,6 +1304,8 @@ class Responses(db.Model):
             else None
         )
         self.is_editable = is_editable
+        self.is_dataset = is_dataset
+        self.dataset_description = dataset_description
 
     # NOTE: If you can find a way to make this class work with abc,
     # you're welcome to make the necessary changes to the following method:
@@ -1559,9 +1563,9 @@ class Notes(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.content = content
 
     @property
@@ -1601,6 +1605,8 @@ class Files(Responses):
         hash_,
         date_modified=None,
         is_editable=False,
+        is_dataset=False,
+        dataset_description=None
     ):
         try:
             file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).all()
@@ -1614,7 +1620,7 @@ class Files(Responses):
             sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
 
-        super(Files, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Files, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -1642,9 +1648,9 @@ class Links(Responses):
     url = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, url, date_modified=None, is_editable=False
+        self, request_id, privacy, title, url, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Links, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Links, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.title = title
         self.url = url
 
@@ -1667,10 +1673,10 @@ class Instructions(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False
+        self, request_id, privacy, content, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
         super(Instructions, self).__init__(
-            request_id, privacy, date_modified, is_editable
+            request_id, privacy, date_modified, is_editable, is_dataset, dataset_description
         )
         self.content = content
 

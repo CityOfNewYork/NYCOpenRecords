@@ -131,6 +131,27 @@
             document.getElementById("note-second").style.display = "block";
         });
 
+        // Handles display of dataset description
+        $('.note-dataset').change(function () {
+            if (this.value === 'true') {
+                $("#note-dataset-description-div").show();
+                $("#note-dataset-description").attr("data-parsley-required", "");
+                $("#note-dataset-description-character-counter").show();
+            }
+            else {
+                $("#note-dataset-description-div").hide();
+                $("#note-dataset-description").removeAttr("data-parsley-required");
+                $("#note-dataset-description").val("");
+                $("#note-dataset-description-character-counter").hide();
+                $("#note-dataset-description-character-counter").text("200 characters remaining");
+            }
+        });
+
+        // Note dataset description character counter
+        $("#note-dataset-description").keyup(function () {
+            characterCounter("#note-dataset-description-character-counter", 200, $(this).val().length);
+        });
+
         // Disable button on submit
         $("#add-note-form").submit(function () {
             $("#note-submit").attr("disabled", true);
@@ -143,5 +164,11 @@
         $("#note-content").attr("data-parsley-required-message",
             "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
             "<strong>Error, note content is required.</strong> Please type in a message.");
+        $(".note-dataset").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, this value is required.</strong> Please select an option.");
+        $("#note-dataset-description").attr("data-parsley-required-message",
+            "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+            "<strong>Error, dataset description is required.</strong> Please provide a description.");
     });
 </script>

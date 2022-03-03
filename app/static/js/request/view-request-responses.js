@@ -323,7 +323,9 @@ $(function () {
                                 type: "edit",
                                 response_id: response_id,
                                 content: first.find(".note-content").val(),
-                                privacy: first.find("input[name=privacy]:checked").val()
+                                privacy: first.find("input[name=privacy]:checked").val(),
+                                is_dataset: first.find("input[name=is_dataset]:checked").val(),
+                                dataset_description: first.find(".dataset_description").val()
                             },
                             success: function (data) {
                                 if (data.error) {
@@ -358,6 +360,8 @@ $(function () {
                             response_id: response_id,
                             content: first.find(".note-content").val(),
                             privacy: first.find("input[name=privacy]:checked").val(),
+                            is_dataset: first.find("input[name=is_dataset]:checked").val(),
+                            dataset_description: first.find(".dataset_description").val(),
                             confirmation: true,
                             email_content: $("#email-content-" + response_id).val()
                         },
