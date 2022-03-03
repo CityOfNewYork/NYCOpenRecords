@@ -2298,6 +2298,7 @@ def _get_edit_response_template(editor):
     requester_content = None
     agency_content = None
 
+    # Unescape content string to render styles in frontend
     if editor.data_old.get('content') is not None:
         editor.data_old['content'] = Markup(editor.data_old.get('content')).unescape()
 
@@ -2725,9 +2726,16 @@ class ResponseEditor(metaclass=ABCMeta):
         """
         for field in self.editable_fields + ['privacy', 'deleted']:
             if field == 'content':
+                # Unescaped value from form (TinyMCE)
                 raw_value_new = self.flask_request.form.get(field)
+
+                # Escape value from form
                 escaped_value_new = escape_value(raw_value_new)
+
+                # Value from database
                 value_orig = str(getattr(self.response, field))
+
+                # Check if form value (both escaped and unescaped) matches database value
                 if escaped_value_new != value_orig and raw_value_new != value_orig:
                     value_orig = self._bool_check(value_orig)
                     value_new = self._bool_check(raw_value_new)
