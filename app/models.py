@@ -1563,9 +1563,9 @@ class Notes(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
+        self, request_id, privacy, content, date_modified=None, is_editable=False
     ):
-        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
+        super(Notes, self).__init__(request_id, privacy, date_modified, is_editable)
         self.content = content
 
     @property
@@ -1673,10 +1673,10 @@ class Instructions(Responses):
     content = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, content, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
+        self, request_id, privacy, content, date_modified=None, is_editable=False
     ):
         super(Instructions, self).__init__(
-            request_id, privacy, date_modified, is_editable, is_dataset, dataset_description
+            request_id, privacy, date_modified, is_editable
         )
         self.content = content
 

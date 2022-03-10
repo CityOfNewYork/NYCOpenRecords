@@ -139,7 +139,7 @@ def add_file(request_id, filename, title, privacy, is_dataset, dataset_descripti
         return str(e)
 
 
-def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester, is_dataset, dataset_description):
+def add_note(request_id, note_content, email_content, privacy, is_editable, is_requester):
     """
     Create and store the note object for the specified request.
     Store the note content into the Notes table.
@@ -151,17 +151,13 @@ def add_note(request_id, note_content, email_content, privacy, is_editable, is_r
     :param privacy: The privacy option of the note
     :param is_editable: editability of the note
     :param is_requester: requester is creator of the note
-    :param is_dataset: boolean to determine if this note contains a dataset
-    :param dataset_description: description of the dataset
 
     """
     note_content = escape_value(note_content)
     response = Notes(request_id,
                      privacy,
                      note_content,
-                     is_editable=is_editable,
-                     is_dataset=eval_request_bool(is_dataset),
-                     dataset_description=dataset_description or None)
+                     is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.NOTE_ADDED, response)
     subject = 'Note Added to {}'.format(request_id)
@@ -758,7 +754,7 @@ def add_link(request_id, title, url_link, email_content, privacy, is_dataset, da
                          subject)
 
 
-def add_instruction(request_id, instruction_content, email_content, privacy, is_dataset, dataset_description, is_editable=True ):
+def add_instruction(request_id, instruction_content, email_content, privacy, is_editable=True):
     """
     Creates and stores the instruction object for the specified request.
     Stores the instruction content into the Instructions table.
@@ -767,8 +763,6 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
     :param request_id: FOIL request ID for the instruction
     :param instruction_content: string content of the instruction to be created and stored as a instruction object
     :param email_content: email body content of the email to be created and stored as a email object
-    :param is_dataset: boolean to determine if the instruction contains a dataset
-    :param dataset_description: description of the dataset
     :param privacy: The privacy option of the instruction
 
     """
@@ -776,9 +770,7 @@ def add_instruction(request_id, instruction_content, email_content, privacy, is_
     response = Instructions(request_id,
                             privacy,
                             instruction_content,
-                            is_editable=is_editable,
-                            is_dataset=eval_request_bool(is_dataset),
-                            dataset_description=dataset_description or None)
+                            is_editable=is_editable)
     create_object(response)
     create_response_event(event_type.INSTRUCTIONS_ADDED, response)
     if privacy != PRIVATE:
