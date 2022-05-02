@@ -11,13 +11,12 @@ from business_calendar import Calendar, MO, TU, WE, TH, FR
 from celery import Celery
 from flask import (Flask, abort, redirect, render_template, request as flask_request, session, url_for)
 from flask_bootstrap import Bootstrap
-from flask_elasticsearch import FlaskElasticsearch
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_tracy import Tracy
-from flask_wtf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from raven.contrib.flask import Sentry
 
@@ -25,11 +24,12 @@ from app import celery_config
 from app.constants import OPENRECORDS_DL_EMAIL
 from app.lib import NYCHolidays, jinja_filters
 from config import Config, config
+from elasticsearch import Elasticsearch
 
 bootstrap = Bootstrap()
-es = FlaskElasticsearch()
+es = Elasticsearch(Config.ELASTICSEARCH_HOST)
 db = SQLAlchemy()
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 moment = Moment()
 mail = Mail()
 tracy = Tracy()
@@ -101,9 +101,6 @@ def create_app(config_name='default'):
     app.jinja_env.filters['format_ultimate_determination_reason'] = jinja_filters.format_ultimate_determination_reason
 
     bootstrap.init_app(app)
-    es.init_app(app,
-                use_ssl=app.config['ELASTICSEARCH_USE_SSL'],
-                verify_certs=app.config['ELASTICSEARCH_VERIFY_CERTS'])
     db.init_app(app)
     csrf.init_app(app)
     moment.init_app(app)
@@ -113,6 +110,7 @@ def create_app(config_name='default'):
     celery.config_from_object(celery_config)
     sentry.init_app(app, logging=app.config["USE_SENTRY"], level=logging.INFO)
     sess.init_app(app)
+    app.elasticsearch = Elasticsearch(Config.ELASTICSEARCH_HOST)
 
     with app.app_context():
         from app.models import Anonymous

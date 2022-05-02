@@ -590,7 +590,6 @@ class Users(UserMixin, db.Model):
                 es,
                 actions,
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type="request",
                 chunk_size=current_app.config["ELASTICSEARCH_CHUNK_SIZE"],
             )
 
@@ -968,7 +967,6 @@ class Requests(db.Model):
             if self.agency.is_active:
                 es.update(
                     index=current_app.config["ELASTICSEARCH_INDEX"],
-                    doc_type="request",
                     id=self.id,
                     body={
                         "doc": {
@@ -1004,7 +1002,6 @@ class Requests(db.Model):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             es.create(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type="request",
                 id=self.id,
                 body={
                     "title": self.title,
@@ -1040,7 +1037,6 @@ class Requests(db.Model):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             es.delete(
                 index=current_app.config["ELASTICSEARCH_INDEX"],
-                doc_type="request",
                 id=self.id,
             )
 

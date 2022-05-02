@@ -248,6 +248,7 @@ def create_request(title,
     ))
 
     # 11. Create the elasticsearch request doc only if agency has been onboarded
+    print(agency_ein)
     agency = Agencies.query.filter_by(ein=agency_ein).one()
 
     # 12. Add all agency administrators to the request.

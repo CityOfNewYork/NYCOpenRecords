@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+setuptools = "57.5.0"
 pipdeptree = "*"
 decorator = "*"
 Faker = "*"
@@ -117,4 +118,4 @@ python-magic = "*"
 gunicorn = "*"
 
 [requires]
-python_version = "3.8.3"
+python_version = "3.10.2"
