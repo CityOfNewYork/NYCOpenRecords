@@ -291,15 +291,15 @@ $(function () {
             success: function (data) {
                 if (data.total !== 0) {
                     noResultsFound = false;
-                    results.html(buildResultsTable(data.results, data.count, data.total));
+                    results.html(buildResultsTable(data.results, data.count, data.total.value));
                     flask_moment_render_all();
                     $(".pagination").css("display", "flex");
                     pageInfo.text(
                         (start + 1) + " - " +
                         (start + data.count) +
-                        " of " + (data.total).toLocaleString()
+                        " of " + (data.total.value).toLocaleString()
                     );
-                    total = data.total;
+                    total = data.total.value;
                     end = start + data.count;
                     if (end === total) {
                         next.attr("aria-disabled", true);

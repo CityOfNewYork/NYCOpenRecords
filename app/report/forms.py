@@ -6,7 +6,7 @@
 from datetime import date, timedelta
 
 from flask_login import current_user
-from flask_wtf import Form, FlaskForm
+from flask_wtf import FlaskForm
 from wtforms import DateField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 

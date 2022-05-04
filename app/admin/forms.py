@@ -1,5 +1,5 @@
 from flask_login import current_user
-from flask_wtf import Form, FlaskForm
+from flask_wtf import FlaskForm
 from wtforms import (
     SelectField,
     StringField,

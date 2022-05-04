@@ -1,4 +1,4 @@
-from flask_wtf import Form, FlaskForm
+from flask_wtf import FlaskForm
 from wtforms import SelectField, SelectMultipleField, BooleanField
 from app.constants import permission, role_name
 from app.models import Roles

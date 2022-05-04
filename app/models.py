@@ -527,6 +527,8 @@ class Users(UserMixin, db.Model):
 
     def agencies_for_forms(self):
         agencies = self.agencies.with_entities(Agencies.ein, Agencies._name).all()
+        # Convert the results of with_entities back to tuple format so that agencies can be processed
+        agencies = [tuple(agency) for agency in agencies]
         agencies.insert(
             0,
             agencies.pop(

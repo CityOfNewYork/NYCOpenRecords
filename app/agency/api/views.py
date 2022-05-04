@@ -91,7 +91,8 @@ def get_custom_request_form_options(agency_ein):
                                                                   CustomRequestForms.category,
                                                                   CustomRequestForms.minimum_required).filter_by(
         agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
-    custom_request_forms = [list(form) for form in custom_request_forms]
+    # Convert the results of with_entities back to tuple format so that jsonify can be used
+    custom_request_forms = [tuple(form) for form in custom_request_forms]
     return jsonify(custom_request_forms), 200
 
 

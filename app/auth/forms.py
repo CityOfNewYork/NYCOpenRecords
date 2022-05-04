@@ -5,12 +5,11 @@
     :synopsis: Defines the forms used to manage Authentication requests
 """
 
-from flask_wtf import Form, FlaskForm
+from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, PasswordField, SubmitField
 from wtforms.validators import Length, Email, Optional, DataRequired
 
 from app.constants import STATES
-from app.models import Agencies
 
 
 class StripFieldsForm(FlaskForm):

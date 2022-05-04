@@ -38,7 +38,6 @@ def delete_index():
     """
     Delete all elasticsearch indices, ignoring errors.
     """
-    # es.indices.delete(current_app.config["ELASTICSEARCH_INDEX"], ignore=[400, 404])
     es.indices.delete(index=current_app.config["ELASTICSEARCH_INDEX"], ignore=[400, 404])
 
 
@@ -118,7 +117,7 @@ def create_docs():
     Create elasticsearch request docs for every request db record.
     """
 
-    agency_eins = {a.ein: a for a in Agencies.query.filter_by(is_active=True, ein='0860').all()}
+    agency_eins = {a.ein: a for a in Agencies.query.filter_by(is_active=True).all()}
 
     #: :type: collections.Iterable[app.models.Requests]
     requests = (
