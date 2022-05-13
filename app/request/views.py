@@ -20,7 +20,7 @@ from flask import (
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.utils import escape
+from markupsafe import escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list
@@ -79,7 +79,7 @@ def new():
     kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
     category = str(escape(flask_request.args.get("category", None)))
     agency = str(escape(flask_request.args.get("agency", None)))
-    title = str(escape(flask_request.args.get("title", None)))
+    title = str(escape(flask_request.args.get("title", "")))
 
     if current_user.is_public:
         form = PublicUserRequestForm()

@@ -38,7 +38,7 @@ def delete_index():
     """
     Delete all elasticsearch indices, ignoring errors.
     """
-    es.indices.delete(current_app.config["ELASTICSEARCH_INDEX"], ignore=[400, 404])
+    es.indices.delete(index=current_app.config["ELASTICSEARCH_INDEX"], ignore=[400, 404])
 
 
 def delete_docs():
@@ -48,7 +48,6 @@ def delete_docs():
     es.indices.refresh(index=current_app.config["ELASTICSEARCH_INDEX"])
     es.delete_by_query(
         index=current_app.config["ELASTICSEARCH_INDEX"],
-        doc_type="request",
         body={"query": {"match_all": {}}},
         conflicts="proceed",
         wait_for_completion=True,
@@ -64,51 +63,49 @@ def create_index():
         index=current_app.config["ELASTICSEARCH_INDEX"],
         body={
             "mappings": {
-                "request": {
-                    "properties": {
-                        "title": {
-                            "type": "text",
-                            "analyzer": "english",
-                            "fields": {
-                                # for sorting by title
-                                "keyword": {"type": "keyword"}
-                            },
+                "properties": {
+                    "title": {
+                        "type": "text",
+                        "analyzer": "english",
+                        "fields": {
+                            # for sorting by title
+                            "keyword": {"type": "keyword"}
                         },
-                        "description": {"type": "text", "analyzer": "english"},
-                        "agency_request_summary": {
-                            "type": "text",
-                            "analyzer": "english",
-                        },
-                        "requester_id": {"type": "keyword"},
-                        "title_private": {"type": "boolean"},
-                        "agency_request_summary_private": {"type": "boolean"},
-                        "agency_ein": {"type": "keyword"},
-                        "agency_name": {"type": "keyword"},
-                        "agency_acronym": {"type": "keyword"},
-                        "status": {"type": "keyword"},
-                        "date_submitted": {
-                            "type": "date",
-                            "format": "strict_date_hour_minute_second",
-                        },
-                        "date_due": {
-                            "type": "date",
-                            "format": "strict_date_hour_minute_second",
-                        },
-                        "date_created": {
-                            "type": "date",
-                            "format": "strict_date_hour_minute_second",
-                        },
-                        "date_received": {
-                            "type": "date",
-                            "format": "strict_date_hour_minute_second",
-                        },
-                        "date_closed": {
-                            "type": "date",
-                            "format": "strict_date_hour_minute_second",
-                        },
-                        "assigned_users": {"type": "keyword"},
-                        "request_type": {"type": "keyword"},
-                    }
+                    },
+                    "description": {"type": "text", "analyzer": "english"},
+                    "agency_request_summary": {
+                        "type": "text",
+                        "analyzer": "english",
+                    },
+                    "requester_id": {"type": "keyword"},
+                    "title_private": {"type": "boolean"},
+                    "agency_request_summary_private": {"type": "boolean"},
+                    "agency_ein": {"type": "keyword"},
+                    "agency_name": {"type": "keyword"},
+                    "agency_acronym": {"type": "keyword"},
+                    "status": {"type": "keyword"},
+                    "date_submitted": {
+                        "type": "date",
+                        "format": "strict_date_hour_minute_second",
+                    },
+                    "date_due": {
+                        "type": "date",
+                        "format": "strict_date_hour_minute_second",
+                    },
+                    "date_created": {
+                        "type": "date",
+                        "format": "strict_date_hour_minute_second",
+                    },
+                    "date_received": {
+                        "type": "date",
+                        "format": "strict_date_hour_minute_second",
+                    },
+                    "date_closed": {
+                        "type": "date",
+                        "format": "strict_date_hour_minute_second",
+                    },
+                    "assigned_users": {"type": "keyword"},
+                    "request_type": {"type": "keyword"},
                 }
             }
         },
@@ -174,7 +171,6 @@ def create_docs():
         es,
         operations,
         index=current_app.config["ELASTICSEARCH_INDEX"],
-        doc_type="request",
         chunk_size=current_app.config["ELASTICSEARCH_CHUNK_SIZE"],
         raise_on_error=True,
     )
@@ -416,7 +412,6 @@ def search_requests(
     if not for_csv:
         results = es.search(
             index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type="request",
             body=dsl,
             _source=[
                 "requester_id",
@@ -447,7 +442,6 @@ def search_requests(
     else:
         results = es.search(
             index=current_app.config["ELASTICSEARCH_INDEX"],
-            doc_type="request",
             scroll="1m",
             body=dsl,
             _source=[

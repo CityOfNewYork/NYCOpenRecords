@@ -6,7 +6,7 @@
 from datetime import date, timedelta
 
 from flask_login import current_user
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import DateField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 
@@ -14,7 +14,7 @@ from app.lib.db_utils import get_agency_choices
 from app.constants.dates import MONTHS, PORTAL_START_YEAR
 
 
-class ReportFilterForm(Form):
+class ReportFilterForm(FlaskForm):
     """
     Form for users to filter different report statistics.
 
@@ -37,7 +37,7 @@ class ReportFilterForm(Form):
                 self.agency.choices.insert(1, self.agency.choices.pop(self.agency.choices.index(user_agency)))
 
 
-class AcknowledgmentForm(Form):
+class AcknowledgmentForm(FlaskForm):
     """Form to generate a report with acknowledgment data."""
     date_from = DateField('Date From (required)', format='%m/%d/%Y', validators=[DataRequired()])
     date_to = DateField('Date To (required)', format='%m/%d/%Y', validators=[DataRequired()])
@@ -60,7 +60,7 @@ class AcknowledgmentForm(Form):
         return is_valid
 
 
-class MonthlyMetricsReportForm(Form):
+class MonthlyMetricsReportForm(FlaskForm):
     """Form to generate a monthly metrics report."""
     year = SelectField('Year (required)', choices=None, validators=[DataRequired()])
     month = SelectField('Month (required)', choices=MONTHS, validators=[DataRequired()])
@@ -76,7 +76,7 @@ class MonthlyMetricsReportForm(Form):
         self.year.choices.insert(0, ('', ''))
 
 
-class OpenDataReportForm(Form):
+class OpenDataReportForm(FlaskForm):
     """Form to generate a report with Open Data compliance data."""
     date_from = DateField('Date From (required)', id='open-data-date-from', format='%m/%d/%Y', validators=[DataRequired()])
     date_to = DateField('Date To (required)', id='open-data-date-to', format='%m/%d/%Y', validators=[DataRequired()])

@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+setuptools = "57.5.0"
 pipdeptree = "*"
 decorator = "*"
 Faker = "*"
@@ -28,7 +29,6 @@ py = "*"
 
 [packages]
 alembic = "*"
-anyjson = "*"
 appdirs = "*"
 asn1crypto = "*"
 bcrypt = "*"
@@ -44,7 +44,7 @@ cryptography = "*"
 cssselect2 = "*"
 defusedxml = "*"
 dominate = "*"
-elasticsearch = "*"
+elasticsearch = {version = ">=7.0,<8.0"}
 holidays = "*"
 html5lib = "*"
 idna = "*"
@@ -82,7 +82,6 @@ business_calendar = "*"
 CairoSVG = "*"
 Flask = "*"
 Flask-Bootstrap = "*"
-Flask-Elasticsearch = "*"
 Flask-Login = "*"
 Flask-Mail = "*"
 Flask-Migrate = "*"
@@ -117,4 +116,4 @@ python-magic = "*"
 gunicorn = "*"
 
 [requires]
-python_version = "3.8.3"
+python_version = "3.10.2"
