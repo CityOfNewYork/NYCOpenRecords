@@ -75,7 +75,7 @@ $(function () {
         }
         else {
             response_list.html("<div class=\"center-text\">" +
-                "<br/><br/>There are no responses available for this request.</div>");
+                "<br/><br/>The agency is working on a response.</div>");
         }
     }
 
