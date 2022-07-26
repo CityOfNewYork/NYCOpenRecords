@@ -538,7 +538,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         Responses.privacy != PRIVATE,
         Responses.is_dataset == True).all()
 
-    links_data_sets = db.session.query(Requests,
+    link_data_sets = db.session.query(Requests,
                                       Responses,
                                       Files).join(Responses,
                                                   Requests.id == Responses.request_id).join(Links,
@@ -611,8 +611,8 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         file_data_sets_processed.append(request)
 
     # Process link responses for the spreadsheet
-    links_data_sets_processed = []
-    for request in links_data_sets:
+    link_data_sets_processed = []
+    for request in link_data_sets:
         request = list(request)
         # Unescape request title and description
         request[3] = Markup(request[3]).unescape()
@@ -654,7 +654,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
 
         # Remove Response ID from list
         del request[8]
-        links_data_sets_processed.append(request)
+        link_data_sets_processed.append(request)
 
     # Create "File Data Sets" sheet
     file_data_sets_headers = ('Request ID',
@@ -669,12 +669,12 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
                                   'Response - File Name',
                                   'Dataset Description',
                                   'URL')
-    possible_data_sets_dataset = tablib.Dataset(*file_data_sets_processed,
-                                                headers=file_data_sets_headers,
-                                                title='File Data Sets')
+    file_data_sets_sheet = tablib.Dataset(*file_data_sets_processed,
+                                          headers=file_data_sets_headers,
+                                          title='File Data Sets')
     
-    # Create "Links Data Sets" sheet
-    links_data_sets_headers = ('Request ID',
+    # Create "Link Data Sets" sheet
+    link_data_sets_headers = ('Request ID',
                                   'Request - Date Submitted',
                                   'Request - Date Closed',
                                   'Request - Title',
@@ -685,9 +685,9 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
                                   'Response - Link Title',
                                   'Dataset Description',
                                   'URL')
-    links_data_sets_dataset = tablib.Dataset(*links_data_sets_processed,
-                                                headers=links_data_sets_headers,
-                                                title='Link Data Sets')
+    link_data_sets_sheet = tablib.Dataset(*link_data_sets_processed,
+                                          headers=link_data_sets_headers,
+                                          title='Link Data Sets')
 
     # Query for all requests submitted in the given date range
     all_requests = Requests.query.with_entities(
@@ -745,15 +745,15 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
                             'Request - Title',
                             'Request - Description',
                             'URL')
-    all_requests_dataset = tablib.Dataset(*all_requests_processed,
-                                          headers=all_requests_headers,
-                                          title='All Requests')
+    all_requests_sheet = tablib.Dataset(*all_requests_processed,
+                                        headers=all_requests_headers,
+                                        title='All Requests')
 
     # Create Databook from sheets
     excel_spreadsheet = tablib.Databook((
-        possible_data_sets_dataset,
-        links_data_sets_dataset,
-        all_requests_dataset,
+        file_data_sets_sheet,
+        link_data_sets_sheet,
+        all_requests_sheet,
     ))
 
     return excel_spreadsheet.export('xls')
