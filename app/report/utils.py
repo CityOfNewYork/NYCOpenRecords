@@ -12,7 +12,7 @@ from app.constants.response_privacy import PRIVATE, RELEASE_AND_PRIVATE, RELEASE
 from app.constants.request_status import OPEN, IN_PROGRESS, DUE_SOON, OVERDUE, CLOSED
 from app.lib.date_utils import local_to_utc, utc_to_local
 from app.lib.email_utils import send_email
-from app.models import Agencies, Emails, Events, Requests, Responses, Users, Files
+from app.models import Agencies, Emails, Events, Requests, Responses, Users, Files, Links
 
 
 @celery.task(bind=True, name='app.report.utils.generate_acknowledgment_report')
@@ -502,8 +502,10 @@ def generate_monthly_metrics_report(self, agency_ein: str, date_from: str, date_
 def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: datetime):
     """Generates a report of Open Data compliance.
 
-    Generates a report of requests in a time frame with the following tabs:
-    1) All request responses that could contain possible data sets.
+    Generates a report of requests in a time frame using the is_dataset value in the responses table
+    with the following tabs:
+    1) All file responses that have is_dataset as true.
+    2) All link responses that have is_dataset as true.
     2) All requests submitted during that given time frame.
 
     Args:
@@ -512,12 +514,12 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         date_to: Date to filter to
     """
 
-    # Query for all responses that are possible data sets in the given date range
-    possible_data_sets = db.session.query(Requests,
-                                          Responses,
-                                          Files).join(Responses,
-                                                      Requests.id == Responses.request_id).join(Files,
-                                                                                                Responses.id == Files.id).with_entities(
+    # Query for all file responses that are datasets in the given date range
+    file_data_sets = db.session.query(Requests,
+                                      Responses,
+                                      Files).join(Responses,
+                                                  Requests.id == Responses.request_id).join(Files,
+                                                                                            Responses.id == Files.id).with_entities(
         Requests.id,
         func.to_char(Requests.date_submitted, 'MM/DD/YYYY'),
         func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
@@ -527,20 +529,41 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         func.to_char(Responses.date_modified, 'MM/DD/YYYY'),
         Responses.privacy,
         func.to_char(Responses.release_date, 'MM/DD/YYYY'),
-        Responses.id).filter(
+        Responses.id,
+        Files.title,
+        Files.name,
+        Responses.dataset_description).filter(
         Requests.agency_ein == agency_ein,
         Requests.date_submitted.between(date_from, date_to),
         Responses.privacy != PRIVATE,
-        or_(Files.name.ilike('%xlsx'),
-            Files.name.ilike('%csv'),
-            Files.name.ilike('%txt'),
-            Files.name.ilike('%xls'),
-            Files.name.ilike('%data%'),
-            Files.title.ilike('%data%'))).all()
+        Responses.is_dataset == True).all()
 
-    # Process requests for the spreadsheet
-    possible_data_sets_processed = []
-    for request in possible_data_sets:
+    links_data_sets = db.session.query(Requests,
+                                      Responses,
+                                      Files).join(Responses,
+                                                  Requests.id == Responses.request_id).join(Links,
+                                                                                            Responses.id == Links.id).with_entities(
+        Requests.id,
+        func.to_char(Requests.date_submitted, 'MM/DD/YYYY'),
+        func.to_char(Requests.date_closed, 'MM/DD/YYYY'),
+        Requests.title,
+        Requests.description,
+        Requests.custom_metadata,
+        func.to_char(Responses.date_modified, 'MM/DD/YYYY'),
+        Responses.privacy,
+        func.to_char(Responses.release_date, 'MM/DD/YYYY'),
+        Responses.id,
+        Links.title,
+        Responses.dataset_description,
+        Links.url).filter(
+        Requests.agency_ein == agency_ein,
+        Requests.date_submitted.between(date_from, date_to),
+        Responses.privacy != PRIVATE,
+        Responses.is_dataset == True).all()
+
+    # Process file responses for the spreadsheet
+    file_data_sets_processed = []
+    for request in file_data_sets:
         request = list(request)
 
         # Unescape request title and description
@@ -585,10 +608,56 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         response_id = request[8]
         del request[8]
         request.append(urljoin(flask_request.host_url, url_for('response.get_response_content', response_id=response_id)))
-        possible_data_sets_processed.append(request)
+        file_data_sets_processed.append(request)
 
-    # Create "Possible Data Sets" data set
-    possible_data_sets_headers = ('Request ID',
+    # Process link responses for the spreadsheet
+    links_data_sets_processed = []
+    for request in links_data_sets:
+        request = list(request)
+        # Unescape request title and description
+        request[3] = Markup(request[3]).unescape()
+        request[4] = Markup(request[4]).unescape()
+
+        # Change privacy value text
+        if request[7] == RELEASE_AND_PRIVATE:
+            request[7] = 'Release and Private - Agency and Requester Only'
+        elif request[7] == RELEASE_AND_PUBLIC:
+            request[7] = 'Public'
+
+        # Check if custom_metadata exists
+        if request[5] == {} or request[5] is None:
+            # Remove custom_metadata from normal requests
+            del request[5]
+        else:
+            # Process custom metadata
+            custom_metadata = request[5]
+            custom_metadata_text = ''
+            for form_number, form_values in sorted(custom_metadata.items()):
+                custom_metadata_text = custom_metadata_text + 'Request Type: ' + form_values['form_name'] + '\n\n'
+                for field_number, field_values in sorted(form_values['form_fields'].items()):
+                    # Make sure field_value exists otherwise give it a default value
+                    field_value = field_values.get('field_value', '')
+                    # Truncate field_value to 5000 characters for Excel limitations
+                    field_value = field_value[:5000]
+                    # Set field_value to empty string if None (used for select multiple empty value)
+                    if field_value is None:
+                        field_value = ''
+                    if isinstance(field_value, list):
+                        custom_metadata_text = custom_metadata_text + field_values[
+                            'field_name'] + ':\n' + ', '.join(field_values.get('field_value', '')) + '\n\n'
+                    else:
+                        custom_metadata_text = custom_metadata_text + field_values['field_name'] + ':\n' + field_value + '\n\n'
+                custom_metadata_text = custom_metadata_text + '\n'
+            # Replace normal request description with processed metadata string
+            request[4] = custom_metadata_text
+            del request[5]
+
+        # Remove Response ID from list
+        del request[8]
+        links_data_sets_processed.append(request)
+
+    # Create "File Data Sets" sheet
+    file_data_sets_headers = ('Request ID',
                                   'Request - Date Submitted',
                                   'Request - Date Closed',
                                   'Request - Title',
@@ -596,10 +665,29 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
                                   'Response - Date Added',
                                   'Privacy / Visibility',
                                   'Response - Publish Date',
+                                  'Response - File Title',
+                                  'Response - File Name',
+                                  'Dataset Description',
                                   'URL')
-    possible_data_sets_dataset = tablib.Dataset(*possible_data_sets_processed,
-                                                headers=possible_data_sets_headers,
-                                                title='Possible Data Sets')
+    possible_data_sets_dataset = tablib.Dataset(*file_data_sets_processed,
+                                                headers=file_data_sets_headers,
+                                                title='File Data Sets')
+    
+    # Create "Links Data Sets" sheet
+    links_data_sets_headers = ('Request ID',
+                                  'Request - Date Submitted',
+                                  'Request - Date Closed',
+                                  'Request - Title',
+                                  'Request - Description',
+                                  'Response - Date Added',
+                                  'Privacy / Visibility',
+                                  'Response - Publish Date',
+                                  'Response - Link Title',
+                                  'Dataset Description',
+                                  'URL')
+    links_data_sets_dataset = tablib.Dataset(*links_data_sets_processed,
+                                                headers=links_data_sets_headers,
+                                                title='Link Data Sets')
 
     # Query for all requests submitted in the given date range
     all_requests = Requests.query.with_entities(
@@ -650,7 +738,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         request.append(urljoin(flask_request.host_url, url_for('request.view', request_id=request[0])))
         all_requests_processed.append(request)
 
-    # Create "All Requests" data set
+    # Create "All Requests" sheet
     all_requests_headers = ('Request ID',
                             'Request - Date Submitted',
                             'Request - Date Closed',
@@ -661,9 +749,10 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
                                           headers=all_requests_headers,
                                           title='All Requests')
 
-    # Create Databook from Datasets
+    # Create Databook from sheets
     excel_spreadsheet = tablib.Databook((
         possible_data_sets_dataset,
+        links_data_sets_dataset,
         all_requests_dataset,
     ))
 
