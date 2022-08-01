@@ -540,7 +540,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
 
     link_data_sets = db.session.query(Requests,
                                       Responses,
-                                      Files).join(Responses,
+                                      Links).join(Responses,
                                                   Requests.id == Responses.request_id).join(Links,
                                                                                             Responses.id == Links.id).with_entities(
         Requests.id,
@@ -756,4 +756,5 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         all_requests_sheet,
     ))
 
+    # TODO: Update Excel spreadsheet format to xlsx
     return excel_spreadsheet.export('xls')
