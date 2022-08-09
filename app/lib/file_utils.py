@@ -16,6 +16,7 @@ from functools import wraps
 from contextlib import contextmanager
 from flask import current_app, send_from_directory
 from app import sentry
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 TRANSFER_SIZE_LIMIT = 512000  # 512 kb
 
@@ -246,5 +247,28 @@ def os_get_hash(path):
 @_sftp_switch(_sftp_send_file)
 def send_file(directory, filename, **kwargs):
     path = _get_file_serving_path(directory, filename)
-    shutil.copy(os.path.join(directory, filename), path)
+    # Move file to data directory if SFTP enabled
+    if current_app.config['USE_SFTP']:
+        shutil.copy(os.path.join(directory, filename), path)
+
+    # Download file from Azure if Azure storage is enabled
+    if current_app.config['USE_AZURE_STORAGE']:
+        azure_download(path, os.path.join(directory, filename))
     return send_from_directory(*os.path.split(path), **kwargs)
+
+
+def azure_upload(tmp_path, blob_name):
+    connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
+    with open(tmp_path, 'rb') as data:
+        blob_client.upload_blob(data)
+
+
+def azure_download(tmp_path, blob_name):
+    connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
+    with open(tmp_path, 'wb') as data:
+        download_stream = blob_client.download_blob()
+        data.write(download_stream.readall())

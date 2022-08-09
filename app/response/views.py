@@ -717,55 +717,57 @@ def get_response_content(response_id):
             response_.name
         )
         token = flask_request.args.get('token')
-        if fu.exists(filepath):
-            if response_.is_public:
-                # then we just serve the file, anyone can view it
-                @after_this_request
-                def remove(resp):
-                    os.remove(serving_path)
-                    return resp
+        if current_app.config['USE_SFTP'] and not fu.exists(filepath):
+            return abort(403)
 
-                return fu.send_file(*filepath_parts, as_attachment=True)
-            else:
-                # check presence of token in url
-                if token is not None:
-                    resptok = ResponseTokens.query.filter_by(
-                        token=token, response_id=response_id).first()
-                    if resptok is not None:
-                        if response_.privacy != PRIVATE:
-                            @after_this_request
-                            def remove(resp):
-                                os.remove(serving_path)
-                                return resp
+        if response_.is_public:
+            # then we just serve the file, anyone can view it
+            @after_this_request
+            def remove(resp):
+                os.remove(serving_path)
+                return resp
 
-                            return fu.send_file(*filepath_parts, as_attachment=True)
-                        else:
-                            delete_object(resptok)
-
-                # if token not included, nonexistent, or is expired, but user is logged in
-                if current_user.is_authenticated:
-                    # user is agency or is public and response is not private
-                    if (((current_user.is_public and response_.privacy != PRIVATE)
-                         or current_user.is_agency)
-                            # user is associated with request
-                            and UserRequests.query.filter_by(
-                                request_id=response_.request_id,
-                                user_guid=current_user.guid
-                            ).first() is not None):
+            return fu.send_file(*filepath_parts, as_attachment=True)
+        else:
+            # check presence of token in url
+            if token is not None:
+                resptok = ResponseTokens.query.filter_by(
+                    token=token, response_id=response_id).first()
+                if resptok is not None:
+                    if response_.privacy != PRIVATE:
                         @after_this_request
                         def remove(resp):
                             os.remove(serving_path)
                             return resp
 
                         return fu.send_file(*filepath_parts, as_attachment=True)
-                    # user does not have permission to view file
-                    return abort(403)
-                else:
-                    # redirect to login
-                    return redirect(login_url(
-                        login_manager.login_view,
-                        next_url=url_for('request.view', request_id=response_.request_id)
-                    ))
+                    else:
+                        delete_object(resptok)
+
+            # if token not included, nonexistent, or is expired, but user is logged in
+            if current_user.is_authenticated:
+                # user is agency or is public and response is not private
+                if (((current_user.is_public and response_.privacy != PRIVATE)
+                     or current_user.is_agency)
+                        # user is associated with request
+                        and UserRequests.query.filter_by(
+                            request_id=response_.request_id,
+                            user_guid=current_user.guid
+                        ).first() is not None):
+                    @after_this_request
+                    def remove(resp):
+                        os.remove(serving_path)
+                        return resp
+
+                    return fu.send_file(*filepath_parts, as_attachment=True)
+                # user does not have permission to view file
+                return abort(403)
+            else:
+                # redirect to login
+                return redirect(login_url(
+                    login_manager.login_view,
+                    next_url=url_for('request.view', request_id=response_.request_id)
+                ))
     return abort(404)  # file does not exist
 
 

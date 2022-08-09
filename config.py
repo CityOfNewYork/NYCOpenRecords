@@ -169,6 +169,11 @@ class Config:
     SENTRY_DSN = os.environ.get('SENTRY_DSN')
     USE_SENTRY = os.environ.get('USE_SENTRY') == "True"
 
+    # Azure Settings
+    USE_AZURE_STORAGE = os.environ.get('USE_AZURE_STORAGE') or False
+    AZURE_STORAGE_CONNECTION_STRING = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
+    AZURE_STORAGE_CONTAINER = os.environ.get('AZURE_STORAGE_CONTAINER')
+
     @staticmethod
     def init_app(app):
         pass
