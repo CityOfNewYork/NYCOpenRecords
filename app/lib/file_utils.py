@@ -257,6 +257,12 @@ def send_file(directory, filename, **kwargs):
     return send_from_directory(*os.path.split(path), **kwargs)
 
 
+def create_azure_blob_client(blob_name):
+    connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    return blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
+
+
 def azure_upload(tmp_path, blob_name):
     connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
@@ -272,3 +278,17 @@ def azure_download(tmp_path, blob_name):
     with open(tmp_path, 'wb') as data:
         download_stream = blob_client.download_blob()
         data.write(download_stream.readall())
+
+
+def azure_exists(blob_name):
+    connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
+    return blob_client.exists()
+
+
+def azure_delete(blob_name):
+    connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
+    blob_client.delete_blob()

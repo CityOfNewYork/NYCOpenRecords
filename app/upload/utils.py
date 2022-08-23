@@ -176,11 +176,13 @@ def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=
                 # in the time between the call to fu.exists
                 # and fu.makedirs, the directory was created
                 current_app.logger.error("OS Error: {}".format(e.args))
-
-        fu.move(
-            filepath,
-            os.path.join(dst_dir, filename)
-        )
+        if current_app.config['USE_SFTP']:
+            fu.move(
+                filepath,
+                os.path.join(dst_dir, filename)
+            )
+        elif current_app.config['USE_AZURE_STORAGE']:
+            fu.azure_upload(filepath, os.path.join(dst_dir, filename))
         redis.set(key, upload_status.READY)
 
 
