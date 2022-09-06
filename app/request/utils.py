@@ -372,7 +372,7 @@ def _move_validated_upload(request_id, tmp_path):
     # store file metadata in redis
     redis_set_file_metadata(request_id, tmp_path)
 
-    # Move file to data directory if SFTP enabled
+    # Move file to data directory if volume storage is enabled
     if current_app.config['USE_SFTP']:
         fu.move(tmp_path, valid_path)
 

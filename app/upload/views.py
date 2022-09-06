@@ -119,6 +119,7 @@ def post(request_id):
                                 fp.write(file_.stream.read())
                             # scan if last chunk written
                             if os.path.getsize(filepath) == size:
+                                file_size = os.path.getsize(filepath)
                                 scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
                     else:
                         valid_file_type, file_type = is_valid_file_type(file_)
@@ -127,6 +128,7 @@ def post(request_id):
                         if valid_file_type:
                             redis.set(key, upload_status.PROCESSING)
                             file_.save(filepath)
+                            file_size = os.path.getsize(filepath)
                             scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
 
                     if not valid_file_type:
@@ -142,7 +144,7 @@ def post(request_id):
                             "files": [{
                                 "name": filename,
                                 "original_name": file_.filename,
-                                "size": os.path.getsize(filepath),
+                                "size": file_size,
                             }]
                         }
                 except Exception as e:

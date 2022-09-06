@@ -168,22 +168,29 @@ def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=
             )
         # store file metadata in redis
         redis_set_file_metadata(response_id or request_id, filepath, is_update)
-        if not fu.exists(dst_dir):
-            try:
-                fu.makedirs(dst_dir)
-            except OSError as e:
-                sentry.captureException()
-                # in the time between the call to fu.exists
-                # and fu.makedirs, the directory was created
-                current_app.logger.error("OS Error: {}".format(e.args))
         if current_app.config['USE_SFTP']:
+            if not fu.exists(dst_dir):
+                try:
+                    fu.makedirs(dst_dir)
+                except OSError as e:
+                    sentry.captureException()
+                    # in the time between the call to fu.exists
+                    # and fu.makedirs, the directory was created
+                    current_app.logger.error("OS Error: {}".format(e.args))
             fu.move(
                 filepath,
                 os.path.join(dst_dir, filename)
             )
-        elif current_app.config['USE_AZURE_STORAGE']:
-            fu.azure_upload(filepath, os.path.join(dst_dir, filename))
         redis.set(key, upload_status.READY)
+
+
+@celery.task
+def complete_upload(request_id, quarantine_path, filename):
+    dst_dir = os.path.join(
+        current_app.config['UPLOAD_DIRECTORY'],
+        request_id
+    )
+    fu.azure_upload(quarantine_path, os.path.join(dst_dir, filename))
 
 
 def scan_file(filepath):

@@ -87,7 +87,7 @@ from app.models import (
     EnvelopeTemplates
 )
 from app.request.api.utils import create_request_info_event
-
+from app.upload.utils import complete_upload
 
 # TODO: class ResponseProducer()
 
@@ -2789,7 +2789,12 @@ class RespFileEditor(ResponseEditor):
                     UPDATED_FILE_DIRNAME,
                     new_filename
                 )
-                if fu.exists(filepath):
+                quarantine_path = os.path.join(
+                    current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+                    self.response.request_id,
+                    new_filename
+                )
+                if fu.exists(filepath) or fu.exists(quarantine_path):
                     try:
                         # fetch file metadata from redis store
                         size, mime_type, hash_ = redis_get_file_metadata(
@@ -2815,14 +2820,14 @@ class RespFileEditor(ResponseEditor):
                                          hash_)
                     if self.update:
                         redis_delete_file_metadata(self.response.id, filepath, is_update=True)
-                        self.replace_old_file(filepath)
+                        self.replace_old_file(filepath, new_filename)
                 else:
                     self.errors.append(
                         "File '{}' not found.".format(new_filename))
             if self.update:
                 self.handle_response_token(bool(new_filename))
 
-    def replace_old_file(self, updated_filepath):
+    def replace_old_file(self, updated_filepath, new_filename):
         """
         Move the new file out of the 'updated' directory
         and delete the file it is replacing.
@@ -2831,19 +2836,34 @@ class RespFileEditor(ResponseEditor):
             current_app.config['UPLOAD_DIRECTORY'],
             self.response.request_id
         )
-        fu.remove(
-            os.path.join(
-                upload_path,
-                self.response.name
+        if current_app.config['USE_SFTP']:
+            fu.remove(
+                os.path.join(
+                    upload_path,
+                    self.response.name
+                )
             )
-        )
-        fu.rename(
-            updated_filepath,
-            os.path.join(
-                upload_path,
-                os.path.basename(updated_filepath)
+            fu.rename(
+                updated_filepath,
+                os.path.join(
+                    upload_path,
+                    os.path.basename(updated_filepath)
+                )
             )
-        )
+        if current_app.config['USE_AZURE_STORAGE']:
+            fu.azure_delete(
+                os.path.join(
+                    upload_path,
+                    self.response.name
+                )
+            )
+            quarantine_path = os.path.join(
+                current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+                self.response.request_id,
+                new_filename
+            )
+            complete_upload(self.response.request_id, quarantine_path, new_filename)
+
 
     def handle_response_token(self, file_changed):
         """
@@ -2930,18 +2950,32 @@ class RespFileEditor(ResponseEditor):
             DELETED_FILE_DIRNAME,
             str(self.response.id)
         )
-        if not fu.exists(dir_deleted):
-            fu.makedirs(dir_deleted)
-        fu.rename(
-            os.path.join(
-                upload_path,
-                self.response.name
-            ),
-            os.path.join(
+        if current_app.config['USE_SFTP']:
+            if not fu.exists(dir_deleted):
+                fu.makedirs(dir_deleted)
+            fu.rename(
+                os.path.join(
+                    upload_path,
+                    self.response.name
+                ),
+                os.path.join(
+                    dir_deleted,
+                    self.response.name
+                )
+            )
+        if current_app.config['USE_AZURE_STORAGE']:
+            deleted_filename = os.path.join(
                 dir_deleted,
                 self.response.name
             )
-        )
+            current_blob_name = os.path.join(upload_path, self.response.name)
+            fu.azure_copy(current_blob_name, deleted_filename)
+            fu.azure_delete(
+                os.path.join(
+                    upload_path,
+                    self.response.name
+                )
+            )
 
 
 class RespNoteEditor(ResponseEditor):

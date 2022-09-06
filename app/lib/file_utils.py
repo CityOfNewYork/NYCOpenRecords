@@ -16,7 +16,13 @@ from functools import wraps
 from contextlib import contextmanager
 from flask import current_app, send_from_directory
 from app import sentry
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.storage.blob import (generate_blob_sas,
+                                BlobSasPermissions,
+                                BlobServiceClient,
+                                BlobClient,
+                                ContainerClient
+                                )
+from datetime import datetime, timedelta
 
 TRANSFER_SIZE_LIMIT = 512000  # 512 kb
 
@@ -247,7 +253,7 @@ def os_get_hash(path):
 @_sftp_switch(_sftp_send_file)
 def send_file(directory, filename, **kwargs):
     path = _get_file_serving_path(directory, filename)
-    # Move file to data directory if SFTP enabled
+    # Move file to data directory if volume storage enabled
     if current_app.config['USE_SFTP']:
         shutil.copy(os.path.join(directory, filename), path)
 
@@ -263,19 +269,20 @@ def create_azure_blob_client(blob_name):
     return blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
 
 
-def azure_upload(tmp_path, blob_name):
+def azure_upload(source_path, blob_name):
     connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
     blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
-    with open(tmp_path, 'rb') as data:
-        blob_client.upload_blob(data)
+    with open(source_path, 'rb') as data:
+        blob_client.upload_blob(data, overwrite=True)
+    os.remove(source_path)
 
 
-def azure_download(tmp_path, blob_name):
+def azure_download(source_path, blob_name):
     connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
     blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
-    with open(tmp_path, 'wb') as data:
+    with open(source_path, 'wb') as data:
         download_stream = blob_client.download_blob()
         data.write(download_stream.readall())
 
@@ -292,3 +299,27 @@ def azure_delete(blob_name):
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
     blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'], blob=blob_name)
     blob_client.delete_blob()
+
+
+def azure_copy(current_blob_name, new_blob_name):
+    # Generate SAS token
+    sas_token = generate_blob_sas(account_name=current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
+                                  account_key=current_app.config['AZURE_STORAGE_ACCOUNT_KEY'],
+                                  container_name=current_app.config['AZURE_STORAGE_CONTAINER'],
+                                  blob_name=current_blob_name,
+                                  permission=BlobSasPermissions(read=True),
+                                  expiry=datetime.utcnow() + timedelta(hours=1))
+
+    # Generate blob URL
+    url = "https://{0}.blob.core.windows.net/{1}/{2}?{3}".format(
+        current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
+        current_app.config['AZURE_STORAGE_CONTAINER'],
+        current_blob_name,
+        sas_token)
+
+    # Copy blob to new location
+    connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    blob_client = blob_service_client.get_blob_client(container=current_app.config['AZURE_STORAGE_CONTAINER'],
+                                                      blob=new_blob_name)
+    blob_client.start_copy_from_url(url)

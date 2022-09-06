@@ -78,6 +78,7 @@ from app.response.utils import (
     RespInstructionsEditor,
     RespLinkEditor
 )
+from app.upload.utils import complete_upload
 
 
 @response.route('/note/<request_id>', methods=['POST'])
@@ -147,6 +148,11 @@ def response_file(request_id):
     release_private_links = []
     private_links = []
     for file_data in files:
+        quarantine_path = os.path.join(
+            current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            request_id,
+            file_data)
+        complete_upload(current_request.id, quarantine_path, file_data)
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],
