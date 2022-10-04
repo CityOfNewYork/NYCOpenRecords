@@ -739,7 +739,7 @@ function processCustomRequestFormData() {
             var formKey = "form_";
             var fieldKey = "field_";
             var formId = $("#request-type-" + target + " option:selected").val();
-            var formName = originalFormNames[formId];
+            var formName = $("#request-type-" + target + " option:selected").text();
             var previousRadioId = "";
             var completedFields = 0;
 
