@@ -130,7 +130,8 @@ def post(request_id):
                             file_.save(filepath)
                             file_size = os.path.getsize(filepath)
                             scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
-
+                    # Getting error with file_size not being set before reaching here
+                    file_size = os.path.getsize(filepath)
                     if not valid_file_type:
                         response = {
                             "files": [{

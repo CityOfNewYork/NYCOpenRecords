@@ -762,7 +762,8 @@ def get_response_content(response_id):
                         ).first() is not None):
                     @after_this_request
                     def remove(resp):
-                        os.remove(serving_path)
+                        if current_app.config['USE_SFTP']:
+                            os.remove(serving_path)
                         return resp
 
                     return fu.send_file(*filepath_parts, as_attachment=True)
