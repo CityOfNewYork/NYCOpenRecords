@@ -373,7 +373,7 @@ def _move_validated_upload(request_id, tmp_path):
     redis_set_file_metadata(request_id, tmp_path)
 
     # Move file to data directory if volume storage is enabled
-    if current_app.config['USE_SFTP']:
+    if current_app.config['USE_VOLUME_STORAGE']:
         fu.move(tmp_path, valid_path)
 
     # Upload file to Azure if Azure storage is enabled

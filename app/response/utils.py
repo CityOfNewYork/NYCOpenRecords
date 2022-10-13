@@ -2836,7 +2836,7 @@ class RespFileEditor(ResponseEditor):
             current_app.config['UPLOAD_DIRECTORY'],
             self.response.request_id
         )
-        if current_app.config['USE_SFTP']:
+        if current_app.config['USE_VOLUME_STORAGE']:
             fu.remove(
                 os.path.join(
                     upload_path,
@@ -2950,7 +2950,7 @@ class RespFileEditor(ResponseEditor):
             DELETED_FILE_DIRNAME,
             str(self.response.id)
         )
-        if current_app.config['USE_SFTP']:
+        if current_app.config['USE_VOLUME_STORAGE']:
             if not fu.exists(dir_deleted):
                 fu.makedirs(dir_deleted)
             fu.rename(

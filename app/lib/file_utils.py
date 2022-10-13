@@ -254,7 +254,7 @@ def os_get_hash(path):
 def send_file(directory, filename, **kwargs):
     path = _get_file_serving_path(directory, filename)
     # Move file to data directory if volume storage enabled
-    if current_app.config['USE_SFTP']:
+    if current_app.config['USE_VOLUME_STORAGE']:
         shutil.copy(os.path.join(directory, filename), path)
 
     # Download file from Azure if Azure storage is enabled

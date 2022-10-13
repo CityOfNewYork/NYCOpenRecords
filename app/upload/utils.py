@@ -168,7 +168,7 @@ def scan_and_complete_upload(request_id, filepath, is_update=False, response_id=
             )
         # store file metadata in redis
         redis_set_file_metadata(response_id or request_id, filepath, is_update)
-        if current_app.config['USE_SFTP']:
+        if current_app.config['USE_VOLUME_STORAGE']:
             if not fu.exists(dst_dir):
                 try:
                     fu.makedirs(dst_dir)

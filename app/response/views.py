@@ -723,7 +723,7 @@ def get_response_content(response_id):
             response_.name
         )
         token = flask_request.args.get('token')
-        if current_app.config['USE_SFTP'] and not fu.exists(filepath):
+        if current_app.config['USE_VOLUME_STORAGE'] and not fu.exists(filepath):
             return abort(403)
 
         if response_.is_public:
@@ -762,7 +762,7 @@ def get_response_content(response_id):
                         ).first() is not None):
                     @after_this_request
                     def remove(resp):
-                        if current_app.config['USE_SFTP']:
+                        if current_app.config['USE_VOLUME_STORAGE']:
                             os.remove(serving_path)
                         return resp
 
