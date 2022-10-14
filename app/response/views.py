@@ -152,7 +152,7 @@ def response_file(request_id):
             current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
             request_id,
             file_data)
-        complete_upload(current_request.id, quarantine_path, file_data)
+        complete_upload.delay(current_request.id, quarantine_path, file_data)
         response_obj = add_file(current_request.id,
                                 file_data,
                                 files[file_data]['title'],

@@ -38,7 +38,7 @@ from app.upload.constants import (
 from app.upload.utils import (
     parse_content_range,
     is_valid_file_type,
-    scan_and_complete_upload,
+    scan_upload,
     get_upload_key,
     upload_exists,
 )
@@ -119,8 +119,7 @@ def post(request_id):
                                 fp.write(file_.stream.read())
                             # scan if last chunk written
                             if os.path.getsize(filepath) == size:
-                                file_size = os.path.getsize(filepath)
-                                scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
+                                scan_upload.delay(request_id, filepath, is_update, response_id)
                     else:
                         valid_file_type, file_type = is_valid_file_type(file_)
                         if current_user.is_agency_active(agency_ein):
@@ -128,10 +127,7 @@ def post(request_id):
                         if valid_file_type:
                             redis.set(key, upload_status.PROCESSING)
                             file_.save(filepath)
-                            file_size = os.path.getsize(filepath)
-                            scan_and_complete_upload.delay(request_id, filepath, is_update, response_id)
-                    # Getting error with file_size not being set before reaching here
-                    file_size = os.path.getsize(filepath)
+                            scan_upload.delay(request_id, filepath, is_update, response_id)
                     if not valid_file_type:
                         response = {
                             "files": [{
@@ -145,7 +141,7 @@ def post(request_id):
                             "files": [{
                                 "name": filename,
                                 "original_name": file_.filename,
-                                "size": file_size,
+                                "size": os.path.getsize(filepath),
                             }]
                         }
                 except Exception as e:

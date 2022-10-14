@@ -2820,14 +2820,14 @@ class RespFileEditor(ResponseEditor):
                                          hash_)
                     if self.update:
                         redis_delete_file_metadata(self.response.id, filepath, is_update=True)
-                        self.replace_old_file(filepath, new_filename)
+                        self.replace_old_file(new_filename)
                 else:
                     self.errors.append(
                         "File '{}' not found.".format(new_filename))
             if self.update:
                 self.handle_response_token(bool(new_filename))
 
-    def replace_old_file(self, updated_filepath, new_filename):
+    def replace_old_file(self, new_filename):
         """
         Move the new file out of the 'updated' directory
         and delete the file it is replacing.
@@ -2836,6 +2836,11 @@ class RespFileEditor(ResponseEditor):
             current_app.config['UPLOAD_DIRECTORY'],
             self.response.request_id
         )
+        quarantine_path = os.path.join(
+            current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
+            self.response.request_id,
+            new_filename
+        )
         if current_app.config['USE_VOLUME_STORAGE']:
             fu.remove(
                 os.path.join(
@@ -2843,13 +2848,7 @@ class RespFileEditor(ResponseEditor):
                     self.response.name
                 )
             )
-            fu.rename(
-                updated_filepath,
-                os.path.join(
-                    upload_path,
-                    os.path.basename(updated_filepath)
-                )
-            )
+            complete_upload.delay(self.response.request_id, quarantine_path, new_filename)
         if current_app.config['USE_AZURE_STORAGE']:
             fu.azure_delete(
                 os.path.join(
@@ -2857,12 +2856,7 @@ class RespFileEditor(ResponseEditor):
                     self.response.name
                 )
             )
-            quarantine_path = os.path.join(
-                current_app.config['UPLOAD_QUARANTINE_DIRECTORY'],
-                self.response.request_id,
-                new_filename
-            )
-            complete_upload(self.response.request_id, quarantine_path, new_filename)
+            complete_upload.delay(self.response.request_id, quarantine_path, new_filename)
 
 
     def handle_response_token(self, file_changed):
