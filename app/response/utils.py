@@ -2829,8 +2829,7 @@ class RespFileEditor(ResponseEditor):
 
     def replace_old_file(self, new_filename):
         """
-        Move the new file out of the 'updated' directory
-        and delete the file it is replacing.
+        Delete old file and move new file to upload directory from quarantine directory
         """
         upload_path = os.path.join(
             current_app.config['UPLOAD_DIRECTORY'],
@@ -2849,7 +2848,7 @@ class RespFileEditor(ResponseEditor):
                 )
             )
             complete_upload.delay(self.response.request_id, quarantine_path, new_filename)
-        if current_app.config['USE_AZURE_STORAGE']:
+        elif current_app.config['USE_AZURE_STORAGE']:
             fu.azure_delete(
                 os.path.join(
                     upload_path,
@@ -2957,7 +2956,7 @@ class RespFileEditor(ResponseEditor):
                     self.response.name
                 )
             )
-        if current_app.config['USE_AZURE_STORAGE']:
+        elif current_app.config['USE_AZURE_STORAGE']:
             deleted_filename = os.path.join(
                 dir_deleted,
                 self.response.name

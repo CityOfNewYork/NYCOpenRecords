@@ -375,9 +375,8 @@ def _move_validated_upload(request_id, tmp_path):
     # Move file to data directory if volume storage is enabled
     if current_app.config['USE_VOLUME_STORAGE']:
         fu.move(tmp_path, valid_path)
-
     # Upload file to Azure if Azure storage is enabled
-    if current_app.config['USE_AZURE_STORAGE']:
+    elif current_app.config['USE_AZURE_STORAGE']:
         fu.azure_upload(tmp_path, valid_path)
 
     upload_redis.set(

@@ -232,6 +232,7 @@ def delete(r_id_type, r_id, filecode):
                         os.remove(filepath)
                         found = True
                 else:
+                    # Check storage solution and delete file accordingly
                     if current_app.config['USE_VOLUME_STORAGE'] and fu.exists(filepath):
                         fu.remove(filepath)
                         found = True

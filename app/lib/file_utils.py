@@ -256,9 +256,8 @@ def send_file(directory, filename, **kwargs):
     # Move file to data directory if volume storage enabled
     if current_app.config['USE_VOLUME_STORAGE']:
         shutil.copy(os.path.join(directory, filename), path)
-
-    # Download file from Azure if Azure storage is enabled
-    if current_app.config['USE_AZURE_STORAGE']:
+    # Serve file from Azure if Azure storage is enabled
+    elif current_app.config['USE_AZURE_STORAGE']:
         blob_url = azure_generate_blob_url(os.path.join(directory, filename))
         return redirect(blob_url)
     return send_from_directory(*os.path.split(path), **kwargs)
@@ -275,13 +274,6 @@ def azure_upload(source_path, blob_name):
     with open(source_path, 'rb') as data:
         blob_client.upload_blob(data, overwrite=True)
     os.remove(source_path)
-
-
-def azure_download(source_path, blob_name):
-    blob_client = create_azure_blob_client(blob_name)
-    with open(source_path, 'wb') as data:
-        download_stream = blob_client.download_blob()
-        data.write(download_stream.readall())
 
 
 def azure_generate_blob_url(blob_name):
@@ -313,21 +305,6 @@ def azure_delete(blob_name):
 
 
 def azure_copy(current_blob_name, new_blob_name):
-    # Generate SAS token
-    sas_token = generate_blob_sas(account_name=current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
-                                  account_key=current_app.config['AZURE_STORAGE_ACCOUNT_KEY'],
-                                  container_name=current_app.config['AZURE_STORAGE_CONTAINER'],
-                                  blob_name=current_blob_name,
-                                  permission=BlobSasPermissions(read=True),
-                                  expiry=datetime.utcnow() + timedelta(hours=1))
-
-    # Generate blob URL
-    url = "https://{0}.blob.core.windows.net/{1}/{2}?{3}".format(
-        current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
-        current_app.config['AZURE_STORAGE_CONTAINER'],
-        current_blob_name,
-        sas_token)
-
-    # Copy blob to new location
     blob_client = create_azure_blob_client(new_blob_name)
+    url = generate_blob_sas(current_blob_name)
     blob_client.start_copy_from_url(url)
