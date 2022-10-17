@@ -730,7 +730,8 @@ def get_response_content(response_id):
             # then we just serve the file, anyone can view it
             @after_this_request
             def remove(resp):
-                os.remove(serving_path)
+                if current_app.config['USE_VOLUME_STORAGE']:
+                    os.remove(serving_path)
                 return resp
 
             return fu.send_file(*filepath_parts, as_attachment=True)
@@ -743,7 +744,8 @@ def get_response_content(response_id):
                     if response_.privacy != PRIVATE:
                         @after_this_request
                         def remove(resp):
-                            os.remove(serving_path)
+                            if current_app.config['USE_VOLUME_STORAGE']:
+                                os.remove(serving_path)
                             return resp
 
                         return fu.send_file(*filepath_parts, as_attachment=True)

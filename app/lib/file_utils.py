@@ -306,5 +306,5 @@ def azure_delete(blob_name):
 
 def azure_copy(current_blob_name, new_blob_name):
     blob_client = create_azure_blob_client(new_blob_name)
-    url = generate_blob_sas(current_blob_name)
+    url = azure_generate_blob_url(current_blob_name)
     blob_client.start_copy_from_url(url)
