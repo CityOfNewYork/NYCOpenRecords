@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-import os
+import os, redis
 from dotenv import load_dotenv
 
 from app.constants import OPENRECORDS_DL_EMAIL
@@ -9,6 +9,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
+
 
 class Config:
     NYC_GOV_BASE = 'www1.nyc.gov'
@@ -58,8 +59,10 @@ class Config:
     SFTP_UPLOAD_DIRECTORY = os.environ.get('SFTP_UPLOAD_DIRECTORY')
 
     # Authentication Settings
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 20)))
+    SESSION_TYPE = os.environ.get('SESSION_TYPE', 'redis')
     USE_SAML = os.environ.get('USE_SAML') == "True"
+    MFA_ENCRYPT_FILE = os.environ.get('MFA_ENCRYPT_FILE')
 
     AUTH_TYPE = 'None'
 
@@ -94,6 +97,10 @@ class Config:
     SESSION_REDIS_DB = 1
     UPLOAD_REDIS_DB = 2
     EMAIL_REDIS_DB = 3
+
+    SESSION_REDIS = redis.StrictRedis(db=SESSION_REDIS_DB,
+                                      host=REDIS_HOST,
+                                      port=REDIS_PORT)
 
     # Celery Settings
     CELERY_BROKER_URL = 'redis://{redis_host}:{redis_port}/{celery_redis_db}'.format(

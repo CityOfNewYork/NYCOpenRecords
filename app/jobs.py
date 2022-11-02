@@ -1,18 +1,19 @@
 import traceback
 from datetime import datetime
 
+# import celery
+from celery import Celery
 from flask import (current_app, render_template)
-import celery
 from psycopg2 import OperationalError
 from sqlalchemy.exc import SQLAlchemyError
 
-from app import calendar, sentry, db
+from app import calendar, db, store
 from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email
-from app.models import Agencies, Emails, Events, Requests
+from app.models import Agencies, Emails, Events, Requests, Users
 
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context, app.test_request_context() might come in handy.
@@ -20,6 +21,7 @@ from app.models import Agencies, Emails, Events, Requests
 STATUSES_EMAIL_SUBJECT = "Nightly Request Status Report"
 STATUSES_EMAIL_TEMPLATE = "email_templates/email_request_status_changed"
 
+app = Celery()
 
 # @celery.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 # def update_request_statuses():
@@ -161,7 +163,7 @@ def _update_request_statuses():
         )
 
 
-@celery.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
+@app.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
 def update_next_request_number():
     """
     Celery task to automatically update the next request number of each agency to 1
@@ -174,3 +176,22 @@ def update_next_request_number():
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()
+
+
+@app.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)
+def clear_expired_session_ids():
+    """
+    Celery task to clear session ids that are no longer valid.
+    :return:
+    """
+    users = Users.query.with_entities(Users.guid, Users.session_id).filter(Users.session_id.isnot(None)).all()
+    if users:
+        for user in users:
+            if store.get("session:" + user[1]) is None:
+                update_object(
+                    {
+                        'session_id': None
+                    },
+                    Users,
+                    user[0]
+                )

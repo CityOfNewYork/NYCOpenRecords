@@ -21,7 +21,8 @@ from flask import (
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.utils import escape as werkzeug_escape
+# from werkzeug.utils import escape as werkzeug_escape
+# from markupsafe import escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list
@@ -77,10 +78,14 @@ def new():
     :return: redirect to homepage on successful form validation
      if form fields are missing or has improper values, backend error messages (WTForms) will appear
     """
-    kiosk_mode = eval_request_bool(werkzeug_escape(flask_request.args.get("kiosk_mode", False)))
-    category = str(werkzeug_escape(flask_request.args.get("category", None)))
-    agency = str(werkzeug_escape(flask_request.args.get("agency", None)))
-    title = str(werkzeug_escape(flask_request.args.get("title", None)))
+    # kiosk_mode = eval_request_bool(werkzeug_escape(flask_request.args.get("kiosk_mode", False)))
+    # category = str(werkzeug_escape(flask_request.args.get("category", None)))
+    # agency = str(werkzeug_escape(flask_request.args.get("agency", None)))
+    # title = str(werkzeug_escape(flask_request.args.get("title", None)))
+    kiosk_mode = eval_request_bool(escape(flask_request.args.get("kiosk_mode", False)))
+    category = str(escape(flask_request.args.get("category", None)))
+    agency = str(escape(flask_request.args.get("agency", None)))
+    title = str(escape(flask_request.args.get("title", "")))
 
     if current_user.is_public:
         form = PublicUserRequestForm()
@@ -115,6 +120,7 @@ def new():
             if flask_request.form["tz-name"]
             else current_app.config["APP_TIMEZONE"]
         )
+        print(form.request_agency.data)
         if current_user.is_public:
             request_id = create_request(
                 escape(form.request_title.data),
