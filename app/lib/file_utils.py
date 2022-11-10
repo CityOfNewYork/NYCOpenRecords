@@ -277,21 +277,21 @@ def azure_upload(source_path, blob_name):
 
 
 def azure_generate_blob_url(blob_name):
-        # Generate SAS token
-        sas_token = generate_blob_sas(account_name=current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
-                                      account_key=current_app.config['AZURE_STORAGE_ACCOUNT_KEY'],
-                                      container_name=current_app.config['AZURE_STORAGE_CONTAINER'],
-                                      blob_name=blob_name,
-                                      permission=BlobSasPermissions(read=True),
-                                      expiry=datetime.utcnow() + timedelta(hours=1))
+    # Generate SAS token
+    sas_token = generate_blob_sas(account_name=current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
+                                  account_key=current_app.config['AZURE_STORAGE_ACCOUNT_KEY'],
+                                  container_name=current_app.config['AZURE_STORAGE_CONTAINER'],
+                                  blob_name=blob_name,
+                                  permission=BlobSasPermissions(read=True),
+                                  expiry=datetime.utcnow() + timedelta(hours=1))
 
-        # Generate blob URL
-        url = "https://{0}.blob.core.windows.net/{1}/{2}?{3}".format(
-            current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
-            current_app.config['AZURE_STORAGE_CONTAINER'],
-            blob_name,
-            sas_token)
-        return url
+    # Generate blob URL
+    url = "https://{0}.blob.core.windows.net/{1}/{2}?{3}".format(
+        current_app.config['AZURE_STORAGE_ACCOUNT_NAME'],
+        current_app.config['AZURE_STORAGE_CONTAINER'],
+        blob_name,
+        sas_token)
+    return url
 
 
 def azure_exists(blob_name):

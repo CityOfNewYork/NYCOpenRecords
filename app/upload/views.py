@@ -233,7 +233,8 @@ def delete(r_id_type, r_id, filecode):
                         found = True
                 else:
                     # Check storage solution and delete file accordingly
-                    if current_app.config['USE_VOLUME_STORAGE'] and fu.exists(filepath):
+                    if (current_app.config['USE_VOLUME_STORAGE'] or current_app.config['USE_SFTP'])\
+                            and fu.exists(filepath):
                         fu.remove(filepath)
                         found = True
                     elif current_app.config['USE_AZURE_STORAGE'] and fu.azure_exists(filepath):
