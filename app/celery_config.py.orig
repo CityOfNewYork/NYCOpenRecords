@@ -8,14 +8,14 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 dotenv_path = os.path.join(basedir, '.env')
 load_dotenv(dotenv_path)
 
-imports = ['app.jobs']
-result_expires = 30
-timezone = 'EST'
+CELERY_IMPORTS = ['app.jobs']
+CELERY_TASK_RESULT_EXPIRES = 30
+CELERY_TIMEZONE = 'EST'
 CELERY_CLEAR_EXPIRED_SESSION_IDS_INTERVAL = os.environ.get('CELERY_CLEAR_EXPIRED_SESSION_IDS_INTERVAL', '*/1')
 
-accept_content = ['pickle', 'json', 'msgpack', 'yaml']
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
-beat_schedule = {
+CELERYBEAT_SCHEDULE = {
     # Every weekday at 7AM EST
     'update_request_statuses': {
         'task': 'app.jobs.update_request_statuses',
