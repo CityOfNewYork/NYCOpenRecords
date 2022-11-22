@@ -837,8 +837,7 @@ def response_get_envelope(request_id, response_id):
             io.BytesIO(f),
             mimetype='application/pdf',
             as_attachment=True,
-            attachment_filename=
-            '{request_id}_envelope.pdf'.format(request_id=request_id)
+            download_name='{request_id}_envelope.pdf'.format(request_id=request_id)
         )
 
 
