@@ -1010,6 +1010,8 @@ class Requests(db.Model):
                             "public_title": "Private"
                             if self.privacy["title"]
                             else self.title,
+                            "agency_name": self.agency.name,
+                            "agency_acronym": self.agency.acronym
                         }
                     },
                     # refresh='wait_for'
