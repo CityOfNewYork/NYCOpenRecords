@@ -711,7 +711,6 @@ def get_response_content(response_id):
              400 error if response/file not found
     """
     response_ = Responses.query.filter_by(id=response_id, deleted=False).one()
-    request = Requests.query.filter_by(id=response_.request_id).one()
 
     if response_ is not None and response_.type == FILE:
         upload_path = os.path.join(

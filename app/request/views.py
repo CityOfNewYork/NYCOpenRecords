@@ -114,7 +114,6 @@ def new():
             if flask_request.form["tz-name"]
             else current_app.config["APP_TIMEZONE"]
         )
-        print(form.request_agency.data)
         if current_user.is_public:
             request_id = create_request(
                 escape(form.request_title.data),
@@ -256,7 +255,7 @@ def view(request_id):
     assigned_users = []
     if current_user.is_agency:
         for agency_user in current_request.agency.active_users:
-            if not agency_user in current_request.agency.administrators and (
+            if agency_user not in current_request.agency_administrators and (
                 agency_user != current_user
             ) and not agency_user.is_agency_read_only(current_request.agency_ein):
                 # populate list of assigned users that can be removed from a request
