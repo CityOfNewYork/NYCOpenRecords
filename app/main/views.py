@@ -28,7 +28,7 @@ def index():
     fresh_login = request.args.get('fresh_login', False)
     verify_mfa = request.args.get('verify_mfa', False)
     if current_user.is_authenticated:
-        if verify_mfa:
+        if verify_mfa and current_app.config['USE_MFA']:
             if current_user.has_mfa:
                 return redirect(url_for('mfa.verify'))
             else:

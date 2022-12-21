@@ -173,11 +173,12 @@ def create_app(config_name='default'):
             if not flask_request.cookies.get('authorized_maintainer', None):
                 return abort(503)
 
-    @app.before_request
-    def check_valid_login():
-        if current_user.is_authenticated:
-            if not session.get('mfa_verified', False) and flask_request.endpoint not in ['mfa.register', 'mfa.verify', 'static', 'auth.logout']:
-                return redirect(url_for('mfa.verify'))
+    if app.config['USE_MFA']:
+        @app.before_request
+        def check_valid_login():
+            if current_user.is_authenticated:
+                if not session.get('mfa_verified', False) and flask_request.endpoint not in ['mfa.register', 'mfa.verify', 'static', 'auth.logout']:
+                    return redirect(url_for('mfa.verify'))
 
     @app.context_processor
     def add_session_config():
@@ -240,7 +241,8 @@ def create_app(config_name='default'):
     from .permissions import permissions
     app.register_blueprint(permissions, url_prefix="/permissions/api/v1.0")
 
-    from .mfa import mfa
-    app.register_blueprint(mfa, url_prefix="/mfa")
+    if app.config['USE_MFA']:
+        from .mfa import mfa
+        app.register_blueprint(mfa, url_prefix="/mfa")
 
     return app

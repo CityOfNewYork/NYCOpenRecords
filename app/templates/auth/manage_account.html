@@ -25,9 +25,11 @@
             </small>
             </h1>
 
-            <hr>
-            <a href="{{ url_for('mfa.manage') }}" class="btn btn-primary">Manage MFA Devices</a>
-            <hr>
+            {% if config.USE_MFA %}
+                <hr>
+                <a href="{{ url_for('mfa.manage') }}" class="btn btn-primary">Manage MFA Devices</a>
+                <hr>
+            {% endif %}
 
             {{ form.csrf_token }}
 
