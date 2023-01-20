@@ -216,7 +216,8 @@ class Agencies(db.Model):
         "Users",
         secondary="agency_users",
         primaryjoin="and_(Agencies.ein == AgencyUsers.agency_ein, "
-        "AgencyUsers.is_agency_active == True)",
+        "AgencyUsers.is_agency_active == True, "
+        "AgencyUsers.is_read_only.isnot(True))",
         secondaryjoin="AgencyUsers.user_guid == Users.guid",
     )
     inactive_users = db.relationship(
@@ -343,15 +344,15 @@ class Users(UserMixin, db.Model):
     active = db.Column(db.Boolean, default=False)
     is_anonymous_requester = db.Column(db.Boolean)
     is_super = db.Column(db.Boolean, nullable=False, default=False)
-    first_name = db.Column(db.String(32), nullable=False)
+    first_name = db.Column(db.String(128), nullable=False)
     middle_initial = db.Column(db.String(1))
-    last_name = db.Column(db.String(64), nullable=False)
+    last_name = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(254))
     notification_email = db.Column(db.String(254), nullable=True, default=None)
     email_validated = db.Column(db.Boolean(), nullable=False)
     terms_of_use_accepted = db.Column(db.Boolean)
-    title = db.Column(db.String(64))
-    organization = db.Column(db.String(128))  # Outside organization
+    title = db.Column(db.String(256))
+    organization = db.Column(db.String(256))  # Outside organization
     phone_number = db.Column(db.String(25))
     fax_number = db.Column(db.String(25))
     _mailing_address = db.Column(
@@ -523,6 +524,20 @@ class Users(UserMixin, db.Model):
         for agency in self.agency_users.all():
             if agency.agency_ein == ein:
                 return agency.is_agency_active
+        return False
+
+
+    def is_agency_read_only(self, ein=None):
+        """
+        Determine if a user is a read only user for the specified agency.
+        :param ein: Agency EIN (4 Character String)
+        :return: Boolean
+        """
+        if ein is None:
+            ein = self.default_agency_ein
+        for agency in self.agency_users.all():
+            if agency.agency_ein == ein:
+                return agency.is_read_only
         return False
 
     def agencies_for_forms(self):
@@ -728,6 +743,7 @@ class AgencyUsers(db.Model):
     __table_args__ = (
         db.ForeignKeyConstraint([user_guid], [Users.guid], onupdate="CASCADE"),
     )
+    is_read_only = db.Column(db.Boolean, default=False, server_default="false", nullable=False)
 
 
 class Requests(db.Model):
@@ -759,8 +775,8 @@ class Requests(db.Model):
     category = db.Column(
         db.String, default="All", nullable=False
     )  # FIXME: should be nullable, 'All' shouldn't be used
-    title = db.Column(db.String(90))
-    description = db.Column(db.String(5000))
+    title = db.Column(db.String(256))
+    description = db.Column(db.String(10240))
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_submitted = db.Column(
         db.DateTime
@@ -994,6 +1010,8 @@ class Requests(db.Model):
                             "public_title": "Private"
                             if self.privacy["title"]
                             else self.title,
+                            "agency_name": self.agency.name,
+                            "agency_acronym": self.agency.acronym
                         }
                     },
                     # refresh='wait_for'
@@ -1282,12 +1300,14 @@ class Responses(db.Model):
             name="type",
         )
     )
+    is_dataset = db.Column(db.Boolean, default=False, nullable=False)
+    dataset_description = db.Column(db.String(200), nullable=True)
 
     __mapper_args__ = {"polymorphic_on": type}
 
     # TODO: overwrite filter to automatically check if deleted=False
 
-    def __init__(self, request_id, privacy, date_modified=None, is_editable=False):
+    def __init__(self, request_id, privacy, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None):
         self.request_id = request_id
         self.privacy = privacy
         self.date_modified = date_modified or datetime.utcnow()
@@ -1297,6 +1317,8 @@ class Responses(db.Model):
             else None
         )
         self.is_editable = is_editable
+        self.is_dataset = is_dataset
+        self.dataset_description = dataset_description
 
     # NOTE: If you can find a way to make this class work with abc,
     # you're welcome to make the necessary changes to the following method:
@@ -1403,6 +1425,7 @@ class Reasons(db.Model):
     title = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
     has_appeals_language = db.Column(db.Boolean, default=True)
+    need_additional_details = db.Column(db.Boolean, default=False)
 
     @classmethod
     def populate(cls):
@@ -1595,6 +1618,8 @@ class Files(Responses):
         hash_,
         date_modified=None,
         is_editable=False,
+        is_dataset=False,
+        dataset_description=None
     ):
         try:
             file_exists = Files.query.filter_by(request_id=request_id, hash=hash_).all()
@@ -1608,7 +1633,7 @@ class Files(Responses):
             sentry.captureException()
             raise DuplicateFileException(file_name=name, request_id=request_id)
 
-        super(Files, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Files, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.name = name
         self.mime_type = mime_type
         self.title = title
@@ -1636,9 +1661,9 @@ class Links(Responses):
     url = db.Column(db.String)
 
     def __init__(
-        self, request_id, privacy, title, url, date_modified=None, is_editable=False
+        self, request_id, privacy, title, url, date_modified=None, is_editable=False, is_dataset=False, dataset_description=None
     ):
-        super(Links, self).__init__(request_id, privacy, date_modified, is_editable)
+        super(Links, self).__init__(request_id, privacy, date_modified, is_editable, is_dataset, dataset_description)
         self.title = title
         self.url = url
 

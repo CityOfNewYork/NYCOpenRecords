@@ -114,6 +114,12 @@ amqp = "*"
 pyotp = "*"
 python-magic = "*"
 gunicorn = "*"
+azure-core = "*"
+azure-storage-blob = "*"
+
+# Required for additional formats in tablib
+xlwt = "*"
+xlrd = "*"
 
 [requires]
 python_version = "3.10.2"

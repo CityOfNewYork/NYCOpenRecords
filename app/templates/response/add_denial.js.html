@@ -117,6 +117,9 @@
                             tinyMCE.get("denial-body").setContent(emailContent.html());
                             editor.unblock();
                             next3.prop('disabled', false);
+                            if (data.showAdditionalDetailsWarning) {
+                                $('#additional-details-warning').removeClass('hidden');
+                            }
                         }
                     });
                     edit_body_header.html("Edit Email Body");
@@ -220,6 +223,7 @@
         prev3.click(function () {
             third.hide();
             second.show();
+            $('#additional-details-warning').addClass('hidden');
         });
 
         prev4.click(function () {

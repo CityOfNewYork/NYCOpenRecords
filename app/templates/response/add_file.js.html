@@ -37,6 +37,16 @@
             var uploadError = first.find(".upload-error");
             var errorPostUpload = first.find(".error-post-fileupload");
 
+            // Apply custom validation messages
+            $(".title-field").attr("data-parsley-required-message",
+                "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                "<strong>Error, file title is required.</strong> Please provide a title.");
+            $(".file-dataset").attr("data-parsley-required-message",
+                "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                "<strong>Error, this value is required.</strong> Please select an option.");
+            $(".file-dataset-description").attr("data-parsley-required-message",
+                "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;" +
+                "<strong>Error, dataset description is required.</strong> Please provide a description.");
 
             // Validate file input field and file form
             form.parsley().validate();
@@ -197,5 +207,23 @@
             for (var i = length; i > 0; --i) string += chars[Math.floor(Math.random() * chars.length)];
             return string;
         }
+    });
+
+    $(document).on("change",".file-dataset",function() {
+        let fileIdentifier = this.classList[1].replace("-dataset-option", "");
+        if (this.value === "true") {
+            $("#" + fileIdentifier + "-dataset-description-div").show();
+            $("#" + fileIdentifier + "-dataset-description").attr("data-parsley-required", "");
+            $("#" + fileIdentifier + "-dataset-description-character-counter").show();
+        } else {
+            $("#" + fileIdentifier + "-dataset-description-div").hide();
+            $("#" + fileIdentifier + "-dataset-description").removeAttr("data-parsley-required");
+            $("#" + fileIdentifier + "-dataset-description").val("");
+            $("#" + fileIdentifier + "-dataset-description-character-counter").hide();
+            $("#" + fileIdentifier + "-dataset-description-character-counter").text("200 characters remaining");
+        }
+        $("#" + fileIdentifier + "-dataset-description").keyup(function () {
+            characterCounter("#" + fileIdentifier + "-dataset-description-character-counter", 200, $(this).val().length);
+        });
     });
 </script>

@@ -40,6 +40,13 @@ def delete_index():
     """
     es.indices.delete(index=current_app.config["ELASTICSEARCH_INDEX"], ignore=[400, 404])
 
+def delete_doc(request_id):
+    """
+    Delete a specific doc in the index.
+    """
+    es.delete(index=current_app.config['ELASTICSEARCH_INDEX'],
+              doc_type="request",
+              id=request_id)
 
 def delete_docs():
     """

@@ -212,7 +212,9 @@ def get_request_responses():
 
     current_request = Requests.query.filter_by(id=flask_request.args['request_id']).one()
 
-    if current_user in current_request.agency_users:
+    if current_user.is_agency and \
+            (current_user in current_request.agency_users or
+             current_user.is_agency_read_only(current_request.agency.ein)):
         # If the user is an agency user assigned to the request, all responses can be retrieved.
         responses = Responses.query.filter(
             Responses.request_id == current_request.id,
@@ -266,6 +268,7 @@ def get_request_responses():
                 template_path + 'row.html',
                 response=response,
                 row_num=start + row_count,
+                row_html_id='response-row-{}'.format(str(row_count)),
                 response_type=response_type,
                 determination_type=determination_type,
                 show_preview=not (response.type == response_type.DETERMINATION and
@@ -281,6 +284,7 @@ def get_request_responses():
                         template_path, response.type
                     ),
                     response=response,
+                    modal_html_id="response-modal-body-{}".format(str(row_count)),
                     privacies=[response_privacy.RELEASE_AND_PUBLIC,
                                response_privacy.RELEASE_AND_PRIVATE,
                                response_privacy.PRIVATE],

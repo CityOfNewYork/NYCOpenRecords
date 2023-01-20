@@ -3,7 +3,7 @@ from datetime import datetime
 from io import StringIO, BytesIO
 import re
 
-from flask import current_app, request, render_template, jsonify
+from flask import current_app, request, render_template, jsonify, Markup
 from flask.helpers import send_file
 from flask_login import current_user
 from sqlalchemy.orm import joinedload
@@ -250,23 +250,23 @@ def requests_doc(doc_type):
                     [
                         req.id,
                         req.agency.name,
-                        req.title,
-                        req.description,
+                        Markup(req.title).unescape(),
+                        Markup(req.description).unescape(),
                         req.agency_request_summary,
                         req.status,
                         req.date_created,
                         req.date_submitted,
                         req.due_date,
                         req.date_closed,
-                        req.requester.name,
+                        Markup(req.requester.fullname).unescape(),
                         req.requester.email,
-                        req.requester.title,
-                        req.requester.organization,
+                        Markup(req.requester.title).unescape(),
+                        Markup(req.requester.organization).unescape(),
                         req.requester.phone_number,
                         req.requester.fax_number,
-                        req.requester.mailing_address.get("address_one"),
-                        req.requester.mailing_address.get("address_two"),
-                        req.requester.mailing_address.get("city"),
+                        Markup(req.requester.mailing_address.get("address_one")).unescape(),
+                        Markup(req.requester.mailing_address.get("address_two")).unescape(),
+                        Markup(req.requester.mailing_address.get("city")).unescape(),
                         req.requester.mailing_address.get("state"),
                         req.requester.mailing_address.get("zip"),
                         ", ".join(u.email for u in req.agency_users),
@@ -276,7 +276,7 @@ def requests_doc(doc_type):
         timestamp = utc_to_local(dt, tz_name) if tz_name is not None else dt
         return send_file(
             BytesIO(buffer.getvalue().encode("UTF-8")),  # convert to bytes
-            attachment_filename="FOIL_requests_results_{}.csv".format(
+            download_name="FOIL_requests_results_{}.csv".format(
                 timestamp.strftime("%m_%d_%Y_at_%I_%M_%p")
             ),
             as_attachment=True,

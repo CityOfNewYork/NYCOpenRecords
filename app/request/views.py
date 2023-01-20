@@ -16,11 +16,11 @@ from flask import (
     Markup,
     jsonify,
     abort,
+    escape
 )
 from flask_login import current_user
 from sqlalchemy import any_
 from sqlalchemy.orm.exc import NoResultFound
-from markupsafe import escape
 
 from app.constants import request_status, permission, HIDDEN_AGENCIES
 from app.lib.date_utils import DEFAULT_YEARS_HOLIDAY_LIST, get_holidays_date_list
@@ -110,39 +110,39 @@ def new():
             flask_request.form.get("custom-request-forms-data", {})
         )
         tz_name = (
-            flask_request.form["tz-name"]
+            escape(flask_request.form["tz-name"])
             if flask_request.form["tz-name"]
             else current_app.config["APP_TIMEZONE"]
         )
         if current_user.is_public:
             request_id = create_request(
-                form.request_title.data,
-                form.request_description.data,
-                form.request_category.data,
-                agency_ein=form.request_agency.data,
+                escape(form.request_title.data),
+                escape(form.request_description.data),
+                escape(form.request_category.data),
+                agency_ein=escape(form.request_agency.data),
                 upload_path=upload_path,
                 tz_name=tz_name,
                 custom_metadata=custom_metadata,
             )
         elif current_user.is_agency:
             request_id = create_request(
-                form.request_title.data,
-                form.request_description.data,
+                escape(form.request_title.data),
+                escape(form.request_description.data),
                 category=None,
                 agency_ein=(
-                    form.request_agency.data
-                    if form.request_agency.data != "None"
+                    escape(form.request_agency.data)
+                    if form.request_agency.data is not None
                     else current_user.default_agency_ein
                 ),
-                submission=form.method_received.data,
+                submission=escape(form.method_received.data),
                 agency_date_submitted_local=form.request_date.data,
-                email=form.email.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                user_title=form.user_title.data,
-                organization=form.user_organization.data,
-                phone=form.phone.data,
-                fax=form.fax.data,
+                email=escape(form.email.data),
+                first_name=escape(form.first_name.data),
+                last_name=escape(form.last_name.data),
+                user_title=escape(form.user_title.data),
+                organization=escape(form.user_organization.data),
+                phone=escape(form.phone.data),
+                fax=escape(form.fax.data),
                 address=get_address(form),
                 upload_path=upload_path,
                 tz_name=tz_name,
@@ -150,17 +150,17 @@ def new():
             )
         else:  # Anonymous User
             request_id = create_request(
-                form.request_title.data,
-                form.request_description.data,
-                form.request_category.data,
-                agency_ein=form.request_agency.data,
-                email=form.email.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                user_title=form.user_title.data,
-                organization=form.user_organization.data,
-                phone=form.phone.data,
-                fax=form.fax.data,
+                escape(form.request_title.data),
+                escape(form.request_description.data),
+                escape(form.request_category.data),
+                agency_ein=escape(form.request_agency.data),
+                email=escape(form.email.data),
+                first_name=escape(form.first_name.data),
+                last_name=escape(form.last_name.data),
+                user_title=escape(form.user_title.data),
+                organization=escape(form.user_organization.data),
+                phone=escape(form.phone.data),
+                fax=escape(form.fax.data),
                 address=get_address(form),
                 upload_path=upload_path,
                 tz_name=tz_name,
@@ -255,9 +255,9 @@ def view(request_id):
     assigned_users = []
     if current_user.is_agency:
         for agency_user in current_request.agency.active_users:
-            if not agency_user in current_request.agency.administrators and (
+            if agency_user not in current_request.agency_administrators and (
                 agency_user != current_user
-            ):
+            ) and not agency_user.is_agency_read_only(current_request.agency_ein):
                 # populate list of assigned users that can be removed from a request
                 if agency_user in current_request.agency_users:
                     assigned_users.append(agency_user)

@@ -27,13 +27,13 @@
         </td>
         <td>
             {% if current_user.guid in request._source.assigned_users or current_user.guid == request._source.requester_id %}
-                <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
+                <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title | safe }}</a>
             {% else %}
                 {% if request._source.status in ["Closed", "In Progress"] or request._source.date_due < today %}
                     {% if request._source.title_private %}
-                        <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title }}</a>
+                        <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.public_title | safe }}</a>
                     {% else %}
-                        <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title }}</a>
+                        <a href="{{ url_for("request.view", request_id=request._id) }}">{{ request._source.title | safe }}</a>
                     {% endif %}
                 {% else %}
                     <a href="{{ url_for("request.view", request_id=request._id) }}">* Under Review</a>
@@ -58,7 +58,7 @@
                     {{ moment(request._source.date_closed).format('MM/DD/YYYY') if request._source.date_closed else 'N/A' }}
                 </td>
                 <td>
-                    {{ request._source.requester_name }}
+                    {{ request._source.requester_name | title | safe }}
                 </td>
             {% else %}
                 <td><strong>Redacted</strong></td>

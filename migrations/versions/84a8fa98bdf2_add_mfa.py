@@ -1,14 +1,14 @@
 """Add MFA
 
 Revision ID: 84a8fa98bdf2
-Revises: afde33bde2e0
+Revises: 19223de796a5
 Create Date: 2021-01-15 14:19:41.812334
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '84a8fa98bdf2'
-down_revision = 'afde33bde2e0'
+down_revision = '19223de796a5'
 
 from alembic import op
 import sqlalchemy as sa

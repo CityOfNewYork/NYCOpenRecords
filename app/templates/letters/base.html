@@ -27,15 +27,20 @@
 <div id="content-frame">
     <div style="padding-bottom: 10px;">
         <div style="text-align: left; float: left;">
-            {{ request.requester.name }}<br/>
+            {{ request.requester.name | title | safe }}<br/>
             {% if request.requester.organization %}
-                {{ request.requester.organization }}<br/>
+                {{ request.requester.organization | safe }}<br/>
             {% endif %}
-            {{ request.requester.mailing_address['address_one'] or '' }}<br/>
+            {% if request.requester.mailing_address['address_one'] %}
+                {{ request.requester.mailing_address['address_one'] | safe }}<br/>
+            {% endif %}
             {% if request.requester.mailing_address['address_two'] %}
-                {{ request.requester.mailing_address['address_two'] }}<br/>
+                {{ request.requester.mailing_address['address_two'] | safe }}<br/>
             {% endif %}
-            {{ request.requester.mailing_address['city'] or '' }}, {{ request.requester.mailing_address['state'] or '' }}, {{ request.requester.mailing_address['zip'] or '' }}<br/>
+            {% if request.requester.mailing_address['city'] %}
+                {{ request.requester.mailing_address['city'] | safe }},
+            {% endif %}
+            {{ request.requester.mailing_address['state'] or '' }}, {{ request.requester.mailing_address['zip'] or '' }}<br/>
         </div>
         <div style="text-align: left; float: right;">
             <span class="mceEditable">{{ moment(date).format('MMMM D, YYYY') }}<br/></span>

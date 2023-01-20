@@ -157,6 +157,8 @@ def response_file(request_id):
                                 file_data,
                                 files[file_data]['title'],
                                 files[file_data]['privacy'],
+                                files[file_data]['is-dataset'],
+                                files[file_data]['dataset-description'],
                                 is_editable=True)
         if not isinstance(response_obj, Files):
             flash(message=response_obj, category='danger')
@@ -425,7 +427,8 @@ def response_link(request_id):
     required_fields = ['title',
                        'url',
                        'email-link-summary',
-                       'privacy']
+                       'privacy',
+                       'link-is-dataset']
 
     # TODO: Get copy from business, insert sentry issue key in message
     # Error handling to check if retrieved elements exist. Flash error message if elements does not exist.
@@ -440,6 +443,8 @@ def response_link(request_id):
              link_data['url'],
              link_data['email-link-summary'],
              link_data['privacy'],
+             link_data['link-is-dataset'],
+             link_data['link-dataset-description'],
              is_editable=True)
     return redirect(url_for('request.view', request_id=request_id))
 
@@ -733,7 +738,6 @@ def get_response_content(response_id):
                 if current_app.config['USE_VOLUME_STORAGE']:
                     os.remove(serving_path)
                 return resp
-
             return fu.send_file(*filepath_parts, as_attachment=True)
         else:
             # check presence of token in url
@@ -832,8 +836,7 @@ def response_get_envelope(request_id, response_id):
             io.BytesIO(f),
             mimetype='application/pdf',
             as_attachment=True,
-            attachment_filename=
-            '{request_id}_envelope.pdf'.format(request_id=request_id)
+            download_name='{request_id}_envelope.pdf'.format(request_id=request_id)
         )
 
 
