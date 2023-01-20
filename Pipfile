@@ -116,6 +116,8 @@ python-magic = "*"
 gunicorn = "*"
 azure-core = "*"
 azure-storage-blob = "*"
+
+# Required for additional formats in tablib
 xlwt = "*"
 xlrd = "*"
 
