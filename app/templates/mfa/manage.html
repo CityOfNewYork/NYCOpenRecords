@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Manage MFA{% endblock %}
+
+{% block custom_css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/mfa.css') }}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <h1 class="text-center">Manage MFA Devices</h1>
+        <hr>
+        <a href="{{ url_for("mfa.register") }}" class="btn btn-primary">Add Device</a>
+        <hr>
+        <div class="row mfa-fields">
+            <div class="col-sm-8">Device Name</div>
+        </div>
+        {% for mfa in mfas %}
+            <div class="row mfa-info">
+                <div class="col-sm-10">
+                    {{ mfa.device_name }}
+                </div>
+                <div class="col-sm-2">
+                    <form id="remove-mfa" action="{{ url_for('mfa.remove') }}" method="POST" role="form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="device-name" value="{{ mfa.device_name }}">
+                        <input type="submit" class="btn btn-danger" value="Remove">
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+{% endblock %}

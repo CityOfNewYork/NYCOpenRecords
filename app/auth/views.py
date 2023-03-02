@@ -116,7 +116,7 @@ def logout():
 
     elif current_app.config["USE_LOCAL_AUTH"]:
         logout_user()
-        session.destroy()
+        session.clear()
         if timeout:
             flash("Your session timed out. Please login again", category="info")
         return redirect(url_for("main.index"))
@@ -259,7 +259,6 @@ def ldap_login():
 
             if authenticated:
                 login_user(user)
-                session.regenerate()
                 session["user_id"] = current_user.get_id()
 
                 create_auth_event(
@@ -332,7 +331,7 @@ def ldap_logout():
             'timed_out': timed_out
         }
     )
-    session.destroy()
+    session.clear()
     if timed_out:
         flash("Your session timed out. Please login again", category="info")
     return redirect(url_for("main.index"))
@@ -360,7 +359,6 @@ def local_login():
 
         if user is not None:
             login_user(user)
-            session.regenerate()
             session["user_id"] = current_user.get_id()
 
             create_auth_event(
@@ -411,7 +409,7 @@ def local_logout(timed_out=False):
             'type': current_app.config['AUTH_TYPE']
         }
     )
-    session.destroy()
+    session.clear()
     if timed_out:
         flash("Your session timed out. Please login again", category="info")
     return redirect(url_for("main.index"))

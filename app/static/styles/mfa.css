@@ -1,0 +1,13 @@
+.row.mfa-fields {
+    font-weight: bold;
+    padding-bottom: 1em;
+}
+
+.row.mfa-info {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+.row.mfa-info:nth-child(even) {
+    background-color: gainsboro;
+}
