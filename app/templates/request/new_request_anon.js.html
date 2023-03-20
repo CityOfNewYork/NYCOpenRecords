@@ -10,7 +10,7 @@
     "use strict";
 
     $(document).ready(function () {
-        $(window).load(function () {
+        $(window).on("load", function () {
             {% if kiosk_mode %}
                 $("#request-category").prop('disabled', true);
                 $("#request-agency").prop('disabled', true);
