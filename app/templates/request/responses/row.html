@@ -24,8 +24,7 @@
 
 <script>
     {% if show_preview and response.preview is not none %}
-        let responseRow = $('#'+ '{{ row_html_id }}');
-        responseRow.html({{ response.preview | tojson }});
-        responseRow.html(responseRow.text());
+        $('#'+ '{{ row_html_id }}').html({{ response.preview | tojson }});
+        $('#'+ '{{ row_html_id }}').html($('#'+ '{{ row_html_id }}').text());
     {% endif %}
 </script>
