@@ -308,10 +308,11 @@
           }
         },
         {
-          "Incident Date": {
-            "type": "date",
+          "Building Identification Number (BIN)": {
+            "type": "input",
             "name": "fdny-form3-field6",
-            "required": false
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Building Identification number is required.</strong> Please provide a number."
           }
         }
       ],
