@@ -24,12 +24,12 @@ elasticsearch==6.3.1
 Flask==1.0.2
 Flask-Bootstrap==3.3.7.1
 Flask-Elasticsearch==0.2.5
-Flask-KVSession==0.6.2
 Flask-Login==0.4.1
 Flask-Mail==0.9.1
 Flask-Migrate==2.3.1
 Flask-Moment==0.6.0
 Flask-ReCaptcha==0.4.2
+Flask-Session==0.4.0
 Flask-Script==2.0.6
 Flask-SQLAlchemy==2.3.2
 Flask-Tracy==0.1.3
