@@ -6,13 +6,13 @@ import celery
 from psycopg2 import OperationalError
 from sqlalchemy.exc import SQLAlchemyError
 
-from app import calendar, sentry, db
+from app import calendar, db, store
 from app.constants import OPENRECORDS_DL_EMAIL, request_status
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email
-from app.models import Agencies, Emails, Events, Requests
+from app.models import Agencies, Emails, Events, Requests, Users
 
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context, app.test_request_context() might come in handy.
@@ -174,3 +174,21 @@ def update_next_request_number():
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()
+
+
+def _clear_expired_session_ids():
+    """
+    Celery task to clear session ids that are no longer valid.
+    :return:
+    """
+    users = Users.query.with_entities(Users.guid, Users.session_id).filter(Users.session_id.isnot(None)).all()
+    if users:
+        for user in users:
+            if store.get("session:" + user[1]) is None:
+                update_object(
+                    {
+                        'session_id': None
+                    },
+                    Users,
+                    user[0]
+                )
