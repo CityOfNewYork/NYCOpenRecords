@@ -90,7 +90,7 @@ def get_custom_request_form_options(agency_ein):
                                                                   CustomRequestForms.repeatable,
                                                                   CustomRequestForms.category,
                                                                   CustomRequestForms.minimum_required).filter_by(
-        agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
+        agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
     return jsonify(custom_request_forms), 200
 
 
@@ -179,7 +179,7 @@ def get_request_types(agency_ein):
                 (custom_request_form.form_name, custom_request_form.form_name)
                 for custom_request_form in CustomRequestForms.query.filter_by(
                     agency_ein=agency_ein
-                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.id)).all()
+                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
             ]
             request_types.insert(0, ("", "All"))
             return jsonify({"request_types": request_types}), 200
