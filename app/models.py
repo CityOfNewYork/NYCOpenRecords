@@ -2012,6 +2012,7 @@ class CustomRequestForms(db.Model):
     repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
     category - an integer to separate different types of custom forms for an agency
     minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
+    order - an integer to determine sorting order when displaying form options in the dropdown
     """
 
     __tablename__ = "custom_request_forms"
@@ -2023,6 +2024,7 @@ class CustomRequestForms(db.Model):
     repeatable = db.Column(db.Integer, nullable=False)
     category = db.Column(db.Integer, nullable=True)
     minimum_required = db.Column(db.Integer, nullable=True)
+    order = db.Column(db.Integer, nullable=True)
 
     @classmethod
     def populate(cls, json_name=None):
