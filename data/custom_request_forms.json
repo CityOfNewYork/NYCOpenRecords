@@ -153,11 +153,11 @@
             "name": "fdny-form1-field9",
             "values": [
               "Building",
-              "Transportation",
+              "Vehicle/Transportation",
               "Outdoors",
               "Non-Fire Emergency"
             ],
-            "help_text": "If transportation is selected, please provide the model, make, and license plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
+            "help_text": "If Vehicle/Transportation is selected, please provide the model, make, and license plate in the description below. For Building, Outdoors, and Non-Fire Emergency please provide a short description below.",
             "required": false
           }
         },
@@ -169,7 +169,7 @@
             "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Incident is required.</strong> Please provide a short description.",
             "max_length": 5000,
             "character_counter": true,
-            "help_text": "Please provide a short description of the incident. If Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
+            "help_text": "Please provide a short description of the incident. If Vehicle/Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
           }
         }
       ],

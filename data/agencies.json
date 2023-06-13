@@ -163,10 +163,10 @@
       "categories": [
         "Business"
       ],
-      "name": "Department of Consumer Affairs",
+      "name": "Department of Consumer and Worker Protection",
       "next_request_number": 1,
-      "default_email": "dcafoil@dca.nyc.gov",
-      "appeals_email": "DCAFOILAPPEALS@dca.nyc.gov",
+      "default_email": "FOIL@dcwp.nyc.gov",
+      "appeals_email": "FOILAPPEALS@dcwp.nyc.gov",
       "is_active": true,
       "agency_features": {
         "letters": {
@@ -186,7 +186,7 @@
           "text": ""
         }
       },
-      "acronym": "DCA"
+      "acronym": "DCWP"
     },
     {
       "ein": "0059",
@@ -1003,10 +1003,10 @@
       "categories": [
         "Civic Services"
       ],
-      "name": "Department of Information Technology and Telecommunications",
+      "name": "NYC Office of Technology and Innovation",
       "next_request_number": 1,
-      "default_email": "foilrequest@doitt.nyc.gov",
-      "appeals_email": "foilrequest@doitt.nyc.gov",
+      "default_email": "foilrequest@oti.nyc.gov",
+      "appeals_email": "foilappeal@oti.nyc.gov",
       "is_active": true,
       "agency_features": {
         "letters": {
@@ -1026,7 +1026,7 @@
           "text": ""
         }
       },
-      "acronym": "DOITT"
+      "acronym": "OTI"
     },
     {
       "ein": "0134",

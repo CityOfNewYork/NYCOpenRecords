@@ -16,7 +16,7 @@ from flask import (
     abort, current_app, flash, redirect, request, session, url_for
 )
 from flask_login import current_user, login_user, logout_user
-from hashlib import sha1
+from hashlib import sha256
 from ldap3 import Connection, Server, Tls
 from requests.exceptions import SSLError
 
@@ -680,10 +680,10 @@ def _generate_signature(password, string):
     """
     signature = None
     try:
-        hmac_sha1 = hmac.new(key=password.encode(),
-                             msg=string.encode(),
-                             digestmod=sha1)
-        signature = hmac_sha1.hexdigest()
+        hmac_sha256 = hmac.new(key=password.encode(),
+                               msg=string.encode(),
+                               digestmod=sha256)
+        signature = hmac_sha256.hexdigest()
     except Exception as e:
         sentry.captureException()
         current_app.logger.error("Failed to generate NYC ID.Web Services "
