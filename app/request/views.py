@@ -110,6 +110,12 @@ def new():
         custom_metadata = json.loads(
             flask_request.form.get("custom-request-forms-data", {})
         )
+        # validate that form_name exists in custom_metadata JSON
+        for key,value in custom_metadata.items():
+            form_name = value.get('form_name', None)
+            if not form_name:
+                flash('An unexpected error occurred. Please try submitting your request again.', category='danger')
+                return redirect(url_for("request.new"))
         tz_name = (
             escape(flask_request.form["tz-name"])
             if flask_request.form["tz-name"]
