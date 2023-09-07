@@ -30,7 +30,7 @@ def index():
             return render_template('main/home.html', duplicate_session=True)
         update_object(
             {
-                'session_id': session.sid_s
+                'session_id': session.sid
             },
             Users,
             current_user.guid

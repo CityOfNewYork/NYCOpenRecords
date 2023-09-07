@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-import os
+import os, redis
 from dotenv import load_dotenv
 
 from app.constants import OPENRECORDS_DL_EMAIL
@@ -59,6 +59,8 @@ class Config:
 
     # Authentication Settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 30)))
+    SESSION_TYPE = os.environ.get('SESSION_TYPE', 'redis')
+    SESSION_REFRESH_EACH_REQUEST = True
     USE_SAML = os.environ.get('USE_SAML') == "True"
 
     AUTH_TYPE = 'None'
@@ -94,6 +96,10 @@ class Config:
     SESSION_REDIS_DB = 1
     UPLOAD_REDIS_DB = 2
     EMAIL_REDIS_DB = 3
+
+    SESSION_REDIS = redis.StrictRedis(db=SESSION_REDIS_DB,
+                                      host=REDIS_HOST,
+                                      port=REDIS_PORT)
 
     # Celery Settings
     CELERY_BROKER_URL = 'redis://{redis_host}:{redis_port}/{celery_redis_db}'.format(

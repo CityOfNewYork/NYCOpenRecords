@@ -59,7 +59,7 @@ from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from app import create_app, db
 from app.constants import OPENRECORDS_DL_EMAIL
-from app.jobs import _update_request_statuses
+from app.jobs import _update_request_statuses, _clear_expired_session_ids
 from app.lib.date_utils import process_due_date, local_to_utc
 from app.lib.email_utils import send_email
 from app.models import (
@@ -283,6 +283,19 @@ def update_request_statuses():
         db.session.rollback()
         send_email(
             subject="Update Request Statuses Failure",
+            to=[OPENRECORDS_DL_EMAIL],
+            email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
+        )
+
+
+@app.cli.command()
+def clear_expired_session_ids():
+    try:
+        _clear_expired_session_ids()
+    except Exception:
+        db.session.rollback()
+        send_email(
+            subject="Clear Expired Session IDs Failure",
             to=[OPENRECORDS_DL_EMAIL],
             email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
         )
