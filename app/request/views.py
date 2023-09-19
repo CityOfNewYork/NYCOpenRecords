@@ -99,14 +99,26 @@ def new():
 
     if flask_request.method == "POST":
         if current_app.config['RECAPTCHA_ENABLED']:
-            # Verify recaptcha token and return error if failed
-            recaptcha_response = requests.post(
-                url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
-                    .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
-                            request.form["g-recaptcha-response"])).json()
+            try:
+                # Verify recaptcha token and return error if failed
+                recaptcha_response = requests.post(
+                    url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
+                        .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
+                                flask_request.form["g-recaptcha-response"])).json()
 
-            if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
-                "RECAPTCHA_THRESHOLD"]:
+                if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
+                    "RECAPTCHA_THRESHOLD"]:
+                    flash('Recaptcha failed, please try again.', category='danger')
+                    return render_template(
+                        new_request_template,
+                        form=form,
+                        kiosk_mode=kiosk_mode,
+                        category=category,
+                        agency=agency,
+                        title=title,
+                    )
+            except:
+                current_app.logger.exception("Recaptcha failed to get a response.")
                 flash('Recaptcha failed, please try again.', category='danger')
                 return render_template(
                     new_request_template,
