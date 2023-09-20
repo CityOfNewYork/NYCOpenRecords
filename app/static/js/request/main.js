@@ -843,3 +843,17 @@ function handlePIIModalReview(){
     showPIIWarning = true;
     return;
 }
+
+/**
+ * Handles data-callback for submitting new requests when using recaptcha.
+ */
+function onSubmitRequest(token) {
+    $("#request-form").submit();
+}
+
+/**
+ * Handles data-callback for submitting technical support emails when using recaptcha.
+ */
+function onSubmitTechnicalSupport(token) {
+    $("#contact-info").submit();
+}

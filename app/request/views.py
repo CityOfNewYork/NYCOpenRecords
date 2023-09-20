@@ -61,6 +61,7 @@ from app.user_request.forms import (
 from app.user_request.utils import get_current_point_of_contact
 from app import sentry
 import json
+import requests
 
 
 @request.route("/new", methods=["GET", "POST"])
@@ -97,6 +98,37 @@ def new():
     new_request_template = "request/new_request_" + template_suffix
 
     if flask_request.method == "POST":
+        if current_app.config['RECAPTCHA_ENABLED']:
+            try:
+                # Verify recaptcha token and return error if failed
+                recaptcha_response = requests.post(
+                    url='https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'
+                        .format(current_app.config["RECAPTCHA_PRIVATE_KEY"],
+                                flask_request.form["g-recaptcha-response"])).json()
+
+                if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
+                    "RECAPTCHA_THRESHOLD"]:
+                    flash('Recaptcha failed, please try again.', category='danger')
+                    return render_template(
+                        new_request_template,
+                        form=form,
+                        kiosk_mode=kiosk_mode,
+                        category=category,
+                        agency=agency,
+                        title=title,
+                    )
+            except:
+                current_app.logger.exception("Recaptcha failed to get a response.")
+                flash('Recaptcha failed, please try again.', category='danger')
+                return render_template(
+                    new_request_template,
+                    form=form,
+                    kiosk_mode=kiosk_mode,
+                    category=category,
+                    agency=agency,
+                    title=title,
+                )
+
         # validate upload with no request id available
         upload_path = None
         if form.request_file.data:
