@@ -966,6 +966,14 @@ class Requests(db.Model):
             and self.agency_request_summary_release_date < datetime.utcnow()
         )
 
+    @property
+    def requester_name(self):
+        try:
+            request_doc = es.get(index=current_app.config["ELASTICSEARCH_INDEX"], doc_type="request", id=self.id)
+            return request_doc['_source']['requester_name']
+        except Exception as e:
+            print(e)
+
     def es_update(self):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             if self.agency.is_active:

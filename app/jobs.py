@@ -7,12 +7,12 @@ from psycopg2 import OperationalError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import calendar, sentry, db
-from app.constants import OPENRECORDS_DL_EMAIL, request_status
+from app.constants import OPENRECORDS_DL_EMAIL, request_status, determination_type
 from app.constants.event_type import EMAIL_NOTIFICATION_SENT, REQ_STATUS_CHANGED
 from app.constants.response_privacy import PRIVATE
 from app.lib.db_utils import create_object, update_object
 from app.lib.email_utils import send_email
-from app.models import Agencies, Emails, Events, Requests
+from app.models import Agencies, Emails, Events, Requests, Responses, Determinations
 
 # NOTE: (For Future Reference)
 # If we find ourselves in need of a request context, app.test_request_context() might come in handy.
@@ -46,6 +46,7 @@ def _update_request_statuses():
 
     agencies = Agencies.query.with_entities(Agencies.ein).filter_by(is_active=True).all()
     for agency_ein, in agencies:
+        # Overdue requests
         requests_overdue = Requests.query.filter(
             Requests.due_date < now,
             Requests.status != request_status.CLOSED,
@@ -54,6 +55,20 @@ def _update_request_statuses():
             Requests.due_date.asc()
         ).all()
 
+        # Query for all acknowledged overdue requests
+        agency_requests_overdue = Requests.query.join(Responses, Determinations).filter(
+            Requests.due_date < now,
+            Requests.status != request_status.CLOSED,
+            Requests.agency_ein == agency_ein,
+            Determinations.dtype == determination_type.ACKNOWLEDGMENT
+        ).order_by(
+            Requests.due_date.asc()
+        ).all()
+
+        # Get the difference for all unacknowledged overdue requests
+        agency_acknowledgments_overdue = list(set(requests_overdue) - set(agency_requests_overdue))
+
+        # Due soon requests
         requests_due_soon = Requests.query.filter(
             Requests.due_date > now,
             Requests.due_date <= due_soon_date,
@@ -63,22 +78,25 @@ def _update_request_statuses():
             Requests.due_date.asc()
         ).all()
 
+        # Query for all acknowledged due soon requests
+        agency_requests_due_soon = Requests.query.join(Responses, Determinations).filter(
+            Requests.due_date > now,
+            Requests.due_date <= due_soon_date,
+            Requests.status != request_status.CLOSED,
+            Requests.agency_ein == agency_ein,
+            Determinations.dtype == determination_type.ACKNOWLEDGMENT
+        ).order_by(
+            Requests.due_date.asc()
+        ).all()
+
+        # Get the difference for all unacknowledged due soon requests
+        agency_acknowledgments_due_soon = list(set(requests_due_soon) - set(agency_requests_due_soon))
+
         if not requests_overdue and not requests_due_soon:
             continue
 
-        agency_requests_overdue = []
-        agency_acknowledgments_overdue = []
-        agency_requests_due_soon = []
-        agency_acknowledgments_due_soon = []
-
         # OVERDUE
         for request in requests_overdue:
-
-            if request.was_acknowledged:
-                agency_requests_overdue.append(request)
-            else:
-                agency_acknowledgments_overdue.append(request)
-
             if request.status != request_status.OVERDUE:
                 create_object(
                     Events(
@@ -97,12 +115,6 @@ def _update_request_statuses():
 
         # DUE SOON
         for request in requests_due_soon:
-
-            if request.was_acknowledged:
-                agency_requests_due_soon.append(request)
-            else:
-                agency_acknowledgments_due_soon.append(request)
-
             if request.status != request_status.DUE_SOON:
                 create_object(
                     Events(
