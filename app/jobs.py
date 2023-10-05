@@ -43,6 +43,7 @@ def _update_request_statuses():
     due_soon_date = calendar.addbusdays(
         now, current_app.config['DUE_SOON_DAYS_THRESHOLD']
     ).replace(hour=23, minute=59, second=59)  # the entire day
+    request_errors = []
 
     agencies = Agencies.query.with_entities(Agencies.ein).filter_by(is_active=True).all()
     for agency_ein, in agencies:
@@ -52,7 +53,7 @@ def _update_request_statuses():
             Requests.status != request_status.CLOSED,
             Requests.agency_ein == agency_ein
         ).order_by(
-            Requests.due_date.asc()
+            Requests.id.asc()
         ).all()
 
         # Query for all acknowledged overdue requests
@@ -62,11 +63,12 @@ def _update_request_statuses():
             Requests.agency_ein == agency_ein,
             Determinations.dtype == determination_type.ACKNOWLEDGMENT
         ).order_by(
-            Requests.due_date.asc()
+            Requests.id.asc()
         ).all()
 
         # Get the difference for all unacknowledged overdue requests
         agency_acknowledgments_overdue = list(set(requests_overdue) - set(agency_requests_overdue))
+        agency_acknowledgments_overdue.sort(key=lambda x: x.id)
 
         # Due soon requests
         requests_due_soon = Requests.query.filter(
@@ -91,6 +93,7 @@ def _update_request_statuses():
 
         # Get the difference for all unacknowledged due soon requests
         agency_acknowledgments_due_soon = list(set(requests_due_soon) - set(agency_requests_due_soon))
+        agency_acknowledgments_due_soon.sort(key=lambda x: x.id)
 
         if not requests_overdue and not requests_due_soon:
             continue
@@ -98,38 +101,46 @@ def _update_request_statuses():
         # OVERDUE
         for request in requests_overdue:
             if request.status != request_status.OVERDUE:
-                create_object(
-                    Events(
-                        request.id,
-                        user_guid=None,
-                        type_=REQ_STATUS_CHANGED,
-                        previous_value={"status": request.status},
-                        new_value={"status": request_status.OVERDUE},
-                        response_id=None,
+                try:
+                    update_object(
+                        {"status": request_status.OVERDUE},
+                        Requests,
+                        request.id)
+                    create_object(
+                        Events(
+                            request.id,
+                            user_guid=None,
+                            type_=REQ_STATUS_CHANGED,
+                            previous_value={"status": request.status},
+                            new_value={"status": request_status.OVERDUE},
+                            response_id=None,
+                        )
                     )
-                )
-                update_object(
-                    {"status": request_status.OVERDUE},
-                    Requests,
-                    request.id)
+                except Exception:
+                    request_errors.append(
+                        (request.id, traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")))
 
         # DUE SOON
         for request in requests_due_soon:
             if request.status != request_status.DUE_SOON:
-                create_object(
-                    Events(
-                        request.id,
-                        user_guid=None,
-                        type_=REQ_STATUS_CHANGED,
-                        previous_value={"status": request.status},
-                        new_value={"status": request_status.DUE_SOON},
-                        response_id=None,
+                try:
+                    update_object(
+                        {"status": request_status.DUE_SOON},
+                        Requests,
+                        request.id)
+                    create_object(
+                        Events(
+                            request.id,
+                            user_guid=None,
+                            type_=REQ_STATUS_CHANGED,
+                            previous_value={"status": request.status},
+                            new_value={"status": request_status.DUE_SOON},
+                            response_id=None,
+                        )
                     )
-                )
-                update_object(
-                    {"status": request_status.DUE_SOON},
-                    Requests,
-                    request.id)
+                except Exception:
+                    request_errors.append(
+                        (request.id, traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")))
 
         # mail to agency admins for each agency
         user_emails = list(set(admin.notification_email or admin.email for admin
@@ -171,6 +182,13 @@ def _update_request_statuses():
                 timestamp=datetime.utcnow()
             )
         )
+    send_email(
+        'Update Request Statuses Job Finished',
+        to=[OPENRECORDS_DL_EMAIL],
+        template='email_templates/email_update_request_statuses_job_finished',
+        timestamp=str(datetime.utcnow()),
+        request_errors=request_errors
+    )
 
 
 @celery.task(autoretry_for=(OperationalError, SQLAlchemyError,), retry_kwargs={'max_retries': 5}, retry_backoff=True)

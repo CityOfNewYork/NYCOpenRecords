@@ -34,6 +34,45 @@ def index():
             Users,
             current_user.guid
         )
+    from app import es
+    # test = es.get(index=current_app.config["ELASTICSEARCH_INDEX"],doc_type="request",id='FOIL-2023-071-00242')
+    # print(test['_source']['requester_name'])
+
+    from datetime import datetime
+    from app import calendar
+    from app.models import Requests, Determinations, Responses
+    from app.constants import request_status, determination_type
+    now = datetime.utcnow()
+    due_soon_date = calendar.addbusdays(
+        now, current_app.config['DUE_SOON_DAYS_THRESHOLD']
+    ).replace(hour=23, minute=59, second=59)  # the entire day
+
+    requests_overdue = Requests.query.filter(
+        Requests.due_date < now,
+        Requests.status != request_status.CLOSED,
+        Requests.agency_ein == '0836'
+    ).order_by(
+        Requests.due_date.asc()
+    ).all()
+
+    acknowledged_requests_overdue = Requests.query.join(Responses, Determinations).filter(
+        Requests.due_date < now,
+        Requests.status != request_status.CLOSED,
+        Requests.agency_ein == '0836',
+        Determinations.dtype == determination_type.ACKNOWLEDGMENT
+    ).order_by(
+        Requests.due_date.asc()
+    ).all()
+
+    unacknowledged_requests_overdue = list(set(requests_overdue) - set(acknowledged_requests_overdue))
+    # unacknowledged_requests_overdue = list(unacknowledged_requests_overdue)
+
+    print()
+    print(requests_overdue)
+    print()
+    print(acknowledged_requests_overdue)
+    print()
+    print(unacknowledged_requests_overdue)
     return render_template('main/home.html')
 
 
