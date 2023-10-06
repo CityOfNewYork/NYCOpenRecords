@@ -77,7 +77,7 @@ def _update_request_statuses():
             Requests.status != request_status.CLOSED,
             Requests.agency_ein == agency_ein
         ).order_by(
-            Requests.due_date.asc()
+            Requests.id.asc()
         ).all()
 
         # Query for all acknowledged due soon requests
@@ -88,7 +88,7 @@ def _update_request_statuses():
             Requests.agency_ein == agency_ein,
             Determinations.dtype == determination_type.ACKNOWLEDGMENT
         ).order_by(
-            Requests.due_date.asc()
+            Requests.id.asc()
         ).all()
 
         # Get the difference for all unacknowledged due soon requests
