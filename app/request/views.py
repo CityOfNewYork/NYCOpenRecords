@@ -108,6 +108,7 @@ def new():
 
                 if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
                     "RECAPTCHA_THRESHOLD"]:
+                    current_app.logger.exception("Recaptcha failed to verify response.\n\n{}".format(recaptcha_response))
                     flash('Recaptcha failed, please try again.', category='danger')
                     return render_template(
                         new_request_template,
