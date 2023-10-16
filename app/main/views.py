@@ -57,12 +57,13 @@ def technical_support():
 
                 if recaptcha_response['success'] is False or recaptcha_response['score'] < current_app.config[
                     "RECAPTCHA_THRESHOLD"]:
+                    current_app.logger.exception("Recaptcha failed to verify response.\n\n{}".format(recaptcha_response))
                     flash('Recaptcha failed, please try again.', category='danger')
-                    render_template('main/contact.html')
+                    return render_template('main/contact.html')
             except:
                 current_app.logger.exception("Recaptcha failed to get a response.")
                 flash('Recaptcha failed, please try again.', category='danger')
-                render_template('main/contact.html')
+                return render_template('main/contact.html')
 
         name = request.form.get('name')
         email = request.form.get('email')
