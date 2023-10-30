@@ -33,7 +33,7 @@
                 <p id="message-character-count" class="character-counter">5000 characters remaining</p>
 
                 <br>
-                {% if config['RECAPTCHA_ENABLED'] %}
+                {% if config['RECAPTCHA_ENABLED'] and not current_user.is_agency %}
                     <input id="send"
                            name="send"
                            type="submit"

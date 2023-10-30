@@ -98,7 +98,7 @@ def new():
     new_request_template = "request/new_request_" + template_suffix
 
     if flask_request.method == "POST":
-        if current_app.config['RECAPTCHA_ENABLED']:
+        if current_app.config['RECAPTCHA_ENABLED'] and not current_user.is_agency:
             try:
                 # Verify recaptcha token and return error if failed
                 recaptcha_response = requests.post(
