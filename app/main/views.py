@@ -47,7 +47,7 @@ def status():
 @main.route('/technical-support', methods=['GET', 'POST'])
 def technical_support():
     if request.method == 'POST':
-        if current_app.config['RECAPTCHA_ENABLED']:
+        if current_app.config['RECAPTCHA_ENABLED'] and not current_user.is_agency:
             try:
                 # Verify recaptcha token and return error if failed
                 recaptcha_response = requests.post(

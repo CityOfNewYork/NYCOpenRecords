@@ -245,18 +245,7 @@
                     placeholder="12345") }}<br>
                 </div>
                 <input type="hidden" name="tz-name">
-                {% if config['RECAPTCHA_ENABLED'] %}
-                    <input id="submit"
-                           class="g-recaptcha btn-primary"
-                           value="Submit Request"
-                           aria-label="Submit request button"
-                           type="submit"
-                           data-sitekey='{{ config['RECAPTCHA_PUBLIC_KEY'] }}'
-                           data-callback='onSubmitRequest'
-                           data-action='newRequestAgency'>
-                {% else %}
-                    {{ form.submit(id="submit", class="btn-primary") }}
-                {% endif %}
+                {{ form.submit(id="submit", class="btn-primary") }}
                 {% include "request/_pii_warning_modal.html" %}
                 <span id="processing-submission" hidden>
                     <img src="{{ url_for("static", filename="img/loading.gif") }}"
