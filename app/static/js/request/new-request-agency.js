@@ -12,12 +12,10 @@
 "use strict";
 
 $(document).ready(function () {
-    $(window).on("load", function () {
-        // Determine if the agencyRequestInstructions and custom request forms need to be shown on page load.
-        getRequestAgencyInstructions();
-        // Check for custom request forms on page load (browser back button behavior).
-        getCustomRequestForms($("#request-agency").val());
-    });
+    // Determine if the agencyRequestInstructions and custom request forms need to be shown on page load.
+    getRequestAgencyInstructions();
+    // Check for custom request forms on page load (browser back button behavior).
+    getCustomRequestForms($("#request-agency").val());
 
     $("input[name='tz-name']").val(jstz.determine().name());
 
