@@ -10,26 +10,24 @@
     "use strict";
 
     $(document).ready(function () {
-        $(window).on("load", function () {
-            {% if kiosk_mode %}
-                $("#request-category").prop('disabled', true);
-                $("#request-agency").prop('disabled', true);
-                $("#request-title").prop('disabled', true);
-            {% endif %}
-            {% if category %}
-                $("#request-category option[value=\"{{ category }}\"]").attr('selected', 'selected');
-            {% endif %}
-            {% if agency %}
-                $("#request-agency option[value={{ agency }}]").attr('selected', 'selected');
-            {% endif %}
-            {% if title %}
-                $("#request-title").val("{{ title }}");
-            {% endif %}
-            // Determine if the agencyRequestInstructions need to be shown on page load.
-            getRequestAgencyInstructions();
-            // Check for custom request forms on page load (browser back button behavior).
-            getCustomRequestForms($("#request-agency").val());
-        });
+        {% if kiosk_mode %}
+            $("#request-category").prop('disabled', true);
+            $("#request-agency").prop('disabled', true);
+            $("#request-title").prop('disabled', true);
+        {% endif %}
+        {% if category %}
+            $("#request-category option[value=\"{{ category }}\"]").attr('selected', 'selected');
+        {% endif %}
+        {% if agency %}
+            $("#request-agency option[value={{ agency }}]").attr('selected', 'selected');
+        {% endif %}
+        {% if title %}
+            $("#request-title").val("{{ title }}");
+        {% endif %}
+        // Determine if the agencyRequestInstructions need to be shown on page load.
+        getRequestAgencyInstructions();
+        // Check for custom request forms on page load (browser back button behavior).
+        getCustomRequestForms($("#request-agency").val());
 
         $("input[name='tz-name']").val(jstz.determine().name());
 
