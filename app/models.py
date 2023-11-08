@@ -2021,6 +2021,7 @@ class CustomRequestForms(db.Model):
     category - an integer to separate different types of custom forms for an agency
     minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
     order - an integer to determine sorting order when displaying form options in the dropdown
+    is_active - a boolean to determine if the custom request form is actively being used by the agency or not
     """
 
     __tablename__ = "custom_request_forms"
@@ -2033,6 +2034,7 @@ class CustomRequestForms(db.Model):
     category = db.Column(db.Integer, nullable=True)
     minimum_required = db.Column(db.Integer, nullable=True)
     order = db.Column(db.Integer, nullable=True)
+    is_active = db.Column(db.Boolean, nullable=True)
 
     @classmethod
     def populate(cls, json_name=None):
