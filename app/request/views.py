@@ -141,8 +141,17 @@ def new():
                 )
 
         custom_metadata = json.loads(
-            flask_request.form.get("custom-request-forms-data", {})
+            flask_request.form.get("custom-request-forms-data", '{}')
         )
+        # validate that custom_metadata JSON has data if custom request forms are enabled for the agency
+        agency_ein = (form.request_agency.data
+                      if form.request_agency.data != "None"
+                      else current_user.default_agency_ein)
+        agency_object = Agencies.query.filter_by(ein=agency_ein).first()
+        if agency_object.agency_features["custom_request_forms"]["enabled"] and not custom_metadata:
+            flash('An unexpected error occurred. Please reload the page and try submitting your request again.',
+                  category='danger')
+            return redirect(url_for("request.new"))
         # validate that form_name exists in custom_metadata JSON
         for key,value in custom_metadata.items():
             form_name = value.get('form_name', None)
