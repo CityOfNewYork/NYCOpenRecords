@@ -541,6 +541,7 @@ def contact_agency(request_id):
         )
         flash("Your message has been sent.", category="success")
     else:
+        current_app.logger.exception("Contact the agency error: {}\n\n{}".format(current_request.id, form.errors))
         flash(
             "There was a problem sending your message. Please try again.",
             category="danger",
