@@ -602,6 +602,6 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
     send_contact_email(
         subject,
         agency_emails,
-        message,
+        body,
         email
     )
