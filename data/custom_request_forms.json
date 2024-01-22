@@ -480,7 +480,7 @@
     },
     {
       "agency_ein": "0057",
-      "form_name": "911 Call Report (CAD) (NOT Ambulance Call Report/ Pre-Hospital Care Report)",
+      "form_name": "911 Call Report (CAD) (NOT Ambulance Call Report/Pre-Hospital Care Report)",
       "form_description": "<p>Please note this Request Type should be used for those requesting 911 Call Report not Ambulance Reports. Instructions for obtaining Ambulance Call Reports can be found under Agency Instructions above. <strong>Please complete all the required fields below.</strong></p>",
       "field_definitions": [
         {
@@ -822,6 +822,40 @@
             "max_length": 5000,
             "character_counter": true,
             "help_text": "Please provide a short description of the incident. If Vehicle/Transportation was selected above, please make sure to provide the Type, Make, and Plate of the vehicle."
+          }
+        }
+      ],
+      "repeatable": "1",
+      "category": "1",
+      "minimum_required": "0"
+    },
+    {
+      "agency_ein": "0057",
+      "form_name": "Multi-Part Request",
+      "form_description": "For requests consisting of multiple items (even if listed individually on this page), please choose this option.",
+      "field_definitions": [
+        {
+          "Submission Method": {
+            "type": "radio",
+            "name": "fdny-form10-field1",
+            "values": [
+              "In Person/At FDNY",
+              "Online/At Home"
+            ],
+            "help_text": "Please select an option.",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Submission Method is required.</strong> Please select an option."
+          }
+        },
+        {
+          "Description of Records": {
+            "type": "textarea",
+            "name": "fdny-form10-field2",
+            "required": true,
+            "error_message": "<span class=\"glyphicon glyphicon-exclamation-sign\"></span>&nbsp;<strong>Error, Description of Records is required.</strong> Please provide a short description.",
+            "max_length": 5000,
+            "character_counter": true,
+            "help_text": "Please provide a short description of the records you are requesting."
           }
         }
       ],

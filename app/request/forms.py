@@ -489,12 +489,19 @@ class SearchRequestsForm(Form):
                 self.agency_user.default = current_user.get_id()
 
             if default_agency.agency_features["custom_request_forms"]["enabled"]:
-                self.request_type.choices = [
+                active_forms = [
                     (custom_request_form.form_name, custom_request_form.form_name)
                     for custom_request_form in CustomRequestForms.query.filter_by(
-                        agency_ein=default_agency.ein
+                        agency_ein=default_agency.ein, is_active=True
                     ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
                 ]
+                inactive_forms = [
+                    (custom_request_form.form_name, "(Inactive) " + custom_request_form.form_name)
+                    for custom_request_form in CustomRequestForms.query.filter_by(
+                        agency_ein=default_agency.ein, is_active=False
+                    ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
+                ]
+                self.request_type.choices = active_forms + inactive_forms
                 self.request_type.choices.insert(0, ("", "All"))
 
             # process form for default values

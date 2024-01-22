@@ -90,7 +90,7 @@ def get_custom_request_form_options(agency_ein):
                                                                   CustomRequestForms.repeatable,
                                                                   CustomRequestForms.category,
                                                                   CustomRequestForms.minimum_required).filter_by(
-        agency_ein=agency_ein).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
+        agency_ein=agency_ein, is_active=True).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
     return jsonify(custom_request_forms), 200
 
 
@@ -175,12 +175,19 @@ def get_request_types(agency_ein):
     if current_user.is_agency_active(agency_ein):
         agency = Agencies.query.filter_by(ein=agency_ein).one_or_none()
         if agency is not None and agency.agency_features['custom_request_forms']['enabled']:
-            request_types = [
+            active_request_types = [
                 (custom_request_form.form_name, custom_request_form.form_name)
                 for custom_request_form in CustomRequestForms.query.filter_by(
-                    agency_ein=agency_ein
+                    agency_ein=agency_ein, is_active=True
                 ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
             ]
+            inactive_request_types = [
+                (custom_request_form.form_name, "(Inactive) " + custom_request_form.form_name)
+                for custom_request_form in CustomRequestForms.query.filter_by(
+                    agency_ein=agency_ein, is_active=False
+                ).order_by(asc(CustomRequestForms.category), asc(CustomRequestForms.order)).all()
+            ]
+            request_types = active_request_types + inactive_request_types
             request_types.insert(0, ("", "All"))
             return jsonify({"request_types": request_types}), 200
 

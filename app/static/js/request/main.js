@@ -133,12 +133,12 @@ function getRequestAgencyInstructions() {
 }
 
 // handle text change for agency instruction panel title
-$('#collapse-agency-instructions').on('shown.bs.collapse', function () {
-    $('#agency-instructions-title-text').html("<span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span>");
-});
-
-$('#collapse-agency-instructions').on('hidden.bs.collapse', function () {
-    $('#agency-instructions-title-text').html("<span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span>");
+$("#agency-instructions-title-text").on("click", function () {
+    if ($("#agency-instructions-title-text").hasClass("collapsed")) {
+        $("#agency-instructions-title-text").html("<span class=\"glyphicon glyphicon-chevron-up\"></span>&nbsp;&nbsp;Hide Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-up\"></span>");
+    } else {
+        $("#agency-instructions-title-text").html("<span class=\"glyphicon glyphicon-chevron-down\"></span>&nbsp;&nbsp;Show Agency Instructions&nbsp;&nbsp;<span class=\"glyphicon glyphicon-chevron-down\"></span>");
+    }
 });
 
 // variables used to handle custom forms
@@ -157,7 +157,7 @@ var currentCategory = ""; // tracks the current category that can be submitted f
 var categorySelected = false; // a flag that determines if a category has been set yet or not
 var categoryDividerText = "────────────────────";
 var defaultInfoText = "Note: The request details written here will not be visible to the public. However, this agency may post a description of the records provided.";
-var defaultCateogryInfoText = "This agency has categorized the different types of requests a user can submit and they are separated in the dropdown below. This request may have multiple submissions of only one category.";
+var defaultCategoryInfoText = "This agency has categorized the different types of requests a user can submit and they are separated in the dropdown below. This request may have multiple submissions of only one category.";
 var defaultCategoryWarningText = "Selecting this option will remove any existing information for other request types. Are you sure you want to change categories?";
 var currentAgency = ""; // tracks the current agency that has been selected
 var originalFormNames = {}; // tracks the original text for a form option
@@ -216,7 +216,7 @@ function getCustomRequestForms(agencyEin) {
                     if (data["custom_request_forms"]["category_info_text"]) {
                         $("#request-info-text").html(defaultInfoText.bold() + " " + data["custom_request_forms"]["category_info_text"].bold());
                     } else {
-                        $("#request-info-text").html(defaultInfoText.bold() + " " + defaultCateogryInfoText.bold());
+                        $("#request-info-text").html(defaultInfoText.bold() + " " + defaultCategoryInfoText.bold());
                     }
                     if (data["custom_request_forms"]["category_warning_text"]) {
                         $("#category-warning-text").html(data["custom_request_forms"]["category_warning_text"]);
