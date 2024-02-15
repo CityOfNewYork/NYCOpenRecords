@@ -35,8 +35,8 @@ def send_async_email(msg):
         current_app.logger.exception("Failed to Send Email {} : {}".format(msg, e))
 
 
-def send_contact_email(subject, recipients, body, reply_to):
-    msg = Message(subject, recipients, body, sender=current_app.config['MAIL_SENDER'], reply_to=reply_to)
+def send_contact_email(subject, recipients, body, sender, reply_to):
+    msg = Message(subject, recipients, body, sender=sender, reply_to=reply_to)
     send_async_email.delay(msg)
 
 
