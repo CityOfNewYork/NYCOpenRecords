@@ -85,9 +85,9 @@ def technical_support():
                 )
             )
             if current_user.is_agency:
-                send_contact_email(subject, [current_app.config['OPENRECORDS_AGENCY_SUPPORT_DL']], body, email)
+                send_contact_email(subject, [current_app.config['OPENRECORDS_AGENCY_SUPPORT_DL']], body, email, None)
             else:
-                send_contact_email(subject, [OPENRECORDS_DL_EMAIL], body, email)
+                send_contact_email(subject, [OPENRECORDS_DL_EMAIL], body, current_app.config['MAIL_SENDER'], email)
             flash('Your message has been sent. We will get back to you.', category='success')
         else:
             flash('Cannot send email.', category='danger')

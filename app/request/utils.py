@@ -603,5 +603,6 @@ def create_contact_record(request, first_name, last_name, email, subject, messag
         subject,
         agency_emails,
         body,
+        current_app.config['MAIL_SENDER'],
         email
     )
