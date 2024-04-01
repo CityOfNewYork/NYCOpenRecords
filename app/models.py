@@ -1019,7 +1019,7 @@ class Requests(db.Model):
                             if self.privacy["title"]
                             else self.title,
                             "agency_name": self.agency.name,
-                            "agency_acronym": self.agency.acronym
+                            "agency_acronym": self.agency.acronym,
                             "request_type": [metadata["form_name"] for metadata in self.custom_metadata.values()]
                         }
                     },
