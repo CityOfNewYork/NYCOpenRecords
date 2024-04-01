@@ -980,6 +980,14 @@ class Requests(db.Model):
             and self.agency_request_summary_release_date < datetime.utcnow()
         )
 
+    @property
+    def requester_name(self):
+        try:
+            request_doc = es.get(index=current_app.config["ELASTICSEARCH_INDEX"], doc_type="request", id=self.id)
+            return request_doc['_source']['requester_name']
+        except Exception as e:
+            print(e)
+
     def es_update(self):
         if current_app.config["ELASTICSEARCH_ENABLED"]:
             if self.agency.is_active:
@@ -1012,6 +1020,7 @@ class Requests(db.Model):
                             else self.title,
                             "agency_name": self.agency.name,
                             "agency_acronym": self.agency.acronym
+                            "request_type": [metadata["form_name"] for metadata in self.custom_metadata.values()]
                         }
                     },
                     # refresh='wait_for'
@@ -2025,6 +2034,8 @@ class CustomRequestForms(db.Model):
     repeatable - an integer the determines if that form is repeatable. 0 = not repeatable, 1 = can be added twice, etc.
     category - an integer to separate different types of custom forms for an agency
     minimum_required - an integer to dictates the minimum amount of fields required for a successful submission
+    order - an integer to determine sorting order when displaying form options in the dropdown
+    is_active - a boolean to determine if the custom request form is actively being used by the agency or not
     """
 
     __tablename__ = "custom_request_forms"
@@ -2036,6 +2047,8 @@ class CustomRequestForms(db.Model):
     repeatable = db.Column(db.Integer, nullable=False)
     category = db.Column(db.Integer, nullable=True)
     minimum_required = db.Column(db.Integer, nullable=True)
+    order = db.Column(db.Integer, nullable=True)
+    is_active = db.Column(db.Boolean, nullable=True)
 
     @classmethod
     def populate(cls, json_name=None):

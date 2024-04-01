@@ -534,7 +534,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         Files.name,
         Responses.dataset_description).filter(
         Requests.agency_ein == agency_ein,
-        Requests.date_submitted.between(date_from, date_to),
+        Responses.date_modified.between(date_from, date_to),
         Responses.privacy != PRIVATE,
         Responses.is_dataset == True).all()
 
@@ -557,7 +557,7 @@ def generate_open_data_report(agency_ein: str, date_from: datetime, date_to: dat
         Responses.dataset_description,
         Links.url).filter(
         Requests.agency_ein == agency_ein,
-        Requests.date_submitted.between(date_from, date_to),
+        Responses.date_modified.between(date_from, date_to),
         Responses.privacy != PRIVATE,
         Responses.is_dataset == True).all()
 

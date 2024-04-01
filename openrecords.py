@@ -277,15 +277,7 @@ def extend_requests(agency_ein: str, agency_name: str, user_guid: str, extension
 
 @app.cli.command()
 def update_request_statuses():
-    try:
-        _update_request_statuses()
-    except Exception:
-        db.session.rollback()
-        send_email(
-            subject="Update Request Statuses Failure",
-            to=[OPENRECORDS_DL_EMAIL],
-            email_content=traceback.format_exc().replace("\n", "<br/>").replace(" ", "&nbsp;")
-        )
+    _update_request_statuses()
 
 
 @app.cli.command
